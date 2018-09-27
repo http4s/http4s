@@ -280,7 +280,7 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
     </li><li class="current-entities indented3">
                         <a class="object" href="Client$.html" title=""></a>
-                        <a class="class" href="" title="A Client submits Requests to a server and processes the Response."></a>
+                        <a class="trait" href="" title="A Client submits Requests to a server and processes the Response."></a>
                         <a href="" title="A Client submits Requests to a server and processes the Response.">Client</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
@@ -290,10 +290,6 @@
                         <a class="object" href="ConnectionManager$.html" title=""></a>
                         <a class="trait" href="ConnectionManager.html" title="Type that is responsible for the client lifecycle"></a>
                         <a href="ConnectionManager.html" title="Type that is responsible for the client lifecycle">ConnectionManager</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="class" href="DisposableResponse.html" title="Contains a Response that needs to be disposed of to free the underlying HTTP connection."></a>
-                        <a href="DisposableResponse.html" title="Contains a Response that needs to be disposed of to free the underlying HTTP connection.">DisposableResponse</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="JavaNetClientBuilder$.html" title="Builder for a Client backed by on java.net.HttpUrlConnection."></a>
                         <a class="class" href="JavaNetClientBuilder.html" title="Builder for a Client backed by on java.net.HttpUrlConnection."></a>
@@ -319,9 +315,9 @@
             </div>
           </div>
           <div id="content">
-            <body class="class type">
+            <body class="trait type">
       <div id="definition">
-        <a href="Client$.html" title="See companion object"><div class="big-circle class-companion-object">c</div></a>
+        <a href="Client$.html" title="See companion object"><div class="big-circle trait-companion-object">t</div></a>
         <p id="owner"><a href="../../index.html" class="extype" name="org">org</a>.<a href="../index.html" class="extype" name="org.http4s">http4s</a>.<a href="index.html" class="extype" name="org.http4s.client">client</a></p>
         <h1><a href="Client$.html" title="See companion object">Client</a><span class="permalink">
       <a href="../../../org/http4s/client/Client.html" title="Permalink">
@@ -335,24 +331,21 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">Client</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="open">open: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Client</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A <a href="" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.
-</p></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
-            a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>an effect to shut down this client, closing any
-                open connections and freeing resources</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -378,7 +371,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.client.Client"><span>Client</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.client.Client"><span>Client</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -401,36 +394,546 @@
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.client.Client#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(open:cats.data.Kleisli[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]],shutdown:F[Unit])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]"></a><a id="&lt;init&gt;:Client[F]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#&lt;init&gt;(open:cats.data.Kleisli[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]],shutdown:F[Unit])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Client</span><span class="params">(<span name="open">open: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span>
-      </span>
-      
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
-            a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>an effect to shut down this client, closing any
-                open connections and freeing resources</p></dd></dl></div>
-    </li></ol>
-            </div>
-
         
 
         
 
         <div class="values members">
-              <h3>Value Members</h3>
+              <h3>Abstract Value Members</h3>
+              <ol><li name="org.http4s.client.Client#expect" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="expect[A](s:String)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expect[A](String)(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expect[A](s:String)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a GET request to the URI specified by the String and decodes the
+response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request to the URI specified by the String and decodes the
+response on success.  On failure, the status code is returned.  The
+underlying HTTP connection is closed at the completion of the decoding.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#expect" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="expect[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expect[A](Uri)(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expect[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a GET request to the specified URI and decodes the response on
+success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request to the specified URI and decodes the response on
+success.  On failure, the status code is returned.  The underlying HTTP
+connection is closed at the completion of the decoding.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#expect" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="expect[A](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expect[A](F[Request[F]])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expect[A](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#expect" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="expect[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expect[A](Request[F])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expect[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request and decodes the response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response on success.  On failure, the
+status code is returned.  The underlying HTTP connection is closed at the
+completion of the decoding.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="expectOr[A](s:String)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](String)((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expectOr[A](s:String)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expectOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="expectOr[A](uri:org.http4s.Uri)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](Uri)((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expectOr[A](uri:org.http4s.Uri)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expectOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="expectOr[A](req:F[org.http4s.Request[F]])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](F[Request[F]])((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expectOr[A](req:F[org.http4s.Request[F]])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expectOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="expectOr[A](req:org.http4s.Request[F])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](Request[F])((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expectOr[A](req:org.http4s.Request[F])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expectOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#fetch" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="fetch[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;F[A]):F[A]"></a><a id="fetch[A](F[Request[F]])((Response[F])⇒F[A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#fetch[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;F[A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fetch</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetch.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetch.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request, and provides a callback to process the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request, and provides a callback to process the response.
+</p></div><dl class="paramcmts block"><dt class="param">req</dt><dd class="cmt"><p>An effect of the request to submit</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to req.  The underlying HTTP connection
+         is disposed when the returned task completes.  Attempts to read the
+         response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#fetch" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="fetch[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;F[A]):F[A]"></a><a id="fetch[A](Request[F])((Response[F])⇒F[A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#fetch[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;F[A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fetch</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetch.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetch.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request, and provides a callback to process the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request, and provides a callback to process the response.
+</p></div><dl class="paramcmts block"><dt class="param">req</dt><dd class="cmt"><p>The request to submit</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to req.  The underlying HTTP connection
+           is disposed when the returned task completes.  Attempts to read the
+           response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#fetchAs" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="fetchAs[A](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="fetchAs[A](F[Request[F]])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#fetchAs[A](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fetchAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request and decodes the response, regardless of the status code.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response, regardless of the status code.
+The underlying HTTP connection is closed at the completion of the
+decoding.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#fetchAs" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="fetchAs[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="fetchAs[A](Request[F])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#fetchAs[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fetchAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request and decodes the response, regardless of the status code.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response, regardless of the status code.
+The underlying HTTP connection is closed at the completion of the
+decoding.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#get" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="get[A](s:String)(f:org.http4s.Response[F]=&gt;F[A]):F[A]"></a><a id="get[A](String)((Response[F])⇒F[A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#get[A](s:String)(f:org.http4s.Response[F]=&gt;F[A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">get</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request and decodes the response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response on success.  On failure, the
+status code is returned.  The underlying HTTP connection is closed at the
+completion of the decoding.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#get" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="get[A](uri:org.http4s.Uri)(f:org.http4s.Response[F]=&gt;F[A]):F[A]"></a><a id="get[A](Uri)((Response[F])⇒F[A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#get[A](uri:org.http4s.Uri)(f:org.http4s.Response[F]=&gt;F[A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">get</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a GET request, and provides a callback to process the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request, and provides a callback to process the response.
+</p></div><dl class="paramcmts block"><dt class="param">uri</dt><dd class="cmt"><p>The URI to GET</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to a GET on uri.  The underlying HTTP connection
+         is disposed when the returned task completes.  Attempts to read the
+         response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#run" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="run(req:org.http4s.Request[F]):cats.effect.Resource[F,org.http4s.Response[F]]"></a><a id="run(Request[F]):Resource[F,Response[F]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#run(req:org.http4s.Request[F]):cats.effect.Resource[F,org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">run</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#status" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="status(req:F[org.http4s.Request[F]]):F[org.http4s.Status]"></a><a id="status(F[Request[F]]):F[Status]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#status(req:F[org.http4s.Request[F]]):F[org.http4s.Status]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">status</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request and returns the response status</p>
+    </li><li name="org.http4s.client.Client#status" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="status(req:org.http4s.Request[F]):F[org.http4s.Status]"></a><a id="status(Request[F]):F[Status]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#status(req:org.http4s.Request[F]):F[org.http4s.Status]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">status</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request and returns the response status</p>
+    </li><li name="org.http4s.client.Client#streaming" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]"></a><a id="streaming[A](F[Request[F]])((Response[F])⇒Stream[F,A]):Stream[F,A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#streaming" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="streaming[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]"></a><a id="streaming[A](Request[F])((Response[F])⇒Stream[F,A]):Stream[F,A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#streaming[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#successful" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="successful(req:F[org.http4s.Request[F]]):F[Boolean]"></a><a id="successful(F[Request[F]]):F[Boolean]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#successful(req:F[org.http4s.Request[F]]):F[Boolean]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">successful</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request and returns true if and only if the response status is
+successful</p>
+    </li><li name="org.http4s.client.Client#successful" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="successful(req:org.http4s.Request[F]):F[Boolean]"></a><a id="successful(Request[F]):F[Boolean]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#successful(req:org.http4s.Request[F]):F[Boolean]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">successful</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a request and returns true if and only if the response status is
+successful</p>
+    </li><li name="org.http4s.client.Client#toHttpApp" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="toHttpApp:org.http4s.HttpApp[F]"></a><a id="toHttpApp:HttpApp[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#toHttpApp:org.http4s.HttpApp[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toHttpApp</span><span class="result">: <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>.  It is the responsibility of
+callers of this service to run the response body to dispose of the
+underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <code>fetch</code>, <code>fetchAs</code>,
+<a href="#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" class="extmbr" name="org.http4s.client.Client#toKleisli">toKleisli</a>, and <a href="#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
+signatures guarantee disposal of the HTTP connection.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#toKleisli" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]"></a><a id="toKleisli[A]((Response[F])⇒F[A]):Kleisli[F,Request[F],A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toKleisli</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.toKleisli.A">A</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <span class="extype" name="org.http4s.client.Client.toKleisli.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns this client as a <span class="extype" name="Kleisli">Kleisli</span>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as a <span class="extype" name="Kleisli">Kleisli</span>.  All connections created by this
+service are disposed on completion of callback task f.</p><p>This method effectively reverses the arguments to <code>fetch</code>, and is
+preferred when an HTTP client is composed into a larger Kleisli function,
+or when a common response callback is used by many call sites.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#getAs" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="getAs[A](String)(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#getAs" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="getAs[A](Uri)(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Submits a GET request and decodes the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request and decodes the response.  The underlying HTTP
+connection is closed at the completion of the decoding.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#prepAs" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="prepAs[T](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,T]):F[T]"></a><a id="prepAs[T](F[Request[F]])(EntityDecoder[F,T]):F[T]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#prepAs[T](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,T]):F[T]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">prepAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.prepAs.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.prepAs.T">T</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#prepAs" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="prepAs[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="prepAs[A](Request[F])(EntityDecoder[F,A]):F[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#prepAs[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">prepAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#toHttpService" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="toHttpService:org.http4s.HttpService[F]"></a><a id="toHttpService:HttpService[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#toHttpService:org.http4s.HttpService[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19) Use toHttpApp. Call .mapF(OptionT.liftF) if OptionT is really desired.">toHttpService</span><span class="result">: <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.  It is the
+responsibility of callers of this service to run the response
+body to dispose of the underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <code>fetch</code>, <code>fetchAs</code>,
+<a href="#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" class="extmbr" name="org.http4s.client.Client#toKleisli">toKleisli</a>, and <a href="#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
+signatures guarantee disposal of the HTTP connection.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Use toHttpApp. Call <code>.mapF(OptionT.liftF)</code> if OptionT is really desired.</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#toService" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]"></a><a id="toService[A]((Response[F])⇒F[A]):Service[F,Request[F],A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.18) Use toKleisli">toService</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.toService.A">A</span>]</span>)</span><span class="result">: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <span class="extype" name="org.http4s.client.Client.toService.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18)</i> Use toKleisli</p></dd></dl></div>
+    </li></ol>
+            </div>
+
+        <div class="values members">
+              <h3>Concrete Value Members</h3>
               <ol>
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
@@ -659,10 +1162,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.client.Client#expect" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="expect[A](s:String)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expect[A](String)(EntityDecoder[F,A]):F[A]"></a>
+    </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#expect[A](s:String)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
+      <a href="../../../org/http4s/client/Client.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -671,209 +1174,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
-      <p class="shortcomment cmt">Submits a GET request to the URI specified by the String and decodes the
-response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request to the URI specified by the String and decodes the
-response on success.  On failure, the status code is returned.  The
-underlying HTTP connection is closed at the completion of the decoding.
-</p></div></div>
-    </li><li name="org.http4s.client.Client#expect" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="expect[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expect[A](Uri)(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#expect[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a GET request to the specified URI and decodes the response on
-success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request to the specified URI and decodes the response on
-success.  On failure, the status code is returned.  The underlying HTTP
-connection is closed at the completion of the decoding.
-</p></div></div>
-    </li><li name="org.http4s.client.Client#expect" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="expect[A](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expect[A](F[Request[F]])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#expect[A](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#expect" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="expect[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expect[A](Request[F])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#expect[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request and decodes the response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response on success.  On failure, the
-status code is returned.  The underlying HTTP connection is closed at the
-completion of the decoding.
-</p></div></div>
-    </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="expectOr[A](s:String)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](String)((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#expectOr[A](s:String)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">expectOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="expectOr[A](uri:org.http4s.Uri)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](Uri)((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#expectOr[A](uri:org.http4s.Uri)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">expectOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="expectOr[A](req:F[org.http4s.Request[F]])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](F[Request[F]])((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#expectOr[A](req:F[org.http4s.Request[F]])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">expectOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="expectOr[A](req:org.http4s.Request[F])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](Request[F])((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#expectOr[A](req:org.http4s.Request[F])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">expectOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.expectOr.A">A</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#fetch" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="fetch[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;F[A]):F[A]"></a><a id="fetch[A](F[Request[F]])((Response[F])⇒F[A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#fetch[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;F[A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">fetch</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetch.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetch.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request, and provides a callback to process the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request, and provides a callback to process the response.
-</p></div><dl class="paramcmts block"><dt class="param">req</dt><dd class="cmt"><p>An effect of the request to submit</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to req.  The underlying HTTP connection
-         is disposed when the returned task completes.  Attempts to read the
-         response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#fetch" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="fetch[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;F[A]):F[A]"></a><a id="fetch[A](Request[F])((Response[F])⇒F[A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#fetch[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;F[A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">fetch</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetch.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetch.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request, and provides a callback to process the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request, and provides a callback to process the response.
-</p></div><dl class="paramcmts block"><dt class="param">req</dt><dd class="cmt"><p>The request to submit</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to req.  The underlying HTTP connection
-           is disposed when the returned task completes.  Attempts to read the
-           response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#fetchAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="fetchAs[A](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="fetchAs[A](F[Request[F]])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#fetchAs[A](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">fetchAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request and decodes the response, regardless of the status code.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response, regardless of the status code.
-The underlying HTTP connection is closed at the completion of the
-decoding.
-</p></div></div>
-    </li><li name="org.http4s.client.Client#fetchAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="fetchAs[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="fetchAs[A](Request[F])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#fetchAs[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">fetchAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request and decodes the response, regardless of the status code.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response, regardless of the status code.
-The underlying HTTP connection is closed at the completion of the
-decoding.
-</p></div></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -919,44 +1223,6 @@ decoding.
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.Client#get" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="get[A](s:String)(f:org.http4s.Response[F]=&gt;F[A]):F[A]"></a><a id="get[A](String)((Response[F])⇒F[A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#get[A](s:String)(f:org.http4s.Response[F]=&gt;F[A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">get</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request and decodes the response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response on success.  On failure, the
-status code is returned.  The underlying HTTP connection is closed at the
-completion of the decoding.
-</p></div></div>
-    </li><li name="org.http4s.client.Client#get" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="get[A](uri:org.http4s.Uri)(f:org.http4s.Response[F]=&gt;F[A]):F[A]"></a><a id="get[A](Uri)((Response[F])⇒F[A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#get[A](uri:org.http4s.Uri)(f:org.http4s.Response[F]=&gt;F[A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">get</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a GET request, and provides a callback to process the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request, and provides a callback to process the response.
-</p></div><dl class="paramcmts block"><dt class="param">uri</dt><dd class="cmt"><p>The URI to GET</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to a GET on uri.  The underlying HTTP connection
-         is disposed when the returned task completes.  Attempts to read the
-         response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -970,6 +1236,25 @@ completion of the decoding.
       </span>
       <span class="symbol">
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
+                <span class="name">@native</span><span class="args">()</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#hashCode():Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd><dt>Annotations</dt><dd>
@@ -1046,152 +1331,6 @@ completion of the decoding.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.Client#open" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="open:cats.data.Kleisli[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]]"></a><a id="open:Kleisli[F,Request[F],DisposableResponse[F]]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#open:cats.data.Kleisli[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">open</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#shutdown" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="shutdown:F[Unit]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#shutdown:F[Unit]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">shutdown</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#shutdownNow" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="shutdownNow()(implicitF:cats.effect.Effect[F]):Unit"></a><a id="shutdownNow()(Effect[F]):Unit"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#shutdownNow()(implicitF:cats.effect.Effect[F]):Unit" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">shutdownNow</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Shuts this client down, and blocks until complete.</p>
-    </li><li name="org.http4s.client.Client#status" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="status(req:F[org.http4s.Request[F]]):F[org.http4s.Status]"></a><a id="status(F[Request[F]]):F[Status]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#status(req:F[org.http4s.Request[F]]):F[org.http4s.Status]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">status</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request and returns the response status</p>
-    </li><li name="org.http4s.client.Client#status" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="status(req:org.http4s.Request[F]):F[org.http4s.Status]"></a><a id="status(Request[F]):F[Status]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#status(req:org.http4s.Request[F]):F[org.http4s.Status]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">status</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request and returns the response status</p>
-    </li><li name="org.http4s.client.Client#streaming" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]"></a><a id="streaming[A](F[Request[F]])((Response[F])⇒Stream[F,A]):Stream[F,A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#streaming" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="streaming[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]"></a><a id="streaming[A](Request[F])((Response[F])⇒Stream[F,A]):Stream[F,A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#streaming[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.Client#successful" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="successful(req:F[org.http4s.Request[F]]):F[Boolean]"></a><a id="successful(F[Request[F]]):F[Boolean]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#successful(req:F[org.http4s.Request[F]]):F[Boolean]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">successful</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request and returns true if and only if the response status is
-successful</p>
-    </li><li name="org.http4s.client.Client#successful" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="successful(req:org.http4s.Request[F]):F[Boolean]"></a><a id="successful(Request[F]):F[Boolean]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#successful(req:org.http4s.Request[F]):F[Boolean]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">successful</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a request and returns true if and only if the response status is
-successful</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -1208,10 +1347,10 @@ successful</p>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.client.Client#toHttpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toHttpApp:org.http4s.HttpApp[F]"></a><a id="toHttpApp:HttpApp[F]"></a>
+    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#toHttpApp:org.http4s.HttpApp[F]" title="Permalink">
+      <a href="../../../org/http4s/client/Client.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1220,35 +1359,10 @@ successful</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toHttpApp</span><span class="result">: <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       
-      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>.  It is the responsibility of
-callers of this service to run the response body to dispose of the
-underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <code>fetch</code>, <code>fetchAs</code>,
-<a href="#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" class="extmbr" name="org.http4s.client.Client#toKleisli">toKleisli</a>, and <a href="#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
-signatures guarantee disposal of the HTTP connection.
-</p></div></div>
-    </li><li name="org.http4s.client.Client#toKleisli" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]"></a><a id="toKleisli[A]((Response[F])⇒F[A]):Kleisli[F,Request[F],A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toKleisli</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.toKleisli.A">A</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <span class="extype" name="org.http4s.client.Client.toKleisli.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Returns this client as a <span class="extype" name="Kleisli">Kleisli</span>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as a <span class="extype" name="Kleisli">Kleisli</span>.  All connections created by this
-service are disposed on completion of callback task f.</p><p>This method effectively reverses the arguments to <code>fetch</code>, and is
-preferred when an HTTP client is composed into a larger Kleisli function,
-or when a common response callback is used by many call sites.
-</p></div></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -1343,143 +1457,11 @@ or when a common response callback is used by many call sites.
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.client.Client#getAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="getAs[A](String)(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#getAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="getAs[A](Uri)(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Submits a GET request and decodes the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request and decodes the response.  The underlying HTTP
-connection is closed at the completion of the decoding.
-</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#prepAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="prepAs[T](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,T]):F[T]"></a><a id="prepAs[T](F[Request[F]])(EntityDecoder[F,T]):F[T]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#prepAs[T](req:F[org.http4s.Request[F]])(implicitd:org.http4s.EntityDecoder[F,T]):F[T]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">prepAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.prepAs.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.prepAs.T">T</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#prepAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="prepAs[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="prepAs[A](Request[F])(EntityDecoder[F,A]):F[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#prepAs[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">prepAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#toHttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toHttpService:org.http4s.HttpService[F]"></a><a id="toHttpService:HttpService[F]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#toHttpService:org.http4s.HttpService[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.19) Use toHttpApp. Call .mapF(OptionT.liftF) if OptionT is really desired.">toHttpService</span><span class="result">: <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.  It is the
-responsibility of callers of this service to run the response
-body to dispose of the underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <code>fetch</code>, <code>fetchAs</code>,
-<a href="#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" class="extmbr" name="org.http4s.client.Client#toKleisli">toKleisli</a>, and <a href="#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
-signatures guarantee disposal of the HTTP connection.
-</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Use toHttpApp. Call <code>.mapF(OptionT.liftF)</code> if OptionT is really desired.</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#toService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]"></a><a id="toService[A]((Response[F])⇒F[A]):Service[F,Request[F],A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.18) Use toKleisli">toService</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.toService.A">A</span>]</span>)</span><span class="result">: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <span class="extype" name="org.http4s.client.Client.toService.A">A</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18)</i> Use toKleisli</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
-            </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>

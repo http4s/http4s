@@ -270,24 +270,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.client.asynchttpclient.AsyncHttpClient#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_]](config:org.asynchttpclient.AsyncHttpClientConfig)(implicitF:cats.effect.ConcurrentEffect[F]):org.http4s.client.Client[F]"></a><a id="apply[F[_]](AsyncHttpClientConfig)(ConcurrentEffect[F]):Client[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/asynchttpclient/AsyncHttpClient$.html#apply[F[_]](config:org.asynchttpclient.AsyncHttpClientConfig)(implicitF:cats.effect.ConcurrentEffect[F]):org.http4s.client.Client[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="config">config: <span class="extype" name="org.asynchttpclient.AsyncHttpClientConfig">AsyncHttpClientConfig</span> = <span class="symbol"><span class="name"><a href="#defaultConfig:org.asynchttpclient.DefaultAsyncHttpClientConfig">defaultConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.asynchttpclient.AsyncHttpClient.apply.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.asynchttpclient.AsyncHttpClient.apply.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Create an HTTP client based on the AsyncHttpClient library
-</p><div class="fullcomment"><div class="comment cmt"><p>Create an HTTP client based on the AsyncHttpClient library
-</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>configuration for the client</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -506,6 +488,24 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.client.asynchttpclient.AsyncHttpClient#resource" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="resource[F[_]](config:org.asynchttpclient.AsyncHttpClientConfig)(implicitF:cats.effect.ConcurrentEffect[F]):cats.effect.Resource[F,org.http4s.client.Client[F]]"></a><a id="resource[F[_]](AsyncHttpClientConfig)(ConcurrentEffect[F]):Resource[F,Client[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/asynchttpclient/AsyncHttpClient$.html#resource[F[_]](config:org.asynchttpclient.AsyncHttpClientConfig)(implicitF:cats.effect.ConcurrentEffect[F]):cats.effect.Resource[F,org.http4s.client.Client[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">resource</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="config">config: <span class="extype" name="org.asynchttpclient.AsyncHttpClientConfig">AsyncHttpClientConfig</span> = <span class="symbol"><span class="name"><a href="#defaultConfig:org.asynchttpclient.DefaultAsyncHttpClientConfig">defaultConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.asynchttpclient.AsyncHttpClient.resource.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.asynchttpclient.AsyncHttpClient.resource.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.asynchttpclient.AsyncHttpClient.resource.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Create an HTTP client based on the AsyncHttpClient library
+</p><div class="fullcomment"><div class="comment cmt"><p>Create an HTTP client based on the AsyncHttpClient library
+</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>configuration for the client</p></dd></dl></div>
     </li><li name="org.http4s.client.asynchttpclient.AsyncHttpClient#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="stream[F[_]](config:org.asynchttpclient.AsyncHttpClientConfig)(implicitF:cats.effect.ConcurrentEffect[F]):fs2.Stream[F,org.http4s.client.Client[F]]"></a><a id="stream[F[_]](AsyncHttpClientConfig)(ConcurrentEffect[F]):Stream[F,Client[F]]"></a>
       <span class="permalink">

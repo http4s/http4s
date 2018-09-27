@@ -280,7 +280,7 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
     </li><li class="current-entities indented3">
                         <a class="object" href="" title=""></a>
-                        <a class="class" href="Client.html" title="A Client submits Requests to a server and processes the Response."></a>
+                        <a class="trait" href="Client.html" title="A Client submits Requests to a server and processes the Response."></a>
                         <a href="Client.html" title="A Client submits Requests to a server and processes the Response.">Client</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
@@ -290,10 +290,6 @@
                         <a class="object" href="ConnectionManager$.html" title=""></a>
                         <a class="trait" href="ConnectionManager.html" title="Type that is responsible for the client lifecycle"></a>
                         <a href="ConnectionManager.html" title="Type that is responsible for the client lifecycle">ConnectionManager</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="class" href="DisposableResponse.html" title="Contains a Response that needs to be disposed of to free the underlying HTTP connection."></a>
-                        <a href="DisposableResponse.html" title="Contains a Response that needs to be disposed of to free the underlying HTTP connection.">DisposableResponse</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="JavaNetClientBuilder$.html" title="Builder for a Client backed by on java.net.HttpUrlConnection."></a>
                         <a class="class" href="JavaNetClientBuilder.html" title="Builder for a Client backed by on java.net.HttpUrlConnection."></a>
@@ -321,15 +317,15 @@
           <div id="content">
             <body class="object value">
       <div id="definition">
-        <a href="Client.html" title="See companion class"><div class="big-circle object-companion-class">o</div></a>
+        <a href="Client.html" title="See companion trait"><div class="big-circle object-companion-trait">o</div></a>
         <p id="owner"><a href="../../index.html" class="extype" name="org">org</a>.<a href="../index.html" class="extype" name="org.http4s">http4s</a>.<a href="index.html" class="extype" name="org.http4s.client">client</a></p>
-        <h1><a href="Client.html" title="See companion class">Client</a><span class="permalink">
+        <h1><a href="Client.html" title="See companion trait">Client</a><span class="permalink">
       <a href="../../../org/http4s/client/Client$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
         <h3><span class="morelinks"><div>
-            Companion <a href="Client.html" title="See companion class">class Client</a>
+            Companion <a href="Client.html" title="See companion trait">trait Client</a>
           </div></span></h3>
       </div>
 
@@ -339,7 +335,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Client</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Client</span>
       </span>
       </h4>
 
@@ -348,7 +344,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -374,7 +370,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.client.Client"><span>Client</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.client.Client"><span>Client</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -449,6 +445,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.client.Client#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[F[_]](f:org.http4s.Request[F]=&gt;cats.effect.Resource[F,org.http4s.Response[F]])(implicitF:cats.effect.Bracket[F,Throwable]):org.http4s.client.Client[F]"></a><a id="apply[F[_]]((Request[F])⇒Resource[F,Response[F]])(Bracket[F,Throwable]):Client[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client$.html#apply[F[_]](f:org.http4s.Request[F]=&gt;cats.effect.Resource[F,org.http4s.Response[F]])(implicitF:cats.effect.Bracket[F,Throwable]):org.http4s.client.Client[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: (<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]) ⇒ <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Bracket">Bracket</span>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result">: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.Client.apply.F">F</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -803,11 +815,7 @@ pre-determined responses for requests in testing.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>

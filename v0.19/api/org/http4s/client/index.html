@@ -344,7 +344,7 @@
       
     </li><li class="current-entities indented3">
                         <a class="object" href="Client$.html" title=""></a>
-                        <a class="class" href="Client.html" title="A Client submits Requests to a server and processes the Response."></a>
+                        <a class="trait" href="Client.html" title="A Client submits Requests to a server and processes the Response."></a>
                         <a href="Client.html" title="A Client submits Requests to a server and processes the Response.">Client</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
@@ -354,10 +354,6 @@
                         <a class="object" href="ConnectionManager$.html" title=""></a>
                         <a class="trait" href="ConnectionManager.html" title="Type that is responsible for the client lifecycle"></a>
                         <a href="ConnectionManager.html" title="Type that is responsible for the client lifecycle">ConnectionManager</a>
-                      </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="class" href="DisposableResponse.html" title="Contains a Response that needs to be disposed of to free the underlying HTTP connection."></a>
-                        <a href="DisposableResponse.html" title="Contains a Response that needs to be disposed of to free the underlying HTTP connection.">DisposableResponse</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="JavaNetClientBuilder$.html" title="Builder for a Client backed by on java.net.HttpUrlConnection."></a>
                         <a class="class" href="JavaNetClientBuilder.html" title="Builder for a Client backed by on java.net.HttpUrlConnection."></a>
@@ -721,26 +717,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.client.Client" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Client[F[_]]extendsProductwithSerializable"></a><a id="Client[F[_]]:Client[F]"></a>
+              <ol><li name="org.http4s.client.Client" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Client[F[_]]extendsAnyRef"></a><a id="Client[F[_]]:Client[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#Client[F[_]]extendsProductwithSerializable" title="Permalink">
+      <a href="../../../org/http4s/client/index.html#Client[F[_]]extendsAnyRef" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="A Client submits Requests to a server and processes the Response." href="Client.html"><span class="name">Client</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="open">open: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="A Client submits Requests to a server and processes the Response." href="Client.html"><span class="name">Client</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
-      <p class="shortcomment cmt">A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.
-</p></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
-            a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>an effect to shut down this client, closing any
-                open connections and freeing resources</p></dd></dl></div>
+      <p class="shortcomment cmt">A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.</p>
     </li><li name="org.http4s.client.Connection" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Connection[F[_]]extendsAnyRef"></a><a id="Connection[F[_]]:Connection[F]"></a>
       <span class="permalink">
@@ -793,23 +785,6 @@ that can pool resources in order to conserve resources such as socket connection
 CPU time, SSL handshakes, etc. Because it can contain significant resources it
 must have a mechanism to free resources associated with it.
 </p></div></div>
-    </li><li name="org.http4s.client.DisposableResponse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DisposableResponse[F[_]]extendsProductwithSerializable"></a><a id="DisposableResponse[F[_]]:DisposableResponse[F]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#DisposableResponse[F[_]]extendsProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="Contains a Response that needs to be disposed of to free the underlying HTTP connection." href="DisposableResponse.html"><span class="name">DisposableResponse</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="response">response: <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.DisposableResponse.F">F</span>]</span>, <span name="dispose">dispose: <span class="extype" name="org.http4s.client.DisposableResponse.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Contains a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> that needs to be disposed of to free the underlying
-HTTP connection.</p>
     </li><li name="org.http4s.client.JavaNetClientBuilder" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="JavaNetClientBuilderextendsAnyRef"></a><a id="JavaNetClientBuilder:JavaNetClientBuilder"></a>
       <span class="permalink">
@@ -929,7 +904,7 @@ exploration in a REPL.</p><p>All I/O operations in this client are blocking.
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="Client$.html"><span class="name">Client</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Client$.html"><span class="name">Client</span></a>
       </span>
       
       
