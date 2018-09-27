@@ -11,11 +11,6 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
-// check for library updates whenever the project is [re]load
-onLoad in Global := { s =>
-  "dependencyUpdates" :: s
-}
-
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
