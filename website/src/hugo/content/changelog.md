@@ -51,6 +51,15 @@ it.
 * play-json-3.6.10 for Scala 2.11.x
 * tomcat-9.0.12
 
+# v0.18.19 (2018-09-27)
+
+## Bug fixes
+* [#2101](https://github.com/http4s/http4s/pull/2101): `haveHeaders` checks by equality, not reference
+* [#2117](https://github.com/http4s/http4s/pull/2117): Handle unsuccessful responses in `JavaNetClient`
+
+## Internal
+* [#2116](https://github.com/http4s/http4s/pull/2116): Test against OpenJDK 11. Retire Oracle JDK 10.
+
 # v0.18.18 (2018-09-18)
 
 ## Bug fixes
