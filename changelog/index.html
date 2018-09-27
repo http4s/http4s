@@ -86,7 +86,7 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v0-19-0-snapshot">v0.19.0-SNAPSHOT</h1>
+<h1 id="v0-19-0-m3-2018-09-27">v0.19.0-M3 (2018-09-27)</h1>
 
 <h2 id="breaking-changes">Breaking changes</h2>
 
@@ -99,6 +99,17 @@ it.</p>
 <li>Removed <code>Server#shutdown</code>, <code>Server#shutdownNow</code>, <code>Server#onShutdown</code>, and <code>Server#awaitShutdown</code>.  <code>Server</code> lifecycles are managed as a <code>fs2.Stream</code> or a <code>cats.effect.Resource</code>.</li>
 <li><code>ServerBuilder#start</code> replaced by <code>Server#resource</code>, which shuts down the <code>Server</code> after use.</li>
 <li>Added a <code>ServerBuilder#stream</code> to construct a <code>Stream</code> from a <code>Resource</code>.</li>
+</ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/2118">#2118</a>: Finalize various case classes.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2102">#2102</a>: Refactoring of <code>Client</code> and some builders:
+
+<ul>
+<li><code>Client</code> is no longer a case class.  Construct a new <code>Client</code> backend or middleware with <code>Client.apply(run: Request[F] =&gt; Response[F, Resource[F]])</code> for any <code>F</code> with a <code>Bracket[Throwable, F]</code>.</li>
+<li>Removed <code>DisposableResponse[F]</code> in favor of <code>Resource[F, Response[F]]</code>.</li>
+<li>Removed <code>Client#open</code> in favor of <code>Client#run</code>.</li>
+<li>Removed <code>Client#shutdown</code> in favor of <code>cats.effect.Resource</code> or <code>fs2.Stream</code>.</li>
+<li>Removed <code>AsyncHttpClient.apply</code>. It was not referentially transparent, and no longer possible. Use <code>AsyncHttpClient.resource</code> instead.</li>
+<li>Removed deprecated <code>blaze.Http1Client.apply</code></li>
 </ul></li>
 </ul>
 
@@ -142,6 +153,8 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2105">#2105</a>: Test on Oracle JDK 11</li>
 <li><a href="https://github.com/http4s/http4s/pull/2113">#2113</a>: Check for unused compile dependencies in build</li>
 <li><a href="https://github.com/http4s/http4s/pull/2115">#2115</a>: Stop testing on Oracle JDK 10</li>
+<li><a href="https://github.com/http4s/http4s/pull/2079">#2079</a>: Use <code>readRange</code>, as contributed to fs2</li>
+<li><a href="https://github.com/http4s/http4s/pull/2123">#2123</a>: Remove unmaintained <code>load-test</code> module</li>
 </ul>
 
 <h2 id="dependency-upgrades">Dependency upgrades</h2>
@@ -149,6 +162,8 @@ it.</p>
 <ul>
 <li>cats-1.4.0</li>
 <li>circe-0.10.0</li>
+<li>fs2-1.0.0-RC1</li>
+<li>jawn-fs2-0.13.0-RC1</li>
 <li>play-json-3.6.10 for Scala 2.11.x</li>
 <li>tomcat-9.0.12</li>
 </ul>
