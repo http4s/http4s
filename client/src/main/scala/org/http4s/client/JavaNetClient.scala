@@ -4,6 +4,8 @@ package client
 import cats.data.Kleisli
 import cats.effect.{Effect, Sync}
 import cats.implicits._
+import fs2.Stream
+import java.io.IOException
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import org.http4s.internal.{blocking, readInputStream, writeOutputStream}
@@ -101,7 +103,12 @@ sealed abstract class JavaNetClient private (
       _ <- F.delay(conn.setInstanceFollowRedirects(false))
       _ <- F.delay(conn.setDoInput(true))
       resp <- blocking(fetchResponse(req, conn), blockingExecutionContext)
-    } yield DisposableResponse(resp, F.delay(conn.getInputStream.close()))
+    } yield {
+      val dispose = F.delay(conn.getInputStream().close()).recoverWith {
+        case _: IOException => F.delay(Option(conn.getErrorStream()).foreach(_.close()))
+      }
+      DisposableResponse(resp, dispose)
+    }
   }
 
   private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Effect[F]) =
@@ -116,7 +123,7 @@ sealed abstract class JavaNetClient private (
             .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
             .toList
         ))
-      body = readInputStream(F.delay(conn.getInputStream), 4096, blockingExecutionContext)
+      body = readBody(conn)
     } yield Response(status = status, headers = headers, body = body)
 
   private def timeoutMillis(d: Duration): Int = d match {
@@ -151,6 +158,18 @@ sealed abstract class JavaNetClient private (
         case _ =>
           F.delay(conn.setDoOutput(false))
       }
+
+  private def readBody[F[_]](conn: HttpURLConnection)(implicit F: Effect[F]) = {
+    def inputStream =
+      F.delay(Option(conn.getInputStream)).recoverWith {
+        case _: IOException if conn.getResponseCode > 0 =>
+          F.delay(Option(conn.getErrorStream))
+      }
+    Stream.eval(inputStream).flatMap {
+      case Some(in) => readInputStream(F.pure(in), 4096, blockingExecutionContext, false)
+      case None => Stream.empty
+    }
+  }
 
   private def configureSsl[F[_]](conn: HttpURLConnection)(implicit F: Sync[F]) =
     conn match {
