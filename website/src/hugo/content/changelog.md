@@ -17,6 +17,7 @@ it.
   * Removed `Server#shutdown`, `Server#shutdownNow`, `Server#onShutdown`, and `Server#awaitShutdown`.  `Server` lifecycles are managed as a `fs2.Stream` or a `cats.effect.Resource`.
   * `ServerBuilder#start` replaced by `Server#resource`, which shuts down the `Server` after use.
   * Added a `ServerBuilder#stream` to construct a `Stream` from a `Resource`.
+* [#2118](https://github.com/http4s/http4s/pull/2118): Finalize various case classes.
 
 ## Enhancements
 * [#2042](https://github.com/http4s/http4s/pull/2042): New `Throttle` server middleware
@@ -44,10 +45,13 @@ it.
 * [#2105](https://github.com/http4s/http4s/pull/2105): Test on Oracle JDK 11
 * [#2113](https://github.com/http4s/http4s/pull/2113): Check for unused compile dependencies in build
 * [#2115](https://github.com/http4s/http4s/pull/2115): Stop testing on Oracle JDK 10
+* [#2079](https://github.com/http4s/http4s/pull/2079): Use `readRange`, as contributed to fs2
 
 ## Dependency upgrades
 * cats-1.4.0
 * circe-0.10.0
+* fs2-1.0.0-RC1
+* jawn-fs2-0.13.0-RC1
 * play-json-3.6.10 for Scala 2.11.x
 * tomcat-9.0.12
 
