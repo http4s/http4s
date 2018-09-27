@@ -82,8 +82,8 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
           F.bracketCase(resource) {
             case (a, rel) =>
               stack match {
-                case Nil => F.pure(a -> release.guarantee(rel(ExitCase.Completed)))
-                case f0 :: xs => continue(f0(a), xs, release.guarantee(rel(ExitCase.Completed)))
+                case Nil => F.pure(a -> rel(ExitCase.Completed).guarantee(release))
+                case f0 :: xs => continue(f0(a), xs, rel(ExitCase.Completed).guarantee(release))
               }
           } {
             case (_, ExitCase.Completed) =>
