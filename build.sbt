@@ -55,7 +55,6 @@ lazy val tests = libraryProject("tests")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Tests for core project",
-    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(core, testing % "test->test")
 
@@ -162,7 +161,6 @@ lazy val okHttpClient = libraryProject("okhttp-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.okhttp
     ),
-    mimaPreviousArtifacts := Set.empty // remove me once merged
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
@@ -271,7 +269,6 @@ lazy val playJson = libraryProject("play-json")
       jawnPlay,
       Http4sPlugin.playJson
     ),
-    mimaPreviousArtifacts := Set.empty // remove me once merged
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -298,7 +295,6 @@ lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
     libraryDependencies += scalatagsApi,
-    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(core, testing % "test->test")
 
