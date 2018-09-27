@@ -49,7 +49,7 @@ it.
 * [#2100](https://github.com/http4s/http4s/pull/2100): Correct `re-start` to `reStart` in docs
 
 ## Internal
-* [#2105](https://github.com/http4s/http4s/pull/2105): Test on Oracle JDK 11
+* [#2105](https://github.com/http4s/http4s/pull/2105): Test on OpenJDK 11
 * [#2113](https://github.com/http4s/http4s/pull/2113): Check for unused compile dependencies in build
 * [#2115](https://github.com/http4s/http4s/pull/2115): Stop testing on Oracle JDK 10
 * [#2079](https://github.com/http4s/http4s/pull/2079): Use `readRange`, as contributed to fs2
