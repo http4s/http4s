@@ -20,7 +20,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
     "register a successful 2xx response" in {
       implicit val clock = new FakeClock()
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test1")
-      val meteredClient = Metrics(registry, "client")(client)
+      val meteredClient = Metrics(Dropwizard(registry, "client"))(client)
 
       val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
 
@@ -34,7 +34,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
     "register a failed 4xx response" in {
       implicit val clock = new FakeClock()
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test2")
-      val meteredClient = Metrics(registry, "client")(client)
+      val meteredClient = Metrics(Dropwizard(registry, "client"))(client)
 
       val resp =
         meteredClient.expect[String]("badrequest").attempt.unsafeRunSync()
@@ -51,7 +51,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
     "register a failed 5xx response" in {
       implicit val clock = new FakeClock()
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test3")
-      val meteredClient = Metrics(registry, "client")(client)
+      val meteredClient = Metrics(Dropwizard(registry, "client"))(client)
 
       val resp =
         meteredClient.expect[String]("servererror").attempt.unsafeRunSync()
@@ -68,7 +68,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
     "register a client error" in {
       implicit val clock = new FakeClock()
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test4")
-      val meteredClient = Metrics(registry, "client")(client)
+      val meteredClient = Metrics(Dropwizard(registry, "client"))(client)
 
       val resp =
         meteredClient.expect[String]("clienterror").attempt.unsafeRunSync()
@@ -85,7 +85,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
     "register a timeout" in {
       implicit val clock = new FakeClock()
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test5")
-      val meteredClient = Metrics(registry, "client")(client)
+      val meteredClient = Metrics(Dropwizard(registry, "client"))(client)
 
       val resp =
         meteredClient.expect[String]("timeout").attempt.unsafeRunSync()
@@ -103,7 +103,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       implicit val clock = new FakeClock()
       val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test6")
-      val meteredClient = Metrics(registry, "client", requestMethodClassifier)(client)
+      val meteredClient = Metrics(Dropwizard(registry, "client"), requestMethodClassifier)(client)
 
       val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
 

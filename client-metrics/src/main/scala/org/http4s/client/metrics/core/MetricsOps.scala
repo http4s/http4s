@@ -4,9 +4,8 @@ import cats.effect.Sync
 import org.http4s.Status
 
 /**
-  * Trait for objects capable of writing metrics to a metrics registry
+  * Describes an algebra capable of writing metrics to a metrics registry
   *
-  * Implementations of this trait should use the prefix provided in [[MetricsOpsFactory.instance()]] for every metric.
   */
 trait MetricsOps[F[_]] {
 

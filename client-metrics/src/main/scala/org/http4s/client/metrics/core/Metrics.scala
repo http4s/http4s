@@ -24,20 +24,14 @@ object Metrics {
   /**
     * Wraps a [[Client]] with a middleware capable of recording metrics
     *
-    * @param registry the metrics registry to use for metrics recording
-    * @param prefix a prefix that will be added to all metrics
+    * @param ops a algebra describing the metrics operations
     * @param classifier a function that allows to add a classifier that can be customized per request
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
-  def apply[F[_], R: MetricsOpsFactory](
-      registry: R,
-      prefix: String = "org.http4s.client",
-      classifier: Request[F] => Option[String] = { _: Request[F] =>
-        None
-      }
-  )(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] = {
-    val ops = implicitly[MetricsOpsFactory[R]].instance[F](registry, prefix)
+  def apply[F[_]](ops: MetricsOps[F], classifier: Request[F] => Option[String] = { _: Request[F] =>
+    None
+  })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] = {
 
     def withMetrics(req: Request[F]): Resource[F, Response[F]] =
       (for {
