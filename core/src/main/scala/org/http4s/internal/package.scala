@@ -23,7 +23,11 @@ package object internal {
   // Inspired by https://github.com/functional-streams-for-scala/fs2/blob/14d20f6f259d04df410dc3b1046bc843a19d73e5/io/src/main/scala/fs2/io/io.scala#L140-L141
   private[http4s] def invokeCallback[F[_]](logger: Logger)(f: => Unit)(
       implicit F: ConcurrentEffect[F]): Unit =
-    F.runAsync(F.start(F.delay(f)).flatMap(_.join))(loggingAsyncCallback(logger)).unsafeRunSync()
+    invoke(logger)(F.delay(f))
+
+  private[http4s] def invoke[F[_], A](logger: Logger)(fa: F[A])(
+      implicit F: ConcurrentEffect[F]): Unit =
+    F.runAsync(F.start(fa).flatMap(_.join))(loggingAsyncCallback(logger)).unsafeRunSync()
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
   private val Digits: Array[Char] =
