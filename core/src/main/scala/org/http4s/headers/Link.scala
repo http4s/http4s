@@ -25,7 +25,7 @@ final case class Link(
     title.foreach(writer.append("; title=").append(_))
     `type`.foreach { m =>
       writer.append("; type=")
-      m.render(writer)
+      HttpCodec[MediaRange].render(writer, m)
     }
     writer
   }

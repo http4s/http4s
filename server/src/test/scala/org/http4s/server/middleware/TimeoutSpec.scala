@@ -2,17 +2,16 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.OptionT
 import cats.effect._
-import cats.implicits._
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.dsl.io._
-import scala.concurrent.CancellationException
 import scala.concurrent.duration._
 
 class TimeoutSpec extends Http4sSpec {
 
-  val myService = HttpService[IO] {
+  val routes = HttpRoutes.of[IO] {
     case _ -> Root / "fast" =>
       Ok("Fast")
 
@@ -22,7 +21,7 @@ class TimeoutSpec extends Http4sSpec {
       }
   }
 
-  val timeoutService = Timeout(5.milliseconds)(myService)
+  val app = Timeout(5.milliseconds)(routes).orNotFound
 
   val fastReq = Request[IO](GET, uri("/fast"))
   val neverReq = Request[IO](GET, uri("/never"))
@@ -32,32 +31,28 @@ class TimeoutSpec extends Http4sSpec {
 
   "Timeout Middleware" should {
     "have no effect if the response is timely" in {
-      val service = Timeout(365.days)(myService)
-      checkStatus(service.orNotFound(fastReq), Status.Ok)
+      val app = Timeout(365.days)(routes).orNotFound
+      checkStatus(app(fastReq), Status.Ok)
     }
 
     "return a 500 error if the result takes too long" in {
-      checkStatus(timeoutService.orNotFound(neverReq), Status.InternalServerError)
+      checkStatus(app(neverReq), Status.InternalServerError)
     }
 
     "return the provided response if the result takes too long" in {
       val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
-      val altTimeoutService = Timeout(1.nanosecond, IO.pure(customTimeout))(myService)
+      val altTimeoutService = Timeout(1.nanosecond, OptionT.pure[IO](customTimeout))(routes)
       checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
     }
 
     "cancel the loser" in {
       val canceled = new AtomicBoolean(false)
-      val cancellationException = new CancellationException()
-      val service = HttpService[IO] {
+      val routes = HttpRoutes.of[IO] {
         case _ =>
-          IO.sleep(2.seconds).onCancelRaiseError(cancellationException).attempt.flatMap {
-            case Left(`cancellationException`) => IO(canceled.set(true)) *> NoContent()
-            case _ => NoContent()
-          }
+          IO.never.guarantee(IO(canceled.set(true)))
       }
-      val timeoutService = Timeout(1.millis)(service)
-      checkStatus(timeoutService.orNotFound(Request[IO]()), InternalServerError)
+      val app = Timeout(1.millis)(routes).orNotFound
+      checkStatus(app(Request[IO]()), InternalServerError)
       // Give the losing response enough time to finish
       canceled.get must beTrue.eventually
     }

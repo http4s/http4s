@@ -2,8 +2,7 @@ package org.http4s
 package client
 package middleware
 
-import cats.data.Kleisli
-import cats.effect.{Effect, Timer}
+import cats.effect.{Effect, Resource, Timer}
 import cats.implicits._
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -19,28 +18,30 @@ object Retry {
 
   def apply[F[_]](policy: RetryPolicy[F])(
       client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] = {
-    def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] =
-      client.open(req).attempt.flatMap {
-        // TODO fs2 port - Reimplement request isIdempotent in some form
-        case Right(dr @ DisposableResponse(response, _)) =>
-          policy(req, Right(dr.response), attempts) match {
+    def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
+      client.run(req).attempt.flatMap {
+        case right @ Right(response) =>
+          policy(req, right, attempts) match {
             case Some(duration) =>
               logger.info(
                 s"Request $req has failed on attempt #$attempts with reason ${response.status}. Retrying after $duration.")
-              dr.dispose.flatMap(_ =>
-                nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
+              nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`))
             case None =>
-              F.pure(dr)
+              Resource.pure(response)
           }
-        case Left(e) =>
-          policy(req, Left(e), attempts) match {
+
+        case left @ Left(e) =>
+          policy(req, left, attempts) match {
             case Some(duration) =>
               // info instead of error(e), because e is not discarded
-              logger.info(
-                s"Request $req threw an exception on attempt #$attempts attempts. Giving up.")
+              logger.info(e)(
+                s"Request threw an exception on attempt #$attempts. Retrying after $duration")
               nextAttempt(req, attempts, duration, None)
             case None =>
-              F.raiseError[DisposableResponse[F]](e)
+              logger.info(e)(
+                s"Request $req threw an exception on attempt #$attempts. Giving up."
+              )
+              Resource.liftF(F.raiseError(e))
           }
       }
 
@@ -48,7 +49,7 @@ object Retry {
         req: Request[F],
         attempts: Int,
         duration: FiniteDuration,
-        retryHeader: Option[`Retry-After`]): F[DisposableResponse[F]] = {
+        retryHeader: Option[`Retry-After`]): Resource[F, Response[F]] = {
       val headerDuration =
         retryHeader
           .map { h =>
@@ -59,10 +60,10 @@ object Retry {
           }
           .getOrElse(0L)
       val sleepDuration = headerDuration.seconds.max(duration)
-      T.sleep(sleepDuration) *> prepareLoop(req.withEmptyBody, attempts + 1)
+      Resource.liftF(T.sleep(sleepDuration)) *> prepareLoop(req, attempts + 1)
     }
 
-    client.copy(open = Kleisli(prepareLoop(_, 1)))
+    Client(prepareLoop(_, 1))
   }
 }
 
@@ -110,8 +111,7 @@ object RetryPolicy {
     * codes, see [[recklesslyRetriable]].
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    if (req.method.isInstanceOf[Method.NoBody]) isErrorOrRetriableStatus(result)
-    else false
+    req.method.isInstanceOf[Method.NoBody] && isErrorOrRetriableStatus(result)
 
   /** Returns true if the request method is idempotent and the result is
     * either a throwable or has one of the `RetriableStatuses`.  This is
@@ -122,8 +122,7 @@ object RetryPolicy {
     * an empty request body.
     */
   def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    if (req.method.isIdempotent) isErrorOrRetriableStatus(result)
-    else false
+    req.method.isIdempotent && isErrorOrRetriableStatus(result)
 
   /** Like [[unsafeRetriable]], but returns true even if the request method
     * is not idempotent.  This is useful if failed requests are assumed to
@@ -139,8 +138,8 @@ object RetryPolicy {
 
   private def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     result match {
-      case Left(_) => true
       case Right(resp) => RetriableStatuses(resp.status)
+      case _ => true
     }
 
   def exponentialBackoff(maxWait: Duration, maxRetry: Int): Int => Option[FiniteDuration] = {

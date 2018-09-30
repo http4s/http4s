@@ -1,8 +1,6 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
-import fs2._
-import java.nio.charset.{Charset, StandardCharsets}
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -186,24 +184,4 @@ class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
 
 object StringWriter {
   private val InitialCapacity = 64
-}
-
-/** [[Writer]] that will result in a `Segment`
-  * @param toByteSegment initial `Segment`
-  */
-final case class SegmentWriter(
-    var toByteSegment: Segment[Byte, Unit] = Segment.empty[Byte],
-    charset: Charset = StandardCharsets.UTF_8
-) extends Writer {
-
-  override def append(s: String): this.type = {
-    toByteSegment = toByteSegment ++ Segment.array(s.getBytes(charset))
-    this
-  }
-
-  override def append(char: Char): this.type = append(char.toString)
-  override def append(float: Float): this.type = append(float.toString)
-  override def append(double: Double): this.type = append(double.toString)
-  override def append(int: Int): this.type = append(int.toString)
-  override def append(long: Long): this.type = append(long.toString)
 }

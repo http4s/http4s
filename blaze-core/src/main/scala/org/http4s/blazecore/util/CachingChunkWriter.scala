@@ -8,6 +8,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
+import scala.collection.mutable.Buffer
 import scala.concurrent._
 
 private[http4s] class CachingChunkWriter[F[_]](
@@ -20,30 +21,38 @@ private[http4s] class CachingChunkWriter[F[_]](
   import ChunkWriter._
 
   private[this] var pendingHeaders: StringWriter = _
-  private[this] var bodyBuffer: Chunk[Byte] = _
+  private[this] var bodyBuffer: Buffer[Chunk[Byte]] = Buffer()
+  private[this] var size: Int = 0
 
   override def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
     pendingHeaders = headerWriter
     FutureUnit
   }
 
-  private def addChunk(b: Chunk[Byte]): Chunk[Byte] = {
-    if (bodyBuffer == null) bodyBuffer = b
-    else bodyBuffer = (bodyBuffer.toSegment ++ b.toSegment).force.toChunk
-    bodyBuffer
+  private def addChunk(chunk: Chunk[Byte]): Unit = {
+    bodyBuffer += chunk
+    size += chunk.size
   }
 
+  private def clear(): Unit = {
+    bodyBuffer.clear()
+    size = 0
+  }
+
+  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer.toSeq)
+
   override protected def exceptionFlush(): Future[Unit] = {
-    val c = bodyBuffer
-    bodyBuffer = null
-    if (c != null && !c.isEmpty) pipe.channelWrite(encodeChunk(c, Nil))
+    val c = toChunk
+    bodyBuffer.clear()
+    if (c.nonEmpty) pipe.channelWrite(encodeChunk(c, Nil))
     else FutureUnit
   }
 
   def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
-    val b = addChunk(chunk)
-    bodyBuffer = null
-    doWriteEnd(b)
+    addChunk(chunk)
+    val c = toChunk
+    bodyBuffer.clear()
+    doWriteEnd(c)
   }
 
   private def doWriteEnd(chunk: Chunk[Byte]): Future[Boolean] = {
@@ -74,9 +83,10 @@ private[http4s] class CachingChunkWriter[F[_]](
   }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
-    val c = addChunk(chunk)
-    if (c.size >= bufferMaxSize || flush) { // time to flush
-      bodyBuffer = null
+    addChunk(chunk)
+    if (size >= bufferMaxSize || flush) { // time to flush
+      val c = toChunk
+      clear()
       pipe.channelWrite(encodeChunk(c, Nil))
     } else FutureUnit // Pretend to be done.
   }

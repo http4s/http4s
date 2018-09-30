@@ -89,12 +89,12 @@ object UrlForm {
     EntityEncoder
       .stringEncoder[F]
       .contramap[UrlForm](encodeString(charset))
-      .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
+      .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
   implicit def entityDecoder[F[_]](
       implicit F: Sync[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
-    EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`) { m =>
+    EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder
           .decodeString(m)
@@ -104,6 +104,19 @@ object UrlForm {
 
   implicit val eqInstance: Eq[UrlForm] = Eq.instance { (x: UrlForm, y: UrlForm) =>
     x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
+  }
+
+  implicit val monoidInstance: Monoid[UrlForm] = new Monoid[UrlForm] {
+    override def empty: UrlForm = UrlForm.empty
+
+    override def combine(x: UrlForm, y: UrlForm): UrlForm =
+      UrlForm(x.values.foldLeft(y.values) {
+        case (my, (k, x)) =>
+          my.updated(k, my.get(k) match {
+            case Some(y) => x ++ y
+            case None => x
+          })
+      })
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */

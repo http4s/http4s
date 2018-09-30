@@ -18,6 +18,6 @@ class BasicAuthHttpEndpoint[F[_]](implicit F: Sync[F], R: AuthRepository[F, Basi
   private val authMiddleware: AuthMiddleware[F, BasicCredentials] =
     BasicAuth[F, BasicCredentials]("Protected Realm", R.find)
 
-  val service: HttpService[F] = authMiddleware(authedService)
+  val service: HttpRoutes[F] = authMiddleware(authedService)
 
 }

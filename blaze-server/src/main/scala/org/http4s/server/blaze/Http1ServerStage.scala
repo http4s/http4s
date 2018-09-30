@@ -2,9 +2,8 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{Effect, IO}
+import cats.effect.{ConcurrentEffect, IO, Sync}
 import cats.implicits._
-import fs2._
 import java.nio.ByteBuffer
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
@@ -15,6 +14,7 @@ import org.http4s.blaze.util.Execution._
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.internal.unsafeRunAsync
 import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,8 +22,8 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 
 private[blaze] object Http1ServerStage {
 
-  def apply[F[_]: Effect](
-      service: HttpService[F],
+  def apply[F[_]: ConcurrentEffect](
+      routes: HttpApp[F],
       attributes: AttributeMap,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
@@ -32,7 +32,7 @@ private[blaze] object Http1ServerStage {
       serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
-        service,
+        routes,
         attributes,
         executionContext,
         maxRequestLineLen,
@@ -40,7 +40,7 @@ private[blaze] object Http1ServerStage {
         serviceErrorHandler) with WebSocketSupport[F]
     else
       new Http1ServerStage(
-        service,
+        routes,
         attributes,
         executionContext,
         maxRequestLineLen,
@@ -49,17 +49,17 @@ private[blaze] object Http1ServerStage {
 }
 
 private[blaze] class Http1ServerStage[F[_]](
-    service: HttpService[F],
+    httpApp: HttpApp[F],
     requestAttrs: AttributeMap,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit protected val F: Effect[F])
+    serviceErrorHandler: ServiceErrorHandler[F])(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
-  // micro-optimization: unwrap the service and call its .run directly
-  private[this] val serviceFn = service.run
+  // micro-optimization: unwrap the routes and call its .run directly
+  private[this] val routesFn = httpApp.run
 
   // both `parser` and `isClosed` are protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
@@ -87,7 +87,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
   private val handleReqRead: Try[ByteBuffer] => Unit = {
     case Success(buff) => reqLoopCallback(buff)
-    case Failure(Cmd.EOF) => stageShutdown()
+    case Failure(Cmd.EOF) => closeConnection()
     case Failure(t) => fatalError(t, "Error in requestLoop()")
   }
 
@@ -138,19 +138,20 @@ private[blaze] class Http1ServerStage[F[_]](
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
         executionContext.execute(new Runnable {
-          def run(): Unit =
-            F.runAsync {
-                try serviceFn(req)
-                  .getOrElse(Response.notFound)
-                  .handleErrorWith(serviceErrorHandler(req))
-                catch serviceErrorHandler(req)
-              } {
-                case Right(resp) =>
-                  IO(renderResponse(req, resp, cleanup))
+          def run(): Unit = {
+            val action = Sync[F]
+              .suspend(routesFn(req))
+              .recoverWith(serviceErrorHandler(req))
+              .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
+
+            F.runAsync(action) {
+                case Right(()) => IO.unit
                 case Left(t) =>
-                  IO(internalServerError(s"Error running route: $req", t, req, cleanup))
+                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                    closeConnection())
               }
               .unsafeRunSync()
+          }
         })
       case Left((e, protocol)) =>
         badMessage(e.details, new BadMessage(e.sanitized), Request[F]().withHttpVersion(protocol))
@@ -216,7 +217,7 @@ private[blaze] class Http1ServerStage[F[_]](
           closeOnFinish)
     }
 
-    async.unsafeRunAsync(bodyEncoder.write(rr, resp.body)) {
+    unsafeRunAsync(bodyEncoder.write(rr, resp.body)) {
       case Right(requireClose) =>
         if (closeOnFinish || requireClose) {
           logger.trace("Request/route requested closing connection.")

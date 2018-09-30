@@ -11,6 +11,7 @@ import org.http4s.util.bug
 import org.http4s.util.execution.trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
+import scala.concurrent.ExecutionContext
 
 /**
   * Determines the mode of I/O used for reading request bodies and writing response bodies.
@@ -30,9 +31,15 @@ sealed abstract class ServletIo[F[_]: Async] {
   * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
   * require a larger request thread pool for the same load.
   */
-final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
+final case class BlockingServletIo[F[_]: Effect: ContextShift](
+    chunkSize: Int,
+    blockingExecutionContext: ExecutionContext)
+    extends ServletIo[F] {
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F] =
-    io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
+    io.readInputStream[F](
+      F.pure(servletRequest.getInputStream),
+      chunkSize,
+      blockingExecutionContext)
 
   override protected[servlet] def initWriter(
       servletResponse: HttpServletResponse): BodyWriter[F] = { response: Response[F] =>
@@ -59,7 +66,7 @@ final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletI
   * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
   * operationally annoying.
   */
-final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
+final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
   private[this] val logger = getLogger
 
   private[this] def rightSome[A](a: A) = Right(Some(a))
@@ -89,7 +96,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
         } else if (len == 0) {
           logger.warn("Encountered a read of length 0")
           cb(rightSome(Chunk.empty))
-        } else cb(rightSome(Chunk.bytes(buf)))
+        } else cb(rightSome(Chunk.bytes(buf, 0, len)))
       }
 
       if (in.isFinished) Stream.empty
@@ -159,7 +166,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
                 }
                 go()
               })
-        readStream.unNoneTerminate.flatMap(Stream.chunk[Byte])
+        readStream.unNoneTerminate.flatMap(Stream.chunk)
       }
     }
 

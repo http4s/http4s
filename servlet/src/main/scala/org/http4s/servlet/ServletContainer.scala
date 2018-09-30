@@ -13,7 +13,7 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] with Async
   /**
     * Mounts a servlet to the server.
     *
-    * The http4s way is to create an [[HttpService]], which runs not just on servlet containers,
+    * The http4s way is to create [[HttpRoutes]], which runs not just on servlet containers,
     * but all supported backends.  This method is good for legacy scenarios, or for reusing parts
     * of the servlet ecosystem for an app that is committed to running on a servlet container.
     */
@@ -22,7 +22,7 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] with Async
   /**
     * Mounts a filter to the server.
     *
-    * The http4s way is to create a middleware around an  [[HttpService]], which runs not just on
+    * The http4s way is to create a middleware around an [[HttpRoutes]], which runs not just on
     * servlet containers, but all supported backends.  This method is good for legacy scenarios,
     * or for reusing parts of the servlet ecosystem for an app that is committed to running on
     * a servlet container.
@@ -47,7 +47,7 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] with Async
 }
 
 object ServletContainer {
-  def DefaultServletIo[F[_]: Async]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
+  def DefaultServletIo[F[_]: Effect]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
 
   /**
     * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to

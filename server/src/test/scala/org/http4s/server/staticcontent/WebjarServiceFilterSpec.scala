@@ -7,9 +7,12 @@ import org.http4s.server.staticcontent.WebjarService.Config
 
 object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
 
-  def s: HttpService[IO] = webjarService(
-    Config(filter = (webjar) =>
-      webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt")
+  def routes: HttpRoutes[IO] = webjarService(
+    Config(
+      filter = (webjar) =>
+        webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt",
+      blockingExecutionContext = testBlockingExecutionContext
+    )
   )
 
   "The WebjarService" should {

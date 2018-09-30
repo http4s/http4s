@@ -45,12 +45,12 @@ object Metrics {
     Kleisli(metricsService[F](serviceMetrics, service)(_))
   }
 
-  private def metricsService[F[_]: Sync](serviceMetrics: ServiceMetrics, service: HttpService[F])(
+  private def metricsService[F[_]: Sync](serviceMetrics: ServiceMetrics, routes: HttpRoutes[F])(
       req: Request[F]): OptionT[F, Response[F]] = OptionT {
     for {
       now <- Sync[F].delay(System.nanoTime())
       _ <- Sync[F].delay(serviceMetrics.generalMetrics.activeRequests.inc())
-      e <- service(req).value.attempt
+      e <- routes(req).value.attempt
       resp <- metricsServiceHandler(req.method, now, serviceMetrics, e)
     } yield resp
   }
@@ -95,7 +95,7 @@ object Metrics {
         e =>
           Stream.eval(
             incrementCounts(serviceMetrics.generalMetrics.abnormalTerminations, elapsedInit)) *>
-            Stream.raiseError[Byte](e))
+            Stream.raiseError[F](e))
     response.copy(body = newBody)
   }
 
@@ -155,7 +155,7 @@ object Metrics {
       Sync[F].delay(active_requests.dec())
   }
 
-  private case class RequestTimers(
+  private final case class RequestTimers(
       getReq: Timer,
       postReq: Timer,
       putReq: Timer,
@@ -169,7 +169,7 @@ object Metrics {
       totalReq: Timer
   )
 
-  private case class ResponseTimers(
+  private final case class ResponseTimers(
       resp1xx: Timer,
       resp2xx: Timer,
       resp3xx: Timer,
@@ -177,14 +177,14 @@ object Metrics {
       resp5xx: Timer
   )
 
-  private case class GeneralServiceMetrics(
+  private final case class GeneralServiceMetrics(
       activeRequests: Counter,
       abnormalTerminations: Timer,
       serviceErrors: Timer,
       headersTimes: Timer
   )
 
-  private case class ServiceMetrics(
+  private final case class ServiceMetrics(
       generalMetrics: GeneralServiceMetrics,
       requestTimers: RequestTimers,
       responseTimers: ResponseTimers

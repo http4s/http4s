@@ -9,14 +9,14 @@ import org.http4s.headers._
 package object authentication {
   def challenged[F[_], A](
       challenge: Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]])(
-      service: AuthedService[A, F])(implicit F: Sync[F]): HttpService[F] =
+      @deprecatedName('service) routes: AuthedService[A, F])(implicit F: Sync[F]): HttpRoutes[F] =
     Kleisli { req =>
       challenge
         .mapF(OptionT.liftF(_))
         .run(req)
         .flatMap {
           case Right(authedRequest) =>
-            service(authedRequest)
+            routes(authedRequest)
           case Left(challenge) =>
             OptionT.some(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge)))
         }

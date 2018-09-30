@@ -20,8 +20,23 @@ trait Http4sDsl[F[_]] extends Http4s with Methods with Statuses with Responses[F
   val /: : impl./:.type = impl./:
   val +& : impl.+&.type = impl.+&
 
+  /**
+    * Alias for `->`.
+    *
+    * Note: Due to infix operation precedence, `→` has a lower priority than `/`. So you have to use parentheses in
+    * pattern matching when using this operator.
+    *
+    * For example:
+    * {{{
+    *   (request.method, Path(request.path)) match {
+    *     case Method.GET → (Root / "test.json") => ...
+    * }}}
+    */
+  val → : impl.->.type = impl.->
+
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
+  val UUIDVar: impl.UUIDVar.type = impl.UUIDVar
 
   type QueryParamDecoderMatcher[T] = impl.QueryParamDecoderMatcher[T]
   type QueryParamMatcher[T] = impl.QueryParamMatcher[T]

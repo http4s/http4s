@@ -2,7 +2,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.Effect
+import cats.effect.ConcurrentEffect
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
 import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
@@ -13,9 +13,9 @@ import scala.concurrent.duration.Duration
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private[blaze] object ProtocolSelector {
-  def apply[F[_]: Effect](
+  def apply[F[_]: ConcurrentEffect](
       engine: SSLEngine,
-      service: HttpService[F],
+      httpApp: HttpApp[F],
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
       requestAttributes: AttributeMap,
@@ -30,7 +30,7 @@ private[blaze] object ProtocolSelector {
             Duration.Inf,
             executionContext,
             requestAttributes,
-            service,
+            httpApp,
             serviceErrorHandler))
       }
 
@@ -47,7 +47,7 @@ private[blaze] object ProtocolSelector {
 
     def http1Stage(): TailStage[ByteBuffer] =
       Http1ServerStage[F](
-        service,
+        httpApp,
         requestAttributes,
         executionContext,
         enableWebSockets = false,

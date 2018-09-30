@@ -7,7 +7,6 @@ import cats.implicits._
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.http4s.syntax.string._
 import org.log4s.getLogger
-import scala.util.control.NonFatal
 
 package object server {
 
@@ -31,7 +30,7 @@ package object server {
   }
 
   /**
-    * An HTTP middleware converts an [[HttpService]] to another.
+    * An HTTP middleware converts an [[HttpRoutes]] to another.
     */
   type HttpMiddleware[F[_]] =
     Middleware[OptionT[F, ?], Request[F], Response[F], Request[F], Response[F]]
@@ -102,7 +101,7 @@ package object server {
         s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
           .getOrElse("<unknown>")}""")
       mf.toHttpResponse(req.httpVersion)
-    case NonFatal(t) =>
+    case t if !t.isInstanceOf[VirtualMachineError] =>
       serviceErrorLogger.error(t)(
         s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse(
           "<unknown>")}""")

@@ -2,6 +2,8 @@ package org.http4s
 package server
 
 import cats._
+import cats.effect.Sync
+import cats.syntax.applicative._
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.json.MetricsModule
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -22,18 +24,18 @@ package object metrics {
     }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */
-  def metricsResponse[F[_]: Monad](
+  def metricsResponse[F[_]: Applicative](
       registry: MetricRegistry,
       mapper: ObjectMapper = defaultMapper): F[Response[F]] = {
     implicit val encoder = metricRegistryEncoder[F](mapper)
-    Monad[F].pure(Response[F](Status.Ok).withEntity(registry))
+    Response(Status.Ok).withEntity(registry).pure[F]
   }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */
-  def metricsService[F[_]: Monad](
+  def metricsService[F[_]: Sync](
       registry: MetricRegistry,
-      mapper: ObjectMapper = defaultMapper): HttpService[F] =
-    HttpService {
+      mapper: ObjectMapper = defaultMapper): HttpRoutes[F] =
+    HttpRoutes.of {
       case req if req.method == Method.GET => metricsResponse(registry, mapper)
     }
 }

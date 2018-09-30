@@ -12,10 +12,8 @@ import org.json4s.JsonAST.JValue
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
 
 trait Json4sInstances[J] {
-  import CustomParser.facade
-
-  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JValue] =
-    jawn.jawnDecoder
+  implicit def jsonDecoder[F[_]](implicit F: Sync[F]): EntityDecoder[F, JValue] =
+    jawn.jawnDecoder(F, CustomParser.facade)
 
   def jsonOf[F[_], A](implicit reader: Reader[A], F: Sync[F]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
@@ -54,7 +52,7 @@ trait Json4sInstances[J] {
         // Look into replacing after https://github.com/non/jawn/issues/6#issuecomment-65018736
         jsonMethods.compact(jsonMethods.render(json))
       }
-      .withContentType(`Content-Type`(MediaType.`application/json`))
+      .withContentType(`Content-Type`(MediaType.application.json))
 
   def jsonEncoderOf[F[_]: Applicative, A](implicit writer: Writer[A]): EntityEncoder[F, A] =
     jsonEncoder[F, JValue].contramap[A](writer.write)

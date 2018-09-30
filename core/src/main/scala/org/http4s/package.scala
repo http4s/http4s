@@ -9,7 +9,7 @@ package object http4s { // scalastyle:ignore
 
   type EntityBody[+F[_]] = Stream[F, Byte]
 
-  val EmptyBody: EntityBody[Nothing] = Stream.empty
+  val EmptyBody: EntityBody[Nothing] = Stream.empty[Nothing]
 
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
@@ -19,22 +19,41 @@ package object http4s { // scalastyle:ignore
 
   val DefaultCharset = Charset.`UTF-8`
 
-  /**
-    * A Service wraps a function of request type `A` to an effect that runs
-    * to response type `B`.  By wrapping the [[Service]], we can compose them
-    * using Kleisli operations.
+  /** A kleisli with a [[Request]] input and a [[Response]] output.  This type
+    * is useful for writing middleware that are polymorphic over the return
+    * type F.
+    *
+    * @tparam F the effect type in which the [[Response]] is returned
+    * @tparam G the effect type of the [[Request]] and [[Response]] bodies
     */
+  type Http[F[_], G[_]] = Kleisli[F, Request[G], Response[G]]
+
+  /** A kleisli with a [[Request]] input and a [[Response]] output, such
+    * that the response effect is the same as the request and response bodies'.
+    * An HTTP app is total on its inputs.  An HTTP app may be run by a server,
+    * and a client can be converted to or from an HTTP app.
+    *
+    * @tparam F the effect type in which the [[Response]] is returned
+    * @tparam G the effect type of the [[Request]] and [[Response]] bodies
+    */
+  type HttpApp[F[_]] = Http[F, F]
+
+  /** A kleisl with a [[Request]] input and a [[Response]] output, such
+    * that the response effect is an optional inside the effect of the
+    * request and response bodies.  HTTP routes can conveniently be
+    * constructed from a partial function and combined as a
+    * `SemigroupK`.
+    *
+    * @tparam F the effect type of the [[Request]] and [[Response]] bodies,
+    * and the base monad of the `OptionT` in which the response is returned.
+    */
+  type HttpRoutes[F[_]] = Http[OptionT[F, ?], F]
+
   @deprecated("Deprecated in favor of just using Kleisli", "0.18")
   type Service[F[_], A, B] = Kleisli[F, A, B]
 
-  /**
-    * A [[Kleisli]] that produces an effect to compute an [[OptionT[F]]]] from a
-    * [[Request[F]]]. In case an [[OptionT.none]] is computed the server backend
-    * should respond with a 404.
-    * An HttpService can be run on any supported http4s
-    * server backend, such as Blaze, Jetty, or Tomcat.
-    */
-  type HttpService[F[_]] = Kleisli[OptionT[F, ?], Request[F], Response[F]]
+  @deprecated("Deprecated in favor of HttpRoutes", "0.19")
+  type HttpService[F[_]] = HttpRoutes[F]
 
   /**
     * We need to change the order of type parameters to make partial unification

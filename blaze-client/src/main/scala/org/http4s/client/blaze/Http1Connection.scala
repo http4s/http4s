@@ -18,24 +18,26 @@ import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
 import scala.annotation.tailrec
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-private final class Http1Connection[F[_]](val requestKey: RequestKey, config: BlazeClientConfig)(
-    implicit protected val F: Effect[F])
+private final class Http1Connection[F[_]](
+    val requestKey: RequestKey,
+    protected override val executionContext: ExecutionContext,
+    maxResponseLineSize: Int,
+    maxHeaderLength: Int,
+    maxChunkSize: Int,
+    parserMode: ParserMode,
+    userAgent: Option[`User-Agent`]
+)(implicit protected val F: Effect[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
   import org.http4s.client.blaze.Http1Connection._
 
-  protected override val executionContext = config.executionContext
-
   override def name: String = getClass.getName
   private val parser =
-    new BlazeHttp1ClientParser(
-      config.maxResponseLineSize,
-      config.maxHeaderLength,
-      config.maxChunkSize,
-      config.lenientParser)
+    new BlazeHttp1ClientParser(maxResponseLineSize, maxHeaderLength, maxChunkSize, parserMode)
 
   private val stageState = new AtomicReference[State](Idle)
 
@@ -128,8 +130,8 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
           // Side Effecting Code
           encodeRequestLine(req, rr)
           Http1Stage.encodeHeaders(req.headers, rr, isServer)
-          if (config.userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
-            rr << config.userAgent.get << "\r\n"
+          if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
+            rr << userAgent.get << "\r\n"
           }
 
           val mustClose: Boolean = H.Connection.from(req.headers) match {
@@ -184,7 +186,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
       case Failure(t) =>
         fatalError(t, s"Error during phase: $phase")
         cb(Left(t))
-    }(config.executionContext)
+    }(executionContext)
 
   private def parsePrelude(
       buffer: ByteBuffer,

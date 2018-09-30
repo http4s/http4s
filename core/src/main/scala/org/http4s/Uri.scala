@@ -3,7 +3,6 @@ package org.http4s
 import cats._
 import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.StandardCharsets
-import macrocompat.bundle
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
@@ -119,7 +118,6 @@ final case class Uri(
 }
 
 object Uri extends UriFunctions {
-  @bundle
   class Macros(val c: Context) {
     import c.universe._
 
@@ -130,7 +128,7 @@ object Uri extends UriFunctions {
             .fromString(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              qValue =>
+              _ =>
                 q"_root_.org.http4s.Uri.fromString($s).fold(throw _, _root_.scala.Predef.identity)"
             )
         case _ =>
@@ -198,8 +196,8 @@ object Uri extends UriFunctions {
 
     private[http4s] trait Parser { self: PbParser =>
       def scheme = rule {
-        "https" ~ push(https) |
-          "http" ~ push(http) |
+        "https" ~ !Alpha ~ push(https) |
+          "http" ~ !Alpha ~ push(http) |
           capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new Scheme(_))
       }
     }

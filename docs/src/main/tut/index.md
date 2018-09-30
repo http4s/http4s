@@ -13,7 +13,7 @@ Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
 
 ```sbt
-$ sbt -sbt-version 1.1.1 new http4s/http4s.g8
+$ sbt -sbt-version 1.2.1 new http4s/http4s.g8 -b 0.19
 ```
 
 Follow the prompts.  For every step along the way, a default value is
@@ -49,21 +49,22 @@ At the end of the process, you'll see:
 Template applied in ./quickstart
 ```
 
-In addition to sbt build machinery, a Scala source files are
+In addition to sbt build machinery, some Scala source files are
 generated:
 
 ```sh
 $ cd quickstart
-$ find . -name '*.scala'
+$ find src/main -name '*.scala'
 ./src/main/scala/com/example/http4squickstart/HelloWorldServer.scala
+./src/main/scala/com/example/http4squickstart/HelloWorldService.scala
 ```
 
-`HelloWorldService.scala` defines a runnable class by extending `StreamApp[IO]`.
-A `StreamApp[IO]` must define a method `stream(args: List[String],
-requestShutdown: IO[Unit])` which acts the entry point to your application. That
-method starts blaze, http4s' native server backend.
+`HelloWorldServer.scala` defines a runnable object `HelloWorldServer extends StreamApp[IO]`
+ overriding the `stream(args: List[String],
+requestShutdown: IO[Unit])` method which acts as the entry point to your application by
+ starting blaze, http4s' native server backend.
 
-The `route` method defines a simple `HttpService` that responds to `GET
+`HelloWorldService` defines a `service` value containing a simple `HttpService` that responds to `GET
 /hello/$USERNAME` with a JSON greeting.  Let's try it:
 
 ```sh
@@ -94,7 +95,7 @@ Content-Length: 26
 To shut down your server, simply press `^C` in your console. Note that
 when running interactive SBT, `^C` will kill the SBT process. For rapid
 application development, you may wish to add the [sbt-revolver] plugin
-to your project and starting the server from the SBT prompt with `re-start`.
+to your project and starting the server from the SBT prompt with `reStart`.
 
 With just a few commands, we have a fully functional app for creating
 a simple JSON service.

@@ -7,13 +7,20 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.syntax.async._
 import org.http4s.util.StringWriter
+import org.log4s.getLogger
 import scala.concurrent._
 
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
   final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =
     F.fromFuture(writeHeaders(headerWriter)).attempt.flatMap {
-      case Left(_) => body.drain.compile.drain.map(_ => true)
-      case Right(_) => writeEntityBody(body)
+      case Right(()) =>
+        writeEntityBody(body)
+      case Left(t) =>
+        body.drain.compile.drain.handleError { t2 =>
+          // Don't lose this error when sending the other
+          // TODO implement with cats.effect.Bracket when we have it
+          Http1Writer.logger.error(t2)("Error draining body")
+        } *> F.raiseError(t)
     }
 
   /* Writes the header.  It is up to the writer whether to flush immediately or to
@@ -22,6 +29,8 @@ private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
 }
 
 private[util] object Http1Writer {
+  private val logger = getLogger
+
   def headersToByteBuffer(headers: String): ByteBuffer =
     ByteBuffer.wrap(headers.getBytes(StandardCharsets.ISO_8859_1))
 }

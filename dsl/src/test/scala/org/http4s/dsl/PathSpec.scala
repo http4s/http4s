@@ -58,6 +58,14 @@ class PathSpec extends Http4sSpec {
       }) must beTrue
     }
 
+    "→ extractor /test.json" in {
+      val req = Request[IO](method = Method.GET, uri = uri("/test.json"))
+      (req match {
+        case GET → (Root / "test.json") => true
+        case _ => false
+      }) must beTrue
+    }
+
     "request path info extractor for /" in {
       val req = Request[IO](method = Method.GET, uri = uri("/"))
       (req match {
@@ -174,6 +182,38 @@ class PathSpec extends Http4sSpec {
         "number but out of domain" in {
           (Path("/user/9223372036854775808") match {
             case Root / "user" / LongVar(userId @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+      }
+    }
+
+    "UUID extractor" >> {
+      "valid" >> {
+        "a UUID" in {
+          (Path("/user/13251d88-7a73-4fcf-b935-54dfae9f023e") match {
+            case Root / "user" / UUIDVar(userId) =>
+              userId.toString == "13251d88-7a73-4fcf-b935-54dfae9f023e"
+            case _ => false
+          }) must beTrue
+        }
+      }
+      "invalid" >> {
+        "a number" in {
+          (Path("/user/123") match {
+            case Root / "user" / UUIDVar(userId @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+        "a word" in {
+          (Path("/user/invalid") match {
+            case Root / "user" / UUIDVar(userId @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+        "a bad UUID" in {
+          (Path("/user/13251d88-7a73-4fcf-b935") match {
+            case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }

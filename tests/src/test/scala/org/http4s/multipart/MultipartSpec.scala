@@ -6,25 +6,14 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 import java.io.File
-import org.http4s.MediaType._
 import org.http4s.headers._
 import org.http4s.Uri._
 import org.http4s.EntityEncoder._
-import org.specs2.Specification
+import org.specs2.mutable.Specification
 
 class MultipartSpec extends Specification {
-  sequential
 
-  def is = s2"""
-    Multipart form data can be
-        encoded and decoded with    content types  $encodeAndDecodeMultipart
-        encoded and decoded without content types  $encodeAndDecodeMultipartMissingContentType
-        encoded and decoded with    binary data    $encodeAndDecodeMultipartWithBinaryFormData
-        decode  and encode  with    content types  $decodeMultipartRequestWithContentTypes
-        decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes
-        extract name     properly if it is present $extractNameIfPresent
-        extract filename property if it is present $extractFilenameIfPresent
-     """
+  implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
 
   val url = Uri(
     scheme = Some(Scheme.https),
@@ -47,66 +36,78 @@ class MultipartSpec extends Specification {
     a.parts === b.parts
   }
 
-  def encodeAndDecodeMultipart = {
+  def multipartSpec(name: String)(
+      implicit E: EntityDecoder[IO, Multipart[IO]]): org.specs2.specification.core.Fragment = {
+    s"Multipart form data $name" should {
+      "be encoded and decoded with content types" in {
 
-    val field1 = Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(`text/plain`))
-    val field2 = Part.formData[IO]("field2", "Text_Field_2")
-    val multipart = Multipart(Vector(field1, field2))
-    val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-    val body = entity.body
-    val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-    val result = decoded.value.unsafeRunSync()
+        val field1 =
+          Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
+        val field2 = Part.formData[IO]("field2", "Text_Field_2")
+        val multipart = Multipart(Vector(field1, field2))
+        val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+        val body = entity.body
+        val request =
+          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+        val result = decoded.value.unsafeRunSync()
 
-    result must beRight.like {
-      case mp =>
-        mp === multipart
-    }
-  }
+        result must beRight.like {
+          case mp =>
+            mp === multipart
+        }
+      }
 
-  def encodeAndDecodeMultipartMissingContentType = {
+      "be encoded and decoded without content types" in {
 
-    val field1 = Part.formData[IO]("field1", "Text_Field_1")
-    val multipart = Multipart[IO](Vector(field1))
+        val field1 = Part.formData[IO]("field1", "Text_Field_1")
+        val multipart = Multipart[IO](Vector(field1))
 
-    val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-    val body = entity.body
-    val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-    val result = decoded.value.unsafeRunSync()
+        val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+        val body = entity.body
+        val request =
+          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+        val result = decoded.value.unsafeRunSync()
 
-    result must beRight.like {
-      case mp =>
-        mp === multipart
-    }
+        result must beRight.like {
+          case mp =>
+            mp === multipart
+        }
 
-  }
+      }
 
-  def encodeAndDecodeMultipartWithBinaryFormData = {
+      "encoded and decoded with binary data" in {
 
-    val file = new File(getClass.getResource("/ball.png").toURI)
+        val file = new File(getClass.getResource("/ball.png").toURI)
 
-    val field1 = Part.formData[IO]("field1", "Text_Field_1")
-    val field2 = Part.fileData[IO]("image", file, `Content-Type`(`image/png`))
+        val field1 = Part.formData[IO]("field1", "Text_Field_1")
+        val field2 = Part.fileData[IO](
+          "image",
+          file,
+          Http4sSpec.TestBlockingExecutionContext,
+          `Content-Type`(MediaType.image.png))
 
-    val multipart = Multipart[IO](Vector(field1, field2))
+        val multipart = Multipart[IO](Vector(field1, field2))
 
-    val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-    val body = entity.body
-    val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+        val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+        val body = entity.body
+        val request =
+          Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-    val result = decoded.value.unsafeRunSync()
+        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+        val result = decoded.value.unsafeRunSync()
 
-    result must beRight.like {
-      case mp =>
-        mp === multipart
-    }
-  }
+        result must beRight.like {
+          case mp =>
+            mp === multipart
+        }
+      }
 
-  def decodeMultipartRequestWithContentTypes = {
+      "be decoded and encode with content types" in {
 
-    val body = """
+        val body =
+          """
 ------WebKitFormBoundarycaZFo8IAKVROTEeD
 Content-Disposition: form-data; name="text"
 
@@ -123,25 +124,25 @@ Content-Type: application/pdf
 
 ------WebKitFormBoundarycaZFo8IAKVROTEeD--
       """.replaceAllLiterally("\n", "\r\n")
-    val header = Headers(
-      `Content-Type`(
-        MediaType.multipart("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
-    val request = Request[IO](
-      method = Method.POST,
-      uri = url,
-      body = Stream.emit(body).through(text.utf8Encode),
-      headers = header)
+        val header = Headers(
+          `Content-Type`(
+            MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
+        val request = Request[IO](
+          method = Method.POST,
+          uri = url,
+          body = Stream.emit(body).covary[IO].through(text.utf8Encode),
+          headers = header)
 
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-    val result = decoded.value.unsafeRunSync()
+        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+        val result = decoded.value.unsafeRunSync()
 
-    result must beRight
-  }
+        result must beRight
+      }
 
-  def decodeMultipartRequestWithoutContentTypes = {
+      "be decoded and encoded without content types" in {
 
-    val body =
-      """--bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz
+        val body =
+          """--bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz
 Content-Disposition: form-data; name="Mooses"
 
 We are big mooses
@@ -152,31 +153,40 @@ I am a big moose
 --bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz--
 
       """.replaceAllLiterally("\n", "\r\n")
-    val header = Headers(
-      `Content-Type`(MediaType.multipart("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
-    val request = Request[IO](
-      method = Method.POST,
-      uri = url,
-      body = Stream.emit(body).through(text.utf8Encode),
-      headers = header)
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-    val result = decoded.value.unsafeRunSync()
+        val header = Headers(
+          `Content-Type`(
+            MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
+        val request = Request[IO](
+          method = Method.POST,
+          uri = url,
+          body = Stream.emit(body).through(text.utf8Encode),
+          headers = header)
+        val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+        val result = decoded.value.unsafeRunSync()
 
-    result must beRight
+        result must beRight
+      }
+
+      "extract name properly if it is present" in {
+        val part = Part(
+          Headers(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
+          Stream.empty.covary[IO])
+        part.name must beEqualTo(Some("Rich Homie Quan"))
+      }
+
+      "extract filename property if it is present" in {
+        val part = Part(
+          Headers(
+            `Content-Disposition`("form-data", Map("name" -> "file", "filename" -> "file.txt"))),
+          Stream.empty.covary[IO]
+        )
+        part.filename must beEqualTo(Some("file.txt"))
+      }
+    }
   }
 
-  def extractNameIfPresent = {
-    val part = Part(
-      Headers(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
-      Stream.empty.covary[IO])
-    part.name must beEqualTo(Some("Rich Homie Quan"))
-  }
+  multipartSpec("with default decoder")(implicitly)
+  multipartSpec("with mixed decoder")(
+    MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlockingExecutionContext))
 
-  def extractFilenameIfPresent = {
-    val part = Part(
-      Headers(`Content-Disposition`("form-data", Map("name" -> "file", "filename" -> "file.txt"))),
-      Stream.empty.covary[IO]
-    )
-    part.filename must beEqualTo(Some("file.txt"))
-  }
 }

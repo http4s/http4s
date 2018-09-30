@@ -68,20 +68,33 @@ your PR fails due to formatting, run `;test:scalafmt`.
 
 [Scalafmt]: http://scalameta.org/scalafmt/
 
+#### IntelliJ IDEA specific settings
+
+To setup IntelliJ IDEA to conform with the formatting used in this project, 
+the following settings should be changed from the default.
+
+Under `Settings > Editor > Code Style > Scala`:
+
+* Set `Formatter` to `scalafmt`. The default path for the `.scalafmt.conf` 
+file should work, if not, point it to the `.scalafmt.conf` in the root of
+the project.
+* In the `Imports` tab, in the `Import layout` pane, delete all entries, 
+except for `all other imports`. This disables the grouping and sorting of
+imports that IntelliJ does by default.
+
 ### Types
 
 #### Effects
 
 Prefer a parameterized effect type and cats-effect type classes over
-specializing on a task. (In versions before cats-effect is on the classpath,
-specialize on use `fs2.Task` or `scalaz.concurrent.Task`.)
+specializing on a task.
 
 ```scala
 // Good
-def apply[F[_]](service: HttpService[F])(implicit F: Monad[F]): HttpService[F]
+def apply[F[_]](service: HttpApp[F])(implicit F: Monad[F]): HttpApp[F]
 
 // Bad
-def apply(service: HttpService[Task]): HttpService[Task]
+def apply(service: HttpApp[IO]): HttpService[IO]
 ```
 
 For examples and tutorials, use `cats.effect.IO` wherever a concrete effect is
@@ -168,6 +181,8 @@ http4s is licensed under the [Apache License 2.0]. Opening a pull
 request signifies your consent to license your contributions under the
 Apache License 2.0.
 
+[Apache License 2.0]: https://www.apache.org/licenses/LICENSE-2.0.html
+
 ## Tests
 
 * Tests for http4s-core go into the `tests` module.
@@ -218,9 +233,9 @@ code is added.
 
 ## Submit a pull request
 
-Before you open a pull request, you should make sure that `sbt
-validate` runs successfully. Travis CI will run this as well, but it
-may save you some time to be alerted to style or tut problems earlier.
+Before you open a pull request, you should make sure that `sbt ci` runs
+successfully. Travis CI will run this as well, but it may save you some
+time to be alerted to style or tut problems earlier.
 
 If your pull request addresses an existing issue, please tag that
 issue number in the body of your pull request or commit message. For

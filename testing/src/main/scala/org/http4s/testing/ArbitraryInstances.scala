@@ -117,10 +117,10 @@ trait ArbitraryInstances {
     Cogen[Int].contramap(_.##)
 
   val genValidStatusCode =
-    choose(100, 599)
+    choose(Status.MinCode, Status.MaxCode)
 
   val genStandardStatus =
-    oneOf(Status.registered.toSeq)
+    oneOf(Status.registered)
 
   val genCustomStatus = for {
     code <- genValidStatusCode
@@ -268,15 +268,8 @@ trait ArbitraryInstances {
   val http4sGenMediaRangeExtensions: Gen[Map[String, String]] =
     Gen.listOf(http4sGenMediaRangeExtension).map(_.toMap)
 
-  val http4sGenMediaType: Gen[MediaType] =
-    for {
-      mainType <- genToken
-      subType <- genToken
-      extensions <- arbitrary[Map[String, String]]
-    } yield new MediaType(mainType, subType, extensions = extensions)
-
   implicit val http4sArbitraryMediaType: Arbitrary[MediaType] =
-    Arbitrary(http4sGenMediaType)
+    Arbitrary(oneOf(MediaType.all.values.toSeq))
 
   implicit val http4sCogenMediaType: Cogen[MediaType] =
     Cogen[(String, String, Map[String, String])].contramap(m =>
@@ -284,7 +277,7 @@ trait ArbitraryInstances {
 
   val http4sGenMediaRange: Gen[MediaRange] =
     for {
-      `type` <- genToken
+      `type` <- genToken.map(_.toLowerCase)
       extensions <- http4sGenMediaRangeExtensions
     } yield new MediaRange(`type`, extensions)
 
@@ -318,6 +311,14 @@ trait ArbitraryInstances {
       for {
         contentCoding <- genContentCodingNoQuality
       } yield `Content-Encoding`(contentCoding)
+    }
+
+  implicit val arbitraryContentType: Arbitrary[`Content-Type`] =
+    Arbitrary {
+      for {
+        mediaType <- arbitrary[MediaType]
+        charset <- arbitrary[Charset]
+      } yield `Content-Type`(mediaType, charset)
     }
 
   def genLanguageTagNoQuality: Gen[LanguageTag] =
@@ -373,8 +374,9 @@ trait ArbitraryInstances {
   implicit val arbitraryXB3TraceId: Arbitrary[`X-B3-TraceId`] =
     Arbitrary {
       for {
-        long <- arbitrary[Long]
-      } yield `X-B3-TraceId`(long)
+        msb <- arbitrary[Long]
+        lsb <- Gen.option(arbitrary[Long])
+      } yield `X-B3-TraceId`(msb, lsb)
     }
 
   implicit val arbitraryXB3SpanId: Arbitrary[`X-B3-SpanId`] =
@@ -712,19 +714,16 @@ trait ArbitraryInstances {
       }
     }
 
-  implicit def cogenEntityBody[F[_]](
-      implicit F: Effect[F],
-      ec: TestContext): Cogen[EntityBody[F]] = {
-    val _ = ec // TODO unused as of cats-effect-0.10, remove in http4s-0.19
-    catsEffectLawsCogenForIO[Vector[Byte], Vector[Byte]].contramap { stream =>
+  implicit def cogenEntityBody[F[_]](implicit F: Effect[F]): Cogen[EntityBody[F]] =
+    catsEffectLawsCogenForIO[Vector[Byte]].contramap { stream =>
       var bytes: Vector[Byte] = null
       val readBytes = IO(bytes)
       F.runAsync(stream.compile.toVector) {
-        case Right(bs) => IO { bytes = bs }
-        case Left(t) => IO.raiseError(t)
-      } *> readBytes
+          case Right(bs) => IO { bytes = bs }
+          case Left(t) => IO.raiseError(t)
+        }
+        .toIO *> readBytes
     }
-  }
 
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =
     Arbitrary(Gen.sized { size =>
@@ -734,7 +733,7 @@ trait ArbitraryInstances {
       } yield Entity(body.covary[F], length)
     })
 
-  implicit def cogenEntity[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Entity[F]] =
+  implicit def cogenEntity[F[_]](implicit F: Effect[F]): Cogen[Entity[F]] =
     Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def arbitraryEntityEncoder[F[_], A](
@@ -747,7 +746,6 @@ trait ArbitraryInstances {
   implicit def arbitraryEntityDecoder[F[_], A](
       implicit
       F: Effect[F],
-      ec: TestContext,
       g: Arbitrary[DecodeResult[F, A]]) =
     Arbitrary(
       for {
@@ -759,7 +757,7 @@ trait ArbitraryInstances {
           def consumes = mrs
         })
 
-  implicit def cogenMessage[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Message[F]] =
+  implicit def cogenMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
   implicit def cogenHeaders: Cogen[Headers] =

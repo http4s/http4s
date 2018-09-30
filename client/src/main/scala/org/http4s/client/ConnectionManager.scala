@@ -2,6 +2,8 @@ package org.http4s
 package client
 
 import cats.effect._
+import cats.effect.concurrent.Semaphore
+import cats.implicits._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -56,20 +58,23 @@ object ConnectionManager {
     * @param maxConnectionsPerRequestKey Map of RequestKey to number of max connections
     * @param executionContext `ExecutionContext` where async operations will execute
     */
-  def pool[F[_]: Effect, A <: Connection[F]](
+  def pool[F[_]: Concurrent, A <: Connection[F]](
       builder: ConnectionBuilder[F, A],
       maxTotal: Int,
       maxWaitQueueLimit: Int,
       maxConnectionsPerRequestKey: RequestKey => Int,
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
-      executionContext: ExecutionContext): ConnectionManager[F, A] =
-    new PoolManager[F, A](
-      builder,
-      maxTotal,
-      maxWaitQueueLimit,
-      maxConnectionsPerRequestKey,
-      responseHeaderTimeout,
-      requestTimeout,
-      executionContext)
+      executionContext: ExecutionContext): F[ConnectionManager[F, A]] =
+    Semaphore.uncancelable(1).map { semaphore =>
+      new PoolManager[F, A](
+        builder,
+        maxTotal,
+        maxWaitQueueLimit,
+        maxConnectionsPerRequestKey,
+        responseHeaderTimeout,
+        requestTimeout,
+        semaphore,
+        executionContext)
+    }
 }

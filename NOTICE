@@ -1,0 +1,44 @@
+http4s
+Copyright 2013-2018 http4s.org
+Licensed under Apache License 2.0 (see LICENSE)
+
+This software contains portions of code derived from akka-http
+https://github.com/akka/akka-http
+Copyright (C) 2009-2017 Lightbend Inc. <http://www.lightbend.com>
+Licensed under Apache License 2.0 (see LICENSE)
+
+This software contains portions of code derived from cats-effect
+https://github.com/typelevel/cats-effect
+Copyright (c) 2017-2018 The Typelevel Cats-effect Project Developers
+Licensed under Apache License 2.0 (see LICENSE)
+
+This software contains portions of code derived from finagle
+https://github.com/twitter/finagle
+Licensed under Apache License 2.0 (see LICENSE)
+
+This software contains portions of code derived from fs2
+https://github.com/functional-streams-for-scala/fs2
+Copyright (c) 2013 Paul Chiusano, and respective contributors
+Licensed under the MIT License (see licenses/LICENSE_fs2)
+
+This software contains portions of code derived from sbt
+https://github.com/sbt/sbt
+Copyright (c) 2008-2014 Typesafe Inc, Mark Harrah, Grzegorz Kossakowski, Josh Suereth, Indrajit Raychaudhuri, Eugene Yokota, and other contributors.
+Licensed under BSD-style license (see licenses/LICENSE_sbt)
+
+This software contains portions of code derived from specs2
+https://github.com/etorreborre/specs2
+Copyright (C) 2011-2012 spray.io
+Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
+Licensed under MIT license (see licenses/LICENSE_specs2)
+
+This software contains portions of code derived from spray
+https://github.com/spray/spray
+Copyright (C) 2011-2012 spray.io
+Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
+Licensed under Apache License 2.0 (see LICENSE)
+
+
+
+
+

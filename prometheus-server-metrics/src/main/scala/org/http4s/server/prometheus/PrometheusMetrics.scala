@@ -51,7 +51,7 @@ object PrometheusMetrics {
     }
   }
 
-  private case class ServiceMetrics(
+  private final case class ServiceMetrics(
       requestDuration: Histogram,
       activeRequests: Gauge,
       requestCounter: Counter,
@@ -60,7 +60,7 @@ object PrometheusMetrics {
 
   private def metricsService[F[_]: Sync](
       serviceMetrics: ServiceMetrics,
-      service: HttpService[F],
+      routes: HttpRoutes[F],
       emptyResponseHandler: Option[Status],
       errorResponseHandler: Throwable => Option[Status]
   )(
@@ -69,7 +69,7 @@ object PrometheusMetrics {
     for {
       initialTime <- Sync[F].delay(System.nanoTime())
       _ <- Sync[F].delay(serviceMetrics.activeRequests.inc())
-      responseAtt <- service(req).value.attempt
+      responseAtt <- routes(req).value.attempt
       headersElapsed <- Sync[F].delay(System.nanoTime())
       result <- responseAtt.fold(
         e =>
@@ -147,7 +147,7 @@ object PrometheusMetrics {
         Stream.eval(Sync[F].delay {
           serviceMetrics.abnormalTerminations.labels(
             AbnormalTermination.report(AbnormalTermination.Abnormal))
-        }) *> Stream.raiseError[Byte](e).covary[F])
+        }) *> Stream.raiseError[F](e).covary[F])
     r.copy(body = newBody)
   }
 
@@ -214,8 +214,8 @@ object PrometheusMetrics {
       c: CollectorRegistry,
       prefix: String = "org_http4s_server",
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
-      errorResponseHandler: Throwable => Option[Status] = e => Status.InternalServerError.some
-  ): Kleisli[F, HttpService[F], HttpService[F]] = Kleisli { service: HttpService[F] =>
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some
+  ): Kleisli[F, HttpRoutes[F], HttpRoutes[F]] = Kleisli { routes: HttpRoutes[F] =>
     Sync[F].delay {
       val serviceMetrics =
         ServiceMetrics(
@@ -244,7 +244,7 @@ object PrometheusMetrics {
             .register(c)
         )
       Kleisli(
-        metricsService[F](serviceMetrics, service, emptyResponseHandler, errorResponseHandler)(_)
+        metricsService[F](serviceMetrics, routes, emptyResponseHandler, errorResponseHandler)(_)
       )
     }
   }

@@ -26,23 +26,23 @@ import org.http4s.syntax.string._
 
 object HttpHeaderParser
     extends SimpleHeaders
+    with AcceptCharsetHeader
+    with AcceptEncodingHeader
     with AcceptHeader
     with AcceptLanguageHeader
+    with AuthorizationHeader
     with CacheControlHeader
     with ContentTypeHeader
     with CookieHeader
-    with AcceptCharsetHeader
-    with AcceptEncodingHeader
-    with AuthorizationHeader
-    with RangeParser
+    with LinkHeader
     with LocationHeader
+    with OriginHeader
+    with ProxyAuthenticateHeader
+    with RangeParser
     with RefererHeader
     with StrictTransportSecurityHeader
-    with ProxyAuthenticateHeader
     with WwwAuthenticateHeader
-    with ZipkinHeader
-    with LinkHeader {
-
+    with ZipkinHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -104,7 +104,8 @@ object HttpHeaderParser
       Header("Cookie", "http4s=cool"),
       Header("Host", "http4s.org"),
       Header("X-Forwarded-For", "1.2.3.4"),
-      Header("Fancy-Custom-Header", "yeah")
+      Header("Fancy-Custom-Header", "yeah"),
+      Header("Origin", "http://example.com:12345")
     ).map(parseHeader)
     assert(results.forall(_.isRight))
   }

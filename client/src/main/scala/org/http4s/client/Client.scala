@@ -1,52 +1,15 @@
 package org.http4s
 package client
 
-import cats._
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
-import org.http4s.Status.Successful
-import org.http4s.headers.{Accept, MediaRangeAndQValue}
-import scala.concurrent.SyncVar
+import org.http4s.headers.Host
+import org.http4s.syntax.kleisli._
 import scala.util.control.NoStackTrace
-import org.log4s.getLogger
-
-/**
-  * Contains a [[Response]] that needs to be disposed of to free the underlying
-  * HTTP connection.
-  * @param response
-  * @param dispose
-  */
-final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit]) {
-
-  private[this] val logger = getLogger
-
-  /**
-    * Returns a task to handle the response, safely disposing of the underlying
-    * HTTP connection when the task finishes.
-    */
-  def apply[A](f: Response[F] => F[A])(implicit F: MonadError[F, Throwable]): F[A] = {
-    //Catch possible user bugs in pure expression
-    val task: F[A] = try f(response)
-    catch {
-      case e: Throwable =>
-        logger.error(e)("""Handled exception in client callback to prevent a connection leak.
-             |The callback should always return an F. If your callback can fail
-             |with an exception you can't handle, call `F.raiseError(exception)`.
-          """.stripMargin)
-        F.raiseError(e)
-    }
-
-    for {
-      result <- task.attempt
-      _ <- dispose
-      fold <- result.fold[F[A]](F.raiseError, F.pure)
-    } yield fold
-  }
-}
 
 /**
   * A [[Client]] submits [[Request]]s to a server and processes the [[Response]].
@@ -55,12 +18,11 @@ final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit
   *             a [[Request]].  This is a low-level operation intended for client
   *             implementations and middleware.
   *
-  * @param shutdown an effect to shut down this Shutdown this client, closing any
+  * @param shutdown an effect to shut down this client, closing any
   *                 open connections and freeing resources
   */
-final case class Client[F[_]](
-    open: Kleisli[F, Request[F], DisposableResponse[F]],
-    shutdown: F[Unit])(implicit F: MonadError[F, Throwable]) {
+trait Client[F[_]] {
+  def run(req: Request[F]): Resource[F, Response[F]]
 
   /** Submits a request, and provides a callback to process the response.
     *
@@ -70,8 +32,7 @@ final case class Client[F[_]](
     *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
-  def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A] =
-    open.run(req).flatMap(_.apply(f))
+  def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A]
 
   /** Submits a request, and provides a callback to process the response.
     *
@@ -81,8 +42,7 @@ final case class Client[F[_]](
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
-  def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
-    req.flatMap(fetch(_)(f))
+  def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
 
   /**
     * Returns this client as a [[Kleisli]].  All connections created by this
@@ -92,15 +52,13 @@ final case class Client[F[_]](
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
-  def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A] =
-    open.flatMapF(_.apply(f))
+  def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A]
 
   @deprecated("Use toKleisli", "0.18")
-  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A] =
-    toKleisli(f)
+  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A]
 
   /**
-    * Returns this client as an [[HttpService]].  It is the responsibility of
+    * Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
@@ -108,123 +66,89 @@ final case class Client[F[_]](
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
-  def toHttpService: HttpService[F] =
-    open
-      .map {
-        case DisposableResponse(response, dispose) =>
-          response.copy(body = response.body.onFinalize(dispose))
-      }
-      .mapF(OptionT.liftF(_))
+  def toHttpApp: HttpApp[F]
 
-  def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A] =
-    Stream
-      .eval(open(req))
-      .flatMap {
-        case DisposableResponse(response, dispose) =>
-          f(response)
-            .onFinalize(dispose)
-      }
+  /**
+    * Returns this client as an [[HttpService]].  It is the
+    * responsibility of callers of this service to run the response
+    * body to dispose of the underlying HTTP connection.
+    *
+    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
+    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
+    * signatures guarantee disposal of the HTTP connection.
+    */
+  @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
+  def toHttpService: HttpService[F]
 
-  def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
-    Stream.eval(req).flatMap(streaming(_)(f))
+  def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A]
+
+  def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A] = {
-    val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList
-      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
-    } else req
-    fetch(r) {
-      case Successful(resp) =>
-        d.decode(resp, strict = false).fold(throw _, identity)
-      case failedResponse =>
-        onError(failedResponse).flatMap(F.raiseError)
-    }
-  }
+      implicit d: EntityDecoder[F, A]): F[A]
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */
-  def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(req)(Client.DefaultOnError[F])
+  def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A] =
-    req.flatMap(expectOr(_)(onError))
+      implicit d: EntityDecoder[F, A]): F[A]
 
-  def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(req)(Client.DefaultOnError[F])
+  def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(Request[F](Method.GET, uri))(onError)
+      implicit d: EntityDecoder[F, A]): F[A]
 
   /**
     * Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
-  def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(uri)(Client.DefaultOnError[F])
+  def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A] =
-    Uri.fromString(s).fold(F.raiseError, uri => expectOr[A](uri)(onError))
+      implicit d: EntityDecoder[F, A]): F[A]
 
   /**
     * Submits a GET request to the URI specified by the String and decodes the
     * response on success.  On failure, the status code is returned.  The
     * underlying HTTP connection is closed at the completion of the decoding.
     */
-  def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(s)(Client.DefaultOnError[F])
+  def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
   /**
     * Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
-  def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
-    val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList
-      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
-    } else req
-    fetch(r) { resp =>
-      d.decode(resp, strict = false).fold(throw _, identity)
-    }
-  }
+  def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
   /**
     * Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
-  def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
-    req.flatMap(fetchAs(_)(d))
+  def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
   /** Submits a request and returns the response status */
-  def status(req: Request[F]): F[Status] =
-    fetch(req)(resp => F.pure(resp.status))
+  def status(req: Request[F]): F[Status]
 
   /** Submits a request and returns the response status */
-  def status(req: F[Request[F]]): F[Status] =
-    req.flatMap(status)
+  def status(req: F[Request[F]]): F[Status]
 
   /** Submits a request and returns true if and only if the response status is
     * successful */
-  def successful(req: Request[F]): F[Boolean] =
-    status(req).map(_.isSuccess)
+  def successful(req: Request[F]): F[Boolean]
 
   /** Submits a request and returns true if and only if the response status is
     * successful */
-  def successful(req: F[Request[F]]): F[Boolean] =
-    req.flatMap(successful)
+  def successful(req: F[Request[F]]): F[Boolean]
 
   @deprecated("Use expect", "0.14")
-  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
-    fetchAs(req)(d)
+  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
   /** Submits a GET request, and provides a callback to process the response.
     *
@@ -234,93 +158,80 @@ final case class Client[F[_]](
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
-  def get[A](uri: Uri)(f: Response[F] => F[A]): F[A] =
-    fetch(Request[F](Method.GET, uri))(f)
+  def get[A](uri: Uri)(f: Response[F] => F[A]): F[A]
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */
-  def get[A](s: String)(f: Response[F] => F[A]): F[A] =
-    Uri.fromString(s).fold(F.raiseError, uri => get(uri)(f))
+  def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
   /**
     * Submits a GET request and decodes the response.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
   @deprecated("Use expect", "0.14")
-  def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    fetchAs(Request[F](Method.GET, uri))(d)
+  def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
 
   @deprecated("Use expect", "0.14")
-  def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
+  def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
   @deprecated("Use expect", "0.14")
-  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T] =
-    fetchAs(req)
-
-  /** Shuts this client down, and blocks until complete. */
-  def shutdownNow()(implicit F: Effect[F]): Unit = {
-    val wait = new SyncVar[Unit]
-    F.runAsync(shutdown) { _ =>
-        wait.put(())
-        IO.unit
-      }
-      .unsafeRunSync()
-    wait.get
-  }
+  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T]
 }
 
 object Client {
+  def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(
+      implicit F: Bracket[F, Throwable]): Client[F] = new DefaultClient[F] {
+    def run(req: Request[F]): Resource[F, Response[F]] = f(req)
+  }
 
   /** Creates a client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.
     *
     * @param service the service to respond to requests to this client
     */
-  def fromHttpService[F[_]](service: HttpService[F])(implicit F: Sync[F]): Client[F] = {
-    val isShutdown = new AtomicBoolean(false)
+  @deprecated("Use fromHttpApp instead. Call service.orNotFound to turn into an HttpApp.", "0.19")
+  def fromHttpService[F[_]](service: HttpRoutes[F])(implicit F: Sync[F]): Client[F] =
+    fromHttpApp(service.orNotFound)
 
-    def interruptible(body: EntityBody[F], disposed: AtomicBoolean): Stream[F, Byte] = {
-      def killable(reason: String, killed: AtomicBoolean): Pipe[F, Byte, Byte] = {
-        def go(killed: AtomicBoolean, stream: Stream[F, Byte]): Pull[F, Byte, Unit] =
-          stream.pull.uncons.flatMap {
-            case Some((segment, stream)) =>
-              if (killed.get) {
-                Pull.raiseError(new IOException(reason))
-              } else {
-                Pull.output(segment) >> go(killed, stream)
-              }
-            case None => Pull.done
-          }
-
-        stream =>
-          go(killed, stream).stream
-      }
-      body
-        .through(killable("response was disposed", disposed))
-        .through(killable("client was shut down", isShutdown))
-    }
-
-    def disposableService(service: HttpService[F]): Kleisli[F, Request[F], DisposableResponse[F]] =
-      Kleisli { req: Request[F] =>
-        val disposed = new AtomicBoolean(false)
-        val req0 = req.withBodyStream(interruptible(req.body, disposed))
-        service(req0).getOrElse(Response.notFound).map { resp =>
-          DisposableResponse(
-            resp.copy(body = interruptible(resp.body, disposed)),
-            F.delay(disposed.set(true))
-          )
+  /** Creates a client from the specified [[HttpApp]].  Useful for
+    * generating pre-determined responses for requests in testing.
+    *
+    * @param app the [[HttpApp]] to respond to requests to this client
+    */
+  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Sync[F]): Client[F] =
+    Client { req: Request[F] =>
+      Resource.suspend {
+        Ref[F].of(false).map { disposed =>
+          def go(stream: Stream[F, Byte]): Pull[F, Byte, Unit] =
+            stream.pull.uncons.flatMap {
+              case Some((chunk, stream)) =>
+                Pull.eval(disposed.get).flatMap {
+                  case true =>
+                    Pull.raiseError[F](new IOException("response was disposed"))
+                  case false =>
+                    Pull.output(chunk) >> go(stream)
+                }
+              case None =>
+                Pull.done
+            }
+          val req0 =
+            addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
+          Resource
+            .make(app(req0))(_ => disposed.set(true))
+            .map(resp => resp.copy(body = go(resp.body).stream))
         }
       }
+    }
 
-    Client(disposableService(service), F.delay(isShutdown.set(true)))
-  }
-
-  private def DefaultOnError[F[_]](resp: Response[F])(implicit F: Applicative[F]): F[Throwable] =
-    F.pure(UnexpectedStatus(resp.status))
+  private def addHostHeaderIfUriIsAbsolute[F[_]](req: Request[F]): Request[F] =
+    req.uri.host match {
+      case Some(host) if req.headers.get(Host).isEmpty =>
+        req.withHeaders(req.headers.put(Host(host.value, req.uri.port)))
+      case _ => req
+    }
 }
 
 final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace {

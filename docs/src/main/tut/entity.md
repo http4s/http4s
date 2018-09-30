@@ -54,13 +54,13 @@ sealed trait Resp
 case class Audio(body: String) extends Resp
 case class Video(body: String) extends Resp
 
-val response = Ok("").map(_.withContentType(`Content-Type`(MediaType.`audio/ogg`)))
-val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =>
+val response = Ok("").map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
+val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { msg: Message[IO] =>
   EitherT {
     msg.as[String].map(s => Audio(s).asRight[DecodeFailure])
   }
 }
-val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =>
+val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { msg: Message[IO] =>
   EitherT {
     msg.as[String].map(s => Video(s).asRight[DecodeFailure])
   }
@@ -80,22 +80,23 @@ a full list.
 ### JSON
 With `jsonOf` for the `EntityDecoder`, and `jsonEncoderOf` for the `EntityEncoder`:
 
-- argonaut: `"org.http4s" %% "http4s-argonaut" % Http4sVersion`
-- circe: `"org.http4s" %% "http4s-circe" % Http4sVersion`
-- json4s-native: `"org.http4s" %% "http4s-json4s-native" % Http4sVersion`
-- json4s-jackson: `"org.http4s" %% "http4s-json4s-jackson" % Http4sVersion`
+- argonaut: `"org.http4s" %% "http4s-argonaut" % http4sVersion`
+- circe: `"org.http4s" %% "http4s-circe" % http4sVersion`
+- json4s-native: `"org.http4s" %% "http4s-json4s-native" % http4sVersion`
+- json4s-jackson: `"org.http4s" %% "http4s-json4s-jackson" % http4sVersion`
 
 ### XML
 For scala-xml (xml literals), import `org.http4s.scalaxml`. No direct naming
 required here, because there is no Decoder instance for `String` that would
 cause conflicts with the builtin Decoders.
 
-- scala-xml: `"org.http4s" %% "http4s-scala-xml" % Http4sVersion`
+- scala-xml: `"org.http4s" %% "http4s-scala-xml" % http4sVersion`
 
-### Twirl
-If you're working with [twirl] templates, there's a bridge for that too:
+### Support for Twirl and Scalatags
+If you're working with either [twirl] or [scalatags] you can use our bridges:
 
-- scala-twirl: `"org.http4s" %% "http4s-twirl" % Http4sVersion`
+- scala-twirl: `"org.http4s" %% "http4s-twirl" % http4sVersion`
+- scala-scalatags: `"org.http4s" %% "http4s-scalatags" % http4sVersion`
 
 [introduction-to-functional-streams]: https://youtu.be/cahvyadYfX8
 [EntityEncoder]: ../api/org/http4s/EntityEncoder$
@@ -103,3 +104,4 @@ If you're working with [twirl] templates, there's a bridge for that too:
 [MediaType]: ../api/org/http4s/MediaType$
 [MediaRange]: ../api/org/http4s/MediaRange$
 [twirl]: https://github.com/playframework/twirl
+[scalatags]: http://www.lihaoyi.com/scalatags/

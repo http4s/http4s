@@ -3,22 +3,21 @@ package server
 
 import cats.implicits._
 import cats.effect._
-import fs2.StreamApp.ExitCode
+import cats.effect.concurrent.Ref
 import fs2._
+import fs2.concurrent.SignallingRef
 import java.net.{InetAddress, InetSocketAddress}
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
-import fs2.async.immutable.Signal
-import fs2.async.Ref
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 trait ServerBuilder[F[_]] {
   import ServerBuilder._
 
   type Self <: ServerBuilder[F]
+
+  protected implicit def F: Concurrent[F]
 
   def bindSocketAddress(socketAddress: InetSocketAddress): Self
 
@@ -29,37 +28,32 @@ trait ServerBuilder[F[_]] {
 
   final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
 
-  @deprecated("Use withExecutionContext", "0.17")
-  def withExecutorService(executorService: ExecutorService): Self =
-    withExecutionContext(ExecutionContext.fromExecutorService(executorService))
-
-  @deprecated("Use withExecutionContext", "0.17.0")
-  def withServiceExecutor(executorService: ExecutorService): Self =
-    withExecutorService(executorService)
-
-  def withExecutionContext(executionContext: ExecutionContext): Self
-
   /** Sets the handler for errors thrown invoking the service.  Is not
     * guaranteed to be invoked on errors on the server backend, such as
     * parsing a request or handling a context timeout.
     */
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self
 
-  def mountService(service: HttpService[F], prefix: String = ""): Self
+  // def mountService(service: HttpRoutes[F], prefix: String = ""): Self
 
-  /** Returns a task to start a server.  The task completes with a
-    * reference to the server when it has started.
+  /** Returns a Server resource.  The resource is not acquired until the
+    * server is started and ready to accept requests.
     */
-  def start: F[Server[F]]
+  def resource: Resource[F, Server[F]]
+
+  /** Returns a Server stream.  The stream does not emit until the
+    * server is started and ready to accept requests.
+    */
+  def stream: Stream[F, Server[F]] = Stream.resource(resource)
 
   /**
     * Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
     */
-  final def serve(implicit F: Effect[F], ec: ExecutionContext): Stream[F, ExitCode] =
+  final def serve: Stream[F, ExitCode] =
     for {
-      signal <- Stream.eval(async.signalOf[F, Boolean](false))
-      exitCode <- Stream.eval(async.refOf[F, ExitCode](ExitCode.Success))
+      signal <- Stream.eval(SignallingRef[F, Boolean](false))
+      exitCode <- Stream.eval(Ref[F].of(ExitCode.Success))
       serve <- serveWhile(signal, exitCode)
     } yield serve
 
@@ -68,13 +62,11 @@ trait ServerBuilder[F[_]] {
     * Useful for servers with associated lifetime behaviors.
     */
   final def serveWhile(
-      terminateWhenTrue: Signal[F, Boolean],
+      terminateWhenTrue: SignallingRef[F, Boolean],
       exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
-    Stream.bracket(start)(
-      (_: Server[F]) =>
-        terminateWhenTrue.discrete.takeWhile(_ === false).drain ++ Stream.eval(exitWith.get),
-      _.shutdown
-    )
+    Stream.resource(resource) *> (terminateWhenTrue.discrete
+      .takeWhile(_ === false)
+      .drain ++ Stream.eval(exitWith.get))
 
   /** Set the banner to display when the server starts up */
   def withBanner(banner: immutable.Seq[String]): Self

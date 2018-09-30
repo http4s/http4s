@@ -17,16 +17,16 @@ object GZip {
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Functor](
-      service: HttpService[F],
+  def apply[F[_]: Functor, G[_]: Functor](
+      @deprecatedName('service) http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION,
-      isZippable: Response[F] => Boolean = defaultIsZippable[F](_: Response[F])): HttpService[F] =
-    Kleisli { req =>
+      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])): Http[F, G] =
+    Kleisli { req: Request[G] =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
-          service.map(zipOrPass(_, bufferSize, level, isZippable)).apply(req)
-        case _ => service(req)
+          http.map(zipOrPass(_, bufferSize, level, isZippable)).apply(req)
+        case _ => http(req)
       }
     }
 
@@ -34,7 +34,7 @@ object GZip {
     val contentType = resp.headers.get(`Content-Type`)
     resp.headers.get(`Content-Encoding`).isEmpty &&
     (contentType.isEmpty || contentType.get.mediaType.compressible ||
-    (contentType.get.mediaType eq MediaType.`application/octet-stream`))
+    (contentType.get.mediaType eq MediaType.application.`octet-stream`))
   }
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
@@ -60,7 +60,7 @@ object GZip {
     val trailerGen = new TrailerGen()
     val b = chunk(header) ++
       resp.body
-        .through(trailer(trailerGen, bufferSize.toLong))
+        .through(trailer(trailerGen, bufferSize))
         .through(
           deflate(
             level = level,
@@ -94,20 +94,16 @@ object GZip {
 
   private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
 
-  private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Long): Pipe[Pure, Byte, Byte] =
+  private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Int): Pipe[Pure, Byte, Byte] =
     _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).stream
 
-  private def trailerStep(gen: TrailerGen, maxReadLimit: Long): (Option[
-    (Segment[Byte, Unit], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
+  private def trailerStep(gen: TrailerGen, maxReadLimit: Int): (
+      Option[(Chunk[Byte], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
     case None => Pull.pure(None)
-    case Some((segment, stream)) =>
-      //Avoid copying chunk toARray
-      segment.force.foreachChunk { c =>
-        val byteChunk = c.toBytes
-        gen.crc.update(byteChunk.values, byteChunk.offset, byteChunk.length)
-        gen.inputLength = gen.inputLength + byteChunk.length
-      }
-      Pull.output(segment) >> stream.pull
+    case Some((chunk, stream)) =>
+      gen.crc.update(chunk.toArray)
+      gen.inputLength = gen.inputLength + chunk.size
+      Pull.output(chunk) >> stream.pull
         .unconsLimit(maxReadLimit)
         .flatMap(trailerStep(gen, maxReadLimit))
   }

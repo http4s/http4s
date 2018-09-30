@@ -20,13 +20,12 @@ development.
 [blaze] and [rho] do not yet have dedicated channels.  Questions about
 these projects are welcome in the http4s channel.
 
-We expect users to observe the [code of conduct] while on the Gitter
+We expect users to observe the [Scala Code of Conduct] while on the Gitter
 channel.
 
 [Gitter]: https://gitter.im/http4s/http4s
 [blaze]: https://github.com/http4s/blaze
 [rho]: https://github.com/http4s/rho
-[code of conduct]: ../code-of-conduct/
 
 ## Issues
 
@@ -38,7 +37,7 @@ feature request, or something to improve in the documentation, we
 appreciate it if you open an issue.  Pull requests with documentation
 fixes are a great way to start [contributing].
 
-We expect users to observe the [code of conduct] on our GitHub
+We expect users to observe the [Scala Code of Conduct] on our GitHub
 organization.
 
 [GitHub issues]: https://github.com/http4s/http4s/issues
@@ -51,4 +50,5 @@ encourage you to follow for release announcements.  Your likes and
 retweets help grow our community.
 
 [@http4s]: https://twitter.com/http4s
+[Scala Code of Conduct]: ../code-of-conduct/
 

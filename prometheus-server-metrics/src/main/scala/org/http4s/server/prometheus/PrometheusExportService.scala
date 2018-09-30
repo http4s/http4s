@@ -10,20 +10,16 @@ import io.prometheus.client.hotspot._
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 
-class PrometheusExportService[F[_]: Sync] private (
-    s: HttpService[F],
-    cr: CollectorRegistry
-) {
-  def withCollectorRegistry(cr: CollectorRegistry): PrometheusExportService[F] =
-    new PrometheusExportService[F](
-      PrometheusExportService.service[F](cr),
-      cr
-    )
-
-  def service: HttpService[F] = s
-
-  def collectorRegistry: CollectorRegistry = cr
-}
+/*
+ * PromethusExportService Contains an HttpService
+ * ready to be scraped by Prometheus, paired
+ * with the CollectorRegistry that it is creating
+ * metrics for, allowing custom metric registration.
+ */
+final class PrometheusExportService[F[_]: Sync] private (
+    val routes: HttpRoutes[F],
+    val collectorRegistry: CollectorRegistry
+)
 
 object PrometheusExportService {
 
@@ -45,11 +41,11 @@ object PrometheusExportService {
       }
       .map(Response[F](Status.Ok).withEntity(_))
 
-  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpService[F] = {
+  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] = {
     object dsl extends Http4sDsl[F]
     import dsl._
 
-    HttpService[F] {
+    HttpRoutes.of[F] {
       case GET -> Root / "metrics" => generateResponse(collectorRegistry)
     }
   }
@@ -57,6 +53,7 @@ object PrometheusExportService {
   def addDefaults[F[_]: Sync](cr: CollectorRegistry): F[Unit] = Sync[F].delay {
     cr.register(new StandardExports())
     cr.register(new MemoryPoolsExports())
+    cr.register(new BufferPoolsExports())
     cr.register(new GarbageCollectorExports())
     cr.register(new ThreadExports())
     cr.register(new ClassLoadingExports())

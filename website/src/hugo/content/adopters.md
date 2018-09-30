@@ -88,6 +88,12 @@ title: Adopters
 [twitterstorm](https://github.com/ChristopherDavenport/twitterstorm)
 : Twitter Streaming API Processing Example Project 
 
+[http4s-index](https://github.com/stephennancekivell/http4s-index)
+: lists the files and folders becoming a simple light weight web server
+
+[Dashing](https://github.com/benfradet/dashing)
+: Dashboards to monitor an open source organization's health
+
 ## Giter8 templates
 
 G8 templates provide a fast way to get started with SBT projects by just running `sbt new <template-name>`.
@@ -102,5 +108,5 @@ G8 templates provide a fast way to get started with SBT projects by just running
 <hr />
 
 <small>
-[<i class="fa fa-edit" aria-hidden="true"></i> Add yourself](https://github.com/http4s/http4s.org/edit/master/community/adopters.md), alphabetically, if you please.
+[<i class="fa fa-edit" aria-hidden="true"></i> Add yourself](https://github.com/http4s/http4s/edit/master/website/src/hugo/content/adopters.md), alphabetically, if you please.
 </small>

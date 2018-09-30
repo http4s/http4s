@@ -2,20 +2,22 @@ package org.http4s.server.blaze
 
 import cats.effect._
 import cats.implicits._
-import fs2._
+import fs2.concurrent.SignallingRef
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
+import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
+import org.http4s.internal.unsafeRunAsync
 import org.http4s.syntax.string._
 import org.http4s.websocket.WebsocketHandshake
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
-  protected implicit def F: Effect[F]
+  protected implicit def F: ConcurrentEffect[F]
 
   override protected def renderResponse(
       req: Request[F],
@@ -32,7 +34,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
           WebsocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
               logger.info(s"Invalid handshake $code, $msg")
-              async.unsafeRunAsync {
+              unsafeRunAsync {
                 wsContext.failureResponse
                   .map(
                     _.replaceAllHeaders(
@@ -63,9 +65,12 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 case Success(_) =>
                   logger.debug("Switching pipeline segments for websocket")
 
-                  val segment = LeafBuilder(new Http4sWSStage[F](wsContext.webSocket))
-                    .prepend(new WSFrameAggregator)
-                    .prepend(new WebSocketDecoder)
+                  val deadSignal = F.toIO(SignallingRef[F, Boolean](false)).unsafeRunSync()
+                  val sentClose = new AtomicBoolean(false)
+                  val segment =
+                    LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal))
+                      .prepend(new WSFrameAggregator)
+                      .prepend(new WebSocketDecoder)
 
                   this.replaceTail(segment, true)
 

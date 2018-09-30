@@ -4,7 +4,7 @@ package headers
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
-object Referer extends HeaderKey.Internal[Referer] {
+object Referer extends HeaderKey.Internal[Referer] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Referer] =
     HttpHeaderParser.REFERER(s)
 }

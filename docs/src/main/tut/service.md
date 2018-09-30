@@ -10,7 +10,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.12.4" // Also supports 2.11.x
+scalaVersion := "2.12.7" // Also supports 2.11.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
@@ -36,32 +36,38 @@ $ sbt console
 
 ## Your first service
 
-An `HttpService[F]` is a simple alias for
-`Kleisli[F, Request, Response]`.  If that's meaningful to you,
+An `HttpRoutes[F]` is a simple alias for
+`Kleisli[OptionT[F, ?], Request, Response]`.  If that's meaningful to you,
 great.  If not, don't panic: `Kleisli` is just a convenient wrapper
 around a `Request => F[Response]`, and `F` is an effectful
-operation.  We'll teach you what you need to know as we go, or you
-can, uh, fork a task to read these introductions first:
+operation.  We'll teach you what you need to know as we go, or if you
+prefer you can read these introductions first:
 
-* [Scalaz Task: The Missing Documentation]
+* [cats-effect: The IO Monad for Scala]
 * [Cats Kleisli Datatype]
 
 ### Defining your service
 
 Wherever you are in your studies, let's create our first
-`HttpService`.  Start by pasting these imports into your SBT console:
+`HttpRoutes`.  Start by pasting these imports into your SBT console:
 
-```tut:book
+```tut:book:silent
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-Using the [http4s-dsl], we can construct an `HttpService` by pattern
+You also will need a `ContextShift`.
+
+```tut:book:silent
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+```
+
+Using the [http4s-dsl], we can construct an `HttpRoutes` by pattern
 matching the request.  Let's build a service that matches requests to
 `GET /hello/:name`, where `:name` is a path parameter for the person to
 greet.
 
 ```tut:book
-val helloWorldService = HttpService[IO] {
+val helloWorldService = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
@@ -89,7 +95,7 @@ implicit def tweetsEncoder: EntityEncoder[IO, Seq[Tweet]] = ???
 def getTweet(tweetId: Int): IO[Tweet] = ???
 def getPopularTweets(): IO[Seq[Tweet]] = ???
 
-val tweetService = HttpService[IO] {
+val tweetService = HttpRoutes.of[IO] {
   case GET -> Root / "tweets" / "popular" =>
     getPopularTweets().flatMap(Ok(_))
   case GET -> Root / "tweets" / IntVar(tweetId) =>
@@ -108,7 +114,7 @@ path of `/api`. The services can be mounted in any order as the request will be
 matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
-Multiple `HttpService`s can be combined with the `combineK` method (or its alias
+Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 `<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`. Please ensure partial unification is enabled in your `build.sbt`. 
 
 `scalacOptions ++= Seq("-Ypartial-unification")`
@@ -117,19 +123,21 @@ Multiple `HttpService`s can be combined with the `combineK` method (or its alias
 import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
+import org.http4s.server.Router
 
 val services = tweetService <+> helloWorldService
-val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api").start
+val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
+val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp)
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
 using defaults of port 8080 and the loopback address. The `mountService` call
-associates a base path with a `HttpService`.
+associates a base path with a `HttpRoutes`.
 
-A builder can be `run` to start the server.
+We start a server resource in the background.  The server will run until we cancel the fiber:
 
 ```tut:book
-val server = builder.unsafeRunSync()
+val fiber = serverBuilder.resource.use(_ => IO.never).start.unsafeRunSync()
 ```
 
 Use curl, or your favorite HTTP client, to see your service in action:
@@ -140,11 +148,10 @@ $ curl http://localhost:8080/hello/Pete
 
 ## Cleaning up
 
-Our server consumes system resources. Let's clean up by shutting it
-down:
+We can shut down the server by canceling its fiber.
 
 ```tut:book
-server.shutdown.unsafeRunSync()
+fiber.cancel.unsafeRunSync()
 ```
 
 ### Running your service as an `App`
@@ -155,28 +162,40 @@ any output.  When this process is run with `.unsafeRunSync` on the
 main thread, it blocks forever, keeping the JVM (and your server)
 alive until the JVM is killed.
 
-As a convenience, fs2 provides an `fs2.StreamApp[F[_]]` trait
-with an abstract `main` method that returns a `Stream`.  A `StreamApp`
-runs the process and adds a JVM shutdown hook to interrupt the infinite
-process and gracefully shut down your server when a SIGTERM is received.
+As a convenience, cats-effect provides an `cats.effect.IOApp` trait
+with an abstract `run` method that returns a `IO[ExitCode]`.  An
+`IOApp` runs the process and adds a JVM shutdown hook to interrupt
+the infinite process and gracefully shut down your server when a
+SIGTERM is received.
 
-```tut:book
-import fs2.{Stream, StreamApp}
-import fs2.StreamApp.ExitCode
+```tut:book:reset
+import cats.effect._
+import cats.implicits._
+import org.http4s.HttpRoutes
+import org.http4s.syntax._
+import org.http4s.dsl.io._
 import org.http4s.server.blaze._
 
-object Main extends StreamApp[IO] {
-  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =
-    BlazeBuilder[IO]
+object Main extends IOApp {
+
+  val helloWorldService = HttpRoutes.of[IO] {
+    case GET -> Root / "hello" / name =>
+      Ok(s"Hello, $name.")
+  }.orNotFound
+
+  def run(args: List[String]): IO[ExitCode] =
+    BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
-      .mountService(helloWorldService, "/")
-      .mountService(services, "/api")
+      .withHttpApp(helloWorldService)
       .serve
+      .compile
+      .drain
+      .as(ExitCode.Success)
 }
 ```
 
 [blaze]: https://github.com/http4s/blaze
 [tut]: https://github.com/tpolecat/tut
 [Cats Kleisli Datatype]: https://typelevel.org/cats/datatypes/kleisli.html
-[Scalaz Task: The Missing Documentation]: http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/
+[cats-effect: The IO Monad for Scala]: https://typelevel.org/cats-effect/
 [http4s-dsl]: ../dsl

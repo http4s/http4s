@@ -5,7 +5,6 @@ package util
 import cats.effect._
 import cats.implicits._
 import fs2._
-import fs2.Stream._
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline._
 import org.http4s.util.StringWriter

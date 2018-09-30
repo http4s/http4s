@@ -2,21 +2,29 @@ package org.http4s
 package client
 package middleware
 
-import cats.data.Kleisli
-import cats.effect.IO
-import fs2._
+import cats.effect.{IO, Resource}
+import cats.effect.concurrent.Ref
+import cats.implicits.{catsSyntaxEither => _, _}
+import fs2.Stream
 import org.http4s.dsl.io._
 import org.specs2.specification.Tables
 import scala.concurrent.duration._
 
 class RetrySpec extends Http4sSpec with Tables {
 
-  val route = HttpService[IO] {
-    case _ -> Root / status =>
-      IO.pure(Response(Status.fromInt(status.toInt).valueOr(throw _)))
-  }
+  val app = HttpRoutes
+    .of[IO] {
+      case req @ _ -> Root / "status-from-body" =>
+        req.as[String].flatMap {
+          case "OK" => Ok()
+          case "" => InternalServerError()
+        }
+      case _ -> Root / status =>
+        IO.pure(Response(Status.fromInt(status.toInt).valueOr(throw _)))
+    }
+    .orNotFound
 
-  val defaultClient: Client[IO] = Client.fromHttpService(route)
+  val defaultClient: Client[IO] = Client.fromHttpApp(app)
 
   def countRetries(
       client: Client[IO],
@@ -63,12 +71,40 @@ class RetrySpec extends Http4sSpec with Tables {
       countRetries(defaultClient, POST, s, EmptyBody) must_== 1
     }
 
-    "not retry effectful bodies" in prop { s: Status =>
-      countRetries(defaultClient, PUT, s, Stream.eval_(IO.unit)) must_== 1
+    def resubmit(method: Method)(
+        retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) =
+      Ref[IO]
+        .of(false)
+        .flatMap { ref =>
+          val body = Stream.eval(ref.get.flatMap {
+            case false => ref.update(_ => true) *> IO.pure("")
+            case true => IO.pure("OK")
+          })
+          val req = Request[IO](method, uri("http://localhost/status-from-body")).withEntity(body)
+          val policy = RetryPolicy[IO]({ attempts: Int =>
+            if (attempts >= 2) None
+            else Some(Duration.Zero)
+          }, retriable)
+          val retryClient = Retry[IO](policy)(defaultClient)
+          retryClient.status(req)
+        }
+        .unsafeRunSync()
+
+    "defaultRetriable does not resubmit bodies on idempotent methods" in {
+      resubmit(POST)(RetryPolicy.defaultRetriable) must_== Status.InternalServerError
+    }
+    "unsafeRetriable does not resubmit bodies on non-idempotent methods" in {
+      resubmit(POST)(RetryPolicy.unsafeRetriable) must_== Status.InternalServerError
+    }
+    "unsafeRetriable resubmits bodies on idempotent methods" in {
+      resubmit(PUT)(RetryPolicy.unsafeRetriable) must_== Status.Ok
+    }
+    "recklesslyRetriable resubmits bodies on non-idempotent methods" in {
+      resubmit(POST)((req, result) => RetryPolicy.recklesslyRetriable(result)) must_== Status.Ok
     }
 
     "retry exceptions" in {
-      val failClient = Client[IO](Kleisli.liftF(IO.raiseError(new Exception("boom"))), IO.unit)
+      val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(new Exception("boom"))))
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 2
     }
   }

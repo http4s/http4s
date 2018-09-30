@@ -116,7 +116,8 @@ class MessageSpec extends Http4sSpec {
     "decode" should {
       "produce a UnsupportedMediaType in the event of a decode failure" >> {
         "MediaTypeMismatch" in {
-          val req = Request[IO](headers = Headers(`Content-Type`(MediaType.`application/base64`)))
+          val req =
+            Request[IO](headers = Headers(`Content-Type`(MediaType.application.`octet-stream`)))
           val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
           resp.map(_.status) must returnValue(Status.UnsupportedMediaType)
         }
@@ -141,7 +142,7 @@ class MessageSpec extends Http4sSpec {
       "return a plain text UTF-8 not found response" in {
         val resp: Response[Pure] = Response.notFound
 
-        resp.contentType must beSome(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
+        resp.contentType must beSome(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`))
         resp.status must_=== Status.NotFound
         resp.body.through(fs2.text.utf8Decode).toList.mkString("") must_=== "Not found"
       }

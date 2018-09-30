@@ -14,7 +14,7 @@ final case class MediaRangeAndQValue(mediaRange: MediaRange, qValue: QValue = QV
     extends Renderable {
   def render(writer: Writer): writer.type = {
     writer << mediaRange.withExtensions(Map.empty) << qValue
-    mediaRange.renderExtensions(writer)
+    MediaRange.renderExtensions(writer, mediaRange)
     writer
   }
 }

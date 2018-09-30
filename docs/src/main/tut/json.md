@@ -162,6 +162,18 @@ Ok(Hello("Alice").asJson).unsafeRunSync
 POST(uri("/hello"), User("Bob").asJson).unsafeRunSync
 ```
 
+If within some route we serve json only, we can use:
+
+```tut:book
+{
+import org.http4s.circe.CirceEntityEncoder._
+}
+```
+
+Thus there's no more need in calling `asJson` on result.
+However, it may introduce ambiguity errors when we also build
+some json by hand within the same scope. 
+
 ## Receiving raw JSON
 
 Just as we needed an `EntityEncoder[JSON]` to send JSON from a server
@@ -194,10 +206,10 @@ POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
 ```
 
 If we are always decoding from JSON to a typed model, we can use
-the following one-liner:
+the following import:
 
 ```tut:book
-implicit def decoders[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
+import org.http4s.circe.CirceEntityDecoder._
 ```
 
 This creates an `EntityDecoder[A]` for every `A` that has a `Decoder` instance.
@@ -205,6 +217,13 @@ This creates an `EntityDecoder[A]` for every `A` that has a `Decoder` instance.
 However, be cautious when using this. Having this implicit
 in scope does mean that we would always try to decode HTTP entities
 from JSON (even if it is XML or plain text, for instance).
+
+For more convenience there is import combining both encoding 
+and decoding derivation: 
+
+```tut:book
+import org.http4s.circe.CirceEntityCodec._
+```
 
 ## Putting it all together
 
@@ -224,12 +243,14 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 case class User(name: String)
 case class Hello(greeting: String)
 
 implicit val decoder = jsonOf[IO, User]
 
-val jsonService = HttpService[IO] {
+val jsonService = HttpRoutes.of[IO] {
   case req @ POST -> Root / "hello" =>
     for {
 	  // Decode a User request
@@ -239,9 +260,12 @@ val jsonService = HttpService[IO] {
     } yield (resp)
 }
 
+// Provided automatically by `IOApp`
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+
 import org.http4s.server.blaze._
-val builder = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, "/").start
-val blazeServer = builder.unsafeRunSync
+val server = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, "/").resource
+val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
 ## A Hello world client
@@ -254,15 +278,16 @@ import org.http4s.client.dsl.io._
 import org.http4s.client.blaze._
 import cats.effect.IO
 import io.circe.generic.auto._
+import fs2.Stream
 
 // Decode the Hello response
-def helloClient(name: String): IO[Hello] = {
+def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
   val req = POST(uri("http://localhost:8080/hello"), User(name).asJson)
   // Create a client
-  Http1Client[IO]().flatMap { httpClient =>
+  BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
     // Decode a Hello response
-    httpClient.expect(req)(jsonOf[IO, Hello])
+    Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
   }
 }
 ```
@@ -272,11 +297,13 @@ Finally, we post `User("Alice")` to our Hello service and expect
 
 ```tut:book
 val helloAlice = helloClient("Alice")
-helloAlice.unsafeRunSync
+helloAlice.compile.last.unsafeRunSync
 ```
 
-```tut:invisible
-blazeServer.shutdown.unsafeRunSync()
+Finally, shut down our example server.
+
+```tut:silent
+fiber.cancel.unsafeRunSync()
 ```
 
 [argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless

@@ -2,36 +2,39 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.Kleisli
 import cats.effect._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
-import org.log4s.{Logger => SLogger}
+import org.log4s.getLogger
 
 /**
   * Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
-  def apply[F[_]: Effect](
+  private[this] val logger = getLogger
+
+  def apply[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(httpService: HttpService[F]): HttpService[F] =
-    ResponseLogger(logHeaders, logBody, redactHeadersWhen)(
-      RequestLogger(logHeaders, logBody, redactHeadersWhen)(
-        httpService
-      )
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: String => Unit = logger.info(_)
+  )(@deprecatedName('httpService) http: Kleisli[F, Request[F], Response[F]])
+    : Kleisli[F, Request[F], Response[F]] =
+    ResponseLogger(logHeaders, logBody, redactHeadersWhen, logAction)(
+      RequestLogger(logHeaders, logBody, redactHeadersWhen, logAction)(http)
     )
 
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-      logger: SLogger)(implicit F: Effect[F]): F[Unit] = {
+      log: String => Unit)(implicit F: Sync[F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
     val isJson = message.contentType.exists(mT =>
-      mT.mediaType == MediaType.`application/json` || mT.mediaType == MediaType.`application/hal+json`)
+      mT.mediaType == MediaType.application.json || mT.mediaType == MediaType.application.`vnd.hal+json`)
 
     val isText = !isBinary || isJson
 
@@ -68,7 +71,7 @@ object Logger {
     else {
       bodyText
         .map(body => s"$prelude $headers $body")
-        .map(text => logger.info(text))
+        .map(text => log(text))
         .compile
         .drain
     }

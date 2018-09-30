@@ -2,8 +2,10 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect._
+import cats.implicits._
+import cats.~>
 
 /** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the
   * request query params.
@@ -14,9 +16,11 @@ import cats.effect._
   */
 object UrlFormLifter {
 
-  def apply[F[_]: Effect](service: HttpService[F], strictDecode: Boolean = false): HttpService[F] =
+  def apply[F[_]: Sync, G[_]: Sync](f: G ~> F)(
+      @deprecatedName('service) http: Kleisli[F, Request[G], Response[G]],
+      strictDecode: Boolean = false): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
-      def addUrlForm(form: UrlForm): OptionT[F, Response[F]] = {
+      def addUrlForm(form: UrlForm): F[Response[G]] = {
         val flatForm = form.values.toVector.flatMap { case (k, vs) => vs.map(v => (k, Some(v))) }
         val params = req.uri.query.toVector ++ flatForm: Vector[(String, Option[String])]
         val newQuery = Query(params: _*)
@@ -24,21 +28,21 @@ object UrlFormLifter {
         val newRequest = req
           .withUri(req.uri.copy(query = newQuery))
           .withEmptyBody
-        service(newRequest)
+        http(newRequest)
       }
 
       req.headers.get(headers.`Content-Type`) match {
-        case Some(headers.`Content-Type`(MediaType.`application/x-www-form-urlencoded`, _))
+        case Some(headers.`Content-Type`(MediaType.application.`x-www-form-urlencoded`, _))
             if checkRequest(req) =>
           for {
-            decoded <- OptionT.liftF(UrlForm.entityDecoder[F].decode(req, strictDecode).value)
+            decoded <- f(UrlForm.entityDecoder[G].decode(req, strictDecode).value)
             resp <- decoded.fold(
-              mf => OptionT.liftF(mf.toHttpResponse[F](req.httpVersion)),
+              mf => f(mf.toHttpResponse[G](req.httpVersion)),
               addUrlForm
             )
           } yield resp
 
-        case _ => service(req)
+        case _ => http(req)
       }
     }
 

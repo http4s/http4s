@@ -5,10 +5,10 @@ Scala's answer to Ruby's Rack, Python's WSGI, Haskell's WAI, and Java's
 Servlets.
 
 ```scala
-val service = HttpService {
-    case GET -> Root / "hello" =>
-      Ok("Hello, better world.")
-  }
+val http = HttpRoutes.of {
+  case GET -> Root / "hello" =>
+    Ok("Hello, better world.")
+}
 ```
 
 Learn more at [http4s.org](https://http4s.org/).
@@ -22,9 +22,9 @@ scalacOptions ++= Seq("-Ypartial-unification")
 ## Code of Conduct
 
 http4s is proud to be a [Typelevel](https://typelevel.org/) incubator
-project.  We are dedicated to providing a harassment-free community
-for everyone, and ask that the community adhere to the
-[code of conduct](https://typelevel.org/conduct.html).
+project.  We are committed to providing a friendly, safe and welcoming
+environment for all, and ask that the community adhere to the [Scala
+Code of Conduct](https://http4s.org/code-of-conduct/).
 
 ## License
 

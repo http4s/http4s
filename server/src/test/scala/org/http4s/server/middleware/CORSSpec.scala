@@ -9,19 +9,19 @@ import org.http4s.headers._
 
 class CORSSpec extends Http4sSpec {
 
-  val service = HttpService[IO] {
+  val routes = HttpRoutes.of[IO] {
     case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
     case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
   }
 
-  val cors1 = CORS(service)
+  val cors1 = CORS(routes)
   val cors2 = CORS(
-    service,
+    routes,
     CORSConfig(
       anyOrigin = false,
       allowCredentials = false,
       maxAge = 0,
-      allowedOrigins = Set("http://allowed.com/"),
+      allowedOrigins = Set("http://allowed.com"),
       allowedHeaders = Some(Set("User-Agent", "Keep-Alive", "Content-Type")),
       exposedHeaders = Some(Set("x-header"))
     )
@@ -33,7 +33,7 @@ class CORSSpec extends Http4sSpec {
 
   def buildRequest(path: String, method: Method = GET) =
     Request[IO](uri = Uri(path = path), method = method).replaceAllHeaders(
-      Header("Origin", "http://allowed.com/"),
+      Header("Origin", "http://allowed.com"),
       Header("Access-Control-Request-Method", "GET"))
 
   "CORS" should {
@@ -136,9 +136,27 @@ class CORSSpec extends Http4sSpec {
 
     "Fall through" in {
       val req = buildRequest("/2")
-      val s1 = CORS(HttpService[IO] { case GET -> Root / "1" => Ok() })
-      val s2 = CORS(HttpService[IO] { case GET -> Root / "2" => Ok() })
-      (s1 <+> s2).orNotFound(req) must returnStatus(Ok)
+      val routes1 = CORS(HttpRoutes.of[IO] { case GET -> Root / "1" => Ok() })
+      val routes2 = CORS(HttpRoutes.of[IO] { case GET -> Root / "2" => Ok() })
+      (routes1 <+> routes2).orNotFound(req) must returnStatus(Ok)
+    }
+
+    "Not replace vary header if already set" in {
+      val req = buildRequest("/")
+      val service = CORS(HttpRoutes.of[IO] {
+        case GET -> Root =>
+          Response[IO](Ok)
+            .putHeaders(Header("Vary", "Origin,Accept"))
+            .withEntity("foo")
+            .pure[IO]
+      })
+
+      service
+        .orNotFound(req)
+        .map { resp =>
+          matchHeader(resp.headers, `Vary`, "Origin,Accept")
+        }
+        .unsafeRunSync()
     }
   }
 }

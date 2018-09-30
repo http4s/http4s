@@ -28,7 +28,7 @@ import org.http4s.implicits._
 Let's start by making a simple service.
 
 ```tut:book
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case _ =>
     Ok()
 }

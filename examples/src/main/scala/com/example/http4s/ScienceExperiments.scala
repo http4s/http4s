@@ -2,7 +2,7 @@ package com.example.http4s
 
 import cats.effect._
 import cats.implicits._
-import fs2.{Chunk, Pull, Scheduler, Stream}
+import fs2.{Chunk, Pull, Stream}
 import io.circe._
 import org.http4s._
 import org.http4s.circe._
@@ -11,7 +11,6 @@ import org.http4s.headers.Date
 import org.http4s.scalaxml._
 
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
 import scala.xml.Elem
 
 /** These are routes that we tend to use for testing purposes
@@ -23,11 +22,8 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
       .map(i => s"This is string number $i")
       .foldLeft("")(_ + _)
 
-  def service(
-      implicit F: Effect[F],
-      scheduler: Scheduler,
-      executionContext: ExecutionContext = ExecutionContext.global): HttpService[F] =
-    HttpService[F] {
+  def service(implicit F: Effect[F], timer: Timer[F]): HttpRoutes[F] =
+    HttpRoutes.of[F] {
       ///////////////// Misc //////////////////////
       case req @ POST -> Root / "root-element-name" =>
         req.decode { root: Elem =>
@@ -110,7 +106,7 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
           Stream
             .eval(F.pure(Chunk.bytes(Array(' '.toByte))))
             .evalMap(_ =>
-              F.async[Byte] { cb => /* hang */
+              F.async[Byte] { _ => /* hang */
             }))
 
       case GET -> Root / "broken-body" =>
@@ -122,7 +118,7 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
 
       case GET -> Root / "slow-body" =>
         val resp = "Hello world!".map(_.toString())
-        val body = scheduler.awakeEvery[F](2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
+        val body = Stream.awakeEvery[F](2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
         Ok(body)
 
       case GET -> Root / "fail" / "task" =>

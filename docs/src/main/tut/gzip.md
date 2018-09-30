@@ -28,7 +28,7 @@ Let's start by making a simple service that returns a (relatively) large string
 in its body. We'll use `as[String]` to examine the body.
 
 ```tut:book
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case _ =>
     Ok("I repeat myself when I'm under stress. " * 3)
 }
