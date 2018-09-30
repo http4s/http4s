@@ -12,14 +12,13 @@ import java.nio.ByteBuffer
 import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
 import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
-import org.http4s.internal.loggingAsyncCallback
+import org.http4s.internal.{invokeCallback, loggingAsyncCallback}
 import org.log4s.getLogger
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[ByteBuffer]],
-    cb: Callback[Resource[F, Response[F]]])(implicit val F: Effect[F], ec: ExecutionContext)
+    cb: Callback[Resource[F, Response[F]]])(implicit val F: ConcurrentEffect[F])
     extends JettyResponse.Listener.Adapter {
 
   import ResponseListener.logger
@@ -37,9 +36,7 @@ private[jetty] final case class ResponseListener[F[_]](
       }
       .leftMap(t => { abort(t, response); t })
 
-    ec.execute(new Runnable {
-      override def run(): Unit = cb(r)
-    })
+    invokeCallback(logger)(cb(r))
   }
 
   private def getHttpVersion(version: JHttpVersion): HttpVersion =
@@ -67,9 +64,7 @@ private[jetty] final case class ResponseListener[F[_]](
   }
 
   override def onFailure(response: JettyResponse, failure: Throwable): Unit =
-    ec.execute(new Runnable {
-      override def run(): Unit = cb(Left(failure))
-    })
+    invokeCallback(logger)(cb(Left(failure)))
 
   // the entire response has been received
   override def onSuccess(response: JettyResponse): Unit =
@@ -99,8 +94,7 @@ private[jetty] object ResponseListener {
   private val logger = getLogger
 
   def apply[F[_]](cb: Callback[Resource[F, Response[F]]])(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext): F[ResponseListener[F]] =
+      implicit F: ConcurrentEffect[F]): F[ResponseListener[F]] =
     Queue
       .synchronous[F, Option[ByteBuffer]]
       .map(q => ResponseListener(q, cb))
