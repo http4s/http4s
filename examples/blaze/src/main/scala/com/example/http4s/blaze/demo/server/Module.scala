@@ -25,7 +25,8 @@ class Module[F[_]](client: Client[F])(
 
   private val gitHubService = new GitHubService[F](client)
 
-  def middleware: HttpMiddleware[F] = { routes: HttpRoutes[F] => GZip(routes)
+  def middleware: HttpMiddleware[F] = { routes: HttpRoutes[F] =>
+    GZip(routes)
   }.compose(routes => AutoSlash(routes))
 
   val fileHttpEndpoint: HttpRoutes[F] =

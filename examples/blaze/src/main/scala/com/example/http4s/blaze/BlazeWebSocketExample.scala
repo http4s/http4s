@@ -18,9 +18,7 @@ object BlazeWebSocketExample extends IOApp {
 
 }
 
-class BlazeWebSocketExampleApp[F[_]](
-    implicit F: ConcurrentEffect[F],
-    timer: Timer[F])
+class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F])
     extends Http4sDsl[F] {
 
   def routes: HttpRoutes[F] = HttpRoutes.of[F] {

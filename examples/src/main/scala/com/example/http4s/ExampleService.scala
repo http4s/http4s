@@ -25,7 +25,7 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
   def routes(implicit timer: Timer[F]): HttpRoutes[F] =
     Router[F](
       "" -> rootRoutes,
-      "/auth" -> authRoutes,
+      "/auth" -> authRoutes
     )
 
   def rootRoutes(implicit timer: Timer[F]): HttpRoutes[F] =
@@ -144,7 +144,6 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
         Ok(data)
           .map(_.withContentType(`Content-Type`(MediaType.text.`html`)))
           .map(_.push("/image.jpg")(req))
-
 
       case req @ GET -> Root / "image.jpg" =>
         StaticFile

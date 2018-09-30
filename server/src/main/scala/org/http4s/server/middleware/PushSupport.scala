@@ -67,7 +67,8 @@ object PushSupport {
             .getOrElse(Vector.empty[PushResponse[F]])
         } else {
           routes
-            .flatMapF { response => OptionT.liftF(facc.map(_ :+ PushResponse(v.location, response)))
+            .flatMapF { response =>
+              OptionT.liftF(facc.map(_ :+ PushResponse(v.location, response)))
             }
             .apply(newReq)
             .getOrElse(Vector.empty[PushResponse[F]])
