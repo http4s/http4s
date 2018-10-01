@@ -156,14 +156,13 @@ private final class Http1Connection[F[_]](
           val responseTask: F[Response[F]] =
             receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
 
-          (for {
-            _ <- F.start(renderRequest)
-            resp <- responseTask
-          } yield resp)
-            .handleErrorWith { t =>
-              fatalError(t, "Error executing request")
-              F.raiseError(t)
-            }
+          // If `renderRequest` fails before the response, the task fails.
+          // If `renderRequest` wins, wait for the response.
+          // If `responseTask` wins, let renderRequest continue in the background.
+          F.racePair(renderRequest, responseTask).flatMap {
+            case Left((_, responseFiber)) => responseFiber.join
+            case Right((_, response)) => F.pure(response)
+          }
         }
     }
   }
