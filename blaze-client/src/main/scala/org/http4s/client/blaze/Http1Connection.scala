@@ -2,7 +2,6 @@ package org.http4s
 package client
 package blaze
 
-import cats.ApplicativeError
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -30,7 +29,7 @@ private final class Http1Connection[F[_]](
     maxChunkSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`]
-)(implicit protected val F: Effect[F])
+)(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
   import org.http4s.client.blaze.Http1Connection._
@@ -139,24 +138,28 @@ private final class Http1Connection[F[_]](
             case None => getHttpMinor(req) == 0
           }
 
-          val renderTask: F[Boolean] = getChunkEncoder(req, mustClose, rr)
-            .write(rr, req.body)
-            .recover {
-              case EOF => false
-            }
-            .attempt
-            .flatMap { r =>
-              F.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete)).flatMap { _ =>
-                ApplicativeError[F, Throwable].fromEither(r)
+          val renderRequest: F[Boolean] =
+            getChunkEncoder(req, mustClose, rr)
+              .write(rr, req.body)
+              .flatTap { _ =>
+                F.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete))
               }
-            }
+              .handleError {
+                case EOF =>
+                  false
+                case t =>
+                  logger.error(t)("Error rendering request")
+                  false
+              }
 
           // If we get a pipeline closed, we might still be good. Check response
           val responseTask: F[Response[F]] =
             receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
 
-          renderTask
-            .productR(responseTask)
+          (for {
+            _ <- F.start(renderRequest)
+            resp <- responseTask
+          } yield resp)
             .handleErrorWith { t =>
               fatalError(t, "Error executing request")
               F.raiseError(t)

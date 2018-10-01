@@ -2,6 +2,7 @@ package org.http4s
 package client
 
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import fs2.io._
@@ -10,6 +11,8 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
+import org.http4s.{headers => H}
+import org.specs2.execute.Result
 import org.specs2.specification.core.Fragments
 import scala.concurrent.duration._
 
@@ -19,6 +22,11 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
 
   def clientResource: Resource[IO, Client[IO]]
 
+  // How much of a request body is buffered when the server reads
+  // slowly is OS specific, but it should have some reasonable upper
+  // bound.
+  protected def maxBufferedBytes: Option[Int] = Some(64 * 1024)
+
   def testServlet = new HttpServlet {
     override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
       GetRoutes.getPaths.get(req.getRequestURI) match {
@@ -26,12 +34,17 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
         case None => srv.sendError(404)
       }
 
-    override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
-      srv.setStatus(200)
-      val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
-      srv.getOutputStream.print(s)
-      srv.getOutputStream.flush()
-    }
+    override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit =
+      req.getPathInfo match {
+        case "/echo" =>
+          resp.setStatus(200)
+          val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
+          resp.getOutputStream.print(s)
+          resp.getOutputStream.flush()
+        case "/slow-read" =>
+          resp.setStatus(Status.Ok.code)
+          resp.setContentLength(0)
+      }
   }
 
   withResource(JettyScaffold[IO](1, false, testServlet)) { jetty =>
@@ -92,6 +105,31 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
           val req = POST(uri, Stream("This is chunked.").covary[IO])
           val body = client.expect[String](req)
           body must returnValue("This is chunked.")
+        }
+
+        "Backpressure the body" in {
+          maxBufferedBytes match {
+            case Some(max) =>
+              val chunksRead = Ref[IO].of(0).flatMap { count =>
+                val chunk = Chunk.bytes(Array.fill(1024)(0.toByte))
+                // Stream 10 MB in 1KiB chunks
+                val body = Stream(chunk)
+                  .covary[IO]
+                  .repeat
+                  .take(102400)
+                  .evalTap(c => count.update(_ + 1))
+                  .flatMap(Stream.chunk)
+                val req = Request[IO](
+                  Method.POST,
+                  Uri
+                    .fromString(s"http://${address.getHostName}:${address.getPort}/slow-read")
+                    .yolo).putHeaders(H.Connection("close".ci)).withEntity(body)
+                client.fetch(req)(_.body.compile.drain) >> count.get
+              }
+              (chunksRead.unsafeRunSync() must be_<=(max)): Result
+            case None =>
+              skipped("This client backend can't do backpressure."): Result
+          }
         }
       }
     }

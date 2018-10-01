@@ -1,5 +1,6 @@
 package org.http4s.client.blaze
 
+import org.http4s.blaze.pipeline.Command.OutboundCommand
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.Execution
 import scala.concurrent.Future
@@ -60,5 +61,17 @@ private[blaze] final class ReadBufferStage[T] extends MidStage[T, T] {
       logger.error(ex)(msg)
       throw ex
     }
+  }
+
+  override def outboundCommand(cmd: OutboundCommand): Unit = cmd match {
+    case ClientTimeoutStage.RequestSendComplete =>
+    // Request rendering races against response completion, and the
+    // ClientTimeoutStage might be gone by now.  If it is, that's
+    // fine.
+    //
+    // This is a bad coupling, and will go away once we finish
+    // removing outbound commands.
+
+    case cmd => super.outboundCommand(cmd)
   }
 }
