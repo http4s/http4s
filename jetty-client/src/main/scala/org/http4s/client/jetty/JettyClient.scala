@@ -9,15 +9,13 @@ import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.client.api.{Request => JettyRequest}
 import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.log4s.{Logger, getLogger}
-import scala.concurrent.ExecutionContext
 
 object JettyClient {
 
   private val logger: Logger = getLogger
 
   def resource[F[_]](client: HttpClient = new HttpClient())(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext): Resource[F, Client[F]] = {
+      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
     val acquire = F
       .pure(client)
       .flatTap(client => F.delay { client.start() })
@@ -43,8 +41,7 @@ object JettyClient {
   }
 
   def stream[F[_]](client: HttpClient = new HttpClient())(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext): Stream[F, Client[F]] =
+      implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(client))
 
   private def toJettyRequest[F[_]](

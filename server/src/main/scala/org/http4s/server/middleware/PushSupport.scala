@@ -10,31 +10,33 @@ import org.log4s.getLogger
 object PushSupport {
   private[this] val logger = getLogger
 
-  implicit class PushOps[F[_]: Functor](response: F[Response[F]]) {
-    def push(url: String, cascade: Boolean = true)(implicit req: Request[F]): F[Response[F]] =
-      response.map { response =>
-        val newUrl = {
-          val script = req.scriptName
-          if (script.length > 0) {
-            val sb = new StringBuilder()
-            sb.append(script)
-            if (!url.startsWith("/")) sb.append('/')
-            sb.append(url)
-              .result()
-          } else url
-        }
+  implicit def http4sPushOps[F[_]: Functor](response: Response[F]): PushOps[F] =
+    new PushOps[F](response)
 
-        logger.trace(s"Adding push resource: $newUrl")
-
-        val newPushResouces = response.attributes
-          .get(pushLocationKey)
-          .map(_ :+ PushLocation(newUrl, cascade))
-          .getOrElse(Vector(PushLocation(newUrl, cascade)))
-
-        response.copy(
-          body = response.body,
-          attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
+  final class PushOps[F[_]: Functor](response: Response[F]) extends AnyRef {
+    def push(url: String, cascade: Boolean = true)(implicit req: Request[F]): Response[F] = {
+      val newUrl = {
+        val script = req.scriptName
+        if (script.length > 0) {
+          val sb = new StringBuilder()
+          sb.append(script)
+          if (!url.startsWith("/")) sb.append('/')
+          sb.append(url).result()
+        } else url
       }
+
+      logger.trace(s"Adding push resource: $newUrl")
+
+      val newPushResouces = response.attributes
+        .get(pushLocationKey)
+        .map(_ :+ PushLocation(newUrl, cascade))
+        .getOrElse(Vector(PushLocation(newUrl, cascade)))
+
+      response.copy(
+        body = response.body,
+        attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
+    }
+
   }
 
   private def locToRequest[F[_]: Functor](push: PushLocation, req: Request[F]): Request[F] =

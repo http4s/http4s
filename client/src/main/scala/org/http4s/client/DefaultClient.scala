@@ -117,11 +117,14 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def toHttpService: HttpService[F] =
     toHttpApp.mapF(OptionT.liftF(_))
 
+  def stream(req: Request[F]): Stream[F, Response[F]] =
+    Stream.resource(run(req))
+
   def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A] =
-    Stream.resource(run(req)).flatMap(f)
+    stream(req).flatMap(f)
 
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
-    Stream.eval(req).flatMap(streaming(_)(f))
+    Stream.eval(req).flatMap(stream).flatMap(f)
 
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A] = {
