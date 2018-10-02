@@ -69,6 +69,7 @@ final private[blaze] class ClientTimeoutStage(
       }
 
       timedOut.failure(timeoutException)
+      ()
     }
   }
 
