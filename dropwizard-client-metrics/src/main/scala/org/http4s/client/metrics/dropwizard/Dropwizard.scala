@@ -4,10 +4,10 @@ import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
 import java.util.concurrent.TimeUnit
 import org.http4s.Status
-import org.http4s.client.metrics.core.MetricsOps
+import org.http4s.metrics.MetricsOps
 
 /**
-  * [[org.http4s.client.metrics.core.MetricsOps]] algebra capable of recording Dropwizard metrics
+  * [[MetricsOps]] algebra capable of recording Dropwizard metrics
   *
   * For example to following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.metrics.core.Metrics]]
   * that records metrics to a given Metric Registry, classifying the metrics by HTTP method.

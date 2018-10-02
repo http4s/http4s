@@ -1,6 +1,5 @@
-package org.http4s.client.metrics.core
+package org.http4s.metrics
 
-import cats.effect.Sync
 import org.http4s.Status
 
 /**
@@ -56,20 +55,4 @@ trait MetricsOps[F[_]] {
     * @param classifier the classifier to use
     */
   def increaseTimeouts(classifier: Option[String]): F[Unit]
-}
-
-/**
-  * Type class that allows to create a [[MetricsOps]] object for certain metrics registry R
-  * @tparam R the specific metrics registry to use
-  */
-trait MetricsOpsFactory[R] {
-
-  /**
-    * Creates a new instance of [[MetricsOps]] for a specific metrics registry R
-    *
-    * @param registry the metrics registry where metrics should be recorded
-    * @param prefix a prefix that will added to all metrics
-    * @return the desired [[MetricsOps]]
-    */
-  def instance[F[_]: Sync](registry: R, prefix: String): MetricsOps[F]
 }

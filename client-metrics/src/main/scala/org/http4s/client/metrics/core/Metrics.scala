@@ -5,6 +5,7 @@ import cats.implicits._
 import java.util.concurrent.TimeUnit
 import org.http4s.{Request, Response}
 import org.http4s.client.Client
+import org.http4s.metrics.MetricsOps
 import scala.concurrent.TimeoutException
 
 /**

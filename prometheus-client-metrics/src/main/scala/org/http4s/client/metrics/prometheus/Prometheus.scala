@@ -3,10 +3,10 @@ package org.http4s.client.metrics.prometheus
 import cats.effect.Sync
 import io.prometheus.client._
 import org.http4s.Status
-import org.http4s.client.metrics.core.MetricsOps
+import org.http4s.metrics.MetricsOps
 
 /**
-  * [[org.http4s.client.metrics.core.MetricsOps]] algebra capable of recording Prometheus metrics
+  * [[MetricsOps]] algebra capable of recording Prometheus metrics
   *
   * For example to following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.metrics.core.Metrics]]
   * that records metrics to a given Metric Registry, classifying the metrics by HTTP method.
