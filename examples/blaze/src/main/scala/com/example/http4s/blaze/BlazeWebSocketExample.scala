@@ -8,7 +8,8 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.websocket._
-import org.http4s.websocket.WebsocketBits._
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.duration._
 
 object BlazeWebSocketExample extends IOApp {
