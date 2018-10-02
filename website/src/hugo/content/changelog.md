@@ -8,6 +8,26 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.19.0-SNAPSHOT
+
+## Breaking changes
+
+## Enhancements
+
+## Bugfixes
+
+## Documentation updates
+
+## Internal
+* [#2126](https://github.com/http4s/http4s/pull/2126): Delete obsolete `bin` directory
+* [#2127](https://github.com/http4s/http4s/pull/2127): Remove MiMa exceptions for new modules
+* [#2128](https://github.com/http4s/http4s/pull/2128): Don't run `dependencyUpdates` on load
+* [#2129](https://github.com/http4s/http4s/pull/2129): Build with sbt-1.2.3 and scala-2.12.7
+* [#2133](https://github.com/http4s/http4s/pull/2133): Build with kind-projector-0.9.8
+
+## Dependency upgrades
+* scala-xml-1.1.1
+
 # v0.19.0-M3 (2018-09-27)
 
 ## Breaking changes
@@ -49,7 +69,7 @@ it.
 * [#2100](https://github.com/http4s/http4s/pull/2100): Correct `re-start` to `reStart` in docs
 
 ## Internal
-* [#2105](https://github.com/http4s/http4s/pull/2105): Test on Oracle JDK 11
+* [#2105](https://github.com/http4s/http4s/pull/2105): Test on OpenJDK 11
 * [#2113](https://github.com/http4s/http4s/pull/2113): Check for unused compile dependencies in build
 * [#2115](https://github.com/http4s/http4s/pull/2115): Stop testing on Oracle JDK 10
 * [#2079](https://github.com/http4s/http4s/pull/2079): Use `readRange`, as contributed to fs2

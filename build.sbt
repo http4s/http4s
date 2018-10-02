@@ -11,11 +11,6 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
-// check for library updates whenever the project is [re]load
-onLoad in Global := { s =>
-  "dependencyUpdates" :: s
-}
-
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
@@ -26,7 +21,8 @@ lazy val core = libraryProject("core")
       BuildInfoKey.map(http4sApiVersion) { case (_, v) => "apiVersion" -> v }
     ),
     buildInfoPackage := organization.value,
-    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+    resolvers += "Sonatype OSS Snapshots".at(
+      "https://oss.sonatype.org/content/repositories/snapshots"),
     libraryDependencies ++= Seq(
       cats,
       catsEffect,
@@ -55,7 +51,6 @@ lazy val tests = libraryProject("tests")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Tests for core project",
-    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(core, testing % "test->test")
 
@@ -169,10 +164,8 @@ lazy val okHttpClient = libraryProject("okhttp-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.okhttp
     ),
-    mimaPreviousArtifacts := Set.empty // remove me once merged
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
-
 
 lazy val servlet = libraryProject("servlet")
   .settings(
@@ -278,7 +271,6 @@ lazy val playJson = libraryProject("play-json")
       jawnPlay,
       Http4sPlugin.playJson
     ),
-    mimaPreviousArtifacts := Set.empty // remove me once merged
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -305,7 +297,6 @@ lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
     libraryDependencies += scalatagsApi,
-    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(core, testing % "test->test")
 
@@ -348,12 +339,12 @@ lazy val docs = http4sProject("docs")
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         bench,
-        // examples,
-        // examplesBlaze,
-        // examplesDocker,
-        // examplesJetty,
-        // examplesTomcat,
-        // examplesWar,
+        examples,
+        examplesBlaze,
+        examplesDocker,
+        examplesJetty,
+        examplesTomcat,
+        examplesWar,
         mimedbGenerator,
       ),
     scalacOptions in Tut ~= {
@@ -434,7 +425,6 @@ lazy val website = http4sProject("website")
       }
   )
 
-/**
 lazy val examples = http4sProject("examples")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
@@ -468,9 +458,6 @@ lazy val examplesDocker = http4sProject("examples-docker")
     maintainer in Docker := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
-    libraryDependencies ++= Seq(
-      logbackClassic % "runtime"
-    )
   )
   .dependsOn(blazeServer, theDsl)
 
@@ -498,14 +485,11 @@ lazy val examplesWar = exampleProject("examples-war")
   .settings(
     description := "Example of a WAR deployment of an http4s service",
     fork := true,
-    libraryDependencies ++= Seq(
-      javaxServletApi % "provided",
-      logbackClassic % "runtime"
-    ),
+    libraryDependencies += javaxServletApi % "provided",
     containerLibs in Jetty := List(jettyRunner),
   )
   .dependsOn(servlet)
-**/
+
 def http4sProject(name: String) =
   Project(name, file(name))
     .settings(commonSettings)
@@ -517,13 +501,12 @@ def http4sProject(name: String) =
 
 def libraryProject(name: String) = http4sProject(name)
 
-/**
 def exampleProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
     .enablePlugins(PrivateProjectPlugin)
+    .settings(libraryDependencies += logbackClassic % "runtime")
     .dependsOn(examples)
-**/
 
 lazy val commonSettings = Seq(
   http4sJvmTarget := scalaVersion.map {

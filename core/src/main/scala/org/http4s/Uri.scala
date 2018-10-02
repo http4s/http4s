@@ -128,7 +128,7 @@ object Uri extends UriFunctions {
             .fromString(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              qValue =>
+              _ =>
                 q"_root_.org.http4s.Uri.fromString($s).fold(throw _, _root_.scala.Predef.identity)"
             )
         case _ =>

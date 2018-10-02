@@ -34,8 +34,6 @@ trait ServerBuilder[F[_]] {
     */
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self
 
-  // def mountService(service: HttpRoutes[F], prefix: String = ""): Self
-
   /** Returns a Server resource.  The resource is not acquired until the
     * server is started and ready to accept requests.
     */

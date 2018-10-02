@@ -51,7 +51,7 @@ function, which takes a `Request[F]` and a `Response[F] => Stream[F, A]` and ret
 to consume a stream is just:
 
 ```scala
-client.streaming(req)(resp => resp.body)
+client.stream(req).flatMap(_)
 ```
 
 That gives you a `Stream[F, Byte]`, but you probably want something other than a `Byte`.
@@ -117,7 +117,7 @@ class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
     for {
       client <- BlazeClientBuilder(global).stream
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
-      res <- client.streaming(sr)(resp => resp.body.chunks.parseJsonStream)
+      res <- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
     } yield res
 
   /* Stream the sample statuses.

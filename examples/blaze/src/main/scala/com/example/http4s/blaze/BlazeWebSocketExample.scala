@@ -1,55 +1,64 @@
 package com.example.http4s.blaze
 
 import cats.effect._
+import cats.implicits._
 import fs2._
 import fs2.concurrent.Queue
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
-import org.http4s.server.blaze.BlazeBuilder
+import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.websocket._
 import org.http4s.websocket.WebsocketBits._
 import scala.concurrent.duration._
 
-object BlazeWebSocketExample extends BlazeWebSocketExampleApp
+object BlazeWebSocketExample extends IOApp {
 
-class BlazeWebSocketExampleApp extends IOApp with Http4sDsl[IO] {
+  override def run(args: List[String]): IO[ExitCode] =
+    BlazeWebSocketExampleApp[IO].stream.compile.drain.as(ExitCode.Success)
 
-  def route(implicit timer: Timer[IO]): HttpRoutes[IO] = HttpRoutes.of[IO] {
+}
+
+class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F])
+    extends Http4sDsl[F] {
+
+  def routes: HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
 
     case GET -> Root / "ws" =>
-      val toClient: Stream[IO, WebSocketFrame] =
-        Stream.awakeEvery[IO](1.seconds).map(d => Text(s"Ping! $d"))
-      val fromClient: Sink[IO, WebSocketFrame] = _.evalMap { (ws: WebSocketFrame) =>
-        ws match {
-          case Text(t, _) => IO(println(t))
-          case f => IO(println(s"Unknown type: $f"))
-        }
+      val toClient: Stream[F, WebSocketFrame] =
+        Stream.awakeEvery[F](1.seconds).map(d => Text(s"Ping! $d"))
+      val fromClient: Sink[F, WebSocketFrame] = _.evalMap {
+        case Text(t, _) => F.delay(println(t))
+        case f => F.delay(println(s"Unknown type: $f"))
       }
-      WebSocketBuilder[IO].build(toClient, fromClient)
+      WebSocketBuilder[F].build(toClient, fromClient)
 
     case GET -> Root / "wsecho" =>
-      val queue = Queue.unbounded[IO, WebSocketFrame]
-      val echoReply: Pipe[IO, WebSocketFrame, WebSocketFrame] = _.collect {
-        case Text(msg, _) => Text("You sent the server: " + msg)
-        case _ => Text("Something new")
-      }
+      val echoReply: Pipe[F, WebSocketFrame, WebSocketFrame] =
+        _.collect {
+          case Text(msg, _) => Text("You sent the server: " + msg)
+          case _ => Text("Something new")
+        }
 
-      queue.flatMap { q =>
-        val d = q.dequeue.through(echoReply)
-        val e = q.enqueue
-        WebSocketBuilder[IO].build(d, e)
-      }
+      Queue
+        .unbounded[F, WebSocketFrame]
+        .flatMap { q =>
+          val d = q.dequeue.through(echoReply)
+          val e = q.enqueue
+          WebSocketBuilder[F].build(d, e)
+        }
   }
 
-  def run(args: List[String]): IO[ExitCode] =
-    BlazeBuilder[IO]
+  def stream: Stream[F, ExitCode] =
+    BlazeServerBuilder[F]
       .bindHttp(8080)
       .withWebSockets(true)
-      .mountService(route, "/http4s")
+      .withHttpApp(routes.orNotFound)
       .serve
-      .compile
-      .toList
-      .map(_.head)
+}
+
+object BlazeWebSocketExampleApp {
+  def apply[F[_]: ConcurrentEffect: Timer]: BlazeWebSocketExampleApp[F] =
+    new BlazeWebSocketExampleApp[F]
 }

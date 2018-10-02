@@ -26,6 +26,6 @@ object MockRoute extends Http4s {
 
     /** For testing the PushSupport middleware */
     case req if req.uri.path === "/push" =>
-      Response[IO](Ok).withEntity("Hello").pure[IO].push("/ping")(req)
+      Response[IO](Ok).withEntity("Hello").push("/ping")(req).pure[IO]
   }
 }

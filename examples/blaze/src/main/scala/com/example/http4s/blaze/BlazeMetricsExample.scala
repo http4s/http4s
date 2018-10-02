@@ -21,7 +21,7 @@ class BlazeMetricsExampleApp[F[_]: ConcurrentEffect: ContextShift: Timer] {
 
   def service: HttpRoutes[F] =
     Router(
-      "" -> metrics(new ExampleService[F].service),
+      "" -> metrics(new ExampleService[F].routes),
       "/metrics" -> metricsService[F](metricsRegistry)
     )
 
