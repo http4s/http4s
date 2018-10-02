@@ -701,10 +701,10 @@ completion of the decoding.
       </span>
       
       <p class="shortcomment cmt">Submits a request and returns the response status</p>
-    </li><li name="org.http4s.client.Client#streaming" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]"></a><a id="streaming[A](F[Request[F]])((Response[F])⇒Stream[F,A]):Stream[F,A]"></a>
+    </li><li name="org.http4s.client.Client#stream" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="stream(req:org.http4s.Request[F]):fs2.Stream[F,org.http4s.Response[F]]"></a><a id="stream(Request[F]):Stream[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" title="Permalink">
+      <a href="../../../org/http4s/client/Client.html#stream(req:org.http4s.Request[F]):fs2.Stream[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -713,26 +713,11 @@ completion of the decoding.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
+        <span class="name">stream</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>
       </span>
       
-      
-    </li><li name="org.http4s.client.Client#streaming" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="streaming[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]"></a><a id="streaming[A](Request[F])((Response[F])⇒Stream[F,A]):Stream[F,A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#streaming[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
-      </span>
-      
-      
+      <p class="shortcomment cmt">Run the request as a stream.</p><div class="fullcomment"><div class="comment cmt"><p>Run the request as a stream.  The response lifecycle is equivalent
+to the returned Stream's.</p></div></div>
     </li><li name="org.http4s.client.Client#successful" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="successful(req:F[org.http4s.Request[F]]):F[Boolean]"></a><a id="successful(F[Request[F]]):F[Boolean]"></a>
       <span class="permalink">
@@ -886,6 +871,44 @@ connection is closed at the completion of the decoding.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#streaming" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]"></a><a id="streaming[A](F[Request[F]])((Response[F])⇒Stream[F,A]):Stream[F,A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19.0-RC1) Use Stream.eval(req).flatMap(client.stream).flatMap(f)">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-RC1)</i> Use <code>Stream.eval(req).flatMap(client.stream).flatMap(f)</code></p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#streaming" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="streaming[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]"></a><a id="streaming[A](Request[F])((Response[F])⇒Stream[F,A]):Stream[F,A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#streaming[A](req:org.http4s.Request[F])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19.0-RC1) Use client.stream(req).flatMap(f)">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-RC1)</i> Use <code>client.stream(req).flatMap(f)</code></p></dd></dl></div>
     </li><li name="org.http4s.client.Client#toHttpService" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="toHttpService:org.http4s.HttpService[F]"></a><a id="toHttpService:HttpService[F]"></a>
       <span class="permalink">

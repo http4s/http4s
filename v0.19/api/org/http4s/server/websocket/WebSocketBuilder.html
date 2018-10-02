@@ -162,7 +162,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">WebSocketBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="send">send: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <span class="extype" name="org.http4s.websocket.WebsocketBits.WebSocketFrame">WebSocketFrame</span>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Sink">Sink</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <span class="extype" name="org.http4s.websocket.WebsocketBits.WebSocketFrame">WebSocketFrame</span>]</span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">WebSocketBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="send">send: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Sink">Sink</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -243,9 +243,9 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.websocket.WebSocketBuilder#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(send:fs2.Stream[F,org.http4s.websocket.WebsocketBits.WebSocketFrame],receive:fs2.Sink[F,org.http4s.websocket.WebsocketBits.WebSocketFrame],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]]):org.http4s.server.websocket.WebSocketBuilder[F]"></a><a id="&lt;init&gt;:WebSocketBuilder[F]"></a>
+      <a id="&lt;init&gt;(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Sink[F,org.http4s.websocket.WebSocketFrame],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]]):org.http4s.server.websocket.WebSocketBuilder[F]"></a><a id="&lt;init&gt;:WebSocketBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#&lt;init&gt;(send:fs2.Stream[F,org.http4s.websocket.WebsocketBits.WebSocketFrame],receive:fs2.Sink[F,org.http4s.websocket.WebsocketBits.WebSocketFrame],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]]):org.http4s.server.websocket.WebSocketBuilder[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#&lt;init&gt;(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Sink[F,org.http4s.websocket.WebSocketFrame],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]]):org.http4s.server.websocket.WebSocketBuilder[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -254,7 +254,7 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">WebSocketBuilder</span><span class="params">(<span name="send">send: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <span class="extype" name="org.http4s.websocket.WebsocketBits.WebSocketFrame">WebSocketFrame</span>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Sink">Sink</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <span class="extype" name="org.http4s.websocket.WebsocketBits.WebSocketFrame">WebSocketFrame</span>]</span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>)</span>
+        <span class="name">WebSocketBuilder</span><span class="params">(<span name="send">send: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Sink">Sink</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>]]</span>)</span>
       </span>
       
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">send</dt><dd class="cmt"><p>The send side of the Exchange represents the outgoing stream of messages that should be sent to the client</p></dd><dt class="param">receive</dt><dd class="cmt"><p>The receive side of the Exchange is a sink to which the framework will push the incoming websocket messages
@@ -697,9 +697,9 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
       
       
     </li><li name="org.http4s.server.websocket.WebSocketBuilder#receive" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="receive:fs2.Sink[F,org.http4s.websocket.WebsocketBits.WebSocketFrame]"></a><a id="receive:Sink[F,WebSocketFrame]"></a>
+      <a id="receive:fs2.Sink[F,org.http4s.websocket.WebSocketFrame]"></a><a id="receive:Sink[F,WebSocketFrame]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#receive:fs2.Sink[F,org.http4s.websocket.WebsocketBits.WebSocketFrame]" title="Permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#receive:fs2.Sink[F,org.http4s.websocket.WebSocketFrame]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -708,14 +708,14 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">receive</span><span class="result">: <span class="extype" name="fs2.Sink">Sink</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <span class="extype" name="org.http4s.websocket.WebsocketBits.WebSocketFrame">WebSocketFrame</span>]</span>
+        <span class="name">receive</span><span class="result">: <span class="extype" name="fs2.Sink">Sink</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>
       </span>
       
       
     </li><li name="org.http4s.server.websocket.WebSocketBuilder#send" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="send:fs2.Stream[F,org.http4s.websocket.WebsocketBits.WebSocketFrame]"></a><a id="send:Stream[F,WebSocketFrame]"></a>
+      <a id="send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame]"></a><a id="send:Stream[F,WebSocketFrame]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#send:fs2.Stream[F,org.http4s.websocket.WebsocketBits.WebSocketFrame]" title="Permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder.html#send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -724,7 +724,7 @@ supplied exchange to process and respond to websocket messages.</p></div><dl cla
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">send</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <span class="extype" name="org.http4s.websocket.WebsocketBits.WebSocketFrame">WebSocketFrame</span>]</span>
+        <span class="name">send</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>
       </span>
       
       

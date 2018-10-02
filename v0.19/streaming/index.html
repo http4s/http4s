@@ -128,7 +128,7 @@ function, which takes a <code>Request[F]</code> and a <code>Response[F] =&gt; St
 <code>Stream[F, A]</code>. Since an <code>EntityBody[F]</code> is just a <code>Stream[F, Byte]</code>, then, the easiest way
 to consume a stream is just:</p>
 
-<pre><code class="language-scala">client.streaming(req)(resp =&gt; resp.body)
+<pre><code class="language-scala">client.stream(req).flatMap(_)
 </code></pre>
 
 <p>That gives you a <code>Stream[F, Byte]</code>, but you probably want something other than a <code>Byte</code>.
@@ -192,7 +192,7 @@ class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
     for {
       client &lt;- BlazeClientBuilder(global).stream
       sr  &lt;- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
-      res &lt;- client.streaming(sr)(resp =&gt; resp.body.chunks.parseJsonStream)
+      res &lt;- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
     } yield res
 
   /* Stream the sample statuses.

@@ -446,8 +446,16 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li class="current-entities indented3">
                         <span class="separator"></span>
+                        <a class="class" href="FrameTranscoder.html" title=""></a>
+                        <a href="FrameTranscoder.html" title="">FrameTranscoder</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
                         <a class="class" href="WebSocketContext.html" title=""></a>
                         <a href="WebSocketContext.html" title="">WebSocketContext</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="WebSocketFrame$.html" title=""></a>
+                        <a class="class" href="WebSocketFrame.html" title=""></a>
+                        <a href="WebSocketFrame.html" title="">WebSocketFrame</a>
                       </li>
               </ul>
             </div>
@@ -476,10 +484,51 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"></div>
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/websocket/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <span class="toggle">
+            Linear Supertypes
+          </span>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+        </div></div>
         
 
-      
+      <div id="mbrsel">
+        <div class="toggle"></div>
+        <div id="memberfilter">
+          <i class="material-icons arrow"></i>
+          <span class="input">
+            <input id="mbrsel-input" placeholder="Filter all members" type="text" accesskey="/" />
+          </span>
+          <i class="clear material-icons"></i>
+        </div>
+        <div id="filterby">
+          <div id="order">
+            <span class="filtertype">Ordering</span>
+            <ol>
+              
+              <li class="alpha in"><span>Alphabetic</span></li>
+              <li class="inherit out"><span>By Inheritance</span></li>
+            </ol>
+          </div>
+          <div class="ancestors">
+                  <span class="filtertype">Inherited<br />
+                  </span>
+                  <ol id="linearization">
+                    <li class="in" name="org.http4s.websocket"><span>websocket</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  </ol>
+                </div><div class="ancestors">
+              <span class="filtertype"></span>
+              <ol>
+                <li class="hideall out"><span>Hide All</span></li>
+                <li class="showall in"><span>Show All</span></li>
+              </ol>
+            </div>
+          <div id="visbl">
+              <span class="filtertype">Visibility</span>
+              <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+            </div>
+        </div>
+      </div>
 
       <div id="template">
         <div id="allMembers">
@@ -487,7 +536,23 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.websocket.WebSocketContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.websocket.FrameTranscoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FrameTranscoderextendsAnyRef"></a><a id="FrameTranscoder:FrameTranscoder"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/websocket/index.html#FrameTranscoderextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="FrameTranscoder.html"><span class="name">FrameTranscoder</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.websocket.WebSocketContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="WebSocketContext[F[_]]extendsProductwithSerializable"></a><a id="WebSocketContext[F[_]]:WebSocketContext[F]"></a>
       <span class="permalink">
       <a href="../../../org/http4s/websocket/index.html#WebSocketContext[F[_]]extendsProductwithSerializable" title="Permalink">
@@ -499,7 +564,23 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="WebSocketContext.html"><span class="name">WebSocketContext</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="webSocket">webSocket: <span class="extype" name="org.http4s.websocket.Websocket">Websocket</span>[<span class="extype" name="org.http4s.websocket.WebSocketContext.F">F</span>]</span>, <span name="headers">headers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="failureResponse">failureResponse: <span class="extype" name="org.http4s.websocket.WebSocketContext.F">F</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.websocket.WebSocketContext.F">F</span>]]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="WebSocketContext.html"><span class="name">WebSocketContext</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="webSocket">webSocket: <span class="extype" name="org.http4s.websocket.WebSocket">WebSocket</span>[<span class="extype" name="org.http4s.websocket.WebSocketContext.F">F</span>]</span>, <span name="headers">headers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="failureResponse">failureResponse: <span class="extype" name="org.http4s.websocket.WebSocketContext.F">F</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.websocket.WebSocketContext.F">F</span>]]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.websocket.WebSocketFrame" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WebSocketFrameextendsAnyRef"></a><a id="WebSocketFrame:WebSocketFrame"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/websocket/index.html#WebSocketFrameextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="WebSocketFrame.html"><span class="name">WebSocketFrame</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       
@@ -508,7 +589,28 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         
 
-        
+        <div class="values members">
+              <h3>Value Members</h3>
+              <ol>
+                <li name="org.http4s.websocket.WebSocketFrame" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WebSocketFrame"></a><a id="WebSocketFrame:WebSocketFrame"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/websocket/index.html#WebSocketFrame" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="WebSocketFrame$.html"><span class="name">WebSocketFrame</span></a>
+      </span>
+      
+      
+    </li>
+              </ol>
+            </div>
 
         
 
@@ -516,7 +618,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         </div>
 
         <div id="inheritedMembers">
-        
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+            </div>
         
         </div>
 
