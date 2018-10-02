@@ -332,12 +332,12 @@ lazy val docs = http4sProject("docs")
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         bench,
-        // examples,
-        // examplesBlaze,
-        // examplesDocker,
-        // examplesJetty,
-        // examplesTomcat,
-        // examplesWar,
+        examples,
+        examplesBlaze,
+        examplesDocker,
+        examplesJetty,
+        examplesTomcat,
+        examplesWar,
         mimedbGenerator,
       ),
     scalacOptions in Tut ~= {
