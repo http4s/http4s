@@ -172,7 +172,7 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
+        <span class="modifier">final </span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
@@ -237,9 +237,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.middleware.PushSupport.PushOps#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(response:F[org.http4s.Response[F]])(implicitevidence$1:cats.Functor[F]):org.http4s.server.middleware.PushSupport.PushOps[F]"></a><a id="&lt;init&gt;:PushOps[F]"></a>
+      <a id="&lt;init&gt;(response:org.http4s.Response[F])(implicitevidence$2:cats.Functor[F]):org.http4s.server.middleware.PushSupport.PushOps[F]"></a><a id="&lt;init&gt;:PushOps[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$$PushOps.html#&lt;init&gt;(response:F[org.http4s.Response[F]])(implicitevidence$1:cats.Functor[F]):org.http4s.server.middleware.PushSupport.PushOps[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/PushSupport$$PushOps.html#&lt;init&gt;(response:org.http4s.Response[F])(implicitevidence$2:cats.Functor[F]):org.http4s.server.middleware.PushSupport.PushOps[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -248,7 +248,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">PushOps</span><span class="params">(<span name="response">response: <span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>]</span>)</span>
+        <span class="name">PushOps</span><span class="params">(<span name="response">response: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>]</span>)</span>
       </span>
       
       
@@ -659,9 +659,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.server.middleware.PushSupport.PushOps#push" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="push(url:String,cascade:Boolean)(implicitreq:org.http4s.Request[F]):F[org.http4s.Response[F]]"></a><a id="push(String,Boolean)(Request[F]):F[Response[F]]"></a>
+      <a id="push(url:String,cascade:Boolean)(implicitreq:org.http4s.Request[F]):org.http4s.Response[F]"></a><a id="push(String,Boolean)(Request[F]):Response[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$$PushOps.html#push(url:String,cascade:Boolean)(implicitreq:org.http4s.Request[F]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/PushSupport$$PushOps.html#push(url:String,cascade:Boolean)(implicitreq:org.http4s.Request[F]):org.http4s.Response[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -670,7 +670,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">push</span><span class="params">(<span name="url">url: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="cascade">cascade: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>]]</span>
+        <span class="name">push</span><span class="params">(<span name="url">url: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="cascade">cascade: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>]</span>)</span><span class="result">: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.PushOps.F">F</span>]</span>
       </span>
       
       
