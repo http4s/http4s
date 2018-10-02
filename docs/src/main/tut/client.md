@@ -192,6 +192,86 @@ val withPath = baseUri.withPath("/bar/baz")
 val withQuery = withPath.withQueryParam("hello", "world")
 ```
 
+## Middleware
+
+Like the server [middleware], the client middleware is a wrapper around a
+`Client` that provides a means of accessing or manipulating `Request`s
+and `Response`s being sent.
+
+### Included Middleware
+
+Http4s includes some middleware Out of the Box in the `org.http4s.client.middleware`
+package. These include:
+
+* Following of redirect responses ([Follow Redirect])
+* Retrying of requests ([Retry])
+* Metrics gathering ([Metrics])
+* Logging of requests ([Request Logger])
+* Logging of responses ([Response Logger])
+* Logging of requests and responses ([Logger])
+
+### Metrics Middleware
+
+Apart from the middleware mentioned in the previous section. There is, as well,
+Out of the Box middleware for Dropwizard and Prometheus metrics
+
+#### Dropwizard Metrics Middleware
+
+To make use of this metrics middleware the following dependencies are needed:
+
+```scala
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-client-metrics" % http4sVersion,
+  "org.http4s" %% "http4s-dropwizard-client-metrics" % http4sVersion
+)
+```
+
+We can create a middleware that registers metrics prefixed with a
+provided prefix like this.
+
+```tut:fail:silent
+import org.http4s.client.metrics.core.Metrics
+import org.http4s.client.metrics.dropwizard.Dropwizard
+import com.codahale.metrics.SharedMetricRegistries
+```
+```tut:nofail:silent
+val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("default")
+val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+val meteredClient = Metrics(Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
+```
+
+A `classifier` is just a function Request[F] => Option[String] that allows
+to add a subprefix to every metric based on the `Request`
+
+#### Prometheus Metrics Middleware
+
+To make use of this metrics middleware the following dependencies are needed:
+
+```scala
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-client-metrics" % http4sVersion,
+  "org.http4s" %% "http4s-prometheus-client-metrics" % http4sVersion
+)
+```
+
+We can create a middleware that registers metrics prefixed with a
+provided prefix like this.
+
+```tut:fail:silent
+import org.http4s.client.metrics.core.Metrics
+import org.http4s.client.metrics.prometheus.Prometheus
+import io.prometheus.client.CollectorRegistry
+```
+```tut:nofail:silent
+val registry: CollectorRegistry = new CollectorRegistry()
+val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+val meteredClient = Metrics(Prometheus(registry, "prefix"), requestMethodClassifier)(httpClient)
+```
+
+
+A `classifier` is just a function Request[F] => Option[String] that allows
+to add a label to every metric based on the `Request`
+
 ## Examples
 
 ### Send a GET request, treating the response as a string
@@ -290,3 +370,10 @@ blockingEC.shutdown()
 [`ContextShift`]: https://typelevel.org/cats-effect/datatypes/contextshift.html
 [`ConcurrentEffect`]: https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html
 [`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html
+[middleware]: ../middleware
+[Follow Redirect]: ../api/org/http4s/client/middleware/FollowRedirect$
+[Retry]: .../api/org/http4s/client/middleware/Retry$
+[Metrics]: .../api/org/http4s/client/middleware/FollowRedirect$
+[Request Logger]: .../api/org/http4s/client/middleware/RequestLogger$
+[Response Logger]: .../api/org/http4s/client/middleware/ResponseLogger$
+[Logger]: .../api/org/http4s/client/middleware/Logger$
