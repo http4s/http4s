@@ -1,6 +1,9 @@
 package org.http4s
 package blazecore
 
+import cats.effect.IO
+import cats.implicits._
+import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
@@ -59,6 +62,20 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
       Future.failed(EOF)
     }
   }
+}
+
+class QueueTestHead(q: Queue[IO, Option[ByteBuffer]]) extends TestHead("QueueTestHead") {
+  override def readRequest(size: Int): Future[ByteBuffer] =
+    q.dequeue1
+      .flatMap {
+        case Some(bb) =>
+          IO.pure(bb)
+        case None =>
+          IO(stageShutdown()) >>
+            IO(sendInboundCommand(Disconnected)) >>
+            IO.raiseError(EOF)
+      }
+      .unsafeToFuture()
 }
 
 final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: TickWheelExecutor)

@@ -289,7 +289,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
         Client[IO] { _ =>
           for {
             _ <- List(1, 2, 3).traverse { i =>
-              Resource(IO.pure(() -> (IO(println("FART")) *> released.update(_ :+ i))))
+              Resource(IO.pure(() -> released.update(_ :+ i)))
             }
           } yield Response()
         }.toHttpApp(req).flatMap(_.as[Unit]) >> released.get
@@ -301,7 +301,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
         Client[IO] { _ =>
           for {
             _ <- List(1, 2, 3).traverse { i =>
-              Resource(IO.pure(() -> (IO(println("FART")) *> released.update(_ :+ i))))
+              Resource(IO.pure(() -> released.update(_ :+ i)))
             }
             _ <- Resource.liftF[IO, Unit](IO.raiseError(SadTrombone))
           } yield Response()

@@ -142,10 +142,12 @@ private final class Http1Connection[F[_]](
             getChunkEncoder(req, mustClose, rr)
               .write(rr, req.body)
               .flatTap { _ =>
-                F.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete))
+                F.delay("Request send complete") *>
+                  F.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete))
               }
               .handleError {
                 case EOF =>
+                  logger.error(EOF)("EOF rendering request")
                   false
                 case t =>
                   logger.error(t)("Error rendering request")
