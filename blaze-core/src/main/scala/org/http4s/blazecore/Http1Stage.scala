@@ -219,7 +219,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   protected def fatalError(t: Throwable, msg: String): Unit = {
     logger.error(t)(s"Fatal Error: $msg")
     stageShutdown()
-    sendOutboundCommand(Command.Error(t))
+    closePipeline(Some(t))
   }
 
   /** Cleans out any remaining body from the parser */

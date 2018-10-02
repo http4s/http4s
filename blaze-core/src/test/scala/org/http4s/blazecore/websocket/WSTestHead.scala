@@ -66,6 +66,8 @@ sealed abstract class WSTestHead(
       .timeoutTo(timeoutSeconds.seconds, IO.pure(Nil))
 
   override def name: String = "WS test stage"
+
+  override protected def doClosePipeline(cause: Option[Throwable]): Unit = {}
 }
 
 object WSTestHead {

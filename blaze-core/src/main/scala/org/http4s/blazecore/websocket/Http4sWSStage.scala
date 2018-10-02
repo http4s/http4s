@@ -8,7 +8,7 @@ import fs2._
 import fs2.concurrent.SignallingRef
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.{websocket => ws4s}
-import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
+import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.WebsocketBits._
@@ -112,7 +112,7 @@ private[http4s] class Http4sWSStage[F[_]](
     super.stageStartup()
 
     // Effect to send a close to the other endpoint
-    val sendClose: F[Unit] = F.delay(sendOutboundCommand(Command.Disconnect))
+    val sendClose: F[Unit] = F.delay(closePipeline(None))
 
     val wsStream = inputstream
       .to(ws.receive)
