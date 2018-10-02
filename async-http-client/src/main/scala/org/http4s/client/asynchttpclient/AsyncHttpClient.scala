@@ -17,7 +17,11 @@ import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
-import org.asynchttpclient.ws.{WebSocket => AhcWebSocket, WebSocketListener, WebSocketUpgradeHandler}
+import org.asynchttpclient.ws.{
+  WebSocket => AhcWebSocket,
+  WebSocketListener,
+  WebSocketUpgradeHandler
+}
 import org.http4s.internal.{invoke, invokeCallback}
 import org.http4s.util.threads._
 import org.http4s.websocket.WebsocketBits._
@@ -153,30 +157,38 @@ object AsyncHttpClient {
         WebSocketClient[F] { req =>
           for {
             receiveQueue <- Queue.unbounded[F, WebSocketFrame]
-            socket <- F.async[WebSocketClient.Socket[F]] { cb =>
-              client.prepareGet(req.uri.renderString).execute(
-                new WebSocketUpgradeHandler(List(wsListener(cb, receiveQueue)).asJava))
+            socket <- F.async[WebSocket[F]] { cb =>
+              client
+                .prepareGet(req.uri.renderString)
+                .execute(new WebSocketUpgradeHandler(List(wsListener(cb, receiveQueue)).asJava))
               ()
             }
           } yield socket
-        }
-      )
+      })
 
-  private def wsListener[F[_]](cb: Callback[WebSocketClient.Socket[F]], receiveQueue: Queue[F, WebSocketFrame])(      implicit F: ConcurrentEffect[F]): WebSocketListener =
+  private def wsListener[F[_]](cb: Callback[WebSocket[F]], receiveQueue: Queue[F, WebSocketFrame])(
+      implicit F: ConcurrentEffect[F]): WebSocketListener =
     new WebSocketListener {
-      def send(socket: AhcWebSocket): Sink[F, WebSocketFrame] = Sink {
-        case Text(s, last) => fromNettyFuture(socket.sendTextFrame(s, last, 0)).void
-        case Binary(data, last) => fromNettyFuture(socket.sendBinaryFrame(data, last, 0)).void
-        case Continuation(data, last) => fromNettyFuture(socket.sendContinuationFrame(data, last, 0)).void
-        case Ping(data) => fromNettyFuture(socket.sendPingFrame(data)).void
-        case Pong(data) => fromNettyFuture(socket.sendPongFrame(data)).void
+      def send(socket: AhcWebSocket, frame: WebSocketFrame) = frame match {
+        case Text(s, last) => socket.sendTextFrame(s, last, 0)
+        case Binary(data, last) => socket.sendBinaryFrame(data, last, 0)
+        case Continuation(data, last) => socket.sendContinuationFrame(data, last, 0)
+        case Ping(data) => socket.sendPingFrame(data)
+        case Pong(data) => socket.sendPongFrame(data)
         case close: Close =>
           // TODO extract reason from close frame
-          fromNettyFuture(socket.sendCloseFrame(close.closeCode, "")).void
+          socket.sendCloseFrame(close.closeCode, "")
       }
 
       def onOpen(ahcSocket: AhcWebSocket): Unit = {
-        invokeCallback(logger)(cb(Right(WebSocketClient.Socket(send(ahcSocket), receiveQueue.dequeue))))
+        val socket = new WebSocket[F] {
+          def read1 = receiveQueue.dequeue1
+          def write1(frame: WebSocketFrame) =
+            fromNettyFuture(send(ahcSocket, frame)).void
+          def localAddress = ahcSocket.getLocalAddress
+          def remoteAddress = ahcSocket.getRemoteAddress
+        }
+        invokeCallback(logger)(cb(Right(socket)))
       }
 
       def enqueue(frame: WebSocketFrame): Unit =
