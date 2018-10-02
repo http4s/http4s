@@ -27,7 +27,6 @@ lazy val core = libraryProject("core")
       cats,
       catsEffect,
       fs2Io,
-      http4sWebsocket,
       log4s,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",

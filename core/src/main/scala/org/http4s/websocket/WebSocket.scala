@@ -1,9 +1,8 @@
 package org.http4s.websocket
 
 import fs2._
-import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
-private[http4s] final case class Websocket[F[_]](
+private[http4s] final case class WebSocket[F[_]](
     @deprecatedName('read) send: Stream[F, WebSocketFrame],
     @deprecatedName('write) receive: Sink[F, WebSocketFrame],
     onClose: F[Unit]

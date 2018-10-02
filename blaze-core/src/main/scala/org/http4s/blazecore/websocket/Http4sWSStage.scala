@@ -7,16 +7,16 @@ import cats.implicits._
 import fs2._
 import fs2.concurrent.SignallingRef
 import java.util.concurrent.atomic.AtomicBoolean
-import org.http4s.{websocket => ws4s}
 import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.websocket.WebsocketBits._
+import org.http4s.websocket.{WebSocket, WebSocketFrame}
+import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 private[http4s] class Http4sWSStage[F[_]](
-    ws: ws4s.Websocket[F],
+    ws: WebSocket[F],
     sentClose: AtomicBoolean,
     deadSignal: SignallingRef[F, Boolean]
 )(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
