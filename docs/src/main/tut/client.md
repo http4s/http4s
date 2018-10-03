@@ -238,6 +238,7 @@ import com.codahale.metrics.SharedMetricRegistries
 implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+
 val meteredClient = Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 
@@ -267,6 +268,7 @@ import io.prometheus.client.CollectorRegistry
 implicit val clock = Clock.create[IO]
 val registry = new CollectorRegistry()
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+
 val meteredClient = Metrics[IO](Prometheus(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 
