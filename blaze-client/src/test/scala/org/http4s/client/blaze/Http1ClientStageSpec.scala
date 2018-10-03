@@ -3,6 +3,7 @@ package client
 package blaze
 
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.LeafBuilder
@@ -43,7 +44,7 @@ class Http1ClientStageSpec extends Http4sSpec {
   private def bracketResponse[T](req: Request[IO], resp: String)(
       f: Response[IO] => IO[T]): IO[T] = {
     val stage = mkConnection(FooRequestKey)
-    IO.suspend {
+    Deferred[IO, Unit].flatMap { reqComplete =>
       val h = new SeqTestHead(resp.toSeq.map { chr =>
         val b = ByteBuffer.allocate(1)
         b.put(chr.toByte).flip()
@@ -51,9 +52,12 @@ class Http1ClientStageSpec extends Http4sSpec {
       })
       LeafBuilder(stage).base(h)
 
+      val req0 = req.withBodyStream(req.body.onFinalize(reqComplete.complete(())))
+
       for {
-        resp <- stage.runRequest(req)
+        resp <- stage.runRequest(req0)
         t <- f(resp)
+        _ <- reqComplete.get
         _ <- IO(stage.shutdown())
       } yield t
     }
