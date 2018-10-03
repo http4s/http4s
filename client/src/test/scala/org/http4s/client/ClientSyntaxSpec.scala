@@ -237,28 +237,21 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
         EntityDecoder.text[IO].orElse(edec)) must returnValue("Accept: text/*, image/jpeg")
     }
 
-    "streaming returns a stream" in {
+    "stream returns a stream" in {
       client
-        .streaming(req)(_.body.through(fs2.text.utf8Decode))
-        .compile
-        .toVector
-        .unsafeRunSync() must_== Vector("hello")
-    }
-
-    "streaming returns a stream from a request task" in {
-      client
-        .streaming(req)(_.body.through(fs2.text.utf8Decode))
+        .stream(req)
+        .flatMap(_.body.through(fs2.text.utf8Decode))
         .compile
         .toVector
         .unsafeRunSync() must_== Vector("hello")
     }
 
     "streaming disposes of the response on success" in {
-      assertDisposes(_.streaming(req)(_.body).compile.drain)
+      assertDisposes(_.stream(req).compile.drain)
     }
 
     "streaming disposes of the response on failure" in {
-      assertDisposes(_.streaming(req)(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
+      assertDisposes(_.stream(req).flatMap(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
     }
 
     "toService disposes of the response on success" in {

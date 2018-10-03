@@ -1,15 +1,21 @@
-package com.example.http4s
-package tomcat
+package com.example.http4s.tomcat
 
 import cats.effect._
-import com.example.http4s.ssl.SslExample
+import cats.implicits._
+import com.example.http4s.ssl
 import org.http4s.server.tomcat.TomcatBuilder
 
-class TomcatSslExample(implicit timer: Timer[IO], ctx: ContextShift[IO])
-    extends SslExample[IO]
-    with IOApp {
-  def builder: TomcatBuilder[IO] = TomcatBuilder[IO]
-
+object TomcatSslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
-    stream.compile.toList.map(_.head)
+    TomcatSslExampleApp.builder[IO].serve.compile.drain.as(ExitCode.Success)
+}
+
+object TomcatSslExampleApp {
+
+  def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: TomcatBuilder[F] =
+    TomcatExampleApp
+      .builder[F]
+      .bindHttp(8443)
+      .withSSL(ssl.storeInfo, ssl.keyManagerPassword)
+
 }

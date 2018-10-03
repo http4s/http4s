@@ -16,17 +16,18 @@ import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
 
 import scala.concurrent.duration._
 
-class Module[F[_]: ContextShift](client: Client[F])(implicit F: ConcurrentEffect[F], T: Timer[F]) {
+class Module[F[_]](client: Client[F])(
+    implicit F: ConcurrentEffect[F],
+    CS: ContextShift[F],
+    T: Timer[F]) {
 
   private val fileService = new FileService[F]
 
   private val gitHubService = new GitHubService[F](client)
 
-  def middleware: HttpMiddleware[F] = { (routes: HttpRoutes[F]) =>
+  def middleware: HttpMiddleware[F] = { routes: HttpRoutes[F] =>
     GZip(routes)
-  }.compose { routes =>
-    AutoSlash(routes)
-  }
+  }.compose(routes => AutoSlash(routes))
 
   val fileHttpEndpoint: HttpRoutes[F] =
     new FileHttpEndpoint[F](fileService).service
@@ -43,10 +44,8 @@ class Module[F[_]: ContextShift](client: Client[F])(implicit F: ConcurrentEffect
   private val timeoutHttpEndpoint: HttpRoutes[F] =
     new TimeoutHttpEndpoint[F].service
 
-  private val timeoutEndpoints: HttpRoutes[F] = {
-    implicit val timerOptionT = Timer.deriveOptionT[F]
+  private val timeoutEndpoints: HttpRoutes[F] =
     Timeout(1.second)(timeoutHttpEndpoint)
-  }
 
   private val mediaHttpEndpoint: HttpRoutes[F] =
     new JsonXmlHttpEndpoint[F].service

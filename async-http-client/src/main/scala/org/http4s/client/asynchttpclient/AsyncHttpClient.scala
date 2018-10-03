@@ -17,17 +17,15 @@ import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
-import org.asynchttpclient.ws.{
-  WebSocket => AhcWebSocket,
-  WebSocketListener,
-  WebSocketUpgradeHandler
-}
+import org.asynchttpclient.ws.{WebSocket => AhcWebSocket, WebSocketListener, WebSocketUpgradeHandler}
 import org.http4s.internal.{invoke, invokeCallback}
 import org.http4s.util.threads._
-import org.http4s.websocket.WebsocketBits._
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame._
 import org.log4s.getLogger
 import org.reactivestreams.Publisher
 import scala.collection.JavaConverters._
+import scodec.bits.ByteVector
 
 object AsyncHttpClient {
   private[this] val logger = getLogger
@@ -171,10 +169,10 @@ object AsyncHttpClient {
     new WebSocketListener {
       def send(socket: AhcWebSocket, frame: WebSocketFrame) = frame match {
         case Text(s, last) => socket.sendTextFrame(s, last, 0)
-        case Binary(data, last) => socket.sendBinaryFrame(data, last, 0)
-        case Continuation(data, last) => socket.sendContinuationFrame(data, last, 0)
-        case Ping(data) => socket.sendPingFrame(data)
-        case Pong(data) => socket.sendPongFrame(data)
+        case Binary(data, last) => socket.sendBinaryFrame(data.toArray, last, 0)
+        case Continuation(data, last) => socket.sendContinuationFrame(data.toArray, last, 0)
+        case Ping(data) => socket.sendPingFrame(data.toArray)
+        case Pong(data) => socket.sendPongFrame(data.toArray)
         case close: Close =>
           // TODO extract reason from close frame
           socket.sendCloseFrame(close.closeCode, "")
@@ -201,16 +199,16 @@ object AsyncHttpClient {
         cb(Left(t))
 
       override def onBinaryFrame(data: Array[Byte], last: Boolean, rsv: Int) =
-        enqueue(Binary(data, last))
+        enqueue(Binary(ByteVector.view(data), last))
 
       override def onTextFrame(s: String, last: Boolean, rsv: Int) =
         enqueue(Text(s, last))
 
       override def onPingFrame(data: Array[Byte]) =
-        enqueue(Ping(data))
+        enqueue(Ping(ByteVector.view(data)))
 
       override def onPongFrame(data: Array[Byte]) =
-        enqueue(Pong(data))
+        enqueue(Pong(ByteVector.view(data)))
     }
 
   private def fromNettyFuture[F[_], A](nf: NFuture[A])(implicit F: Async[F]): F[A] =

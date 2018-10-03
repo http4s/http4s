@@ -3,7 +3,7 @@ import cats.implicits._
 import fs2._
 import org.http4s._
 import org.http4s.client.asynchttpclient._
-import org.http4s.websocket.WebsocketBits._
+import org.http4s.websocket.WebSocketFrame._u
 
 object Foo extends IOApp {
   def run(args: List[String]) =

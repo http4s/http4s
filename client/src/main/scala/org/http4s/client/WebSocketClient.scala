@@ -3,7 +3,7 @@ package client
 
 import fs2.{Sink, Stream}
 import java.net.SocketAddress
-import org.http4s.websocket.WebsocketBits.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame
 
 trait WebSocketClient[F[_]] {
   def connect(req: Request[F]): F[WebSocket[F]]
