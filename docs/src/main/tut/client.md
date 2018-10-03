@@ -221,8 +221,8 @@ To make use of this metrics middleware the following dependencies are needed:
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-client-metrics" % http4sVersion,
-  "org.http4s" %% "http4s-dropwizard-client-metrics" % http4sVersion
+  "org.http4s" %% "http4s-client" % http4sVersion,
+  "org.http4s" %% "http4s-dropwizard-metrics" % http4sVersion
 )
 ```
 
@@ -230,8 +230,8 @@ We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
 ```tut:book:silent
-import org.http4s.client.metrics.core.Metrics
-import org.http4s.client.metrics.dropwizard.Dropwizard
+import org.http4s.client.middleware.Metrics
+import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
 ```tut:book
@@ -251,8 +251,8 @@ To make use of this metrics middleware the following dependencies are needed:
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-client-metrics" % http4sVersion,
-  "org.http4s" %% "http4s-prometheus-client-metrics" % http4sVersion
+  "org.http4s" %% "http4s-client" % http4sVersion,
+  "org.http4s" %% "http4s-prometheus-metrics" % http4sVersion
 )
 ```
 
@@ -260,8 +260,8 @@ We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
 ```tut:book:silent
-import org.http4s.client.metrics.core.Metrics
-import org.http4s.client.metrics.prometheus.Prometheus
+import org.http4s.client.middleware.Metrics
+import org.http4s.metrics.prometheus.Prometheus
 import io.prometheus.client.CollectorRegistry
 ```
 ```tut:book

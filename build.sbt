@@ -79,14 +79,16 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
   )
   .dependsOn(server % "compile;test->test", theDsl)
 
-lazy val prometheusClientMetrics = libraryProject("prometheus-client-metrics")
+lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
-    description := "Support for Prometheus Metrics on the client",
+    description := "Support for Prometheus Metrics",
     libraryDependencies += prometheusClient
   )
   .dependsOn(
-    client % "compile;test->test",
-    clientMetrics % "compile"
+    core % "compile->compile",
+    testing % "test->test",
+    theDsl % "test->compile",
+    client % "test->compile"
   )
 lazy val client = libraryProject("client")
   .settings(
@@ -100,22 +102,16 @@ lazy val client = libraryProject("client")
     theDsl % "test->compile",
     scalaXml % "test->compile")
 
-lazy val clientMetrics = libraryProject("client-metrics")
-  .settings(
-    description := "Support for Metrics on the client"
-  )
-  .dependsOn(
-    client % "compile;test->test"
-  )
-
-lazy val dropwizardClientMetrics = libraryProject("dropwizard-client-metrics")
+lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
     description := "Support for Dropwizard Metrics on the client",
     libraryDependencies += dropwizardMetricsCore
   )
   .dependsOn(
-    client % "compile;test->test",
-    clientMetrics % "compile"
+    core % "compile->compile",
+    testing % "test->test",
+    theDsl % "test->compile",
+    client % "test->compile"
   )
 
 lazy val blazeCore = libraryProject("blaze-core")
@@ -402,7 +398,7 @@ lazy val docs = http4sProject("docs")
       }
     },
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardClientMetrics, prometheusClientMetrics)
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
