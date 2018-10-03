@@ -229,15 +229,16 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:fail:silent
+```tut:book:silent
 import org.http4s.client.metrics.core.Metrics
 import org.http4s.client.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
-```tut:nofail:silent
-val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("default")
+```tut:book
+implicit val clock = Clock.create[IO]
+val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
-val meteredClient = Metrics(Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
+val meteredClient = Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 
 A `classifier` is just a function Request[F] => Option[String] that allows
@@ -257,15 +258,16 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:fail:silent
+```tut:book:silent
 import org.http4s.client.metrics.core.Metrics
 import org.http4s.client.metrics.prometheus.Prometheus
 import io.prometheus.client.CollectorRegistry
 ```
-```tut:nofail:silent
-val registry: CollectorRegistry = new CollectorRegistry()
+```tut:book
+implicit val clock = Clock.create[IO]
+val registry = new CollectorRegistry()
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
-val meteredClient = Metrics(Prometheus(registry, "prefix"), requestMethodClassifier)(httpClient)
+val meteredClient = Metrics[IO](Prometheus(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 
 

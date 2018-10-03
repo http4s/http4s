@@ -402,7 +402,7 @@ lazy val docs = http4sProject("docs")
       }
     },
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardClientMetrics, prometheusClientMetrics)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
