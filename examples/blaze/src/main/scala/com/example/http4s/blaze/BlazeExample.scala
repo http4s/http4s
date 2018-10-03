@@ -1,20 +1,32 @@
 package com.example.http4s.blaze
 
 import cats.effect._
+import cats.implicits._
 import com.example.http4s.ExampleService
-import org.http4s.server.blaze.BlazeBuilder
+import fs2._
+import org.http4s.HttpApp
+import org.http4s.server.Router
+import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.syntax.kleisli._
 
-class BlazeExample(implicit timer: Timer[IO], ctx: ContextShift[IO])
-    extends BlazeExampleApp[IO]
-    with IOApp {
+object BlazeExample extends IOApp {
+
   override def run(args: List[String]): IO[ExitCode] =
-    stream.compile.toList.map(_.head)
+    BlazeExampleApp.stream[IO].compile.drain.as(ExitCode.Success)
+
 }
 
-class BlazeExampleApp[F[_]: ConcurrentEffect: Timer: ContextShift] {
-  def stream: fs2.Stream[F, ExitCode] =
-    BlazeBuilder[F]
+object BlazeExampleApp {
+
+  def httpApp[F[_]: Effect: ContextShift: Timer]: HttpApp[F] =
+    Router(
+      "/http4s" -> ExampleService[F].routes
+    ).orNotFound
+
+  def stream[F[_]: ConcurrentEffect: Timer: ContextShift]: Stream[F, ExitCode] =
+    BlazeServerBuilder[F]
       .bindHttp(8080)
-      .mountService(new ExampleService[F].service, "/http4s")
+      .withHttpApp(httpApp[F])
       .serve
+
 }
