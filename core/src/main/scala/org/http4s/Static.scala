@@ -17,7 +17,7 @@ trait Static[F[_]] {
   def fromFile(f: File,
                blockingExecutionContext: ExecutionContext,
                start: Long = 0L,
-               end: Long,
+               end: Option[Long],
                buffsize: Int = 8192,
                req: Option[Request[F]] = None,
                etagCalculator: File => F[String]): OptionT[F, Response[F]]
@@ -69,17 +69,18 @@ object Static {
     def fromFile(f: File,
                  blockingExecutionContext: ExecutionContext,
                  start: Long = 0L,
-                 end: Long,
+                 end: Option[Long] = None,
                  buffsize: Int = 8192,
                  req: Option[Request[F]] = None,
                  etagCalculator: File => F[String] = calcETag[F]): OptionT[F, Response[F]] =
       OptionT(for {
+        fileEndSize <- end.fold(F.delay(f.length()))(_.pure[F])
         etagCalc <- etagCalculator(f).map(et => ETag(et))
         res <- F.delay {
           if (f.isFile) {
             require(
-              start >= 0 && end >= start && buffsize > 0,
-              s"start: $start, end: $end, buffsize: $buffsize")
+              start >= 0 && fileEndSize >= start && buffsize > 0,
+              s"start: $start, end: $fileEndSize, buffsize: $buffsize")
 
             val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
@@ -91,8 +92,8 @@ object Static {
 
             notModified.orElse(etagModified).orElse {
               val (body, contentLength) =
-                if (f.length() < end) (empty.covary[F], 0L)
-                else (fileToBody[F](f, start, end, blockingExecutionContext), end - start)
+                if (f.length() < fileEndSize) (empty.covary[F], 0L)
+                else (fileToBody[F](f, start, fileEndSize, blockingExecutionContext), fileEndSize - start)
 
               val contentType = nameToContentType(f.getName)
               val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
