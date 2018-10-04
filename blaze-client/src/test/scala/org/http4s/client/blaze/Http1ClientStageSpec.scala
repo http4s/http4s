@@ -77,12 +77,13 @@ class Http1ClientStageSpec extends Http4sSpec {
     for {
       reqComplete <- Deferred[IO, Unit]
       req0 = req.withBodyStream(req.body.onFinalize(reqComplete.complete(())))
-      result <- stage.runRequest(req0).flatMap(_.as[String])
-      _ <- reqComplete.get
+      // Don't read the response until the request is fully consumed.  It lets
+      // us introspect the request as it was actually written.
+      response <- stage.runRequest(req0).flatMap(reqComplete.get *> _.as[String])
       request <- IO
         .fromFuture(IO(h.result))
         .map(buff => StandardCharsets.UTF_8.decode(buff).toString)
-    } yield (request, result)
+    } yield (request, response)
   }
 
   private def getSubmission(
@@ -122,48 +123,34 @@ class Http1ClientStageSpec extends Http4sSpec {
       val h = new SeqTestHead(List(mkBuffer(frag1), mkBuffer(frag2), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
-      try {
-        tail.runRequest(FooRequest).unsafeRunAsync { case Right(_) => (); case Left(_) => () } // we remain in the body
-        tail
-          .runRequest(FooRequest)
-          .unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
-      } finally {
-        tail.shutdown()
-      }
+      tail.runRequest(FooRequest).unsafeRunAsync { case Right(_) => (); case Left(_) => () } // we remain in the body
+      tail
+        .runRequest(FooRequest)
+        .unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
     }
 
     "Reset correctly" in {
       val tail = mkConnection(FooRequestKey)
-      try {
-        val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
-        LeafBuilder(tail).base(h)
+      val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
 
-        // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest).unsafeRunSync().body.compile.drain.unsafeRunSync()
+      // execute the first request and run the body to reset the stage
+      tail.runRequest(FooRequest).unsafeRunSync().body.compile.drain.unsafeRunSync()
 
-        val result = tail.runRequest(FooRequest).unsafeRunSync()
-        tail.shutdown()
-
-        result.headers.size must_== 1
-      } finally {
-        tail.shutdown()
-      }
+      val result = tail.runRequest(FooRequest).unsafeRunSync()
+      result.headers.size must_== 1
     }
 
     "Alert the user if the body is to short" in {
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
       val tail = mkConnection(FooRequestKey)
 
-      try {
-        val h = new SeqTestHead(List(mkBuffer(resp)))
-        LeafBuilder(tail).base(h)
+      val h = new SeqTestHead(List(mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
 
-        val result = tail.runRequest(FooRequest).unsafeRunSync()
+      val result = tail.runRequest(FooRequest).unsafeRunSync()
 
-        result.body.compile.drain.unsafeRunSync() must throwA[InvalidBodyException]
-      } finally {
-        tail.shutdown()
-      }
+      result.body.compile.drain.unsafeRunSync() must throwA[InvalidBodyException]
     }
 
     "Interpret a lack of length with a EOF as a valid message" in {
@@ -215,17 +202,12 @@ class Http1ClientStageSpec extends Http4sSpec {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
       val tail = mkConnection(FooRequestKey)
 
-      try {
-        val (request, response) = getSubmission(FooRequest, resp, tail).unsafeRunSync()
-        tail.shutdown()
+      val (request, response) = getSubmission(FooRequest, resp, tail).unsafeRunSync()
 
-        val requestLines = request.split("\r\n").toList
+      val requestLines = request.split("\r\n").toList
 
-        requestLines.find(_.startsWith("User-Agent")) must beNone
-        response must_== "done"
-      } finally {
-        tail.shutdown()
-      }
+      requestLines.find(_.startsWith("User-Agent")) must beNone
+      response must_== "done"
     }
 
     // TODO fs2 port - Currently is elevating the http version to 1.1 causing this test to fail
@@ -256,23 +238,19 @@ class Http1ClientStageSpec extends Http4sSpec {
       val resp = s"HTTP/1.1 200 OK\r\nContent-Length: $contentLength\r\n\r\n"
       val headRequest = FooRequest.withMethod(Method.HEAD)
       val tail = mkConnection(FooRequestKey)
-      try {
-        val h = new SeqTestHead(List(mkBuffer(resp)))
-        LeafBuilder(tail).base(h)
+      val h = new SeqTestHead(List(mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
 
-        val response = tail.runRequest(headRequest).unsafeRunSync()
-        response.contentLength must beSome(contentLength)
+      val response = tail.runRequest(headRequest).unsafeRunSync()
+      response.contentLength must beSome(contentLength)
 
-        // connection reusable immediately after headers read
-        tail.isRecyclable must_=== true
+      // connection reusable immediately after headers read
+      tail.isRecyclable must_=== true
 
-        // body is empty due to it being HEAD request
-        response.body.compile.toVector
-          .unsafeRunSync()
-          .foldLeft(0L)((long, byte) => long + 1L) must_== 0L
-      } finally {
-        tail.shutdown()
-      }
+      // body is empty due to it being HEAD request
+      response.body.compile.toVector
+        .unsafeRunSync()
+        .foldLeft(0L)((long, byte) => long + 1L) must_== 0L
     }
 
     {

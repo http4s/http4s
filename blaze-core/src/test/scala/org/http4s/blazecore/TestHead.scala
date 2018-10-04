@@ -23,7 +23,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   def result = p.future
 
-  override def writeRequest(data: ByteBuffer): Future[Unit] = {
+  override def writeRequest(data: ByteBuffer): Future[Unit] =
     if (closed.get) Future.failed(EOF)
     else {
       val cpy = ByteVector(data)
@@ -32,7 +32,6 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
       })
       util.FutureUnit
     }
-  }
 
   override def stageShutdown(): Unit = {
     closed.set(true)
