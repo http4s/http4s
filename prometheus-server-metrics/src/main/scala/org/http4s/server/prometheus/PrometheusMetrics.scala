@@ -145,8 +145,9 @@ object PrometheusMetrics {
       }
       .handleErrorWith(e =>
         Stream.eval(Sync[F].delay {
-          serviceMetrics.abnormalTerminations.labels(
-            AbnormalTermination.report(AbnormalTermination.Abnormal))
+          serviceMetrics.abnormalTerminations
+            .labels(AbnormalTermination.report(AbnormalTermination.Abnormal))
+            .inc()
         }) *> Stream.raiseError[F](e).covary[F])
     r.copy(body = newBody)
   }
