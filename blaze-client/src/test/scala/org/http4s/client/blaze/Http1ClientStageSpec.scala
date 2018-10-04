@@ -79,8 +79,8 @@ class Http1ClientStageSpec extends Http4sSpec {
       reqComplete <- Deferred[IO, Unit]
       req0 = req.withBodyStream(req.body.onFinalize(reqComplete.complete(())))
       result <- stage.runRequest(req0).flatMap(_.as[String])
-      _ <- IO(h.stageShutdown())
       _ <- reqComplete.get
+      _ <- IO(h.stageShutdown())
       request <- IO
         .fromFuture(IO(h.result))
         .map(buff => new String(buff.array(), StandardCharsets.UTF_8))
