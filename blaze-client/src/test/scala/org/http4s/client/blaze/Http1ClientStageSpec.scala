@@ -4,13 +4,13 @@ package blaze
 
 import cats.effect._
 import cats.effect.concurrent.Deferred
+import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.SeqTestHead
 import org.http4s.client.blaze.bits.DefaultUserAgent
 import org.http4s.headers.`User-Agent`
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 // TODO: this needs more tests
@@ -67,7 +67,7 @@ class Http1ClientStageSpec extends Http4sSpec {
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      stage: Http1Connection[IO]): (String, String) = {
+      stage: Http1Connection[IO]): IO[(String, String)] = {
     val h = new SeqTestHead(resp.toSeq.map { chr =>
       val b = ByteBuffer.allocate(1)
       b.put(chr.toByte).flip()
@@ -75,36 +75,31 @@ class Http1ClientStageSpec extends Http4sSpec {
     })
     LeafBuilder(stage).base(h)
 
-    val result = new String(
-      stage
-        .runRequest(req)
-        .unsafeRunSync()
-        .body
-        .compile
-        .toVector
-        .unsafeRunSync()
-        .toArray)
-
-    h.stageShutdown()
-    val buff = Await.result(h.result, 10.seconds)
-    val request = new String(buff.array(), StandardCharsets.ISO_8859_1)
-    (request, result)
+    for {
+      reqComplete <- Deferred[IO, Unit]
+      req0 = req.withBodyStream(req.body.onFinalize(reqComplete.complete(())))
+      result <- stage.runRequest(req0).flatMap(_.as[String])
+      _ <- IO(h.stageShutdown())
+      _ <- reqComplete.get
+      request <- IO
+        .fromFuture(IO(h.result))
+        .map(buff => new String(buff.array(), StandardCharsets.UTF_8))
+    } yield (request, result)
   }
 
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      userAgent: Option[`User-Agent`] = None): (String, String) = {
+      userAgent: Option[`User-Agent`] = None): IO[(String, String)] = {
     val key = RequestKey.fromRequest(req)
     val tail = mkConnection(key, userAgent)
-    try getSubmission(req, resp, tail)
-    finally { tail.shutdown() }
+    getSubmission(req, resp, tail)
   }
 
   "Http1ClientStage" should {
 
     "Run a basic request" in {
-      val (request, response) = getSubmission(FooRequest, resp)
+      val (request, response) = getSubmission(FooRequest, resp).unsafeRunSync()
       val statusline = request.split("\r\n").apply(0)
 
       statusline must_== "GET / HTTP/1.1"
@@ -116,7 +111,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       val Right(parsed) = Uri.fromString("http://www.foo.test" + uri)
       val req = Request[IO](uri = parsed)
 
-      val (request, response) = getSubmission(req, resp)
+      val (request, response) = getSubmission(req, resp).unsafeRunSync()
       val statusline = request.split("\r\n").apply(0)
 
       statusline must_== "GET " + uri + " HTTP/1.1"
@@ -176,7 +171,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Interpret a lack of length with a EOF as a valid message" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val (_, response) = getSubmission(FooRequest, resp)
+      val (_, response) = getSubmission(FooRequest, resp).unsafeRunSync()
 
       response must_== "done"
     }
@@ -186,7 +181,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       val req = FooRequest.replaceAllHeaders(headers.Host("bar.test"))
 
-      val (request, response) = getSubmission(req, resp)
+      val (request, response) = getSubmission(req, resp).unsafeRunSync()
 
       val requestLines = request.split("\r\n").toList
 
@@ -197,7 +192,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Insert a User-Agent header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val (request, response) = getSubmission(FooRequest, resp, DefaultUserAgent)
+      val (request, response) = getSubmission(FooRequest, resp, DefaultUserAgent).unsafeRunSync()
 
       val requestLines = request.split("\r\n").toList
 
@@ -210,7 +205,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       val req = FooRequest.replaceAllHeaders(Header.Raw("User-Agent".ci, "myagent"))
 
-      val (request, response) = getSubmission(req, resp)
+      val (request, response) = getSubmission(req, resp).unsafeRunSync()
 
       val requestLines = request.split("\r\n").toList
 
@@ -223,7 +218,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       val tail = mkConnection(FooRequestKey)
 
       try {
-        val (request, response) = getSubmission(FooRequest, resp, tail)
+        val (request, response) = getSubmission(FooRequest, resp, tail).unsafeRunSync()
         tail.shutdown()
 
         val requestLines = request.split("\r\n").toList
@@ -241,7 +236,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
 
-      val (request, response) = getSubmission(req, resp)
+      val (request, response) = getSubmission(req, resp).unsafeRunSync()
 
       request must not contain "Host:"
       response must_== "done"
@@ -254,7 +249,7 @@ class Http1ClientStageSpec extends Http4sSpec {
        * scenarios before we consume the body.  Make sure we can handle
        * it.  Ensure that we still get a well-formed response.
        */
-      val (_, response) = getSubmission(req, resp)
+      val (_, response) = getSubmission(req, resp).unsafeRunSync()
       response must_== "done"
     }
 

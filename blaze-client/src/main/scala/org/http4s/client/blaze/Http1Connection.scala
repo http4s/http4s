@@ -147,7 +147,6 @@ private final class Http1Connection[F[_]](
               }
               .handleError {
                 case EOF =>
-                  logger.error(EOF)("EOF rendering request")
                   false
                 case t =>
                   logger.error(t)("Error rendering request")

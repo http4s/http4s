@@ -41,7 +41,9 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   }
 
   override def outboundCommand(cmd: OutboundCommand): Unit = {
-    outboundCommands :+= cmd
+    outboundCommands.synchronized {
+      outboundCommands :+= cmd
+    }
     cmd match {
       case Connect => stageStartup()
       case Disconnect => stageShutdown()
