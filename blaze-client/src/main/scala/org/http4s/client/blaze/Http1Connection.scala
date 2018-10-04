@@ -368,6 +368,7 @@ private object Http1Connection {
 
   private val NullEventListener = new ClientTimeoutStage.EventListener {
     def onRequestSendComplete() = logger.warn("Called `onRequestSendComplete()` without a listener")
-    def onResponseHeaderComplete() = logger.warn("Called `onResponseHeaderComplete()` without a listener")
+    def onResponseHeaderComplete() =
+      logger.warn("Called `onResponseHeaderComplete()` without a listener")
   }
 }

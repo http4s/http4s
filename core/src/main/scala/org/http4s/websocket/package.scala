@@ -25,7 +25,7 @@ package object websocket {
   private[websocket] def makeFrame(opcode: Int, data: ByteVector, last: Boolean): WebSocketFrame =
     opcode match {
       case TEXT => WebSocketFrame.Text(data, last)
-      case BINARY => WebSocketFrame.Text(data, last)
+      case BINARY => WebSocketFrame.Binary(data, last)
       case CONTINUATION => WebSocketFrame.Continuation(data, last)
       case PING =>
         if (!last) throw new ProtocolException("Control frame cannot be fragmented: Ping")

@@ -190,8 +190,7 @@ private class Http2NodeStage[F[_]](
           F.runAsync(action) {
             case Right(()) => IO.unit
             case Left(t) =>
-              IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                closePipeline(None))
+              IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(closePipeline(None))
           }
         }.unsafeRunSync()
       })
