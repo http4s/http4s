@@ -83,7 +83,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       _ <- IO(h.stageShutdown())
       request <- IO
         .fromFuture(IO(h.result))
-        .map(buff => new String(buff.array(), StandardCharsets.UTF_8))
+        .map(buff => StandardCharsets.UTF_8.decode(buff).toString)
     } yield (request, result)
   }
 

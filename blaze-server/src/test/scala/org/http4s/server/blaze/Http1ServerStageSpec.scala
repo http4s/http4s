@@ -448,6 +448,6 @@ class Http1ServerStageSpec extends Http4sSpec {
   "Disconnect if we read an EOF" in {
     val head = runRequest(Seq.empty, Kleisli.liftF(Ok("")))
     Await.ready(head.result, 10.seconds)
-    head.outboundCommands must_== Seq(Disconnect)
+    head.outboundCommands.get must_== Vector(Disconnect)
   }
 }

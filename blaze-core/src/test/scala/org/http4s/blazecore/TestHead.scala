@@ -5,45 +5,39 @@ import cats.effect.IO
 import cats.implicits._
 import fs2.concurrent.Queue
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
 import org.http4s.blaze.util.TickWheelExecutor
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
+import scodec.bits.ByteVector
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
-  private var acc = Vector[Array[Byte]]()
+  private val acc = new AtomicReference(ByteVector.empty)
+  val outboundCommands = new AtomicReference(Vector.empty[OutboundCommand])
+  val closed = new AtomicBoolean(false)
   private val p = Promise[ByteBuffer]
-
-  var closed = false
-  @volatile var outboundCommands = Vector[OutboundCommand]()
-
-  def getBytes(): Array[Byte] = acc.toArray.flatten
 
   def result = p.future
 
-  override def writeRequest(data: ByteBuffer): Future[Unit] = synchronized {
-    if (closed) Future.failed(EOF)
+  override def writeRequest(data: ByteBuffer): Future[Unit] =
+    if (closed.get) Future.failed(EOF)
     else {
-      val cpy = new Array[Byte](data.remaining())
-      data.get(cpy)
-      acc :+= cpy
+      val cpy = ByteVector(data)
+      acc.getAndUpdate(_ ++ cpy)
       util.FutureUnit
     }
-  }
 
-  override def stageShutdown(): Unit = synchronized {
-    closed = true
+  override def stageShutdown(): Unit = {
+    closed.set(true)
+    p.trySuccess(acc.get.toByteBuffer)
     super.stageShutdown()
-    p.trySuccess(ByteBuffer.wrap(getBytes()))
-    ()
   }
 
   override def outboundCommand(cmd: OutboundCommand): Unit = {
-    outboundCommands.synchronized {
-      outboundCommands :+= cmd
-    }
+    outboundCommands.getAndUpdate(_ :+ cmd)
     cmd match {
       case Connect => stageStartup()
       case Disconnect => stageShutdown()
@@ -57,7 +51,7 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   private val bodyIt = body.iterator
 
   override def readRequest(size: Int): Future[ByteBuffer] = synchronized {
-    if (!closed && bodyIt.hasNext) Future.successful(bodyIt.next())
+    if (!closed.get && bodyIt.hasNext) Future.successful(bodyIt.next())
     else {
       stageShutdown()
       sendInboundCommand(Disconnected)
@@ -120,7 +114,7 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
         scheduler.schedule(new Runnable {
           override def run(): Unit = self.synchronized {
             resolvePending {
-              if (!closed && bodyIt.hasNext) Success(bodyIt.next())
+              if (!closed.get && bodyIt.hasNext) Success(bodyIt.next())
               else Failure(EOF)
             }
           }
