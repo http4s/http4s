@@ -6,6 +6,7 @@ import cats.implicits._
 import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
+import java.util.function.UnaryOperator
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
 import org.http4s.blaze.util.TickWheelExecutor
@@ -22,13 +23,16 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   def result = p.future
 
-  override def writeRequest(data: ByteBuffer): Future[Unit] =
+  override def writeRequest(data: ByteBuffer): Future[Unit] = {
     if (closed.get) Future.failed(EOF)
     else {
       val cpy = ByteVector(data)
-      acc.getAndUpdate(_ ++ cpy)
+      acc.getAndUpdate(new UnaryOperator[ByteVector] {
+        def apply(bv: ByteVector) = bv ++ cpy
+      })
       util.FutureUnit
     }
+  }
 
   override def stageShutdown(): Unit = {
     closed.set(true)
@@ -37,7 +41,9 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   }
 
   override def outboundCommand(cmd: OutboundCommand): Unit = {
-    outboundCommands.getAndUpdate(_ :+ cmd)
+    outboundCommands.getAndUpdate(new UnaryOperator[Vector[OutboundCommand]] {
+      def apply(v: Vector[OutboundCommand]) = v :+ cmd
+    })
     cmd match {
       case Connect => stageStartup()
       case Disconnect => stageShutdown()
