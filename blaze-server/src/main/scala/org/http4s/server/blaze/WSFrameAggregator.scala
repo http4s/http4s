@@ -3,13 +3,15 @@ package org.http4s.server.blaze
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.Execution._
 import org.http4s.util
-import org.http4s.websocket.WebsocketBits._
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 import java.net.ProtocolException
 import org.http4s.server.blaze.WSFrameAggregator.Accumulator
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame._
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scodec.bits.ByteVector
 
 private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame] {
 
@@ -115,15 +117,15 @@ private object WSFrameAggregator {
           throw e
       }
 
-      val out = new Array[Byte](size)
+      var out = ByteVector.empty
       @tailrec
-      def go(i: Int): Unit =
+      def go(): Unit =
         if (!queue.isEmpty) {
           val frame = queue.dequeue().data
-          System.arraycopy(frame, 0, out, i, frame.length)
-          go(i + frame.length)
+          out ++= frame
+          go()
         }
-      go(0)
+      go()
 
       size = 0
       if (isText) Text(out) else Binary(out)
