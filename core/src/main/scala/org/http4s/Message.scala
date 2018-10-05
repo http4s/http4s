@@ -380,5 +380,5 @@ object Response {
     Response(Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
 
   def timeout[F[_]]: Response[F] =
-    Response[F](Status.InternalServerError).withEntity("Response timed out")
+    Response[F](Status.ServiceUnavailable).withEntity("Response timed out")
 }
