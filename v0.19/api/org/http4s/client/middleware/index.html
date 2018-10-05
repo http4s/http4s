@@ -197,22 +197,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
-    </li><li name="org.http4s.client.metrics" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="metrics"></a><a id="metrics:metrics"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#metrics" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="../metrics/index.html"><span class="name">metrics</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
     </li><li name="org.http4s.client.middleware" visbl="pub" class="indented4 current" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="middleware"></a><a id="middleware:middleware"></a>
       <span class="permalink">
@@ -231,12 +215,20 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="DestinationAttribute$.html" title="Client middleware that sets the destination attribute of every request to the specified value."></a>
+                        <a href="DestinationAttribute$.html" title="Client middleware that sets the destination attribute of every request to the specified value.">DestinationAttribute</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="FollowRedirect$.html" title="Client middleware to follow redirect responses."></a>
                         <a href="FollowRedirect$.html" title="Client middleware to follow redirect responses.">FollowRedirect</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="Logger$.html" title="Simple Middleware for Logging All Requests and Responses"></a>
                         <a href="Logger$.html" title="Simple Middleware for Logging All Requests and Responses">Logger</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="Metrics$.html" title="Client middleware to record metrics for the http4s client."></a>
+                        <a href="Metrics$.html" title="Client middleware to record metrics for the http4s client.">Metrics</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="RequestLogger$.html" title="Simple Middleware for Logging Requests As They Are Processed"></a>
@@ -283,22 +275,6 @@
       </span>
       <span class="symbol">
         <a title="" href="../okhttp/index.html"><span class="name">okhttp</span></a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
-    </li><li name="org.http4s.client.prometheus" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="prometheus"></a><a id="prometheus:prometheus"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#prometheus" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="../prometheus/index.html"><span class="name">prometheus</span></a>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
@@ -409,7 +385,23 @@ the request will be retried.</p>
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="org.http4s.client.middleware.FollowRedirect" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+                <li name="org.http4s.client.middleware.DestinationAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DestinationAttribute"></a><a id="DestinationAttribute:DestinationAttribute"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/middleware/index.html#DestinationAttribute" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Client middleware that sets the destination attribute of every request to the specified value." href="DestinationAttribute$.html"><span class="name">DestinationAttribute</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Client middleware that sets the destination attribute of every request to the specified value.</p>
+    </li><li name="org.http4s.client.middleware.FollowRedirect" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="FollowRedirect"></a><a id="FollowRedirect:FollowRedirect"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/client/middleware/index.html#FollowRedirect" title="Permalink">
@@ -455,6 +447,28 @@ redirecting to a different authority.
       
       <p class="shortcomment cmt">Simple Middleware for Logging All Requests and Responses
 </p>
+    </li><li name="org.http4s.client.middleware.Metrics" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Metrics"></a><a id="Metrics:Metrics"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/middleware/index.html#Metrics" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Client middleware to record metrics for the http4s client." href="Metrics$.html"><span class="name">Metrics</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Client middleware to record metrics for the http4s client.</p><div class="fullcomment"><div class="comment cmt"><p>Client middleware to record metrics for the http4s client.</p><p>This middleware will record:
+- Number of active requests
+- Time duration to receive the response headers, taking into account the HTTP status code
+- Total duration of each request, including consumption of the response body, taking into account the HTTP status code
+- Number of timeouts
+- Number of other errors</p><p>This middleware can be extended to support any metrics ecosystem by implementing the <span class="extype" name="MetricsOps">MetricsOps</span> type
+</p></div></div>
     </li><li name="org.http4s.client.middleware.RequestLogger" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RequestLogger"></a><a id="RequestLogger:RequestLogger"></a>
       <span class="permalink">

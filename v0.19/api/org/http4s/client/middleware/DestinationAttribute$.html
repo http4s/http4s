@@ -117,10 +117,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
-    </li><li name="org.http4s.client.prometheus" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="prometheus"></a><a id="prometheus:prometheus"></a>
+    </li><li name="org.http4s.client.middleware" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="middleware"></a><a id="middleware:middleware"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#prometheus" title="Permalink">
+      <a href="../../../org/http4s/client/index.html#middleware" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -129,18 +129,42 @@
         <span class="kind">package</span>
       </span>
       <span class="symbol">
-        <a title="" href="index.html"><span class="name">prometheus</span></a>
+        <a title="" href="index.html"><span class="name">middleware</span></a>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">DestinationAttribute</a>
+                        <a class="object" href="" title="Client middleware that sets the destination attribute of every request to the specified value."></a>
+                        <a href="" title="Client middleware that sets the destination attribute of every request to the specified value.">DestinationAttribute</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="PrometheusClientMetrics$.html" title=""></a>
-                        <a href="PrometheusClientMetrics$.html" title="">PrometheusClientMetrics</a>
+                        <a class="object" href="FollowRedirect$.html" title="Client middleware to follow redirect responses."></a>
+                        <a href="FollowRedirect$.html" title="Client middleware to follow redirect responses.">FollowRedirect</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="Logger$.html" title="Simple Middleware for Logging All Requests and Responses"></a>
+                        <a href="Logger$.html" title="Simple Middleware for Logging All Requests and Responses">Logger</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="Metrics$.html" title="Client middleware to record metrics for the http4s client."></a>
+                        <a href="Metrics$.html" title="Client middleware to record metrics for the http4s client.">Metrics</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="RequestLogger$.html" title="Simple Middleware for Logging Requests As They Are Processed"></a>
+                        <a href="RequestLogger$.html" title="Simple Middleware for Logging Requests As They Are Processed">RequestLogger</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="ResponseLogger$.html" title="Simple middleware for logging responses as they are processed"></a>
+                        <a href="ResponseLogger$.html" title="Simple middleware for logging responses as they are processed">ResponseLogger</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="Retry$.html" title=""></a>
+                        <a href="Retry$.html" title="">Retry</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="RetryPolicy$.html" title=""></a>
+                        <a href="RetryPolicy$.html" title="">RetryPolicy</a>
                       </li>
               </ul>
             </div>
@@ -149,9 +173,9 @@
             <body class="object value">
       <div id="definition">
         <div class="big-circle object">o</div>
-        <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.client">client</a>.<a href="index.html" class="extype" name="org.http4s.client.prometheus">prometheus</a></p>
+        <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.client">client</a>.<a href="index.html" class="extype" name="org.http4s.client.middleware">middleware</a></p>
         <h1>DestinationAttribute<span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -169,7 +193,8 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/prometheus-client-metrics/src/main/scala/org/http4s/client/prometheus/DestinationAttribute.scala" target="_blank">DestinationAttribute.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Client middleware that sets the destination attribute of every request to the specified value.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/client/src/main/scala/org/http4s/client/middleware/DestinationAttribute.scala" target="_blank">DestinationAttribute.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -199,7 +224,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.client.prometheus.DestinationAttribute"><span>DestinationAttribute</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.client.middleware.DestinationAttribute"><span>DestinationAttribute</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -229,7 +254,7 @@
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -245,7 +270,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html###():Int" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -261,7 +286,7 @@
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -274,10 +299,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.client.prometheus.DestinationAttribute#Destination" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.client.middleware.DestinationAttribute#Destination" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Destination:org.http4s.AttributeKey[String]"></a><a id="Destination:AttributeKey[String]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#Destination:org.http4s.AttributeKey[String]" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#Destination:org.http4s.AttributeKey[String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -289,11 +314,11 @@
         <span class="name">Destination</span><span class="result">: <a href="../../AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">The value of this key in the request's attributes is used as the value for the destination metric label.</p>
-    </li><li name="org.http4s.client.prometheus.DestinationAttribute#EmptyDestination" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      
+    </li><li name="org.http4s.client.middleware.DestinationAttribute#EmptyDestination" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="EmptyDestination:String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#EmptyDestination:String" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#EmptyDestination:String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -306,10 +331,26 @@
       </span>
       
       
+    </li><li name="org.http4s.client.middleware.DestinationAttribute#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[F[_]](client:org.http4s.client.Client[F],destination:String)(implicitevidence$1:cats.effect.Sync[F]):org.http4s.client.Client[F]"></a><a id="apply[F[_]](Client[F],String)(Sync[F]):Client[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#apply[F[_]](client:org.http4s.client.Client[F],destination:String)(implicitevidence$1:cats.effect.Sync[F]):org.http4s.client.Client[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="client">client: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.DestinationAttribute.apply.F">F</span>]</span>, <span name="destination">destination: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.client.middleware.DestinationAttribute.apply.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.DestinationAttribute.apply.F">F</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -325,7 +366,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#clone():Object" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -349,7 +390,7 @@
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -365,7 +406,7 @@
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -381,7 +422,7 @@
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#finalize():Unit" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -403,7 +444,7 @@
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -419,10 +460,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.prometheus.DestinationAttribute#getDestination" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getDestination[F[_]](default:String):org.http4s.Request[F]=&gt;String"></a><a id="getDestination[F[_]](String):(Request[F])⇒String"></a>
+    </li><li name="org.http4s.client.middleware.DestinationAttribute#getDestination" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getDestination[F[_]]():org.http4s.Request[F]=&gt;Option[String]"></a><a id="getDestination[F[_]]():(Request[F])⇒Option[String]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#getDestination[F[_]](default:String):org.http4s.Request[F]=&gt;String" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#getDestination[F[_]]():org.http4s.Request[F]=&gt;Option[String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -431,14 +472,17 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getDestination</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="default">default: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="#EmptyDestination:String">EmptyDestination</a></span></span></span>)</span><span class="result">: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.prometheus.DestinationAttribute.getDestination.F">F</span>]) ⇒ <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">getDestination</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">()</span><span class="result">: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.middleware.DestinationAttribute.getDestination.F">F</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">The returned function can be used when creating the PrometheusClientMetrics middleware, to extract destination from request attributes.</p>
+      <p class="shortcomment cmt">The returned function can be used as classifier function when creating the <a href="Metrics$.html" class="extype" name="org.http4s.client.middleware.Metrics">Metrics</a> middleware, to use the destination
+attribute from the request as classifier.</p><div class="fullcomment"><div class="comment cmt"><p>The returned function can be used as classifier function when creating the <a href="Metrics$.html" class="extype" name="org.http4s.client.middleware.Metrics">Metrics</a> middleware, to use the destination
+attribute from the request as classifier.
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the classifier function</p></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#hashCode():Int" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -457,7 +501,7 @@
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -473,7 +517,7 @@
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -489,7 +533,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#notify():Unit" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -508,7 +552,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -524,26 +568,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.prometheus.DestinationAttribute#setRequestDestination" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="setRequestDestination[F[_]](client:org.http4s.client.Client[F],destination:String)(implicitevidence$1:cats.effect.Sync[F]):org.http4s.client.Client[F]"></a><a id="setRequestDestination[F[_]](Client[F],String)(Sync[F]):Client[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#setRequestDestination[F[_]](client:org.http4s.client.Client[F],destination:String)(implicitevidence$1:cats.effect.Sync[F]):org.http4s.client.Client[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">setRequestDestination</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="client">client: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.prometheus.DestinationAttribute.setRequestDestination.F">F</span>]</span>, <span name="destination">destination: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.client.prometheus.DestinationAttribute.setRequestDestination.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.prometheus.DestinationAttribute.setRequestDestination.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Client middleware that sets the destination attribute of every request to the specified value.</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -559,7 +587,7 @@
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#toString():String" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -575,7 +603,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#wait():Unit" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -597,7 +625,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -619,7 +647,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/prometheus/DestinationAttribute$.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/DestinationAttribute$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
