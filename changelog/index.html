@@ -90,11 +90,39 @@ it.</p>
 
 <h2 id="breaking-changes">Breaking changes</h2>
 
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2137">#2137</a>: Remove <code>ExecutionContext</code> argument to jetty-client in favor of the <code>ContextShift[F]</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2070">#2070</a>: Give <code>AbitraryInstances</code> unique names with <code>http4sTesting</code> prefix.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2136">#2136</a>: Add <code>stream</code> method to <code>Client</code> interface. Deprecate <code>streaming</code>, which is just a <code>flatMap</code> of <code>Stream</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2143">#2143</a>: WebSocket model improvements:
+
+<ul>
+<li>The <code>org.http4s.websocket</code> package in unified in http4s-core</li>
+<li>Drop http4s-websocket module dependency</li>
+<li>All frames use an immutable <code>scodec.bits.ByteVector</code> instead of an <code>Array[Byte]</code>.</li>
+<li>Frames moved from <code>WebSocketBits</code> to the <code>WebSocketFrame</code> companion</li>
+<li>Rename all instances of <code>Websocket*</code> to <code>WebSocket*</code> for consistency</li>
+</ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/2094">#2094</a>: Metrics unification
+
+<ul>
+<li>Add a <code>MetricsOps</code> algebra to http4s-core to be implemented by any metrics backend.</li>
+<li>Create new <code>Metrics</code> middleware in http4s-client based on <code>MetricsOps</code></li>
+<li>Replace http4s-dropwizard-client-metrics and http4s-proemtheus-client-metrics modules with http4s-dropwizard-metrics and http4s-prometheus-metrics to implement <code>MetricsOps</code>.</li>
+</ul></li>
+</ul>
+
 <h2 id="enhancements">Enhancements</h2>
 
 <h2 id="bugfixes">Bugfixes</h2>
 
 <h2 id="documentation-updates">Documentation updates</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2134">#2134</a>: Add Cats Friendly badge to readme</li>
+<li><a href="https://github.com/http4s/http4s/pull/2139">#2139</a>: Reinstate example projects</li>
+<li><a href="https://github.com/http4s/http4s/pull/2145">#2145</a>: Fix deprecated calls to <code>Client#streaming</code></li>
+</ul>
 
 <h2 id="internal">Internal</h2>
 
@@ -104,11 +132,13 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2128">#2128</a>: Don&rsquo;t run <code>dependencyUpdates</code> on load</li>
 <li><a href="https://github.com/http4s/http4s/pull/2129">#2129</a>: Build with sbt-1.2.3 and scala-2.12.7</li>
 <li><a href="https://github.com/http4s/http4s/pull/2133">#2133</a>: Build with kind-projector-0.9.8</li>
+<li><a href="https://github.com/http4s/http4s/pull/2146">#2146</a>: Remove all use of <code>OutboundCommand</code> in blaze integration</li>
 </ul>
 
 <h2 id="dependency-upgrades">Dependency upgrades</h2>
 
 <ul>
+<li>blaze-0.14.0-M5</li>
 <li>scala-xml-1.1.1</li>
 </ul>
 
