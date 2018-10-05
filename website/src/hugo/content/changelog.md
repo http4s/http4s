@@ -11,12 +11,28 @@ it.
 # v0.19.0-SNAPSHOT
 
 ## Breaking changes
+* [#2137](https://github.com/http4s/http4s/pull/2137): Remove `ExecutionContext` argument to jetty-client in favor of the `ContextShift[F]`.
+* [#2070](https://github.com/http4s/http4s/pull/2070): Give `AbitraryInstances` unique names with `http4sTesting` prefix.
+* [#2136](https://github.com/http4s/http4s/pull/2136): Add `stream` method to `Client` interface. Deprecate `streaming`, which is just a `flatMap` of `Stream`.
+* [#2143](https://github.com/http4s/http4s/pull/2143): WebSocket model improvements:
+  * The `org.http4s.websocket` package in unified in http4s-core
+  * Drop http4s-websocket module dependency
+  * All frames use an immutable `scodec.bits.ByteVector` instead of an `Array[Byte]`.
+  * Frames moved from `WebSocketBits` to the `WebSocketFrame` companion
+  * Rename all instances of `Websocket*` to `WebSocket*` for consistency
+* [#2094](https://github.com/http4s/http4s/pull/2094): Metrics unification
+  * Add a `MetricsOps` algebra to http4s-core to be implemented by any metrics backend.
+  * Create new `Metrics` middleware in http4s-client based on `MetricsOps`
+  * Replace http4s-dropwizard-client-metrics and http4s-proemtheus-client-metrics modules with http4s-dropwizard-metrics and http4s-prometheus-metrics to implement `MetricsOps`.
 
 ## Enhancements
 
 ## Bugfixes
 
 ## Documentation updates
+* [#2134](https://github.com/http4s/http4s/pull/2134): Add Cats Friendly badge to readme
+* [#2139](https://github.com/http4s/http4s/pull/2139): Reinstate example projects
+* [#2145](https://github.com/http4s/http4s/pull/2145): Fix deprecated calls to `Client#streaming`
 
 ## Internal
 * [#2126](https://github.com/http4s/http4s/pull/2126): Delete obsolete `bin` directory
@@ -24,8 +40,10 @@ it.
 * [#2128](https://github.com/http4s/http4s/pull/2128): Don't run `dependencyUpdates` on load
 * [#2129](https://github.com/http4s/http4s/pull/2129): Build with sbt-1.2.3 and scala-2.12.7
 * [#2133](https://github.com/http4s/http4s/pull/2133): Build with kind-projector-0.9.8
+* [#2146](https://github.com/http4s/http4s/pull/2146): Remove all use of `OutboundCommand` in blaze integration
 
 ## Dependency upgrades
+* blaze-0.14.0-M5
 * scala-xml-1.1.1
 
 # v0.19.0-M3 (2018-09-27)
