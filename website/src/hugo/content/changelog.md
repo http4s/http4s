@@ -27,6 +27,7 @@ it.
 
 ## Enhancements
 * [#2149](https://github.com/http4s/http4s/pull/2134): Refresh `MimeDB` constants from the public registry
+* [#2151](https://github.com/http4s/http4s/pull/2151): Changed default response timeout code from 500 to 503
 
 ## Documentation updates
 * [#2134](https://github.com/http4s/http4s/pull/2134): Add Cats Friendly badge to readme
