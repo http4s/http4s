@@ -43,7 +43,10 @@ it.
 * [#2146](https://github.com/http4s/http4s/pull/2146): Remove all use of `OutboundCommand` in blaze integration
 
 ## Dependency upgrades
+* async-http-client-2.5.4
 * blaze-0.14.0-M5
+* fs2-1.0.0
+* jawn-0.13.0
 * scala-xml-1.1.1
 
 # v0.19.0-M3 (2018-09-27)
