@@ -86,7 +86,7 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v0-19-0-snapshot">v0.19.0-SNAPSHOT</h1>
+<h1 id="v0-19-0-m4-2018-10-05">v0.19.0-M4 (2018-10-05)</h1>
 
 <h2 id="breaking-changes">Breaking changes</h2>
 
@@ -114,7 +114,10 @@ it.</p>
 
 <h2 id="enhancements">Enhancements</h2>
 
-<h2 id="bugfixes">Bugfixes</h2>
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2134">#2149</a>: Refresh <code>MimeDB</code> constants from the public registry</li>
+<li><a href="https://github.com/http4s/http4s/pull/2151">#2151</a>: Changed default response timeout code from 500 to 503</li>
+</ul>
 
 <h2 id="documentation-updates">Documentation updates</h2>
 
@@ -138,7 +141,10 @@ it.</p>
 <h2 id="dependency-upgrades">Dependency upgrades</h2>
 
 <ul>
+<li>async-http-client-2.5.4</li>
 <li>blaze-0.14.0-M5</li>
+<li>fs2-1.0.0</li>
+<li>jawn-0.13.0</li>
 <li>scala-xml-1.1.1</li>
 </ul>
 
@@ -187,7 +193,7 @@ it.</p>
 </ul></li>
 </ul>
 
-<h2 id="bugfixes-1">Bugfixes</h2>
+<h2 id="bugfixes">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2069">#2069</a>: Add proper <code>withMaxTotalConnections</code> method to <code>BlazeClientBuilder</code> in place of misnamed <code>withIdleTimeout</code> overload.</li>
@@ -376,7 +382,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2062">#2062</a>: Eliminate &ldquo;unhandled inbund command: Disconnected&rdquo;` warnings in blaze-server</li>
 </ul>
 
-<h2 id="bugfixes-2">Bugfixes</h2>
+<h2 id="bugfixes-1">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2024">#2027</a>: Miscellaneous websocket fixes
