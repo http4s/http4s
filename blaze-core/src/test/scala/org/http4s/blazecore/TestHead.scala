@@ -14,7 +14,8 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   private val p = Promise[ByteBuffer]
 
   var closed = false
-  @volatile var outboundCommands = Vector[OutboundCommand]()
+
+  @volatile var closeCauses = Vector[Option[Throwable]]()
 
   def getBytes(): Array[Byte] = acc.toArray.flatten
 
@@ -37,14 +38,9 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
     ()
   }
 
-  override def outboundCommand(cmd: OutboundCommand): Unit = {
-    outboundCommands :+= cmd
-    cmd match {
-      case Connect => stageStartup()
-      case Disconnect => stageShutdown()
-      case Error(e) => logger.error(e)(s"$name received unhandled error command")
-      case _ => // hushes ClientStageTimeout commands that we can't see here
-    }
+  override def doClosePipeline(cause: Option[Throwable]): Unit = {
+    closeCauses :+= cause
+    cause.foreach(logger.error(_)(s"$name received unhandled error command"))
   }
 }
 
@@ -80,14 +76,6 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
   override def stageShutdown(): Unit = synchronized {
     clear()
     super.stageShutdown()
-  }
-
-  override def outboundCommand(cmd: OutboundCommand): Unit = self.synchronized {
-    cmd match {
-      case Disconnect => clear()
-      case _ =>
-    }
-    super.outboundCommand(cmd)
   }
 
   override def readRequest(size: Int): Future[ByteBuffer] = self.synchronized {
