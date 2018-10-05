@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.19.0-SNAPSHOT
+# v0.19.0-M4 (2018-10-05)
 
 ## Breaking changes
 * [#2137](https://github.com/http4s/http4s/pull/2137): Remove `ExecutionContext` argument to jetty-client in favor of the `ContextShift[F]`.
@@ -26,8 +26,7 @@ it.
   * Replace http4s-dropwizard-client-metrics and http4s-proemtheus-client-metrics modules with http4s-dropwizard-metrics and http4s-prometheus-metrics to implement `MetricsOps`.
 
 ## Enhancements
-
-## Bugfixes
+* [#2149](https://github.com/http4s/http4s/pull/2134): Refresh `MimeDB` constants from the public registry
 
 ## Documentation updates
 * [#2134](https://github.com/http4s/http4s/pull/2134): Add Cats Friendly badge to readme
