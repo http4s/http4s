@@ -13,7 +13,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register a 2xx response" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
@@ -27,7 +27,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register a 4xx response" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/bad-request"))
 
@@ -41,7 +41,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register a 5xx response" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/internal-server-error"))
 
@@ -55,7 +55,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register a GET request" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/ok"))
 
@@ -69,7 +69,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register a POST request" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = POST, uri = uri("/ok"))
 
@@ -83,7 +83,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register a PUT request" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = PUT, uri = uri("/ok"))
 
@@ -97,7 +97,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register a DELETE request" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = DELETE, uri = uri("/ok"))
 
@@ -111,7 +111,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register a server error" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/service-error"))
 
@@ -124,7 +124,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
 
     "register an abnormal termination" in {
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = PrometheusMetrics[IO](registry, "server")
+      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/abnormal-termination"))
 
