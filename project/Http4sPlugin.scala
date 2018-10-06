@@ -309,7 +309,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.6.1"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.22.0"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.23.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.6.10"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.5.0"
