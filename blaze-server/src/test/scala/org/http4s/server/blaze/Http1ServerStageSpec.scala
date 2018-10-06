@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H, _}
 import org.http4s.blaze._
-import org.http4s.blaze.pipeline.Command.{Connected, Disconnect}
+import org.http4s.blaze.pipeline.Command.Connected
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
@@ -448,6 +448,6 @@ class Http1ServerStageSpec extends Http4sSpec {
   "Disconnect if we read an EOF" in {
     val head = runRequest(Seq.empty, Kleisli.liftF(Ok("")))
     Await.ready(head.result, 10.seconds)
-    head.outboundCommands.get must_== Vector(Disconnect)
+    head.closeCauses.get must_== Vector(None)
   }
 }

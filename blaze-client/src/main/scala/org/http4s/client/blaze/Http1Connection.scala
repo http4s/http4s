@@ -3,6 +3,7 @@ package client
 package blaze
 
 import cats.effect._
+import cats.effect.implicits._
 import cats.implicits._
 import fs2._
 import java.nio.ByteBuffer
@@ -10,12 +11,12 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.{headers => H}
 import org.http4s.Uri.{Authority, RegName}
-import org.http4s.blaze.pipeline.Command
-import org.http4s.blaze.pipeline.Command.EOF
+import org.http4s.blaze.pipeline.Command.{EOF, InboundCommand}
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
+import org.log4s.getLogger
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -37,6 +38,8 @@ private final class Http1Connection[F[_]](
   override def name: String = getClass.getName
   private val parser =
     new BlazeHttp1ClientParser(maxResponseLineSize, maxHeaderLength, maxChunkSize, parserMode)
+
+  @volatile private var listener: ClientTimeoutStage.EventListener = NullEventListener
 
   private val stageState = new AtomicReference[State](Idle)
 
@@ -67,7 +70,7 @@ private final class Http1Connection[F[_]](
     // If we have a real error, lets put it here.
     case st @ Error(EOF) if t != EOF =>
       if (!stageState.compareAndSet(st, Error(t))) shutdownWithError(t)
-      else sendOutboundCommand(Command.Error(t))
+      else closePipeline(Some(t))
 
     case Error(_) => // NOOP: already shutdown
 
@@ -75,10 +78,10 @@ private final class Http1Connection[F[_]](
       if (!stageState.compareAndSet(x, Error(t))) shutdownWithError(t)
       else {
         val cmd = t match {
-          case EOF => Command.Disconnect
-          case _ => Command.Error(t)
+          case EOF => None
+          case _ => Some(t)
         }
-        sendOutboundCommand(cmd)
+        closePipeline(cmd)
         super.stageShutdown()
       }
   }
@@ -141,10 +144,6 @@ private final class Http1Connection[F[_]](
           val renderRequest: F[Boolean] =
             getChunkEncoder(req, mustClose, rr)
               .write(rr, req.body)
-              .flatTap { _ =>
-                F.delay("Request send complete") *>
-                  F.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete))
-              }
               .handleError {
                 case EOF =>
                   false
@@ -152,6 +151,7 @@ private final class Http1Connection[F[_]](
                   logger.error(t)("Error rendering request")
                   false
               }
+              .guarantee(F.delay(listener.onRequestSendComplete()))
 
           // If we get a pipeline closed, we might still be good. Check response
           val responseTask: F[Response[F]] =
@@ -202,7 +202,7 @@ private final class Http1Connection[F[_]](
       else if (!parser.finishedHeaders(buffer))
         readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing")
       else {
-        sendOutboundCommand(ClientTimeoutStage.ResponseHeaderComplete)
+        listener.onResponseHeaderComplete()
 
         // Get headers and determine if we need to close
         val headers: Headers = parser.getHeaders()
@@ -325,9 +325,18 @@ private final class Http1Connection[F[_]](
       closeHeader: Boolean,
       rr: StringWriter): Http1Writer[F] =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
+
+  override def inboundCommand(cmd: InboundCommand): Unit = cmd match {
+    case listener: ClientTimeoutStage.EventListener =>
+      this.listener = listener
+    case cmd =>
+      super.inboundCommand(cmd)
+  }
 }
 
 private object Http1Connection {
+  private[this] val logger = getLogger
+
   case object InProgressException extends Exception("Stage has request in progress")
 
   // ADT representing the state that the ClientStage can be in
@@ -356,5 +365,11 @@ private object Http1Connection {
       }
       writer
     } else writer
+  }
+
+  private val NullEventListener = new ClientTimeoutStage.EventListener {
+    def onRequestSendComplete() = logger.warn("Called `onRequestSendComplete()` without a listener")
+    def onResponseHeaderComplete() =
+      logger.warn("Called `onResponseHeaderComplete()` without a listener")
   }
 }

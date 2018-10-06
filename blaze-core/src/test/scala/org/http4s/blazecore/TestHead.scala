@@ -17,7 +17,7 @@ import scodec.bits.ByteVector
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   private val acc = new AtomicReference(ByteVector.empty)
-  val outboundCommands = new AtomicReference(Vector.empty[OutboundCommand])
+  val closeCauses = new AtomicReference(Vector.empty[Option[Throwable]])
   val closed = new AtomicBoolean(false)
   private val p = Promise[ByteBuffer]
 
@@ -39,16 +39,11 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
     super.stageShutdown()
   }
 
-  override def outboundCommand(cmd: OutboundCommand): Unit = {
-    outboundCommands.getAndUpdate(new UnaryOperator[Vector[OutboundCommand]] {
-      def apply(v: Vector[OutboundCommand]) = v :+ cmd
+  override def doClosePipeline(cause: Option[Throwable]): Unit = {
+    closeCauses.getAndUpdate(new UnaryOperator[Vector[Option[Throwable]]] {
+      def apply(v: Vector[Option[Throwable]]) = v :+ cause
     })
-    cmd match {
-      case Connect => stageStartup()
-      case Disconnect => stageShutdown()
-      case Error(e) => logger.error(e)(s"$name received unhandled error command")
-      case _ => // hushes ClientStageTimeout commands that we can't see here
-    }
+    cause.foreach(logger.error(_)(s"$name received unhandled error command"))
   }
 }
 
@@ -98,14 +93,6 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
   override def stageShutdown(): Unit = synchronized {
     clear()
     super.stageShutdown()
-  }
-
-  override def outboundCommand(cmd: OutboundCommand): Unit = self.synchronized {
-    cmd match {
-      case Disconnect => clear()
-      case _ =>
-    }
-    super.outboundCommand(cmd)
   }
 
   override def readRequest(size: Int): Future[ByteBuffer] = self.synchronized {

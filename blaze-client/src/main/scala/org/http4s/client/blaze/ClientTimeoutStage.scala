@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.pipeline.Command.{Disconnect, Error, OutboundCommand}
+import org.http4s.blaze.pipeline.Command.InboundCommand
 import org.http4s.blaze.util.{Cancellable, TickWheelExecutor}
 import scala.annotation.tailrec
 import scala.concurrent.{Future, Promise}
@@ -59,13 +59,13 @@ final private[blaze] class ClientTimeoutStage(
       activeReqTimeout.getAndSet(Closed) match {
         case null =>
           /* We beat the startup. Maybe timeout is 0? */
-          sendOutboundCommand(Disconnect)
+          closePipeline(None)
 
         case Closed => /* Already closed, no need to disconnect */
 
         case timeout =>
           timeout.cancel()
-          sendOutboundCommand(Disconnect)
+          closePipeline(None)
       }
 
       timedOut.failure(timeoutException)
@@ -92,20 +92,6 @@ final private[blaze] class ClientTimeoutStage(
   override def writeRequest(data: Seq[ByteBuffer]): Future[Unit] =
     checkTimeout(channelWrite(data))
 
-  override def outboundCommand(cmd: OutboundCommand): Unit = cmd match {
-    // We want to swallow `TimeoutException`'s we have created
-    case Error(t: TimeoutException) if t eq timeoutState.get() =>
-      sendOutboundCommand(Disconnect)
-
-    case RequestSendComplete =>
-      activateResponseHeaderTimeout()
-
-    case ResponseHeaderComplete =>
-      cancelResponseHeaderTimeout()
-
-    case cmd => super.outboundCommand(cmd)
-  }
-
   /////////// Protected impl bits //////////////////////////////////////////
 
   override protected def stageShutdown(): Unit = {
@@ -126,6 +112,11 @@ final private[blaze] class ClientTimeoutStage(
         case _ => logger.error("Shouldn't get here.")
       }
     } else resetTimeout()
+
+    sendInboundCommand(new EventListener {
+      def onResponseHeaderComplete(): Unit = cancelResponseHeaderTimeout()
+      def onRequestSendComplete(): Unit = activateResponseHeaderTimeout()
+    })
   }
 
   /////////// Private stuff ////////////////////////////////////////////////
@@ -189,11 +180,10 @@ final private[blaze] class ClientTimeoutStage(
 }
 
 private[blaze] object ClientTimeoutStage {
-  // Sent when we have sent the complete request
-  private[blaze] object RequestSendComplete extends OutboundCommand
-
-  // Sent when we have received the complete response
-  private[blaze] object ResponseHeaderComplete extends OutboundCommand
+  trait EventListener extends InboundCommand {
+    def onRequestSendComplete(): Unit
+    def onResponseHeaderComplete(): Unit
+  }
 
   // Make sure we have our own _stable_ copy for synchronization purposes
   private val Closed = new Cancellable {

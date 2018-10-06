@@ -80,8 +80,14 @@ trait Client[F[_]] {
   @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
   def toHttpService: HttpService[F]
 
+  /** Run the request as a stream.  The response lifecycle is equivalent
+    * to the returned Stream's. */
+  def stream(req: Request[F]): Stream[F, Response[F]]
+
+  @deprecated("Use `client.stream(req).flatMap(f)`", "0.19.0-M4")
   def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
+  @deprecated("Use `Stream.eval(req).flatMap(client.stream).flatMap(f)`", "0.19.0-M4")
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(

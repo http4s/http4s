@@ -19,7 +19,7 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
 
   private val RedirectUri = s"http://localhost:8080/$ApiVersion/login/github"
 
-  final case class AccessTokenResponse(access_token: String)
+  case class AccessTokenResponse(access_token: String)
 
   val authorize: Stream[F, Byte] = {
     val uri = Uri
@@ -30,7 +30,7 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
       .withQueryParam("scopes", "public_repo")
       .withQueryParam("state", "test_api")
 
-    client.streaming[Byte](Request[F](uri = uri))(_.body)
+    client.stream(Request[F](uri = uri)).flatMap(_.body)
   }
 
   def accessToken(code: String, state: String): F[String] = {

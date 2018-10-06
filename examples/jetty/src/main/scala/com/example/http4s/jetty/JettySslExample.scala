@@ -1,15 +1,21 @@
-package com.example.http4s
-package jetty
+package com.example.http4s.jetty
 
 import cats.effect._
-import com.example.http4s.ssl.SslExample
+import cats.implicits._
+import com.example.http4s.ssl
 import org.http4s.server.jetty.JettyBuilder
 
-class JettySslExample(implicit timer: Timer[IO], ctx: ContextShift[IO])
-    extends SslExample[IO]
-    with IOApp {
-  def builder: JettyBuilder[IO] = JettyBuilder[IO]
-
+object JettySslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
-    stream.compile.toList.map(_.head)
+    JettySslExampleApp.builder[IO].serve.compile.drain.as(ExitCode.Success)
+}
+
+object JettySslExampleApp {
+
+  def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: JettyBuilder[F] =
+    JettyExampleApp
+      .builder[F]
+      .bindHttp(8443)
+      .withSSL(ssl.storeInfo, ssl.keyManagerPassword)
+
 }
