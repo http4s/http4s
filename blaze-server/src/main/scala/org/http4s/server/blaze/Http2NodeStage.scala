@@ -38,11 +38,6 @@ private class Http2NodeStage[F[_]](
     readHeaders()
   }
 
-  private def shutdownWithCommand(cmd: Cmd.OutboundCommand): Unit = {
-    stageShutdown()
-    sendOutboundCommand(cmd)
-  }
-
   private def readHeaders(): Unit =
     channelRead(timeout = timeout).onComplete {
       case Success(HeadersFrame(_, endStream, hs)) =>
@@ -50,14 +45,15 @@ private class Http2NodeStage[F[_]](
 
       case Success(frame) =>
         val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, s"Received invalid frame: $frame")
-        shutdownWithCommand(Cmd.Error(e))
+        closePipeline(Some(e))
 
-      case Failure(Cmd.EOF) => shutdownWithCommand(Cmd.Disconnect)
+      case Failure(Cmd.EOF) =>
+        closePipeline(None)
 
       case Failure(t) =>
         logger.error(t)("Unknown error in readHeaders")
         val e = Http2Exception.INTERNAL_ERROR.rst(streamId, s"Unknown error")
-        shutdownWithCommand(Cmd.Error(e))
+        closePipeline(Some(e))
     }
 
   /** collect the body: a maxlen < 0 is interpreted as undefined */
@@ -78,12 +74,12 @@ private class Http2NodeStage[F[_]](
             if (complete && maxlen > 0 && bytesRead != maxlen) {
               val msg = s"Entity too small. Expected $maxlen, received $bytesRead"
               val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
-              sendOutboundCommand(Cmd.Error(e))
+              closePipeline(Some(e))
               cb(Either.left(InvalidBodyException(msg)))
             } else if (maxlen > 0 && bytesRead > maxlen) {
               val msg = s"Entity too large. Expected $maxlen, received bytesRead"
               val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
-              sendOutboundCommand((Cmd.Error(e)))
+              closePipeline(Some(e))
               cb(Either.left(InvalidBodyException(msg)))
             } else cb(Either.right(Some(Chunk.bytes(bytes.array))))
 
@@ -95,19 +91,19 @@ private class Http2NodeStage[F[_]](
             val msg = "Received invalid frame while accumulating body: " + other
             logger.info(msg)
             val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
-            shutdownWithCommand(Cmd.Error(e))
+            closePipeline(Some(e))
             cb(Either.left(InvalidBodyException(msg)))
 
           case Failure(Cmd.EOF) =>
             logger.debug("EOF while accumulating body")
             cb(Either.left(InvalidBodyException("Received premature EOF.")))
-            shutdownWithCommand(Cmd.Disconnect)
+            closePipeline(None)
 
           case Failure(t) =>
             logger.error(t)("Error in getBody().")
             val e = Http2Exception.INTERNAL_ERROR.rst(streamId, "Failed to read body")
             cb(Either.left(e))
-            shutdownWithCommand(Cmd.Error(e))
+            closePipeline(Some(e))
         }
     }
 
@@ -179,7 +175,7 @@ private class Http2NodeStage[F[_]](
     }
 
     if (error.length > 0) {
-      shutdownWithCommand(Cmd.Error(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
+      closePipeline(Some(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
     } else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = HHeaders(headers.result())
@@ -194,8 +190,7 @@ private class Http2NodeStage[F[_]](
           F.runAsync(action) {
             case Right(()) => IO.unit
             case Left(t) =>
-              IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                shutdownWithCommand(Cmd.Disconnect))
+              IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(closePipeline(None))
           }
         }.unsafeRunSync()
       })
@@ -216,9 +211,9 @@ private class Http2NodeStage[F[_]](
     }
 
     new Http2Writer(this, hs, executionContext).writeEntityBody(resp.body).attempt.map {
-      case Right(_) => shutdownWithCommand(Cmd.Disconnect)
+      case Right(_) => closePipeline(None)
       case Left(Cmd.EOF) => stageShutdown()
-      case Left(t) => shutdownWithCommand(Cmd.Error(t))
+      case Left(t) => closePipeline(Some(t))
     }
   }
 }

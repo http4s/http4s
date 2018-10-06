@@ -86,6 +86,7 @@ class ReadBufferStageSpec extends Http4sSpec {
     }
 
     override def writeRequest(data: Unit): Future[Unit] = ???
+    override def doClosePipeline(cause: Option[Throwable]) = {}
   }
 
   class ReadHead extends HeadStage[Unit] {
@@ -98,6 +99,7 @@ class ReadBufferStageSpec extends Http4sSpec {
     }
     override def writeRequest(data: Unit): Future[Unit] = ???
     override def name: String = "SlowHead"
+    override def doClosePipeline(cause: Option[Throwable]) = {}
   }
 
   class NoopTail extends TailStage[Unit] {

@@ -276,8 +276,8 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.5.3"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M4"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.5.4"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M5"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.4.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.0.0"
@@ -290,11 +290,13 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.2"
+  lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.3"
+  lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.0-RC2"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.0"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.13.0-RC1"
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.13.0"
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.13.0"
   lazy val jawnPlay                         = "org.spire-math"         %% "jawn-play"                 % "0.13.0"
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.12.v20180830"
@@ -307,9 +309,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.6.1"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
-  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.3"
-  lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.22.0"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.23.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.6.10"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.5.0"

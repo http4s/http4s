@@ -247,7 +247,7 @@ private[blaze] class Http1ServerStage[F[_]](
   private def closeConnection(): Unit = {
     logger.debug("closeConnection()")
     stageShutdown()
-    sendOutboundCommand(Cmd.Disconnect)
+    closePipeline(None)
   }
 
   override protected def stageShutdown(): Unit = {
