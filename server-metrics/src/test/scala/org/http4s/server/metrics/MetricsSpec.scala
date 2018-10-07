@@ -14,7 +14,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register a 2xx response" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test1")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
@@ -29,7 +29,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register a 4xx response" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test2")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/bad-request"))
 
@@ -44,7 +44,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register a 5xx response" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test3")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/internal-server-error"))
 
@@ -59,7 +59,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register a GET request" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test4")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/ok"))
 
@@ -74,7 +74,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register a POST request" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test5")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = POST, uri = uri("/ok"))
 
@@ -89,7 +89,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register a PUT request" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test6")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = PUT, uri = uri("/ok"))
 
@@ -104,7 +104,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register a DELETE request" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test7")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = DELETE, uri = uri("/ok"))
 
@@ -119,7 +119,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register a service error" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test8")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/service-error"))
 
@@ -133,7 +133,7 @@ class MetricsSpec extends Http4sSpec {
 
     "register an abnormal termination" in {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test9")
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](registry, "server")
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/abnormal-termination"))
 
