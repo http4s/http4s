@@ -8,9 +8,9 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.19.0 (2018-10-05)
+# ~~v0.19.0 (2018-10-05)~~
 
-This release is identical to v0.19.0-M4.  It was intended to be the last milestone before we declared the 0.19.x branch stable, but we mistagged it.  Please give it a try, but treat it like the milestone it was intended to be.  *We reserve the right to break binary compatibility until 0.19.1*.
+This release is identical to v0.19.0-M4.  We mistagged it.  Please use v0.19.0-M4 instead.  *We reserve the right to break binary compatibility until v0.19.1*.
 
 # v0.19.0-M4 (2018-10-05)
 
