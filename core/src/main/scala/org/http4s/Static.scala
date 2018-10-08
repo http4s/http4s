@@ -20,6 +20,8 @@ import scala.concurrent.ExecutionContext
 
 trait Static[F[_]] {
 
+  def calcETag(f: File): F[String]
+
   def fromString(
     url: String,
     blockingExecutionContext: ExecutionContext,
@@ -43,19 +45,13 @@ trait Static[F[_]] {
                end: Option[Long] = None,
                buffsize: Int = Static.DefaultBufferSize,
                req: Option[Request[F]] = None,
-               etagCalculator: File => F[String] = Static.calcETag[F]): OptionT[F, Response[F]]
+               etagCalculator: File => F[String] = calcETag _): OptionT[F, Response[F]]
 }
 
 object Static {
   private[this] val logger = getLogger
   private[http4s] val staticFileKey = AttributeKey[File]
   val DefaultBufferSize = 8192
-
-
-  def calcETag[F[_]: Sync]: File => F[String] =
-    f =>
-      Sync[F].delay(
-        if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
   private def fileToBody[F[_]: Sync: ContextShift](
     f: File,
@@ -91,6 +87,11 @@ object Static {
     } yield nm
 
   def apply[F[_]](implicit F: Sync[F], cs: ContextShift[F]) = new Static[F] {
+
+    def calcETag(f: File): F[String] =
+      F.delay(
+        if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
+
 
     def fromString(
                                               url: String,
@@ -165,7 +166,7 @@ object Static {
                  end: Option[Long] = None,
                  buffsize: Int = 8192,
                  req: Option[Request[F]] = None,
-                 etagCalculator: File => F[String] = calcETag[F]): OptionT[F, Response[F]] =
+                 etagCalculator: File => F[String] = calcETag _): OptionT[F, Response[F]] =
       OptionT(for {
         fileEndSize <- end.fold(F.delay(f.length()))(_.pure[F])
         etagCalc <- etagCalculator(f).map(et => ETag(et))

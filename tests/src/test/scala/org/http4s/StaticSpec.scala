@@ -12,7 +12,7 @@ class StaticSpec extends Http4sSpec {
 
   val static = Static(Sync[IO], contextShift)
 
-  "StaticFile" should {
+  "Static" should {
     "Determine the media-type based on the files extension" in {
 
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
@@ -47,8 +47,8 @@ class StaticSpec extends Http4sSpec {
 
       val request =
         Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
-      val response = StaticFile
-        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+      val response = static
+        .fromFile(f = emptyFile, blockingExecutionContext = testBlockingExecutionContext, req = Some(request))
         .value
         .unsafeRunSync
       response must beSome[Response[IO]]
@@ -61,8 +61,8 @@ class StaticSpec extends Http4sSpec {
       val request =
         Request[IO]().putHeaders(
           ETag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}"))
-      val response = StaticFile
-        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+      val response = static
+        .fromFile(f = emptyFile, blockingExecutionContext = testBlockingExecutionContext, req = Some(request))
         .value
         .unsafeRunSync
       response must beSome[Response[IO]]
@@ -73,15 +73,14 @@ class StaticSpec extends Http4sSpec {
       def check(path: String): MatchResult[Any] = {
         val f = new File(path)
         val r =
-          StaticFile
-            .fromFile[IO](
-              f,
-              0,
-              1,
-              StaticFile.DefaultBufferSize,
-              testBlockingExecutionContext,
-              None,
-              StaticFile.calcETag[IO])
+          static
+            .fromFile(
+              f = f,
+              blockingExecutionContext = testBlockingExecutionContext,
+              start = 0L,
+              end = Some(1L),
+              buffsize = Static.DefaultBufferSize,
+              req = None)
             .value
             .unsafeRunSync
 
@@ -104,7 +103,7 @@ class StaticSpec extends Http4sSpec {
       val emptyFile = File.createTempFile("some", ".tmp")
       emptyFile.deleteOnExit()
 
-      val fileSize = StaticFile.DefaultBufferSize * 2 + 10
+      val fileSize = Static.DefaultBufferSize * 2 + 10
 
       val gibberish = (for {
         i <- 0 until fileSize
@@ -112,15 +111,14 @@ class StaticSpec extends Http4sSpec {
       Files.write(emptyFile.toPath, gibberish)
 
       def check(file: File): MatchResult[Any] = {
-        val r = StaticFile
-          .fromFile[IO](
-            file,
-            0,
-            fileSize.toLong - 1,
-            StaticFile.DefaultBufferSize,
-            testBlockingExecutionContext,
-            None,
-            StaticFile.calcETag[IO])
+        val r = static
+          .fromFile(
+            f = file,
+            blockingExecutionContext = testBlockingExecutionContext,
+            start = 0L,
+            end = Some(fileSize.toLong - 1),
+            buffsize = Static.DefaultBufferSize,
+            req = None)
           .value
           .unsafeRunSync
 
