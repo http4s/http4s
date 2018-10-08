@@ -13,8 +13,6 @@ import org.http4s.headers._
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 
-
-@deprecated("Replaced by Static", "???")
 object StaticFile {
   private[this] val logger = getLogger
 
