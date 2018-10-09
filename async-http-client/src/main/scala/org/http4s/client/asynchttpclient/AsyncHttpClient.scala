@@ -26,7 +26,7 @@ object AsyncHttpClient {
   val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
-    .setRequestTimeout(30000)
+    .setRequestTimeout(60000)
     .setThreadFactory(threadFactory(name = { i =>
       s"http4s-async-http-client-worker-${i}"
     }))
