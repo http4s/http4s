@@ -20,7 +20,8 @@ private[blaze] object ProtocolSelector {
       maxHeadersLen: Int,
       requestAttributes: AttributeMap,
       executionContext: ExecutionContext,
-      serviceErrorHandler: ServiceErrorHandler[F]): ALPNServerSelector = {
+      serviceErrorHandler: ServiceErrorHandler[F],
+      timedOut: F[Unit]): ALPNServerSelector = {
 
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { streamId: Int =>
@@ -31,7 +32,8 @@ private[blaze] object ProtocolSelector {
             executionContext,
             requestAttributes,
             httpApp,
-            serviceErrorHandler))
+            serviceErrorHandler,
+            timedOut))
       }
 
       val localSettings =
@@ -53,7 +55,8 @@ private[blaze] object ProtocolSelector {
         enableWebSockets = false,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler
+        serviceErrorHandler,
+        timedOut
       )
 
     def preference(protos: Set[String]): String =

@@ -2,7 +2,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{Effect, IO, Sync}
+import cats.effect.{ConcurrentEffect, IO, Sync}
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -25,7 +25,8 @@ private class Http2NodeStage[F[_]](
     implicit private val executionContext: ExecutionContext,
     attributes: AttributeMap,
     httpApp: HttpApp[F],
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
+    serviceErrorHandler: ServiceErrorHandler[F],
+    timedOut: F[Unit])(implicit F: ConcurrentEffect[F])
     extends TailStage[StreamFrame] {
 
   // micro-optimization: unwrap the service and call its .run directly
@@ -183,7 +184,7 @@ private class Http2NodeStage[F[_]](
       executionContext.execute(new Runnable {
         def run(): Unit = {
           val action = Sync[F]
-            .suspend(serviceFn(req))
+            .suspend(raceTimedOut(serviceFn(req)))
             .recoverWith(serviceErrorHandler(req))
             .flatMap(renderResponse)
 
@@ -196,6 +197,12 @@ private class Http2NodeStage[F[_]](
       })
     }
   }
+
+  private def raceTimedOut(resp: F[Response[F]]) =
+    F.racePair(resp, timedOut).flatMap {
+      case Left((r, _)) => r.pure[F]
+      case Right((fiber, _)) => fiber.cancel.as(Response.timeout[F])
+    }
 
   private def renderResponse(resp: Response[F]): F[Unit] = {
     val hs = new ArrayBuffer[(String, String)](16)

@@ -159,6 +159,9 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
         req.decode[Multipart[F]] { m =>
           Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map(_.name).mkString("\n")}""")
         }
+
+      case _ -> Root / "timeout" =>
+        F.never
     }
 
   def helloWorldService: F[Response[F]] = Ok("Hello World!")

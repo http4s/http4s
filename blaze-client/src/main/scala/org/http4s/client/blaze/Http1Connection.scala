@@ -16,7 +16,6 @@ import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
-import org.log4s.getLogger
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -334,8 +333,6 @@ private final class Http1Connection[F[_]](
 }
 
 private object Http1Connection {
-  private[this] val logger = getLogger
-
   case object InProgressException extends Exception("Stage has request in progress")
 
   // ADT representing the state that the ClientStage can be in
@@ -367,8 +364,7 @@ private object Http1Connection {
   }
 
   private val NullEventListener = new ClientTimeoutStage.EventListener {
-    def onRequestSendComplete() = logger.warn("Called `onRequestSendComplete()` without a listener")
-    def onResponseHeaderComplete() =
-      logger.warn("Called `onResponseHeaderComplete()` without a listener")
+    def onRequestSendComplete() = ()
+    def onResponseHeaderComplete() = ()
   }
 }
