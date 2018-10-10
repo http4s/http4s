@@ -8,6 +8,7 @@ import cats.implicits._
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.util.TickWheelExecutor
 import org.log4s.getLogger
 import scala.concurrent.duration._
 
@@ -30,14 +31,16 @@ object BlazeClient {
       manager,
       responseHeaderTimeout = config.responseHeaderTimeout,
       idleTimeout = config.idleTimeout,
-      requestTimeout = config.requestTimeout
+      requestTimeout = config.requestTimeout,
+      bits.ClientTickWheel
     )
 
   private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      requestTimeout: Duration
+      requestTimeout: Duration,
+      scheduler: TickWheelExecutor
   )(implicit F: ConcurrentEffect[F]) =
     Client[F] { req =>
       Resource.suspend {
@@ -61,7 +64,7 @@ object BlazeClient {
             else responseHeaderTimeout - elapsed,
             idleTimeout,
             if (elapsed > requestTimeout) 0.milli else requestTimeout - elapsed,
-            bits.ClientTickWheel,
+            scheduler,
             timedOut
           )
           next.connection.spliceBefore(ts)
