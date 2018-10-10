@@ -1,5 +1,10 @@
-package org.http4s.client.blaze
+package org.http4s.client
+package blaze
 
+import cats.effect.ConcurrentEffect
+import cats.effect.concurrent.Deferred
+import cats.effect.implicits._
+import cats.implicits._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
@@ -11,11 +16,12 @@ import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
-final private[blaze] class ClientTimeoutStage(
+final private[blaze] class ClientTimeoutStage[F[_]](
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     requestTimeout: Duration,
-    exec: TickWheelExecutor)
+    exec: TickWheelExecutor,
+    timedOut: Deferred[F, TimeoutException])(implicit F: ConcurrentEffect[F])
     extends MidStage[ByteBuffer, ByteBuffer] { stage =>
 
   import ClientTimeoutStage._
@@ -37,12 +43,16 @@ final private[blaze] class ClientTimeoutStage(
     s"ClientTimeoutStage: Response Header: $responseHeaderTimeout, Idle: $idleTimeout, Request: $requestTimeout"
 
   /////////// Private impl bits //////////////////////////////////////////
-  private def killswitch(name: String, timeout: Duration) = new Runnable {
+  private def killswitch(makeTimeout: () => ClientTimeoutException) = new Runnable {
     override def run(): Unit = {
-      logger.debug(s"Client stage is disconnecting due to $name timeout after $timeout.")
+      val t = makeTimeout()
+
+      logger.debug(s"Client stage is disconnecting due to timeout: $t")
+
+      timedOut.complete(t).attempt.toIO.unsafeRunSync()
 
       // check the idle timeout conditions
-      timeoutState.getAndSet(new TimeoutException(s"Client $name timeout after $timeout.")) match {
+      timeoutState.getAndSet(t) match {
         case null => // noop
         case c: Cancelable => c.cancel() // this should be the registration of us
         case _: TimeoutException => // Interesting that we got here.
@@ -65,9 +75,12 @@ final private[blaze] class ClientTimeoutStage(
     }
   }
 
-  private val responseHeaderTimeoutKillswitch = killswitch("response header", responseHeaderTimeout)
-  private val idleTimeoutKillswitch = killswitch("idle", idleTimeout)
-  private val requestTimeoutKillswitch = killswitch("request", requestTimeout)
+  private val responseHeaderTimeoutKillswitch =
+    killswitch(() => new ResponseHeaderTimeoutException(responseHeaderTimeout))
+  private val idleTimeoutKillswitch =
+    killswitch(() => new IdleTimeoutException(idleTimeout))
+  private val requestTimeoutKillswitch =
+    killswitch(() => new RequestTimeoutException(requestTimeout))
 
   // Startup on creation
 

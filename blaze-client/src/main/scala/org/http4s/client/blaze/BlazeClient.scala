@@ -2,10 +2,11 @@ package org.http4s
 package client
 package blaze
 
-import java.time.Instant
-
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import cats.implicits._
+import java.time.Instant
+import java.util.concurrent.TimeoutException
 import org.http4s.blaze.pipeline.Command
 import org.log4s.getLogger
 import scala.concurrent.duration._
@@ -24,7 +25,7 @@ object BlazeClient {
   def apply[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       config: BlazeClientConfig,
-      onShutdown: F[Unit])(implicit F: Sync[F]): Client[F] =
+      onShutdown: F[Unit])(implicit F: ConcurrentEffect[F]): Client[F] =
     makeClient(
       manager,
       responseHeaderTimeout = config.responseHeaderTimeout,
@@ -37,7 +38,7 @@ object BlazeClient {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       requestTimeout: Duration
-  )(implicit F: Sync[F]) =
+  )(implicit F: ConcurrentEffect[F]) =
     Client[F] { req =>
       Resource.suspend {
         val key = RequestKey.fromRequest(req)
@@ -50,7 +51,9 @@ object BlazeClient {
             .invalidate(connection)
             .handleError(e => logger.error(e)("Error invalidating connection"))
 
-        def loop(next: manager.NextConnection): F[Resource[F, Response[F]]] = {
+        def loop(
+            next: manager.NextConnection,
+            timedOut: Deferred[F, TimeoutException]): F[Resource[F, Response[F]]] = {
           // Add the timeout stage to the pipeline
           val elapsed = (Instant.now.toEpochMilli - submitTime.toEpochMilli).millis
           val ts = new ClientTimeoutStage(
@@ -58,7 +61,8 @@ object BlazeClient {
             else responseHeaderTimeout - elapsed,
             idleTimeout,
             if (elapsed > requestTimeout) 0.milli else requestTimeout - elapsed,
-            bits.ClientTickWheel
+            bits.ClientTickWheel,
+            timedOut
           )
           next.connection.spliceBefore(ts)
           ts.initialize()
@@ -79,7 +83,7 @@ object BlazeClient {
                     new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
                 else {
                   manager.borrow(key).flatMap { newConn =>
-                    loop(newConn)
+                    loop(newConn, timedOut)
                   }
                 }
               }
@@ -88,7 +92,13 @@ object BlazeClient {
               invalidate(next.connection) *> F.raiseError(e)
           }
         }
-        manager.borrow(key).flatMap(loop)
+
+        Deferred[F, TimeoutException].flatMap { timedOut =>
+          F.racePair(manager.borrow(key).flatMap(loop(_, timedOut)), timedOut.get).flatMap {
+            case Left((r, fiber)) => fiber.cancel.as(r)
+            case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+          }
+        }
       }
     }
 }
