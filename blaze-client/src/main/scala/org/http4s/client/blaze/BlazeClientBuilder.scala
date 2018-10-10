@@ -7,6 +7,7 @@ import cats.implicits._
 import fs2.Stream
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
+import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.headers.{AgentProduct, `User-Agent`}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -126,17 +127,23 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
-  def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    connectionManager.map(
-      manager =>
+  def resource(implicit F: ConcurrentEffect[F], clock: Clock[F]): Resource[F, Client[F]] =
+    tickWheel.flatMap { scheduler =>
+      connectionManager.map { manager =>
         BlazeClient.makeClient(
           manager = manager,
           responseHeaderTimeout = responseHeaderTimeout,
           idleTimeout = idleTimeout,
-          requestTimeout = requestTimeout
-      ))
+          requestTimeout = requestTimeout,
+          scheduler = scheduler
+        )
+      }
+    }
 
-  def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+  private def tickWheel(implicit F: Sync[F]) =
+    Resource.make(F.delay(new TickWheelExecutor))(wheel => F.delay(wheel.shutdown()))
+
+  def stream(implicit F: ConcurrentEffect[F], clock: Clock[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
   private def connectionManager(

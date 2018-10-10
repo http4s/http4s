@@ -22,7 +22,7 @@ object GetRoutes {
         .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
         .pure[IO],
       DelayedPath ->
-        timer.sleep(1.second) *>
+        timer.sleep(2.seconds) *>
           Response[IO](Ok).withEntity("delayed path").pure[IO],
       NoContentPath -> Response[IO](NoContent).pure[IO],
       NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],

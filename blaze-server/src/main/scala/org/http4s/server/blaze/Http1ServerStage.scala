@@ -29,7 +29,8 @@ private[blaze] object Http1ServerStage {
       enableWebSockets: Boolean,
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
-      serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] =
+      serviceErrorHandler: ServiceErrorHandler[F],
+      timedOut: F[Unit]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
         routes,
@@ -37,7 +38,8 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler) with WebSocketSupport[F]
+        serviceErrorHandler,
+        timedOut) with WebSocketSupport[F]
     else
       new Http1ServerStage(
         routes,
@@ -45,7 +47,8 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler)
+        serviceErrorHandler,
+        timedOut)
 }
 
 private[blaze] class Http1ServerStage[F[_]](
@@ -54,7 +57,8 @@ private[blaze] class Http1ServerStage[F[_]](
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit protected val F: ConcurrentEffect[F])
+    serviceErrorHandler: ServiceErrorHandler[F],
+    timedOut: F[Unit])(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
@@ -140,7 +144,7 @@ private[blaze] class Http1ServerStage[F[_]](
         executionContext.execute(new Runnable {
           def run(): Unit = {
             val action = Sync[F]
-              .suspend(routesFn(req))
+              .suspend(raceTimedOut(routesFn(req)))
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
 
@@ -157,6 +161,12 @@ private[blaze] class Http1ServerStage[F[_]](
         badMessage(e.details, new BadMessage(e.sanitized), Request[F]().withHttpVersion(protocol))
     }
   }
+
+  private def raceTimedOut(resp: F[Response[F]]) =
+    F.racePair(resp, timedOut).flatMap {
+      case Left((r, _)) => r.pure[F]
+      case Right((fiber, _)) => fiber.cancel.as(Response.timeout[F])
+    }
 
   protected def renderResponse(
       req: Request[F],
