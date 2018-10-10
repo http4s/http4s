@@ -174,7 +174,7 @@ object BlazeClientBuilder {
     new BlazeClientBuilder[F](
       responseHeaderTimeout = 10.seconds,
       idleTimeout = 1.minute,
-      requestTimeout = Duration.Inf,
+      requestTimeout = 1.minute,
       userAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version)))),
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,
