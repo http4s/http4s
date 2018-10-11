@@ -187,6 +187,15 @@ sealed abstract case class Request[F[_]](
       attributes = attributes
     )
 
+  def mapK[G[_]](f: F ~> G): Request[G] = Request[G](
+      method = method,
+      uri = uri,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body.translate(f),
+      attributes = attributes
+    )
+
   def withMethod(method: Method) = requestCopy(method = method)
   def withUri(uri: Uri) =
     requestCopy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
@@ -341,6 +350,14 @@ final case class Response[F[_]](
     extends Message[F]
     with ResponseOps[F] {
   type Self = Response[F]
+
+  def mapK[G[_]](f: F ~> G): Response[G] = Response[G](
+    status = status,
+    httpVersion = httpVersion,
+    headers = headers,
+    body = body.translate(f),
+    attributes = attributes
+  )
 
   override def withStatus(status: Status)(implicit F: Functor[F]): Self =
     copy(status = status)
