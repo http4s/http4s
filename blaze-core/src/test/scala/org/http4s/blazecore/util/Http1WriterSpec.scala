@@ -10,8 +10,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.Future
 
 class Http1WriterSpec extends Http4sSpec {
   case object Failed extends RuntimeException
@@ -30,13 +29,13 @@ class Http1WriterSpec extends Http4sSpec {
     LeafBuilder(tail).base(head)
     val w = builder(tail)
 
-    (for {
+    val io = for {
       _ <- IO.fromFuture(IO(w.writeHeaders(new StringWriter << "Content-Type: text/plain\r\n")))
       _ <- w.writeEntityBody(p).attempt
-    } yield ()).unsafeRunSync()
-    head.stageShutdown()
-    Await.ready(head.result, Duration.Inf)
-    new String(head.getBytes(), StandardCharsets.ISO_8859_1)
+      _ <- IO(head.stageShutdown())
+      buff <- IO.fromFuture(IO(head.result))
+    } yield StandardCharsets.ISO_8859_1.decode(buff).toString
+    io.unsafeRunSync()
   }
 
   val message = "Hello world!"

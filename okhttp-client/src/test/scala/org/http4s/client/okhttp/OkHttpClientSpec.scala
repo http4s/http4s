@@ -8,4 +8,7 @@ import cats.implicits._
 class OkHttpClientSpec extends ClientRouteTestBattery("OkHttp") {
   def clientResource =
     OkHttpBuilder.withDefaultClient[IO](testBlockingExecutionContext).map(_.create)
+
+  // This client is incapable of backpressure
+  override def maxBufferedBytes = None
 }

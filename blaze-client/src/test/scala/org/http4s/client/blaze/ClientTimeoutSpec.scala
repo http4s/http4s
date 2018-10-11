@@ -3,12 +3,14 @@ package client
 package blaze
 
 import cats.effect._
+import cats.implicits._
 import fs2.Stream
+import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{SeqTestHead, SlowTestHead}
+import org.http4s.blazecore.{QueueTestHead, SlowTestHead}
 import org.specs2.specification.core.Fragments
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
@@ -86,63 +88,58 @@ class ClientTimeoutSpec extends Http4sSpec {
     }
 
     "Request timeout on slow POST body" in {
-
-      def dataStream(n: Int): EntityBody[IO] = {
-        val interval = 1000.millis
-        Stream
-          .awakeEvery[IO](interval)
-          .map(_ => "1".toByte)
-          .take(n.toLong)
-      }
-
-      val req = Request[IO](method = Method.POST, uri = www_foo_com, body = dataStream(4))
-
-      val tail = mkConnection(requestKey = RequestKey.fromRequest(req))
-      val (f, b) = resp.splitAt(resp.length - 1)
-      val h = new SeqTestHead(Seq(f, b).map(mkBuffer))
-      val c = mkClient(h, tail)(requestTimeout = 1.second)
-
-      c.fetchAs[String](req).unsafeRunSync() must throwA[TimeoutException]
+      Queue
+        .unbounded[IO, Option[ByteBuffer]]
+        .flatMap { q =>
+          for {
+            _ <- q.enqueue1(Some(mkBuffer("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n")))
+            req = Request[IO](method = Method.POST, uri = www_foo_com, body = Stream.never[IO])
+            tail = mkConnection(RequestKey.fromRequest(req))
+            h = new QueueTestHead(q)
+            c = mkClient(h, tail)(idleTimeout = 1.second)
+            s <- c.fetchAs[String](req)
+          } yield s
+        }
+        .attempt
+        .unsafeRunTimed(5.seconds) must beSome(beLeft(anInstanceOf[TimeoutException]))
     }
 
     "Idle timeout on slow POST body" in {
-
-      def dataStream(n: Int): EntityBody[IO] = {
-        val interval = 2.seconds
-        Stream
-          .awakeEvery[IO](interval)
-          .map(_ => "1".toByte)
-          .take(n.toLong)
-      }
-
-      val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
-
-      val tail = mkConnection(RequestKey.fromRequest(req))
-      val (f, b) = resp.splitAt(resp.length - 1)
-      val h = new SeqTestHead(Seq(f, b).map(mkBuffer))
-      val c = mkClient(h, tail)(idleTimeout = 1.second)
-
-      c.fetchAs[String](req).unsafeRunSync() must throwA[TimeoutException]
+      Queue
+        .unbounded[IO, Option[ByteBuffer]]
+        .flatMap { q =>
+          for {
+            _ <- q.enqueue1(Some(mkBuffer("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n")))
+            req = Request[IO](method = Method.POST, uri = www_foo_com, body = Stream.never[IO])
+            tail = mkConnection(RequestKey.fromRequest(req))
+            h = new QueueTestHead(q)
+            c = mkClient(h, tail)(idleTimeout = 1.second)
+            s <- c.fetchAs[String](req)
+          } yield s
+        }
+        .attempt
+        .unsafeRunTimed(5.seconds) must beSome(beLeft(anInstanceOf[TimeoutException]))
     }
 
     "Not timeout on only marginally slow POST body" in {
-
-      def dataStream(n: Int): EntityBody[IO] = {
-        val interval = 100.millis
-        Stream
-          .awakeEvery[IO](interval)
-          .map(_ => "1".toByte)
-          .take(n.toLong)
-      }
-
-      val req = Request[IO](method = Method.POST, uri = www_foo_com, body = dataStream(4))
-
-      val tail = mkConnection(RequestKey.fromRequest(req))
-      val (f, b) = resp.splitAt(resp.length - 1)
-      val h = new SeqTestHead(Seq(f, b).map(mkBuffer))
-      val c = mkClient(h, tail)(idleTimeout = 10.second, requestTimeout = 30.seconds)
-
-      c.fetchAs[String](req).unsafeRunSync() must_== "done"
+      Queue
+        .unbounded[IO, Option[ByteBuffer]]
+        .flatMap { q =>
+          for {
+            _ <- q.enqueue1(Some(mkBuffer("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n")))
+            body = Stream
+              .emits("done".toList)
+              .evalMap(c => timer.sleep(100.millis).as(c.toByte))
+              .evalTap(b => q.enqueue1(Some(ByteBuffer.wrap(Array(b)))))
+              .onFinalize(q.enqueue1(None))
+            req = Request[IO](method = Method.POST, uri = www_foo_com, body = body)
+            tail = mkConnection(RequestKey.fromRequest(req))
+            h = new QueueTestHead(q)
+            c = mkClient(h, tail)(idleTimeout = 1.second)
+            s <- c.fetchAs[String](req)
+          } yield s
+        }
+        .unsafeRunTimed(5.seconds) must_== Some("done")
     }
 
     "Request timeout on slow response body" in {

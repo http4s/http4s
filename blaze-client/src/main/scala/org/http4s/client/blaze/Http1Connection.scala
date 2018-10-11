@@ -2,8 +2,8 @@ package org.http4s
 package client
 package blaze
 
-import cats.ApplicativeError
 import cats.effect._
+import cats.effect.implicits._
 import cats.implicits._
 import fs2._
 import java.nio.ByteBuffer
@@ -30,7 +30,7 @@ private final class Http1Connection[F[_]](
     maxChunkSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`]
-)(implicit protected val F: Effect[F])
+)(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
   import org.http4s.client.blaze.Http1Connection._
@@ -141,28 +141,29 @@ private final class Http1Connection[F[_]](
             case None => getHttpMinor(req) == 0
           }
 
-          val renderTask: F[Boolean] = getChunkEncoder(req, mustClose, rr)
-            .write(rr, req.body)
-            .recover {
-              case EOF => false
-            }
-            .attempt
-            .flatMap { r =>
-              F.delay(listener.onRequestSendComplete()).flatMap { _ =>
-                ApplicativeError[F, Throwable].fromEither(r)
+          val renderRequest: F[Boolean] =
+            getChunkEncoder(req, mustClose, rr)
+              .write(rr, req.body)
+              .handleError {
+                case EOF =>
+                  false
+                case t =>
+                  logger.error(t)("Error rendering request")
+                  false
               }
-            }
+              .guarantee(F.delay(listener.onRequestSendComplete()))
 
           // If we get a pipeline closed, we might still be good. Check response
           val responseTask: F[Response[F]] =
             receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
 
-          renderTask
-            .productR(responseTask)
-            .handleErrorWith { t =>
-              fatalError(t, "Error executing request")
-              F.raiseError(t)
-            }
+          // If `renderRequest` fails before the response, the task fails.
+          // If `renderRequest` wins, wait for the response.
+          // If `responseTask` wins, let renderRequest continue in the background.
+          F.racePair(renderRequest, responseTask).flatMap {
+            case Left((_, responseFiber)) => responseFiber.join
+            case Right((_, response)) => F.pure(response)
+          }
         }
     }
   }

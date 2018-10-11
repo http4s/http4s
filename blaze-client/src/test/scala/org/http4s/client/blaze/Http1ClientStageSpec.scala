@@ -3,13 +3,14 @@ package client
 package blaze
 
 import cats.effect._
+import cats.effect.concurrent.Deferred
+import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.SeqTestHead
 import org.http4s.client.blaze.bits.DefaultUserAgent
 import org.http4s.headers.`User-Agent`
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 // TODO: this needs more tests
@@ -43,7 +44,7 @@ class Http1ClientStageSpec extends Http4sSpec {
   private def bracketResponse[T](req: Request[IO], resp: String)(
       f: Response[IO] => IO[T]): IO[T] = {
     val stage = mkConnection(FooRequestKey)
-    IO.suspend {
+    Deferred[IO, Unit].flatMap { reqComplete =>
       val h = new SeqTestHead(resp.toSeq.map { chr =>
         val b = ByteBuffer.allocate(1)
         b.put(chr.toByte).flip()
@@ -51,10 +52,12 @@ class Http1ClientStageSpec extends Http4sSpec {
       })
       LeafBuilder(stage).base(h)
 
+      val req0 = req.withBodyStream(req.body.onFinalize(reqComplete.complete(())))
+
       for {
-        resp <- stage.runRequest(req)
+        resp <- stage.runRequest(req0)
         t <- f(resp)
-        _ <- IO(stage.shutdown())
+        _ <- reqComplete.get
       } yield t
     }
 
@@ -63,7 +66,7 @@ class Http1ClientStageSpec extends Http4sSpec {
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      stage: Http1Connection[IO]): (String, String) = {
+      stage: Http1Connection[IO]): IO[(String, String)] = {
     val h = new SeqTestHead(resp.toSeq.map { chr =>
       val b = ByteBuffer.allocate(1)
       b.put(chr.toByte).flip()
@@ -71,36 +74,31 @@ class Http1ClientStageSpec extends Http4sSpec {
     })
     LeafBuilder(stage).base(h)
 
-    val result = new String(
-      stage
-        .runRequest(req)
-        .unsafeRunSync()
-        .body
-        .compile
-        .toVector
-        .unsafeRunSync()
-        .toArray)
-
-    h.stageShutdown()
-    val buff = Await.result(h.result, 10.seconds)
-    val request = new String(buff.array(), StandardCharsets.ISO_8859_1)
-    (request, result)
+    for {
+      reqComplete <- Deferred[IO, Unit]
+      req0 = req.withBodyStream(req.body.onFinalize(reqComplete.complete(())))
+      // Don't read the response until the request is fully consumed.  It lets
+      // us introspect the request as it was actually written.
+      response <- stage.runRequest(req0).flatMap(reqComplete.get *> _.as[String])
+      request <- IO
+        .fromFuture(IO(h.result))
+        .map(buff => StandardCharsets.UTF_8.decode(buff).toString)
+    } yield (request, response)
   }
 
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      userAgent: Option[`User-Agent`] = None): (String, String) = {
+      userAgent: Option[`User-Agent`] = None): IO[(String, String)] = {
     val key = RequestKey.fromRequest(req)
     val tail = mkConnection(key, userAgent)
-    try getSubmission(req, resp, tail)
-    finally { tail.shutdown() }
+    getSubmission(req, resp, tail)
   }
 
   "Http1ClientStage" should {
 
     "Run a basic request" in {
-      val (request, response) = getSubmission(FooRequest, resp)
+      val (request, response) = getSubmission(FooRequest, resp).unsafeRunSync()
       val statusline = request.split("\r\n").apply(0)
 
       statusline must_== "GET / HTTP/1.1"
@@ -112,7 +110,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       val Right(parsed) = Uri.fromString("http://www.foo.test" + uri)
       val req = Request[IO](uri = parsed)
 
-      val (request, response) = getSubmission(req, resp)
+      val (request, response) = getSubmission(req, resp).unsafeRunSync()
       val statusline = request.split("\r\n").apply(0)
 
       statusline must_== "GET " + uri + " HTTP/1.1"
@@ -125,54 +123,40 @@ class Http1ClientStageSpec extends Http4sSpec {
       val h = new SeqTestHead(List(mkBuffer(frag1), mkBuffer(frag2), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
-      try {
-        tail.runRequest(FooRequest).unsafeRunAsync { case Right(_) => (); case Left(_) => () } // we remain in the body
-        tail
-          .runRequest(FooRequest)
-          .unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
-      } finally {
-        tail.shutdown()
-      }
+      tail.runRequest(FooRequest).unsafeRunAsync { case Right(_) => (); case Left(_) => () } // we remain in the body
+      tail
+        .runRequest(FooRequest)
+        .unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
     }
 
     "Reset correctly" in {
       val tail = mkConnection(FooRequestKey)
-      try {
-        val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
-        LeafBuilder(tail).base(h)
+      val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
 
-        // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest).unsafeRunSync().body.compile.drain.unsafeRunSync()
+      // execute the first request and run the body to reset the stage
+      tail.runRequest(FooRequest).unsafeRunSync().body.compile.drain.unsafeRunSync()
 
-        val result = tail.runRequest(FooRequest).unsafeRunSync()
-        tail.shutdown()
-
-        result.headers.size must_== 1
-      } finally {
-        tail.shutdown()
-      }
+      val result = tail.runRequest(FooRequest).unsafeRunSync()
+      result.headers.size must_== 1
     }
 
     "Alert the user if the body is to short" in {
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
       val tail = mkConnection(FooRequestKey)
 
-      try {
-        val h = new SeqTestHead(List(mkBuffer(resp)))
-        LeafBuilder(tail).base(h)
+      val h = new SeqTestHead(List(mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
 
-        val result = tail.runRequest(FooRequest).unsafeRunSync()
+      val result = tail.runRequest(FooRequest).unsafeRunSync()
 
-        result.body.compile.drain.unsafeRunSync() must throwA[InvalidBodyException]
-      } finally {
-        tail.shutdown()
-      }
+      result.body.compile.drain.unsafeRunSync() must throwA[InvalidBodyException]
     }
 
     "Interpret a lack of length with a EOF as a valid message" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val (_, response) = getSubmission(FooRequest, resp)
+      val (_, response) = getSubmission(FooRequest, resp).unsafeRunSync()
 
       response must_== "done"
     }
@@ -182,7 +166,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       val req = FooRequest.replaceAllHeaders(headers.Host("bar.test"))
 
-      val (request, response) = getSubmission(req, resp)
+      val (request, response) = getSubmission(req, resp).unsafeRunSync()
 
       val requestLines = request.split("\r\n").toList
 
@@ -193,7 +177,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Insert a User-Agent header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val (request, response) = getSubmission(FooRequest, resp, DefaultUserAgent)
+      val (request, response) = getSubmission(FooRequest, resp, DefaultUserAgent).unsafeRunSync()
 
       val requestLines = request.split("\r\n").toList
 
@@ -206,7 +190,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       val req = FooRequest.replaceAllHeaders(Header.Raw("User-Agent".ci, "myagent"))
 
-      val (request, response) = getSubmission(req, resp)
+      val (request, response) = getSubmission(req, resp).unsafeRunSync()
 
       val requestLines = request.split("\r\n").toList
 
@@ -218,17 +202,12 @@ class Http1ClientStageSpec extends Http4sSpec {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
       val tail = mkConnection(FooRequestKey)
 
-      try {
-        val (request, response) = getSubmission(FooRequest, resp, tail)
-        tail.shutdown()
+      val (request, response) = getSubmission(FooRequest, resp, tail).unsafeRunSync()
 
-        val requestLines = request.split("\r\n").toList
+      val requestLines = request.split("\r\n").toList
 
-        requestLines.find(_.startsWith("User-Agent")) must beNone
-        response must_== "done"
-      } finally {
-        tail.shutdown()
-      }
+      requestLines.find(_.startsWith("User-Agent")) must beNone
+      response must_== "done"
     }
 
     // TODO fs2 port - Currently is elevating the http version to 1.1 causing this test to fail
@@ -237,7 +216,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
 
-      val (request, response) = getSubmission(req, resp)
+      val (request, response) = getSubmission(req, resp).unsafeRunSync()
 
       request must not contain "Host:"
       response must_== "done"
@@ -250,7 +229,7 @@ class Http1ClientStageSpec extends Http4sSpec {
        * scenarios before we consume the body.  Make sure we can handle
        * it.  Ensure that we still get a well-formed response.
        */
-      val (_, response) = getSubmission(req, resp)
+      val (_, response) = getSubmission(req, resp).unsafeRunSync()
       response must_== "done"
     }
 
@@ -259,23 +238,19 @@ class Http1ClientStageSpec extends Http4sSpec {
       val resp = s"HTTP/1.1 200 OK\r\nContent-Length: $contentLength\r\n\r\n"
       val headRequest = FooRequest.withMethod(Method.HEAD)
       val tail = mkConnection(FooRequestKey)
-      try {
-        val h = new SeqTestHead(List(mkBuffer(resp)))
-        LeafBuilder(tail).base(h)
+      val h = new SeqTestHead(List(mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
 
-        val response = tail.runRequest(headRequest).unsafeRunSync()
-        response.contentLength must beSome(contentLength)
+      val response = tail.runRequest(headRequest).unsafeRunSync()
+      response.contentLength must beSome(contentLength)
 
-        // connection reusable immediately after headers read
-        tail.isRecyclable must_=== true
+      // connection reusable immediately after headers read
+      tail.isRecyclable must_=== true
 
-        // body is empty due to it being HEAD request
-        response.body.compile.toVector
-          .unsafeRunSync()
-          .foldLeft(0L)((long, byte) => long + 1L) must_== 0L
-      } finally {
-        tail.shutdown()
-      }
+      // body is empty due to it being HEAD request
+      response.body.compile.toVector
+        .unsafeRunSync()
+        .foldLeft(0L)((long, byte) => long + 1L) must_== 0L
     }
 
     {

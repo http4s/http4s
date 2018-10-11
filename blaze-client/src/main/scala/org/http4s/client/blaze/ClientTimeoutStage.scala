@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.pipeline.Command.{EOF, InboundCommand}
+import org.http4s.blaze.pipeline.Command.InboundCommand
 import org.http4s.blaze.util.{Cancellable, TickWheelExecutor}
 import scala.annotation.tailrec
 import scala.concurrent.{Future, Promise}
@@ -20,18 +20,21 @@ final private[blaze] class ClientTimeoutStage(
 
   import ClientTimeoutStage._
 
-  private implicit val ec = org.http4s.blaze.util.Execution.directec
+  private[this] implicit val ec = org.http4s.blaze.util.Execution.directec
 
   // The timeout between request body completion and response header
   // completion.
-  private val activeResponseHeaderTimeout = new AtomicReference[Cancellable](null)
+  private[this] val activeResponseHeaderTimeout = new AtomicReference[Cancellable](null)
 
   // The total timeout for the request. Lasts the lifetime of the stage.
-  private val activeReqTimeout = new AtomicReference[Cancellable](null)
+  private[this] val activeReqTimeout = new AtomicReference[Cancellable](null)
 
   // The timeoutState contains a Cancellable, null, or a TimeoutException
   // It will also act as the point of synchronization
-  private val timeoutState = new AtomicReference[AnyRef](null)
+  private[this] val timeoutState = new AtomicReference[AnyRef](null)
+
+  // Store the timeout exception to race reads and writes against.
+  private[this] val timedOut = Promise[Nothing]
 
   override def name: String =
     s"ClientTimeoutStage: Response Header: $responseHeaderTimeout, Idle: $idleTimeout, Request: $requestTimeout"
@@ -41,8 +44,10 @@ final private[blaze] class ClientTimeoutStage(
     override def run(): Unit = {
       logger.debug(s"Client stage is disconnecting due to $name timeout after $timeout.")
 
+      val timeoutException = new TimeoutException(s"Client $name timeout after $timeout.")
+
       // check the idle timeout conditions
-      timeoutState.getAndSet(new TimeoutException(s"Client $name timeout after $timeout.")) match {
+      timeoutState.getAndSet(timeoutException) match {
         case null => // noop
         case c: Cancellable => c.cancel() // this should be the registration of us
         case _: TimeoutException => // Interesting that we got here.
@@ -62,6 +67,9 @@ final private[blaze] class ClientTimeoutStage(
           timeout.cancel()
           closePipeline(None)
       }
+
+      timedOut.failure(timeoutException)
+      ()
     }
   }
 
@@ -121,20 +129,21 @@ final private[blaze] class ClientTimeoutStage(
         resetTimeout()
         p.tryComplete(s)
 
-      case eof @ Failure(EOF) =>
+      case f @ Failure(_) =>
         timeoutState.get() match {
-          case t: TimeoutException => p.tryFailure(t)
           case c: Cancellable =>
             c.cancel()
-            p.tryComplete(eof)
+            p.complete(f)
 
-          case null => p.tryComplete(eof)
+          case t: TimeoutException =>
+            p.failure(t)
+
+          case null =>
+            p.complete(f)
         }
-
-      case v @ Failure(_) => p.complete(v)
     }
 
-    p.future
+    Future.firstCompletedOf(List(p.future, timedOut.future))
   }
 
   private def setAndCancel(next: Cancellable): Unit = {
