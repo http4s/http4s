@@ -1,17 +1,20 @@
 package org.http4s.server.prometheus
 
-import cats.effect.IO
+import cats.effect.{Clock, IO, Sync}
 import fs2.Stream
 import io.prometheus.client.CollectorRegistry
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import org.http4s.{Http4sSpec, HttpRoutes, Request, Response, Status}
 import org.http4s.dsl.io._
+import scala.concurrent.duration.TimeUnit
 
 class PrometheusMetricsSpec extends Http4sSpec {
 
   "Http routes with a prometheus metrics middleware" should {
 
     "register a 2xx response" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -23,9 +26,12 @@ class PrometheusMetricsSpec extends Http4sSpec {
       resp must haveBody("200 Ok")
       count(registry, "2xx_responses") must beEqualTo(1)
       count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "2xx_headers_duration") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration") must beEqualTo(0.1)
     }
 
     "register a 4xx response" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -37,9 +43,12 @@ class PrometheusMetricsSpec extends Http4sSpec {
       resp must haveBody("400 Bad Request")
       count(registry, "4xx_responses") must beEqualTo(1)
       count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "4xx_headers_duration") must beEqualTo(0.05)
+      count(registry, "4xx_total_duration") must beEqualTo(0.1)
     }
 
     "register a 5xx response" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -51,9 +60,12 @@ class PrometheusMetricsSpec extends Http4sSpec {
       resp must haveBody("500 Internal Server Error")
       count(registry, "5xx_responses") must beEqualTo(1)
       count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "5xx_headers_duration") must beEqualTo(0.05)
+      count(registry, "5xx_total_duration") must beEqualTo(0.1)
     }
 
     "register a GET request" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -64,10 +76,13 @@ class PrometheusMetricsSpec extends Http4sSpec {
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
       count(registry, "2xx_responses", "get") must beEqualTo(1)
-      count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "active_requests", "get") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "get") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "get") must beEqualTo(0.1)
     }
 
     "register a POST request" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -78,10 +93,13 @@ class PrometheusMetricsSpec extends Http4sSpec {
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
       count(registry, "2xx_responses", "post") must beEqualTo(1)
-      count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "active_requests", "post") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "post") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "post") must beEqualTo(0.1)
     }
 
     "register a PUT request" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -92,10 +110,13 @@ class PrometheusMetricsSpec extends Http4sSpec {
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
       count(registry, "2xx_responses", "put") must beEqualTo(1)
-      count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "active_requests", "put") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "put") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "put") must beEqualTo(0.1)
     }
 
     "register a DELETE request" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -106,10 +127,13 @@ class PrometheusMetricsSpec extends Http4sSpec {
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
       count(registry, "2xx_responses", "delete") must beEqualTo(1)
-      count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "active_requests", "delete") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "delete") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "delete") must beEqualTo(0.1)
     }
 
     "register a server error" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -123,6 +147,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
     }
 
     "register an abnormal termination" in {
+      implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
       val withMetrics = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -157,28 +182,87 @@ class PrometheusMetricsSpec extends Http4sSpec {
 //  def count(registry: MetricRegistry, counter: Counter): Long = registry.getCounters.get(counter.value).getCount
 //  def count(registry: MetricRegistry, timer: Timer): Long = registry.getTimers.get(timer.value).getCount
 
-  def count(registry: CollectorRegistry, name: String, method: String = "get"): Double =
+  def count(registry: CollectorRegistry, name: String, method: String = "get", classifier: String = ""): Double =
     name match {
       case "active_requests" =>
-        registry.getSampleValue("server_active_request_count", Array(), Array())
+        registry.getSampleValue(
+          "server_active_request_count",
+          Array("classifier"),
+          Array(classifier))
       case "2xx_responses" =>
         registry
-          .getSampleValue("server_response_total", Array("method", "code"), Array(method, "2xx"))
+          .getSampleValue(
+            "server_response_total",
+            Array("classifier", "method", "code"),
+            Array(classifier, method, "2xx"))
+      case "2xx_headers_duration" =>
+        registry.getSampleValue(
+          "server_response_duration_seconds_sum",
+          Array("classifier", "method", "serving_phase"),
+          Array(classifier, method, "header_phase"))
+      case "2xx_total_duration" =>
+        registry.getSampleValue(
+          "server_response_duration_seconds_sum",
+          Array("classifier", "method", "serving_phase"),
+          Array(classifier, method, "body_phase"))
       case "4xx_responses" =>
         registry
-          .getSampleValue("server_response_total", Array("method", "code"), Array(method, "4xx"))
+          .getSampleValue(
+            "server_response_total",
+            Array("classifier", "method", "code"),
+            Array(classifier, method, "4xx"))
+      case "4xx_headers_duration" =>
+        registry.getSampleValue(
+          "server_response_duration_seconds_sum",
+          Array("classifier", "method", "serving_phase"),
+          Array(classifier, method, "header_phase"))
+      case "4xx_total_duration" =>
+        registry.getSampleValue(
+          "server_response_duration_seconds_sum",
+          Array("classifier", "method", "serving_phase"),
+          Array(classifier, method, "body_phase"))
       case "5xx_responses" =>
         registry
-          .getSampleValue("server_response_total", Array("method", "code"), Array(method, "5xx"))
+          .getSampleValue(
+            "server_response_total",
+            Array("classifier", "method", "code"),
+            Array(classifier, method, "5xx"))
+      case "5xx_headers_duration" =>
+        registry.getSampleValue(
+          "server_response_duration_seconds_sum",
+          Array("classifier", "method", "serving_phase"),
+          Array(classifier, method, "header_phase"))
+      case "5xx_total_duration" =>
+        registry.getSampleValue(
+          "server_response_duration_seconds_sum",
+          Array("classifier", "method", "serving_phase"),
+          Array(classifier, method, "body_phase"))
       case "server_errors" =>
         registry.getSampleValue(
           "server_abnormal_terminations_total",
-          Array("termination_type"),
-          Array("server_error"))
+          Array("classifier", "termination_type"),
+          Array(classifier, "server_error"))
       case "abnormal_terminations" =>
         registry.getSampleValue(
           "server_abnormal_terminations_total",
-          Array("termination_type"),
-          Array("abnormal_termination"))
+          Array("classifier", "termination_type"),
+          Array(classifier, "abnormal_termination"))
     }
+
+  object FakeClock {
+    def apply[F[_]: Sync] = new Clock[F] {
+      private var count = 0L
+
+      override def realTime(unit: TimeUnit): F[Long] = {
+        count += 50
+        Sync[F].delay(unit.convert(count, TimeUnit.MILLISECONDS))
+      }
+
+      override def monotonic(unit: TimeUnit): F[Long] = {
+        count += 50
+        Sync[F].delay(unit.convert(count, TimeUnit.MILLISECONDS))
+      }
+    }
+  }
+
 }

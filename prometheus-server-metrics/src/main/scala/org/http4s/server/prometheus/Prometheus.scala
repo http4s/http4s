@@ -23,19 +23,19 @@ object Prometheus {
 
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
         metrics.activeRequests
-          .labels()
+          .labels(label(classifier))
           .inc()
       }
 
       override def decreaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
         metrics.activeRequests
-          .labels()
+          .labels(label(classifier))
           .dec()
       }
 
       override def increaseRequests(method: Method, status: Status,classifier: Option[String]): F[Unit] = F.delay {
         metrics.requestCounter // responseCounter
-          .labels(reportMethod(method), reportStatus(status))
+          .labels(label(classifier), reportMethod(method), reportStatus(status))
           .inc()
       }
 
@@ -45,6 +45,7 @@ object Prometheus {
           classifier: Option[String]): F[Unit] = F.delay {
         metrics.requestDuration // responseDuration
           .labels(
+            label(classifier),
             reportMethod(method),
             ServingPhase.report(ServingPhase.HeaderPhase) // ResponsePhase.report(ResponsePhase.ResponseReceived))
           )
@@ -58,6 +59,7 @@ object Prometheus {
         F.delay {
           metrics.requestDuration // responseDuration
             .labels(
+              label(classifier),
               reportMethod(method),
               ServingPhase.report(ServingPhase.BodyPhase)  // ResponsePhase.report(ResponsePhase.BodyProcessed))
             )
@@ -66,7 +68,7 @@ object Prometheus {
 
       override def increaseErrors(classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
-          .labels(AbnormalTermination.report(AbnormalTermination.ServerError))
+          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.ServerError))
           .inc()
       }
 
@@ -76,11 +78,11 @@ object Prometheus {
 
       override def increaseAbnormalTerminations(classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
-          .labels(AbnormalTermination.report(AbnormalTermination.Abnormal))
+          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
           .inc()
       }
 
-//      private def label(classifier: Option[String]): String = classifier.getOrElse("")
+      private def label(classifier: Option[String]): String = classifier.getOrElse("")
 
       private def reportStatus(status: Status): String =
         status.code match {
@@ -110,24 +112,25 @@ object Prometheus {
             .build()
             .name(prefix + "_" + "response_duration_seconds")
             .help("Response Duration in seconds.")
-            .labelNames("method", "serving_phase")
+            .labelNames("classifier", "method", "serving_phase")
             .register(registry),
           activeRequests = Gauge
             .build()
             .name(prefix + "_" + "active_request_count")
             .help("Total Active Requests.")
+            .labelNames("classifier")
             .register(registry),
           requestCounter = Counter
             .build()
             .name(prefix + "_" + "response_total")
             .help("Total Responses.")
-            .labelNames("method", "code")
+            .labelNames("classifier", "method", "code")
             .register(registry),
           abnormalTerminations = Counter
             .build()
             .name(prefix + "_" + "abnormal_terminations_total")
             .help("Total Abnormal Terminations.")
-            .labelNames("termination_type")
+            .labelNames("classifier", "termination_type")
             .register(registry)
         )
     }

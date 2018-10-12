@@ -4,6 +4,7 @@ import cats.data._
 import cats.effect._
 import cats.implicits._
 import fs2.Stream
+import java.util.concurrent.TimeUnit
 import org.http4s._
 
 object Metrics {
@@ -13,14 +14,12 @@ object Metrics {
       routes: HttpRoutes[F],
       emptyResponseHandler: Option[Status],
       errorResponseHandler: Throwable => Option[Status]
-  )(
-      req: Request[F]
-  ): OptionT[F, Response[F]] = OptionT {
+  )(req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] = OptionT {
     for {
-      initialTime <- Sync[F].delay(System.nanoTime())
+      initialTime <- clock.monotonic(TimeUnit.NANOSECONDS)
       _ <- ops.increaseActiveRequests()
       responseAtt <- routes(req).value.attempt
-      headersElapsed <- Sync[F].delay(System.nanoTime())
+      headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
       result <- responseAtt.fold(
         e =>
           onServiceError(
@@ -46,9 +45,9 @@ object Metrics {
       headerTime: Long,
       ops: MetricsOps[F],
       emptyResponseHandler: Option[Status]
-  ): F[Unit] =
+  )(implicit clock: Clock[F]): F[Unit] =
     for {
-      now <- Sync[F].delay(System.nanoTime) // TODO: Convert to Clock
+      now <- clock.monotonic(TimeUnit.NANOSECONDS)
       _ <- emptyResponseHandler.traverse_(status =>
           ops.recordHeadersTime(method, headerTime - start) *>
           ops.recordTotalTime(method, now - start) *>
@@ -62,16 +61,16 @@ object Metrics {
       start: Long,
       headerTime: Long,
       ops: MetricsOps[F]
-  )(
-      r: Response[F]
-  ): Response[F] = {
+  )(r: Response[F])(implicit clock: Clock[F]): Response[F] = {
     val newBody = r.body
       .onFinalize {
-          val now = System.nanoTime
-          ops.recordHeadersTime(method, headerTime - start) *>
-          ops.recordTotalTime(method, now - start) *>
-          ops.increaseRequests(method, r.status) *>
-          ops.decreaseActiveRequests()
+        for {
+          now <- clock.monotonic(TimeUnit.NANOSECONDS)
+          _   <- ops.recordHeadersTime(method, headerTime - start)
+          _   <- ops.recordTotalTime(method, now - start)
+          _   <- ops.increaseRequests(method, r.status)
+          _   <- ops.decreaseActiveRequests()
+        } yield {}
       }
       .handleErrorWith(e => Stream.eval(ops.increaseAbnormalTerminations()) *> Stream.raiseError[F](e))
     r.copy(body = newBody)
@@ -83,9 +82,9 @@ object Metrics {
       headerTime: Long,
       ops: MetricsOps[F],
       errorResponseHandler: Option[Status]
-  ): F[Unit] =
+  )(implicit clock: Clock[F]): F[Unit] =
     for {
-      now <- Sync[F].delay(System.nanoTime)
+      now <- clock.monotonic(TimeUnit.NANOSECONDS)
       _ <- errorResponseHandler.traverse_(status =>
           ops.recordHeadersTime(method, headerTime - start) *>
           ops.recordTotalTime(method, now - start) *>
@@ -121,7 +120,7 @@ object Metrics {
     * values: abnormal_termination, server_error
     *
     **/
-  def apply[F[_]: Sync](
+  def apply[F[_] : Sync : Clock](
       ops: MetricsOps[F],
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some
