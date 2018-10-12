@@ -6,19 +6,20 @@ import cats.data.{EitherT, Kleisli, OptionT}
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
+import java.util.concurrent.TimeUnit
 
 object Metrics {
 
   def apply[F[_]](ops: MetricsOps[F], classifierF: Request[F] => Option[String] = { _: Request[F] =>
     None
-  })(implicit F: Effect[F]): HttpMiddleware[F] = { service =>
+  })(implicit F: Effect[F], clock: Clock[F]): HttpMiddleware[F] = { service =>
     Kleisli(metricsService[F](ops, service, classifierF)(_))
   }
 
   private def metricsService[F[_]: Sync](ops: MetricsOps[F], routes: HttpRoutes[F], classifierF: Request[F] => Option[String])(
-      req: Request[F]): OptionT[F, Response[F]] = OptionT {
+      req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] = OptionT {
     for {
-      now <- Sync[F].delay(System.nanoTime())
+      now <- clock.monotonic(TimeUnit.NANOSECONDS)
       _ <- ops.increaseActiveRequests(classifierF(req))
       e <- routes(req).value.attempt
       resp <- metricsServiceHandler(req.method, now, ops, e, classifierF(req))
@@ -31,9 +32,10 @@ object Metrics {
       ops: MetricsOps[F],
       e: Either[Throwable, Option[Response[F]]],
       classifier: Option[String]
-  ): F[Option[Response[F]]] = {
+  )(implicit clock: Clock[F]): F[Option[Response[F]]] = {
     for {
-      elapsed <- EitherT.liftF[F, Throwable, Long](Sync[F].delay(System.nanoTime() - start))
+      now     <- EitherT.liftF[F, Throwable, Long](clock.monotonic(TimeUnit.NANOSECONDS))
+      elapsed <- EitherT.liftF[F, Throwable, Long](Sync[F].delay(now - start))
       respOpt <- EitherT(
         e.bitraverse[F, Throwable, Option[Response[F]]](
           manageServiceErrors(method, elapsed, ops, classifier).as(_),
@@ -51,11 +53,12 @@ object Metrics {
       elapsedInit: Long,
       ops: MetricsOps[F],
       classifier: Option[String]
-  )(response: Response[F]): Response[F] = {
+  )(response: Response[F])(implicit clock: Clock[F]): Response[F] = {
     val newBody = response.body
       .onFinalize {
         for {
-          elapsed <- Sync[F].delay(System.nanoTime() - start)
+          now     <- clock.monotonic(TimeUnit.NANOSECONDS)
+          elapsed <- Sync[F].delay(now - start)
           _ <- ops.recordHeadersTime(elapsedInit, classifier)
           _ <- ops.decreaseActiveRequests(classifier)
           _ <- ops.increaseRequests(elapsedInit, classifier)
@@ -71,11 +74,12 @@ object Metrics {
 
   private def manageServiceErrors[F[_]: Sync](
       method: Method,
-      elapsed: Long,
+      elapsedInit: Long,
       ops: MetricsOps[F],
       classifier: Option[String]): F[Unit] =
-    ops.recordTotalTime(method, elapsed, classifier) *> ops.increaseRequests(elapsed, classifier) *>
-    ops.decreaseActiveRequests(classifier) *> ops.increaseErrors(elapsed, classifier)
+    ops.recordHeadersTime(elapsedInit, classifier) *> ops.recordTotalTime(method, elapsedInit, classifier) *>
+    ops.increaseRequests(elapsedInit, classifier) *>  ops.decreaseActiveRequests(classifier) *>
+    ops.increaseErrors(elapsedInit, classifier)
 
   private def handleUnmatched[F[_]: Sync](ops: MetricsOps[F], classifier: Option[String]): F[Option[Response[F]]] =
     ops.decreaseActiveRequests(classifier).as(Option.empty[Response[F]])

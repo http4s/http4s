@@ -1,9 +1,10 @@
 package org.http4s.server.metrics
 
-import cats.effect.IO
+import cats.effect.{Clock, IO, Sync}
 import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
 import fs2.Stream
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import org.http4s.{Http4sSpec, HttpRoutes, Request, Response, Status}
 import org.http4s.dsl.io._
 import org.http4s.server.HttpMiddleware
@@ -13,6 +14,7 @@ class MetricsSpec extends Http4sSpec {
   "Http routes with a dropwizard metrics middleware" should {
 
     "register a 2xx response" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test1")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -25,9 +27,13 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.2xx-responses")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
+      values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
     }
 
     "register a 4xx response" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test2")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -40,9 +46,13 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.4xx-responses")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
+      values(registry, Timer("server.default.4xx-responses")) must beSome(Array(100000000L))
     }
 
     "register a 5xx response" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test3")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -55,9 +65,13 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.5xx-responses")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
+      values(registry, Timer("server.default.5xx-responses")) must beSome(Array(100000000L))
     }
 
     "register a GET request" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test4")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -70,9 +84,13 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.get-requests")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
+      values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
     }
 
     "register a POST request" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test5")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -85,9 +103,13 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.post-requests")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.post-requests")) must beSome(Array(100000000L))
+      values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
     }
 
     "register a PUT request" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test6")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -100,9 +122,13 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.put-requests")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.put-requests")) must beSome(Array(100000000L))
+      values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
     }
 
     "register a DELETE request" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test7")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -115,9 +141,13 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.delete-requests")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.delete-requests")) must beSome(Array(100000000L))
+      values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
     }
 
     "register a service error" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test8")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -129,9 +159,12 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.errors")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.get-requests")) must beSome(Array(50000000L))
     }
 
     "register an abnormal termination" in {
+      implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test9")
       val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
@@ -144,6 +177,8 @@ class MetricsSpec extends Http4sSpec {
       count(registry, Timer("server.default.abnormal-terminations")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
     }
   }
 
@@ -166,9 +201,30 @@ class MetricsSpec extends Http4sSpec {
 
   def count(registry: MetricRegistry, counter: Counter): Long =
     registry.getCounters.get(counter.value).getCount
+
   def count(registry: MetricRegistry, timer: Timer): Long =
     registry.getTimers.get(timer.value).getCount
-}
 
-case class Counter(value: String)
-case class Timer(value: String)
+  def values(registry: MetricRegistry, timer: Timer): Option[Array[Long]] =
+    Option(registry.getTimers().get(timer.value)).map(_.getSnapshot.getValues)
+
+
+  case class Counter(value: String)
+  case class Timer(value: String)
+
+  object FakeClock {
+    def apply[F[_] : Sync] = new Clock[F] {
+      private var count = 0L
+
+      override def realTime(unit: TimeUnit): F[Long] = {
+        count += 50
+        Sync[F].delay(unit.convert(count, TimeUnit.MILLISECONDS))
+      }
+
+      override def monotonic(unit: TimeUnit): F[Long] = {
+        count += 50
+        Sync[F].delay(unit.convert(count, TimeUnit.MILLISECONDS))
+      }
+    }
+  }
+}

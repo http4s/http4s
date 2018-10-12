@@ -36,6 +36,7 @@ object Dropwizard {
           .update(elapsed, TimeUnit.NANOSECONDS)
       }
 
+      //FIXME: Not being used
       override def recordTotalTime(method: Method, status: Status, elapsed: Long, classifier: Option[String]): F[Unit] =
         F.delay {
           registry
