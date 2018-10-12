@@ -188,13 +188,13 @@ sealed abstract case class Request[F[_]](
     )
 
   def mapK[G[_]](f: F ~> G): Request[G] = Request[G](
-      method = method,
-      uri = uri,
-      httpVersion = httpVersion,
-      headers = headers,
-      body = body.translate(f),
-      attributes = attributes
-    )
+    method = method,
+    uri = uri,
+    httpVersion = httpVersion,
+    headers = headers,
+    body = body.translate(f),
+    attributes = attributes
+  )
 
   def withMethod(method: Method) = requestCopy(method = method)
   def withUri(uri: Uri) =
