@@ -17,12 +17,14 @@ class BlazeClientSpec extends Http4sSpec {
 
   def mkClient(
       maxConnectionsPerRequestKey: Int,
-      responseHeaderTimeout: Duration = 1.minute
+      responseHeaderTimeout: Duration = 1.minute,
+      requestTimeout: Duration = 1.minute
   ) =
     BlazeClientBuilder[IO](testExecutionContext)
       .withSslContext(bits.TrustingSslContext)
       .withCheckEndpointAuthentication(false)
       .withResponseHeaderTimeout(responseHeaderTimeout)
+      .withRequestTimeout(requestTimeout)
       .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
       .resource
 
@@ -144,6 +146,18 @@ class BlazeClientSpec extends Http4sSpec {
             .map(_.right.exists(_.nonEmpty))
             .unsafeToFuture()
           Await.result(resp, 6 seconds) must beTrue
+        }
+
+        "reset request timeout" in {
+          val address = addresses(0)
+          val name = address.getHostName
+          val port = address.getPort
+
+          mkClient(1, requestTimeout = 100.millis).use { client =>
+            val submit =
+              client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))
+            submit *> timer.sleep(150.millis) *> submit
+          } must returnValue(Status.Ok)
         }
 
         "drain waiting connections after shutdown" in {

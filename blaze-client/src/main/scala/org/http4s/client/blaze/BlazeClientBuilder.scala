@@ -126,7 +126,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
-  def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+  def resource(implicit F: ConcurrentEffect[F], clock: Clock[F]): Resource[F, Client[F]] =
     connectionManager.map(
       manager =>
         BlazeClient.makeClient(
@@ -136,7 +136,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
           requestTimeout = requestTimeout
       ))
 
-  def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+  def stream(implicit F: ConcurrentEffect[F], clock: Clock[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
   private def connectionManager(
