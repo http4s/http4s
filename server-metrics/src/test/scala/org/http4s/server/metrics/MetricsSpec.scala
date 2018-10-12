@@ -22,9 +22,9 @@ class MetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
-      count(registry, Timer("server.2xx-responses")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.2xx-responses")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
 
     "register a 4xx response" in {
@@ -37,9 +37,9 @@ class MetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.BadRequest)
       resp must haveBody("400 Bad Request")
-      count(registry, Timer("server.4xx-responses")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.4xx-responses")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
 
     "register a 5xx response" in {
@@ -52,9 +52,9 @@ class MetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.InternalServerError)
       resp must haveBody("500 Internal Server Error")
-      count(registry, Timer("server.5xx-responses")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.5xx-responses")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
 
     "register a GET request" in {
@@ -67,9 +67,9 @@ class MetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
-      count(registry, Timer("server.get-requests")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.get-requests")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
 
     "register a POST request" in {
@@ -82,9 +82,9 @@ class MetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
-      count(registry, Timer("server.post-requests")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.post-requests")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
 
     "register a PUT request" in {
@@ -97,9 +97,9 @@ class MetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
-      count(registry, Timer("server.put-requests")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.put-requests")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
 
     "register a DELETE request" in {
@@ -112,9 +112,9 @@ class MetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
-      count(registry, Timer("server.delete-requests")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.delete-requests")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
 
     "register a service error" in {
@@ -126,9 +126,9 @@ class MetricsSpec extends Http4sSpec {
       val resp = meteredRoutes.orNotFound(req).attempt.unsafeRunSync
 
       resp must beLeft
-      count(registry, Timer("server.service-errors")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.errors")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
 
     "register an abnormal termination" in {
@@ -141,9 +141,9 @@ class MetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.Ok)
       resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
-      count(registry, Timer("server.abnormal-terminations")) must beEqualTo(1)
-      count(registry, Counter("server.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.abnormal-terminations")) must beEqualTo(1)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.default.requests")) must beEqualTo(1)
     }
   }
 
