@@ -90,14 +90,16 @@ trait Responses[F[_]] {
   implicit def http4sExpectationFailedSyntax(
       status: ExpectationFailed.type): ExpectationFailedOps[F] = new ExpectationFailedOps[F](status)
   implicit def http4sMisdirectedRequestSyntax(
-      status: MisdirectedRequest.type): MisdirectedRequestOps[F] = new MisdirectedRequestOps[F](status)
+      status: MisdirectedRequest.type): MisdirectedRequestOps[F] =
+    new MisdirectedRequestOps[F](status)
   implicit def http4sUnprocessableEntitySyntax(
       status: UnprocessableEntity.type): UnprocessableEntityOps[F] =
     new UnprocessableEntityOps[F](status)
   implicit def http4sLockedSyntax(status: Locked.type): LockedOps[F] = new LockedOps[F](status)
   implicit def http4sFailedDependencySyntax(status: FailedDependency.type): FailedDependencyOps[F] =
     new FailedDependencyOps[F](status)
-  implicit def http4sTooEarlySyntax(status: TooEarly.type): TooEarlyOps[F] = new TooEarlyOps[F](status)
+  implicit def http4sTooEarlySyntax(status: TooEarly.type): TooEarlyOps[F] =
+    new TooEarlyOps[F](status)
   implicit def http4sUpgradeRequiredSyntax(status: UpgradeRequired.type): UpgradeRequiredOps[F] =
     new UpgradeRequiredOps[F](status)
   implicit def http4sPreconditionRequiredSyntax(
@@ -151,7 +153,7 @@ object Responses {
       extends AnyVal
       with EmptyResponseGenerator[F]
   final class EarlyHintsOps[F[_]](val status: EarlyHints.type)
-    extends AnyVal
+      extends AnyVal
       with EmptyResponseGenerator[F]
   final class OkOps[F[_]](val status: Ok.type) extends AnyVal with EntityResponseGenerator[F]
 
@@ -264,7 +266,7 @@ object Responses {
       extends AnyVal
       with EntityResponseGenerator[F]
   final class MisdirectedRequestOps[F[_]](val status: MisdirectedRequest.type)
-    extends AnyVal
+      extends AnyVal
       with EntityResponseGenerator[F]
   final class UnprocessableEntityOps[F[_]](val status: UnprocessableEntity.type)
       extends AnyVal
@@ -276,7 +278,7 @@ object Responses {
       extends AnyVal
       with EntityResponseGenerator[F]
   final class TooEarlyOps[F[_]](val status: TooEarly.type)
-    extends AnyVal
+      extends AnyVal
       with EntityResponseGenerator[F]
   // TODO Mandatory upgrade field
   final class UpgradeRequiredOps[F[_]](val status: UpgradeRequired.type)
