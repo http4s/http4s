@@ -262,6 +262,7 @@ val jsonService = HttpRoutes.of[IO] {
 
 // Provided automatically by `IOApp`
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 
 import org.http4s.server.blaze._
 val server = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, "/").resource

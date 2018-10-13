@@ -94,7 +94,7 @@ import io.circe.Json
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.global
 
-class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
+class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F], timer: Timer[F]) {
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f = io.circe.jawn.CirceSupportParser.facade
 

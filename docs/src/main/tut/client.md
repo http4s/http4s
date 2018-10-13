@@ -40,6 +40,7 @@ in an [[`IOApp`]]:
 ```tut:book:silent
 import scala.concurrent.ExecutionContext.global
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 ```
 
 Finish setting up our server:
