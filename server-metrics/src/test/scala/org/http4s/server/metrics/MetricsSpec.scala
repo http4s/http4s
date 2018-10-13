@@ -27,7 +27,7 @@ class MetricsSpec extends Http4sSpec {
       resp must haveBody("200 Ok")
       count(registry, Timer("server.default.2xx-responses")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
       values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -46,7 +46,7 @@ class MetricsSpec extends Http4sSpec {
       resp must haveBody("400 Bad Request")
       count(registry, Timer("server.default.4xx-responses")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
       values(registry, Timer("server.default.4xx-responses")) must beSome(Array(100000000L))
@@ -65,7 +65,7 @@ class MetricsSpec extends Http4sSpec {
       resp must haveBody("500 Internal Server Error")
       count(registry, Timer("server.default.5xx-responses")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
       values(registry, Timer("server.default.5xx-responses")) must beSome(Array(100000000L))
@@ -84,7 +84,7 @@ class MetricsSpec extends Http4sSpec {
       resp must haveBody("200 Ok")
       count(registry, Timer("server.default.get-requests")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
       values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -103,7 +103,7 @@ class MetricsSpec extends Http4sSpec {
       resp must haveBody("200 Ok")
       count(registry, Timer("server.default.post-requests")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.post-requests")) must beSome(Array(100000000L))
       values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -122,7 +122,7 @@ class MetricsSpec extends Http4sSpec {
       resp must haveBody("200 Ok")
       count(registry, Timer("server.default.put-requests")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.put-requests")) must beSome(Array(100000000L))
       values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -141,7 +141,7 @@ class MetricsSpec extends Http4sSpec {
       resp must haveBody("200 Ok")
       count(registry, Timer("server.default.delete-requests")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.delete-requests")) must beSome(Array(100000000L))
       values(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -159,7 +159,7 @@ class MetricsSpec extends Http4sSpec {
       resp must beLeft
       count(registry, Timer("server.default.errors")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
     }
@@ -177,9 +177,29 @@ class MetricsSpec extends Http4sSpec {
       resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
       count(registry, Timer("server.default.abnormal-terminations")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests")) must beEqualTo(1)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       values(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       values(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
+    }
+
+    "use the provided request classifier" in {
+      implicit val clock = FakeClock[IO]
+      val classifierFunc = (r: Request[IO]) => Some("classifier")
+      val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test10")
+      val withMetrics = Metrics[IO](ops = Dropwizard(registry, "server"), classifierF = classifierFunc)
+      val meteredRoutes = withMetrics(testRoutes)
+      val req = Request[IO](uri = uri("/ok"))
+
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+
+      resp must haveStatus(Status.Ok)
+      resp must haveBody("200 Ok")
+      count(registry, Timer("server.classifier.2xx-responses")) must beEqualTo(1)
+      count(registry, Counter("server.classifier.active-requests")) must beEqualTo(0)
+      count(registry, Timer("server.classifier.requests.total")) must beEqualTo(1)
+      values(registry, Timer("server.classifier.requests.headers")) must beSome(Array(50000000L))
+      values(registry, Timer("server.classifier.get-requests")) must beSome(Array(100000000L))
+      values(registry, Timer("server.classifier.2xx-responses")) must beSome(Array(100000000L))
     }
   }
 

@@ -1,6 +1,6 @@
 package org.http4s.metrics
 
-import org.http4s.Status
+import org.http4s.{Method, Status}
 
 /**
   * Describes an algebra capable of writing metrics to a metrics registry
@@ -25,34 +25,36 @@ trait MetricsOps[F[_]] {
   /**
     * Records the time to receive the response headers
     *
-    * @param status the http status code of the response
+    * @param method TODO
     * @param elapsed the time to record
     * @param classifier the request classifier
-    * @return
     */
-  def recordHeadersTime(status: Status, elapsed: Long, classifier: Option[String]): F[Unit]
+  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit]
 
   /**
     * Records the time to fully consume the response, including the body
     *
+    * @param method TODO
     * @param status the http status code of the response
     * @param elapsed the time to record
     * @param classifier the request classifier
-    * @return
     */
-  def recordTotalTime(status: Status, elapsed: Long, classifier: Option[String]): F[Unit]
+  def recordTotalTime(method: Method, status: Status, elapsed: Long, classifier: Option[String]): F[Unit]
 
   /**
-    * Increases the count of errors, excluding timeouts
+    * Record abnormal terminations, like errors or timeouts
     *
+    * @param elapsed the time to record
+    * @param terminationType the type of termination
     * @param classifier the classifier to use
     */
-  def increaseErrors(classifier: Option[String]): F[Unit]
+  def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit]
+}
 
-  /**
-    * Increases the count of timeouts
-    *
-    * @param classifier the classifier to use
-    */
-  def increaseTimeouts(classifier: Option[String]): F[Unit]
+sealed trait TerminationType
+
+object TerminationType {
+  case object Abnormal extends TerminationType
+  case object Error extends TerminationType
+  case object Timeout extends TerminationType
 }

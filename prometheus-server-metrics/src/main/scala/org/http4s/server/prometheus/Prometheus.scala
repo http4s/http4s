@@ -3,8 +3,8 @@ package org.http4s.server.prometheus
 import cats.effect.Sync
 import io.prometheus.client._
 import org.http4s.{Method, Status}
-import org.http4s.server.middleware.{TerminationType, MetricsOps}
-import org.http4s.server.middleware.TerminationType.{Abnormal, Error, Timeout}
+import org.http4s.metrics.{MetricsOps, TerminationType}
+import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
 
 /**
   * [[MetricsOps]] algebra capable of recording Prometheus metrics
@@ -127,7 +127,7 @@ object Prometheus {
             .build()
             .name(prefix + "_" + "response_total")
             .help("Total Responses.")
-            .labelNames("classifier", "method", "code")
+            .labelNames("classifier", "method", "status")
             .register(registry),
           abnormalTerminations = Histogram
             .build()

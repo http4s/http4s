@@ -2,8 +2,10 @@ package org.http4s.metrics.prometheus
 
 import cats.effect.Sync
 import io.prometheus.client._
-import org.http4s.Status
+import org.http4s.{Method, Status}
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.TerminationType
+import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
 
 /**
   * [[MetricsOps]] algebra capable of recording Prometheus metrics
@@ -42,21 +44,20 @@ object Prometheus {
       }
 
       override def recordHeadersTime(
-          status: Status,
+          method: Method,
           elapsed: Long,
           classifier: Option[String]): F[Unit] = F.delay {
         metrics.responseDuration
           .labels(
             label(classifier),
-            reportStatus(status),
+            reportMethod(method),
             ResponsePhase.report(ResponsePhase.ResponseReceived))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-        metrics.responseCounter
-          .labels(label(classifier), reportStatus(status))
-          .inc()
+
       }
 
       override def recordTotalTime(
+          method: Method,
           status: Status,
           elapsed: Long,
           classifier: Option[String]): F[Unit] =
@@ -64,21 +65,30 @@ object Prometheus {
           metrics.responseDuration
             .labels(
               label(classifier),
-              reportStatus(status),
+              reportMethod(method),
               ResponsePhase.report(ResponsePhase.BodyProcessed))
             .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+          metrics.responseCounter
+            .labels(label(classifier), reportMethod(method), reportStatus(status))
+            .inc()
         }
 
-      override def increaseErrors(classifier: Option[String]): F[Unit] = F.delay {
-        metrics.clientErrorsCounter
-          .labels(label(classifier))
-          .inc()
+      override def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit] = terminationType match {
+        case Abnormal => F.unit
+        case Error    => recordError(elapsed, classifier)
+        case Timeout  => recordTimeout(elapsed, classifier)
       }
 
-      override def increaseTimeouts(classifier: Option[String]): F[Unit] = F.delay {
-        metrics.timeoutsCounter
-          .labels(label(classifier))
-          .inc()
+      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+        metrics.abnormalTerminations
+          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Error))
+          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+      }
+
+      private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+        metrics.abnormalTerminations
+          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Timeout))
+          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
       private def label(classifier: Option[String]): String = classifier.getOrElse("")
@@ -92,13 +102,26 @@ object Prometheus {
           case _ => "5xx"
         }
 
+      private def reportMethod(m: Method): String = m match {
+        case Method.GET => "get"
+        case Method.PUT => "put"
+        case Method.POST => "post"
+        case Method.HEAD => "head"
+        case Method.MOVE => "move"
+        case Method.OPTIONS => "options"
+        case Method.TRACE => "trace"
+        case Method.CONNECT => "connect"
+        case Method.DELETE => "delete"
+        case _ => "other"
+      }
+
       val metrics =
         ClientMetrics(
           responseDuration = Histogram
             .build()
             .name(prefix + "_" + "response_duration_seconds")
             .help("Response Duration in seconds.")
-            .labelNames("classifier", "code", "response_phase")
+            .labelNames("classifier", "method", "response_phase")
             .register(registry),
           activeRequests = Gauge
             .build()
@@ -110,19 +133,13 @@ object Prometheus {
             .build()
             .name(prefix + "_" + "response_total")
             .help("Total Responses.")
-            .labelNames("classifier", "code")
+            .labelNames("classifier", "method", "status")
             .register(registry),
-          clientErrorsCounter = Counter
+          abnormalTerminations = Histogram
             .build()
-            .name(prefix + "_" + "client_errors_total")
-            .help("Total Client Errors.")
-            .labelNames("classifier")
-            .register(registry),
-          timeoutsCounter = Counter
-            .build()
-            .name(prefix + "_" + "client_timeouts_total")
-            .help("Total Client Timeouts.")
-            .labelNames("classifier")
+            .name(prefix + "_" + "abnormal_terminations")
+            .help("Total Abnormal Terminations.")
+            .labelNames("classifier", "termination_type")
             .register(registry)
         )
     }
@@ -132,8 +149,7 @@ case class ClientMetrics(
     responseDuration: Histogram,
     activeRequests: Gauge,
     responseCounter: Counter,
-    clientErrorsCounter: Counter,
-    timeoutsCounter: Counter
+    abnormalTerminations: Histogram
 )
 
 private sealed trait ResponsePhase
@@ -143,5 +159,15 @@ private object ResponsePhase {
   def report(s: ResponsePhase): String = s match {
     case ResponseReceived => "response_received"
     case BodyProcessed => "body_processed"
+  }
+}
+
+private sealed trait AbnormalTermination
+private object AbnormalTermination {
+  case object Error extends AbnormalTermination
+  case object Timeout extends AbnormalTermination
+  def report(t: AbnormalTermination): String = t match {
+    case Timeout => "timeout"
+    case Error => "error"
   }
 }

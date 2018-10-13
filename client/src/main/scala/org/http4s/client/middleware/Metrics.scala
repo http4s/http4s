@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit
 import org.http4s.{Request, Response}
 import org.http4s.client.Client
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.TerminationType.{Error, Timeout}
 import scala.concurrent.TimeoutException
 
 /**
@@ -44,10 +45,10 @@ object Metrics {
       _ <- Resource.liftF(ops.increaseActiveRequests(classifierF(req)))
       resp <- client.run(req)
       end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
-      _ <- Resource.liftF(ops.recordHeadersTime(resp.status, end - start, classifierF(req)))
+      _ <- Resource.liftF(ops.recordHeadersTime(req.method, end - start, classifierF(req)))
       _ <- Resource.liftF(ops.decreaseActiveRequests(classifierF(req)))
       elapsed <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start))
-      _ <- Resource.liftF(ops.recordTotalTime(resp.status, elapsed, classifierF(req)))
+      _ <- Resource.liftF(ops.recordTotalTime(req.method, resp.status, elapsed, classifierF(req)))
     } yield resp).handleErrorWith { e: Throwable =>
       Resource.liftF[F, Response[F]](
         ops.decreaseActiveRequests(classifierF(req)) *> registerError(ops, classifierF(req))(e) *>
@@ -57,8 +58,8 @@ object Metrics {
 
   private def registerError[F[_]](ops: MetricsOps[F], classifier: Option[String])(e: Throwable): F[Unit] =
     if (e.isInstanceOf[TimeoutException]) {
-      ops.increaseTimeouts(classifier)
+      ops.recordAbnormalTermination(1, Timeout, classifier)
     } else {
-      ops.increaseErrors(classifier)
+      ops.recordAbnormalTermination(1, Error, classifier)
     }
 }

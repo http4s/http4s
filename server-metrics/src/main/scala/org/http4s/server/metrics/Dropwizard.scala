@@ -4,8 +4,8 @@ import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
 import java.util.concurrent.TimeUnit
 import org.http4s.{Method, Status}
-import org.http4s.server.middleware.{MetricsOps, TerminationType}
-import org.http4s.server.middleware.TerminationType.{Abnormal, Error, Timeout}
+import org.http4s.metrics.{MetricsOps, TerminationType}
+import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
 
 object Dropwizard {
 
@@ -37,9 +37,6 @@ object Dropwizard {
         F.delay {
           registry
             .timer(s"${namespace(prefix, classifier)}.requests.total")
-            .update(elapsed, TimeUnit.NANOSECONDS)
-          registry
-            .timer(s"${namespace(prefix, classifier)}.requests")
             .update(elapsed, TimeUnit.NANOSECONDS)
           registry
             .timer(s"${namespace(prefix, classifier)}.${requestTimer(method)}")

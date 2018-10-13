@@ -3,8 +3,10 @@ package org.http4s.metrics.dropwizard
 import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
 import java.util.concurrent.TimeUnit
-import org.http4s.Status
+import org.http4s.{Method, Status}
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.TerminationType
+import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
 
 /**
   * [[MetricsOps]] algebra capable of recording Dropwizard metrics
@@ -39,7 +41,7 @@ object Dropwizard {
       }
 
       override def recordHeadersTime(
-          status: Status,
+          method: Method,
           elapsed: Long,
           classifier: Option[String]): F[Unit] = F.delay {
         registry
@@ -48,6 +50,7 @@ object Dropwizard {
       }
 
       override def recordTotalTime(
+          method: Method,
           status: Status,
           elapsed: Long,
           classifier: Option[String]): F[Unit] =
@@ -55,32 +58,55 @@ object Dropwizard {
           registry
             .timer(s"${namespace(prefix, classifier)}.requests.total")
             .update(elapsed, TimeUnit.NANOSECONDS)
-
-          registerStatusCode(status, classifier)
+          registry
+            .timer(s"${namespace(prefix, classifier)}.${requestTimer(method)}")
+            .update(elapsed, TimeUnit.NANOSECONDS)
+          registerStatusCode(status, elapsed, classifier)
         }
 
-      override def increaseErrors(classifier: Option[String]): F[Unit] = F.delay {
-        registry.counter(s"${namespace(prefix, classifier)}.errors").inc()
+      override def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit] = terminationType match {
+        case Abnormal => F.unit
+        case Error    => recordError(elapsed, classifier)
+        case Timeout  => recordTimeout(elapsed, classifier)
       }
 
-      override def increaseTimeouts(classifier: Option[String]): F[Unit] = F.delay {
-        registry.counter(s"${namespace(prefix, classifier)}.timeouts").inc()
+      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+        registry.timer(s"${namespace(prefix, classifier)}.errors")
+          .update(elapsed, TimeUnit.NANOSECONDS)      }
+
+      private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+        registry.timer(s"${namespace(prefix, classifier)}.timeouts")
+        .update(elapsed, TimeUnit.NANOSECONDS)
       }
 
       private def namespace(prefix: String, classifier: Option[String]): String =
         classifier.map(d => s"${prefix}.${d}").getOrElse(s"${prefix}.default")
 
-      private def registerStatusCode(status: Status, classifier: Option[String]) =
-        status.code match {
+      private def registerStatusCode(status: Status, elapsed: Long, classifier: Option[String]) =
+        (status.code match {
           case hundreds if hundreds < 200 =>
-            registry.counter(s"${namespace(prefix, classifier)}.1xx-responses").inc()
+            registry.timer(s"${namespace(prefix, classifier)}.1xx-responses")
           case twohundreds if twohundreds < 300 =>
-            registry.counter(s"${namespace(prefix, classifier)}.2xx-responses").inc()
+            registry.timer(s"${namespace(prefix, classifier)}.2xx-responses")
           case threehundreds if threehundreds < 400 =>
-            registry.counter(s"${namespace(prefix, classifier)}.3xx-responses").inc()
+            registry.timer(s"${namespace(prefix, classifier)}.3xx-responses")
           case fourhundreds if fourhundreds < 500 =>
-            registry.counter(s"${namespace(prefix, classifier)}.4xx-responses").inc()
-          case _ => registry.counter(s"${namespace(prefix, classifier)}.5xx-responses").inc()
-        }
+            registry.timer(s"${namespace(prefix, classifier)}.4xx-responses")
+          case _ => registry.timer(s"${namespace(prefix, classifier)}.5xx-responses")
+        }).update(elapsed, TimeUnit.NANOSECONDS)
+
+
+      private def requestTimer(method: Method): String = method match {
+        case Method.GET => "get-requests"
+        case Method.POST => "post-requests"
+        case Method.PUT => "put-requests"
+        case Method.HEAD => "head-requests"
+        case Method.MOVE => "move-requests"
+        case Method.OPTIONS => "options-requests"
+        case Method.TRACE => "trace-requests"
+        case Method.CONNECT => "connect-requests"
+        case Method.DELETE => "delete-requests"
+        case _ => "other-requests"
+      }
     }
 }

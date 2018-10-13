@@ -166,6 +166,24 @@ class PrometheusMetricsSpec extends Http4sSpec {
       count(registry, "2xx_headers_duration") must beEqualTo(0.05)
       count(registry, "2xx_total_duration") must beEqualTo(0.1)
     }
+
+    "use the provided request classifier" in {
+      implicit val clock = FakeClock[IO]
+      val classifierFunc = (_: Request[IO]) => Some("classifier")
+      val registry: CollectorRegistry = new CollectorRegistry()
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](ops = Prometheus(registry, "server"), classifierF = classifierFunc)
+      val meteredRoutes = withMetrics(testRoutes)
+      val req = Request[IO](uri = uri("/ok"))
+
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+
+      resp must haveStatus(Status.Ok)
+      resp must haveBody("200 Ok")
+      count(registry, "2xx_responses", "get", "classifier") must beEqualTo(1)
+      count(registry, "active_requests", "get", "classifier") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "get", "classifier") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "get", "classifier") must beEqualTo(0.1)
+    }
   }
 
   def testRoutes =
@@ -185,9 +203,6 @@ class PrometheusMetricsSpec extends Http4sSpec {
         NotFound("404 Not Found")
     }
 
-//  def count(registry: MetricRegistry, counter: Counter): Long = registry.getCounters.get(counter.value).getCount
-//  def count(registry: MetricRegistry, timer: Timer): Long = registry.getTimers.get(timer.value).getCount
-
   def count(registry: CollectorRegistry, name: String, method: String = "get", classifier: String = ""): Double =
     name match {
       case "active_requests" =>
@@ -199,7 +214,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
         registry
           .getSampleValue(
             "server_response_total",
-            Array("classifier", "method", "code"),
+            Array("classifier", "method", "status"),
             Array(classifier, method, "2xx"))
       case "2xx_headers_duration" =>
         registry.getSampleValue(
@@ -215,7 +230,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
         registry
           .getSampleValue(
             "server_response_total",
-            Array("classifier", "method", "code"),
+            Array("classifier", "method", "status"),
             Array(classifier, method, "4xx"))
       case "4xx_headers_duration" =>
         registry.getSampleValue(
@@ -231,7 +246,7 @@ class PrometheusMetricsSpec extends Http4sSpec {
         registry
           .getSampleValue(
             "server_response_total",
-            Array("classifier", "method", "code"),
+            Array("classifier", "method", "status"),
             Array(classifier, method, "5xx"))
       case "5xx_headers_duration" =>
         registry.getSampleValue(

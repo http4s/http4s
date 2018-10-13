@@ -6,8 +6,9 @@ import cats.implicits._
 import fs2.Stream
 import java.util.concurrent.TimeUnit
 import org.http4s._
+import org.http4s.metrics.MetricsOps
 import org.http4s.server.HttpMiddleware
-import org.http4s.server.middleware.TerminationType.{Abnormal, Error}
+import org.http4s.metrics.TerminationType.{Abnormal, Error}
 
 object Metrics {
 
@@ -138,58 +139,4 @@ object Metrics {
       )
       _ <- ops.decreaseActiveRequests(classifier)
     } yield ()
-}
-
-/**
-  * Describes an algebra capable of writing metrics to a metrics registry
-  *
-  */
-trait MetricsOps[F[_]] {
-
-  /**
-    * Increases the count of active requests
-    *
-    * @param classifier the request classifier
-    */
-  def increaseActiveRequests(classifier: Option[String]): F[Unit]
-
-  /**
-    * Decreases the count of active requests
-    *
-    * @param classifier the request classifier
-    */
-  def decreaseActiveRequests(classifier: Option[String]): F[Unit]
-
-  /**
-    * Records the time to receive the response headers
-    *
-    * @param method TODO
-    * @param elapsed the time to record
-    * @param classifier the request classifier
-    * @return
-    */
-  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit]
-
-  /**
-    * Records the time to fully consume the response, including the body
-    *
-    * @param method TODO
-    * @param elapsed the time to record
-    * @param classifier the request classifier
-    * @return
-    */
-  def recordTotalTime(method: Method, status: Status, elapsed: Long, classifier: Option[String]): F[Unit]
-
-  /**
-    * TODO
-    */
-  def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit]
-}
-
-sealed trait TerminationType
-
-object TerminationType {
-  case object Abnormal extends TerminationType
-  case object Error extends TerminationType
-  case object Timeout extends TerminationType
 }
