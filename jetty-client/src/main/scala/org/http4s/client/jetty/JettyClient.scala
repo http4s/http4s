@@ -14,8 +14,8 @@ object JettyClient {
 
   private val logger: Logger = getLogger
 
-  def resource[F[_]](client: HttpClient = new HttpClient())(
-      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
+  def allocate[F[_]](client: HttpClient = new HttpClient())(
+      implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] = {
     val acquire = F
       .pure(client)
       .flatTap(client => F.delay { client.start() })
@@ -37,8 +37,12 @@ object JettyClient {
     val dispose = F
       .delay(client.stop())
       .handleErrorWith(t => F.delay(logger.error(t)("Unable to shut down Jetty client")))
-    Resource.make(acquire)(_ => dispose)
+    acquire.map((_, dispose))
   }
+
+  def resource[F[_]](client: HttpClient = new HttpClient())(
+      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+    Resource(allocate[F](client))
 
   def stream[F[_]](client: HttpClient = new HttpClient())(
       implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
