@@ -14,6 +14,8 @@ trait Responses[F[_]] {
   implicit def http4sSwitchingProtocolsSyntax(
       status: SwitchingProtocols.type): SwitchingProtocolsOps[F] =
     new SwitchingProtocolsOps[F](status)
+  implicit def http4sEarlyHintsSyntax(status: EarlyHints.type): EarlyHintsOps[F] =
+    new EarlyHintsOps[F](status)
   implicit def http4sOkSyntax(status: Ok.type): OkOps[F] = new OkOps[F](status)
 
   implicit def http4sCreatedSyntax(status: Created.type): CreatedOps[F] = new CreatedOps[F](status)
@@ -87,12 +89,15 @@ trait Responses[F[_]] {
     new RangeNotSatisfiableOps[F](status)
   implicit def http4sExpectationFailedSyntax(
       status: ExpectationFailed.type): ExpectationFailedOps[F] = new ExpectationFailedOps[F](status)
+  implicit def http4sMisdirectedRequestSyntax(
+      status: MisdirectedRequest.type): MisdirectedRequestOps[F] = new MisdirectedRequestOps[F](status)
   implicit def http4sUnprocessableEntitySyntax(
       status: UnprocessableEntity.type): UnprocessableEntityOps[F] =
     new UnprocessableEntityOps[F](status)
   implicit def http4sLockedSyntax(status: Locked.type): LockedOps[F] = new LockedOps[F](status)
   implicit def http4sFailedDependencySyntax(status: FailedDependency.type): FailedDependencyOps[F] =
     new FailedDependencyOps[F](status)
+  implicit def http4sTooEarlySyntax(status: TooEarly.type): TooEarlyOps[F] = new TooEarlyOps[F](status)
   implicit def http4sUpgradeRequiredSyntax(status: UpgradeRequired.type): UpgradeRequiredOps[F] =
     new UpgradeRequiredOps[F](status)
   implicit def http4sPreconditionRequiredSyntax(
@@ -144,6 +149,9 @@ object Responses {
   // TODO support Upgrade header
   final class SwitchingProtocolsOps[F[_]](val status: SwitchingProtocols.type)
       extends AnyVal
+      with EmptyResponseGenerator[F]
+  final class EarlyHintsOps[F[_]](val status: EarlyHints.type)
+    extends AnyVal
       with EmptyResponseGenerator[F]
   final class OkOps[F[_]](val status: Ok.type) extends AnyVal with EntityResponseGenerator[F]
 
@@ -255,6 +263,9 @@ object Responses {
   final class ExpectationFailedOps[F[_]](val status: ExpectationFailed.type)
       extends AnyVal
       with EntityResponseGenerator[F]
+  final class MisdirectedRequestOps[F[_]](val status: MisdirectedRequest.type)
+    extends AnyVal
+      with EntityResponseGenerator[F]
   final class UnprocessableEntityOps[F[_]](val status: UnprocessableEntity.type)
       extends AnyVal
       with EntityResponseGenerator[F]
@@ -263,6 +274,9 @@ object Responses {
       with EntityResponseGenerator[F]
   final class FailedDependencyOps[F[_]](val status: FailedDependency.type)
       extends AnyVal
+      with EntityResponseGenerator[F]
+  final class TooEarlyOps[F[_]](val status: TooEarly.type)
+    extends AnyVal
       with EntityResponseGenerator[F]
   // TODO Mandatory upgrade field
   final class UpgradeRequiredOps[F[_]](val status: UpgradeRequired.type)

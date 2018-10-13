@@ -130,6 +130,7 @@ object Status {
   val SwitchingProtocols: Status = register(
     Status(101, "Switching Protocols", isEntityAllowed = false))
   val Processing: Status = register(Status(102, "Processing", isEntityAllowed = false))
+  val EarlyHints: Status = register(Status(103, "Early Hints", isEntityAllowed = false))
 
   val Ok: Status = register(Status(200, "OK"))
   val Created: Status = register(Status(201, "Created"))
@@ -169,9 +170,11 @@ object Status {
   val UnsupportedMediaType: Status = register(Status(415, "Unsupported Media Type"))
   val RangeNotSatisfiable: Status = register(Status(416, "Range Not Satisfiable"))
   val ExpectationFailed: Status = register(Status(417, "Expectation Failed"))
+  val MisdirectedRequest: Status = register(Status(421, "Misdirected Request"))
   val UnprocessableEntity: Status = register(Status(422, "Unprocessable Entity"))
   val Locked: Status = register(Status(423, "Locked"))
   val FailedDependency: Status = register(Status(424, "Failed Dependency"))
+  val TooEarly: Status = register(Status(425, "Too Early"))
   val UpgradeRequired: Status = register(Status(426, "Upgrade Required"))
   val PreconditionRequired: Status = register(Status(428, "Precondition Required"))
   val TooManyRequests: Status = register(Status(429, "Too Many Requests"))
