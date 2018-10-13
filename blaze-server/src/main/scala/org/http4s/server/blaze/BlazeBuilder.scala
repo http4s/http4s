@@ -68,7 +68,7 @@ class BlazeBuilder[F[_]](
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-)(implicit protected val F: ConcurrentEffect[F])
+)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
@@ -209,7 +209,8 @@ class BlazeBuilder[F[_]](
               enableWebSockets,
               maxRequestLineLen,
               maxHeadersLen,
-              serviceErrorHandler
+              serviceErrorHandler,
+              Duration.Inf
             )
 
           def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -220,7 +221,8 @@ class BlazeBuilder[F[_]](
               maxHeadersLen,
               requestAttributes(secure = true),
               executionContext,
-              serviceErrorHandler
+              serviceErrorHandler,
+              Duration.Inf
             )
 
           def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
@@ -325,7 +327,7 @@ class BlazeBuilder[F[_]](
 }
 
 object BlazeBuilder {
-  def apply[F[_]](implicit F: ConcurrentEffect[F]): BlazeBuilder[F] =
+  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,

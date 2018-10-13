@@ -46,7 +46,8 @@ class Http1ServerStageSpec extends Http4sSpec {
       enableWebSockets = true,
       maxReqLine,
       maxHeaders,
-      DefaultServiceErrorHandler)
+      DefaultServiceErrorHandler,
+      30.seconds)
 
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Connected)
