@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# ~~v0.19.1 (2018-10-05)~~
+
+## Enhancements
+* [#2159](https://github.com/http4s/http4s/pull/2159): Set default client request timeout to 1 minute
+* [#2163](https://github.com/http4s/http4s/pull/2163): Add `mapK` to `Request` and `Response`
+* [#2168](https://github.com/http4s/http4s/pull/2168): Add `allocate` to client builders
+
+## Dependency upgrades
+* blaze-0.14.0-M7
+
 # ~~v0.19.0 (2018-10-05)~~
 
 This release is identical to v0.19.0-M4.  We mistagged it.  Please use v0.19.0-M4 instead.  *We reserve the right to break binary compatibility until v0.19.1*.
