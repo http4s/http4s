@@ -2,7 +2,9 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.implicits._
+import java.util.concurrent.TimeUnit
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
@@ -17,12 +19,14 @@ class BlazeClientSpec extends Http4sSpec {
 
   def mkClient(
       maxConnectionsPerRequestKey: Int,
-      responseHeaderTimeout: Duration = 1.minute
-  ) =
+      responseHeaderTimeout: Duration = 1.minute,
+      requestTimeout: Duration = 1.minute
+  )(implicit clock: Clock[IO]) =
     BlazeClientBuilder[IO](testExecutionContext)
       .withSslContext(bits.TrustingSslContext)
       .withCheckEndpointAuthentication(false)
       .withResponseHeaderTimeout(responseHeaderTimeout)
+      .withRequestTimeout(requestTimeout)
       .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
       .resource
 
@@ -144,6 +148,27 @@ class BlazeClientSpec extends Http4sSpec {
             .map(_.right.exists(_.nonEmpty))
             .unsafeToFuture()
           Await.result(resp, 6 seconds) must beTrue
+        }
+
+        "reset request timeout" in {
+          val address = addresses(0)
+          val name = address.getHostName
+          val port = address.getPort
+
+          Ref[IO].of(0L).flatMap { nanos =>
+            implicit val clock: Clock[IO] = new Clock[IO] {
+              def monotonic(unit: TimeUnit) =
+                nanos.get.map(unit.convert(_, TimeUnit.NANOSECONDS))
+              def realTime(unit: TimeUnit) =
+                monotonic(unit)
+            }
+
+            mkClient(1, requestTimeout = 1.second).use { client =>
+              val submit =
+                client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))
+              submit *> nanos.update(_ + 2.seconds.toNanos) *> submit
+            }
+          } must returnValue(Status.Ok)
         }
 
         "drain waiting connections after shutdown" in {

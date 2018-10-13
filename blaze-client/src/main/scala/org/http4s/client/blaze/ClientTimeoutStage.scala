@@ -42,7 +42,8 @@ final private[blaze] class ClientTimeoutStage(
       logger.debug(s"Client stage is disconnecting due to $name timeout after $timeout.")
 
       // check the idle timeout conditions
-      timeoutState.getAndSet(new TimeoutException(s"Client $name timeout after $timeout.")) match {
+      timeoutState.getAndSet(
+        new TimeoutException(s"Client $name timeout after ${timeout.toMillis} ms.")) match {
         case null => // noop
         case c: Cancelable => c.cancel() // this should be the registration of us
         case _: TimeoutException => // Interesting that we got here.

@@ -126,7 +126,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
-  def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
+  def allocate(implicit F: ConcurrentEffect[F], clock: Clock[F]): F[(Client[F], F[Unit])] =
     connectionManager.map {
       case (manager, shutdown) =>
         (
@@ -139,10 +139,10 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
           shutdown)
     }
 
-  def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+  def resource(implicit F: ConcurrentEffect[F], clock: Clock[F]): Resource[F, Client[F]] =
     Resource(allocate)
 
-  def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+  def stream(implicit F: ConcurrentEffect[F], clock: Clock[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
   private def connectionManager(
