@@ -26,38 +26,39 @@ object Metrics {
     * Wraps a [[Client]] with a middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
-    * @param classifier a function that allows to add a classifier that can be customized per request
+    * @param classifierF a function that allows to add a classifier that can be customized per request
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
-  def apply[F[_]](ops: MetricsOps[F], classifier: Request[F] => Option[String] = { _: Request[F] =>
+  def apply[F[_]](ops: MetricsOps[F], classifierF: Request[F] => Option[String] = { _: Request[F] =>
     None
   })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] = {
 
-    def withMetrics(req: Request[F]): Resource[F, Response[F]] =
-      (for {
-        start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
-        _ <- Resource.liftF(ops.increaseActiveRequests(classifier(req)))
-        resp <- client.run(req)
-        end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
-        _ <- Resource.liftF(ops.recordHeadersTime(resp.status, end - start, classifier(req)))
-        _ <- Resource.liftF(ops.decreaseActiveRequests(classifier(req)))
-        elapsed <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start))
-        _ <- Resource.liftF(ops.recordTotalTime(resp.status, elapsed, classifier(req)))
-      } yield resp).handleErrorWith { e: Throwable =>
-        Resource.liftF[F, Response[F]](
-          ops.decreaseActiveRequests(classifier(req)) *> registerError(req, e) *>
-            F.raiseError[Response[F]](e)
-        )
-      }
-
-    def registerError(req: Request[F], e: Throwable): F[Unit] =
-      if (e.isInstanceOf[TimeoutException]) {
-        ops.increaseTimeouts(classifier(req))
-      } else {
-        ops.increaseErrors(classifier(req))
-      }
-
-    Client(withMetrics)
+    Client(withMetrics(client, ops, classifierF))
   }
+
+  private def withMetrics[F[_]](client: Client[F], ops: MetricsOps[F], classifierF: Request[F] => Option[String])(req: Request[F])
+                               (implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
+    (for {
+      start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
+      _ <- Resource.liftF(ops.increaseActiveRequests(classifierF(req)))
+      resp <- client.run(req)
+      end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
+      _ <- Resource.liftF(ops.recordHeadersTime(resp.status, end - start, classifierF(req)))
+      _ <- Resource.liftF(ops.decreaseActiveRequests(classifierF(req)))
+      elapsed <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start))
+      _ <- Resource.liftF(ops.recordTotalTime(resp.status, elapsed, classifierF(req)))
+    } yield resp).handleErrorWith { e: Throwable =>
+      Resource.liftF[F, Response[F]](
+        ops.decreaseActiveRequests(classifierF(req)) *> registerError(ops, classifierF(req))(e) *>
+          F.raiseError[Response[F]](e)
+        )
+    }
+
+  private def registerError[F[_]](ops: MetricsOps[F], classifier: Option[String])(e: Throwable): F[Unit] =
+    if (e.isInstanceOf[TimeoutException]) {
+      ops.increaseTimeouts(classifier)
+    } else {
+      ops.increaseErrors(classifier)
+    }
 }

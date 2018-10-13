@@ -7,6 +7,8 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import org.http4s.{Http4sSpec, HttpRoutes, Request, Response, Status}
 import org.http4s.dsl.io._
+import org.http4s.server.HttpMiddleware
+import org.http4s.server.middleware.Metrics
 import scala.concurrent.duration.TimeUnit
 
 class PrometheusMetricsSpec extends Http4sSpec {
@@ -16,11 +18,11 @@ class PrometheusMetricsSpec extends Http4sSpec {
     "register a 2xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
@@ -33,11 +35,11 @@ class PrometheusMetricsSpec extends Http4sSpec {
     "register a 4xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/bad-request"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.BadRequest)
       resp must haveBody("400 Bad Request")
@@ -50,11 +52,11 @@ class PrometheusMetricsSpec extends Http4sSpec {
     "register a 5xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](uri = uri("/internal-server-error"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.InternalServerError)
       resp must haveBody("500 Internal Server Error")
@@ -67,11 +69,11 @@ class PrometheusMetricsSpec extends Http4sSpec {
     "register a GET request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/ok"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
@@ -84,11 +86,11 @@ class PrometheusMetricsSpec extends Http4sSpec {
     "register a POST request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = POST, uri = uri("/ok"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
@@ -101,11 +103,11 @@ class PrometheusMetricsSpec extends Http4sSpec {
     "register a PUT request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = PUT, uri = uri("/ok"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
@@ -118,11 +120,11 @@ class PrometheusMetricsSpec extends Http4sSpec {
     "register a DELETE request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = DELETE, uri = uri("/ok"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 Ok")
@@ -132,33 +134,37 @@ class PrometheusMetricsSpec extends Http4sSpec {
       count(registry, "2xx_total_duration", "delete") must beEqualTo(0.1)
     }
 
-    "register a server error" in {
+    "register an error" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/service-error"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).attempt.unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).attempt.unsafeRunSync
 
       resp must beLeft
       count(registry, "server_errors") must beEqualTo(1)
       count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "5xx_headers_duration") must beEqualTo(0.05)
+      count(registry, "5xx_total_duration") must beEqualTo(0.1)
     }
 
     "register an abnormal termination" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics = Metrics[IO](Prometheus(registry, "server"))
+      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
       val meteredRoutes = withMetrics(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/abnormal-termination"))
 
-      val resp = meteredRoutes.flatMap(_.orNotFound(req)).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.Ok)
       resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
       count(registry, "abnormal_terminations") must beEqualTo(1)
       count(registry, "active_requests") must beEqualTo(0)
+      count(registry, "2xx_headers_duration") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration") must beEqualTo(0.1)
     }
   }
 
@@ -239,12 +245,12 @@ class PrometheusMetricsSpec extends Http4sSpec {
           Array(classifier, method, "body_phase"))
       case "server_errors" =>
         registry.getSampleValue(
-          "server_abnormal_terminations_total",
+          "server_abnormal_terminations_count",
           Array("classifier", "termination_type"),
           Array(classifier, "server_error"))
       case "abnormal_terminations" =>
         registry.getSampleValue(
-          "server_abnormal_terminations_total",
+          "server_abnormal_terminations_count",
           Array("classifier", "termination_type"),
           Array(classifier, "abnormal_termination"))
     }

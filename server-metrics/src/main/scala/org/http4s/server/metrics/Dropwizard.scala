@@ -4,6 +4,8 @@ import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
 import java.util.concurrent.TimeUnit
 import org.http4s.{Method, Status}
+import org.http4s.server.middleware.{MetricsOps, TerminationType}
+import org.http4s.server.middleware.TerminationType.{Abnormal, Error, Timeout}
 
 object Dropwizard {
 
@@ -24,49 +26,40 @@ object Dropwizard {
         registry.counter(s"${namespace(prefix, classifier)}.active-requests").dec()
       }
 
-      override def increaseRequests(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        registry
-          .timer(s"${namespace(prefix, classifier)}.requests")
-          .update(elapsed, TimeUnit.NANOSECONDS)
-      }
-
-      override def recordHeadersTime(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+      //FIXME: Method not being used
+      override def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         registry
           .timer(s"${namespace(prefix, classifier)}.requests.headers")
           .update(elapsed, TimeUnit.NANOSECONDS)
       }
 
-      //FIXME: Not being used
       override def recordTotalTime(method: Method, status: Status, elapsed: Long, classifier: Option[String]): F[Unit] =
         F.delay {
           registry
             .timer(s"${namespace(prefix, classifier)}.requests.total")
             .update(elapsed, TimeUnit.NANOSECONDS)
-          registerStatusCode(status, elapsed, classifier)
-        }
-
-      override def recordTotalTime(method: Method, elapsed: Long,  classifier: Option[String]): F[Unit] =
-        F.delay {
+          registry
+            .timer(s"${namespace(prefix, classifier)}.requests")
+            .update(elapsed, TimeUnit.NANOSECONDS)
           registry
             .timer(s"${namespace(prefix, classifier)}.${requestTimer(method)}")
             .update(elapsed, TimeUnit.NANOSECONDS)
-        }
-
-      override def recordTotalTime(status: Status, elapsed: Long, classifier: Option[String]): F[Unit] =
-        F.delay {
           registerStatusCode(status, elapsed, classifier)
         }
 
-      override def increaseErrors(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+      override def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit] = terminationType match {
+        case Abnormal => recordAbnormal(elapsed, classifier)
+        case Error    => recordError(elapsed, classifier)
+        case Timeout  => F.unit
+      }
+
+      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         registry
           .timer(s"${namespace(prefix, classifier)}.errors")
           .update(elapsed, TimeUnit.NANOSECONDS)
       }
 
-      override def increaseTimeouts(classifier: Option[String]): F[Unit] = F.delay {
-      }
-
-      override def increaseAbnormalTerminations(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         registry
           .timer(s"${namespace(prefix, classifier)}.abnormal-terminations")
           .update(elapsed, TimeUnit.NANOSECONDS)

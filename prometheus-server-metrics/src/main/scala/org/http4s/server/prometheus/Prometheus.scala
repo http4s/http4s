@@ -3,6 +3,8 @@ package org.http4s.server.prometheus
 import cats.effect.Sync
 import io.prometheus.client._
 import org.http4s.{Method, Status}
+import org.http4s.server.middleware.{TerminationType, MetricsOps}
+import org.http4s.server.middleware.TerminationType.{Abnormal, Error, Timeout}
 
 /**
   * [[MetricsOps]] algebra capable of recording Prometheus metrics
@@ -33,12 +35,6 @@ object Prometheus {
           .dec()
       }
 
-      override def increaseRequests(method: Method, status: Status,classifier: Option[String]): F[Unit] = F.delay {
-        metrics.requestCounter // responseCounter
-          .labels(label(classifier), reportMethod(method), reportStatus(status))
-          .inc()
-      }
-
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
@@ -52,8 +48,10 @@ object Prometheus {
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
+      // FIXME: Status not being used
       override def recordTotalTime(
           method: Method,
+          status: Status,
           elapsed: Long,
           classifier: Option[String]): F[Unit] =
         F.delay {
@@ -64,22 +62,27 @@ object Prometheus {
               ServingPhase.report(ServingPhase.BodyPhase)  // ResponsePhase.report(ResponsePhase.BodyProcessed))
             )
             .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+          metrics.requestCounter // responseCounter
+            .labels(label(classifier), reportMethod(method), reportStatus(status))
+            .inc()
         }
 
-      override def increaseErrors(classifier: Option[String]): F[Unit] = F.delay {
-        metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.ServerError))
-          .inc()
+      override def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit] = terminationType match {
+        case Abnormal => recordAbnormal(elapsed, classifier)
+        case Error    => recordError(elapsed, classifier)
+        case Timeout  => F.unit
       }
 
-      override def increaseTimeouts(classifier: Option[String]): F[Unit] = F.delay {
-        //  no timeouts in server metrics
-      }
-
-      override def increaseAbnormalTerminations(classifier: Option[String]): F[Unit] = F.delay {
+      private  def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
           .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
-          .inc()
+          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+      }
+
+      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+        metrics.abnormalTerminations
+          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.ServerError))
+          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
       private def label(classifier: Option[String]): String = classifier.getOrElse("")
@@ -126,9 +129,9 @@ object Prometheus {
             .help("Total Responses.")
             .labelNames("classifier", "method", "code")
             .register(registry),
-          abnormalTerminations = Counter
+          abnormalTerminations = Histogram
             .build()
-            .name(prefix + "_" + "abnormal_terminations_total")
+            .name(prefix + "_" + "abnormal_terminations")
             .help("Total Abnormal Terminations.")
             .labelNames("classifier", "termination_type")
             .register(registry)
@@ -140,7 +143,7 @@ private final case class ServiceMetrics(
   requestDuration: Histogram,
   activeRequests: Gauge,
   requestCounter: Counter,
-  abnormalTerminations: Counter
+  abnormalTerminations: Histogram
 )
 
 
