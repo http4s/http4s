@@ -126,21 +126,27 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
+  def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
+    connectionManager.map {
+      case (manager, shutdown) =>
+        (
+          BlazeClient.makeClient(
+            manager = manager,
+            responseHeaderTimeout = responseHeaderTimeout,
+            idleTimeout = idleTimeout,
+            requestTimeout = requestTimeout
+          ),
+          shutdown)
+    }
+
   def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    connectionManager.map(
-      manager =>
-        BlazeClient.makeClient(
-          manager = manager,
-          responseHeaderTimeout = responseHeaderTimeout,
-          idleTimeout = idleTimeout,
-          requestTimeout = requestTimeout
-      ))
+    Resource(allocate)
 
   def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
   private def connectionManager(
-      implicit F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
+      implicit F: ConcurrentEffect[F]): F[(ConnectionManager[F, BlazeConnection[F]], F[Unit])] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,
@@ -153,17 +159,17 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       userAgent = userAgent
     ).makeClient
-    Resource.make(
-      ConnectionManager
-        .pool(
-          builder = http1,
-          maxTotal = maxTotalConnections,
-          maxWaitQueueLimit = maxWaitQueueLimit,
-          maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
-          responseHeaderTimeout = responseHeaderTimeout,
-          requestTimeout = requestTimeout,
-          executionContext = executionContext
-        ))(_.shutdown)
+    ConnectionManager
+      .pool(
+        builder = http1,
+        maxTotal = maxTotalConnections,
+        maxWaitQueueLimit = maxWaitQueueLimit,
+        maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
+        responseHeaderTimeout = responseHeaderTimeout,
+        requestTimeout = requestTimeout,
+        executionContext = executionContext
+      )
+      .map(p => (p, p.shutdown))
   }
 }
 
