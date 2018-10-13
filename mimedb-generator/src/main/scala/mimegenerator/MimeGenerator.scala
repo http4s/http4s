@@ -134,7 +134,8 @@ object MimeLoader {
     * This method will dowload the MimeDB and produce a file with generated code for http4s
     */
   def toFile(f: File, topLevelPackge: String, objectName: String, mediaTypeClassName: String)(
-      implicit cs: ContextShift[IO], clock: Clock[IO]): IO[Unit] =
+      implicit cs: ContextShift[IO],
+      clock: Clock[IO]): IO[Unit] =
     (for {
       m <- readMimeDB
       t <- Stream.emit(m.groupBy(_.mainType).toList.sortBy(_._1).map {
