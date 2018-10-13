@@ -224,7 +224,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$21@548693fd
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$21@4fa552a6
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -302,7 +302,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@55014102
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@368092d1
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res11: User = User(Alice)
@@ -355,7 +355,7 @@ case class Hello(greeting: String)
 
 implicit val decoder = jsonOf[IO, User]
 
-val jsonService = HttpRoutes.of[IO] {
+val jsonApp = HttpRoutes.of[IO] {
   case req @ POST -&gt; Root / &quot;hello&quot; =&gt;
     for {
 	  // Decode a User request
@@ -363,13 +363,14 @@ val jsonService = HttpRoutes.of[IO] {
 	  // Encode a hello response
 	  resp &lt;- Ok(Hello(user.name).asJson)
     } yield (resp)
-}
+}.orNotFound
 
-// Provided automatically by `IOApp`
+// Needed by `BlazeServerBuilder`. Provided by `IOApp`.
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 
 import org.http4s.server.blaze._
-val server = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, &quot;/&quot;).resource
+val server = BlazeServerBuilder[IO].bindHttp(8080).withHttpApp(jsonApp).resource
 val fiber = server.use(_ =&gt; IO.never).start.unsafeRunSync()
 </code></pre>
 
