@@ -55,10 +55,12 @@ Wherever you are in your studies, let's create our first
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-You also will need a `ContextShift`.
+You also will need a `ContextShift` and a `Timer`.  These come for
+free if you are in an `IOApp`.
 
 ```tut:book:silent
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 ```
 
 Using the [http4s-dsl], we can construct an `HttpRoutes` by pattern
