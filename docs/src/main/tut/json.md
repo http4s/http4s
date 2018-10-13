@@ -250,7 +250,7 @@ case class Hello(greeting: String)
 
 implicit val decoder = jsonOf[IO, User]
 
-val jsonService = HttpRoutes.of[IO] {
+val jsonApp = HttpRoutes.of[IO] {
   case req @ POST -> Root / "hello" =>
     for {
 	  // Decode a User request
@@ -258,13 +258,14 @@ val jsonService = HttpRoutes.of[IO] {
 	  // Encode a hello response
 	  resp <- Ok(Hello(user.name).asJson)
     } yield (resp)
-}
+}.orNotFound
 
-// Provided automatically by `IOApp`
+// Needed by `BlazeServerBuilder`. Provided by `IOApp`.
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 
 import org.http4s.server.blaze._
-val server = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, "/").resource
+val server = BlazeServerBuilder[IO].bindHttp(8080).withHttpApp(jsonApp).resource
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 

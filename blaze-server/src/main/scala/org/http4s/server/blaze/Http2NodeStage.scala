@@ -2,7 +2,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{Effect, IO, Sync}
+import cats.effect.{ConcurrentEffect, IO, Sync, Timer}
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -16,7 +16,7 @@ import org.http4s.blazecore.util.{End, Http2Writer}
 import org.http4s.syntax.string._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util._
 
 private class Http2NodeStage[F[_]](
@@ -25,11 +25,12 @@ private class Http2NodeStage[F[_]](
     implicit private val executionContext: ExecutionContext,
     attributes: AttributeMap,
     httpApp: HttpApp[F],
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
+    serviceErrorHandler: ServiceErrorHandler[F],
+    responseLineTimeout: Duration)(implicit F: ConcurrentEffect[F], timer: Timer[F])
     extends TailStage[StreamFrame] {
 
   // micro-optimization: unwrap the service and call its .run directly
-  private[this] val serviceFn = httpApp.run
+  private[this] val runApp = httpApp.run
 
   override def name = "Http2NodeStage"
 
@@ -183,7 +184,7 @@ private class Http2NodeStage[F[_]](
       executionContext.execute(new Runnable {
         def run(): Unit = {
           val action = Sync[F]
-            .suspend(serviceFn(req))
+            .suspend(raceTimeout(req))
             .recoverWith(serviceErrorHandler(req))
             .flatMap(renderResponse)
 
@@ -216,4 +217,14 @@ private class Http2NodeStage[F[_]](
       case Left(t) => closePipeline(Some(t))
     }
   }
+
+  private[this] val raceTimeout: Request[F] => F[Response[F]] =
+    responseLineTimeout match {
+      case finite: FiniteDuration =>
+        val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
+        req =>
+          F.race(runApp(req), timeoutResponse).map(_.merge)
+      case _ =>
+        runApp
+    }
 }
