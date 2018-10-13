@@ -54,7 +54,7 @@ object AsyncHttpClient {
     */
   def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
       implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    Resource.make(allocate(config))(_._2).map(_._1)
+    Resource(allocate(config))
 
   /**
     * Create a bracketed HTTP client based on the AsyncHttpClient library.

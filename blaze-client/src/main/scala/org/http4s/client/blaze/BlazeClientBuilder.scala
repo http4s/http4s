@@ -139,10 +139,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
           shutdown)
     }
 
-  def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
-    val clientT: Resource[F, (Client[F], F[Unit])] = Resource.make(allocate)(_._2)
-    clientT.map(t => t._1)
-  }
+  def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+    Resource(allocate)
 
   def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
