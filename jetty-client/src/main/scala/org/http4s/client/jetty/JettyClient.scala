@@ -39,10 +39,10 @@ object JettyClient {
       .handleErrorWith(t => F.delay(logger.error(t)("Unable to shut down Jetty client")))
     acquire.map((_, dispose))
   }
-  
+
   def resource[F[_]](client: HttpClient = new HttpClient())(
-      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = 
-      Resource.make(allocate[F](client))(t => t._2).map(t => t._1)
+      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+    Resource.make(allocate[F](client))(t => t._2).map(t => t._1)
 
   def stream[F[_]](client: HttpClient = new HttpClient())(
       implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =

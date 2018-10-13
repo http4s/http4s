@@ -127,16 +127,18 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     withAsynchronousChannelGroupOption(None)
 
   def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
-    connectionManager.map{
+    connectionManager.map {
       case (manager, shutdown) =>
-        (BlazeClient.makeClient(
-          manager = manager,
-          responseHeaderTimeout = responseHeaderTimeout,
-          idleTimeout = idleTimeout,
-          requestTimeout = requestTimeout
-      ), shutdown)
+        (
+          BlazeClient.makeClient(
+            manager = manager,
+            responseHeaderTimeout = responseHeaderTimeout,
+            idleTimeout = idleTimeout,
+            requestTimeout = requestTimeout
+          ),
+          shutdown)
     }
-  
+
   def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
     val clientT: Resource[F, (Client[F], F[Unit])] = Resource.make(allocate)(_._2)
     clientT.map(t => t._1)
@@ -159,18 +161,17 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       userAgent = userAgent
     ).makeClient
-      ConnectionManager
-        .pool(
-          builder = http1,
-          maxTotal = maxTotalConnections,
-          maxWaitQueueLimit = maxWaitQueueLimit,
-          maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
-          responseHeaderTimeout = responseHeaderTimeout,
-          requestTimeout = requestTimeout,
-          executionContext = executionContext
-        ).map( p =>
-          (p, p.shutdown)
-        )
+    ConnectionManager
+      .pool(
+        builder = http1,
+        maxTotal = maxTotalConnections,
+        maxWaitQueueLimit = maxWaitQueueLimit,
+        maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
+        responseHeaderTimeout = responseHeaderTimeout,
+        requestTimeout = requestTimeout,
+        executionContext = executionContext
+      )
+      .map(p => (p, p.shutdown))
   }
 }
 

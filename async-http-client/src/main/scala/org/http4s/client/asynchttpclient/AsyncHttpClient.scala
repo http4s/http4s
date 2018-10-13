@@ -36,15 +36,15 @@ object AsyncHttpClient {
     * Allocates a Client and its shutdown mechanism for freeing resources.
     */
   def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] = 
-      F.delay(new DefaultAsyncHttpClient(config)).map(c => 
+      implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
+    F.delay(new DefaultAsyncHttpClient(config))
+      .map(c =>
         (Client[F] { req =>
           Resource(F.async[(Response[F], F[Unit])] { cb =>
             c.executeRequest(toAsyncRequest(req), asyncHandler(cb))
             ()
           })
-        }, F.delay(c.close))
-      )
+        }, F.delay(c.close)))
 
   /**
     * Create an HTTP client based on the AsyncHttpClient library
