@@ -16,8 +16,7 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   * import org.http4s.client.middleware.Metrics
   * import org.http4s.client.prometheus.Prometheus
   *
-  * val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-  * val meteredRoutes = withMetrics(testRoutes)
+  * val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
   * }}}
   *
   * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.middleware.Metrics]]
@@ -26,8 +25,8 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   * import org.http4s.client.middleware.Metrics
   * import org.http4s.client.prometheus.Prometheus
   *
-  * requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
-  * val meteredClient = Metrics(Prometheus(registry, "client"), requestMethodClassifier)(client)
+  * val classifierFunc = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+  * val meteredClient = Metrics(Prometheus(registry, "client"), classifierFunc)(client)
   * }}}
   *
   * Registers the following metrics:

@@ -17,18 +17,17 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   * import org.http4s.client.middleware.Metrics
   * import org.http4s.client.dropwizard.Dropwizard
   *
-  * val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
-  * val meteredRoutes = withMetrics(testRoutes)
+  * val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
   * }}}
   *
-  * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.metrics.core.Metrics]]
+  * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.middleware.Metrics]]
   * that records metrics to a given Metric Registry, classifying the metrics by HTTP method.
   * {{{
   * import org.http4s.client.metrics.core.Metrics
   * import org.http4s.client.metrics.dropwizard.Dropwizard
   *
-  * requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
-  * val meteredClient = Metrics(Dropwizard(registry, "client"), requestMethodClassifier)(client)
+  * val classifierFunc = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+  * val meteredClient = Metrics(Dropwizard(registry, "client"), classifierFunc)(client)
   * }}}
   *
   * Registers the following metrics:

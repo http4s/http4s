@@ -5,7 +5,6 @@ import io.prometheus.client.CollectorRegistry
 import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
 import org.http4s.dsl.io._
 import org.http4s.metrics.prometheus.util._
-import org.http4s.server.HttpMiddleware
 import org.http4s.server.middleware.Metrics
 import org.http4s.Method.GET
 
@@ -16,8 +15,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register a 2xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -33,8 +31,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register a 4xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](uri = uri("/bad-request"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -50,8 +47,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register a 5xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](uri = uri("/internal-server-error"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -67,8 +63,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register a GET request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/ok"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -84,8 +79,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register a POST request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](method = POST, uri = uri("/ok"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -101,8 +95,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register a PUT request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](method = PUT, uri = uri("/ok"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -118,8 +111,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register a DELETE request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](method = DELETE, uri = uri("/ok"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -135,8 +127,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register an error" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/error"))
 
       val resp = meteredRoutes.orNotFound(req).attempt.unsafeRunSync
@@ -151,8 +142,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     "register an abnormal termination" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/abnormal-termination"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -169,8 +159,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
       implicit val clock = FakeClock[IO]
       val classifierFunc = (_: Request[IO]) => Some("classifier")
       val registry: CollectorRegistry = new CollectorRegistry()
-      val withMetrics: HttpMiddleware[IO] = Metrics[IO](ops = Prometheus(registry, "server"), classifierF = classifierFunc)
-      val meteredRoutes = withMetrics(testRoutes)
+      val meteredRoutes = Metrics[IO](ops = Prometheus(registry, "server"), classifierF = classifierFunc)(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
@@ -184,6 +173,6 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
     }
   }
 
-  def testRoutes = HttpRoutes.of[IO](stub)
+  private def testRoutes = HttpRoutes.of[IO](stub)
 
 }

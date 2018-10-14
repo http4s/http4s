@@ -7,7 +7,6 @@ import fs2.Stream
 import java.util.concurrent.TimeUnit
 import org.http4s._
 import org.http4s.metrics.MetricsOps
-import org.http4s.server.HttpMiddleware
 import org.http4s.metrics.TerminationType.{Abnormal, Error}
 
 /**
@@ -24,7 +23,7 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error}
 object Metrics {
 
   /**
-    * [[HttpMiddleware]] capable of recording metrics
+    * A server middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
@@ -37,7 +36,7 @@ object Metrics {
     emptyResponseHandler: Option[Status] = Status.NotFound.some,
     errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
     classifierF: Request[F] => Option[String] = { _: Request[F] => None }
-  )(implicit F: Effect[F], clock: Clock[F]): HttpMiddleware[F] = { routes: HttpRoutes[F] =>
+  )(routes: HttpRoutes[F])(implicit F: Effect[F], clock: Clock[F]): HttpRoutes[F] = {
     Kleisli(metricsService[F](ops, routes, emptyResponseHandler, errorResponseHandler, classifierF)(_))
   }
 
