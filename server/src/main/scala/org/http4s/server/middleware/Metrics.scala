@@ -32,13 +32,15 @@ object Metrics {
     * @return the metrics middleware
     */
   def apply[F[_]](
-    ops: MetricsOps[F],
-    emptyResponseHandler: Option[Status] = Status.NotFound.some,
-    errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
-    classifierF: Request[F] => Option[String] = { _: Request[F] => None }
-  )(routes: HttpRoutes[F])(implicit F: Effect[F], clock: Clock[F]): HttpRoutes[F] = {
-    Kleisli(metricsService[F](ops, routes, emptyResponseHandler, errorResponseHandler, classifierF)(_))
-  }
+      ops: MetricsOps[F],
+      emptyResponseHandler: Option[Status] = Status.NotFound.some,
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
+      classifierF: Request[F] => Option[String] = { _: Request[F] =>
+        None
+      }
+  )(routes: HttpRoutes[F])(implicit F: Effect[F], clock: Clock[F]): HttpRoutes[F] =
+    Kleisli(
+      metricsService[F](ops, routes, emptyResponseHandler, errorResponseHandler, classifierF)(_))
 
   private def metricsService[F[_]: Sync](
       ops: MetricsOps[F],
@@ -63,7 +65,13 @@ object Metrics {
             classifierF(req)) *>
             Sync[F].raiseError[Option[Response[F]]](e),
         _.fold(
-          onEmpty[F](req.method, initialTime, headersElapsed, ops, emptyResponseHandler, classifierF(req))
+          onEmpty[F](
+            req.method,
+            initialTime,
+            headersElapsed,
+            ops,
+            emptyResponseHandler,
+            classifierF(req))
             .as(Option.empty[Response[F]])
         )(
           onResponse(req.method, initialTime, headersElapsed, ops, classifierF(req))(_).some.pure[F]
@@ -82,10 +90,10 @@ object Metrics {
   )(implicit clock: Clock[F]): F[Unit] =
     for {
       now <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- emptyResponseHandler.traverse_(status =>
+      _ <- emptyResponseHandler.traverse_(
+        status =>
           ops.recordHeadersTime(method, headerTime - start, classifier) *>
-          ops.recordTotalTime(method, status, now - start, classifier)
-      )
+            ops.recordTotalTime(method, status, now - start, classifier))
       _ <- ops.decreaseActiveRequests(classifier)
     } yield ()
 
@@ -100,9 +108,9 @@ object Metrics {
       .onFinalize {
         for {
           now <- clock.monotonic(TimeUnit.NANOSECONDS)
-          _   <- ops.recordHeadersTime(method, headerTime - start, classifier)
-          _   <- ops.recordTotalTime(method, r.status, now - start, classifier)
-          _   <- ops.decreaseActiveRequests(classifier)
+          _ <- ops.recordHeadersTime(method, headerTime - start, classifier)
+          _ <- ops.recordTotalTime(method, r.status, now - start, classifier)
+          _ <- ops.decreaseActiveRequests(classifier)
         } yield {}
       }
       .handleErrorWith(e =>
@@ -110,8 +118,7 @@ object Metrics {
           now <- Stream.eval(clock.monotonic(TimeUnit.NANOSECONDS))
           _ <- Stream.eval(ops.recordAbnormalTermination(now - start, Abnormal, classifier))
           r <- Stream.raiseError[F](e)
-        } yield r
-      )
+        } yield r)
     r.copy(body = newBody)
   }
 
@@ -125,11 +132,11 @@ object Metrics {
   )(implicit clock: Clock[F]): F[Unit] =
     for {
       now <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- errorResponseHandler.traverse_(status =>
+      _ <- errorResponseHandler.traverse_(
+        status =>
           ops.recordHeadersTime(method, headerTime - start, classifier) *>
-          ops.recordTotalTime(method, status, now - start, classifier) *>
-          ops.recordAbnormalTermination(now - start, Error, classifier)
-      )
+            ops.recordTotalTime(method, status, now - start, classifier) *>
+            ops.recordAbnormalTermination(now - start, Error, classifier))
       _ <- ops.decreaseActiveRequests(classifier)
     } yield ()
 }

@@ -38,7 +38,11 @@ trait MetricsOps[F[_]] {
     * @param elapsed the time to record
     * @param classifier the classifier to apply
     */
-  def recordTotalTime(method: Method, status: Status, elapsed: Long, classifier: Option[String]): F[Unit]
+  def recordTotalTime(
+      method: Method,
+      status: Status,
+      elapsed: Long,
+      classifier: Option[String]): F[Unit]
 
   /**
     * Record abnormal terminations, like errors, timeouts or just other abnormal terminations.
@@ -47,17 +51,23 @@ trait MetricsOps[F[_]] {
     * @param terminationType the type of termination
     * @param classifier the classifier to apply
     */
-  def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit]
+  def recordAbnormalTermination(
+      elapsed: Long,
+      terminationType: TerminationType,
+      classifier: Option[String]): F[Unit]
 }
 
 /** Describes the type of abnormal termination*/
 sealed trait TerminationType
 
 object TerminationType {
+
   /** Signals just a generic abnormal termination */
   case object Abnormal extends TerminationType
+
   /** Signals an abnormal termination due to an error processing the request, either at the server or client side */
   case object Error extends TerminationType
+
   /** Signals a client timing out during a request */
   case object Timeout extends TerminationType
 }

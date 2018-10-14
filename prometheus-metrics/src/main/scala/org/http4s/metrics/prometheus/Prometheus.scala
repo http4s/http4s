@@ -81,10 +81,7 @@ object Prometheus {
           elapsed: Long,
           classifier: Option[String]): F[Unit] = F.delay {
         metrics.responseDuration
-          .labels(
-            label(classifier),
-            reportMethod(method),
-            Phase.report(Phase.Headers))
+          .labels(label(classifier), reportMethod(method), Phase.report(Phase.Headers))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
 
       }
@@ -96,28 +93,27 @@ object Prometheus {
           classifier: Option[String]): F[Unit] =
         F.delay {
           metrics.responseDuration
-            .labels(
-              label(classifier),
-              reportMethod(method),
-              Phase.report(Phase.Body))
+            .labels(label(classifier), reportMethod(method), Phase.report(Phase.Body))
             .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
           metrics.requests
             .labels(label(classifier), reportMethod(method), reportStatus(status))
             .inc()
         }
 
-      override def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit] = terminationType match {
+      override def recordAbnormalTermination(
+          elapsed: Long,
+          terminationType: TerminationType,
+          classifier: Option[String]): F[Unit] = terminationType match {
         case Abnormal => recordAbnormal(elapsed, classifier)
-        case Error    => recordError(elapsed, classifier)
-        case Timeout  => recordTimeout(elapsed, classifier)
+        case Error => recordError(elapsed, classifier)
+        case Timeout => recordTimeout(elapsed, classifier)
       }
 
-      private  def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
           .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
-
 
       private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
@@ -186,10 +182,10 @@ object Prometheus {
 }
 
 case class MetricsCollection(
-  responseDuration: Histogram,
-  activeRequests: Gauge,
-  requests: Counter,
-  abnormalTerminations: Histogram
+    responseDuration: Histogram,
+    activeRequests: Gauge,
+    requests: Counter,
+    abnormalTerminations: Histogram
 )
 
 private sealed trait Phase

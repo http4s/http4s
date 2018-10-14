@@ -175,7 +175,8 @@ class DropwizardServerMetricsSpec extends Http4sSpec {
       implicit val clock = FakeClock[IO]
       val classifierFunc = (_: Request[IO]) => Some("classifier")
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test10")
-      val meteredRoutes =  Metrics[IO](ops = Dropwizard(registry, "server"), classifierF = classifierFunc)(testRoutes)
+      val meteredRoutes =
+        Metrics[IO](ops = Dropwizard(registry, "server"), classifierF = classifierFunc)(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync

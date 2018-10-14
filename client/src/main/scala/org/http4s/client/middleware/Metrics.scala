@@ -32,13 +32,14 @@ object Metrics {
     */
   def apply[F[_]](ops: MetricsOps[F], classifierF: Request[F] => Option[String] = { _: Request[F] =>
     None
-  })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] = {
-
+  })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] =
     Client(withMetrics(client, ops, classifierF))
-  }
 
-  private def withMetrics[F[_]](client: Client[F], ops: MetricsOps[F], classifierF: Request[F] => Option[String])(req: Request[F])
-                               (implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
+  private def withMetrics[F[_]](
+      client: Client[F],
+      ops: MetricsOps[F],
+      classifierF: Request[F] => Option[String])(
+      req: Request[F])(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
     (for {
       start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
       _ <- Resource.liftF(ops.increaseActiveRequests(classifierF(req)))
@@ -52,10 +53,11 @@ object Metrics {
       Resource.liftF[F, Response[F]](
         ops.decreaseActiveRequests(classifierF(req)) *> registerError(ops, classifierF(req))(e) *>
           F.raiseError[Response[F]](e)
-        )
+      )
     }
 
-  private def registerError[F[_]](ops: MetricsOps[F], classifier: Option[String])(e: Throwable): F[Unit] =
+  private def registerError[F[_]](ops: MetricsOps[F], classifier: Option[String])(
+      e: Throwable): F[Unit] =
     if (e.isInstanceOf[TimeoutException]) {
       ops.recordAbnormalTermination(1, Timeout, classifier)
     } else {

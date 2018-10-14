@@ -117,7 +117,8 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test7")
       val meteredClient = Metrics(Dropwizard(registry, "client"))(client)
 
-      val resp = meteredClient.expect[String](Request[IO](DELETE, uri("ok"))).attempt.unsafeRunSync()
+      val resp =
+        meteredClient.expect[String](Request[IO](DELETE, uri("ok"))).attempt.unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
       count(registry, Timer("client.default.delete-requests")) must beEqualTo(1)

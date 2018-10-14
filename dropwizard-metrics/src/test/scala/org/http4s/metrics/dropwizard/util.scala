@@ -4,7 +4,7 @@ import cats.effect.{Clock, IO, Sync}
 import com.codahale.metrics.MetricRegistry
 import fs2.Stream
 import java.io.IOException
-import java.util.concurrent.{TimeoutException, TimeUnit}
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.http4s.{Request, Response}
 import org.http4s.dsl.io._
 import org.http4s.Method.GET

@@ -72,10 +72,10 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
-      count(registry, "2xx_responses", "client","get") must beEqualTo(1)
-      count(registry, "active_requests", "client","get") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "client","get") must beEqualTo(0.05)
-      count(registry, "2xx_total_duration", "client","get") must beEqualTo(0.1)
+      count(registry, "2xx_responses", "client", "get") must beEqualTo(1)
+      count(registry, "active_requests", "client", "get") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "client", "get") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "client", "get") must beEqualTo(0.1)
     }
 
     "register a POST request" in {
@@ -83,13 +83,16 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       val registry: CollectorRegistry = new CollectorRegistry()
       val meteredClient = Metrics(Prometheus(registry, "client"))(client)
 
-      val resp = meteredClient.expect[String](Request[IO](POST, Uri.unsafeFromString("ok"))).attempt.unsafeRunSync()
+      val resp = meteredClient
+        .expect[String](Request[IO](POST, Uri.unsafeFromString("ok")))
+        .attempt
+        .unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
-      count(registry, "2xx_responses", "client","post") must beEqualTo(1)
-      count(registry, "active_requests", "client","post") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "client","post") must beEqualTo(0.05)
-      count(registry, "2xx_total_duration", "client","post") must beEqualTo(0.1)
+      count(registry, "2xx_responses", "client", "post") must beEqualTo(1)
+      count(registry, "active_requests", "client", "post") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "client", "post") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "client", "post") must beEqualTo(0.1)
     }
 
     "register a PUT request" in {
@@ -97,13 +100,16 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       val registry: CollectorRegistry = new CollectorRegistry()
       val meteredClient = Metrics(Prometheus(registry, "client"))(client)
 
-      val resp = meteredClient.expect[String](Request[IO](PUT, Uri.unsafeFromString("ok"))).attempt.unsafeRunSync()
+      val resp = meteredClient
+        .expect[String](Request[IO](PUT, Uri.unsafeFromString("ok")))
+        .attempt
+        .unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
-      count(registry, "2xx_responses", "client","put") must beEqualTo(1)
-      count(registry, "active_requests", "client","put") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "client","put") must beEqualTo(0.05)
-      count(registry, "2xx_total_duration", "client","put") must beEqualTo(0.1)
+      count(registry, "2xx_responses", "client", "put") must beEqualTo(1)
+      count(registry, "active_requests", "client", "put") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "client", "put") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "client", "put") must beEqualTo(0.1)
     }
 
     "register a DELETE request" in {
@@ -111,13 +117,16 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       val registry: CollectorRegistry = new CollectorRegistry()
       val meteredClient = Metrics(Prometheus(registry, "client"))(client)
 
-      val resp = meteredClient.expect[String](Request[IO](DELETE, Uri.unsafeFromString("ok"))).attempt.unsafeRunSync()
+      val resp = meteredClient
+        .expect[String](Request[IO](DELETE, Uri.unsafeFromString("ok")))
+        .attempt
+        .unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
-      count(registry, "2xx_responses", "client","delete") must beEqualTo(1)
-      count(registry, "active_requests", "client","delete") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "client","delete") must beEqualTo(0.05)
-      count(registry, "2xx_total_duration", "client","delete") must beEqualTo(0.1)
+      count(registry, "2xx_responses", "client", "delete") must beEqualTo(1)
+      count(registry, "active_requests", "client", "delete") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "client", "delete") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "client", "delete") must beEqualTo(0.1)
     }
 
     "register an error" in {
@@ -159,10 +168,10 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
-      count(registry, "2xx_responses", "client","get", "classifier") must beEqualTo(1)
-      count(registry, "active_requests", "client","get", "classifier") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "client","get", "classifier") must beEqualTo(0.05)
-      count(registry, "2xx_total_duration", "client","get", "classifier") must beEqualTo(0.1)
+      count(registry, "2xx_responses", "client", "get", "classifier") must beEqualTo(1)
+      count(registry, "active_requests", "client", "get", "classifier") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "client", "get", "classifier") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "client", "get", "classifier") must beEqualTo(0.1)
     }
   }
 

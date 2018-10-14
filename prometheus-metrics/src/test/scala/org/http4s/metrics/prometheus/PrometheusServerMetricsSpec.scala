@@ -102,10 +102,10 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, "2xx_responses", "server","put") must beEqualTo(1)
-      count(registry, "active_requests", "server","put") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "server","put") must beEqualTo(0.05)
-      count(registry, "2xx_total_duration", "server","put") must beEqualTo(0.1)
+      count(registry, "2xx_responses", "server", "put") must beEqualTo(1)
+      count(registry, "active_requests", "server", "put") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "server", "put") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "server", "put") must beEqualTo(0.1)
     }
 
     "register a DELETE request" in {
@@ -118,10 +118,10 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, "2xx_responses", "server","delete") must beEqualTo(1)
-      count(registry, "active_requests", "server","delete") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "server","delete") must beEqualTo(0.05)
-      count(registry, "2xx_total_duration", "server","delete") must beEqualTo(0.1)
+      count(registry, "2xx_responses", "server", "delete") must beEqualTo(1)
+      count(registry, "active_requests", "server", "delete") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "server", "delete") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "server", "delete") must beEqualTo(0.1)
     }
 
     "register an error" in {
@@ -159,17 +159,18 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
       implicit val clock = FakeClock[IO]
       val classifierFunc = (_: Request[IO]) => Some("classifier")
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredRoutes = Metrics[IO](ops = Prometheus(registry, "server"), classifierF = classifierFunc)(testRoutes)
+      val meteredRoutes =
+        Metrics[IO](ops = Prometheus(registry, "server"), classifierF = classifierFunc)(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
       val resp = meteredRoutes.orNotFound(req).unsafeRunSync
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, "2xx_responses", "server","get", "classifier") must beEqualTo(1)
-      count(registry, "active_requests", "server","get", "classifier") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "server","get", "classifier") must beEqualTo(0.05)
-      count(registry, "2xx_total_duration", "server","get", "classifier") must beEqualTo(0.1)
+      count(registry, "2xx_responses", "server", "get", "classifier") must beEqualTo(1)
+      count(registry, "active_requests", "server", "get", "classifier") must beEqualTo(0)
+      count(registry, "2xx_headers_duration", "server", "get", "classifier") must beEqualTo(0.05)
+      count(registry, "2xx_total_duration", "server", "get", "classifier") must beEqualTo(0.1)
     }
   }
 

@@ -97,10 +97,13 @@ object Dropwizard {
           registerStatusCode(status, elapsed, classifier)
         }
 
-      override def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit] = terminationType match {
+      override def recordAbnormalTermination(
+          elapsed: Long,
+          terminationType: TerminationType,
+          classifier: Option[String]): F[Unit] = terminationType match {
         case Abnormal => recordAbnormal(elapsed, classifier)
-        case Error    => recordError(elapsed, classifier)
-        case Timeout  => recordTimeout(elapsed, classifier)
+        case Error => recordError(elapsed, classifier)
+        case Timeout => recordTimeout(elapsed, classifier)
       }
 
       private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
@@ -110,12 +113,15 @@ object Dropwizard {
       }
 
       private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        registry.timer(s"${namespace(prefix, classifier)}.errors")
-          .update(elapsed, TimeUnit.NANOSECONDS)      }
+        registry
+          .timer(s"${namespace(prefix, classifier)}.errors")
+          .update(elapsed, TimeUnit.NANOSECONDS)
+      }
 
       private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        registry.timer(s"${namespace(prefix, classifier)}.timeouts")
-        .update(elapsed, TimeUnit.NANOSECONDS)
+        registry
+          .timer(s"${namespace(prefix, classifier)}.timeouts")
+          .update(elapsed, TimeUnit.NANOSECONDS)
       }
 
       private def namespace(prefix: String, classifier: Option[String]): String =
@@ -133,7 +139,6 @@ object Dropwizard {
             registry.timer(s"${namespace(prefix, classifier)}.4xx-responses")
           case _ => registry.timer(s"${namespace(prefix, classifier)}.5xx-responses")
         }).update(elapsed, TimeUnit.NANOSECONDS)
-
 
       private def requestTimer(method: Method): String = method match {
         case Method.GET => "get-requests"

@@ -4,7 +4,7 @@ import cats.effect.{Clock, IO, Sync}
 import fs2.Stream
 import io.prometheus.client.CollectorRegistry
 import java.io.IOException
-import java.util.concurrent.{TimeoutException, TimeUnit}
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.http4s.{Request, Response}
 import org.http4s.dsl.io._
 import org.http4s.Method.GET
@@ -30,7 +30,12 @@ object util {
       NotFound("404 Not Found")
   }
 
-  def count(registry: CollectorRegistry, name: String, prefix: String, method: String = "get", classifier: String = ""): Double =
+  def count(
+      registry: CollectorRegistry,
+      name: String,
+      prefix: String,
+      method: String = "get",
+      classifier: String = ""): Double =
     name match {
       case "active_requests" =>
         registry.getSampleValue(
