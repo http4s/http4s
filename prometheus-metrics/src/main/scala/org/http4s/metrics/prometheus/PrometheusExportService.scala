@@ -1,12 +1,11 @@
-package org.http4s.server.prometheus
-
-import java.io.StringWriter
+package org.http4s.metrics.prometheus
 
 import cats.effect._
 import cats.implicits._
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot._
+import java.io.StringWriter
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 

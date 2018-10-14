@@ -69,25 +69,20 @@ lazy val serverMetrics = libraryProject("server-metrics")
   )
   .dependsOn(server % "compile;test->test")
 
-lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
-  .settings(
-    description := "Support for Prometheus Metrics on the server",
-    libraryDependencies ++= Seq(
-      prometheusCommon,
-      prometheusHotspot
-    ),
-  )
-  .dependsOn(server % "compile;test->test", theDsl)
-
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
     description := "Support for Prometheus Metrics",
-    libraryDependencies += prometheusClient
+    libraryDependencies ++= Seq(
+      prometheusCommon,
+      prometheusHotspot,
+      prometheusClient
+    ),
   )
   .dependsOn(
     core % "compile->compile",
+    theDsl % "compile->compile",
     testing % "test->test",
-    theDsl % "test->compile",
+    server % "test->compile",
     client % "test->compile"
   )
 lazy val client = libraryProject("client")

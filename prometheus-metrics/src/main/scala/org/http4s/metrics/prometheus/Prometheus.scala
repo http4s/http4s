@@ -10,11 +10,21 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
 /**
   * [[MetricsOps]] algebra capable of recording Prometheus metrics
   *
-  * For example to following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.metrics.core.Metrics]]
-  * that records metrics to a given Metric Registry, classifying the metrics by HTTP method.
+  * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a [[org.http4s.server.middleware.Metrics]]
+  * that records metrics to a given metric registry.
   * {{{
-  * import org.http4s.client.metrics.core.Metrics
-  * import org.http4s.client.metrics.prometheus.Prometheus
+  * import org.http4s.client.middleware.Metrics
+  * import org.http4s.client.prometheus.Prometheus
+  *
+  * val withMetrics: HttpMiddleware[IO] = Metrics[IO](Prometheus(registry, "server"))
+  * val meteredRoutes = withMetrics(testRoutes)
+  * }}}
+  *
+  * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.middleware.Metrics]]
+  * that records metrics to a given metric registry, classifying the metrics by HTTP method.
+  * {{{
+  * import org.http4s.client.middleware.Metrics
+  * import org.http4s.client.prometheus.Prometheus
   *
   * requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
   * val meteredClient = Metrics(Prometheus(registry, "client"), requestMethodClassifier)(client)
@@ -51,7 +61,7 @@ object Prometheus {
           .labels(
             label(classifier),
             reportMethod(method),
-            ResponsePhase.report(ResponsePhase.ResponseReceived))
+            Phase.report(Phase.Headers))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
 
       }
@@ -66,18 +76,25 @@ object Prometheus {
             .labels(
               label(classifier),
               reportMethod(method),
-              ResponsePhase.report(ResponsePhase.BodyProcessed))
+              Phase.report(Phase.Body))
             .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-          metrics.responseCounter
+          metrics.requests
             .labels(label(classifier), reportMethod(method), reportStatus(status))
             .inc()
         }
 
       override def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit] = terminationType match {
-        case Abnormal => F.unit
+        case Abnormal => recordAbnormal(elapsed, classifier)
         case Error    => recordError(elapsed, classifier)
         case Timeout  => recordTimeout(elapsed, classifier)
       }
+
+      private  def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+        metrics.abnormalTerminations
+          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
+          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+      }
+
 
       private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
@@ -116,12 +133,12 @@ object Prometheus {
       }
 
       val metrics =
-        ClientMetrics(
+        MetricsCollection(
           responseDuration = Histogram
             .build()
             .name(prefix + "_" + "response_duration_seconds")
             .help("Response Duration in seconds.")
-            .labelNames("classifier", "method", "response_phase")
+            .labelNames("classifier", "method", "phase")
             .register(registry),
           activeRequests = Gauge
             .build()
@@ -129,10 +146,10 @@ object Prometheus {
             .help("Total Active Requests.")
             .labelNames("classifier")
             .register(registry),
-          responseCounter = Counter
+          requests = Counter
             .build()
-            .name(prefix + "_" + "response_total")
-            .help("Total Responses.")
+            .name(prefix + "_" + "request_count")
+            .help("Total Requests.")
             .labelNames("classifier", "method", "status")
             .register(registry),
           abnormalTerminations = Histogram
@@ -145,28 +162,30 @@ object Prometheus {
     }
 }
 
-case class ClientMetrics(
-    responseDuration: Histogram,
-    activeRequests: Gauge,
-    responseCounter: Counter,
-    abnormalTerminations: Histogram
+case class MetricsCollection(
+  responseDuration: Histogram,
+  activeRequests: Gauge,
+  requests: Counter,
+  abnormalTerminations: Histogram
 )
 
-private sealed trait ResponsePhase
-private object ResponsePhase {
-  case object ResponseReceived extends ResponsePhase
-  case object BodyProcessed extends ResponsePhase
-  def report(s: ResponsePhase): String = s match {
-    case ResponseReceived => "response_received"
-    case BodyProcessed => "body_processed"
+private sealed trait Phase
+private object Phase {
+  case object Headers extends Phase
+  case object Body extends Phase
+  def report(s: Phase): String = s match {
+    case Headers => "headers"
+    case Body => "body"
   }
 }
 
 private sealed trait AbnormalTermination
 private object AbnormalTermination {
+  case object Abnormal extends AbnormalTermination
   case object Error extends AbnormalTermination
   case object Timeout extends AbnormalTermination
   def report(t: AbnormalTermination): String = t match {
+    case Abnormal => "abnormal"
     case Timeout => "timeout"
     case Error => "error"
   }
