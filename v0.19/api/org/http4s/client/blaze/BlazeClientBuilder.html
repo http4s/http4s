@@ -337,9 +337,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.blaze.BlazeClientBuilder#allocate" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="allocate(implicitF:cats.effect.ConcurrentEffect[F]):F[(org.http4s.client.Client[F],F[Unit])]"></a><a id="allocate(ConcurrentEffect[F]):F[(Client[F],F[Unit])]"></a>
+      <a id="allocate(implicitF:cats.effect.ConcurrentEffect[F],implicitclock:cats.effect.Clock[F]):F[(org.http4s.client.Client[F],F[Unit])]"></a><a id="allocate(ConcurrentEffect[F],Clock[F]):F[(Client[F],F[Unit])]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#allocate(implicitF:cats.effect.ConcurrentEffect[F]):F[(org.http4s.client.Client[F],F[Unit])]" title="Permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#allocate(implicitF:cats.effect.ConcurrentEffect[F],implicitclock:cats.effect.Clock[F]):F[(org.http4s.client.Client[F],F[Unit])]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -348,7 +348,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">allocate</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>[(<a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>], <span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>])]</span>
+        <span class="name">allocate</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>, <span name="clock">clock: <span class="extype" name="cats.effect.Clock">Clock</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>[(<a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>], <span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>])]</span>
       </span>
       
       
@@ -866,9 +866,9 @@
       
       
     </li><li name="org.http4s.client.blaze.BlazeClientBuilder#resource" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="resource(implicitF:cats.effect.ConcurrentEffect[F]):cats.effect.Resource[F,org.http4s.client.Client[F]]"></a><a id="resource(ConcurrentEffect[F]):Resource[F,Client[F]]"></a>
+      <a id="resource(implicitF:cats.effect.ConcurrentEffect[F],implicitclock:cats.effect.Clock[F]):cats.effect.Resource[F,org.http4s.client.Client[F]]"></a><a id="resource(ConcurrentEffect[F],Clock[F]):Resource[F,Client[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#resource(implicitF:cats.effect.ConcurrentEffect[F]):cats.effect.Resource[F,org.http4s.client.Client[F]]" title="Permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#resource(implicitF:cats.effect.ConcurrentEffect[F],implicitclock:cats.effect.Clock[F]):cats.effect.Resource[F,org.http4s.client.Client[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -877,7 +877,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">resource</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]]</span>
+        <span class="name">resource</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>, <span name="clock">clock: <span class="extype" name="cats.effect.Clock">Clock</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]]</span>
       </span>
       
       
@@ -914,9 +914,9 @@
       
       
     </li><li name="org.http4s.client.blaze.BlazeClientBuilder#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="stream(implicitF:cats.effect.ConcurrentEffect[F]):fs2.Stream[F,org.http4s.client.Client[F]]"></a><a id="stream(ConcurrentEffect[F]):Stream[F,Client[F]]"></a>
+      <a id="stream(implicitF:cats.effect.ConcurrentEffect[F],implicitclock:cats.effect.Clock[F]):fs2.Stream[F,org.http4s.client.Client[F]]"></a><a id="stream(ConcurrentEffect[F],Clock[F]):Stream[F,Client[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#stream(implicitF:cats.effect.ConcurrentEffect[F]):fs2.Stream[F,org.http4s.client.Client[F]]" title="Permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#stream(implicitF:cats.effect.ConcurrentEffect[F],implicitclock:cats.effect.Clock[F]):fs2.Stream[F,org.http4s.client.Client[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -925,7 +925,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stream</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]]</span>
+        <span class="name">stream</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>, <span name="clock">clock: <span class="extype" name="cats.effect.Clock">Clock</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]]</span>
       </span>
       
       
