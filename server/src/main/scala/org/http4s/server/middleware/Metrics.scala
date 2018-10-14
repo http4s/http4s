@@ -10,34 +10,28 @@ import org.http4s.metrics.MetricsOps
 import org.http4s.server.HttpMiddleware
 import org.http4s.metrics.TerminationType.{Abnormal, Error}
 
+/**
+  * Server middleware to record metrics for the http4s server.
+  *
+  * This middleware will record:
+  * - Number of active requests
+  * - Time duration to send the response headers
+  * - Time duration to send the whole response body
+  * - Time duration of errors and other abnormal terminations
+  *
+  * This middleware can be extended to support any metrics ecosystem by implementing the [[MetricsOps]] type
+  */
 object Metrics {
 
   /**
-    * Metrics --
+    * [[HttpMiddleware]] capable of recording metrics
     *
-    * org_http4s_response_duration_seconds{labels=method,serving_phase} - Histogram
-    *
-    * org_http4s_active_request_count - Gauge
-    *
-    * org_http4s_response_total{labels=method,code} - Counter
-    *
-    * org_http4s_abnormal_terminations_total{labels=termination_type} - Counter
-    *
-    * Labels --
-    *
-    * method: Enumeration
-    * values: get, put, post, head, move, options, trace, connect, delete, other
-    *
-    * serving_phase: Enumeration
-    * values: header_phase, body_phase
-    *
-    * code: Enumeration
-    * values:  1xx, 2xx, 3xx, 4xx, 5xx
-    *
-    * termination_type: Enumeration
-    * values: abnormal_termination, server_error
-    *
-    **/
+    * @param ops a algebra describing the metrics operations
+    * @param emptyResponseHandler an optional http status to be registered for requests that do not match
+    * @param errorResponseHandler a function that maps a [[Throwable]] to an optional http status code to register
+    * @param classifierF a function that allows to add a classifier that can be customized per request
+    * @return the metrics middleware
+    */
   def apply[F[_]](
     ops: MetricsOps[F],
     emptyResponseHandler: Option[Status] = Status.NotFound.some,

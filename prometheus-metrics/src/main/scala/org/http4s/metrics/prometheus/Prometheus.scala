@@ -29,6 +29,30 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   * requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
   * val meteredClient = Metrics(Prometheus(registry, "client"), requestMethodClassifier)(client)
   * }}}
+  *
+  * Registers the following metrics:
+  *
+  * {prefix}_response_duration_seconds{labels=classifier,method,phase} - Histogram
+  *
+  * {prefix}_active_request_count{labels=classifier} - Gauge
+  *
+  * {prefix}_request_count{labels=classifier,method,status} - Counter
+  *
+  * {prefix}_abnormal_terminations{labels=classifier,termination_type} - Histogram
+  *
+  * Labels --
+  *
+  * method: Enumeration
+  * values: get, put, post, head, move, options, trace, connect, delete, other
+  *
+  * phase: Enumeration
+  * values: headers, body
+  *
+  * code: Enumeration
+  * values:  1xx, 2xx, 3xx, 4xx, 5xx
+  *
+  * termination_type: Enumeration
+  * values: abnormal, error, timeout
   */
 object Prometheus {
 

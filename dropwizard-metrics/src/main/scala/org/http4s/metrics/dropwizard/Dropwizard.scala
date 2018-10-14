@@ -11,7 +11,17 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
 /**
   * [[MetricsOps]] algebra capable of recording Dropwizard metrics
   *
-  * For example to following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.metrics.core.Metrics]]
+  * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a [[org.http4s.server.middleware.Metrics]]
+  * that records metrics to a given metric registry.
+  * {{{
+  * import org.http4s.client.middleware.Metrics
+  * import org.http4s.client.dropwizard.Dropwizard
+  *
+  * val withMetrics: HttpMiddleware[IO] = Metrics[IO](Dropwizard(registry, "server"))
+  * val meteredRoutes = withMetrics(testRoutes)
+  * }}}
+  *
+  * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.metrics.core.Metrics]]
   * that records metrics to a given Metric Registry, classifying the metrics by HTTP method.
   * {{{
   * import org.http4s.client.metrics.core.Metrics
@@ -20,6 +30,30 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   * requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
   * val meteredClient = Metrics(Dropwizard(registry, "client"), requestMethodClassifier)(client)
   * }}}
+  *
+  * Registers the following metrics:
+  *
+  * {prefix}.{classifier}.active.requests - Counter
+  * {prefix}.{classifier}.requests.headers - Timer
+  * {prefix}.{classifier}.requests.total - Timer
+  * {prefix}.{classifier}.get-requests - Timer
+  * {prefix}.{classifier}.post-requests - Timer
+  * {prefix}.{classifier}.put-requests - Timer
+  * {prefix}.{classifier}.head-requests - Timer
+  * {prefix}.{classifier}.move-requests - Timer
+  * {prefix}.{classifier}.options-requests - Timer
+  * {prefix}.{classifier}.trace-requests - Timer
+  * {prefix}.{classifier}.connect-requests - Timer
+  * {prefix}.{classifier}.delete-requests - Timer
+  * {prefix}.{classifier}.other-requests - Timer
+  * {prefix}.{classifier}.1xx-responses - Timer
+  * {prefix}.{classifier}.2xx-responses - Timer
+  * {prefix}.{classifier}.3xx-responses - Timer
+  * {prefix}.{classifier}.4xx-responses - Timer
+  * {prefix}.{classifier}.5xx-responses - Timer
+  * {prefix}.{classifier}.errors - Timer
+  * {prefix}.{classifier}.timeouts - Timer
+  * {prefix}.{classifier}.abnormal-terminations - Timer
   */
 object Dropwizard {
 
@@ -65,9 +99,15 @@ object Dropwizard {
         }
 
       override def recordAbnormalTermination(elapsed: Long, terminationType: TerminationType, classifier: Option[String]): F[Unit] = terminationType match {
-        case Abnormal => F.unit
+        case Abnormal => recordAbnormal(elapsed, classifier)
         case Error    => recordError(elapsed, classifier)
         case Timeout  => recordTimeout(elapsed, classifier)
+      }
+
+      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+        registry
+          .timer(s"${namespace(prefix, classifier)}.abnormal-terminations")
+          .update(elapsed, TimeUnit.NANOSECONDS)
       }
 
       private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
