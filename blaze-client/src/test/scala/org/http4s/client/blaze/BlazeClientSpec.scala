@@ -21,7 +21,7 @@ class BlazeClientSpec extends Http4sSpec {
       maxConnectionsPerRequestKey: Int,
       responseHeaderTimeout: Duration = 1.minute,
       requestTimeout: Duration = 1.minute
-  )(implicit clock: Clock[IO]) =
+  )(implicit timer: Timer[IO]) =
     BlazeClientBuilder[IO](testExecutionContext)
       .withSslContext(bits.TrustingSslContext)
       .withCheckEndpointAuthentication(false)
@@ -156,14 +156,17 @@ class BlazeClientSpec extends Http4sSpec {
           val port = address.getPort
 
           Ref[IO].of(0L).flatMap { nanos =>
-            implicit val clock: Clock[IO] = new Clock[IO] {
-              def monotonic(unit: TimeUnit) =
-                nanos.get.map(unit.convert(_, TimeUnit.NANOSECONDS))
-              def realTime(unit: TimeUnit) =
-                monotonic(unit)
+            implicit val testTimer: Timer[IO] = new Timer[IO] {
+              val clock = new Clock[IO] {
+                def monotonic(unit: TimeUnit) =
+                  nanos.get.map(unit.convert(_, TimeUnit.NANOSECONDS))
+                def realTime(unit: TimeUnit) =
+                  monotonic(unit)
+              }
+              def sleep(duration: FiniteDuration) = timer.sleep(duration)
             }
 
-            mkClient(1, requestTimeout = 1.second).use { client =>
+            mkClient(1, requestTimeout = 1.second)(testTimer).use { client =>
               val submit =
                 client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))
               submit *> nanos.update(_ + 2.seconds.toNanos) *> submit
