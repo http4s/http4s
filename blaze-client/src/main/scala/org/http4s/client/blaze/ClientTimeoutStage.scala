@@ -1,4 +1,5 @@
-package org.http4s.client.blaze
+package org.http4s
+package client.blaze
 
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
@@ -14,8 +15,8 @@ import scala.util.{Failure, Success}
 final private[blaze] class ClientTimeoutStage(
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    requestTimeout: Duration,
-    exec: TickWheelExecutor)
+    exec: TickWheelExecutor,
+    timeoutCallback: Callback[TimeoutException])
     extends MidStage[ByteBuffer, ByteBuffer] { stage =>
 
   import ClientTimeoutStage._
@@ -26,55 +27,39 @@ final private[blaze] class ClientTimeoutStage(
   // completion.
   private val activeResponseHeaderTimeout = new AtomicReference[Cancelable](null)
 
-  // The total timeout for the request. Lasts the lifetime of the stage.
-  private val activeReqTimeout = new AtomicReference[Cancelable](null)
-
   // The timeoutState contains a Cancelable, null, or a TimeoutException
   // It will also act as the point of synchronization
   private val timeoutState = new AtomicReference[AnyRef](null)
 
   override def name: String =
-    s"ClientTimeoutStage: Response Header: $responseHeaderTimeout, Idle: $idleTimeout, Request: $requestTimeout"
+    s"ClientTimeoutStage: Response Header: $responseHeaderTimeout, Idle: $idleTimeout"
 
   /////////// Private impl bits //////////////////////////////////////////
   private def killswitch(name: String, timeout: Duration) = new Runnable {
     override def run(): Unit = {
       logger.debug(s"Client stage is disconnecting due to $name timeout after $timeout.")
 
+      val t = new TimeoutException(s"Client $name timeout after ${timeout.toMillis} ms.")
+
+      timeoutCallback(Right(t))
+
       // check the idle timeout conditions
-      timeoutState.getAndSet(
-        new TimeoutException(s"Client $name timeout after ${timeout.toMillis} ms.")) match {
+      timeoutState.getAndSet(t) match {
         case null => // noop
         case c: Cancelable => c.cancel() // this should be the registration of us
         case _: TimeoutException => // Interesting that we got here.
       }
 
       cancelResponseHeaderTimeout()
-
-      // Cancel the active request timeout if it exists
-      activeReqTimeout.getAndSet(Closed) match {
-        case null =>
-          /* We beat the startup. Maybe timeout is 0? */
-          closePipeline(None)
-
-        case Closed => /* Already closed, no need to disconnect */
-
-        case timeout =>
-          timeout.cancel()
-          closePipeline(None)
-      }
     }
   }
 
   private val responseHeaderTimeoutKillswitch = killswitch("response header", responseHeaderTimeout)
   private val idleTimeoutKillswitch = killswitch("idle", idleTimeout)
-  private val requestTimeoutKillswitch = killswitch("request", requestTimeout)
 
   // Startup on creation
 
   /////////// Pass through implementations ////////////////////////////////
-
-  def initialize(): Unit = stageStartup()
 
   override def readRequest(size: Int): Future[ByteBuffer] =
     checkTimeout(channelRead(size))
@@ -89,23 +74,12 @@ final private[blaze] class ClientTimeoutStage(
 
   override protected def stageShutdown(): Unit = {
     cancelTimeout()
-    activeReqTimeout.getAndSet(Closed) match {
-      case null => logger.error("Shouldn't get here.")
-      case timeout => timeout.cancel()
-    }
     super.stageShutdown()
   }
 
-  override protected def stageStartup(): Unit = {
+  override def stageStartup(): Unit = {
     super.stageStartup()
-    val timeout = exec.schedule(requestTimeoutKillswitch, ec, requestTimeout)
-    if (!activeReqTimeout.compareAndSet(null, timeout)) {
-      activeReqTimeout.get() match {
-        case Closed => // NOOP: the timeout already triggered
-        case _ => logger.error("Shouldn't get here.")
-      }
-    } else resetTimeout()
-
+    resetTimeout()
     sendInboundCommand(new EventListener {
       def onResponseHeaderComplete(): Unit = cancelResponseHeaderTimeout()
       def onRequestSendComplete(): Unit = activateResponseHeaderTimeout()
