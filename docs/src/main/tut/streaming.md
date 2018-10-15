@@ -88,13 +88,13 @@ import cats.implicits._
 import fs2.Stream
 import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
+import io.circe.Json
 import jawnfs2._
 import java.util.concurrent.{Executors, ExecutorService}
-import io.circe.Json
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.global
 
-class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F], timer: Timer[F]) {
+class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f = io.circe.jawn.CirceSupportParser.facade
 
