@@ -50,7 +50,8 @@ class ClientTimeoutSpec extends Http4sSpec {
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
       idleTimeout = idleTimeout,
-      requestTimeout = requestTimeout
+      requestTimeout = requestTimeout,
+      scheduler = tickWheel
     )
   }
 

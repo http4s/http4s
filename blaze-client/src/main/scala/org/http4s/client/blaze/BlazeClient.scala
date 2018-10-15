@@ -7,6 +7,7 @@ import cats.implicits._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{IdleTimeoutStage, ResponseHeaderTimeoutStage}
 import org.http4s.util.execution.direct
 import org.log4s.getLogger
@@ -31,14 +32,16 @@ object BlazeClient {
       manager,
       responseHeaderTimeout = config.responseHeaderTimeout,
       idleTimeout = config.idleTimeout,
-      requestTimeout = config.requestTimeout
+      requestTimeout = config.requestTimeout,
+      bits.ClientTickWheel
     )
 
   private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      requestTimeout: Duration
+      requestTimeout: Duration,
+      scheduler: TickWheelExecutor
   )(implicit F: Concurrent[F]) =
     Client[F] { req =>
       Resource.suspend {
@@ -56,7 +59,7 @@ object BlazeClient {
           val res: F[Resource[F, Response[F]]] = {
 
             val idleTimeoutF = F.cancelable[TimeoutException] { cb =>
-              val stage = new IdleTimeoutStage[ByteBuffer](idleTimeout, cb, bits.ClientTickWheel)
+              val stage = new IdleTimeoutStage[ByteBuffer](idleTimeout, cb, scheduler)
               next.connection.spliceBefore(stage)
               stage.stageStartup()
               F.delay(stage.removeStage)
@@ -85,10 +88,8 @@ object BlazeClient {
           }
 
           val responseHeaderTimeoutF = F.cancelable[TimeoutException] { cb =>
-            val stage = new ResponseHeaderTimeoutStage[ByteBuffer](
-              responseHeaderTimeout,
-              cb,
-              bits.ClientTickWheel)
+            val stage =
+              new ResponseHeaderTimeoutStage[ByteBuffer](responseHeaderTimeout, cb, scheduler)
             next.connection.spliceBefore(stage)
             stage.stageStartup()
             F.delay(stage.removeStage)
@@ -106,7 +107,7 @@ object BlazeClient {
             F.racePair(
                 res,
                 F.cancelable[TimeoutException] { cb =>
-                  val c = bits.ClientTickWheel.schedule(new Runnable {
+                  val c = scheduler.schedule(new Runnable {
                     def run() =
                       cb(Right(new TimeoutException(s"Request timeout after ${d.toMillis} ms")))
                   }, direct, d)
