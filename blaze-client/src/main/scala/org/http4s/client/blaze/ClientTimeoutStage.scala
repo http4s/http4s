@@ -10,19 +10,12 @@ import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
-final private[blaze] class ClientTimeoutStage(
-    responseHeaderTimeout: Duration,
-    requestTimeout: Duration,
-    exec: TickWheelExecutor)
+final private[blaze] class ClientTimeoutStage(requestTimeout: Duration, exec: TickWheelExecutor)
     extends MidStage[ByteBuffer, ByteBuffer] { stage =>
 
   import ClientTimeoutStage._
 
   private implicit val ec = org.http4s.blaze.util.Execution.directec
-
-  // The timeout between request body completion and response header
-  // completion.
-  private val activeResponseHeaderTimeout = new AtomicReference[Cancelable](null)
 
   // The total timeout for the request. Lasts the lifetime of the stage.
   private val activeReqTimeout = new AtomicReference[Cancelable](null)
@@ -32,7 +25,7 @@ final private[blaze] class ClientTimeoutStage(
   private val timeoutState = new AtomicReference[AnyRef](null)
 
   override def name: String =
-    s"ClientTimeoutStage: Response Header: $responseHeaderTimeout, Request: $requestTimeout"
+    s"ClientTimeoutStage: Request: $requestTimeout"
 
   /////////// Private impl bits //////////////////////////////////////////
   private def killswitch(name: String, timeout: Duration) = new Runnable {
@@ -46,8 +39,6 @@ final private[blaze] class ClientTimeoutStage(
         case c: Cancelable => c.cancel() // this should be the registration of us
         case _: TimeoutException => // Interesting that we got here.
       }
-
-      cancelResponseHeaderTimeout()
 
       // Cancel the active request timeout if it exists
       activeReqTimeout.getAndSet(Closed) match {
@@ -64,7 +55,6 @@ final private[blaze] class ClientTimeoutStage(
     }
   }
 
-  private val responseHeaderTimeoutKillswitch = killswitch("response header", responseHeaderTimeout)
   private val requestTimeoutKillswitch = killswitch("request", requestTimeout)
 
   // Startup on creation
@@ -101,11 +91,6 @@ final private[blaze] class ClientTimeoutStage(
         case _ => logger.error("Shouldn't get here.")
       }
     }
-
-    sendInboundCommand(new EventListener {
-      def onResponseHeaderComplete(): Unit = cancelResponseHeaderTimeout()
-      def onRequestSendComplete(): Unit = activateResponseHeaderTimeout()
-    })
   }
 
   /////////// Private stuff ////////////////////////////////////////////////
@@ -132,18 +117,6 @@ final private[blaze] class ClientTimeoutStage(
 
     p.future
   }
-
-  private def activateResponseHeaderTimeout(): Unit = {
-    val timeout = exec.schedule(responseHeaderTimeoutKillswitch, ec, responseHeaderTimeout)
-    if (!activeResponseHeaderTimeout.compareAndSet(null, timeout))
-      timeout.cancel()
-  }
-
-  private def cancelResponseHeaderTimeout(): Unit =
-    activeResponseHeaderTimeout.getAndSet(Closed) match {
-      case null => // no-op
-      case timeout => timeout.cancel()
-    }
 }
 
 private[blaze] object ClientTimeoutStage {

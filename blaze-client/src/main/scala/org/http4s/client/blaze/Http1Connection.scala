@@ -2,7 +2,6 @@ package org.http4s
 package client
 package blaze
 
-import cats.ApplicativeError
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
@@ -12,12 +11,11 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.{headers => H}
 import org.http4s.Uri.{Authority, RegName}
-import org.http4s.blaze.pipeline.Command.{EOF, InboundCommand}
+import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
-import org.log4s.getLogger
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -39,8 +37,6 @@ private final class Http1Connection[F[_]](
   override def name: String = getClass.getName
   private val parser =
     new BlazeHttp1ClientParser(maxResponseLineSize, maxHeaderLength, maxChunkSize, parserMode)
-
-  @volatile private var listener: ClientTimeoutStage.EventListener = NullEventListener
 
   private val stageState = new AtomicReference[State](Idle)
 
@@ -145,18 +141,15 @@ private final class Http1Connection[F[_]](
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
-            val idleTimeoutS = Stream.eval_(timeoutFiber.join.flatMap[Nothing](F.raiseError))
+            val idleTimeoutS = timeoutFiber.join.attempt.map {
+              case Right(t) => Left(t): Either[Throwable, Unit]
+              case Left(t) => Left(t): Either[Throwable, Unit]
+            }
 
             val renderTask: F[Boolean] = getChunkEncoder(req, mustClose, rr)
-              .write(rr, req.body)
+              .write(rr, req.body.interruptWhen(idleTimeoutS))
               .recover {
                 case EOF => false
-              }
-              .attempt
-              .flatMap { r =>
-                F.delay(listener.onRequestSendComplete()).flatMap { _ =>
-                  ApplicativeError[F, Throwable].fromEither(r)
-                }
               }
 
             // If we get a pipeline closed, we might still be good. Check response
@@ -184,7 +177,7 @@ private final class Http1Connection[F[_]](
   private def receiveResponse(
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
-      idleTimeoutS: Stream[F, Nothing]): F[Response[F]] =
+      idleTimeoutS: F[Either[Throwable, Unit]]): F[Response[F]] =
     F.async[Response[F]](cb =>
       readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS))
 
@@ -194,7 +187,7 @@ private final class Http1Connection[F[_]](
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
       phase: String,
-      idleTimeoutS: Stream[F, Nothing]): Unit =
+      idleTimeoutS: F[Either[Throwable, Unit]]): Unit =
     channelRead().onComplete {
       case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
       case Failure(EOF) =>
@@ -213,7 +206,7 @@ private final class Http1Connection[F[_]](
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
       cb: Callback[Response[F]],
-      idleTimeoutS: Stream[F, Nothing]): Unit =
+      idleTimeoutS: F[Either[Throwable, Unit]]): Unit =
     try {
       if (!parser.finishedResponseLine(buffer))
         readAndParsePrelude(
@@ -225,8 +218,6 @@ private final class Http1Connection[F[_]](
       else if (!parser.finishedHeaders(buffer))
         readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
       else {
-        listener.onResponseHeaderComplete()
-
         // Get headers and determine if we need to close
         val headers: Headers = parser.getHeaders()
         val status: Status = parser.getStatus()
@@ -303,7 +294,7 @@ private final class Http1Connection[F[_]](
               status = status,
               httpVersion = httpVersion,
               headers = headers,
-              body = body.mergeHaltBoth(idleTimeoutS),
+              body = body.interruptWhen(idleTimeoutS),
               attributes = attributes)
           ))
       }
@@ -348,18 +339,9 @@ private final class Http1Connection[F[_]](
       closeHeader: Boolean,
       rr: StringWriter): Http1Writer[F] =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
-
-  override def inboundCommand(cmd: InboundCommand): Unit = cmd match {
-    case listener: ClientTimeoutStage.EventListener =>
-      this.listener = listener
-    case cmd =>
-      super.inboundCommand(cmd)
-  }
 }
 
 private object Http1Connection {
-  private[this] val logger = getLogger
-
   case object InProgressException extends Exception("Stage has request in progress")
 
   // ADT representing the state that the ClientStage can be in
@@ -388,11 +370,5 @@ private object Http1Connection {
       }
       writer
     } else writer
-  }
-
-  private val NullEventListener = new ClientTimeoutStage.EventListener {
-    def onRequestSendComplete() = logger.warn("Called `onRequestSendComplete()` without a listener")
-    def onResponseHeaderComplete() =
-      logger.warn("Called `onResponseHeaderComplete()` without a listener")
   }
 }
