@@ -4,8 +4,10 @@ package blaze
 
 import cats.effect._
 import cats.implicits._
-import java.util.concurrent.TimeUnit
+import java.nio.ByteBuffer
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.http4s.blaze.pipeline.Command
+import org.http4s.blazecore.IdleTimeoutStage
 import org.log4s.getLogger
 import scala.concurrent.duration._
 
@@ -23,7 +25,7 @@ object BlazeClient {
   def apply[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       config: BlazeClientConfig,
-      onShutdown: F[Unit])(implicit F: Sync[F], clock: Clock[F]): Client[F] =
+      onShutdown: F[Unit])(implicit F: Concurrent[F], clock: Clock[F]): Client[F] =
     makeClient(
       manager,
       responseHeaderTimeout = config.responseHeaderTimeout,
@@ -36,7 +38,7 @@ object BlazeClient {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       requestTimeout: Duration
-  )(implicit F: Sync[F], clock: Clock[F]) =
+  )(implicit F: Concurrent[F], clock: Clock[F]) =
     Client[F] { req =>
       Resource.suspend {
         val key = RequestKey.fromRequest(req)
@@ -55,14 +57,20 @@ object BlazeClient {
             val ts = new ClientTimeoutStage(
               if (elapsed > responseHeaderTimeout) Duration.Zero
               else responseHeaderTimeout - elapsed,
-              idleTimeout,
               if (elapsed > requestTimeout) Duration.Zero else requestTimeout - elapsed,
               bits.ClientTickWheel
             )
             next.connection.spliceBefore(ts)
             ts.initialize()
 
-            next.connection.runRequest(req).attempt.flatMap {
+            val idleTimeoutF = F.cancelable[TimeoutException] { cb =>
+              val stage = new IdleTimeoutStage[ByteBuffer](idleTimeout, cb, bits.ClientTickWheel)
+              next.connection.spliceBefore(stage)
+              stage.stageStartup()
+              F.delay(stage.removeStage)
+            }
+
+            next.connection.runRequest(req, idleTimeoutF).attempt.flatMap {
               case Right(r) =>
                 val dispose = F
                   .delay(ts.removeStage)

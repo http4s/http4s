@@ -29,7 +29,7 @@ final private class Http1Support[F[_]](
     maxChunkSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`]
-)(implicit F: Effect[F]) {
+)(implicit F: ConcurrentEffect[F]) {
 
   // SSLContext.getDefault is effectful and can fail - don't force it until we have to.
   private lazy val sslContext = sslContextOption.getOrElse(SSLContext.getDefault)

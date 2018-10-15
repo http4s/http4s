@@ -3,12 +3,14 @@ package client
 package blaze
 
 import cats.effect._
+import cats.implicits._
 import fs2.Stream
+import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{SeqTestHead, SlowTestHead}
+import org.http4s.blazecore.{QueueTestHead, SeqTestHead, SlowTestHead}
 import org.specs2.specification.core.Fragments
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
@@ -151,18 +153,20 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
       val c = mkClient(h, tail)(requestTimeout = 1.second)
 
-      tail.runRequest(FooRequest).flatMap(_.as[String])
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
     }
 
     "Idle timeout on slow response body" in {
       val tail = mkConnection(FooRequestKey)
       val (f, b) = resp.splitAt(resp.length - 1)
-      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
-      val c = mkClient(h, tail)(idleTimeout = 1.second)
-
-      tail.runRequest(FooRequest).flatMap(_.as[String])
-      c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
+      (for {
+        q <- Queue.unbounded[IO, ByteBuffer]
+        _ <- q.enqueue1(mkBuffer(f))
+        _ <- (timer.sleep(1500.millis) >> q.enqueue1(mkBuffer(b))).start
+        h = new QueueTestHead(q)
+        c = mkClient(h, tail)(idleTimeout = 500.millis)
+        s <- c.fetchAs[String](FooRequest)
+      } yield s).unsafeRunSync() must throwA[TimeoutException]
     }
 
     "Response head timeout on slow header" in {
@@ -182,7 +186,6 @@ class ClientTimeoutSpec extends Http4sSpec {
       // header is split into two chunks, we wait for 10x
       val c = mkClient(h, tail)(responseHeaderTimeout = 1250.millis)
 
-      tail.runRequest(FooRequest).flatMap(_.as[String])
       c.fetchAs[String](FooRequest).unsafeRunSync must_== "done"
     }
   }
