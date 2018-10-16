@@ -3,7 +3,9 @@ package org.http4s
 import cats.effect.{Async, ConcurrentEffect, Effect, IO}
 import cats.implicits._
 import scala.concurrent.ExecutionContext
+import org.http4s.util.execution.direct
 import org.log4s.Logger
+import scala.concurrent.Future
 import scala.util.control.NoStackTrace
 
 package object internal {
@@ -98,4 +100,17 @@ package object internal {
       case HexDecodeException => None
     }
   }
+
+  // Adapted from https://github.com/typelevel/cats-effect/issues/199#issuecomment-401273282
+  private[http4s] def fromFuture[F[_], A](f: F[Future[A]])(implicit F: Async[F]): F[A] =
+    f.flatMap { future =>
+      future.value match {
+        case Some(value) =>
+          F.fromTry(value)
+        case None =>
+          F.async { cb =>
+            future.onComplete(r => cb(r.toEither))(direct)
+          }
+      }
+    }
 }
