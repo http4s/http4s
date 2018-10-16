@@ -125,7 +125,7 @@ implicit val timer: Timer[IO] = IO.timer(global)
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$50354/1847485225@b730cdb)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$49921/790244282@4147fd30)
 
 val server = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(routes, &quot;/&quot;).resource
 // server: cats.effect.Resource[cats.effect.IO,org.http4s.server.Server[cats.effect.IO]] = Allocate(&lt;function1&gt;)
@@ -135,7 +135,7 @@ val server = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService
 running until we cancel the fiber.</p>
 
 <pre><code class="language-scala">val fiber = server.use(_ =&gt; IO.never).start.unsafeRunSync()
-// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$91328952,IO$1910936120)
+// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$2011412180,IO$2100440092)
 </code></pre>
 
 <h3 id="creating-the-client">Creating the client</h3>
@@ -154,7 +154,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   // automatically each time the `IO` is run.
   IO.unit
 }
-// res0: cats.effect.IO[Unit] = IO$1688350652
+// res0: cats.effect.IO[Unit] = IO$1078344494
 </code></pre>
 
 <p>For the remainder of this tut, we&rsquo;ll use an alternate client backend
@@ -179,7 +179,7 @@ val httpClient: Client[IO] = JavaNetClientBuilder(blockingEC).create
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: cats.effect.IO[String] = IO$397845804
+// helloJames: cats.effect.IO[String] = IO$731149577
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -211,7 +211,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = people.parTraverse(hello)
-// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1343481768
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1030726739
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -331,16 +331,16 @@ import com.codahale.metrics.SharedMetricRegistries
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: cats.effect.Clock[cats.effect.IO] = cats.effect.Clock$$anon$1@1e5fbd90
+// clock: cats.effect.Clock[cats.effect.IO] = cats.effect.Clock$$anon$1@3dbe293e
 
 val registry = SharedMetricRegistries.getOrCreate(&quot;default&quot;)
-// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@543f010b
+// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@7f3e611f
 
 val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
-// requestMethodClassifier: org.http4s.Request[cats.effect.IO] =&gt; Some[String] = $$Lambda$50915/1873277167@22e1e9fe
+// requestMethodClassifier: org.http4s.Request[cats.effect.IO] =&gt; Some[String] = $$Lambda$50511/385523111@62b6fd19
 
 val meteredClient = Metrics[IO](Dropwizard(registry, &quot;prefix&quot;), requestMethodClassifier)(httpClient)
-// meteredClient: org.http4s.client.Client[cats.effect.IO] = org.http4s.client.Client$$anon$1@6f5b259a
+// meteredClient: org.http4s.client.Client[cats.effect.IO] = org.http4s.client.Client$$anon$1@53bcbf19
 </code></pre>
 
 <p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
@@ -365,16 +365,16 @@ import io.prometheus.client.CollectorRegistry
 </code></pre>
 
 <pre><code class="language-scala">implicit val clock = Clock.create[IO]
-// clock: cats.effect.Clock[cats.effect.IO] = cats.effect.Clock$$anon$1@6e554e87
+// clock: cats.effect.Clock[cats.effect.IO] = cats.effect.Clock$$anon$1@23554426
 
 val registry = new CollectorRegistry()
-// registry: io.prometheus.client.CollectorRegistry = io.prometheus.client.CollectorRegistry@2d18e3a6
+// registry: io.prometheus.client.CollectorRegistry = io.prometheus.client.CollectorRegistry@c24b4b2
 
 val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
-// requestMethodClassifier: org.http4s.Request[cats.effect.IO] =&gt; Some[String] = $$Lambda$50918/1040621398@5b1ab6fa
+// requestMethodClassifier: org.http4s.Request[cats.effect.IO] =&gt; Some[String] = $$Lambda$50514/1663757453@3ebb699b
 
 val meteredClient = Metrics[IO](Prometheus(registry, &quot;prefix&quot;), requestMethodClassifier)(httpClient)
-// meteredClient: org.http4s.client.Client[cats.effect.IO] = org.http4s.client.Client$$anon$1@74774410
+// meteredClient: org.http4s.client.Client[cats.effect.IO] = org.http4s.client.Client$$anon$1@2ecf929d
 </code></pre>
 
 <p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
@@ -387,7 +387,7 @@ to add a label to every metric based on the <code>Request</code></p>
 <p>You can send a GET by calling the <code>expect</code> method on the client, passing a <code>Uri</code>:</p>
 
 <pre><code class="language-scala">httpClient.expect[String](Uri.uri(&quot;https://google.com/&quot;))
-// res3: cats.effect.IO[String] = IO$1283754205
+// res3: cats.effect.IO[String] = IO$962037598
 </code></pre>
 
 <p>If you need to do something more complicated like setting request headers, you
@@ -406,7 +406,7 @@ import org.http4s.MediaType
 // request: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=GET, uri=https://my-lovely-api.com/, headers=Headers(Authorization: &lt;REDACTED&gt;, Accept: application/json)))
 
 httpClient.expect[String](request)
-// res4: cats.effect.IO[String] = IO$1328621105
+// res4: cats.effect.IO[String] = IO$168509277
 </code></pre>
 
 <h3 id="post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</h3>
@@ -429,7 +429,7 @@ val postRequest = POST(
 // postRequest: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=POST, uri=https://my-lovely-api.com/oauth2/token, headers=Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78)))
 
 httpClient.expect[AuthResponse](postRequest)
-// res6: cats.effect.IO[AuthResponse] = IO$554587604
+// res6: cats.effect.IO[AuthResponse] = IO$1535781429
 </code></pre>
 
 <h2 id="calls-to-a-json-api">Calls to a JSON API</h2>
