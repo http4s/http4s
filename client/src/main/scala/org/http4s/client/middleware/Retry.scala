@@ -10,6 +10,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
+import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -19,7 +20,7 @@ object Retry {
 
   private[this] val logger = getLogger
 
-  def apply[F[_]](policy: RetryPolicy[F])(client: Client[F])(
+  def apply[F[_]](policy: RetryPolicy[F])(client: Client[F])(redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
       implicit F: Effect[F],
       scheduler: Scheduler,
       executionContext: ExecutionContext): Client[F] = {
@@ -30,7 +31,7 @@ object Retry {
           policy(req, Right(dr.response), attempts) match {
             case Some(duration) =>
               logger.info(
-                s"Request ${req} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
               dr.dispose.flatMap(_ =>
                 nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
             case None =>
@@ -45,11 +46,18 @@ object Retry {
               nextAttempt(req, attempts, duration, None)
             case None =>
               logger.info(e)(
-                s"Request $req threw an exception on attempt #$attempts. Giving up."
-              )
+                s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
+              ) 
               F.raiseError[DisposableResponse[F]](e)
           }
       }
+
+    def showRequest(request: Request[F], redactWhen: CaseInsensitiveString => Boolean): String = {
+      val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
+      val url     = request.uri.renderString
+      val method  = request.method
+      s"method=$method uri=$url headers=$headers"
+    }
 
     def nextAttempt(
         req: Request[F],
