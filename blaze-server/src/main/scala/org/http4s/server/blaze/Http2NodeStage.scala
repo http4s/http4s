@@ -26,7 +26,7 @@ private class Http2NodeStage[F[_]](
     attributes: AttributeMap,
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
-    responseLineTimeout: Duration)(implicit F: ConcurrentEffect[F], timer: Timer[F])
+    responseHeaderTimeout: Duration)(implicit F: ConcurrentEffect[F], timer: Timer[F])
     extends TailStage[StreamFrame] {
 
   // micro-optimization: unwrap the service and call its .run directly
@@ -219,7 +219,7 @@ private class Http2NodeStage[F[_]](
   }
 
   private[this] val raceTimeout: Request[F] => F[Response[F]] =
-    responseLineTimeout match {
+    responseHeaderTimeout match {
       case finite: FiniteDuration =>
         val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
         req =>

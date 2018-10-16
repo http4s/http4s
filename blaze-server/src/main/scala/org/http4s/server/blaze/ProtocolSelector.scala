@@ -21,7 +21,7 @@ private[blaze] object ProtocolSelector {
       requestAttributes: AttributeMap,
       executionContext: ExecutionContext,
       serviceErrorHandler: ServiceErrorHandler[F],
-      responseLineTimeout: Duration)(
+      responseHeaderTimeout: Duration)(
       implicit F: ConcurrentEffect[F],
       timer: Timer[F]): ALPNServerSelector = {
 
@@ -35,7 +35,7 @@ private[blaze] object ProtocolSelector {
             requestAttributes,
             httpApp,
             serviceErrorHandler,
-            responseLineTimeout))
+            responseHeaderTimeout))
       }
 
       val localSettings =
@@ -58,7 +58,7 @@ private[blaze] object ProtocolSelector {
         maxRequestLineLen,
         maxHeadersLen,
         serviceErrorHandler,
-        responseLineTimeout
+        responseHeaderTimeout
       )
 
     def preference(protos: Set[String]): String =

@@ -33,7 +33,7 @@ import scala.concurrent.duration._
   * @param socketAddress: Socket Address the server will be mounted at
   * @param executionContext: Execution Context the underlying blaze futures
   *    will be executed upon.
-  * @param responseLineTimeout: Time from when the request is made until a
+  * @param responseHeaderTimeout: Time from when the request is made until a
   *    response line is generated before a 503 response is returned and the
   *    `HttpApp` is canceled
   * @param idleTimeout: Period of Time a connection can remain idle before the
@@ -60,7 +60,7 @@ import scala.concurrent.duration._
 class BlazeServerBuilder[F[_]](
     socketAddress: InetSocketAddress,
     executionContext: ExecutionContext,
-    responseLineTimeout: Duration,
+    responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     isNio2: Boolean,
     connectorPoolSize: Int,
@@ -87,7 +87,7 @@ class BlazeServerBuilder[F[_]](
       socketAddress: InetSocketAddress = socketAddress,
       executionContext: ExecutionContext = executionContext,
       idleTimeout: Duration = idleTimeout,
-      responseLineTimeout: Duration = responseLineTimeout,
+      responseHeaderTimeout: Duration = responseHeaderTimeout,
       isNio2: Boolean = isNio2,
       connectorPoolSize: Int = connectorPoolSize,
       bufferSize: Int = bufferSize,
@@ -103,7 +103,7 @@ class BlazeServerBuilder[F[_]](
     new BlazeServerBuilder(
       socketAddress,
       executionContext,
-      responseLineTimeout,
+      responseHeaderTimeout,
       idleTimeout,
       isNio2,
       connectorPoolSize,
@@ -152,8 +152,8 @@ class BlazeServerBuilder[F[_]](
 
   override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
-  def withResponseLineTimeout(responseLineTimeout: Duration): Self =
-    copy(responseLineTimeout = responseLineTimeout)
+  def withResponseHeaderTimeout(responseHeaderTimeout: Duration): Self =
+    copy(responseHeaderTimeout = responseHeaderTimeout)
 
   def withConnectorPoolSize(size: Int): Self = copy(connectorPoolSize = size)
 
@@ -208,7 +208,7 @@ class BlazeServerBuilder[F[_]](
               maxRequestLineLen,
               maxHeadersLen,
               serviceErrorHandler,
-              responseLineTimeout
+              responseHeaderTimeout
             )
 
           def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -220,7 +220,7 @@ class BlazeServerBuilder[F[_]](
               requestAttributes(secure = true),
               executionContext,
               serviceErrorHandler,
-              responseLineTimeout
+              responseHeaderTimeout
             )
 
           def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
@@ -329,7 +329,7 @@ object BlazeServerBuilder {
     new BlazeServerBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,
-      responseLineTimeout = 1.minute,
+      responseHeaderTimeout = 1.minute,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
       isNio2 = false,
       connectorPoolSize = channel.DefaultPoolSize,
