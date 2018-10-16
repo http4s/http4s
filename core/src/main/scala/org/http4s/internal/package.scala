@@ -6,6 +6,7 @@ import scala.concurrent.ExecutionContext
 import org.http4s.util.execution.direct
 import org.log4s.Logger
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 import scala.util.control.NoStackTrace
 
 package object internal {
@@ -109,7 +110,10 @@ package object internal {
           F.fromTry(value)
         case None =>
           F.async { cb =>
-            future.onComplete(r => cb(r.toEither))(direct)
+            future.onComplete {
+              case Success(a) => cb(Right(a))
+              case Failure(t) => cb(Left(t))
+            }(direct)
           }
       }
     }
