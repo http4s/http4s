@@ -12,7 +12,7 @@ import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.headers.`User-Agent`
-import org.http4s.syntax.async._
+import org.http4s.internal.fromFuture
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
@@ -39,7 +39,7 @@ final private class Http1Support[F[_]](
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
     getAddress(requestKey) match {
-      case Right(a) => F.fromFuture(buildPipeline(requestKey, a))(executionContext)
+      case Right(a) => fromFuture(F.delay(buildPipeline(requestKey, a)))
       case Left(t) => F.raiseError(t)
     }
 
