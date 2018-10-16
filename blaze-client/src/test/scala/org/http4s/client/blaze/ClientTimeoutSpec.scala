@@ -174,7 +174,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val tail = mkConnection(FooRequestKey)
       (for {
         q <- Queue.unbounded[IO, ByteBuffer]
-        _ <- (timer.sleep(1.second) >> q.enqueue1(mkBuffer(resp))).start
+        _ <- (timer.sleep(10.seconds) >> q.enqueue1(mkBuffer(resp))).start
         h = new QueueTestHead(q)
         c = mkClient(h, tail)(responseHeaderTimeout = 500.millis)
         s <- c.fetchAs[String](FooRequest)

@@ -9,6 +9,7 @@ import java.util.concurrent.TimeoutException
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{IdleTimeoutStage, ResponseHeaderTimeoutStage}
+import org.http4s.internal.invokeCallback
 import org.http4s.util.execution.direct
 import org.log4s.getLogger
 import scala.concurrent.duration._
@@ -27,7 +28,7 @@ object BlazeClient {
   def apply[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       config: BlazeClientConfig,
-      onShutdown: F[Unit])(implicit F: Concurrent[F], clock: Clock[F]): Client[F] =
+      onShutdown: F[Unit])(implicit F: ConcurrentEffect[F]): Client[F] =
     makeClient(
       manager,
       responseHeaderTimeout = config.responseHeaderTimeout,
@@ -42,7 +43,7 @@ object BlazeClient {
       idleTimeout: Duration,
       requestTimeout: Duration,
       scheduler: TickWheelExecutor
-  )(implicit F: Concurrent[F]) =
+  )(implicit F: ConcurrentEffect[F]) =
     Client[F] { req =>
       Resource.suspend {
         val key = RequestKey.fromRequest(req)
@@ -109,7 +110,8 @@ object BlazeClient {
                 F.cancelable[TimeoutException] { cb =>
                   val c = scheduler.schedule(new Runnable {
                     def run() =
-                      cb(Right(new TimeoutException(s"Request timeout after ${d.toMillis} ms")))
+                      invokeCallback(logger)(
+                        cb(Right(new TimeoutException(s"Request timeout after ${d.toMillis} ms"))))
                   }, direct, d)
                   F.delay(c.cancel)
                 }
