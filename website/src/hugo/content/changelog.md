@@ -10,10 +10,20 @@ it.
 
 # ~~v0.19.1 (2018-10-05)~~
 
+## Breaking changes
+* [#2159](https://github.com/http4s/http4s/pull/2159): Add a `responseHeaderTimeout` property to `BlazeServerBuilder`. Responses that timeout are completed with `Response.timeout`, which defaults to 503 Service Unavailable.  `BlazeServerBuilder` now requires a `Timer[F]`.
+* [#2177](https://github.com/http4s/http4s/pull/2177): Deprecate `org.http4s.syntax.async`, which was not directly relevant to HTTP.
+
 ## Enhancements
 * [#2159](https://github.com/http4s/http4s/pull/2159): Set default client request timeout to 1 minute
 * [#2163](https://github.com/http4s/http4s/pull/2163): Add `mapK` to `Request` and `Response`
 * [#2168](https://github.com/http4s/http4s/pull/2168): Add `allocate` to client builders
+* [#2174](https://github.com/http4s/http4s/pull/2159): Refactor the blaze-client timeout architecture.
+  * A `TickWheelExecutor` is now allocated per client, instead of globally.
+  * Request rendering and response parsing is now canceled more aggressively on timeout.
+
+## Bug fixes
+* [#2166](https://github.com/http4s/http4s/pull/2166): Fix request timeout calculation in blaze-client to resolve "Client response header timeout after 0 millseconds" error.
 
 ## Dependency upgrades
 * blaze-0.14.0-M7
