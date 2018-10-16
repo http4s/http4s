@@ -12,11 +12,11 @@ import scala.concurrent.duration.Duration
 
 final private[http4s] class ResponseHeaderTimeoutStage[A](
     timeout: Duration,
-    cb: Callback[TimeoutException],
     exec: TickWheelExecutor,
     ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
   private[this] val logger = getLogger
+  @volatile private[this] var cb: Callback[TimeoutException] = null
 
   private val timeoutState = new AtomicReference[Cancelable](NoOpCancelable)
 
@@ -53,6 +53,11 @@ final private[http4s] class ResponseHeaderTimeoutStage[A](
   override def stageStartup(): Unit = {
     super.stageStartup()
     logger.debug(s"Starting response header timeout stage with timeout of ${timeout.toMillis} ms")
+  }
+
+  def init(cb: Callback[TimeoutException]): Unit = {
+    this.cb = cb
+    stageStartup()
   }
 
   private def setTimeout(): Unit = {

@@ -3,6 +3,8 @@ package client
 package blaze
 
 import cats.effect._
+import cats.effect.concurrent._
+import cats.effect.implicits._
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
@@ -90,17 +92,23 @@ object BlazeClient {
             }
           }
 
-          val responseHeaderTimeoutF = F.cancelable[TimeoutException] { cb =>
-            val stage =
-              new ResponseHeaderTimeoutStage[ByteBuffer](responseHeaderTimeout, cb, scheduler, ec)
-            next.connection.spliceBefore(stage)
-            stage.stageStartup()
-            F.delay(stage.removeStage)
-          }
+          Deferred[F, Unit].flatMap { gate =>
+            val responseHeaderTimeoutF =
+              F.delay {
+                  val stage =
+                    new ResponseHeaderTimeoutStage[ByteBuffer](responseHeaderTimeout, scheduler, ec)
+                  next.connection.spliceBefore(stage)
+                  stage
+                }
+                .bracket(stage =>
+                  F.asyncF[TimeoutException] { cb =>
+                    F.delay(stage.init(cb)) >> gate.complete(())
+                })(stage => F.delay(stage.removeStage()))
 
-          F.racePair(res, responseHeaderTimeoutF).flatMap {
-            case Left((r, fiber)) => fiber.cancel.as(r)
-            case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+            F.racePair(gate.get *> res, responseHeaderTimeoutF).flatMap {
+              case Left((r, fiber)) => fiber.cancel.as(r)
+              case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+            }
           }
         }
 
