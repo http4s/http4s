@@ -56,7 +56,6 @@ abstract class ExecutionSpec extends Specification with ErrorReportingUtils {
     "submit a failing job" in {
       val i = 0
 
-
       silenceSystemErr {
         submit {
           sys.error("Boom")
