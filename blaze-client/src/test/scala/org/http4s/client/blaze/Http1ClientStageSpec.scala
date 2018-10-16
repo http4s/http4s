@@ -52,7 +52,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       LeafBuilder(stage).base(h)
 
       for {
-        resp <- stage.runRequest(req)
+        resp <- stage.runRequest(req, IO.never)
         t <- f(resp)
         _ <- IO(stage.shutdown())
       } yield t
@@ -73,7 +73,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
     val result = new String(
       stage
-        .runRequest(req)
+        .runRequest(req, IO.never)
         .unsafeRunSync()
         .body
         .compile
@@ -126,9 +126,11 @@ class Http1ClientStageSpec extends Http4sSpec {
       LeafBuilder(tail).base(h)
 
       try {
-        tail.runRequest(FooRequest).unsafeRunAsync { case Right(_) => (); case Left(_) => () } // we remain in the body
+        tail.runRequest(FooRequest, IO.never).unsafeRunAsync {
+          case Right(_) => (); case Left(_) => ()
+        } // we remain in the body
         tail
-          .runRequest(FooRequest)
+          .runRequest(FooRequest, IO.never)
           .unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
       } finally {
         tail.shutdown()
@@ -142,9 +144,9 @@ class Http1ClientStageSpec extends Http4sSpec {
         LeafBuilder(tail).base(h)
 
         // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest).unsafeRunSync().body.compile.drain.unsafeRunSync()
+        tail.runRequest(FooRequest, IO.never).unsafeRunSync().body.compile.drain.unsafeRunSync()
 
-        val result = tail.runRequest(FooRequest).unsafeRunSync()
+        val result = tail.runRequest(FooRequest, IO.never).unsafeRunSync()
         tail.shutdown()
 
         result.headers.size must_== 1
@@ -161,7 +163,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         val h = new SeqTestHead(List(mkBuffer(resp)))
         LeafBuilder(tail).base(h)
 
-        val result = tail.runRequest(FooRequest).unsafeRunSync()
+        val result = tail.runRequest(FooRequest, IO.never).unsafeRunSync()
 
         result.body.compile.drain.unsafeRunSync() must throwA[InvalidBodyException]
       } finally {
@@ -263,7 +265,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         val h = new SeqTestHead(List(mkBuffer(resp)))
         LeafBuilder(tail).base(h)
 
-        val response = tail.runRequest(headRequest).unsafeRunSync()
+        val response = tail.runRequest(headRequest, IO.never).unsafeRunSync()
         response.contentLength must beSome(contentLength)
 
         // connection reusable immediately after headers read

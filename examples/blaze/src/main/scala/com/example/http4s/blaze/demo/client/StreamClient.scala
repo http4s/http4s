@@ -1,6 +1,6 @@
 package com.example.http4s.blaze.demo.client
 
-import cats.effect.{Clock, ConcurrentEffect, ExitCode, IO, IOApp}
+import cats.effect.{ConcurrentEffect, ExitCode, IO, IOApp}
 import com.example.http4s.blaze.demo.StreamUtils
 import cats.implicits._
 import io.circe.Json
@@ -14,7 +14,7 @@ object StreamClient extends IOApp {
     new HttpClient[IO].run.as(ExitCode.Success)
 }
 
-class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F], clock: Clock[F]) {
+class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F]) {
   implicit val jsonFacade: RawFacade[Json] = io.circe.jawn.CirceSupportParser.facade
 
   def run: F[Unit] =

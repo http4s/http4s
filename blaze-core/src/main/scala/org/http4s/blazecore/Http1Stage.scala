@@ -173,7 +173,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
         def go(): Unit =
           try {
             val parseResult = doParseContent(currentBuffer)
-            logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
+            logger.debug(s"Parse result: $parseResult, content complete: ${contentComplete()}")
             parseResult match {
               case Some(result) =>
                 cb(Either.right(Chunk.byteBuffer(result).some))

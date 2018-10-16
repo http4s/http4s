@@ -1,6 +1,8 @@
 package org.http4s
 package blazecore
 
+import cats.effect.IO
+import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
@@ -54,6 +56,22 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
       sendInboundCommand(Disconnected)
       Future.failed(EOF)
     }
+  }
+}
+
+final class QueueTestHead(queue: Queue[IO, ByteBuffer]) extends TestHead("QueueTestHead") {
+  private val closedP = Promise[Nothing]
+
+  override def readRequest(size: Int): Future[ByteBuffer] = {
+    val p = Promise[ByteBuffer]
+    p.tryCompleteWith(queue.dequeue1.unsafeToFuture)
+    p.tryCompleteWith(closedP.future)
+    p.future
+  }
+
+  override def stageShutdown(): Unit = {
+    closedP.tryFailure(EOF)
+    super.stageShutdown()
   }
 }
 
