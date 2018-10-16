@@ -31,7 +31,7 @@ private[blaze] object Http1ServerStage {
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
       serviceErrorHandler: ServiceErrorHandler[F],
-      responseLineTimeout: Duration)(
+      responseHeaderTimeout: Duration)(
       implicit F: ConcurrentEffect[F],
       timer: Timer[F]): Http1ServerStage[F] =
     if (enableWebSockets)
@@ -42,7 +42,7 @@ private[blaze] object Http1ServerStage {
         maxRequestLineLen,
         maxHeadersLen,
         serviceErrorHandler,
-        responseLineTimeout) with WebSocketSupport[F]
+        responseHeaderTimeout) with WebSocketSupport[F]
     else
       new Http1ServerStage(
         routes,
@@ -51,7 +51,7 @@ private[blaze] object Http1ServerStage {
         maxRequestLineLen,
         maxHeadersLen,
         serviceErrorHandler,
-        responseLineTimeout)
+        responseHeaderTimeout)
 }
 
 private[blaze] class Http1ServerStage[F[_]](
@@ -61,7 +61,7 @@ private[blaze] class Http1ServerStage[F[_]](
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
     serviceErrorHandler: ServiceErrorHandler[F],
-    responseLineTimeout: Duration)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+    responseHeaderTimeout: Duration)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
@@ -289,7 +289,7 @@ private[blaze] class Http1ServerStage[F[_]](
   }
 
   private[this] val raceTimeout: Request[F] => F[Response[F]] =
-    responseLineTimeout match {
+    responseHeaderTimeout match {
       case finite: FiniteDuration =>
         val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
         req =>

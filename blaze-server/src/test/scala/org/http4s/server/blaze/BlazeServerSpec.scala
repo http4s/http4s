@@ -13,7 +13,7 @@ class BlazeServerSpec extends Http4sSpec {
 
   def builder =
     BlazeServerBuilder[IO]
-      .withResponseLineTimeout(1.second)
+      .withResponseHeaderTimeout(1.second)
       .withExecutionContext(testExecutionContext)
 
   val service: HttpApp[IO] = HttpApp {
