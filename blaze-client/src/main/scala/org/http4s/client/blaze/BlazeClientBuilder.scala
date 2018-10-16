@@ -139,7 +139,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
                 responseHeaderTimeout = responseHeaderTimeout,
                 idleTimeout = idleTimeout,
                 requestTimeout = requestTimeout,
-                scheduler = scheduler
+                scheduler = scheduler,
+                ec = executionContext
               ),
               shutdown.guarantee(shutdownS)
             )

@@ -7,13 +7,14 @@ import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
 import org.log4s.getLogger
 import scala.annotation.tailrec
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 
 final private[http4s] class ResponseHeaderTimeoutStage[A](
     timeout: Duration,
     cb: Callback[TimeoutException],
-    exec: TickWheelExecutor)
+    exec: TickWheelExecutor,
+    ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
   private[this] val logger = getLogger
 
@@ -59,7 +60,7 @@ final private[http4s] class ResponseHeaderTimeoutStage[A](
     def go(): Unit = {
       val prev = timeoutState.get()
       if (prev == NoOpCancelable) {
-        val next = exec.schedule(killSwitch, timeout)
+        val next = exec.schedule(killSwitch, ec, timeout)
         if (!timeoutState.compareAndSet(prev, next)) {
           next.cancel()
           go()

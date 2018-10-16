@@ -9,9 +9,8 @@ import java.util.concurrent.TimeoutException
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{IdleTimeoutStage, ResponseHeaderTimeoutStage}
-import org.http4s.internal.invokeCallback
-import org.http4s.util.execution.direct
 import org.log4s.getLogger
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 /** Blaze client implementation */
@@ -28,13 +27,15 @@ object BlazeClient {
   def apply[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       config: BlazeClientConfig,
-      onShutdown: F[Unit])(implicit F: ConcurrentEffect[F]): Client[F] =
+      onShutdown: F[Unit],
+      ec: ExecutionContext)(implicit F: ConcurrentEffect[F]): Client[F] =
     makeClient(
       manager,
       responseHeaderTimeout = config.responseHeaderTimeout,
       idleTimeout = config.idleTimeout,
       requestTimeout = config.requestTimeout,
-      bits.ClientTickWheel
+      scheduler = bits.ClientTickWheel,
+      ec = ec
     )
 
   private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
@@ -42,7 +43,8 @@ object BlazeClient {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       requestTimeout: Duration,
-      scheduler: TickWheelExecutor
+      scheduler: TickWheelExecutor,
+      ec: ExecutionContext
   )(implicit F: ConcurrentEffect[F]) =
     Client[F] { req =>
       Resource.suspend {
@@ -60,7 +62,7 @@ object BlazeClient {
           val res: F[Resource[F, Response[F]]] = {
 
             val idleTimeoutF = F.cancelable[TimeoutException] { cb =>
-              val stage = new IdleTimeoutStage[ByteBuffer](idleTimeout, cb, scheduler)
+              val stage = new IdleTimeoutStage[ByteBuffer](idleTimeout, cb, scheduler, ec)
               next.connection.spliceBefore(stage)
               stage.stageStartup()
               F.delay(stage.removeStage)
@@ -90,7 +92,7 @@ object BlazeClient {
 
           val responseHeaderTimeoutF = F.cancelable[TimeoutException] { cb =>
             val stage =
-              new ResponseHeaderTimeoutStage[ByteBuffer](responseHeaderTimeout, cb, scheduler)
+              new ResponseHeaderTimeoutStage[ByteBuffer](responseHeaderTimeout, cb, scheduler, ec)
             next.connection.spliceBefore(stage)
             stage.stageStartup()
             F.delay(stage.removeStage)
@@ -110,9 +112,8 @@ object BlazeClient {
                 F.cancelable[TimeoutException] { cb =>
                   val c = scheduler.schedule(new Runnable {
                     def run() =
-                      invokeCallback(logger)(
-                        cb(Right(new TimeoutException(s"Request timeout after ${d.toMillis} ms"))))
-                  }, direct, d)
+                      cb(Right(new TimeoutException(s"Request timeout after ${d.toMillis} ms")))
+                  }, ec, d)
                   F.delay(c.cancel)
                 }
               )

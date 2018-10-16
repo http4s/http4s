@@ -6,13 +6,14 @@ import java.util.concurrent.atomic.{AtomicReference}
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
 import org.log4s.getLogger
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 
 final private[http4s] class IdleTimeoutStage[A](
     timeout: Duration,
     cb: Callback[TimeoutException],
-    exec: TickWheelExecutor)
+    exec: TickWheelExecutor,
+    ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
   private[this] val logger = getLogger
 
@@ -61,7 +62,7 @@ final private[http4s] class IdleTimeoutStage[A](
   }
 
   private def resetTimeout(): Unit =
-    setAndCancel(exec.schedule(killSwitch, timeout))
+    setAndCancel(exec.schedule(killSwitch, ec, timeout))
 
   private def cancelTimeout(): Unit =
     setAndCancel(NoOpCancelable)

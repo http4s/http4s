@@ -4,6 +4,7 @@ package blaze
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
+import java.util.concurrent.TimeoutException
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
@@ -61,7 +62,6 @@ class BlazeClientSpec extends Http4sSpec {
         mkClient(0),
         mkClient(1),
         mkClient(3),
-        mkClient(1, 2.seconds),
         mkClient(1, 20.seconds),
         JettyScaffold[IO](5, false, testServlet),
         JettyScaffold[IO](1, true, testServlet)
@@ -70,7 +70,6 @@ class BlazeClientSpec extends Http4sSpec {
           failClient,
           successClient,
           client,
-          failTimeClient,
           successTimeClient,
           jettyServer,
           jettySslServer
@@ -112,41 +111,32 @@ class BlazeClientSpec extends Http4sSpec {
             .forall(_.contains(true)) must beTrue
         }
 
-        "obey response line timeout" in {
+        "obey response header timeout" in {
           val address = addresses(0)
           val name = address.getHostName
           val port = address.getPort
-          failTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .unsafeToFuture()
-          failTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .unsafeToFuture()
-          val resp = failTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .map(_.right.exists(_.nonEmpty))
-            .unsafeToFuture()
-          Await.result(resp, 6 seconds) must beFalse
+          mkClient(1, responseHeaderTimeout = 100.millis)
+            .use { client =>
+              val submit = client.expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+              submit
+            }
+            .unsafeRunSync() must throwA[TimeoutException]
         }
 
         "unblock waiting connections" in {
           val address = addresses(0)
           val name = address.getHostName
           val port = address.getPort
-          successTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .unsafeToFuture()
-
-          val resp = successTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .map(_.right.exists(_.nonEmpty))
-            .unsafeToFuture()
-          Await.result(resp, 6 seconds) must beTrue
+          mkClient(1)
+            .use { client =>
+              val submit = successTimeClient
+                .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+              for {
+                _ <- submit.start
+                r <- submit.attempt
+              } yield r
+            }
+            .unsafeRunSync() must beRight
         }
 
         "reset request timeout" in {
