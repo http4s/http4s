@@ -35,8 +35,8 @@ class TimeoutSpec extends Http4sSpec {
       checkStatus(app(fastReq), Status.Ok)
     }
 
-    "return a 500 error if the result takes too long" in {
-      checkStatus(app(neverReq), Status.InternalServerError)
+    "return a 503 error if the result takes too long" in {
+      checkStatus(app(neverReq), Status.ServiceUnavailable)
     }
 
     "return the provided response if the result takes too long" in {
@@ -52,7 +52,7 @@ class TimeoutSpec extends Http4sSpec {
           IO.never.guarantee(IO(canceled.set(true)))
       }
       val app = Timeout(1.millis)(routes).orNotFound
-      checkStatus(app(Request[IO]()), InternalServerError)
+      checkStatus(app(Request[IO]()), Status.ServiceUnavailable)
       // Give the losing response enough time to finish
       canceled.get must beTrue.eventually
     }
