@@ -137,10 +137,13 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
+    dependencyUpdatesFilter -= moduleFilter(organization = "co.fs2"), // fs2-1.0 is incompatible with fs2-0.10
     dependencyUpdatesFilter -= moduleFilter(organization = "com.github.zainab-ali", name = "fs2-reactive-streams"), // fs2-reactive-streams-0.5 is incompatible with fs2-0.10
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.circe"), // circe-0.10 is incompatible with circe-0.9
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", name = "async-http-client"), // asynchttpclient-2.2 is incompatible with http4s-0.18
     dependencyUpdatesFilter -= moduleFilter(organization = "org.http4s", name = "blaze-http"), // blaze-0.13 dropped websocket support
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.http4s", name = "jawn-fs2"), // jawn-fs2-0.13 is incompatible with jawn-0.11
     dependencyUpdatesFilter -= moduleFilter(organization = "org.json4s"), // json4s-3.6 is not binary compatible with json4s-3.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang.modules", name = "scala-xml"), // scala-xml-1.1 is (arguably) incompatible with http4s-0.18
@@ -274,7 +277,7 @@ object Http4sPlugin extends AutoPlugin {
     case "2.12" => "2.6.10"
   }
 
-  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
+  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.39"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.13"
@@ -312,7 +315,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.3"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.22.0"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.23.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
   def playJson(sbv: String)                 = "com.typesafe.play"      %% "play-json"                 % playJsonVersion(sbv)
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.5.0"
