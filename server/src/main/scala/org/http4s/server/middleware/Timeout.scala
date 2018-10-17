@@ -40,5 +40,5 @@ object Timeout {
       W: EntityEncoder[G, String]): Kleisli[F, A, Response[G]] =
     apply(
       timeout,
-      Response[G](Status.InternalServerError).withEntity("The response timed out.").pure[F])(http)
+      Response[G](Status.ServiceUnavailable).withEntity("The response timed out.").pure[F])(http)
 }
