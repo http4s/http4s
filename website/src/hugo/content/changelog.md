@@ -8,6 +8,20 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.20 (2018-10-18)
+
+## Bug fixes
+* [#2181](https://github.com/http4s/http4s/pull/2181): Honor `redactHeadersWhen` in client `RequestLogger` middleware
+
+## Enhancements
+* [#2178](https://github.com/http4s/http4s/pull/2178): Redact sensitive headers by default in `Retry` middleware. Add `retryWithRedactedHeaders` function that parameterizes the headers predicate.
+
+## Documentation
+* [#2147](https://github.com/http4s/http4s/pull/2147): Fix link to v0.19 docs
+
+## Internal
+* [#2130](https://github.com/http4s/http4s/pull/2130): Build with scala-2.12.7 and sbt-1.2.3
+
 # v0.18.19 (2018-09-27)
 
 ## Bug fixes
