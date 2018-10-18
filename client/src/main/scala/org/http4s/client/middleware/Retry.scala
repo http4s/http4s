@@ -20,10 +20,18 @@ object Retry {
 
   private[this] val logger = getLogger
 
-  def apply[F[_]](policy: RetryPolicy[F], redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(client: Client[F])(
+  def apply[F[_]](policy: RetryPolicy[F])(client: Client[F])(
+      implicit F: Effect[F],
+      scheduler: Scheduler,
+      executionContext: ExecutionContext): Client[F] =
+    retryWithRedactedHeaders(policy, Headers.SensitiveHeaders.contains)(client)
+
+  def retryWithRedactedHeaders[F[_]](policy: RetryPolicy[F],
+      redactHeaderWhen: CaseInsensitiveString => Boolean)(client: Client[F])(
       implicit F: Effect[F],
       scheduler: Scheduler,
       executionContext: ExecutionContext): Client[F] = {
+
     def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] =
       client.open(req).attempt.flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form
@@ -47,15 +55,15 @@ object Retry {
             case None =>
               logger.info(e)(
                 s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
-              ) 
+              )
               F.raiseError[DisposableResponse[F]](e)
           }
       }
 
     def showRequest(request: Request[F], redactWhen: CaseInsensitiveString => Boolean): String = {
       val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
-      val uri     = request.uri.renderString
-      val method  = request.method
+      val uri = request.uri.renderString
+      val method = request.method
       s"method=$method uri=$uri headers=$headers"
     }
 
