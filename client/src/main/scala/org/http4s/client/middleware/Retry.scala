@@ -20,7 +20,7 @@ object Retry {
 
   private[this] val logger = getLogger
 
-  def apply[F[_]](policy: RetryPolicy[F])(client: Client[F])(redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+  def apply[F[_]](policy: RetryPolicy[F], redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(client: Client[F])(
       implicit F: Effect[F],
       scheduler: Scheduler,
       executionContext: ExecutionContext): Client[F] = {
@@ -54,9 +54,9 @@ object Retry {
 
     def showRequest(request: Request[F], redactWhen: CaseInsensitiveString => Boolean): String = {
       val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
-      val url     = request.uri.renderString
+      val uri     = request.uri.renderString
       val method  = request.method
-      s"method=$method uri=$url headers=$headers"
+      s"method=$method uri=$uri headers=$headers"
     }
 
     def nextAttempt(
