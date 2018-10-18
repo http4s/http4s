@@ -1,5 +1,5 @@
 package org.http4s
-package server
+package metrics
 
 import cats._
 import cats.effect.Sync
@@ -9,7 +9,7 @@ import com.codahale.metrics.json.MetricsModule
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.concurrent.TimeUnit
 
-package object metrics {
+package object dropwizard {
   private val defaultMapper = {
     val module = new MetricsModule(TimeUnit.SECONDS, TimeUnit.SECONDS, true)
     new ObjectMapper().registerModule(module)
