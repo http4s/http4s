@@ -146,22 +146,17 @@ private final class Http1Connection[F[_]](
               case Left(t) => Left(t): Either[Throwable, Unit]
             }
 
-            val renderTask: F[Boolean] = getChunkEncoder(req, mustClose, rr)
-              .write(rr, req.body.interruptWhen(idleTimeoutS))
-              .recover {
-                case EOF => false
+            val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
+              .write(rr, req.body)
+              .onError {
+                case EOF => F.unit
+                case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-            // If we get a pipeline closed, we might still be good. Check response
-            val responseTask: F[Response[F]] =
+            val response: F[Response[F]] =
               receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
 
-            val res = renderTask
-              .productR(responseTask)
-              .handleErrorWith { t =>
-                fatalError(t, "Error executing request")
-                F.raiseError(t)
-              }
+            val res = writeRequest.start >> response
 
             F.racePair(res, timeoutFiber.join).flatMap {
               case Left((r, _)) =>
