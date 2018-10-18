@@ -26,7 +26,8 @@ object Retry {
       executionContext: ExecutionContext): Client[F] =
     retryWithRedactedHeaders(policy, Headers.SensitiveHeaders.contains)(client)
 
-  def retryWithRedactedHeaders[F[_]](policy: RetryPolicy[F],
+  def retryWithRedactedHeaders[F[_]](
+      policy: RetryPolicy[F],
       redactHeaderWhen: CaseInsensitiveString => Boolean)(client: Client[F])(
       implicit F: Effect[F],
       scheduler: Scheduler,
