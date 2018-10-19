@@ -1,7 +1,9 @@
 package org.http4s
 
-import cats.effect.{Async, ConcurrentEffect, Effect, IO}
+import cats.effect._
+import cats.effect.implicits._
 import cats.implicits._
+import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import org.http4s.util.execution.direct
 import org.log4s.Logger
@@ -117,4 +119,47 @@ package object internal {
           }
       }
     }
+
+  /* Derived from https://github.com/typelevel/cats-effect/blob/c62c6c76b3066c500fca2f9e0897605bc12eb2a0/core/shared/src/main/scala/cats/effect/Resource.scala */
+  private[http4s] def interpretResource[F[_], A](resource: Resource[F, A])(
+      implicit F: Bracket[F, Throwable]): F[(A, ExitCase[Throwable] => F[Unit])] = {
+    // Indirection for calling `loop` needed because `loop` must be @tailrec
+    def continue(
+        current: Resource[F, Any],
+        stack: List[Any => Resource[F, Any]],
+        release: ExitCase[Throwable] => F[Unit]): F[(Any, ExitCase[Throwable] => F[Unit])] =
+      loop(current, stack, release)
+
+    // Interpreter that knows how to evaluate a Resource data structure;
+    // Maintains its own stack for dealing with Bind chains
+    @tailrec def loop(
+        current: Resource[F, Any],
+        stack: List[Any => Resource[F, Any]],
+        release: ExitCase[Throwable] => F[Unit]): F[(Any, ExitCase[Throwable] => F[Unit])] =
+      current match {
+        case Resource.Allocate(resource) =>
+          F.bracketCase(resource) {
+            case (a, rel) =>
+              val rel0 = { ec: ExitCase[Throwable] =>
+                rel(ec).guaranteeCase(release)
+              }
+              stack match {
+                case Nil => F.pure((a, rel0))
+                case f0 :: xs => continue(f0(a), xs, rel0)
+              }
+          } {
+            case (_, ExitCase.Completed) =>
+              F.unit
+            case ((_, release), ec) =>
+              release(ec)
+          }
+        case Resource.Bind(source, f0) =>
+          loop(source, f0.asInstanceOf[Any => Resource[F, Any]] :: stack, release)
+        case Resource.Suspend(resource) =>
+          resource.flatMap(continue(_, stack, release))
+      }
+
+    loop(resource.asInstanceOf[Resource[F, Any]], Nil, _ => F.unit)
+      .asInstanceOf[F[(A, ExitCase[Throwable] => F[Unit])]]
+  }
 }
