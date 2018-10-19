@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.Ref
 import fs2._
-import fs2.concurrent.SignallingRef
+import fs2.concurrent.{Signal, SignallingRef}
 import java.net.{InetAddress, InetSocketAddress}
 import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -60,7 +60,7 @@ trait ServerBuilder[F[_]] {
     * Useful for servers with associated lifetime behaviors.
     */
   final def serveWhile(
-      terminateWhenTrue: SignallingRef[F, Boolean],
+      terminateWhenTrue: Signal[F, Boolean],
       exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
     Stream.resource(resource) *> (terminateWhenTrue.discrete
       .takeWhile(_ === false)
