@@ -57,22 +57,6 @@ class ClientTimeoutSpec extends Http4sSpec {
   }
 
   "Http1ClientStage responses" should {
-    "Timeout immediately with an idle timeout of 0 seconds" in {
-      val c = mkClient(
-        new SlowTestHead(List(mkBuffer(resp)), 0.seconds, tickWheel),
-        mkConnection(FooRequestKey))(idleTimeout = Duration.Zero)
-
-      c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
-    }
-
-    "Timeout immediately with a request timeout of 0 seconds" in {
-      val tail = mkConnection(FooRequestKey)
-      val h = new SlowTestHead(List(mkBuffer(resp)), 0.seconds, tickWheel)
-      val c = mkClient(h, tail)(requestTimeout = 0.milli)
-
-      c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
-    }
-
     "Idle timeout on slow response" in {
       val tail = mkConnection(FooRequestKey)
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
