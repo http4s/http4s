@@ -153,6 +153,10 @@
                         <span class="separator"></span>
                         <a class="trait" href="" title="Describes an algebra capable of writing metrics to a metrics registry"></a>
                         <a href="" title="Describes an algebra capable of writing metrics to a metrics registry">MetricsOps</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="TerminationType$.html" title=""></a>
+                        <a class="trait" href="TerminationType.html" title="Describes the type of abnormal termination"></a>
+                        <a href="TerminationType.html" title="Describes the type of abnormal termination">TerminationType</a>
                       </li>
               </ul>
             </div>
@@ -181,7 +185,8 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Describes an algebra capable of writing metrics to a metrics registry</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/metrics/MetricsOps.scala" target="_blank">MetricsOps.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Describes an algebra capable of writing metrics to a metrics registry
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/metrics/MetricsOps.scala" target="_blank">MetricsOps.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -257,7 +262,7 @@
       
       <p class="shortcomment cmt">Decreases the count of active requests
 </p><div class="fullcomment"><div class="comment cmt"><p>Decreases the count of active requests
-</p></div><dl class="paramcmts block"><dt class="param">classifier</dt><dd class="cmt"><p>the request classifier</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">classifier</dt><dd class="cmt"><p>the classifier to apply</p></dd></dl></div>
     </li><li name="org.http4s.metrics.MetricsOps#increaseActiveRequests" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="increaseActiveRequests(classifier:Option[String]):F[Unit]"></a><a id="increaseActiveRequests(Option[String]):F[Unit]"></a>
       <span class="permalink">
@@ -275,11 +280,11 @@
       
       <p class="shortcomment cmt">Increases the count of active requests
 </p><div class="fullcomment"><div class="comment cmt"><p>Increases the count of active requests
-</p></div><dl class="paramcmts block"><dt class="param">classifier</dt><dd class="cmt"><p>the request classifier</p></dd></dl></div>
-    </li><li name="org.http4s.metrics.MetricsOps#increaseErrors" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="increaseErrors(classifier:Option[String]):F[Unit]"></a><a id="increaseErrors(Option[String]):F[Unit]"></a>
+</p></div><dl class="paramcmts block"><dt class="param">classifier</dt><dd class="cmt"><p>the classifier to apply</p></dd></dl></div>
+    </li><li name="org.http4s.metrics.MetricsOps#recordAbnormalTermination" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="recordAbnormalTermination(elapsed:Long,terminationType:org.http4s.metrics.TerminationType,classifier:Option[String]):F[Unit]"></a><a id="recordAbnormalTermination(Long,TerminationType,Option[String]):F[Unit]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/metrics/MetricsOps.html#increaseErrors(classifier:Option[String]):F[Unit]" title="Permalink">
+      <a href="../../../org/http4s/metrics/MetricsOps.html#recordAbnormalTermination(elapsed:Long,terminationType:org.http4s.metrics.TerminationType,classifier:Option[String]):F[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -288,34 +293,15 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">increaseErrors</span><span class="params">(<span name="classifier">classifier: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.MetricsOps.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">recordAbnormalTermination</span><span class="params">(<span name="elapsed">elapsed: <a href="http://www.scala-lang.org/api/2.12.7/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="terminationType">terminationType: <a href="TerminationType.html" class="extype" name="org.http4s.metrics.TerminationType">TerminationType</a></span>, <span name="classifier">classifier: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.MetricsOps.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Increases the count of errors, excluding timeouts
-</p><div class="fullcomment"><div class="comment cmt"><p>Increases the count of errors, excluding timeouts
-</p></div><dl class="paramcmts block"><dt class="param">classifier</dt><dd class="cmt"><p>the classifier to use</p></dd></dl></div>
-    </li><li name="org.http4s.metrics.MetricsOps#increaseTimeouts" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="increaseTimeouts(classifier:Option[String]):F[Unit]"></a><a id="increaseTimeouts(Option[String]):F[Unit]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/metrics/MetricsOps.html#increaseTimeouts(classifier:Option[String]):F[Unit]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">increaseTimeouts</span><span class="params">(<span name="classifier">classifier: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.MetricsOps.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Increases the count of timeouts
-</p><div class="fullcomment"><div class="comment cmt"><p>Increases the count of timeouts
-</p></div><dl class="paramcmts block"><dt class="param">classifier</dt><dd class="cmt"><p>the classifier to use</p></dd></dl></div>
+      <p class="shortcomment cmt">Record abnormal terminations, like errors, timeouts or just other abnormal terminations.</p><div class="fullcomment"><div class="comment cmt"><p>Record abnormal terminations, like errors, timeouts or just other abnormal terminations.
+</p></div><dl class="paramcmts block"><dt class="param">elapsed</dt><dd class="cmt"><p>the time to record</p></dd><dt class="param">terminationType</dt><dd class="cmt"><p>the type of termination</p></dd><dt class="param">classifier</dt><dd class="cmt"><p>the classifier to apply</p></dd></dl></div>
     </li><li name="org.http4s.metrics.MetricsOps#recordHeadersTime" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="recordHeadersTime(status:org.http4s.Status,elapsed:Long,classifier:Option[String]):F[Unit]"></a><a id="recordHeadersTime(Status,Long,Option[String]):F[Unit]"></a>
+      <a id="recordHeadersTime(method:org.http4s.Method,elapsed:Long,classifier:Option[String]):F[Unit]"></a><a id="recordHeadersTime(Method,Long,Option[String]):F[Unit]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/metrics/MetricsOps.html#recordHeadersTime(status:org.http4s.Status,elapsed:Long,classifier:Option[String]):F[Unit]" title="Permalink">
+      <a href="../../../org/http4s/metrics/MetricsOps.html#recordHeadersTime(method:org.http4s.Method,elapsed:Long,classifier:Option[String]):F[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -324,16 +310,16 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">recordHeadersTime</span><span class="params">(<span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>, <span name="elapsed">elapsed: <a href="http://www.scala-lang.org/api/2.12.7/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="classifier">classifier: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.MetricsOps.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">recordHeadersTime</span><span class="params">(<span name="method">method: <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a></span>, <span name="elapsed">elapsed: <a href="http://www.scala-lang.org/api/2.12.7/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="classifier">classifier: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.MetricsOps.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Records the time to receive the response headers
 </p><div class="fullcomment"><div class="comment cmt"><p>Records the time to receive the response headers
-</p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p>the http status code of the response</p></dd><dt class="param">elapsed</dt><dd class="cmt"><p>the time to record</p></dd><dt class="param">classifier</dt><dd class="cmt"><p>the request classifier</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p>the http method of the request</p></dd><dt class="param">elapsed</dt><dd class="cmt"><p>the time to record</p></dd><dt class="param">classifier</dt><dd class="cmt"><p>the classifier to apply</p></dd></dl></div>
     </li><li name="org.http4s.metrics.MetricsOps#recordTotalTime" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="recordTotalTime(status:org.http4s.Status,elapsed:Long,classifier:Option[String]):F[Unit]"></a><a id="recordTotalTime(Status,Long,Option[String]):F[Unit]"></a>
+      <a id="recordTotalTime(method:org.http4s.Method,status:org.http4s.Status,elapsed:Long,classifier:Option[String]):F[Unit]"></a><a id="recordTotalTime(Method,Status,Long,Option[String]):F[Unit]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/metrics/MetricsOps.html#recordTotalTime(status:org.http4s.Status,elapsed:Long,classifier:Option[String]):F[Unit]" title="Permalink">
+      <a href="../../../org/http4s/metrics/MetricsOps.html#recordTotalTime(method:org.http4s.Method,status:org.http4s.Status,elapsed:Long,classifier:Option[String]):F[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -342,12 +328,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">recordTotalTime</span><span class="params">(<span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>, <span name="elapsed">elapsed: <a href="http://www.scala-lang.org/api/2.12.7/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="classifier">classifier: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.MetricsOps.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">recordTotalTime</span><span class="params">(<span name="method">method: <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a></span>, <span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>, <span name="elapsed">elapsed: <a href="http://www.scala-lang.org/api/2.12.7/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="classifier">classifier: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.MetricsOps.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Records the time to fully consume the response, including the body
 </p><div class="fullcomment"><div class="comment cmt"><p>Records the time to fully consume the response, including the body
-</p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p>the http status code of the response</p></dd><dt class="param">elapsed</dt><dd class="cmt"><p>the time to record</p></dd><dt class="param">classifier</dt><dd class="cmt"><p>the request classifier</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p>the http method of the request</p></dd><dt class="param">status</dt><dd class="cmt"><p>the http status code of the response</p></dd><dt class="param">elapsed</dt><dd class="cmt"><p>the time to record</p></dd><dt class="param">classifier</dt><dd class="cmt"><p>the classifier to apply</p></dd></dl></div>
     </li></ol>
             </div>
 

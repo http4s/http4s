@@ -151,12 +151,16 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.metrics">metrics</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="ClientMetrics.html" title=""></a>
-                        <a href="ClientMetrics.html" title="">ClientMetrics</a>
+                        <a class="class" href="MetricsCollection.html" title=""></a>
+                        <a href="MetricsCollection.html" title="">MetricsCollection</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="Prometheus$.html" title="MetricsOps algebra capable of recording Prometheus metrics"></a>
                         <a href="Prometheus$.html" title="MetricsOps algebra capable of recording Prometheus metrics">Prometheus</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="PrometheusExportService$.html" title=""></a>
+                        <a class="class" href="PrometheusExportService.html" title=""></a>
+                        <a href="PrometheusExportService.html" title="">PrometheusExportService</a>
                       </li>
               </ul>
             </div>
@@ -220,10 +224,10 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.metrics.prometheus.ClientMetrics" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ClientMetricsextendsProductwithSerializable"></a><a id="ClientMetrics:ClientMetrics"></a>
+              <ol><li name="org.http4s.metrics.prometheus.MetricsCollection" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricsCollectionextendsProductwithSerializable"></a><a id="MetricsCollection:MetricsCollection"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/metrics/prometheus/index.html#ClientMetricsextendsProductwithSerializable" title="Permalink">
+      <a href="../../../../org/http4s/metrics/prometheus/index.html#MetricsCollectionextendsProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -232,7 +236,23 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ClientMetrics.html"><span class="name">ClientMetrics</span></a><span class="params">(<span name="responseDuration">responseDuration: <span class="extype" name="io.prometheus.client.Histogram">Histogram</span></span>, <span name="activeRequests">activeRequests: <span class="extype" name="io.prometheus.client.Gauge">Gauge</span></span>, <span name="responseCounter">responseCounter: <span class="extype" name="io.prometheus.client.Counter">Counter</span></span>, <span name="clientErrorsCounter">clientErrorsCounter: <span class="extype" name="io.prometheus.client.Counter">Counter</span></span>, <span name="timeoutsCounter">timeoutsCounter: <span class="extype" name="io.prometheus.client.Counter">Counter</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="MetricsCollection.html"><span class="name">MetricsCollection</span></a><span class="params">(<span name="responseDuration">responseDuration: <span class="extype" name="io.prometheus.client.Histogram">Histogram</span></span>, <span name="activeRequests">activeRequests: <span class="extype" name="io.prometheus.client.Gauge">Gauge</span></span>, <span name="requests">requests: <span class="extype" name="io.prometheus.client.Counter">Counter</span></span>, <span name="abnormalTerminations">abnormalTerminations: <span class="extype" name="io.prometheus.client.Histogram">Histogram</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.metrics.prometheus.PrometheusExportService" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PrometheusExportService[F[_]]extendsAnyRef"></a><a id="PrometheusExportService[F[_]]:PrometheusExportService[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/metrics/prometheus/index.html#PrometheusExportService[F[_]]extendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="PrometheusExportService.html"><span class="name">PrometheusExportService</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       
@@ -259,12 +279,37 @@
         <a title="MetricsOps algebra capable of recording Prometheus metrics" href="Prometheus$.html"><span class="name">Prometheus</span></a>
       </span>
       
-      <p class="shortcomment cmt"><a href="../MetricsOps.html" class="extype" name="org.http4s.metrics.MetricsOps">MetricsOps</a> algebra capable of recording Prometheus metrics</p><div class="fullcomment"><div class="comment cmt"><p><a href="../MetricsOps.html" class="extype" name="org.http4s.metrics.MetricsOps">MetricsOps</a> algebra capable of recording Prometheus metrics</p><p>For example to following code would wrap a <a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a> with a <span class="extype" name="org.http4s.client.metrics.core.Metrics">org.http4s.client.metrics.core.Metrics</span>
-that records metrics to a given Metric Registry, classifying the metrics by HTTP method.</p><pre><span class="kw">import</span> org.http4s.client.metrics.core.Metrics
-<span class="kw">import</span> org.http4s.client.metrics.prometheus.Prometheus
+      <p class="shortcomment cmt"><a href="../MetricsOps.html" class="extype" name="org.http4s.metrics.MetricsOps">MetricsOps</a> algebra capable of recording Prometheus metrics</p><div class="fullcomment"><div class="comment cmt"><p><a href="../MetricsOps.html" class="extype" name="org.http4s.metrics.MetricsOps">MetricsOps</a> algebra capable of recording Prometheus metrics</p><p>For example, the following code would wrap a <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">org.http4s.HttpRoutes</a> with a <a href="../../server/middleware/Metrics$.html" class="extype" name="org.http4s.server.middleware.Metrics">org.http4s.server.middleware.Metrics</a>
+that records metrics to a given metric registry.</p><pre><span class="kw">import</span> org.http4s.client.middleware.Metrics
+<span class="kw">import</span> org.http4s.client.prometheus.Prometheus
 
-requestMethodClassifier = (r: Request[IO]) <span class="kw">=&gt;</span> <span class="std">Some</span>(r.method.toString.toLowerCase)
-<span class="kw">val</span> meteredClient = Metrics(Prometheus(registry, <span class="lit">"client"</span>), requestMethodClassifier)(client)</pre></div></div>
+<span class="kw">val</span> meteredRoutes = Metrics[IO](Prometheus(registry, <span class="lit">"server"</span>))(testRoutes)</pre><p>Analogously, the following code would wrap a <a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a> with a <a href="../../client/middleware/Metrics$.html" class="extype" name="org.http4s.client.middleware.Metrics">org.http4s.client.middleware.Metrics</a>
+that records metrics to a given metric registry, classifying the metrics by HTTP method.</p><pre><span class="kw">import</span> org.http4s.client.middleware.Metrics
+<span class="kw">import</span> org.http4s.client.prometheus.Prometheus
+
+<span class="kw">val</span> classifierFunc = (r: Request[IO]) <span class="kw">=&gt;</span> <span class="std">Some</span>(r.method.toString.toLowerCase)
+<span class="kw">val</span> meteredClient = Metrics(Prometheus(registry, <span class="lit">"client"</span>), classifierFunc)(client)</pre><p>Registers the following metrics:</p><p>{prefix}_response_duration_seconds{labels=classifier,method,phase} - Histogram</p><p>{prefix}_active_request_count{labels=classifier} - Gauge</p><p>{prefix}_request_count{labels=classifier,method,status} - Counter</p><p>{prefix}_abnormal_terminations{labels=classifier,termination_type} - Histogram</p><p>Labels --</p><p>method: Enumeration
+values: get, put, post, head, move, options, trace, connect, delete, other</p><p>phase: Enumeration
+values: headers, body</p><p>code: Enumeration
+values:  1xx, 2xx, 3xx, 4xx, 5xx</p><p>termination_type: Enumeration
+values: abnormal, error, timeout
+</p></div></div>
+    </li><li name="org.http4s.metrics.prometheus.PrometheusExportService" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PrometheusExportService"></a><a id="PrometheusExportService:PrometheusExportService"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/metrics/prometheus/index.html#PrometheusExportService" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="PrometheusExportService$.html"><span class="name">PrometheusExportService</span></a>
+      </span>
+      
+      
     </li>
               </ol>
             </div>

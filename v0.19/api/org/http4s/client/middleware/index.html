@@ -464,10 +464,9 @@ redirecting to a different authority.
       
       <p class="shortcomment cmt">Client middleware to record metrics for the http4s client.</p><div class="fullcomment"><div class="comment cmt"><p>Client middleware to record metrics for the http4s client.</p><p>This middleware will record:
 - Number of active requests
-- Time duration to receive the response headers, taking into account the HTTP status code
-- Total duration of each request, including consumption of the response body, taking into account the HTTP status code
-- Number of timeouts
-- Number of other errors</p><p>This middleware can be extended to support any metrics ecosystem by implementing the <span class="extype" name="MetricsOps">MetricsOps</span> type
+- Time duration to receive the response headers
+- Time duration to process the whole response body
+- Time duration of errors, timeouts and other abnormal terminations</p><p>This middleware can be extended to support any metrics ecosystem by implementing the <span class="extype" name="MetricsOps">MetricsOps</span> type
 </p></div></div>
     </li><li name="org.http4s.client.middleware.RequestLogger" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RequestLogger"></a><a id="RequestLogger:RequestLogger"></a>

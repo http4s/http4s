@@ -165,12 +165,37 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p><a href="../MetricsOps.html" class="extype" name="org.http4s.metrics.MetricsOps">MetricsOps</a> algebra capable of recording Dropwizard metrics</p><p>For example to following code would wrap a <a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a> with a <span class="extype" name="org.http4s.client.metrics.core.Metrics">org.http4s.client.metrics.core.Metrics</span>
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p><a href="../MetricsOps.html" class="extype" name="org.http4s.metrics.MetricsOps">MetricsOps</a> algebra capable of recording Dropwizard metrics</p><p>For example, the following code would wrap a <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">org.http4s.HttpRoutes</a> with a <a href="../../server/middleware/Metrics$.html" class="extype" name="org.http4s.server.middleware.Metrics">org.http4s.server.middleware.Metrics</a>
+that records metrics to a given metric registry.</p><pre><span class="kw">import</span> org.http4s.client.middleware.Metrics
+<span class="kw">import</span> org.http4s.client.dropwizard.Dropwizard
+
+<span class="kw">val</span> meteredRoutes = Metrics[IO](Dropwizard(registry, <span class="lit">"server"</span>))(testRoutes)</pre><p>Analogously, the following code would wrap a <a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a> with a <a href="../../client/middleware/Metrics$.html" class="extype" name="org.http4s.client.middleware.Metrics">org.http4s.client.middleware.Metrics</a>
 that records metrics to a given Metric Registry, classifying the metrics by HTTP method.</p><pre><span class="kw">import</span> org.http4s.client.metrics.core.Metrics
 <span class="kw">import</span> org.http4s.client.metrics.dropwizard.Dropwizard
 
-requestMethodClassifier = (r: Request[IO]) <span class="kw">=&gt;</span> <span class="std">Some</span>(r.method.toString.toLowerCase)
-<span class="kw">val</span> meteredClient = Metrics(Dropwizard(registry, <span class="lit">"client"</span>), requestMethodClassifier)(client)</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/dropwizard-metrics/src/main/scala/org/http4s/metrics/dropwizard/Dropwizard.scala" target="_blank">Dropwizard.scala</a></dd></dl><div class="toggleContainer block">
+<span class="kw">val</span> classifierFunc = (r: Request[IO]) <span class="kw">=&gt;</span> <span class="std">Some</span>(r.method.toString.toLowerCase)
+<span class="kw">val</span> meteredClient = Metrics(Dropwizard(registry, <span class="lit">"client"</span>), classifierFunc)(client)</pre><p>Registers the following metrics:</p><p>{prefix}.{classifier}.active.requests - Counter
+{prefix}.{classifier}.requests.headers - Timer
+{prefix}.{classifier}.requests.total - Timer
+{prefix}.{classifier}.get-requests - Timer
+{prefix}.{classifier}.post-requests - Timer
+{prefix}.{classifier}.put-requests - Timer
+{prefix}.{classifier}.head-requests - Timer
+{prefix}.{classifier}.move-requests - Timer
+{prefix}.{classifier}.options-requests - Timer
+{prefix}.{classifier}.trace-requests - Timer
+{prefix}.{classifier}.connect-requests - Timer
+{prefix}.{classifier}.delete-requests - Timer
+{prefix}.{classifier}.other-requests - Timer
+{prefix}.{classifier}.1xx-responses - Timer
+{prefix}.{classifier}.2xx-responses - Timer
+{prefix}.{classifier}.3xx-responses - Timer
+{prefix}.{classifier}.4xx-responses - Timer
+{prefix}.{classifier}.5xx-responses - Timer
+{prefix}.{classifier}.errors - Timer
+{prefix}.{classifier}.timeouts - Timer
+{prefix}.{classifier}.abnormal-terminations - Timer
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/dropwizard-metrics/src/main/scala/org/http4s/metrics/dropwizard/Dropwizard.scala" target="_blank">Dropwizard.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
