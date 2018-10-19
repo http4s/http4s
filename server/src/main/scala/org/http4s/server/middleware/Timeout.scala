@@ -37,8 +37,6 @@ object Timeout {
       @deprecatedName('service) http: Kleisli[F, A, Response[G]])(
       implicit F: Concurrent[F],
       T: Timer[F]
-    ): Kleisli[F, A, Response[G]] =
-    apply(
-      timeout,
-      Response.timeout[G].pure[F])(http)
+  ): Kleisli[F, A, Response[G]] =
+    apply(timeout, Response.timeout[G].pure[F])(http)
 }
