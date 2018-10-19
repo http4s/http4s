@@ -6,8 +6,10 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
 import fs2.Stream
+import java.net.{SocketOption, StandardSocketOptions}
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
+import org.http4s.blaze.channel.{ChannelOptions, OptionValue}
 import org.http4s.blazecore.tickWheelAllocate
 import org.http4s.headers.{AgentProduct, `User-Agent`}
 import scala.concurrent.ExecutionContext
@@ -29,7 +31,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val parserMode: ParserMode,
     val bufferSize: Int,
     val executionContext: ExecutionContext,
-    val asynchronousChannelGroup: Option[AsynchronousChannelGroup]
+    val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
+    val channelOptions: ChannelOptions
 ) {
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
@@ -47,7 +50,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode: ParserMode = parserMode,
       bufferSize: Int = bufferSize,
       executionContext: ExecutionContext = executionContext,
-      asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
+      channelOptions: ChannelOptions = channelOptions
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -65,7 +69,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       bufferSize = bufferSize,
       executionContext = executionContext,
-      asynchronousChannelGroup = asynchronousChannelGroup
+      asynchronousChannelGroup = asynchronousChannelGroup,
+      channelOptions = channelOptions
     ) {}
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
@@ -128,10 +133,58 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
+  def channelOption[A](socketOption: SocketOption[A]) =
+    channelOptions.options.collectFirst {
+      case OptionValue(key, value) if key == socketOption =>
+        value.asInstanceOf[A]
+    }
+  def withChannelOptions(channelOptions: ChannelOptions): BlazeClientBuilder[F] =
+    copy(channelOptions = channelOptions)
+  def withChannelOption[A](key: SocketOption[A], value: A): BlazeClientBuilder[F] =
+    withChannelOptions(
+      ChannelOptions(channelOptions.options.filterNot(_.key == key) :+ OptionValue(key, value)))
+  def withDefaultChannelOption[A](key: SocketOption[A]): BlazeClientBuilder[F] =
+    withChannelOptions(ChannelOptions(channelOptions.options.filterNot(_.key == key)))
+
+  def socketSendBufferSize: Option[Int] =
+    channelOption(StandardSocketOptions.SO_SNDBUF).map(Int.unbox)
+  def withSocketSendBufferSize(socketSendBufferSize: Int): BlazeClientBuilder[F] =
+    withChannelOption(StandardSocketOptions.SO_SNDBUF, Int.box(socketSendBufferSize))
+  def withDefaultSocketSendBufferSize: BlazeClientBuilder[F] =
+    withDefaultChannelOption(StandardSocketOptions.SO_SNDBUF)
+
+  def socketReceiveBufferSize: Option[Int] =
+    channelOption(StandardSocketOptions.SO_RCVBUF).map(Int.unbox)
+  def withSocketReceiveBufferSize(socketReceiveBufferSize: Int): BlazeClientBuilder[F] =
+    withChannelOption(StandardSocketOptions.SO_RCVBUF, Int.box(socketReceiveBufferSize))
+  def withDefaultSocketReceiveBufferSize: BlazeClientBuilder[F] =
+    withDefaultChannelOption(StandardSocketOptions.SO_RCVBUF)
+
+  def socketKeepAlive: Option[Boolean] =
+    channelOption(StandardSocketOptions.SO_KEEPALIVE).map(Boolean.unbox)
+  def withSocketKeepAlive(socketKeepAlive: Boolean): BlazeClientBuilder[F] =
+    withChannelOption(StandardSocketOptions.SO_KEEPALIVE, Boolean.box(socketKeepAlive))
+  def withDefaultSocketKeepAlive: BlazeClientBuilder[F] =
+    withDefaultChannelOption(StandardSocketOptions.SO_KEEPALIVE)
+
+  def socketReuseAddress: Option[Boolean] =
+    channelOption(StandardSocketOptions.SO_REUSEADDR).map(Boolean.unbox)
+  def withSocketReuseAddress(socketReuseAddress: Boolean): BlazeClientBuilder[F] =
+    withChannelOption(StandardSocketOptions.SO_REUSEADDR, Boolean.box(socketReuseAddress))
+  def withDefaultSocketReuseAddress: BlazeClientBuilder[F] =
+    withDefaultChannelOption(StandardSocketOptions.SO_REUSEADDR)
+
+  def tcpNoDelay: Option[Boolean] =
+    channelOption(StandardSocketOptions.TCP_NODELAY).map(Boolean.unbox)
+  def withTcpNoDelay(tcpNoDelay: Boolean): BlazeClientBuilder[F] =
+    withChannelOption(StandardSocketOptions.TCP_NODELAY, Boolean.box(tcpNoDelay))
+  def withDefaultTcpNoDelay: BlazeClientBuilder[F] =
+    withDefaultChannelOption(StandardSocketOptions.TCP_NODELAY)
+
   def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
     tickWheelAllocate.flatMap {
       case (scheduler, shutdownS) =>
-        connectionManager.map {
+        connectionManager(channelOptions).map {
           case (manager, shutdown) =>
             (
               BlazeClient.makeClient(
@@ -153,7 +206,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
-  private def connectionManager(
+  private def connectionManager(channelOptions: ChannelOptions)(
       implicit F: ConcurrentEffect[F]): F[(ConnectionManager[F, BlazeConnection[F]], F[Unit])] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
@@ -165,7 +218,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       maxHeaderLength = maxHeaderLength,
       maxChunkSize = maxChunkSize,
       parserMode = parserMode,
-      userAgent = userAgent
+      userAgent = userAgent,
+      channelOptions = channelOptions
     ).makeClient
     ConnectionManager
       .pool(
@@ -201,6 +255,7 @@ object BlazeClientBuilder {
       parserMode = ParserMode.Strict,
       bufferSize = 8192,
       executionContext = executionContext,
-      asynchronousChannelGroup = None
+      asynchronousChannelGroup = None,
+      channelOptions = ChannelOptions(Vector.empty)
     ) {}
 }
