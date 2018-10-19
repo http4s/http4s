@@ -8,6 +8,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
+import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
@@ -17,14 +18,21 @@ object Retry {
   private[this] val logger = getLogger
 
   def apply[F[_]](policy: RetryPolicy[F])(
+      client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] =
+    retryWithRedactedHeaders(policy, Headers.SensitiveHeaders.contains)(client)
+
+  def retryWithRedactedHeaders[F[_]](
+      policy: RetryPolicy[F],
+      redactHeaderWhen: CaseInsensitiveString => Boolean)(
       client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] = {
+
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       client.run(req).attempt.flatMap {
         case right @ Right(response) =>
           policy(req, right, attempts) match {
             case Some(duration) =>
               logger.info(
-                s"Request $req has failed on attempt #$attempts with reason ${response.status}. Retrying after $duration.")
+                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
               nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`))
             case None =>
               Resource.pure(response)
@@ -39,11 +47,18 @@ object Retry {
               nextAttempt(req, attempts, duration, None)
             case None =>
               logger.info(e)(
-                s"Request $req threw an exception on attempt #$attempts. Giving up."
+                s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
               )
               Resource.liftF(F.raiseError(e))
           }
       }
+
+    def showRequest(request: Request[F], redactWhen: CaseInsensitiveString => Boolean): String = {
+      val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
+      val uri = request.uri.renderString
+      val method = request.method
+      s"method=$method uri=$uri headers=$headers"
+    }
 
     def nextAttempt(
         req: Request[F],
