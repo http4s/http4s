@@ -2,8 +2,9 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.concurrent.{Deferred, Ref}
 import cats.implicits._
+import fs2.Stream
 import java.util.concurrent.TimeoutException
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -53,6 +54,11 @@ class BlazeClientSpec extends Http4sSpec {
 
         case None => srv.sendError(404)
       }
+
+    override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
+      resp.setStatus(Status.Ok.code)
+      req.getInputStream.close()
+    }
   }
 
   "Blaze Http1Client" should {
@@ -177,6 +183,24 @@ class BlazeClientSpec extends Http4sSpec {
             .unsafeToFuture()
 
           Await.result(resp, 6.seconds) must beTrue
+        }
+
+        "cancel infinite request on completion" in {
+          val address = addresses(0)
+          val name = address.getHostName
+          val port = address.getPort
+          Deferred[IO, Unit]
+            .flatMap { reqClosed =>
+              mkClient(1, requestTimeout = 10.seconds).use { client =>
+                val body = Stream(0.toByte).repeat.onFinalize(reqClosed.complete(()))
+                val req = Request[IO](
+                  method = Method.POST,
+                  uri = Uri.fromString(s"http://$name:$port/").yolo
+                ).withBodyStream(body)
+                client.status(req) >> reqClosed.get
+              }
+            }
+            .unsafeRunTimed(5.seconds) must beSome(())
         }
       }
     }

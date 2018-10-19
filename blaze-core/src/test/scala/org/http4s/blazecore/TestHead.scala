@@ -10,25 +10,24 @@ import org.http4s.blaze.util.TickWheelExecutor
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
+import scodec.bits.ByteVector
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
-  private var acc = Vector[Array[Byte]]()
+  private var acc = ByteVector.empty
   private val p = Promise[ByteBuffer]
 
   var closed = false
 
   @volatile var closeCauses = Vector[Option[Throwable]]()
 
-  def getBytes(): Array[Byte] = acc.toArray.flatten
+  def getBytes(): Array[Byte] = acc.toArray
 
-  def result = p.future
+  val result = p.future
 
   override def writeRequest(data: ByteBuffer): Future[Unit] = synchronized {
     if (closed) Future.failed(EOF)
     else {
-      val cpy = new Array[Byte](data.remaining())
-      data.get(cpy)
-      acc :+= cpy
+      acc ++= ByteVector.view(data)
       util.FutureUnit
     }
   }
@@ -59,12 +58,15 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   }
 }
 
-final class QueueTestHead(queue: Queue[IO, ByteBuffer]) extends TestHead("QueueTestHead") {
+final class QueueTestHead(queue: Queue[IO, Option[ByteBuffer]]) extends TestHead("QueueTestHead") {
   private val closedP = Promise[Nothing]
 
   override def readRequest(size: Int): Future[ByteBuffer] = {
     val p = Promise[ByteBuffer]
-    p.tryCompleteWith(queue.dequeue1.unsafeToFuture)
+    p.tryCompleteWith(queue.dequeue1.flatMap {
+      case Some(bb) => IO.pure(bb)
+      case None => IO.raiseError(EOF)
+    }.unsafeToFuture)
     p.tryCompleteWith(closedP.future)
     p.future
   }
