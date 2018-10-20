@@ -107,14 +107,13 @@ class BlazeClientSpec extends Http4sSpec {
             Uri.fromString(s"http://$name:$port/simple").yolo
           }
 
-          (0 until 42)
-            .map { _ =>
+          (1 to 100).toList
+            .parTraverse { _ =>
               val h = hosts(Random.nextInt(hosts.length))
-              val resp =
-                client.expect[String](h).unsafeRunTimed(timeout)
-              resp.map(_.length > 0)
+              client.expect[String](h).map(_.nonEmpty)
             }
-            .forall(_.contains(true)) must beTrue
+            .map(_.forall(identity))
+            .unsafeRunTimed(timeout) must beSome(true)
         }
 
         "obey response header timeout" in {
