@@ -121,7 +121,7 @@ package object internal {
     }
 
   private[http4s] def allocated[F[_], A](resource: Resource[F, A])(
-    implicit F: Concurrent[F]): F[(A, F[Unit])] =
+      implicit F: Concurrent[F]): F[(A, F[Unit])] =
     Deferred[F, A].flatMap { deferred =>
       Deferred[F, Unit].flatMap { shutdown =>
         resource.use { client =>

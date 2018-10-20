@@ -147,8 +147,66 @@ package. These include:
 * [Service Timeout]
 * [Jsonp]
 * [Virtual Host]
+* [Metrics]
 
 And a few others.
+
+### Metrics Middleware
+
+Apart from the middleware mentioned in the previous section. There is, as well,
+Out of the Box middleware for Dropwizard and Prometheus metrics
+
+#### Dropwizard Metrics Middleware
+
+To make use of this metrics middleware the following dependencies are needed:
+
+```scala
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-server" % http4sVersion,
+  "org.http4s" %% "http4s-dropwizard-metrics" % http4sVersion
+)
+```
+
+We can create a middleware that registers metrics prefixed with a
+provided prefix like this.
+
+```tut:book:silent
+import org.http4s.server.middleware.Metrics
+import org.http4s.metrics.dropwizard.Dropwizard
+import com.codahale.metrics.SharedMetricRegistries
+```
+```tut:book
+implicit val clock = Clock.create[IO]
+val registry = SharedMetricRegistries.getOrCreate("default")
+
+val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(apiService)
+```
+
+#### Prometheus Metrics Middleware
+
+To make use of this metrics middleware the following dependencies are needed:
+
+```scala
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-server" % http4sVersion,
+  "org.http4s" %% "http4s-prometheus-metrics" % http4sVersion
+)
+```
+
+We can create a middleware that registers metrics prefixed with a
+provided prefix like this.
+
+```tut:book:silent
+import org.http4s.server.middleware.Metrics
+import org.http4s.metrics.prometheus.Prometheus
+import io.prometheus.client.CollectorRegistry
+```
+```tut:book
+implicit val clock = Clock.create[IO]
+val registry = new CollectorRegistry()
+
+val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(apiService)
+```
 
 [service]: ../service
 [dsl]: ../dsl
@@ -159,4 +217,5 @@ And a few others.
 [Service Timeout]: ../api/org/http4s/server/middleware/Timeout$
 [Jsonp]: ../api/org/http4s/server/middleware/Jsonp$
 [Virtual Host]: ../api/org/http4s/server/middleware/VirtualHost$
+[Metrics]: ../api/org/http4s/server/middleware/Metrics$
 [`Kleisli`]: https://typelevel.org/cats/datatypes/kleisli.html

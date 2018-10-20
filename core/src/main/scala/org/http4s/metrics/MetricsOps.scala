@@ -1,58 +1,73 @@
 package org.http4s.metrics
 
-import org.http4s.Status
+import org.http4s.{Method, Status}
 
 /**
   * Describes an algebra capable of writing metrics to a metrics registry
-  *
   */
 trait MetricsOps[F[_]] {
 
   /**
     * Increases the count of active requests
     *
-    * @param classifier the request classifier
+    * @param classifier the classifier to apply
     */
   def increaseActiveRequests(classifier: Option[String]): F[Unit]
 
   /**
     * Decreases the count of active requests
     *
-    * @param classifier the request classifier
+    * @param classifier the classifier to apply
     */
   def decreaseActiveRequests(classifier: Option[String]): F[Unit]
 
   /**
     * Records the time to receive the response headers
     *
-    * @param status the http status code of the response
+    * @param method the http method of the request
     * @param elapsed the time to record
-    * @param classifier the request classifier
-    * @return
+    * @param classifier the classifier to apply
     */
-  def recordHeadersTime(status: Status, elapsed: Long, classifier: Option[String]): F[Unit]
+  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit]
 
   /**
     * Records the time to fully consume the response, including the body
     *
+    * @param method the http method of the request
     * @param status the http status code of the response
     * @param elapsed the time to record
-    * @param classifier the request classifier
-    * @return
+    * @param classifier the classifier to apply
     */
-  def recordTotalTime(status: Status, elapsed: Long, classifier: Option[String]): F[Unit]
+  def recordTotalTime(
+      method: Method,
+      status: Status,
+      elapsed: Long,
+      classifier: Option[String]): F[Unit]
 
   /**
-    * Increases the count of errors, excluding timeouts
+    * Record abnormal terminations, like errors, timeouts or just other abnormal terminations.
     *
-    * @param classifier the classifier to use
+    * @param elapsed the time to record
+    * @param terminationType the type of termination
+    * @param classifier the classifier to apply
     */
-  def increaseErrors(classifier: Option[String]): F[Unit]
+  def recordAbnormalTermination(
+      elapsed: Long,
+      terminationType: TerminationType,
+      classifier: Option[String]): F[Unit]
+}
 
-  /**
-    * Increases the count of timeouts
-    *
-    * @param classifier the classifier to use
-    */
-  def increaseTimeouts(classifier: Option[String]): F[Unit]
+/** Describes the type of abnormal termination*/
+sealed trait TerminationType
+
+object TerminationType {
+
+  /** Signals just a generic abnormal termination */
+  case object Abnormal extends TerminationType
+
+  /** Signals an abnormal termination due to an error processing the request, either at the server or client side */
+  case object Error extends TerminationType
+
+  /** Signals a client timing out during a request */
+  case object Timeout extends TerminationType
 }
