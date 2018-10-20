@@ -9,7 +9,7 @@ import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
 import org.http4s.blazecore.tickWheelResource
 import org.http4s.headers.{AgentProduct, `User-Agent`}
-import org.http4s.internal.interpretResource
+import org.http4s.internal.allocated
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -128,8 +128,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
-  def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], ExitCase[Throwable] => F[Unit])] =
-    interpretResource(resource)
+  def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
+    allocated(resource)
 
   def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
     tickWheelResource.flatMap { scheduler =>
