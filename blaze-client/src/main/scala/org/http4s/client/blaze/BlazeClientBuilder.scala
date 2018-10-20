@@ -3,15 +3,15 @@ package client
 package blaze
 
 import cats.effect._
-import cats.effect.implicits._
 import cats.implicits._
 import fs2.Stream
 import java.net.{SocketOption, StandardSocketOptions}
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.{ChannelOptions, OptionValue}
-import org.http4s.blazecore.tickWheelAllocate
+import org.http4s.blazecore.tickWheelResource
 import org.http4s.headers.{AgentProduct, `User-Agent`}
+import org.http4s.internal.allocated
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -182,32 +182,27 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     withDefaultChannelOption(StandardSocketOptions.TCP_NODELAY)
 
   def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
-    tickWheelAllocate.flatMap {
-      case (scheduler, shutdownS) =>
-        connectionManager(channelOptions).map {
-          case (manager, shutdown) =>
-            (
-              BlazeClient.makeClient(
-                manager = manager,
-                responseHeaderTimeout = responseHeaderTimeout,
-                idleTimeout = idleTimeout,
-                requestTimeout = requestTimeout,
-                scheduler = scheduler,
-                ec = executionContext
-              ),
-              shutdown.guarantee(shutdownS)
-            )
-        }
-    }
+    allocated(resource)
 
   def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    Resource(allocate)
+    tickWheelResource.flatMap { scheduler =>
+      connectionManager.map { manager =>
+        BlazeClient.makeClient(
+          manager = manager,
+          responseHeaderTimeout = responseHeaderTimeout,
+          idleTimeout = idleTimeout,
+          requestTimeout = requestTimeout,
+          scheduler = scheduler,
+          ec = executionContext
+        )
+      }
+    }
 
   def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
-  private def connectionManager(channelOptions: ChannelOptions)(
-      implicit F: ConcurrentEffect[F]): F[(ConnectionManager[F, BlazeConnection[F]], F[Unit])] = {
+  private def connectionManager(
+      implicit F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,
@@ -221,8 +216,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       userAgent = userAgent,
       channelOptions = channelOptions
     ).makeClient
-    ConnectionManager
-      .pool(
+    Resource.make(
+      ConnectionManager.pool(
         builder = http1,
         maxTotal = maxTotalConnections,
         maxWaitQueueLimit = maxWaitQueueLimit,
@@ -230,8 +225,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         responseHeaderTimeout = responseHeaderTimeout,
         requestTimeout = requestTimeout,
         executionContext = executionContext
-      )
-      .map(p => (p, p.shutdown))
+      )) { pool =>
+      F.delay { val _ = pool.shutdown() }
+    }
   }
 }
 

@@ -1,6 +1,8 @@
 package org.http4s
 
-import cats.effect.{Async, ConcurrentEffect, Effect, IO}
+import cats.effect._
+import cats.effect.concurrent.Deferred
+import cats.effect.implicits._
 import cats.implicits._
 import scala.concurrent.ExecutionContext
 import org.http4s.util.execution.direct
@@ -115,6 +117,16 @@ package object internal {
               case Failure(t) => cb(Left(t))
             }(direct)
           }
+      }
+    }
+
+  private[http4s] def allocated[F[_], A](resource: Resource[F, A])(
+      implicit F: Concurrent[F]): F[(A, F[Unit])] =
+    Deferred[F, A].flatMap { deferred =>
+      Deferred[F, Unit].flatMap { shutdown =>
+        resource.use { client =>
+          deferred.complete(client) >> shutdown.get
+        }.start >> deferred.get.map((_, shutdown.complete(())))
       }
     }
 }
