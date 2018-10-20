@@ -17,15 +17,10 @@ object Retry {
 
   private[this] val logger = getLogger
 
-  def apply[F[_]](policy: RetryPolicy[F])(
-      client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] =
-    retryWithRedactedHeaders(policy, Headers.SensitiveHeaders.contains)(client)
-
-  def retryWithRedactedHeaders[F[_]](
+  def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CaseInsensitiveString => Boolean)(
+      redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
       client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] = {
-
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       client.run(req).attempt.flatMap {
         case right @ Right(response) =>
@@ -80,6 +75,13 @@ object Retry {
 
     Client(prepareLoop(_, 1))
   }
+
+  @deprecated("The `redactHeaderWhen` parameter is now available on `apply`.", "0.19.1")
+  def retryWithRedactedHeaders[F[_]](
+      policy: RetryPolicy[F],
+      redactHeaderWhen: CaseInsensitiveString => Boolean)(
+      client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] =
+    apply(policy, redactHeaderWhen)(client)
 }
 
 object RetryPolicy {
