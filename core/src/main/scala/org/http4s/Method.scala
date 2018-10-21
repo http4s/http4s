@@ -69,11 +69,11 @@ object Method extends MethodInstances {
   val BIND: IdempotentMethod = new Method("BIND") with Idempotent
   val CHECKIN: IdempotentMethod = new Method("CHECKIN") with Idempotent
   val CHECKOUT: IdempotentMethod = new Method("CHECKOUT") with Idempotent
-  val CONNECT: DefaultMethodNoBody = new Method("CONNECT") with Default with NoBody
+  val CONNECT: DefaultMethodWithBody = new Method("CONNECT") with Default with PermitsBody
   val COPY: IdempotentMethod = new Method("COPY") with Idempotent
-  val DELETE: IdempotentMethodNoBody = new Method("DELETE") with Idempotent with NoBody
-  val GET: SafeMethodNoBody = new Method("GET") with Safe with NoBody
-  val HEAD: SafeMethodNoBody = new Method("HEAD") with Safe with NoBody
+  val DELETE: IdempotentMethodWithBody = new Method("DELETE") with Idempotent with PermitsBody
+  val GET: SafeMethodWithBody = new Method("GET") with Safe with PermitsBody
+  val HEAD: SafeMethodWithBody = new Method("HEAD") with Safe with PermitsBody
   val LABEL: IdempotentMethodWithBody = new Method("LABEL") with Idempotent with PermitsBody
   val LINK: IdempotentMethod = new Method("LINK") with Idempotent
   val LOCK: DefaultMethod = new Method("LOCK") with Default
