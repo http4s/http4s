@@ -49,8 +49,7 @@ class BlazeClientSpec extends Http4sSpec {
             .compile
             .drain
           val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> IO.sleep(Random.nextInt(1000).millis) *> flushOutputStream)
-            .unsafeRunSync()
+          (writeBody *> flushOutputStream).unsafeRunSync()
 
         case None => srv.sendError(404)
       }
