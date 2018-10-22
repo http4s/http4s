@@ -43,18 +43,18 @@ lazy val `sbt-java-gen` = project
 lazy val `java-runtime` = project
   .enablePlugins(GitVersioning)
   .settings(
-    scalaVersion := "2.12.6",
+    scalaVersion := "2.12.7",
     crossScalaVersions := List(scalaVersion.value, "2.11.12"),
     publishTo := sonatypePublishTo.value,
     libraryDependencies ++= List(
-      "co.fs2"        %% "fs2-core"         % "0.10.5",
-      "org.typelevel" %% "cats-effect"      % "0.10.1",
-      "org.typelevel" %% "cats-effect-laws" % "0.10.1" % "test",
+      "co.fs2"        %% "fs2-core"         % "1.0.0",
+      "org.typelevel" %% "cats-effect"      % "1.0.0",
+      "org.typelevel" %% "cats-effect-laws" % "1.0.0" % "test",
       "io.grpc"       % "grpc-core"         % scalapb.compiler.Version.grpcJavaVersion,
       "io.grpc"       % "grpc-netty-shaded" % scalapb.compiler.Version.grpcJavaVersion % "test",
-      "io.monix"      %% "minitest"         % "2.1.1" % "test"
+      "io.monix"      %% "minitest"         % "2.2.1" % "test"
     ),
     mimaPreviousArtifacts := Set(organization.value %% name.value % "0.3.0"),
     testFrameworks += new TestFramework("minitest.runner.Framework"),
-    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.7" cross CrossVersion.binary)
+    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.8" cross CrossVersion.binary)
   )
