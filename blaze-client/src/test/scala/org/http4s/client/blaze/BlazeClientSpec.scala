@@ -106,7 +106,7 @@ class BlazeClientSpec extends Http4sSpec {
             Uri.fromString(s"http://$name:$port/simple").yolo
           }
 
-          (1 to 100).toList
+          (1 to Runtime.getRuntime.availableProcessors * 5).toList
             .parTraverse { _ =>
               val h = hosts(Random.nextInt(hosts.length))
               client.expect[String](h).map(_.nonEmpty)
