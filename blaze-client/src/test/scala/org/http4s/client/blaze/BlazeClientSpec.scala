@@ -49,8 +49,7 @@ class BlazeClientSpec extends Http4sSpec {
             .compile
             .drain
           val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> IO.sleep(Random.nextInt(1000).millis) *> flushOutputStream)
-            .unsafeRunSync()
+          (writeBody *> flushOutputStream).unsafeRunSync()
 
         case None => srv.sendError(404)
       }
@@ -107,14 +106,13 @@ class BlazeClientSpec extends Http4sSpec {
             Uri.fromString(s"http://$name:$port/simple").yolo
           }
 
-          (0 until 42)
-            .map { _ =>
+          (1 to Runtime.getRuntime.availableProcessors * 5).toList
+            .parTraverse { _ =>
               val h = hosts(Random.nextInt(hosts.length))
-              val resp =
-                client.expect[String](h).unsafeRunTimed(timeout)
-              resp.map(_.length > 0)
+              client.expect[String](h).map(_.nonEmpty)
             }
-            .forall(_.contains(true)) must beTrue
+            .map(_.forall(identity))
+            .unsafeRunTimed(timeout) must beSome(true)
         }
 
         "obey response header timeout" in {
