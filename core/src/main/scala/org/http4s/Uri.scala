@@ -11,7 +11,7 @@ import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.language.experimental.macros
 import scala.math.Ordered
-import scala.reflect.macros.whitebox.Context
+import scala.reflect.macros.whitebox
 
 /** Representation of the [[Request]] URI
   * @param scheme     optional Uri Scheme. eg, http, https
@@ -118,7 +118,7 @@ final case class Uri(
 }
 
 object Uri extends UriFunctions {
-  class Macros(val c: Context) {
+  class Macros(val c: whitebox.Context) {
     import c.universe._
 
     def uriLiteral(s: c.Expr[String]): Tree =
@@ -260,17 +260,6 @@ object Uri extends UriFunctions {
   object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
   object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
 
-  implicit val eqInstance: Eq[Uri] = Eq.fromUniversalEquals
-}
-
-trait UriFunctions {
-
-  /**
-    * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
-    * at compile time.
-    */
-  def uri(s: String): Uri = macro Uri.Macros.uriLiteral
-
   /**
     * Resolve a relative Uri reference, per RFC 3986 sec 5.2
     */
@@ -381,4 +370,14 @@ trait UriFunctions {
       case -1 => b.setLength(0)
       case n => b.setLength(n)
     }
+
+  implicit val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals
+}
+
+trait UriFunctions {
+  /**
+    * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
+    * at compile time.
+    */
+  def uri(s: String): Uri = macro Uri.Macros.uriLiteral
 }

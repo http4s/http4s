@@ -2,10 +2,10 @@ package org.http4s
 
 import cats._
 import org.http4s.internal.parboiled2.{Parser => PbParser}
-import org.http4s.util.Writer
 import org.http4s.parser.{AdditionalRules, Http4sParser}
+import org.http4s.util.Writer
 import scala.language.experimental.macros
-import scala.reflect.macros.whitebox.Context
+import scala.reflect.macros.whitebox
 
 /**
   * A Quality Value.  Represented as thousandths for an exact representation rounded to three
@@ -60,7 +60,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
     }
 }
 
-object QValue extends QValueInstances with QValueFunctions {
+object QValue {
   lazy val One: QValue = new QValue(1000) // scalastyle:ignore
   lazy val Zero: QValue = new QValue(0)
 
@@ -95,7 +95,7 @@ object QValue extends QValueInstances with QValueFunctions {
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
-  class Macros(val c: Context) {
+  class Macros(val c: whitebox.Context) {
     import c.universe._
 
     def qValueLiteral(d: c.Expr[Double]): Tree =
@@ -111,18 +111,6 @@ object QValue extends QValueInstances with QValueFunctions {
           c.abort(c.enclosingPosition, s"literal Double value required")
       }
   }
-}
-
-trait QValueInstances {
-  implicit val qValueOrder = Order.fromOrdering[QValue]
-  implicit val qValueShow = Show.fromToString[QValue]
-  implicit val qValueHttpCodec = new HttpCodec[QValue] {
-    def parse(s: String): ParseResult[QValue] = QValue.parse(s)
-    def render(writer: Writer, q: QValue): writer.type = q.render(writer)
-  }
-}
-
-trait QValueFunctions {
 
   /**
     * Supports a literal syntax for validated QValues.
@@ -135,7 +123,15 @@ trait QValueFunctions {
     * q(d) // does not compile: not a literal
     * }}}
     */
-  def q(d: Double): QValue = macro QValue.Macros.qValueLiteral
+  def q(d: Double): QValue = macro Macros.qValueLiteral
+
+
+  implicit val http4sQValueOrder: Order[QValue] = Order.fromOrdering[QValue]
+  implicit val http4sQValueShow: Show[QValue] = Show.fromToString[QValue]
+  implicit val http4sQValueHttpCodec: HttpCodec[QValue] = new HttpCodec[QValue] {
+    def parse(s: String): ParseResult[QValue] = QValue.parse(s)
+    def render(writer: Writer, q: QValue): writer.type = q.render(writer)
+  }
 }
 
 trait HasQValue {
