@@ -1,0 +1,111 @@
+/*
+ * Style tweaks
+ * --------------------------------------------------
+ */
+html,
+body {
+  overflow-x: hidden; /* Prevent scroll on narrow devices */
+}
+body {
+  padding-top: 70px;
+}
+footer {
+  margin: 0.5rem 0;
+}
+
+/*
+ * Off Canvas
+ * --------------------------------------------------
+ */
+@media screen and (max-width: 767px) {
+  .row-offcanvas {
+    position: relative;
+    -webkit-transition: all .25s ease-out;
+         -o-transition: all .25s ease-out;
+            transition: all .25s ease-out;
+  }
+
+  .row-offcanvas-right {
+    right: 0;
+  }
+
+  .row-offcanvas-left {
+    left: 0;
+  }
+
+  .row-offcanvas-right
+  .sidebar-offcanvas {
+    right: -100%; /* 12 columns */
+  }
+
+  .row-offcanvas-right.active
+  .sidebar-offcanvas {
+    right: -50%; /* 6 columns */
+  }
+
+  .row-offcanvas-left
+  .sidebar-offcanvas {
+    left: -100%; /* 12 columns */
+  }
+
+  .row-offcanvas-left.active
+  .sidebar-offcanvas {
+    left: -50%; /* 6 columns */
+  }
+
+  .row-offcanvas-right.active {
+    right: 50%; /* 6 columns */
+  }
+
+  .row-offcanvas-left.active {
+    left: 50%; /* 6 columns */
+  }
+
+  .sidebar-offcanvas {
+    position: absolute;
+    top: 0;
+    width: 50%; /* 6 columns */
+  }
+}
+
+
+.navbar-brand {
+    font-size: 2em;
+    line-height: 0.75em;
+}
+
+.navbar-brand .logo {
+    display: inline;
+    width: 1em;
+    height: 1em;
+}
+
+#http4s-social a.nav-link {
+    font-size: 1.5em;
+    padding: 0 0.25rem;
+}
+
+#sidebar {
+    border-left: 1px solid rgba(0,0,0,0.05);
+    font-size: 90%;
+}
+#sidebar .nav-link {
+    display: block;
+    padding: .25rem 1.5rem;
+    color: rgba(0,0,0,.65);
+}
+#sidebar .nav-link.active {
+    font-weight: bolder;
+}
+#sidebar .nav-link.active::before {
+    visibility: visible;
+}
+#sidebar .nav-link::before {
+    content: "⇒";
+    visibility: hidden;
+p}
+
+.navbar-brand, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Share Tech';
+    color: #c60;
+}
