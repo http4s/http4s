@@ -31,7 +31,8 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.19/">v0.19 (development)</a>
+  <a class="dropdown-item" href="/v0.20/">v0.20 (development)</a>
+  <a class="dropdown-item" href="/v0.19/">v0.19 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
   <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
@@ -86,13 +87,23 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v0-19-1-snapshot">v0.19.1-SNAPSHOT</h1>
+<h1 id="v0-20-0-m1-2018-10-27">v0.20.0-M1 (2018-10-27)</h1>
+
+<p>Due to the inadvertent release of 0.19.0, we have opened a new minor version.  The stable release with MiMa enforcement will be v0.20.0.</p>
 
 <h2 id="breaking-changes">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2159">#2159</a>: Add a <code>responseHeaderTimeout</code> property to <code>BlazeServerBuilder</code>. Responses that timeout are completed with <code>Response.timeout</code>, which defaults to 503 Service Unavailable.  <code>BlazeServerBuilder</code> now requires a <code>Timer[F]</code>.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2177">#2177</a>: Deprecate <code>org.http4s.syntax.async</code>, which was not directly relevant to HTTP.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2131">#2131</a>: Refactor server metrics
+
+<ul>
+<li><code>http4s-server-metrics</code> module merged into <code>http4s-dropwizard-metrics</code></li>
+<li><code>http4s-prometheus-server-metrics</code> module merged into <code>http4s-prometheus-metrics</code></li>
+<li>The <code>org.http4s.server.middleware.metrics.Metrics</code> middleware now takes a <code>MetricsOps</code>, implemented by Dropwizard, Prometheus, or your custom interpreter.</li>
+</ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/2180">#2180</a>: Change default response on <code>Timeout</code> middlware to <code>503 Service Unavailable</code></li>
 </ul>
 
 <h2 id="enhancements">Enhancements</h2>
@@ -107,18 +118,31 @@ it.</p>
 <li>A <code>TickWheelExecutor</code> is now allocated per client, instead of globally.</li>
 <li>Request rendering and response parsing is now canceled more aggressively on timeout.</li>
 </ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/2184">#2184</a>: Receive response concurrently with sending request in blaze client. This reduces waste when the server is not interested in the entire request body.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2190">#2190</a>: Add <code>channelOptions</code> to blaze-client to customize socket options.</li>
 </ul>
 
 <h2 id="bug-fixes">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2166">#2166</a>: Fix request timeout calculation in blaze-client to resolve &ldquo;Client response header timeout after 0 millseconds&rdquo; error.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2189">#2189</a>: Manage the <code>TickWheelTimer</code> as a resource instead of an <code>F[A, F[Unit]]</code>. This prevents a leak in (extremely unlikely) cases of cancellation.</li>
+</ul>
+
+<h2 id="internal">Internal</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2179">#2179</a>: Method to silence expected exceptions in tests</li>
+<li><a href="https://github.com/http4s/http4s/pull/2194">#2194</a>: Remove ill-conceived, zero-timeout unit tests</li>
+<li><a href="https://github.com/http4s/http4s/pull/2199">#2199</a>: Make client test sizes proportional to the number of processors for greater Travis stability</li>
 </ul>
 
 <h2 id="dependency-upgrades">Dependency upgrades</h2>
 
 <ul>
-<li>blaze-0.14.0-M7</li>
+<li>alpn-boot-8.1.13.v20181017 (examples only)</li>
+<li>blaze-0.14.0-M9</li>
+<li>sbt-native-packager-1.3.11 (examples only)</li>
 </ul>
 
 <h1 id="v0-18-20-2018-10-18">v0.18.20 (2018-10-18)</h1>
@@ -141,7 +165,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2147">#2147</a>: Fix link to v0.19 docs</li>
 </ul>
 
-<h2 id="internal">Internal</h2>
+<h2 id="internal-1">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2130">#2130</a>: Build with scala-2.12.7 and sbt-1.2.3</li>
@@ -149,7 +173,7 @@ it.</p>
 
 <h1 id="v0-19-0-2018-10-05"><del>v0.19.0 (2018-10-05)</del></h1>
 
-<p>This release is identical to v0.19.0-M4.  We mistagged it.  Please use v0.19.0-M4 instead.  <em>We reserve the right to break binary compatibility until v0.19.1</em>.</p>
+<p>This release is identical to v0.19.0-M4.  We mistagged it.  Please proceed to the 0.20 series.</p>
 
 <h1 id="v0-19-0-m4-2018-10-05">v0.19.0-M4 (2018-10-05)</h1>
 
@@ -192,7 +216,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2145">#2145</a>: Fix deprecated calls to <code>Client#streaming</code></li>
 </ul>
 
-<h2 id="internal-1">Internal</h2>
+<h2 id="internal-2">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2126">#2126</a>: Delete obsolete <code>bin</code> directory</li>
@@ -274,7 +298,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2100">#2100</a>: Correct <code>re-start</code> to <code>reStart</code> in docs</li>
 </ul>
 
-<h2 id="internal-2">Internal</h2>
+<h2 id="internal-3">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2105">#2105</a>: Test on OpenJDK 11</li>
@@ -304,7 +328,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2117">#2117</a>: Handle unsuccessful responses in <code>JavaNetClient</code></li>
 </ul>
 
-<h2 id="internal-3">Internal</h2>
+<h2 id="internal-4">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2116">#2116</a>: Test against OpenJDK 11. Retire Oracle JDK 10.</li>
@@ -472,7 +496,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2060">#2060</a>: Guide to setting up IntelliJ for contributors</li>
 </ul>
 
-<h2 id="internal-4">Internal</h2>
+<h2 id="internal-5">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/1966">#1966</a>: Use scalafmt directly from IntelliJ</li>
