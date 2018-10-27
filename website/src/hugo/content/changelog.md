@@ -8,11 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.19.1-SNAPSHOT
+# v0.20.0-M1 (2018-10-27)
+
+Due to the inadvertent release of 0.19.0, we have opened a new minor version.  The stable release with MiMa enforcement will be v0.20.0.
 
 ## Breaking changes
 * [#2159](https://github.com/http4s/http4s/pull/2159): Add a `responseHeaderTimeout` property to `BlazeServerBuilder`. Responses that timeout are completed with `Response.timeout`, which defaults to 503 Service Unavailable.  `BlazeServerBuilder` now requires a `Timer[F]`.
 * [#2177](https://github.com/http4s/http4s/pull/2177): Deprecate `org.http4s.syntax.async`, which was not directly relevant to HTTP.
+* [#2131](https://github.com/http4s/http4s/pull/2131): Refactor server metrics
+  * `http4s-server-metrics` module merged into `http4s-dropwizard-metrics`
+  * `http4s-prometheus-server-metrics` module merged into `http4s-prometheus-metrics`
+  * The `org.http4s.server.middleware.metrics.Metrics` middleware now takes a `MetricsOps`, implemented by Dropwizard, Prometheus, or your custom interpreter.
+* [#2180](https://github.com/http4s/http4s/pull/2180): Change default response on `Timeout` middlware to `503 Service Unavailable`
 
 ## Enhancements
 * [#2159](https://github.com/http4s/http4s/pull/2159): Set default client request timeout to 1 minute
@@ -21,12 +28,22 @@ it.
 * [#2174](https://github.com/http4s/http4s/pull/2159): Refactor the blaze-client timeout architecture.
   * A `TickWheelExecutor` is now allocated per client, instead of globally.
   * Request rendering and response parsing is now canceled more aggressively on timeout.
+* [#2184](https://github.com/http4s/http4s/pull/2184): Receive response concurrently with sending request in blaze client. This reduces waste when the server is not interested in the entire request body.
+* [#2190](https://github.com/http4s/http4s/pull/2190): Add `channelOptions` to blaze-client to customize socket options.
 
 ## Bug fixes
 * [#2166](https://github.com/http4s/http4s/pull/2166): Fix request timeout calculation in blaze-client to resolve "Client response header timeout after 0 millseconds" error.
+* [#2189](https://github.com/http4s/http4s/pull/2189): Manage the `TickWheelTimer` as a resource instead of an `F[A, F[Unit]]`. This prevents a leak in (extremely unlikely) cases of cancellation.
+
+## Internal
+* [#2179](https://github.com/http4s/http4s/pull/2179): Method to silence expected exceptions in tests
+* [#2194](https://github.com/http4s/http4s/pull/2194): Remove ill-conceived, zero-timeout unit tests
+* [#2199](https://github.com/http4s/http4s/pull/2199): Make client test sizes proportional to the number of processors for greater Travis stability
 
 ## Dependency upgrades
-* blaze-0.14.0-M7
+* alpn-boot-8.1.13.v20181017 (examples only)
+* blaze-0.14.0-M9
+* sbt-native-packager-1.3.11 (examples only)
 
 # v0.18.20 (2018-10-18)
 
@@ -44,7 +61,7 @@ it.
 
 # ~~v0.19.0 (2018-10-05)~~
 
-This release is identical to v0.19.0-M4.  We mistagged it.  Please use v0.19.0-M4 instead.  *We reserve the right to break binary compatibility until v0.19.1*.
+This release is identical to v0.19.0-M4.  We mistagged it.  Please proceed to the 0.20 series.
 
 # v0.19.0-M4 (2018-10-05)
 
