@@ -2,11 +2,14 @@ package org.lyranthe.fs2_grpc
 package java_runtime
 package client
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.{ContextShift, IO, Timer}
 import cats.effect.laws.util.TestContext
 import fs2._
 import io.grpc._
 import minitest._
+
+import scala.concurrent.TimeoutException
+import scala.concurrent.duration._
 import scala.util.Success
 
 object ClientSuite extends SimpleTestSuite {
@@ -34,11 +37,35 @@ object ClientSuite extends SimpleTestSuite {
     assertEquals(dummy.requested, 1)
   }
 
+  test("cancellation for unaryToUnary") {
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
+    implicit val timer: Timer[IO]     = ec.timer
+
+    val dummy  = new DummyClientCall()
+    val client = new Fs2ClientCall[IO, String, Int](dummy)
+    val result = client.unaryToUnaryCall("hello", new Metadata()).timeout(1.second).unsafeToFuture()
+
+    ec.tick()
+    dummy.listener.get.onMessage(5)
+
+    // Check that call does not complete after result returns
+    ec.tick()
+    assertEquals(result.value, None)
+
+    // Check that call is cancelled after 1 second
+    ec.tick(2.seconds)
+
+    assert(result.value.get.isFailure)
+    assert(result.value.get.failed.get.isInstanceOf[TimeoutException])
+    assertEquals(dummy.cancelled.isDefined, true)
+  }
+
   test("no response message to unaryToUnary") {
 
     implicit val ec: TestContext      = TestContext()
     implicit val cs: ContextShift[IO] = IO.contextShift(ec)
-
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
@@ -189,6 +216,37 @@ object ClientSuite extends SimpleTestSuite {
     assertEquals(result.value, Some(Success(List(1, 2, 3))))
     assertEquals(dummy.messagesSent.size, 5)
     assertEquals(dummy.requested, 4)
+  }
+
+  test("cancellation for streamingToStreaming") {
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
+    implicit val timer: Timer[IO]     = ec.timer
+
+    val dummy  = new DummyClientCall()
+    val client = new Fs2ClientCall[IO, String, Int](dummy)
+    val result =
+      client
+        .streamingToStreamingCall(Stream.emits(List("a", "b", "c", "d", "e")), new Metadata())
+        .compile
+        .toList
+        .timeout(1.second)
+        .unsafeToFuture()
+    ec.tick()
+    dummy.listener.get.onMessage(1)
+    dummy.listener.get.onMessage(2)
+    dummy.listener.get.onMessage(3)
+
+    // Check that call does not complete after result returns
+    ec.tick()
+    assertEquals(result.value, None)
+
+    // Check that call completes after status
+    ec.tick(2.seconds)
+    assert(result.value.get.isFailure)
+    assert(result.value.get.failed.get.isInstanceOf[TimeoutException])
+    assertEquals(dummy.cancelled.isDefined, true)
   }
 
   test("error returned from streamingToStreaming") {
