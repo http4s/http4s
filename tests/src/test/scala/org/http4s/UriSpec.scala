@@ -2,7 +2,9 @@ package org.http4s
 
 import cats.implicits.{catsSyntaxEither => _, _}
 import cats.kernel.laws.discipline.EqTests
+import java.nio.file.Paths
 import org.http4s.Uri._
+import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers
 
@@ -72,12 +74,13 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "provide a useful error message if string argument is not url-encoded" in {
-        Uri.fromString("http://example.org/a file") must_=== Left(
+        Uri.fromString("http://example.org/a file") must beLeft(
           ParseFailure(
             "Invalid URI",
             """Invalid input ' ', expected '/', 'EOI', '#', '?' or Pchar (line 1, column 21):
 http://example.org/a file
-                    ^"""))
+                    ^""".replace("\r", "")
+          ))
       }
     }
 
@@ -327,8 +330,7 @@ http://example.org/a file
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
         "/relative/URI/with/absolute/path/to/resource.txt"
       )
-      foreach(examples) { e =>
-        Uri.fromString(e).map(_.toString) must beRight(e)
+      foreach(examples) { e => Uri.fromString(e).map(_.toString) must beRight(e)
       }
     }
 
@@ -767,7 +769,6 @@ http://example.org/a file
     }
 
     "correctly resolve RFC 3986 sec 5.4 normal examples" >> {
-
       // normal examples
       "g:h" shouldResolveTo "g:h"
       "g" shouldResolveTo "http://a/b/c/g"
@@ -819,6 +820,25 @@ http://example.org/a file
 
       "http:g" shouldResolveTo "http:g"
     }
+
+    lazy val pathSegmentGen: Gen[String] =
+      Gen.oneOf(Gen.alphaNumStr, Gen.const("."), Gen.const(".."))
+
+    lazy val pathGen: Gen[String] =
+      for {
+        firstPathSegment <- Gen.oneOf(Gen.const(""), pathSegmentGen)
+        pathSegments <- Gen.listOf(pathSegmentGen.map(p => s"/$p"))
+        lastSlash <- Gen.oneOf("", "/")
+      } yield s"$firstPathSegment${pathSegments.mkString("")}$lastSlash"
+
+    "correctly remove dot segments in other examples" >> prop { input: String =>
+      val prefix = "/this/isa/prefix/"
+      val processed = Uri.removeDotSegments(input)
+      val path = Paths.get(prefix, processed).normalize
+      path.startsWith(Paths.get(prefix)) must beTrue
+      processed must not contain "./"
+      processed must not contain "../"
+    }.setGen(pathGen)
   }
 
   "Uri.equals" should {
