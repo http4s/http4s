@@ -6,7 +6,6 @@ import cats.effect.IO
 import org.http4s.{HttpService, Request, Response}
 import org.http4s.dsl.io._
 import org.http4s.Cookie
-import org.http4s.headers.{Cookie => CookieHeader}
 
 object Http4s {
   // Add code that needs fixing here.
