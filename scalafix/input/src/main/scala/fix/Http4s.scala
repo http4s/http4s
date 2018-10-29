@@ -21,4 +21,5 @@ object Http4s {
   def responseWithBody: IO[Response[IO]] = Ok().withBody("world")
 
   val x = MediaType.`application/atom+xml`
+  MediaType.`application/vnd.google-earth.kml+xml`
 }
