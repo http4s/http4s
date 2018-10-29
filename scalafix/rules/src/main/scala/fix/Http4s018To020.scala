@@ -47,6 +47,27 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
         Patch.replaceTree(media,
           mediaParts.mkString(".")
         )
+
+      // Client builders
+      case Importee.Name(c@Name("Http1Client")) =>
+        Patch.replaceTree(c, "BlazeClientBuilder")
+      case c@Term.Apply(Term.ApplyType(n@Term.Name("Http1Client"), tpes), configParam) =>
+        val ec = configParam.headOption.flatMap{
+          case c: Term.Name =>
+            doc.tree.collect{
+              case Defn.Val(_, _, _, rhs) =>
+                rhs.collect{
+                  case Term.Assign(Term.Name("executionContext"), ec) =>
+                    ec
+                }
+            }.flatten.headOption
+        }.getOrElse(Term.Name("global"))
+        Patch.replaceTree(c, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec)") + (ec match {
+          case Term.Name("global") =>
+            Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
+          case _ =>
+            Patch.empty
+        })
     }
   }.asPatch
 
