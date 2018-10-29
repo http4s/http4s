@@ -4,7 +4,7 @@ import org.http4s.{HttpRoutes, MediaType, Request, Response}
 import org.http4s.dsl.io._
 import org.http4s.{ResponseCookie => Cookie}
 
-object Http4s {
+object Http4s018To020 {
   // Add code that needs fixing here.
 
   def service(): HttpRoutes[IO] = HttpRoutes.of[IO] {

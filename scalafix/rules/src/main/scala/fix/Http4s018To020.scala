@@ -3,7 +3,7 @@ package fix
 import scalafix.v1._
 import scala.meta._
 
-class Http4s extends SemanticRule("Http4s") {
+class Http4s018To020 extends SemanticRule("Http4s018To020") {
 
   val mimeMatcher = SymbolMatcher.normalized("org/http4s/MediaType#")
 

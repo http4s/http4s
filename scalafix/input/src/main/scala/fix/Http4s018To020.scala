@@ -1,12 +1,12 @@
 /*
-rule = Http4s
+rule = Http4s018To020
 */
 package fix
 import cats.effect.IO
 import org.http4s.{Cookie, HttpService, MediaType, Request, Response}
 import org.http4s.dsl.io._
 
-object Http4s {
+object Http4s018To020 {
   // Add code that needs fixing here.
 
   def service(): HttpService[IO] = HttpService[IO] {
