@@ -79,12 +79,19 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
   }.asPatch
 
   def withConfigParams(params: Map[String, Term]) =
-    params.collect{
-      case (s, term) if s != "executionContext" || s != "sslContext" || s != "lenientParser" =>
-        s".with${s.head.toUpper}${s.tail}($term)"
+    params.flatMap{
       case ("lenientParser", Lit(v: Boolean)) =>
-        if(v) s".withParserMode(org.http4s.client.blaze.ParserMode.Strict)"
-        else s".withParserMode(org.http4s.client.blaze.ParserMode.Lenient)"
+        if(v) Some(s".withParserMode(org.http4s.client.blaze.ParserMode.Lenient)")
+        else Some(s".withParserMode(org.http4s.client.blaze.ParserMode.Strict)")
+      case ("userAgent", Term.Apply(_, agent)) =>
+        Some(s".withUserAgent(${agent.mkString})")
+      case ("checkEndpointIdentification", Lit(v: Boolean)) =>
+        Some(s".withCheckEndpointAuthentication($v)")
+      case ("group", Term.Apply(_, group)) =>
+        Some(s".withAsynchronousChannelGroup($group)")
+      case (s, term) if s != "executionContext" && s != "sslContext" && s != "group"=>
+        Some(s".with${s.head.toUpper}${s.tail}($term)")
+      case _ => None
     }.mkString("\n")
 
   def removeExternalF(t: Type) =

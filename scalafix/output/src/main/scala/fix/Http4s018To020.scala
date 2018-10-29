@@ -3,17 +3,16 @@ import java.util.concurrent.Executors
 
 import cats.effect.IO
 import javax.net.ssl.SSLContext
-import org.http4s.client.blaze.{BlazeClientBuilder, BlazeClientConfig}
+import org.http4s.client.blaze.{BlazeClientConfig, BlazeClientBuilder}
 import org.http4s.{HttpRoutes, MediaType, Request, Response}
 import org.http4s.dsl.io._
 import org.http4s.client.Client
+import org.http4s.headers.{AgentProduct, `User-Agent`}
 
 import scala.concurrent.ExecutionContext
-import org.http4s.{ResponseCookie => Cookie}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import org.http4s.headers.{AgentProduct, `User-Agent`}
+import org.http4s.{ResponseCookie => Cookie}
 
 object Http4s018To020 {
   // Add code that needs fixing here.
@@ -54,8 +53,9 @@ object Http4s018To020 {
   )
 
   val client = BlazeClientBuilder[IO](ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1)))
-  val client2 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault))
+  val client2 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second)
 .withMaxChunkSize(3)
+.withParserMode(org.http4s.client.blaze.ParserMode.Strict)
 .withMaxTotalConnections(1)
 .withIdleTimeout(2.second)
 .withMaxWaitQueueLimit(2)
@@ -66,6 +66,4 @@ object Http4s018To020 {
 .withMaxResponseLineSize(1)
 .withMaxHeaderLength(2)
 .withMaxConnectionsPerRequestKey(_ => 1)
-.withRequestTimeout(3.second)
-.withParserMode(org.http4s.client.blaze.ParserMode.Strict)
 }
