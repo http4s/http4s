@@ -5,6 +5,8 @@ import scala.meta._
 
 class Http4s extends SemanticRule("Http4s") {
 
+  val mimeMatcher = SymbolMatcher.normalized("org/http4s/MediaType#")
+
   override def fix(implicit doc: SemanticDocument): Patch = {
     doc.tree.collect{
       // HttpService -> HttpRoutes.of
@@ -32,6 +34,19 @@ class Http4s extends SemanticRule("Http4s") {
               List(Importee.Rename(Name("ResponseCookie"), rename)))) +
               Patch.removeImportee(c)
         }.asPatch
+
+      // MiMe types
+      case Term.Select(mimeMatcher(t), media) =>
+        val mediaParts = media.toString.replace("`", "").split("/").map{
+          part =>
+            if(!part.forall(c => c.isLetterOrDigit || c == '_'))
+              s"`$part`"
+            else
+              part
+        }
+        Patch.replaceTree(media,
+          mediaParts.mkString(".")
+        )
     }
   }.asPatch
 

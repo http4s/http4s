@@ -1,6 +1,6 @@
 package fix
 import cats.effect.IO
-import org.http4s.{HttpRoutes, Request, Response}
+import org.http4s.{HttpRoutes, MediaType, Request, Response}
 import org.http4s.dsl.io._
 import org.http4s.{ResponseCookie => Cookie}
 
@@ -17,4 +17,6 @@ object Http4s {
 
   val requestWithBody: Request[IO] = Request().withEntity("hello")
   def responseWithBody: IO[Response[IO]] = Ok().withEntity("world")
+
+  val x = MediaType.application.`atom+xml`
 }
