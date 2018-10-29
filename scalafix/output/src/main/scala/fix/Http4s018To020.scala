@@ -2,14 +2,18 @@ package fix
 import java.util.concurrent.Executors
 
 import cats.effect.IO
-import org.http4s.client.blaze.{BlazeClientConfig, BlazeClientBuilder}
+import javax.net.ssl.SSLContext
+import org.http4s.client.blaze.{BlazeClientBuilder, BlazeClientConfig}
 import org.http4s.{HttpRoutes, MediaType, Request, Response}
 import org.http4s.dsl.io._
 import org.http4s.client.Client
 
 import scala.concurrent.ExecutionContext
 import org.http4s.{ResponseCookie => Cookie}
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import org.http4s.headers.{AgentProduct, `User-Agent`}
 
 object Http4s018To020 {
   // Add code that needs fixing here.
@@ -30,6 +34,38 @@ object Http4s018To020 {
 
   val config = BlazeClientConfig.defaultConfig.copy(executionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1)))
 
+  val fullConfig = BlazeClientConfig(
+    responseHeaderTimeout = 1.second,
+    idleTimeout = 2.second,
+    requestTimeout = 3.second,
+    userAgent = Some(`User-Agent`(AgentProduct("hello"))),
+    maxTotalConnections = 1,
+    maxWaitQueueLimit = 2,
+    maxConnectionsPerRequestKey = _ => 1,
+    sslContext = Some(SSLContext.getDefault),
+    checkEndpointIdentification = false,
+    maxResponseLineSize = 1,
+    maxHeaderLength = 2,
+    maxChunkSize = 3,
+    lenientParser = false,
+    bufferSize = 1,
+    executionContext = global,
+    group = None
+  )
+
   val client = BlazeClientBuilder[IO](ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1)))
-  val client2 = BlazeClientBuilder[IO](global)
+  val client2 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault))
+.withMaxChunkSize(3)
+.withMaxTotalConnections(1)
+.withIdleTimeout(2.second)
+.withMaxWaitQueueLimit(2)
+.withUserAgent(`User-Agent`(AgentProduct("hello")))
+.withCheckEndpointAuthentication(false)
+.withBufferSize(1)
+.withResponseHeaderTimeout(1.second)
+.withMaxResponseLineSize(1)
+.withMaxHeaderLength(2)
+.withMaxConnectionsPerRequestKey(_ => 1)
+.withRequestTimeout(3.second)
+.withParserMode(org.http4s.client.blaze.ParserMode.Strict)
 }

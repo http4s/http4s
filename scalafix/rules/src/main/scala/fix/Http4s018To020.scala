@@ -52,17 +52,24 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
       case Importee.Name(c@Name("Http1Client")) =>
         Patch.replaceTree(c, "BlazeClientBuilder")
       case c@Term.Apply(Term.ApplyType(n@Term.Name("Http1Client"), tpes), configParam) =>
-        val ec = configParam.headOption.flatMap{
+        val config = configParam.headOption.flatMap {
           case c: Term.Name =>
-            doc.tree.collect{
-              case Defn.Val(_, _, _, rhs) =>
-                rhs.collect{
-                  case Term.Assign(Term.Name("executionContext"), ec) =>
-                    ec
-                }
-            }.flatten.headOption
-        }.getOrElse(Term.Name("global"))
-        Patch.replaceTree(c, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec)") + (ec match {
+            doc.tree.collect {
+              case Defn.Val(_, pats, _, rhs) if isClientConfig(c, pats) =>
+                rhs
+            }.headOption
+        }
+        val configParams = config match {
+          case Some(Term.Apply(_, params)) =>
+            params.collect{
+              case Term.Assign(Term.Name(name: String), p: Term) =>
+                name -> p
+            }.toMap
+          case _ => Map.empty[String, Term]
+        }
+        val ec = configParams.getOrElse("executionContext", Term.Name("global"))
+        val sslc = configParams.get("sslContext")
+        Patch.replaceTree(c, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}") + (ec match {
           case Term.Name("global") =>
             Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
           case _ =>
@@ -70,6 +77,15 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
         })
     }
   }.asPatch
+
+  def withConfigParams(params: Map[String, Term]) =
+    params.collect{
+      case (s, term) if s != "executionContext" || s != "sslContext" || s != "lenientParser" =>
+        s".with${s.head.toUpper}${s.tail}($term)"
+      case ("lenientParser", Lit(v: Boolean)) =>
+        if(v) s".withParserMode(org.http4s.client.blaze.ParserMode.Strict)"
+        else s".withParserMode(org.http4s.client.blaze.ParserMode.Lenient)"
+    }.mkString("\n")
 
   def removeExternalF(t: Type) =
     t match {
@@ -92,5 +108,11 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
       case Term.Select(_, Term.Name("withBody")) =>
         true
     }.contains(true)
+
+  def isClientConfig(configName: Term.Name, pats: List[Pat]) =
+    pats.exists{
+      case Pat.Var(Term.Name(name)) => name == configName.value
+      case _ => false
+    }
 
 }
