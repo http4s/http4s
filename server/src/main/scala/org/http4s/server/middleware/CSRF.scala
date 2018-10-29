@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Applicative}
+import cats.Applicative
 import cats.data.{EitherT, Kleisli}
 import cats.effect.Sync
 import cats.syntax.all._
@@ -13,7 +13,7 @@ import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Origin, Referer, `X-Forwarded-For`}
-import org.http4s.util.{CaseInsensitiveString}
+import org.http4s.util.CaseInsensitiveString
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
 import scala.util.control.NoStackTrace
@@ -149,22 +149,26 @@ final class CSRF[F[_], G[_]] private[middleware] (
   /** To be only used on safe methods: if the method is safe (i.e doesn't modify data)
     * and a token is present, validate and regenerate it for BREACH to be impractical
     */
-  private[middleware] def validate(r: Request[G], response: F[Response[G]])(
+  private[middleware] def validate(r: Request[G], http: Http[F, G])(
       implicit F: Sync[F]): F[Response[G]] =
     CSRF.cookieFromHeaders(r, cookieName) match {
       case Some(c) =>
         (for {
-          raw <- F.fromEither(extractRaw(c.content))
-          res <- response
+          raw      <- F.fromEither(extractRaw(c.content))
           newToken <- signToken[F](raw)
+          res      <- http.run(embedInRequestAttributes(r, newToken))
         } yield res.addCookie(createResponseCookie(newToken)))
           .recover {
             case CSRFCheckFailed => Response[G](Status.Forbidden)
           }
       case None =>
         if (createIfNotFound) {
-          response.flatMap(r => embedNewInResponseCookie(r))
-        } else response
+          generateToken[F].flatMap { t =>
+            val request = embedInRequestAttributes(r, t)
+            val cookie  = createResponseCookie(t)
+            http.run(request).map(_.addCookie(cookie))
+          }
+        } else http.run(r)
     }
 
   /** Check for CSRF validity for an unsafe action.
@@ -172,7 +176,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * Exposed to users in case of manual plumbing of csrf token
     * (i.e websocket or query param)
     */
-  def checkCSRFToken(r: Request[G], respAction: F[Response[G]], rawToken: String)(
+  def checkCSRFToken(r: Request[G], http: Http[F, G], rawToken: String)(
       implicit F: Sync[F]): F[Response[G]] =
     if (!headerCheck(r)) {
       F.pure(onFailure)
@@ -181,9 +185,9 @@ final class CSRF[F[_], G[_]] private[middleware] (
         c1 <- CSRF.cookieFromHeadersF[F, G](r, cookieName)
         raw1 <- F.fromEither(extractRaw(c1.content))
         raw2 <- F.fromEither(extractRaw(rawToken))
-        response <- if (CSRF.isEqual(raw1, raw2)) respAction
-        else F.raiseError[Response[G]](CSRFCheckFailed)
         newToken <- signToken[F](raw1) //Generate a new token to guard against BREACH.
+        response <- if (CSRF.isEqual(raw1, raw2)) http.run(embedInRequestAttributes(r, newToken))
+                    else F.raiseError[Response[G]](CSRFCheckFailed)
       } yield response.addCookie(ResponseCookie(name = cookieName, content = unlift(newToken))))
         .recover {
           case CSRFCheckFailed => Response[G](Status.Forbidden)
@@ -194,7 +198,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     *
     * Check for the default header value
     */
-  def checkCSRFDefault(r: Request[G], http: F[Response[G]]): F[Response[G]] =
+  def checkCSRFDefault(r: Request[G], http: Http[F, G]): F[Response[G]] =
     r.headers.get(headerName) match {
       case Some(h) =>
         checkCSRFToken(r, http, h.value)
@@ -208,9 +212,9 @@ final class CSRF[F[_], G[_]] private[middleware] (
       r: Request[G],
       http: Http[F, G]): F[Response[G]] =
     if (predicate(r)) {
-      validate(r, http.run(r))
+      validate(r, http)
     } else {
-      checkCSRFDefault(r, http(r))
+      checkCSRFDefault(r, http)
     }
 
   /** Constructs a middleware that will check for the csrf token
@@ -231,6 +235,9 @@ final class CSRF[F[_], G[_]] private[middleware] (
     }
   }
 
+  def embedInRequestAttributes(r: Request[G], token: CSRFToken): Request[G] =
+    r.withAttribute(TokenKey(token))
+
   def embedInResponseCookie(r: Response[G], token: CSRFToken): Response[G] =
     r.addCookie(createResponseCookie(token))
 
@@ -240,9 +247,12 @@ final class CSRF[F[_], G[_]] private[middleware] (
   /** Embed a token into a response **/
   def embedNewInResponseCookie[M[_]: Sync](res: Response[G]): M[Response[G]] =
     generateToken[M].map(embedInResponseCookie(res, _))
+
 }
 
 object CSRF {
+
+  val TokenKey: AttributeKey[CSRFToken] = AttributeKey[CSRFToken]
 
   //Newtype hax. Remove when we have a better story for newtypes
   type CSRFToken

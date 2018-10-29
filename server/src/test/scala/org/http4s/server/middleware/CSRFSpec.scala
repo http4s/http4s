@@ -69,6 +69,23 @@ class CSRFSpec extends Http4sSpec {
       response.cookies.exists(_.name == csrf.cookieName) must_== false
     }
 
+    "pass through and embed a new token on request attribute" in {
+
+      val routes = HttpRoutes.of[IO] {
+
+        case r@GET -> Root =>
+          r.attributes.get(CSRF.TokenKey).map(t =>
+            Ok().map(_.withAttribute(CSRF.TokenKey(t)))
+          ).getOrElse(Forbidden())
+
+      }.orNotFound
+
+      val response = csrf.validate()(routes)(passThroughRequest).unsafeRunSync()
+
+      response.status must_== Status.Ok
+      response.attributes.get(CSRF.TokenKey).isDefined must_== true
+    }
+
     "Extract a valid token, with a slightly changed nonce, if present" in {
       val program = for {
         t <- csrf.generateToken[IO]
@@ -85,7 +102,7 @@ class CSRFSpec extends Http4sSpec {
       val program: IO[Response[IO]] = for {
         token <- csrf.generateToken[IO]
         req = csrf.embedInRequestCookie(Request[IO](POST), token)
-        v <- csrf.checkCSRFDefault(req, dummyRoutes.run(req))
+        v <- csrf.checkCSRFDefault(req, dummyRoutes)
       } yield v
 
       program.unsafeRunSync().status must_== Status.Forbidden
@@ -142,6 +159,31 @@ class CSRFSpec extends Http4sSpec {
       program.unsafeRunSync().status must_== Status.Ok
     }
 
+    "validate for the correct csrf token and put new token on request attributes" in {
+
+      val routes = HttpRoutes.of[IO] {
+
+        case r@POST -> Root =>
+          r.attributes.get(CSRF.TokenKey).map(t =>
+            Ok().map(_.withAttribute(CSRF.TokenKey(t)))
+          ).getOrElse(Forbidden())
+
+      }.orNotFound
+
+      val program: IO[Option[CSRF.CSRFToken]] = for {
+        token <- csrf.generateToken[IO]
+        res <- csrf.validate()(routes)(
+          dummyRequest
+            .putHeaders(Header(csrf.headerName.value, unlift(token)))
+            .addCookie(csrf.cookieName, unlift(token))
+        )
+      } yield {
+        res.attributes.get(CSRF.TokenKey)
+      }
+
+      program.unsafeRunSync().isDefined must_== true
+    }
+
     "validate for the correct csrf token, no origin but with a referrer" in {
       val program: IO[Response[IO]] =
         for {
@@ -163,7 +205,7 @@ class CSRFSpec extends Http4sSpec {
       val program: IO[Response[IO]] = for {
         token <- csrf.generateToken[IO]
         req = csrf.embedInRequestCookie(Request[IO](POST), token)
-        v <- csrf.checkCSRFDefault(req, dummyRoutes.run(req))
+        v <- csrf.checkCSRFDefault(req, dummyRoutes)
       } yield v
 
       program.unsafeRunSync().status must_== Status.Forbidden
