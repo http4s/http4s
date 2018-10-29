@@ -19,6 +19,28 @@ class Http4s extends SemanticRule("Http4s") {
         replaceWithBody(rhs) ++ tpe.map(removeExternalF).toList
       case Defn.Var(_, _, tpe, rhs) if rhs.exists(containsWithBody) =>
         rhs.map(replaceWithBody).asPatch ++ tpe.map(removeExternalF).toList
+
+      // cookies
+      case Importer(Term.Select(Term.Name("org"), Term.Name("http4s")), is) =>
+        is.collect{
+          case c@Importee.Name(Name("Cookie")) =>
+            Patch.addGlobalImport(Importer(Term.Select(Term.Name("org"), Term.Name("http4s")),
+              List(Importee.Rename(Name("ResponseCookie"), Name("Cookie"))))) +
+            Patch.removeImportee(c)
+          case c@Importee.Rename(Name("Cookie"), rename) =>
+            Patch.addGlobalImport(Importer(Term.Select(Term.Name("org"), Term.Name("http4s")),
+              List(Importee.Rename(Name("ResponseCookie"), rename)))) +
+              Patch.removeImportee(c)
+        }.asPatch
+      case i@Importer(Term.Select(Term.Select(Term.Name("org"), Term.Name("http4s")), Term.Name("headers")), is) =>
+        is.collect{
+          case it@Importee.Name(Name("Cookie")) =>
+            Patch.addGlobalImport(Importer(Term.Select(Term.Name("org"), Term.Name("http4s")), List(Importee.Rename(Name("RequestCookie"), Name("Cookie")))) ) +
+              Patch.removeImportee(it)
+          case it@Importee.Rename(Name("Cookie"), rename) =>
+            Patch.addGlobalImport(Importer(Term.Select(Term.Name("org"), Term.Name("http4s")), List(Importee.Rename(Name("RequestCookie"), rename))) ) +
+              Patch.removeImportee(it)
+        }.asPatch
     }
   }.asPatch
 

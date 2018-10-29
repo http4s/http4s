@@ -5,6 +5,8 @@ package fix
 import cats.effect.IO
 import org.http4s.{HttpService, Request, Response}
 import org.http4s.dsl.io._
+import org.http4s.Cookie
+import org.http4s.headers.{Cookie => CookieHeader}
 
 object Http4s {
   // Add code that needs fixing here.
@@ -19,5 +21,4 @@ object Http4s {
 
   val requestWithBody: IO[Request[IO]] = Request().withBody("hello")
   def responseWithBody: IO[Response[IO]] = Ok().withBody("world")
-
 }
