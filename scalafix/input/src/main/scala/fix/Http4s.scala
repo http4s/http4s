@@ -10,7 +10,7 @@ object Http4s {
   // Add code that needs fixing here.
 
   def service(): HttpService[IO] = HttpService[IO] {
-    case req @ GET -> Root => Ok()
+    case req @ GET -> Root => Ok().withBody()
   }
 
   def serviceWithoutExplicitType(): HttpService[IO] = HttpService {
@@ -19,4 +19,5 @@ object Http4s {
 
   val requestWithBody: IO[Request[IO]] = Request().withBody("hello")
   def responseWithBody: IO[Response[IO]] = Ok().withBody("world")
+
 }

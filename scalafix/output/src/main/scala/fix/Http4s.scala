@@ -7,7 +7,7 @@ object Http4s {
   // Add code that needs fixing here.
 
   def service(): HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case req @ GET -> Root => Ok()
+    case req @ GET -> Root => Ok().withEntity()
   }
 
   def serviceWithoutExplicitType(): HttpRoutes[IO] = HttpRoutes.of {
@@ -16,4 +16,5 @@ object Http4s {
 
   val requestWithBody: Request[IO] = Request().withEntity("hello")
   def responseWithBody: IO[Response[IO]] = Ok().withEntity("world")
+
 }
