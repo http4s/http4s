@@ -53,6 +53,8 @@ object Http4s018To020 {
   )
 
   val client = BlazeClientBuilder[IO](ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1)))
+  implicit val cs = IO.contextShift(global)
+val clientStream = BlazeClientBuilder[IO](global).stream
   val client2 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second)
 .withMaxChunkSize(3)
 .withParserMode(org.http4s.client.blaze.ParserMode.Strict)

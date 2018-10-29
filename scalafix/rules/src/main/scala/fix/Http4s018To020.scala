@@ -52,21 +52,7 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
       case Importee.Name(c@Name("Http1Client")) =>
         Patch.replaceTree(c, "BlazeClientBuilder")
       case c@Term.Apply(Term.ApplyType(n@Term.Name("Http1Client"), tpes), configParam) =>
-        val config = configParam.headOption.flatMap {
-          case c: Term.Name =>
-            doc.tree.collect {
-              case Defn.Val(_, pats, _, rhs) if isClientConfig(c, pats) =>
-                rhs
-            }.headOption
-        }
-        val configParams = config match {
-          case Some(Term.Apply(_, params)) =>
-            params.collect{
-              case Term.Assign(Term.Name(name: String), p: Term) =>
-                name -> p
-            }.toMap
-          case _ => Map.empty[String, Term]
-        }
+        val configParams = getClientConfigParams(configParam)
         val ec = configParams.getOrElse("executionContext", Term.Name("global"))
         val sslc = configParams.get("sslContext")
         Patch.replaceTree(c, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}") + (ec match {
@@ -75,8 +61,46 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
           case _ =>
             Patch.empty
         })
+      case d@Defn.Def(_, _, _, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
+        patchClient(d, c, configParam, tpes)
+      case d@Defn.Val(_, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
+        patchClient(d, c, configParam, tpes)
+      case d@Defn.Var(_, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
+        patchClient(d, c, configParam, tpes)
     }
   }.asPatch
+
+  def patchClient(defn: Stat, client: Term, configParam: List[Term], tpes: List[Type])(implicit doc: SemanticDocument) = {
+    val configParams = getClientConfigParams(configParam)
+    val ec = configParams.getOrElse("executionContext", Term.Name("global"))
+    val sslc = configParams.get("sslContext")
+    Patch.replaceTree(client, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}.stream") + (ec match {
+      case Term.Name("global") =>
+        Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
+      case _ =>
+        Patch.empty
+    }) + (if(tpes.exists{ case Type.Name("IO") => true; case _ => false}) addIOContextShift(defn, ec) else Patch.empty)
+  }
+
+
+  def addIOContextShift(t: Tree, ec: Term) =
+    Patch.addLeft(t, s"implicit val cs = IO.contextShift($ec)\n")
+
+  def getClientConfigParams(params: List[Term])(implicit doc: SemanticDocument) =
+    params.headOption.flatMap {
+      case c: Term.Name =>
+        doc.tree.collect {
+          case Defn.Val(_, pats, _, rhs) if isClientConfig(c, pats) =>
+            rhs
+        }.headOption
+    } match {
+      case Some(Term.Apply(_, params)) =>
+        params.collect{
+          case Term.Assign(Term.Name(name: String), p: Term) =>
+            name -> p
+        }.toMap
+      case _ => Map.empty[String, Term]
+    }
 
   def withConfigParams(params: Map[String, Term]) =
     params.flatMap{
