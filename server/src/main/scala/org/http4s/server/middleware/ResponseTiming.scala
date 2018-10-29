@@ -14,25 +14,26 @@ object ResponseTiming {
   /**
     * Simple middleware for adding a custom header with timing information to a response.
     *
-    * This middleware captures the time from when the request headers are parsed and supplied
-    * to the wrapped service to when the response is started. Metrics middleware, like this one,
+    * This middleware captures the time starting from when the request headers are parsed and supplied
+    * to the wrapped service and ending when the response is started. Metrics middleware, like this one,
     * work best as the outer layer to ensure work done by other middleware is also included.
     *
     * @param http [[HttpApp]] to transform
     * @param timeUnit the units of measure for this timing
     * @param headerName the name to use for the header containing the timing info
     */
-  def apply[F[_]: Sync](
+  def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
       headerName: CaseInsensitiveString = CaseInsensitiveString("X-Response-Time"))(
-      implicit clock: Clock[F]): HttpApp[F] =
+      implicit F: Sync[F],
+      clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
       for {
         before <- clock.monotonic(timeUnit)
         resp <- http(req)
         after <- clock.monotonic(timeUnit)
         header = Header(headerName.value, s"${after - before}")
-      } yield resp.copy(headers = resp.headers.put(header))
+      } yield resp.putHeaders(header)
     }
 }
