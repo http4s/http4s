@@ -12,6 +12,9 @@ final case class GrpcStatus(status: Status, trailers: Metadata)
 
 class Fs2ClientCall[F[_], Request, Response] private[client] (val call: ClientCall[Request, Response]) extends AnyVal {
 
+  private def cancel(message: Option[String], cause: Option[Throwable])(implicit F: Sync[F]): F[Unit] =
+    F.delay(call.cancel(message.orNull, cause.orNull))
+
   private def halfClose(implicit F: Sync[F]): F[Unit] =
     F.delay(call.halfClose())
 
@@ -36,35 +39,38 @@ class Fs2ClientCall[F[_], Request, Response] private[client] (val call: ClientCa
     stream.evalMap(sendMessage) ++ Stream.eval(halfClose)
   }
 
+  def handleCallError(
+      implicit F: ConcurrentEffect[F]): (ClientCall.Listener[Response], ExitCase[Throwable]) => F[Unit] = {
+    case (_, ExitCase.Completed) => F.unit
+    case (_, ExitCase.Canceled)  => cancel("call was cancelled".some, None)
+    case (_, ExitCase.Error(t))  => cancel(t.getMessage.some, t.some)
+  }
+
   def unaryToUnaryCall(message: Request, headers: Metadata)(implicit F: ConcurrentEffect[F]): F[Response] = {
-    for {
-      listener <- startListener(Fs2UnaryClientCallListener[F, Response], headers)
-      _        <- sendSingleMessage(message)
-      result   <- listener.getValue
-    } yield result
+    F.bracketCase(startListener(Fs2UnaryClientCallListener[F, Response], headers))({ listener =>
+      sendSingleMessage(message) *> listener.getValue
+    })(handleCallError)
   }
 
-  def streamingToUnaryCall(messages: Stream[F, Request], headers: Metadata)(implicit F: ConcurrentEffect[F]): F[Response] = {
-    for {
-      listener <- startListener(Fs2UnaryClientCallListener[F, Response], headers)
-      result   <- Stream.eval(listener.getValue).concurrently(sendStream(messages)).compile.last
-    } yield result.get
+  def streamingToUnaryCall(messages: Stream[F, Request], headers: Metadata)(
+      implicit F: ConcurrentEffect[F]): F[Response] = {
+    F.bracketCase(startListener(Fs2UnaryClientCallListener[F, Response], headers))({ listener =>
+      Stream.eval(listener.getValue).concurrently(sendStream(messages)).compile.lastOrError
+    })(handleCallError)
   }
 
-  def unaryToStreamingCall(message: Request, headers: Metadata)(implicit F: ConcurrentEffect[F]): Stream[F, Response] = {
-    for {
-      listener <- Stream.eval(
-        startListener(Fs2StreamClientCallListener[F, Response](call.request), headers) <* sendSingleMessage(message))
-      result <- listener.stream
-    } yield result
+  def unaryToStreamingCall(message: Request, headers: Metadata)(
+      implicit F: ConcurrentEffect[F]): Stream[F, Response] = {
+    Stream
+      .bracketCase(startListener(Fs2StreamClientCallListener[F, Response](call.request), headers))(handleCallError)
+      .flatMap(Stream.eval_(sendSingleMessage(message)) ++ _.stream)
   }
 
-  def streamingToStreamingCall(messages: Stream[F, Request],
-                               headers: Metadata)(implicit F: ConcurrentEffect[F]): Stream[F, Response] = {
-    for {
-      listener      <- Stream.eval(startListener(Fs2StreamClientCallListener[F, Response](call.request), headers))
-      resultOrError <- listener.stream.concurrently(sendStream(messages))
-    } yield resultOrError
+  def streamingToStreamingCall(messages: Stream[F, Request], headers: Metadata)(
+      implicit F: ConcurrentEffect[F]): Stream[F, Response] = {
+    Stream
+      .bracketCase(startListener(Fs2StreamClientCallListener[F, Response](call.request), headers))(handleCallError)
+      .flatMap(_.stream.concurrently(sendStream(messages)))
   }
 }
 
