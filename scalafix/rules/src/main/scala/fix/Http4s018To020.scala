@@ -77,41 +77,47 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
       // Client builders
       case Importee.Name(c@Name("Http1Client")) =>
         Some(Patch.replaceTree(c, "BlazeClientBuilder"))
-      case c@Term.Apply(Term.ApplyType(n@Term.Name("Http1Client"), tpes), configParam) =>
-        val configParams = getClientConfigParams(configParam)
-        val ec = configParams.getOrElse("executionContext", Term.Name("global"))
-        val sslc = configParams.get("sslContext")
-        Some(Patch.replaceTree(c, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}") + (ec match {
-          case Term.Name("global") =>
-            Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
-          case _ =>
-            Patch.empty
-        }))
+      case c@Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam) =>
+        Some(patchClient(c, configParam, tpes, ClientType.Resource))
       case d@Defn.Def(_, _, _, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
-        Some(patchClient(d, c, configParam, tpes))
+        Some(patchClient(c, configParam, tpes, ClientType.Stream))
       case d@Defn.Val(_, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
-        Some(patchClient(d, c, configParam, tpes))
+        Some(patchClient(c, configParam, tpes, ClientType.Stream))
       case d@Defn.Var(_, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
-        Some(patchClient(d, c, configParam, tpes))
+        Some(patchClient(c, configParam, tpes, ClientType.Stream))
       case _ => None
 
-
     }
-    def patchClient(defn: Stat, client: Term, configParam: List[Term], tpes: List[Type])(implicit doc: SemanticDocument) = {
+
+    sealed trait ClientType
+    object ClientType {
+
+      case object Stream extends ClientType
+
+      case object Resource extends ClientType
+    }
+
+    def patchClient(client: Term, configParam: List[Term], tpes: List[Type], clientType: ClientType)(implicit doc: SemanticDocument) = {
       val configParams = getClientConfigParams(configParam)
       val ec = configParams.getOrElse("executionContext", Term.Name("global"))
       val sslc = configParams.get("sslContext")
       val newClientBuilder = Term.Apply(Term.ApplyType(Term.Name("BlazeClientBuilder"), tpes), List(Some(ec), sslc).flatten)
-      val withParams = withConfigParams(configParams)
-      println(withParams)
-      Patch.replaceTree(client, newClientBuilder.toString()) ++ withParams.map(p => Patch.addRight(client, p)) + Patch.addRight(client, ".stream") + (ec match {
+      val withParams = withConfigParams(configParams).map(p => Patch.addRight(client, s"$p\n"))
+      Patch.replaceTree(client, newClientBuilder.toString()) ++ withParams + applyClientType(client, clientType) + (ec match {
         case Term.Name("global") =>
           Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
         case _ =>
           Patch.empty
       })
     }
+
+
+    def applyClientType(client: Tree, clientType: ClientType): Patch = clientType match {
+      case ClientType.Stream => Patch.addRight(client, ".stream")
+      case _ => Patch.empty
+    }
   }
+
 
   def getClientConfigParams(params: List[Term])(implicit doc: SemanticDocument) =
     params.headOption.flatMap {
@@ -121,8 +127,8 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
             rhs
         }.headOption
     } match {
-      case Some(Term.Apply(_, params)) =>
-        params.collect{
+      case Some(Term.Apply(_, ps)) =>
+        ps.collect{
           case Term.Assign(Term.Name(name: String), p: Term) =>
             name -> p
         }.toMap
