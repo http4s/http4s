@@ -8,6 +8,23 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.0-SNAPSHOT
+
+## Breaking changes
+
+## Enhancements
+* [#2205](https://github.com/http4s/http4s/pull/2205): Add new `ResponseTiming` middleware, which adds a header to the Response as opposed to full `MetricsOps`.
+
+## Bug fixes
+
+## Internal
+* [#2219](https://github.com/http4s/http4s/pull/2219): Allow test failures on openjdk11 until we can fix the SSL issue
+* [#2221](https://github.com/http4s/http4s/pull/2194): Don't grant MiMa exceptions for 0.19.1, which will never be
+
+## Dependency upgrades
+* async-http-client-2.6.0
+* tut-0.6.9 (docs only)
+
 # v0.20.0-M1 (2018-10-27)
 
 Due to the inadvertent release of 0.19.0, we have opened a new minor version.  The stable release with MiMa enforcement will be v0.20.0.
