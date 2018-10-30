@@ -132,7 +132,7 @@ This release is identical to v0.19.0-M4.  We mistagged it.  Please proceed to th
   * Added a `ServerBuilder#stream` to construct a `Stream` from a `Resource`.
 * [#2118](https://github.com/http4s/http4s/pull/2118): Finalize various case classes.
 * [#2102](https://github.com/http4s/http4s/pull/2102): Refactoring of `Client` and some builders:
-  * `Client` is no longer a case class.  Construct a new `Client` backend or middleware with `Client.apply(run: Request[F] => Response[F, Resource[F]])` for any `F` with a `Bracket[Throwable, F]`.
+  * `Client` is no longer a case class.  Construct a new `Client` backend or middleware with `Client.apply(run: Request[F] => Resource[F, Response[F]])` for any `F` with a `Bracket[Throwable, F]`.
   * Removed `DisposableResponse[F]` in favor of `Resource[F, Response[F]]`.
   * Removed `Client#open` in favor of `Client#run`.
   * Removed `Client#shutdown` in favor of `cats.effect.Resource` or `fs2.Stream`.
