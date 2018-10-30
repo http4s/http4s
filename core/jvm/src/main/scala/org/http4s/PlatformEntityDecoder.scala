@@ -1,26 +1,30 @@
 package org.http4s
 
-import java.io.{File, FileOutputStream, PrintStream}
+import java.io.File
 
-import cats.effect.Sync
-import fs2.io._
+import cats.effect.{ContextShift, Sync}
+import fs2.io.file.writeAll
+import java.io.File
+import scala.concurrent.ExecutionContext
 
 /** Platform dependent EntityDecoder Instances
   */
 trait PlatformEntityDecoderInstances {
 
-  /////////////////// Instances //////////////////////////////////////////////
-
-  // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
-  def binFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
+  // File operations
+  def binFile[F[_]](file: File, blockingExecutionContext: ExecutionContext)(
+      implicit F: Sync[F],
+      cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val sink = writeOutputStream[F](F.delay(new FileOutputStream(file)))
+      val sink = writeAll[F](file.toPath, blockingExecutionContext)
       DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 
-  def textFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
+  def textFile[F[_]](file: File, blockingExecutionContext: ExecutionContext)(
+      implicit F: Sync[F],
+      cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val sink = writeOutputStream[F](F.delay(new PrintStream(new FileOutputStream(file))))
+      val sink = writeAll[F](file.toPath, blockingExecutionContext)
       DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 

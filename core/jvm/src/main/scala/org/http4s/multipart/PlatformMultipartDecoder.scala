@@ -3,6 +3,7 @@ package multipart
 
 import cats.effect._
 import cats.implicits._
+import scala.concurrent.ExecutionContext
 
 private[http4s] trait PlatformMultipartDecoder {
 
@@ -32,7 +33,8 @@ private[http4s] trait PlatformMultipartDecoder {
     * @return A multipart/form-data encoded vector of parts with some part bodies held in
     *         temporary files.
     */
-  def mixedMultipart[F[_]: Sync](
+  def mixedMultipart[F[_]: Sync: ContextShift](
+      blockingExecutionContext: ExecutionContext,
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
@@ -45,6 +47,7 @@ private[http4s] trait PlatformMultipartDecoder {
               .through(
                 MultipartParser.parseToPartsStreamedFile[F](
                   Boundary(boundary),
+                  blockingExecutionContext,
                   headerLimit,
                   maxSizeBeforeWrite,
                   maxParts,
@@ -63,4 +66,5 @@ private[http4s] trait PlatformMultipartDecoder {
             InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
       }
     }
+
 }

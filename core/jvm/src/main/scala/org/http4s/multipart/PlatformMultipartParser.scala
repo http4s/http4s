@@ -3,16 +3,14 @@ package multipart
 
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
+import fs2.io.file.{readAll, writeAll}
 import fs2._
-
 import java.nio.file._
+import scala.concurrent.ExecutionContext
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 trait PlatformMultipartParser {
   this: MultipartParserBase =>
-  private[this] val logger = org.log4s.getLogger
-
-  private[this] val PullUnit = Pull.pure[Pure, Unit](())
 
   private type SplitFileStream[F[_]] =
     Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte], Option[Path])]
@@ -24,24 +22,40 @@ trait PlatformMultipartParser {
   /** Same as the other streamed parsing, except
     * after a particular size, it buffers on a File.
     */
-  def parseStreamedFile[F[_]: Sync](
+  def parseStreamedFile[F[_]: Sync: ContextShift](
       boundary: Boundary,
+      blockingExecutionContext: ExecutionContext,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
       failOnLimit: Boolean = false): Pipe[F, Byte, Multipart[F]] = { st =>
-    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
+    ignorePreludeFileStream[F](
+      boundary,
+      st,
+      limit,
+      maxSizeBeforeWrite,
+      maxParts,
+      failOnLimit,
+      blockingExecutionContext)
       .fold(Vector.empty[Part[F]])(_ :+ _)
       .map(Multipart(_, boundary))
   }
 
-  def parseToPartsStreamedFile[F[_]: Sync](
+  def parseToPartsStreamedFile[F[_]: Sync: ContextShift](
       boundary: Boundary,
+      blockingExecutionContext: ExecutionContext,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
       failOnLimit: Boolean = false): Pipe[F, Byte, Part[F]] = { st =>
-    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
+    ignorePreludeFileStream[F](
+      boundary,
+      st,
+      limit,
+      maxSizeBeforeWrite,
+      maxParts,
+      failOnLimit,
+      blockingExecutionContext)
   }
 
   /** The first part of our streaming stages:
@@ -49,34 +63,42 @@ trait PlatformMultipartParser {
     * Ignore the prelude and remove the first boundary. Only traverses until the first
     * part
     */
-  private[this] def ignorePreludeFileStream[F[_]: Sync](
+  private[this] def ignorePreludeFileStream[F[_]: Sync: ContextShift](
       b: Boundary,
       stream: Stream[F, Byte],
       limit: Int,
       maxSizeBeforeWrite: Int,
       maxParts: Int,
-      failOnLimit: Boolean): Stream[F, Part[F]] = {
+      failOnLimit: Boolean,
+      blockingExecutionContext: ExecutionContext): Stream[F, Part[F]] = {
     val values = StartLineBytesN(b)
 
     def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
       if (state == values.length) {
-        pullPartsFileStream[F](b, strim ++ s, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
+        pullPartsFileStream[F](
+          b,
+          strim ++ s,
+          limit,
+          maxSizeBeforeWrite,
+          maxParts,
+          failOnLimit,
+          blockingExecutionContext)
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, rest)) =>
             val (ix, strim) = splitAndIgnorePrev(values, state, chnk)
             go(rest, ix, strim)
           case None =>
-            Pull.raiseError(MalformedMessageBodyFailure("Malformed Malformed match"))
+            Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Malformed match"))
         }
       }
 
-    stream.pull.unconsChunk.flatMap {
+    stream.pull.uncons.flatMap {
       case Some((chnk, strim)) =>
         val (ix, rest) = splitAndIgnorePrev(values, 0, chnk)
         go(strim, ix, rest)
       case None =>
-        Pull.raiseError(MalformedMessageBodyFailure("Cannot parse empty stream"))
+        Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
     }.stream
   }
 
@@ -88,13 +110,14 @@ trait PlatformMultipartParser {
     * @tparam F
     * @return
     */
-  private def pullPartsFileStream[F[_]: Sync](
+  private def pullPartsFileStream[F[_]: Sync: ContextShift](
       boundary: Boundary,
       s: Stream[F, Byte],
       limit: Int,
       maxBeforeWrite: Int,
       maxParts: Int,
-      failOnLimit: Boolean
+      failOnLimit: Boolean,
+      blockingExecutionContext: ExecutionContext
   ): Pull[F, Part[F], Unit] = {
     val values = DoubleCRLFBytesN
     val expectedBytes = ExpectedBytesN(boundary)
@@ -106,7 +129,7 @@ trait PlatformMultipartParser {
         //However, we must have at least one part, so `splitOrFinish` on this function
         //Indicates an error
         if (r == streamEmpty) {
-          Pull.raiseError(MalformedMessageBodyFailure("Cannot parse empty stream"))
+          Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
         } else {
           tailrecPartsFileStream[F](
             boundary,
@@ -117,7 +140,8 @@ trait PlatformMultipartParser {
             maxBeforeWrite,
             1,
             maxParts,
-            failOnLimit
+            failOnLimit,
+            blockingExecutionContext
           )
         }
     }
@@ -141,7 +165,7 @@ trait PlatformMultipartParser {
         F.unit
       }
 
-  private[this] def tailrecPartsFileStream[F[_]: Sync](
+  private[this] def tailrecPartsFileStream[F[_]: Sync: ContextShift](
       b: Boundary,
       headerStream: Stream[F, Byte],
       rest: Stream[F, Byte],
@@ -150,16 +174,17 @@ trait PlatformMultipartParser {
       maxBeforeWrite: Int,
       partsCounter: Int,
       partsLimit: Int,
-      failOnLimit: Boolean): Pull[F, Part[F], Unit] =
+      failOnLimit: Boolean,
+      blockingExecutionContext: ExecutionContext): Pull[F, Part[F], Unit] =
     Pull
       .eval(parseHeaders(headerStream))
       .flatMap { hdrs =>
-        splitWithFileStream(expectedBytes, rest, maxBeforeWrite).flatMap {
+        splitWithFileStream(expectedBytes, rest, maxBeforeWrite, blockingExecutionContext).flatMap {
           case (partBody, rest, fileRef) =>
             //We hit a boundary, but the rest of the stream is empty
             //and thus it's not a properly capped multipart body
             if (rest == streamEmpty) {
-              cleanupFileOption[F](fileRef) >> Pull.raiseError(
+              cleanupFileOption[F](fileRef) >> Pull.raiseError[F](
                 MalformedMessageBodyFailure("Part not terminated properly"))
             } else {
               Pull.output1(makePart(hdrs, partBody, fileRef)) >> splitOrFinish(
@@ -172,7 +197,7 @@ trait PlatformMultipartParser {
                       Pull.done
                     } else if (partsCounter >= partsLimit) {
                       if (failOnLimit) {
-                        Pull.raiseError(MalformedMessageBodyFailure("Parts limit exceeded"))
+                        Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
                       } else {
                         Pull.done
                       }
@@ -186,8 +211,9 @@ trait PlatformMultipartParser {
                         maxBeforeWrite,
                         partsCounter + 1,
                         partsLimit,
-                        failOnLimit)
-                        .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError(e))
+                        failOnLimit,
+                        blockingExecutionContext)
+                        .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError[F](e))
                     }
                 }
             }
@@ -206,7 +232,10 @@ trait PlatformMultipartParser {
   private def splitWithFileStream[F[_]](
       values: Array[Byte],
       stream: Stream[F, Byte],
-      maxBeforeWrite: Int)(implicit F: Sync[F]): SplitFileStream[F] = {
+      maxBeforeWrite: Int,
+      blockingExecutionContext: ExecutionContext)(
+      implicit F: Sync[F],
+      cs: ContextShift[F]): SplitFileStream[F] = {
 
     def streamAndWrite(
         s: Stream[F, Byte],
@@ -218,23 +247,25 @@ trait PlatformMultipartParser {
       if (state == values.length) {
         Pull.eval(
           lacc
-            .through(io.file.writeAll[F](fileRef, List(StandardOpenOption.APPEND)))
+            .through(
+              writeAll[F](fileRef, blockingExecutionContext, List(StandardOpenOption.APPEND)))
             .compile
             .drain) >> Pull.pure(
-          (io.file.readAll[F](fileRef, maxBeforeWrite), racc ++ s, Some(fileRef)))
+          (readAll[F](fileRef, blockingExecutionContext, maxBeforeWrite), racc ++ s, Some(fileRef)))
       } else if (limitCTR >= maxBeforeWrite) {
         Pull.eval(
           lacc
-            .through(io.file.writeAll[F](fileRef, List(StandardOpenOption.APPEND)))
+            .through(io.file
+              .writeAll[F](fileRef, blockingExecutionContext, List(StandardOpenOption.APPEND)))
             .compile
             .drain) >> streamAndWrite(s, state, Stream.empty, racc, 0, fileRef)
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, str)) =>
             val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
             streamAndWrite(str, ix, l, r, limitCTR + add, fileRef)
           case None =>
-            Pull.eval(F.delay(Files.delete(fileRef)).attempt) >> Pull.raiseError(
+            Pull.eval(F.delay(Files.delete(fileRef)).attempt) >> Pull.raiseError[F](
               MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
         }
       }
@@ -250,30 +281,31 @@ trait PlatformMultipartParser {
           .eval(F.delay(Files.createTempFile("", "")))
           .flatMap { path =>
             (for {
-              _ <- Pull.eval(lacc.through(io.file.writeAll[F](path)).compile.drain)
+              _ <- Pull.eval(
+                lacc.through(writeAll[F](path, blockingExecutionContext)).compile.drain)
               split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
             } yield split)
-              .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError(e))
+              .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError[F](e))
           }
       } else if (state == values.length) {
         Pull.pure((lacc, racc ++ s, None))
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, str)) =>
             val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
             go(str, ix, l, r, limitCTR + add)
           case None =>
-            Pull.raiseError(MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
+            Pull.raiseError[F](MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
         }
       }
 
-    stream.pull.unconsChunk.flatMap {
+    stream.pull.uncons.flatMap {
       case Some((chunk, rest)) =>
         val (ix, l, r, add) =
           splitOnChunkLimited[F](values, 0, chunk, Stream.empty, Stream.empty)
         go(rest, ix, l, r, add)
       case None =>
-        Pull.raiseError(MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
+        Pull.raiseError[F](MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
     }
   }
 }

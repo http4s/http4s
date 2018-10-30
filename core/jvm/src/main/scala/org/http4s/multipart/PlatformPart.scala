@@ -4,20 +4,38 @@ package multipart
 import java.io.{File, InputStream}
 import java.net.URL
 
-import cats.effect.Sync
+import cats.effect.{ContextShift, Sync}
 import fs2.io.readInputStream
 import fs2.io.file.readAll
 import org.http4s.headers.`Content-Disposition`
 import org.http4s.Header
+import scala.concurrent.ExecutionContext
 
 trait PlatformPart {
   private val ChunkSize = 8192
 
-  def fileData[F[_]: Sync](name: String, file: File, headers: Header*): Part[F] =
-    fileData(name, file.getName, readAll(file.toPath, ChunkSize), headers: _*)
+  def fileData[F[_]: Sync: ContextShift](
+      name: String,
+      file: File,
+      blockingExecutionContext: ExecutionContext,
+      headers: Header*): Part[F] =
+    fileData(
+      name,
+      file.getName,
+      readAll[F](file.toPath, blockingExecutionContext, ChunkSize),
+      headers: _*)
 
-  def fileData[F[_]: Sync](name: String, resource: URL, headers: Header*): Part[F] =
-    fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
+  def fileData[F[_]: Sync: ContextShift](
+      name: String,
+      resource: URL,
+      blockingExecutionContext: ExecutionContext,
+      headers: Header*): Part[F] =
+    fileData(
+      name,
+      resource.getPath.split("/").last,
+      resource.openStream(),
+      blockingExecutionContext,
+      headers: _*)
 
   def fileData[F[_]: Sync](
       name: String,
@@ -34,8 +52,16 @@ trait PlatformPart {
   // argument in callers, so we can avoid lifting into an effect.  Exposing
   // this API publicly would invite unsafe use, and the `EntityBody` version
   // should be safe.
-  private def fileData[F[_]](name: String, filename: String, in: => InputStream, headers: Header*)(
-      implicit F: Sync[F]): Part[F] =
-    fileData(name, filename, readInputStream(F.delay(in), ChunkSize), headers: _*)
+  private def fileData[F[_]](
+      name: String,
+      filename: String,
+      in: => InputStream,
+      blockingExecutionContext: ExecutionContext,
+      headers: Header*)(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
+    fileData(
+      name,
+      filename,
+      readInputStream(F.delay(in), ChunkSize, blockingExecutionContext),
+      headers: _*)
 
 }

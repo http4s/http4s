@@ -8,13 +8,12 @@ import cats.implicits._
 import fs2.Stream._
 import fs2._
 import org.http4s.Status.Ok
-import org.http4s.util.execution.trampoline
+// import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
 
-import scala.concurrent.ExecutionContext
+// import scala.concurrent.ExecutionContext
 
-class JVMEntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
-  implicit val executionContext: ExecutionContext = trampoline
+class JVMEntityDecoderSpec extends Http4sSpec with PlatformHttp4sSpec with PlatformEntityDecoderInstances with PendingUntilFixed {
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
     body.compile.toVector.map(_.toArray)
@@ -46,7 +45,7 @@ class JVMEntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mockServe(Request()) { req =>
-          req.decodeWith(textFile(tmpFile), strict = false) { _ =>
+          req.decodeWith(textFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync
@@ -65,7 +64,7 @@ class JVMEntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) {
           case req =>
-            req.decodeWith(binFile(tmpFile), strict = false) { _ =>
+            req.decodeWith(binFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
               Response[IO](Ok).withEntity("Hello").pure[IO]
             }
         }.unsafeRunSync
@@ -79,5 +78,4 @@ class JVMEntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
     }
   }
-
 }

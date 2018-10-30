@@ -13,9 +13,9 @@ import cats.effect.{ContextShift, ExitCase, IO, Resource, Timer}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
-import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
+// import java.util.concurrent.ScheduledExecutorService
 import org.http4s.testing._
-import org.http4s.util.threads.{newBlockingPool, newDaemonPool, threadFactory}
+// import org.http4s.util.threads.newBlockingPool
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
@@ -27,7 +27,7 @@ import org.specs2.specification.core.Fragments
 import org.specs2.specification.create.{DefaultFragmentFactory => ff}
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
-import scala.concurrent.ExecutionContext
+// import scala.concurrent.ExecutionContext
 
 /**
   * Common stack for http4s' own specs.
@@ -45,11 +45,11 @@ trait Http4sSpec
     with Discipline
     with IOMatchers
     with Http4sMatchers[IO] {
-  implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
-  val testBlockingExecutionContext: ExecutionContext = Http4sSpec.TestBlockingExecutionContext
+  // implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
+  // val testBlockingExecutionContext: ExecutionContext = Http4sSpec.TestBlockingExecutionContext
   implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
   implicit val timer: Timer[IO] = Http4sSpec.TestTimer
-  def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
+  // def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
 
   implicit val params = Parameters(maxSize = 20)
 
@@ -137,23 +137,8 @@ trait Http4sSpec
     }
 }
 
-object Http4sSpec {
-  val TestExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
-
-  val TestBlockingExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutor(newBlockingPool("http4s-spec-blocking"))
-
+object Http4sSpec extends PlatformHttp4sSpec {
   val TestContextShift: ContextShift[IO] =
     IO.contextShift(TestExecutionContext)
 
-  val TestScheduler: ScheduledExecutorService = {
-    val s = new ScheduledThreadPoolExecutor(2, threadFactory(i => "http4s-test-scheduler", true))
-    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
-    s.allowCoreThreadTimeOut(true)
-    s
-  }
-
-  val TestTimer: Timer[IO] =
-    IO.timer(TestExecutionContext, TestScheduler)
 }

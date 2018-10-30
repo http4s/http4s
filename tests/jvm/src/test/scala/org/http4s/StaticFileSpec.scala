@@ -7,7 +7,7 @@ import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.specs2.matcher.MatchResult
 
-class StaticFileSpec extends Http4sSpec {
+class StaticFileSpec extends Http4sSpec with PlatformHttp4sSpec {
 
   "StaticFile" should {
     "Determine the media-type based on the files extension" in {

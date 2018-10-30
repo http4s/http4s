@@ -7,10 +7,16 @@ import org.http4s.headers._
 class JVMMultipartParserSpec extends MultipartParserSpec {
 
   multipartParserTests(
+    "Default parser",
+    MultipartParser.parseStreamed[IO](_),
+    MultipartParser.parseStreamed[IO],
+    MultipartParser.parseToPartsStream[IO](_))
+
+  multipartParserTests(
     "mixed file parser",
-    MultipartParser.parseStreamedFile[IO](_),
-    MultipartParser.parseStreamedFile[IO](_, _),
-    MultipartParser.parseToPartsStreamedFile[IO](_)
+    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext),
+    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext, _),
+    MultipartParser.parseToPartsStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext)
   )
 
   "Multipart mixed file parser" should {
@@ -33,7 +39,11 @@ class JVMMultipartParserSpec extends MultipartParserSpec {
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results =
-        unspool(input).through(MultipartParser.parseStreamedFile[IO](boundaryTest, maxParts = 1))
+        unspool(input).through(
+          MultipartParser.parseStreamedFile[IO](
+            boundaryTest,
+            Http4sSpec.TestBlockingExecutionContext,
+            maxParts = 1))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers =
@@ -64,7 +74,11 @@ class JVMMultipartParserSpec extends MultipartParserSpec {
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results = unspool(input).through(
-        MultipartParser.parseStreamedFile[IO](boundaryTest, maxParts = 1, failOnLimit = true))
+        MultipartParser.parseStreamedFile[IO](
+          boundaryTest,
+          Http4sSpec.TestBlockingExecutionContext,
+          maxParts = 1,
+          failOnLimit = true))
 
       results.compile.last.map(_.get).unsafeRunSync() must throwA[MalformedMessageBodyFailure]
     }

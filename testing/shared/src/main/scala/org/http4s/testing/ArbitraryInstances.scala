@@ -32,7 +32,7 @@ trait ArbitraryInstances extends PlatformCharsets with PlatformCasing {
     Arbitrary(arbitrary[String].map(_.ci))
 
   implicit val http4sTestingCogenForCaseInsensitiveString: Cogen[CaseInsensitiveString] =
-    Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
+    Cogen[String].contramap(v => toLowerCase(v.value))
 
   implicit def http4sTestingArbitraryForNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
     Arbitrary {
@@ -169,7 +169,7 @@ trait ArbitraryInstances extends PlatformCharsets with PlatformCasing {
     Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
 
   implicit val http4sTestingArbitraryForNioCharset: Arbitrary[NioCharset] =
-    Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
+    Arbitrary(oneOf(availableCharsets))
 
   implicit val http4sTestingCogenForNioCharset: Cogen[NioCharset] =
     Cogen[String].contramap(_.name)
@@ -660,7 +660,7 @@ trait ArbitraryInstances extends PlatformCharsets with PlatformCasing {
   }
 
   implicit val http4sTestingCogenForScheme: Cogen[Uri.Scheme] =
-    Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
+    Cogen[String].contramap(v => toLowerCase(v.value))
 
   implicit val http4sTestingArbitraryForTransferCoding: Arbitrary[TransferCoding] = Arbitrary {
     Gen.oneOf(
@@ -672,7 +672,7 @@ trait ArbitraryInstances extends PlatformCharsets with PlatformCasing {
   }
 
   implicit val http4sTestingCogenForTransferCoding: Cogen[TransferCoding] =
-    Cogen[String].contramap(_.coding.toLowerCase(Locale.ROOT))
+    Cogen[String].contramap(v => toLowerCase(v.coding))
 
   /** https://tools.ietf.org/html/rfc3986 */
   implicit val http4sTestingArbitraryForUri: Arbitrary[Uri] = Arbitrary {

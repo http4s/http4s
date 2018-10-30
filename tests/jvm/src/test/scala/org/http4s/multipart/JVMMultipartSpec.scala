@@ -9,8 +9,7 @@ import org.http4s._
 import org.http4s.headers._
 import org.http4s.EntityEncoder._
 
-class JVMMultipartSpec extends MultipartSpec {
-
+class JVMMultipartSpec extends MultipartSpec with PlatformMultipartDecoder {
   def multipartFileSpec(name: String)(
       implicit E: EntityDecoder[IO, Multipart[IO]]): org.specs2.specification.core.Fragment = {
     s"Multipart form data $name" should {
@@ -19,7 +18,11 @@ class JVMMultipartSpec extends MultipartSpec {
         val file = new File(getClass.getResource("/ball.png").toURI)
 
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
-        val field2 = Part.fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
+        val field2 = Part.fileData[IO](
+          "image",
+          file,
+          Http4sSpec.TestBlockingExecutionContext,
+          `Content-Type`(MediaType.image.png))
 
         val multipart = Multipart[IO](Vector(field1, field2))
 
@@ -40,6 +43,6 @@ class JVMMultipartSpec extends MultipartSpec {
   }
 
   multipartFileSpec("with default decoder")(implicitly)
-  multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO]())
-  multipartFileSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO]())
+  multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO](scala.concurrent.ExecutionContext.global))
+  multipartFileSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO](scala.concurrent.ExecutionContext.global))
 }

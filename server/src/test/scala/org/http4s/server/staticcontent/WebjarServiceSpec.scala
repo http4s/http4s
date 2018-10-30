@@ -7,7 +7,7 @@ import org.http4s.Method.{GET, POST}
 import org.http4s.Uri.uri
 import org.http4s.server.staticcontent.WebjarService.Config
 
-object WebjarServiceSpec extends Http4sSpec with StaticContentShared {
+object WebjarServiceSpec extends Http4sSpec with PlatformHttp4sSpec with StaticContentShared {
 
   def routes: HttpRoutes[IO] =
     webjarService(Config[IO](blockingExecutionContext = testBlockingExecutionContext))
