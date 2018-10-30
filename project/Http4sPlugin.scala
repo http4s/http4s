@@ -84,10 +84,6 @@ object Http4sPlugin extends AutoPlugin {
 
     http4sMimaVersion := {
       version.value match {
-        case VersionNumber(Seq(0, 19, patch), _, _) if patch.toInt > 1 =>
-          Some(s"0.19.${patch.toInt - 1}")
-        case VersionNumber(Seq(0, 19, _), _, _) =>
-          None
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
           Some(s"${major}.${minor}.${patch.toInt - 1}")
         case _ =>
