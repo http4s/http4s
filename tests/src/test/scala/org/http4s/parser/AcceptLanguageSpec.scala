@@ -4,9 +4,7 @@ package parser
 import org.http4s.headers.`Accept-Language`
 import org.specs2.mutable.Specification
 
-class AcceptLanguageSpec
-    extends Specification
-    with HeaderParserHelper[`Accept-Language`] {
+class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-Language`] {
 
   def hparse(value: String): ParseResult[`Accept-Language`] =
     HttpHeaderParser.ACCEPT_LANGUAGE(value)

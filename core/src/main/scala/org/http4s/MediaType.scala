@@ -18,8 +18,8 @@
  */
 package org.http4s
 
-import cats.{Eq, Order, Show}
 import cats.implicits._
+import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
@@ -142,30 +142,28 @@ object MediaRange {
           new MediaType(mainType.toLowerCase, subType.toLowerCase))
   }
 
-  implicit val http4sInstancesForMediaRange
-    : Show[MediaRange] with HttpCodec[MediaRange] with Order[MediaRange] =
-    new Show[MediaRange] with HttpCodec[MediaRange] with Order[MediaRange] {
-      override def show(s: MediaRange): String =
-        s"${s.mainType}/*${MediaRange.extensionsToString(s)}"
-
+  implicit val http4sShowForMediaRange: Show[MediaRange] =
+    Show.show(s => s"${s.mainType}/*${MediaRange.extensionsToString(s)}")
+  implicit val http4sOrderForMediaRange: Order[MediaRange] =
+    Order.from { (x, y) =>
+      def orderedSubtype(a: MediaRange) = a match {
+        case mt: MediaType => mt.subType
+        case _ => ""
+      }
+      def f(a: MediaRange) = (a.mainType, orderedSubtype(a), a.extensions.toVector.sortBy(_._1))
+      Order[(String, String, Vector[(String, String)])].compare(f(x), f(y))
+    }
+  implicit val http4sHttpCodecForMediaRange: HttpCodec[MediaRange] =
+    new HttpCodec[MediaRange] {
       override def parse(s: String): ParseResult[MediaRange] =
         MediaRange.parse(s)
 
       override def render(writer: Writer, mr: MediaRange): writer.type = mr match {
-        case mt: MediaType => MediaType.http4sInstancesForMediaType.render(writer, mt)
+        case mt: MediaType => MediaType.http4sHttpCodecForMediaType.render(writer, mt)
         case _ =>
           writer << mr.mainType << "/*"
           renderExtensions(writer, mr)
           writer
-      }
-
-      override def compare(x: MediaRange, y: MediaRange): Int = {
-        def orderedSubtype(a: MediaRange) = a match {
-          case mt: MediaType => mt.subType
-          case _ => ""
-        }
-        def f(a: MediaRange) = (a.mainType, orderedSubtype(a), a.extensions.toVector.sortBy(_._1))
-        Order[(String, String, Vector[(String, String)])].compare(f(x), f(y))
       }
     }
 }
@@ -264,12 +262,12 @@ object MediaType extends MimeDB {
         new MediaType(mainType.toLowerCase, subType.toLowerCase))
   }
 
-  implicit val http4sInstancesForMediaType
-    : Show[MediaType] with HttpCodec[MediaType] with Eq[MediaType] =
-    new Show[MediaType] with HttpCodec[MediaType] with Eq[MediaType] {
-      override def show(s: MediaType): String =
-        s"${s.mainType}/${s.subType}${MediaRange.extensionsToString(s)}"
-
+  implicit val http4sEqForMediaType: Eq[MediaType] =
+    Eq.fromUniversalEquals
+  implicit val http4sShowForMediaType: Show[MediaType] =
+    Show.show(s => s"${s.mainType}/${s.subType}${MediaRange.extensionsToString(s)}")
+  implicit val http4sHttpCodecForMediaType: HttpCodec[MediaType] =
+    new HttpCodec[MediaType] {
       override def parse(s: String): ParseResult[MediaType] =
         MediaType.parse(s)
 
@@ -278,9 +276,6 @@ object MediaType extends MimeDB {
         MediaRange.renderExtensions(writer, mt)
         writer
       }
-
-      override def eqv(x: MediaType, y: MediaType): Boolean =
-        x.equals(y)
     }
 
 }

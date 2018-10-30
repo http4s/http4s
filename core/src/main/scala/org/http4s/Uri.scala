@@ -202,18 +202,17 @@ object Uri extends UriFunctions {
       }
     }
 
-    implicit val http4sInstancesForScheme: Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] =
-      new Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] {
-        def show(s: Scheme): String = s.toString
-
+    implicit val http4sOrderForScheme: Order[Scheme] =
+      Order.fromComparable
+    implicit val http4sShowForScheme: Show[Scheme] =
+      Show.fromToString
+    implicit val http4sInstancesForScheme: HttpCodec[Scheme] =
+      new HttpCodec[Scheme] {
         def parse(s: String): ParseResult[Scheme] =
           Scheme.parse(s)
 
         def render(writer: Writer, scheme: Scheme): writer.type =
           writer << scheme.value
-
-        def compare(x: Scheme, y: Scheme) =
-          x.compare(y)
       }
   }
 

@@ -18,11 +18,11 @@
  */
 package org.http4s
 
-import cats.{Order, Show}
 import cats.data.NonEmptyList
-import org.http4s.util._
-import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
+import cats.{Order, Show}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
+import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
+import org.http4s.util._
 
 class TransferCoding private (val coding: String) extends Ordered[TransferCoding] with Renderable {
   override def equals(o: Any) = o match {
@@ -87,19 +87,17 @@ object TransferCoding {
     }
   }
 
-  implicit val http4sInstancesForTransferCoding
-    : Show[TransferCoding] with HttpCodec[TransferCoding] with Order[TransferCoding] =
-    new Show[TransferCoding] with HttpCodec[TransferCoding] with Order[TransferCoding] {
-      override def show(s: TransferCoding): String = s.coding
-
+  implicit val http4sOrderForTransferCoding: Order[TransferCoding] =
+    Order.fromComparable
+  implicit val http4sShowForTransferCoding: Show[TransferCoding] =
+    Show.show(_.coding)
+  implicit val http4sInstancesForTransferCoding: HttpCodec[TransferCoding] =
+    new HttpCodec[TransferCoding] {
       override def parse(s: String): ParseResult[TransferCoding] =
         TransferCoding.parse(s)
 
       override def render(writer: Writer, coding: TransferCoding): writer.type =
         writer << coding.coding
-
-      override def compare(x: TransferCoding, y: TransferCoding): Int =
-        x.compareTo(y)
     }
 
 }

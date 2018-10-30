@@ -194,6 +194,6 @@ object Status {
     Status(511, "Network Authentication Required"))
   // scalastyle:on magic.number
 
-  implicit val http4sStatusOrder: Order[Status] = Order.fromOrdering[Status]
-  implicit val http4sStatusShow: Show[Status] = Show.fromToString[Status]
+  implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]
+  implicit val http4sShowForStatus: Show[Status] = Show.fromToString[Status]
 }

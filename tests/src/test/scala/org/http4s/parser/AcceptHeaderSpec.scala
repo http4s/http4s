@@ -64,7 +64,8 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
 
       // Go through all of them with q and extensions
       {
-        val samples = MediaRange.standard.values.map(_.withExtensions(ext).withQValue(QValue.q(0.2)))
+        val samples =
+          MediaRange.standard.values.map(_.withExtensions(ext).withQValue(QValue.q(0.2)))
         foreach(samples.sliding(4).toArray) { sample =>
           val h = Accept(sample.head, sample.tail.toSeq: _*)
           parse(h.value) must be_===(h)

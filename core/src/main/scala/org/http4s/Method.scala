@@ -145,6 +145,6 @@ object Method {
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap
 
-  implicit val http4sMethodEq: Eq[Method] = Eq.fromUniversalEquals
-  implicit val http4sShowEq: Show[Method] = Show.fromToString
+  implicit val http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
+  implicit val http4sShowForMethod: Show[Method] = Show.fromToString
 }
