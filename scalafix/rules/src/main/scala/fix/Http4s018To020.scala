@@ -5,38 +5,59 @@ import scala.meta._
 
 class Http4s018To020 extends SemanticRule("Http4s018To020") {
 
-  val mimeMatcher = SymbolMatcher.normalized("org/http4s/MediaType#")
-
   override def fix(implicit doc: SemanticDocument): Patch = {
     doc.tree.collect{
-      // HttpService -> HttpRoutes.of
-      case t@Type.Name("HttpService") => Patch.replaceTree(t, "HttpRoutes")
-      case t@Term.Name("HttpService") => Patch.replaceTree(t, "HttpRoutes.of")
-      case t@Importee.Name(Name("HttpService")) => Patch.replaceTree(t, "HttpRoutes")
+      case HttpServiceRules(patch) => patch
+      case WithBodyRules(patch) => patch
+      case CookiesRules(patch) => patch
+      case MimeRules(patch) => patch
+      case ClientRules(patch) => patch
+    }
+  }.asPatch
 
-      // withBody -> withEntity
+  object HttpServiceRules {
+    def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
+      case t@Type.Name("HttpService") => Some(Patch.replaceTree(t, "HttpRoutes"))
+      case t@Term.Name("HttpService") => Some(Patch.replaceTree(t, "HttpRoutes.of"))
+      case t@Importee.Name(Name("HttpService")) => Some(Patch.replaceTree(t, "HttpRoutes"))
+      case _ => None
+    }
+  }
+
+  object WithBodyRules {
+    def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
       case Defn.Val(_, _, tpe, rhs) if containsWithBody(rhs) =>
-        replaceWithBody(rhs) ++ tpe.map(removeExternalF).toList
+        Some(replaceWithBody(rhs) + tpe.map(removeExternalF))
       case Defn.Def(_, _, _, _, tpe, rhs) if containsWithBody(rhs) =>
-        replaceWithBody(rhs) ++ tpe.map(removeExternalF).toList
+        Some(replaceWithBody(rhs) + tpe.map(removeExternalF))
       case Defn.Var(_, _, tpe, rhs) if rhs.exists(containsWithBody) =>
-        rhs.map(replaceWithBody).asPatch ++ tpe.map(removeExternalF).toList
+        Some(rhs.map(replaceWithBody).asPatch + tpe.map(removeExternalF))
+      case _ => None
+    }
+  }
 
-      // cookies
+  object CookiesRules {
+    def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] =  t match {
       case Importer(Term.Select(Term.Name("org"), Term.Name("http4s")), is) =>
-        is.collect{
+        Some(is.collect {
           case c@Importee.Name(Name("Cookie")) =>
             Patch.addGlobalImport(Importer(Term.Select(Term.Name("org"), Term.Name("http4s")),
               List(Importee.Rename(Name("ResponseCookie"), Name("Cookie"))))) +
-            Patch.removeImportee(c)
+              Patch.removeImportee(c)
           case c@Importee.Rename(Name("Cookie"), rename) =>
             Patch.addGlobalImport(Importer(Term.Select(Term.Name("org"), Term.Name("http4s")),
               List(Importee.Rename(Name("ResponseCookie"), rename)))) +
               Patch.removeImportee(c)
-        }.asPatch
+        }.asPatch)
+      case _ => None
+    }
+  }
 
-      // MiMe types
-      case Term.Select(mimeMatcher(t), media) =>
+  object MimeRules {
+    val mimeMatcher = SymbolMatcher.normalized("org/http4s/MediaType#")
+
+    def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
+      case Term.Select(mimeMatcher(_), media) =>
         val mediaParts = media.toString.replace("`", "").split("/").map{
           part =>
             if(!part.forall(c => c.isLetterOrDigit || c == '_'))
@@ -44,47 +65,50 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
             else
               part
         }
-        Patch.replaceTree(media,
+        Some(Patch.replaceTree(media,
           mediaParts.mkString(".")
-        )
+        ))
+      case _ => None
+    }
+  }
 
+  object ClientRules {
+    def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
       // Client builders
       case Importee.Name(c@Name("Http1Client")) =>
-        Patch.replaceTree(c, "BlazeClientBuilder")
+        Some(Patch.replaceTree(c, "BlazeClientBuilder"))
       case c@Term.Apply(Term.ApplyType(n@Term.Name("Http1Client"), tpes), configParam) =>
         val configParams = getClientConfigParams(configParam)
         val ec = configParams.getOrElse("executionContext", Term.Name("global"))
         val sslc = configParams.get("sslContext")
-        Patch.replaceTree(c, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}") + (ec match {
+        Some(Patch.replaceTree(c, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}") + (ec match {
           case Term.Name("global") =>
             Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
           case _ =>
             Patch.empty
-        })
+        }))
       case d@Defn.Def(_, _, _, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
-        patchClient(d, c, configParam, tpes)
+        Some(patchClient(d, c, configParam, tpes))
       case d@Defn.Val(_, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
-        patchClient(d, c, configParam, tpes)
+        Some(patchClient(d, c, configParam, tpes))
       case d@Defn.Var(_, _, _, c@Term.Apply(Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes), configParam)) =>
-        patchClient(d, c, configParam, tpes)
+        Some(patchClient(d, c, configParam, tpes))
+      case _ => None
+
+
     }
-  }.asPatch
-
-  def patchClient(defn: Stat, client: Term, configParam: List[Term], tpes: List[Type])(implicit doc: SemanticDocument) = {
-    val configParams = getClientConfigParams(configParam)
-    val ec = configParams.getOrElse("executionContext", Term.Name("global"))
-    val sslc = configParams.get("sslContext")
-    Patch.replaceTree(client, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}.stream") + (ec match {
-      case Term.Name("global") =>
-        Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
-      case _ =>
-        Patch.empty
-    }) + (if(tpes.exists{ case Type.Name("IO") => true; case _ => false}) addIOContextShift(defn, ec) else Patch.empty)
+    def patchClient(defn: Stat, client: Term, configParam: List[Term], tpes: List[Type])(implicit doc: SemanticDocument) = {
+      val configParams = getClientConfigParams(configParam)
+      val ec = configParams.getOrElse("executionContext", Term.Name("global"))
+      val sslc = configParams.get("sslContext")
+      Patch.replaceTree(client, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}.stream") + (ec match {
+        case Term.Name("global") =>
+          Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
+        case _ =>
+          Patch.empty
+      })
+    }
   }
-
-
-  def addIOContextShift(t: Tree, ec: Term) =
-    Patch.addLeft(t, s"implicit val cs = IO.contextShift($ec)\n")
 
   def getClientConfigParams(params: List[Term])(implicit doc: SemanticDocument) =
     params.headOption.flatMap {
