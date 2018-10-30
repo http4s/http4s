@@ -11,11 +11,16 @@ it.
 # v0.20.0-SNAPSHOT
 
 ## Breaking changes
+* [#2207](https://github.com/http4s/http4s/pull/2207): Remove `PathNormalizer`. The functionality is now on `Uri.removeDotSegments`.
 
 ## Enhancements
 * [#2205](https://github.com/http4s/http4s/pull/2205): Add new `ResponseTiming` middleware, which adds a header to the Response as opposed to full `MetricsOps`.
 
 ## Bug fixes
+
+## Documentation
+* [#2223](https://github.com/http4s/http4s/pull/2223): Fix color of EOL label on v0.19
+* [#2226](https://github.com/http4s/http4s/pull/2226): Correct erroneous `Resource` in 0.19.0-M3 changelog
 
 ## Internal
 * [#2219](https://github.com/http4s/http4s/pull/2219): Allow test failures on openjdk11 until we can fix the SSL issue
@@ -23,6 +28,8 @@ it.
 
 ## Dependency upgrades
 * async-http-client-2.6.0
+* circe-0.10.1
+* sbt-native-packager-1.3.12 (examples only)
 * tut-0.6.9 (docs only)
 
 # v0.20.0-M1 (2018-10-27)
