@@ -330,7 +330,8 @@ http://example.org/a file
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
         "/relative/URI/with/absolute/path/to/resource.txt"
       )
-      foreach(examples) { e => Uri.fromString(e).map(_.toString) must beRight(e)
+      foreach(examples) { e =>
+        Uri.fromString(e).map(_.toString) must beRight(e)
       }
     }
 
