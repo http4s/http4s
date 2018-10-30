@@ -101,7 +101,10 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
       val configParams = getClientConfigParams(configParam)
       val ec = configParams.getOrElse("executionContext", Term.Name("global"))
       val sslc = configParams.get("sslContext")
-      Patch.replaceTree(client, s"BlazeClientBuilder[${tpes.mkString(", ")}]($ec${sslc.fold("")(s => s", $s")})${withConfigParams(configParams)}.stream") + (ec match {
+      val newClientBuilder = Term.Apply(Term.ApplyType(Term.Name("BlazeClientBuilder"), tpes), List(Some(ec), sslc).flatten)
+      val withParams = withConfigParams(configParams)
+      println(withParams)
+      Patch.replaceTree(client, newClientBuilder.toString()) ++ withParams.map(p => Patch.addRight(client, p)) + Patch.addRight(client, ".stream") + (ec match {
         case Term.Name("global") =>
           Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
         case _ =>
@@ -126,7 +129,7 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
       case _ => Map.empty[String, Term]
     }
 
-  def withConfigParams(params: Map[String, Term]) =
+  def withConfigParams(params: Map[String, Term]): List[String] =
     params.flatMap{
       case ("lenientParser", Lit(v: Boolean)) =>
         if(v) Some(s".withParserMode(org.http4s.client.blaze.ParserMode.Lenient)")
@@ -140,7 +143,7 @@ class Http4s018To020 extends SemanticRule("Http4s018To020") {
       case (s, term) if s != "executionContext" && s != "sslContext" && s != "group"=>
         Some(s".with${s.head.toUpper}${s.tail}($term)")
       case _ => None
-    }.mkString("\n")
+    }.toList
 
   def removeExternalF(t: Type) =
     t match {
