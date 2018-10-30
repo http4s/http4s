@@ -52,7 +52,7 @@ sealed class JettyBuilder[F[_]] private (
       sslBits: Option[SSLConfig] = sslBits,
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
-      banner: immutable.Seq[String] = banner,
+      banner: immutable.Seq[String] = banner
   ): Self =
     new JettyBuilder(
       socketAddress,
@@ -220,14 +220,20 @@ sealed class JettyBuilder[F[_]] private (
       banner.foreach(logger.info(_))
       logger.info(
         s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
-      server -> F.async[Unit] { cb =>
-        jetty.addLifeCycleListener(new AbstractLifeCycle.AbstractLifeCycleListener {
+
+      server -> shutdown(jetty)
+    })
+
+  private def shutdown(jetty: JServer): F[Unit] =
+    F.async[Unit] { cb =>
+      jetty.addLifeCycleListener(
+        new AbstractLifeCycle.AbstractLifeCycleListener {
           override def lifeCycleStopped(ev: LifeCycle) = cb(Right(()))
           override def lifeCycleFailure(ev: LifeCycle, cause: Throwable) = cb(Left(cause))
-        })
-        jetty.stop()
-      }
-    })
+        }
+      )
+      jetty.stop()
+    }
 }
 
 object JettyBuilder {
