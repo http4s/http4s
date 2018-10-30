@@ -4,8 +4,8 @@ import cats._
 import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.StandardCharsets
 import org.http4s.Uri._
-import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
+import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
@@ -14,6 +14,7 @@ import scala.math.Ordered
 import scala.reflect.macros.whitebox
 
 /** Representation of the [[Request]] URI
+  *
   * @param scheme     optional Uri Scheme. eg, http, https
   * @param authority  optional Uri Authority. eg, localhost:8080, www.foo.bar
   * @param path       url-encoded string representation of the path component of the Uri.
@@ -117,7 +118,7 @@ final case class Uri(
   override protected def replaceQuery(query: Query): Self = copy(query = query)
 }
 
-object Uri extends UriFunctions {
+object Uri {
   class Macros(val c: whitebox.Context) {
     import c.universe._
 
@@ -370,13 +371,11 @@ object Uri extends UriFunctions {
       case n => b.setLength(n)
     }
 
-  implicit val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals
-}
-
-trait UriFunctions {
   /**
     * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
     * at compile time.
     */
   def uri(s: String): Uri = macro Uri.Macros.uriLiteral
+
+  implicit val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals
 }

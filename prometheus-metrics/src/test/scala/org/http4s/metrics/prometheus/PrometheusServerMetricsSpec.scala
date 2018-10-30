@@ -7,6 +7,7 @@ import org.http4s.dsl.io._
 import org.http4s.metrics.prometheus.util._
 import org.http4s.server.middleware.Metrics
 import org.http4s.Method.GET
+import org.http4s.Uri.uri
 
 class PrometheusServerMetricsSpec extends Http4sSpec {
 

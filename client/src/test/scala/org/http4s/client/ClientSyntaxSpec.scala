@@ -10,6 +10,7 @@ import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
+import org.http4s.Uri.uri
 import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThrownMatchers {

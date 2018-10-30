@@ -2,10 +2,11 @@ package org.http4s.metrics.dropwizard
 
 import cats.effect.IO
 import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
-import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
+import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.metrics.dropwizard.util._
 import org.http4s.server.middleware.Metrics
+import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
 
 class DropwizardServerMetricsSpec extends Http4sSpec {
 

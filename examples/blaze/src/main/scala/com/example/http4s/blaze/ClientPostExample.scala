@@ -6,6 +6,7 @@ import org.http4s._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object ClientPostExample extends IOApp with Http4sClientDsl[IO] {
