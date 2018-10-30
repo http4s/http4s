@@ -54,7 +54,7 @@ object Http4s018To020 {
     group = None
   )
 
-  val client = Http1Client[IO](config)
+  val client: IO[Client[IO]] = Http1Client[IO](config)
   val clientStream = Http1Client.stream[IO](fullConfig)
   val client2 = Http1Client[IO](fullConfig)
 }

@@ -52,7 +52,7 @@ object Http4s018To020 {
     group = None
   )
 
-  val client = BlazeClientBuilder[IO](ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1)))
+  val client: cats.effect.Resource[IO, Client[IO]] = BlazeClientBuilder[IO](ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))).resource
   val clientStream = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second)
 .withMaxChunkSize(3)
 .withParserMode(org.http4s.client.blaze.ParserMode.Strict)
@@ -80,5 +80,5 @@ object Http4s018To020 {
 .withMaxResponseLineSize(1)
 .withMaxHeaderLength(2)
 .withMaxConnectionsPerRequestKey(_ => 1)
-
+.resource
 }
