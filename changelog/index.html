@@ -281,7 +281,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2102">#2102</a>: Refactoring of <code>Client</code> and some builders:
 
 <ul>
-<li><code>Client</code> is no longer a case class.  Construct a new <code>Client</code> backend or middleware with <code>Client.apply(run: Request[F] =&gt; Response[F, Resource[F]])</code> for any <code>F</code> with a <code>Bracket[Throwable, F]</code>.</li>
+<li><code>Client</code> is no longer a case class.  Construct a new <code>Client</code> backend or middleware with <code>Client.apply(run: Request[F] =&gt; Resource[F, Response[F]])</code> for any <code>F</code> with a <code>Bracket[Throwable, F]</code>.</li>
 <li>Removed <code>DisposableResponse[F]</code> in favor of <code>Resource[F, Response[F]]</code>.</li>
 <li>Removed <code>Client#open</code> in favor of <code>Client#run</code>.</li>
 <li>Removed <code>Client#shutdown</code> in favor of <code>cats.effect.Resource</code> or <code>fs2.Stream</code>.</li>
