@@ -3521,9 +3521,9 @@ q(d) <span class="cmt">// does not compile: not a literal</span></pre></div><dl 
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.UriFunctions#removeDotSegments" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeDotSegments(path:org.http4s.Uri.Path):org.http4s.Uri.Path"></a><a id="removeDotSegments(Uri.Path):Uri.Path"></a>
+      <a id="removeDotSegments(path:String):String"></a><a id="removeDotSegments(String):String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/dsl/Http4sDsl.html#removeDotSegments(path:org.http4s.Uri.Path):org.http4s.Uri.Path" title="Permalink">
+      <a href="../../../org/http4s/dsl/Http4sDsl.html#removeDotSegments(path:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -3532,11 +3532,15 @@ q(d) <span class="cmt">// does not compile: not a literal</span></pre></div><dl 
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeDotSegments</span><span class="params">(<span name="path">path: <a href="../Uri$.html#Path=String" class="extmbr" name="org.http4s.Uri.Path">Uri.Path</a></span>)</span><span class="result">: <a href="../Uri$.html#Path=String" class="extmbr" name="org.http4s.Uri.Path">Uri.Path</a></span>
+        <span class="name">removeDotSegments</span><span class="params">(<span name="path">path: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
       <p class="shortcomment cmt">Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
+Adapted from&quot;
+https://github.com/Norconex/commons-lang/blob/c83fdeac7a60ac99c8602e0b47056ad77b08f570/norconex-commons-lang/src/main/java/com/norconex/commons/lang/url/URLNormalizer.java#L429
 </p><div class="fullcomment"><div class="comment cmt"><p>Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
+Adapted from&quot;
+https://github.com/Norconex/commons-lang/blob/c83fdeac7a60ac99c8602e0b47056ad77b08f570/norconex-commons-lang/src/main/java/com/norconex/commons/lang/url/URLNormalizer.java#L429
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../UriFunctions.html" class="extype" name="org.http4s.UriFunctions">UriFunctions</a></dd></dl></div>
     </li><li name="org.http4s.UriFunctions#resolve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="resolve(base:org.http4s.Uri,reference:org.http4s.Uri):org.http4s.Uri"></a><a id="resolve(Uri,Uri):Uri"></a>

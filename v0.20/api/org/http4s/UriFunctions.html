@@ -1308,9 +1308,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
               
         </dd></dl></div>
     </li><li name="org.http4s.UriFunctions#removeDotSegments" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="removeDotSegments(path:org.http4s.Uri.Path):org.http4s.Uri.Path"></a><a id="removeDotSegments(Path):Path"></a>
+      <a id="removeDotSegments(path:String):String"></a><a id="removeDotSegments(String):String"></a>
       <span class="permalink">
-      <a href="../../org/http4s/UriFunctions.html#removeDotSegments(path:org.http4s.Uri.Path):org.http4s.Uri.Path" title="Permalink">
+      <a href="../../org/http4s/UriFunctions.html#removeDotSegments(path:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1319,10 +1319,12 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeDotSegments</span><span class="params">(<span name="path">path: <a href="Uri$.html#Path=String" class="extmbr" name="org.http4s.Uri.Path">Path</a></span>)</span><span class="result">: <a href="Uri$.html#Path=String" class="extmbr" name="org.http4s.Uri.Path">Path</a></span>
+        <span class="name">removeDotSegments</span><span class="params">(<span name="path">path: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
       <p class="shortcomment cmt">Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
+Adapted from&quot;
+https://github.com/Norconex/commons-lang/blob/c83fdeac7a60ac99c8602e0b47056ad77b08f570/norconex-commons-lang/src/main/java/com/norconex/commons/lang/url/URLNormalizer.java#L429
 </p>
     </li><li name="org.http4s.UriFunctions#resolve" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="resolve(base:org.http4s.Uri,reference:org.http4s.Uri):org.http4s.Uri"></a><a id="resolve(Uri,Uri):Uri"></a>
