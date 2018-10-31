@@ -1068,6 +1068,23 @@ parsing a request or handling a context timeout.
       <p class="shortcomment cmt">Sets the servlet I/O mode for reads and writes within the servlet.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the servlet I/O mode for reads and writes within the servlet.
 Not to be confused with the server connectors.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="../../servlet/ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">org.http4s.servlet.ServletIo</a></p></span></dd></dl></div>
+    </li><li name="org.http4s.server.jetty.JettyBuilder#withShutdownTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withShutdownTimeout(shutdownTimeout:scala.concurrent.duration.Duration):JettyBuilder.this.Self"></a><a id="withShutdownTimeout(Duration):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#withShutdownTimeout(shutdownTimeout:scala.concurrent.duration.Duration):JettyBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withShutdownTimeout</span><span class="params">(<span name="shutdownTimeout">shutdownTimeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Sets the graceful shutdown timeout for Jetty.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the graceful shutdown timeout for Jetty.  Closing the resource
+will wait this long before a forcible stop.</p></div></div>
     </li><li name="org.http4s.server.jetty.JettyBuilder#withThreadPool" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withThreadPool(threadPool:org.eclipse.jetty.util.thread.ThreadPool):org.http4s.server.jetty.JettyBuilder[F]"></a><a id="withThreadPool(ThreadPool):JettyBuilder[F]"></a>
       <span class="permalink">
