@@ -56,6 +56,11 @@ class BlazeClientBuilderSpec extends Http4sSpec {
         .withSocketSendBufferSize(4096)
         .socketSendBufferSize must beSome(4096)
     }
+  }
 
+  "Header options" should {
+    "set header max length" in {
+      builder.withMaxHeaderLength(64).maxHeaderLength must_== 64
+    }
   }
 }

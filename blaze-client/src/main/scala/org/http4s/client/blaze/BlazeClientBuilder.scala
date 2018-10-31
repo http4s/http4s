@@ -76,6 +76,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
     copy(responseHeaderTimeout = responseHeaderTimeout)
 
+  def withMaxHeaderLength(maxHeaderLength: Int): BlazeClientBuilder[F] =
+    copy(maxHeaderLength = maxHeaderLength)
+
   def withIdleTimeout(idleTimeout: Duration): BlazeClientBuilder[F] =
     copy(idleTimeout = idleTimeout)
 
