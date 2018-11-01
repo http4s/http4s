@@ -7,7 +7,7 @@ trait Http4s extends Http4sInstances with Http4sFunctions with syntax.AllSyntax
 object Http4s extends Http4s
 
 @deprecated("Import from or use EntityDecoder/EntityEncoder directly instead", "0.20.0-M2")
-trait Http4sInstances extends EntityDecoderInstances with EntityEncoderInstances
+trait Http4sInstances
 
 @deprecated("Import from or use EntityDecoder/EntityEncoder directly instead", "0.20.0-M2")
 object Http4sInstances extends Http4sInstances
