@@ -16,24 +16,32 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
   }
 
   def mkPool(
-    maxTotal: Int = 1,
-    maxWaitQueueLimit: Int = 2,
-  ) = IO(ConnectionManager.pool(
-    builder = _ => IO(new TestConnection()),
-    maxTotal = maxTotal,
-    maxWaitQueueLimit = maxWaitQueueLimit,
-    maxConnectionsPerRequestKey = _ => 5,
-    responseHeaderTimeout = Duration.Inf,
-    requestTimeout = Duration.Inf,
-    executionContext = testExecutionContext
-  ))
+      maxTotal: Int = 1,
+      maxWaitQueueLimit: Int = 2
+  ) =
+    IO(
+      ConnectionManager.pool(
+        builder = _ => IO(new TestConnection()),
+        maxTotal = maxTotal,
+        maxWaitQueueLimit = maxWaitQueueLimit,
+        maxConnectionsPerRequestKey = _ => 5,
+        responseHeaderTimeout = Duration.Inf,
+        requestTimeout = Duration.Inf,
+        executionContext = testExecutionContext
+      ))
 
   "A pool manager" should {
     "wait up to maxWaitQueueLimit" in {
       (for {
         pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 2)
         _ <- pool.borrow(key)
-        att <- Stream(Stream.eval(pool.borrow(key))).repeat.take(2).covary[IO].joinUnbounded.compile.toList.attempt
+        att <- Stream(Stream.eval(pool.borrow(key))).repeat
+          .take(2)
+          .covary[IO]
+          .joinUnbounded
+          .compile
+          .toList
+          .attempt
       } yield att).unsafeRunTimed(2.seconds) must_== None
     }
 
@@ -41,7 +49,13 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
       (for {
         pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 2)
         _ <- pool.borrow(key)
-        att <- Stream(Stream.eval(pool.borrow(key))).repeat.take(3).covary[IO].joinUnbounded.compile.toList.attempt
+        att <- Stream(Stream.eval(pool.borrow(key))).repeat
+          .take(3)
+          .covary[IO]
+          .joinUnbounded
+          .compile
+          .toList
+          .attempt
       } yield att).unsafeRunTimed(2.seconds) must_== Some(Left(WaitQueueFullFailure()))
     }
 
