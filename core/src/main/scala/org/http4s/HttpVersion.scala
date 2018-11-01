@@ -52,7 +52,7 @@ object HttpVersion {
     else ParseResult.success(new HttpVersion(major, minor))
 
   implicit val http4sHttpOrderForVersion: Order[HttpVersion] =
-    Order.fromOrdering[HttpVersion]
+    Order.fromComparable
   implicit val http4sHttpShowForVersion: Show[HttpVersion] =
-    Show.fromToString[HttpVersion]
+    Show.fromToString
 }

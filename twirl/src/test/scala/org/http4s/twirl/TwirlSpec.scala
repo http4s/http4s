@@ -22,7 +22,7 @@ class TwirlSpec extends Http4sSpec {
   "HTML encoder" should {
     "return Content-Type text/html with proper charset" in prop { implicit cs: Charset =>
       val headers = EntityEncoder[IO, Html].headers
-      headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.text.html, Some(cs)))
+      headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.text.html, Some(cs)))
     }
 
     "render the body" in prop { implicit cs: Charset =>
@@ -35,8 +35,7 @@ class TwirlSpec extends Http4sSpec {
     "return Content-Type application/javascript with proper charset" in prop {
       implicit cs: Charset =>
         val headers = EntityEncoder[IO, JavaScript].headers
-        headers.get(`Content-Type`) must_== Some(
-          `Content-Type`(MediaType.application.javascript, Some(cs)))
+        headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.application.javascript, Some(cs)))
     }
 
     "render the body" in prop { implicit cs: Charset =>
@@ -48,7 +47,7 @@ class TwirlSpec extends Http4sSpec {
   "Text encoder" should {
     "return Content-Type text/plain with proper charset" in prop { implicit cs: Charset =>
       val headers = EntityEncoder[IO, Txt].headers
-      headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.text.plain, Some(cs)))
+      headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.text.plain, Some(cs)))
     }
 
     "render the body" in prop { implicit cs: Charset =>
@@ -60,7 +59,7 @@ class TwirlSpec extends Http4sSpec {
   "XML encoder" should {
     "return Content-Type application/xml with proper charset" in prop { implicit cs: Charset =>
       val headers = EntityEncoder[IO, Xml].headers
-      headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.application.xml, Some(cs)))
+      headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.application.xml, Some(cs)))
     }
 
     "render the body" in prop { implicit cs: Charset =>
