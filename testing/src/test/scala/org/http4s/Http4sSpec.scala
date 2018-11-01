@@ -40,8 +40,6 @@ trait Http4sSpec
     with AnyMatchers
     with OptionMatchers
     with syntax.AllSyntax
-    with EntityDecoderInstances
-    with EntityEncoderInstances
     with ArbitraryInstances
     with FragmentsDsl
     with Discipline
