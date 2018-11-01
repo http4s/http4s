@@ -8,6 +8,7 @@ import org.http4s.headers.{Connection, `Content-Length`}
 import org.http4s.syntax.string._
 import org.log4s.getLogger
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 package object server {
 
@@ -108,7 +109,7 @@ package object server {
         s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
           .getOrElse("<unknown>")}""")
       mf.toHttpResponse(req.httpVersion)
-    case t if !t.isInstanceOf[VirtualMachineError] =>
+    case NonFatal(t) =>
       serviceErrorLogger.error(t)(
         s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse(
           "<unknown>")}""")
