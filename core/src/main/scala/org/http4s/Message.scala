@@ -153,20 +153,20 @@ sealed trait Message[F[_]] { self =>
   final def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
     contentTypeO.fold(withoutContentType)(withContentType)
 
-  def contentType: Option[`Content-Type`] =
+  lazy val contentType: Option[`Content-Type`] =
     headers.get(`Content-Type`)
 
-  def contentLength: Option[Long] =
+  lazy val contentLength: Option[Long] =
     headers.get(`Content-Length`).map(_.length)
 
   /** Returns the charset parameter of the `Content-Type` header, if present.
     * Does not introspect the body for media types that define a charset
     * internally.
     */
-  def charset: Option[Charset] =
+  lazy val charset: Option[Charset] =
     contentType.flatMap(_.charset)
 
-  def isChunked: Boolean =
+  lazy val isChunked: Boolean =
     headers.get(`Transfer-Encoding`).exists(_.values.contains_(TransferCoding.chunked))
 
   // Attribute methods

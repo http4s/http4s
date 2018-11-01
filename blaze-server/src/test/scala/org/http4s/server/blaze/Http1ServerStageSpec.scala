@@ -220,7 +220,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val dateHeader = Date(HttpDate.Epoch)
       val routes = HttpRoutes
         .of[IO] {
-          case req => IO.pure(Response(body = req.body).replaceAllHeaders(dateHeader))
+          case req => IO.pure(Response(body = req.body).withHeaders(dateHeader))
         }
         .orNotFound
 
