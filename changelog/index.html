@@ -99,6 +99,8 @@ it.</p>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2205">#2205</a>: Add new <code>ResponseTiming</code> middleware, which adds a header to the Response as opposed to full <code>MetricsOps</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2222">#2222</a>: Add <code>shutdownTimeout</code> property to <code>JettyBuilder</code>.  Shutdown of the server waits for existing connections to complete for up to this duration before a hard shutdown with a <code>TimeoutException</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2227">#2227</a>: Add <code>withMaxHeaderLength</code> setter to <code>BlazeClientBuilder</code></li>
 </ul>
 
 <h2 id="bug-fixes">Bug fixes</h2>
