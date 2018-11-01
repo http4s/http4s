@@ -56,6 +56,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     val cookieName: String,
     clock: Clock,
     secure: Boolean,
+    extension: Option[String],
     onFailure: Response[G],
     createIfNotFound: Boolean,
     key: SecretKey,
@@ -89,7 +90,8 @@ final class CSRF[F[_], G[_]] private[middleware] (
       name = cookieName,
       content = unlift(token),
       httpOnly = true,
-      secure = self.secure)
+      secure = self.secure,
+      extension = self.extension)
 
   def createRequestCookie(token: CSRFToken): RequestCookie =
     RequestCookie(name = cookieName, content = unlift(token))
@@ -257,6 +259,7 @@ object CSRF {
       cookieName: String = "csrf-token",
       clock: Clock = Clock.systemUTC(),
       secure: Boolean = false,
+      extension: Option[String] = None,
       onFailure: Response[G] = Response[G](Status.Forbidden),
       createIfNotFound: Boolean = true,
       key: SecretKey,
@@ -266,6 +269,7 @@ object CSRF {
       cookieName,
       clock,
       secure,
+      extension,
       onFailure,
       createIfNotFound,
       key,
@@ -277,6 +281,7 @@ object CSRF {
       cookieName: String = "csrf-token",
       clock: Clock = Clock.systemUTC(),
       secure: Boolean = false,
+      extension: Option[String] = None,
       onFailure: Response[G] = Response[G](Status.Forbidden),
       createIfNotFound: Boolean = true,
       key: SecretKey,
@@ -288,6 +293,7 @@ object CSRF {
       cookieName,
       clock,
       secure,
+      extension,
       onFailure,
       createIfNotFound,
       key,
@@ -329,11 +335,12 @@ object CSRF {
       cookieName: String = "csrf-token",
       clock: Clock = Clock.systemUTC(),
       secure: Boolean = false,
+      extension: Option[String] = None,
       onFailure: Response[G] = Response[G](Status.Forbidden),
       createIfNotFound: Boolean = true,
       headerCheck: Request[G] => Boolean): F[CSRF[F, G]] =
     generateSigningKey().map(
-      apply(headerName, cookieName, clock, secure, onFailure, createIfNotFound, _, headerCheck))
+      apply(headerName, cookieName, clock, secure, extension, onFailure, createIfNotFound, _, headerCheck))
 
   /** Sugar for pre-loading a key **/
   def withKeyBytes[F[_]: Sync, G[_]: Applicative](
@@ -343,10 +350,11 @@ object CSRF {
       clock: Clock = Clock.systemUTC(),
       onFailure: Response[G] = Response[G](Status.Forbidden),
       secure: Boolean = false,
+      extension: Option[String] = None,
       createIfNotFound: Boolean = true,
       headerCheck: Request[G] => Boolean): F[CSRF[F, G]] =
     buildSigningKey(keyBytes).map(
-      apply(headerName, cookieName, clock, secure, onFailure, createIfNotFound, _, headerCheck))
+      apply(headerName, cookieName, clock, secure, extension, onFailure, createIfNotFound, _, headerCheck))
 
   val SigningAlgo: String = "HmacSHA1"
   val SHA1ByteLen: Int = 20
