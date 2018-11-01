@@ -109,26 +109,6 @@ package object server {
         s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
           .getOrElse("<unknown>")}""")
       mf.toHttpResponse(req.httpVersion)
-    case t if !t.isInstanceOf[VirtualMachineError] =>
-      serviceErrorLogger.error(t)(
-        s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse(
-          "<unknown>")}""")
-      F.pure(
-        Response(
-          Status.InternalServerError,
-          req.httpVersion,
-          Headers(
-            Connection("close".ci),
-            `Content-Length`.zero
-          )))
-  }
-
-  def NonFatalServiceErrorHandler[F[_]](implicit F: Monad[F]): ServiceErrorHandler[F] = req => {
-    case mf: MessageFailure =>
-      messageFailureLogger.debug(mf)(
-        s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-          .getOrElse("<unknown>")}""")
-      mf.toHttpResponse(req.httpVersion)
     case NonFatal(t) =>
       serviceErrorLogger.error(t)(
         s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse(
