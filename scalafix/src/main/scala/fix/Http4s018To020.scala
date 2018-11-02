@@ -6,7 +6,7 @@ import scala.meta._
 class Http4s018To020 extends SemanticRule("Http4s018To020") {
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    doc.tree.collect{
+    doc.tree.collect {
       case HttpServiceRules(patch) => patch
       case WithBodyRules(patch) => patch
       case CookiesRules(patch) => patch

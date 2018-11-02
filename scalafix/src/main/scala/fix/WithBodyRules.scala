@@ -15,20 +15,21 @@ object WithBodyRules {
   }
 
   private[this] def replaceWithBody(t: Tree) =
-    t.collect{
-      case Term.Select(_, t@Term.Name("withBody")) =>
+    t.collect {
+      case Term.Select(_, t @ Term.Name("withBody")) =>
         Patch.replaceTree(t, "withEntity")
     }.asPatch
 
   private[this] def containsWithBody(t: Tree): Boolean =
     t.collect {
-      case Term.Select(_, Term.Name("withBody")) =>
-        true
-    }.contains(true)
+        case Term.Select(_, Term.Name("withBody")) =>
+          true
+      }
+      .contains(true)
 
   private[this] def removeExternalF(t: Type) =
     t match {
-      case r@t"$a[Request[$b]]" =>
+      case r @ t"$a[Request[$b]]" =>
         // Note: we only change type def in request and not in response as normally the responses created with
         // e.g. Ok() are still F[Response[F]]
         Patch.replaceTree(r, s"Request[$b]")
