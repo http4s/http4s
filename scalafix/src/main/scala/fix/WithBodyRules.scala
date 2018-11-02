@@ -4,7 +4,7 @@ import scalafix.v1._
 import scala.meta._
 
 object WithBodyRules {
-  def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
+  def unapply(t: Tree): Option[Patch] = t match {
     case Defn.Val(_, _, tpe, rhs) if containsWithBody(rhs) =>
       Some(replaceWithBody(rhs) + tpe.map(removeExternalF))
     case Defn.Def(_, _, _, _, tpe, rhs) if containsWithBody(rhs) =>
@@ -29,7 +29,7 @@ object WithBodyRules {
 
   private[this] def removeExternalF(t: Type) =
     t match {
-      case r @ t"$a[Request[$b]]" =>
+      case r @ Type.Apply(_, Type.Apply(Type.Name("Request"), b :: Nil) :: Nil) =>
         // Note: we only change type def in request and not in response as normally the responses created with
         // e.g. Ok() are still F[Response[F]]
         Patch.replaceTree(r, s"Request[$b]")

@@ -17,58 +17,57 @@ object ClientRules {
     // Client builders
     case Importee.Name(c @ Name("Http1Client")) =>
       Some(Patch.replaceTree(c, "BlazeClientBuilder"))
-    case d @ Defn.Def(
-          _,
-          _,
-          _,
-          _,
-          _,
-          c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Apply))
-    case d @ Defn.Val(
-          _,
-          _,
-          _,
-          c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Apply))
-    case d @ Defn.Var(
-          _,
-          _,
-          _,
-          c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Apply))
-    case d @ Defn.Def(
-          _,
-          _,
-          _,
-          _,
-          _,
-          c @ Term.Apply(
-            Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
-            configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Stream))
-    case d @ Defn.Val(
-          _,
-          _,
-          _,
-          c @ Term.Apply(
-            Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
-            configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Stream))
-    case d @ Defn.Var(
-          _,
-          _,
-          _,
-          c @ Term.Apply(
-            Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
-            configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Stream))
+    case Defn.Def(
+        _,
+        _,
+        _,
+        _,
+        _,
+        c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
+      Some(patchClient(c, configParam, tpes, ClientType.Apply))
+    case Defn.Val(
+        _,
+        _,
+        _,
+        c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
+      Some(patchClient(c, configParam, tpes, ClientType.Apply))
+    case Defn.Var(
+        _,
+        _,
+        _,
+        c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
+      Some(patchClient(c, configParam, tpes, ClientType.Apply))
+    case Defn.Def(
+        _,
+        _,
+        _,
+        _,
+        _,
+        c @ Term.Apply(
+          Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
+          configParam)) =>
+      Some(patchClient(c, configParam, tpes, ClientType.Stream))
+    case Defn.Val(
+        _,
+        _,
+        _,
+        c @ Term.Apply(
+          Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
+          configParam)) =>
+      Some(patchClient(c, configParam, tpes, ClientType.Stream))
+    case Defn.Var(
+        _,
+        _,
+        _,
+        c @ Term.Apply(
+          Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
+          configParam)) =>
+      Some(patchClient(c, configParam, tpes, ClientType.Stream))
     case _ => None
 
   }
 
   private def patchClient(
-      defn: Defn,
       client: Term,
       configParam: List[Term],
       tpes: List[Type],
@@ -81,7 +80,7 @@ object ClientRules {
       List(Some(ec), sslc).flatten)
     val newClientBuilderPatch = Patch.replaceTree(client, newClientBuilder.toString())
     val withParamsPatches = withConfigParams(configParams).map(p => Patch.addRight(client, p))
-    val clientTypePatch = applyClientType(defn, client, clientType)
+    val clientTypePatch = applyClientType(client, clientType)
     val ecPatch = ec match {
       case Term.Name("global") =>
         Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
@@ -91,7 +90,7 @@ object ClientRules {
     newClientBuilderPatch ++ withParamsPatches + clientTypePatch + ecPatch
   }
 
-  private[this] def applyClientType(defn: Defn, client: Tree, clientType: ClientType): Patch =
+  private[this] def applyClientType(client: Tree, clientType: ClientType): Patch =
     clientType match {
       case ClientType.Stream =>
         Patch.addRight(client, ".stream")

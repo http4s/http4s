@@ -331,8 +331,6 @@ lazy val scalafixRules = http4sProject("scalafix")
     description := "Scalafix for http4s",
     libraryDependencies += scalafixCore,
     addCompilerPlugin(scalafixSemanticdb),
-    scalacOptions in Compile -= "-Xfatal-warnings",
-    scalacOptions in Test -= "-Xfatal-warnings"
   )
 
 lazy val scalafixTests = http4sProject("scalafix-tests")
