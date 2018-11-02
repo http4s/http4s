@@ -38,18 +38,22 @@ object ClientRules {
     val ec = configParams.getOrElse("executionContext", Term.Name("global"))
     val sslc = configParams.get("sslContext")
     val newClientBuilder = Term.Apply(Term.ApplyType(Term.Name("BlazeClientBuilder"), tpes), List(Some(ec), sslc).flatten)
-    val withParams = withConfigParams(configParams).map(p => Patch.addRight(client, s"$p\n"))
-    Patch.replaceTree(client, newClientBuilder.toString()) ++ withParams + applyClientType(defn, client, clientType) + (ec match {
+    val newClientBuilderPatch = Patch.replaceTree(client, newClientBuilder.toString())
+    val withParamsPatches = withConfigParams(configParams).map(p => Patch.addRight(client, p))
+    val clientTypePatch = applyClientType(defn, client, clientType)
+    val ecPatch = ec match {
       case Term.Name("global") =>
         Patch.addGlobalImport(importer"scala.concurrent.ExecutionContext.Implicits.global")
       case _ =>
         Patch.empty
-    })
+    }
+    newClientBuilderPatch ++ withParamsPatches + clientTypePatch + ecPatch
   }
 
 
   private[this] def applyClientType(defn: Defn, client: Tree, clientType: ClientType): Patch = clientType match {
-    case ClientType.Stream => Patch.addRight(client, ".stream")
+    case ClientType.Stream =>
+      Patch.addRight(client, ".stream")
     case ClientType.Apply =>
       Patch.addRight(client, ".resource") + replaceType(defn)
   }
@@ -58,9 +62,9 @@ object ClientRules {
     defn match {
       case Defn.Val(_, _, tpe, _) =>
         tpe.map(replaceClientType).asPatch
-      case d@Defn.Var(_, _, tpe, _) =>
+      case Defn.Var(_, _, tpe, _) =>
         tpe.map(replaceClientType).asPatch
-      case d@Defn.Def(_, _, _, _, tpe, _) =>
+      case Defn.Def(_, _, _, _, tpe, _) =>
         tpe.map(replaceClientType).asPatch
       case d =>
         Patch.lint(Diagnostic("1", s"Your client definition $defn needs to be replaced", d.pos))
@@ -71,7 +75,6 @@ object ClientRules {
     case _ => Patch.empty
   }
 
-
   private[this] def getClientConfigParams(params: List[Term])(implicit doc: SemanticDocument) =
     params.headOption.flatMap {
       case c: Term.Name =>
@@ -79,13 +82,16 @@ object ClientRules {
           case Defn.Val(_, pats, _, rhs) if isClientConfig(c, pats) =>
             rhs
         }.headOption
+      case c: Term.Apply => Some(c)
+      case _ => None
     } match {
       case Some(Term.Apply(_, ps)) =>
         ps.collect{
           case Term.Assign(Term.Name(name: String), p: Term) =>
             name -> p
         }.toMap
-      case _ => Map.empty[String, Term]
+      case c =>
+        Map.empty[String, Term]
     }
 
 

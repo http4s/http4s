@@ -53,32 +53,7 @@ object Http4s018To020 {
   )
 
   val client: cats.effect.Resource[IO, Client[IO]] = BlazeClientBuilder[IO](ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))).resource
-  val clientStream = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second)
-.withMaxChunkSize(3)
-.withParserMode(org.http4s.client.blaze.ParserMode.Strict)
-.withMaxTotalConnections(1)
-.withIdleTimeout(2.second)
-.withMaxWaitQueueLimit(2)
-.withUserAgent(`User-Agent`(AgentProduct("hello")))
-.withCheckEndpointAuthentication(false)
-.withBufferSize(1)
-.withResponseHeaderTimeout(1.second)
-.withMaxResponseLineSize(1)
-.withMaxHeaderLength(2)
-.withMaxConnectionsPerRequestKey(_ => 1)
-.stream
-  val client2 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second)
-.withMaxChunkSize(3)
-.withParserMode(org.http4s.client.blaze.ParserMode.Strict)
-.withMaxTotalConnections(1)
-.withIdleTimeout(2.second)
-.withMaxWaitQueueLimit(2)
-.withUserAgent(`User-Agent`(AgentProduct("hello")))
-.withCheckEndpointAuthentication(false)
-.withBufferSize(1)
-.withResponseHeaderTimeout(1.second)
-.withMaxResponseLineSize(1)
-.withMaxHeaderLength(2)
-.withMaxConnectionsPerRequestKey(_ => 1)
-.resource
+  val clientStream = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second).withMaxChunkSize(3).withParserMode(org.http4s.client.blaze.ParserMode.Strict).withMaxTotalConnections(1).withIdleTimeout(2.second).withMaxWaitQueueLimit(2).withUserAgent(`User-Agent`(AgentProduct("hello"))).withCheckEndpointAuthentication(false).withBufferSize(1).withResponseHeaderTimeout(1.second).withMaxResponseLineSize(1).withMaxHeaderLength(2).withMaxConnectionsPerRequestKey(_ => 1).stream
+  val client2 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second).withMaxChunkSize(3).withParserMode(org.http4s.client.blaze.ParserMode.Strict).withMaxTotalConnections(1).withIdleTimeout(2.second).withMaxWaitQueueLimit(2).withUserAgent(`User-Agent`(AgentProduct("hello"))).withCheckEndpointAuthentication(false).withBufferSize(1).withResponseHeaderTimeout(1.second).withMaxResponseLineSize(1).withMaxHeaderLength(2).withMaxConnectionsPerRequestKey(_ => 1).resource
+  val client3 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second).withMaxChunkSize(3).withParserMode(org.http4s.client.blaze.ParserMode.Strict).withMaxTotalConnections(1).withIdleTimeout(2.second).withMaxWaitQueueLimit(2).withUserAgent(`User-Agent`(AgentProduct("hello"))).withCheckEndpointAuthentication(false).withBufferSize(1).withResponseHeaderTimeout(1.second).withMaxResponseLineSize(1).withMaxHeaderLength(2).withMaxConnectionsPerRequestKey(_ => 1).stream
 }
