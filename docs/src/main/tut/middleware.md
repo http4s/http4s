@@ -28,8 +28,8 @@ import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import org.http4s._
-import org.http4s.implicits._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 ```
 
 Then, we can create a middleware that adds a header to successful responses from
@@ -64,8 +64,8 @@ val service = HttpRoutes.of[IO] {
     Ok()
 }
 
-val goodRequest = Request[IO](Method.GET, uri("/"))
-val badRequest = Request[IO](Method.GET, uri("/bad"))
+val goodRequest = Request[IO](Method.GET, Uri.uri("/"))
+val badRequest = Request[IO](Method.GET, Uri.uri("/bad"))
 
 service.orNotFound(goodRequest).unsafeRunSync
 service.orNotFound(badRequest).unsafeRunSync
@@ -127,7 +127,7 @@ val apiService = HttpRoutes.of[IO] {
 
 val aggregateService = apiService <+> MyMiddle(service, Header("SomeKey", "SomeValue"))
 
-val apiRequest = Request[IO](Method.GET, uri("/api"))
+val apiRequest = Request[IO](Method.GET, Uri.uri("/api"))
 
 aggregateService.orNotFound(goodRequest).unsafeRunSync
 aggregateService.orNotFound(apiRequest).unsafeRunSync

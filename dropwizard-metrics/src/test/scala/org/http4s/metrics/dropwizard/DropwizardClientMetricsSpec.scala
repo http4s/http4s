@@ -9,6 +9,7 @@ import org.http4s.client.{Client, UnexpectedStatus}
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
 import org.http4s.metrics.dropwizard.util._
+import org.http4s.Uri.uri
 
 class DropwizardMetricsSpec extends Http4sSpec {
 

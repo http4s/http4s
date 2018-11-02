@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Order, Show}
 import org.http4s.Status.ResponseClass
 import org.http4s.util.Renderable
 
@@ -10,7 +10,6 @@ import org.http4s.util.Renderable
   *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
-  *
   * @see [http://tools.ietf.org/html/rfc7231#section-6 RFC7231, Section 6]
   * @see [http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]
   */
@@ -195,9 +194,6 @@ object Status {
     Status(511, "Network Authentication Required"))
   // scalastyle:on magic.number
 
-}
-
-trait StatusInstances {
-  implicit val StatusShow = Show.fromToString[Status]
-  implicit val StatusOrder = Order.fromOrdering[Status]
+  implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]
+  implicit val http4sShowForStatus: Show[Status] = Show.fromToString[Status]
 }

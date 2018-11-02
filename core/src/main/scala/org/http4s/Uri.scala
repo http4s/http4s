@@ -4,16 +4,17 @@ import cats._
 import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.StandardCharsets
 import org.http4s.Uri._
-import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
+import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.language.experimental.macros
 import scala.math.Ordered
-import scala.reflect.macros.whitebox.Context
+import scala.reflect.macros.whitebox
 
 /** Representation of the [[Request]] URI
+  *
   * @param scheme     optional Uri Scheme. eg, http, https
   * @param authority  optional Uri Authority. eg, localhost:8080, www.foo.bar
   * @param path       url-encoded string representation of the path component of the Uri.
@@ -117,8 +118,8 @@ final case class Uri(
   override protected def replaceQuery(query: Query): Self = copy(query = query)
 }
 
-object Uri extends UriFunctions {
-  class Macros(val c: Context) {
+object Uri {
+  class Macros(val c: whitebox.Context) {
     import c.universe._
 
     def uriLiteral(s: c.Expr[String]): Tree =
@@ -202,18 +203,17 @@ object Uri extends UriFunctions {
       }
     }
 
-    implicit val http4sInstancesForScheme: Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] =
-      new Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] {
-        def show(s: Scheme): String = s.toString
-
+    implicit val http4sOrderForScheme: Order[Scheme] =
+      Order.fromComparable
+    implicit val http4sShowForScheme: Show[Scheme] =
+      Show.fromToString
+    implicit val http4sInstancesForScheme: HttpCodec[Scheme] =
+      new HttpCodec[Scheme] {
         def parse(s: String): ParseResult[Scheme] =
           Scheme.parse(s)
 
         def render(writer: Writer, scheme: Scheme): writer.type =
           writer << scheme.value
-
-        def compare(x: Scheme, y: Scheme) =
-          x.compare(y)
       }
   }
 
@@ -259,17 +259,6 @@ object Uri extends UriFunctions {
   object RegName { def apply(name: String): RegName = new RegName(name.ci) }
   object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
   object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
-
-  implicit val eqInstance: Eq[Uri] = Eq.fromUniversalEquals
-}
-
-trait UriFunctions {
-
-  /**
-    * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
-    * at compile time.
-    */
-  def uri(s: String): Uri = macro Uri.Macros.uriLiteral
 
   /**
     * Resolve a relative Uri reference, per RFC 3986 sec 5.2
@@ -381,4 +370,12 @@ trait UriFunctions {
       case -1 => b.setLength(0)
       case n => b.setLength(n)
     }
+
+  /**
+    * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
+    * at compile time.
+    */
+  def uri(s: String): Uri = macro Uri.Macros.uriLiteral
+
+  implicit val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals
 }

@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Eq, Show}
 import org.http4s.util._
 
 sealed abstract class CharsetRange extends HasQValue with Renderable {
@@ -20,7 +20,7 @@ sealed abstract class CharsetRange extends HasQValue with Renderable {
   }
 }
 
-object CharsetRange extends CharsetRangeInstances {
+object CharsetRange {
   sealed case class `*`(qValue: QValue) extends CharsetRange {
     final override def withQValue(q: QValue): CharsetRange.`*` = copy(qValue = q)
 
@@ -43,12 +43,7 @@ object CharsetRange extends CharsetRangeInstances {
   }
 
   implicit def fromCharset(cs: Charset): CharsetRange.Atom = cs.toRange
-}
 
-trait CharsetRangeInstances {
-  implicit val http4sEqForCharsetRange: Eq[CharsetRange] =
-    Eq.fromUniversalEquals
-
-  implicit val http4sShowForCharsetRange: Show[Charset] =
-    Show.fromToString
+  implicit val http4sEqForCharsetRange: Eq[CharsetRange] = Eq.fromUniversalEquals
+  implicit val http4sShowForCharsetRange: Show[CharsetRange] = Show.fromToString
 }

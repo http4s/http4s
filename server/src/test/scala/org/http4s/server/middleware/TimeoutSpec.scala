@@ -7,6 +7,7 @@ import cats.effect._
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 import scala.concurrent.duration._
 
 class TimeoutSpec extends Http4sSpec {

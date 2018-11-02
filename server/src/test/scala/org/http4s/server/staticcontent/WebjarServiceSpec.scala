@@ -4,6 +4,7 @@ package staticcontent
 
 import cats.effect._
 import org.http4s.Method.{GET, POST}
+import org.http4s.Uri.uri
 import org.http4s.server.staticcontent.WebjarService.Config
 
 object WebjarServiceSpec extends Http4sSpec with StaticContentShared {

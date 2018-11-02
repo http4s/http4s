@@ -39,7 +39,7 @@ trait Http4sSpec
     with ScalaCheck
     with AnyMatchers
     with OptionMatchers
-    with Http4s
+    with syntax.AllSyntax
     with ArbitraryInstances
     with FragmentsDsl
     with Discipline

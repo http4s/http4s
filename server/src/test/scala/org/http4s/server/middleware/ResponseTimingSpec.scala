@@ -22,7 +22,7 @@ class ResponseTimingSpec extends Http4sSpec {
 
   "ResponseTiming middleware" should {
     "add a custom header with timing info" in {
-      val req = Request[IO](uri = uri("/request"))
+      val req = Request[IO](uri = Uri.uri("/request"))
       val app = ResponseTiming(thisService)
       val res = app(req)
 

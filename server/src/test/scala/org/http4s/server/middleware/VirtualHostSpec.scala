@@ -5,8 +5,9 @@ package middleware
 import cats.effect._
 import cats.syntax.applicative._
 import org.http4s.Method._
-import org.http4s.headers.Host
 import org.http4s.Status.{BadRequest, NotFound, Ok}
+import org.http4s.Uri.uri
+import org.http4s.headers.Host
 
 class VirtualHostSpec extends Http4sSpec {
 

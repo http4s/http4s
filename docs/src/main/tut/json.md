@@ -104,7 +104,7 @@ useful on client requests:
 import org.http4s.client._
 import org.http4s.client.dsl.io._
 
-POST(uri("/hello"), json"""{"name": "Alice"}""").unsafeRunSync
+POST(Uri.uri("/hello"), json"""{"name": "Alice"}""").unsafeRunSync
 ```
 
 ## Encoding case classes as JSON
@@ -159,7 +159,7 @@ and responses for our case classes:
 
 ```tut:book
 Ok(Hello("Alice").asJson).unsafeRunSync
-POST(uri("/hello"), User("Bob").asJson).unsafeRunSync
+POST(Uri.uri("/hello"), User("Bob").asJson).unsafeRunSync
 ```
 
 If within some route we serve json only, we can use:
@@ -185,7 +185,7 @@ response body to JSON using the [`as` syntax]:
 
 ```tut:book
 Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync
-POST(uri("/hello"),"""{"name":"Bob"}""").flatMap(_.as[Json]).unsafeRunSync
+POST(Uri.uri("/hello"),"""{"name":"Bob"}""").flatMap(_.as[Json]).unsafeRunSync
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -202,7 +202,7 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 ```tut:book
 implicit val userDecoder = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync
-POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
+POST(Uri.uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
 ```
 
 If we are always decoding from JSON to a typed model, we can use
@@ -242,6 +242,7 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -284,7 +285,7 @@ import fs2.Stream
 // Decode the Hello response
 def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
-  val req = POST(uri("http://localhost:8080/hello"), User(name).asJson)
+  val req = POST(Uri.uri("http://localhost:8080/hello"), User(name).asJson)
   // Create a client
   BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
     // Decode a Hello response

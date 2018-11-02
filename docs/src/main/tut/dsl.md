@@ -66,7 +66,7 @@ need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
 
 ```tut
-val getRoot = Request[IO](Method.GET, uri("/"))
+val getRoot = Request[IO](Method.GET, Uri.uri("/"))
 
 val io = service.orNotFound.run(getRoot)
 ```
