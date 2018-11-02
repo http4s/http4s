@@ -109,9 +109,9 @@ import org.http4s.implicits._
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$56549/1148330131@1fd7b9a2)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$57027/415078043@41ae40a5)
 
-val request = Request[IO](Method.GET, uri(&quot;/&quot;))
+val request = Request[IO](Method.GET, Uri.uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
 
 service.orNotFound(request).unsafeRunSync
@@ -124,7 +124,7 @@ service.orNotFound(request).unsafeRunSync
 // import org.http4s.server.middleware._
 
 val corsService = CORS(service)
-// corsService: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$56733/1210524071@1a7631a6)
+// corsService: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$57212/1251540026@16a03e01)
 
 corsService.orNotFound(request).unsafeRunSync
 // res1: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
@@ -156,13 +156,13 @@ are configuration options to modify that.</p>
 <p>First, we&rsquo;ll create some requests to use in our example. We want these requests
 have a variety of origins and methods.</p>
 
-<pre><code class="language-scala">val googleGet = Request[IO](Method.GET, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;google.com&quot;)))
+<pre><code class="language-scala">val googleGet = Request[IO](Method.GET, Uri.uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;google.com&quot;)))
 // googleGet: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers(Origin: google.com))
 
-val yahooPut = Request[IO](Method.PUT, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;yahoo.com&quot;)))
+val yahooPut = Request[IO](Method.PUT, Uri.uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;yahoo.com&quot;)))
 // yahooPut: org.http4s.Request[cats.effect.IO] = Request(method=PUT, uri=/, headers=Headers(Origin: yahoo.com))
 
-val duckPost = Request[IO](Method.POST, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;duckduckgo.com&quot;)))
+val duckPost = Request[IO](Method.POST, Uri.uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;duckduckgo.com&quot;)))
 // duckPost: org.http4s.Request[cats.effect.IO] = Request(method=POST, uri=/, headers=Headers(Origin: duckduckgo.com))
 </code></pre>
 
@@ -178,10 +178,10 @@ val methodConfig = CORSConfig(
   allowedMethods = Some(Set(&quot;GET&quot;, &quot;POST&quot;)),
   allowCredentials = true,
   maxAge = 1.day.toSeconds)
-// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$56732/1875737345@4c03a849,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
+// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$57211/94941915@680940c6,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsMethodSvc = CORS(service, methodConfig)
-// corsMethodSvc: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$56733/1210524071@338ed3e3)
+// corsMethodSvc: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$57212/1251540026@504cc21c)
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync
 // res3: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
@@ -205,7 +205,7 @@ Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo
 // originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Set(yahoo.com, duckduckgo.com),None,Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsOriginSvc = CORS(service, originConfig)
-// corsOriginSvc: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$56733/1210524071@8b555a7)
+// corsOriginSvc: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$57212/1251540026@3067cd3f)
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync
 // res6: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))

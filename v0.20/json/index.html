@@ -189,7 +189,7 @@ useful on client requests:</p>
 import org.http4s.client.dsl.io._
 // import org.http4s.client.dsl.io._
 
-POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).unsafeRunSync
+POST(Uri.uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).unsafeRunSync
 // res2: org.http4s.Request[cats.effect.IO] = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16))
 </code></pre>
 
@@ -225,7 +225,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$21@78616d89
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$21@359acf74
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -254,7 +254,7 @@ and responses for our case classes:</p>
 <pre><code class="language-scala">Ok(Hello(&quot;Alice&quot;).asJson).unsafeRunSync
 // res6: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Type: application/json, Content-Length: 17))
 
-POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).unsafeRunSync
+POST(Uri.uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).unsafeRunSync
 // res7: org.http4s.Request[cats.effect.IO] = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 14))
 </code></pre>
 
@@ -284,7 +284,7 @@ response body to JSON using the <a href="../api/org/http4s/MessageOps.html#as[T]
 //   &quot;name&quot; : &quot;Alice&quot;
 // }
 
-POST(uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).flatMap(_.as[Json]).unsafeRunSync
+POST(Uri.uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).flatMap(_.as[Json]).unsafeRunSync
 // res10: io.circe.Json =
 // {
 //   &quot;name&quot; : &quot;Bob&quot;
@@ -303,12 +303,12 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@268d003a
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@1440c377
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res11: User = User(Alice)
 
-POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
+POST(Uri.uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res12: User = User(Bob)
 </code></pre>
 
@@ -348,6 +348,7 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -389,7 +390,7 @@ import fs2.Stream
 // Decode the Hello response
 def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
-  val req = POST(uri(&quot;http://localhost:8080/hello&quot;), User(name).asJson)
+  val req = POST(Uri.uri(&quot;http://localhost:8080/hello&quot;), User(name).asJson)
   // Create a client
   BlazeClientBuilder[IO](global).stream.flatMap { httpClient =&gt;
     // Decode a Hello response
