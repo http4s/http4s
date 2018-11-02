@@ -310,13 +310,15 @@ lazy val scalafixInputs = http4sProject("scalafix-inputs")
     libraryDependencies ++= Seq(
       "org.http4s" %% "http4s-blaze-client" % "0.18.20",
       "org.http4s" %% "http4s-dsl" % "0.18.20"
-    )
+    ),
+    addCompilerPlugin(scalafixSemanticdb)
   )
 
 lazy val scalafixOutputs= http4sProject("scalafix-outputs")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
-    skip in publish := true
+    skip in publish := true,
+    addCompilerPlugin(scalafixSemanticdb)
   )
   .dependsOn(theDsl, blazeClient)
 
@@ -339,6 +341,7 @@ lazy val scalafixTests = http4sProject("scalafix-tests")
       sourceDirectories.in(scalafixInputs, Compile).value,
     scalafixTestkitInputClasspath :=
       fullClasspath.in(scalafixInputs, Compile).value,
+    addCompilerPlugin(scalafixSemanticdb)
   )
   .dependsOn(scalafixRules)
   .enablePlugins(ScalafixTestkitPlugin, PrivateProjectPlugin)

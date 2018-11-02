@@ -71,7 +71,7 @@ object ClientRules {
     }
 
   private def replaceClientType(t: Type): Patch = t match {
-    case t@t"$a[Client[$b]]" => Patch.replaceTree(t, s"cats.effect.Resource[$a, Client[$b]]")
+    case t"$a[Client[$b]]" => Patch.replaceTree(t, s"cats.effect.Resource[$a, Client[$b]]")
     case _ => Patch.empty
   }
 
@@ -90,7 +90,7 @@ object ClientRules {
           case Term.Assign(Term.Name(name: String), p: Term) =>
             name -> p
         }.toMap
-      case c =>
+      case _ =>
         Map.empty[String, Term]
     }
 

@@ -4,7 +4,7 @@ import scalafix.v1._
 import scala.meta._
 
 object CookiesRules {
-  def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] =  t match {
+  def unapply(t: Tree): Option[Patch] =  t match {
     case Importer(Term.Select(Term.Name("org"), Term.Name("http4s")), is) =>
       Some(is.collect {
         case c@Importee.Name(Name("Cookie")) =>

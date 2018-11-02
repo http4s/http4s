@@ -4,7 +4,7 @@ import scalafix.v1._
 import scala.meta._
 
 object WithBodyRules {
-  def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
+  def unapply(t: Tree): Option[Patch] = t match {
     case Defn.Val(_, _, tpe, rhs) if containsWithBody(rhs) =>
       Some(replaceWithBody(rhs) + tpe.map(removeExternalF))
     case Defn.Def(_, _, _, _, tpe, rhs) if containsWithBody(rhs) =>
@@ -16,7 +16,7 @@ object WithBodyRules {
 
   private[this] def replaceWithBody(t: Tree) =
     t.collect{
-      case Term.Select(p, t@Term.Name("withBody")) =>
+      case Term.Select(_, t@Term.Name("withBody")) =>
         Patch.replaceTree(t, "withEntity")
     }.asPatch
 
