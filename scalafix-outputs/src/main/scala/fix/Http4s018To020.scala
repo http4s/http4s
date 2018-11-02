@@ -4,11 +4,10 @@ import java.util.concurrent.Executors
 import cats.effect.IO
 import javax.net.ssl.SSLContext
 import org.http4s.client.blaze.{BlazeClientConfig, BlazeClientBuilder}
-import org.http4s.{HttpRoutes, MediaType, Request, Response}
+import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.client.Client
 import org.http4s.headers.{AgentProduct, `User-Agent`}
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
