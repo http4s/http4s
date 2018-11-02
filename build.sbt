@@ -303,6 +303,44 @@ lazy val bench = http4sProject("bench")
   )
   .dependsOn(core, circe)
 
+lazy val scalafixInputs = http4sProject("scalafix-inputs")
+  .settings(
+    skip in publish := true,
+    libraryDependencies ++= Seq(
+      "org.http4s" %% "http4s-blaze-client" % "0.18.20",
+      "org.http4s" %% "http4s-dsl" % "0.18.20"
+    )
+  )
+
+lazy val scalafixOutputs= http4sProject("scalafix-outputs")
+  .settings(
+    skip in publish := true
+  )
+  .dependsOn(theDsl, blazeClient)
+
+lazy val scalafixRules = http4sProject("scalafix")
+  .settings(
+    description := "Scalafix for http4s",
+    addCompilerPlugin(scalafixSemanticdb)
+  )
+  .dependsOn(scalafixInputs, scalafixOutputs)
+
+lazy val scalafixTests = http4sProject("scalafix-tests")
+  .settings(
+    skip in publish := true,
+    libraryDependencies += scalafixTestKit,
+    compile.in(Compile) :=
+      compile.in(Compile).dependsOn(compile.in(scalafixInputs, Compile)).value,
+    scalafixTestkitOutputSourceDirectories :=
+      sourceDirectories.in(scalafixOutputs, Compile).value,
+    scalafixTestkitInputSourceDirectories :=
+      sourceDirectories.in(scalafixInputs, Compile).value,
+    scalafixTestkitInputClasspath :=
+      fullClasspath.in(scalafixInputs, Compile).value,
+  )
+  .dependsOn(scalafixRules)
+  .enablePlugins(ScalafixTestkitPlugin)
+
 lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,

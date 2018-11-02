@@ -1,4 +1,7 @@
-resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
+resolvers ++= Seq(
+  "jgit-repo" at "http://download.eclipse.org/jgit/maven",
+  Resolver.sonatypeRepo("releases")
+)
 
 addSbtPlugin("com.earldouglas"     %  "xsbt-web-plugin"           % "4.0.2")
 addSbtPlugin("com.github.cb372"    %  "sbt-explicit-dependencies" % "0.2.6")
@@ -14,7 +17,7 @@ addSbtPlugin("io.verizon.build"    %  "sbt-rig"                   % "5.0.39")
 addSbtPlugin("org.tpolecat"        %  "tut-plugin"                % "0.6.7")
 addSbtPlugin("pl.project13.scala"  %  "sbt-jmh"                   % "0.3.4")
 addSbtPlugin("com.timushev.sbt"    %  "sbt-updates"               % "0.3.4")
-
+addSbtPlugin("ch.epfl.scala"       % "sbt-scalafix"               % "0.9.0")
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 
 // https://github.com/coursier/coursier/issues/450
