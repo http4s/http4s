@@ -93,6 +93,14 @@ it.</p>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2207">#2207</a>: Remove <code>PathNormalizer</code>. The functionality is now on <code>Uri.removeDotSegments</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2210">#2210</a>: Streamline instances:
+
+<ul>
+<li><code>Http4s</code>, <code>Http4sInstances</code>, and <code>Http4sFunctions</code> are deprecated</li>
+<li>Move instances <code>F[A]</code> for cats type classes <code>F</code> into companions of <code>A</code></li>
+<li><code>Http4sDsl</code> no longer mixes in <code>UriFunctions</code></li>
+<li><code>EntityEncoderInstances</code> and <code>EntityDecoderInstances</code> are removed. The instances moved to the companion objects.</li>
+</ul></li>
 </ul>
 
 <h2 id="enhancements">Enhancements</h2>
@@ -101,6 +109,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2205">#2205</a>: Add new <code>ResponseTiming</code> middleware, which adds a header to the Response as opposed to full <code>MetricsOps</code>.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2222">#2222</a>: Add <code>shutdownTimeout</code> property to <code>JettyBuilder</code>.  Shutdown of the server waits for existing connections to complete for up to this duration before a hard shutdown with a <code>TimeoutException</code>.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2227">#2227</a>: Add <code>withMaxHeaderLength</code> setter to <code>BlazeClientBuilder</code></li>
+<li><a href="https://github.com/http4s/http4s/pull/2230">#2230</a>: <code>DefaultServerErrorHandler</code> only handles <code>NonFatal</code> <code>Throwable</code>s, instead of all <code>Throwable</code>s that aren&rsquo;t <code>VirtualMachineError</code>s</li>
 </ul>
 
 <h2 id="bug-fixes">Bug fixes</h2>
@@ -123,7 +132,9 @@ it.</p>
 
 <ul>
 <li>async-http-client-2.6.0</li>
+<li>blaze-0.14.0-M10</li>
 <li>circe-0.10.1</li>
+<li>json4s-3.6.2</li>
 <li>sbt-native-packager-1.3.12 (examples only)</li>
 <li>tut-0.6.9 (docs only)</li>
 </ul>
