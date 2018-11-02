@@ -319,6 +319,7 @@ lazy val scalafixOutputs= http4sProject("scalafix-outputs")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     skip in publish := true,
+    skip in compile := true,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions in Compile -= "-Xfatal-warnings",
     scalacOptions in Test -= "-Xfatal-warnings"
