@@ -96,25 +96,8 @@ object ClientRules {
       case ClientType.Stream =>
         Patch.addRight(client, ".stream")
       case ClientType.Apply =>
-        Patch.addRight(client, ".resource") + replaceType(defn)
+        Patch.addRight(client, ".allocate.map{ case (client, shutdown) => client }")
     }
-
-  private def replaceType(defn: Defn): Patch =
-    defn match {
-      case Defn.Val(_, _, tpe, _) =>
-        tpe.map(replaceClientType).asPatch
-      case Defn.Var(_, _, tpe, _) =>
-        tpe.map(replaceClientType).asPatch
-      case Defn.Def(_, _, _, _, tpe, _) =>
-        tpe.map(replaceClientType).asPatch
-      case d =>
-        Patch.lint(Diagnostic("1", s"Your client definition $defn needs to be replaced", d.pos))
-    }
-
-  private def replaceClientType(t: Type): Patch = t match {
-    case t"$a[Client[$b]]" => Patch.replaceTree(t, s"cats.effect.Resource[$a, Client[$b]]")
-    case _ => Patch.empty
-  }
 
   private[this] def getClientConfigParams(params: List[Term])(implicit doc: SemanticDocument) =
     params.headOption.flatMap {
