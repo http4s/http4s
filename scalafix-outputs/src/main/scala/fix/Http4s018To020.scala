@@ -18,18 +18,20 @@ object Http4s018To020 {
   // Add code that needs fixing here.
 
   def service(): HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case req @ GET -> Root => Ok().withEntity()
+    case _ @ GET -> Root => Ok().withEntity("hello")
   }
 
   def serviceWithoutExplicitType(): HttpRoutes[IO] = HttpRoutes.of {
-    case req @ GET -> Root => Ok()
+    case _ @ GET -> Root => Ok()
   }
 
   val requestWithBody: Request[IO] = Request().withEntity("hello")
   def responseWithBody: IO[Response[IO]] = Ok().withEntity("world")
 
   val x = MediaType.application.`atom+xml`
-  MediaType.application.`vnd.google-earth.kml+xml`
+  val y = MediaType.application.`vnd.google-earth.kml+xml`
+
+  val cookie: Option[Cookie] = None
 
   val config = BlazeClientConfig.defaultConfig.copy(executionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1)))
 

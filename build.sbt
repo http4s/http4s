@@ -299,7 +299,7 @@ lazy val bench = http4sProject("bench")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Benchmarks for http4s",
-    libraryDependencies += circeParser,
+    libraryDependencies += circeParser
   )
   .dependsOn(core, circe)
 
@@ -311,14 +311,17 @@ lazy val scalafixInputs = http4sProject("scalafix-inputs")
       "org.http4s" %% "http4s-blaze-client" % "0.18.20",
       "org.http4s" %% "http4s-dsl" % "0.18.20"
     ),
-    addCompilerPlugin(scalafixSemanticdb)
-  )
+    addCompilerPlugin(scalafixSemanticdb),
+    scalacOptions in Compile -= "-Xfatal-warnings",
+    scalacOptions in Test -= "-Xfatal-warnings"  )
 
 lazy val scalafixOutputs= http4sProject("scalafix-outputs")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     skip in publish := true,
-    addCompilerPlugin(scalafixSemanticdb)
+    addCompilerPlugin(scalafixSemanticdb),
+    scalacOptions in Compile -= "-Xfatal-warnings",
+    scalacOptions in Test -= "-Xfatal-warnings"
   )
   .dependsOn(theDsl, blazeClient)
 
@@ -326,7 +329,9 @@ lazy val scalafixRules = http4sProject("scalafix")
   .settings(
     description := "Scalafix for http4s",
     libraryDependencies += scalafixCore,
-    addCompilerPlugin(scalafixSemanticdb)
+    addCompilerPlugin(scalafixSemanticdb),
+    scalacOptions in Compile -= "-Xfatal-warnings",
+    scalacOptions in Test -= "-Xfatal-warnings"
   )
 
 lazy val scalafixTests = http4sProject("scalafix-tests")
@@ -341,7 +346,9 @@ lazy val scalafixTests = http4sProject("scalafix-tests")
       sourceDirectories.in(scalafixInputs, Compile).value,
     scalafixTestkitInputClasspath :=
       fullClasspath.in(scalafixInputs, Compile).value,
-    addCompilerPlugin(scalafixSemanticdb)
+    addCompilerPlugin(scalafixSemanticdb),
+    scalacOptions in Compile -= "-Xfatal-warnings",
+    scalacOptions in Test -= "-Xfatal-warnings"
   )
   .dependsOn(scalafixRules)
   .enablePlugins(ScalafixTestkitPlugin, PrivateProjectPlugin)
