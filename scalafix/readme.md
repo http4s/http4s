@@ -11,4 +11,4 @@ scalacOptions += "-Yrangepos"
 
 ## Migrate from http4s 0.18 to 0.20
 - Update the http4s dependencies to the latest 0.20 version
-- Run `sbt` and in the REPL run: `scalafixEnable` and then `scalafix Http4s020To018`
+- Run `sbt` and in the REPL run: `scalafixEnable` and then `scalafix Http4s018To020`
