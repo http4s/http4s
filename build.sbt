@@ -321,6 +321,7 @@ lazy val scalafixOutputs= http4sProject("scalafix-outputs")
 lazy val scalafixRules = http4sProject("scalafix")
   .settings(
     description := "Scalafix for http4s",
+    libraryDependencies += scalafixCore,
     addCompilerPlugin(scalafixSemanticdb)
   )
   .dependsOn(scalafixInputs, scalafixOutputs)

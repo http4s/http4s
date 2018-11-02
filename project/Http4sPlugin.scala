@@ -334,5 +334,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.12"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.15"
-  lazy val scalafixTestKit                  = "ch.epfl.scala"          % "scalafix-testkit"           % "0.9.0" % Test cross CrossVersion.full
+  lazy val scalafixCore                     = "ch.epfl.scala"          %% "scalafix-core"             % "0.9.0"
+  lazy val scalafixTestKit                  = "ch.epfl.scala"          % "scalafix-testkit"           % scalafixCore.revision % Test cross CrossVersion.full
 }
