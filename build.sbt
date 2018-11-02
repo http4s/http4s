@@ -304,6 +304,7 @@ lazy val bench = http4sProject("bench")
   .dependsOn(core, circe)
 
 lazy val scalafixInputs = http4sProject("scalafix-inputs")
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     skip in publish := true,
     libraryDependencies ++= Seq(
@@ -313,6 +314,7 @@ lazy val scalafixInputs = http4sProject("scalafix-inputs")
   )
 
 lazy val scalafixOutputs= http4sProject("scalafix-outputs")
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     skip in publish := true
   )
@@ -324,7 +326,6 @@ lazy val scalafixRules = http4sProject("scalafix")
     libraryDependencies += scalafixCore,
     addCompilerPlugin(scalafixSemanticdb)
   )
-  .dependsOn(scalafixInputs, scalafixOutputs)
 
 lazy val scalafixTests = http4sProject("scalafix-tests")
   .settings(
@@ -340,7 +341,7 @@ lazy val scalafixTests = http4sProject("scalafix-tests")
       fullClasspath.in(scalafixInputs, Compile).value,
   )
   .dependsOn(scalafixRules)
-  .enablePlugins(ScalafixTestkitPlugin)
+  .enablePlugins(ScalafixTestkitPlugin, PrivateProjectPlugin)
 
 lazy val docs = http4sProject("docs")
   .enablePlugins(
