@@ -18,6 +18,11 @@ object WithBodyRules {
     t.collect {
       case Term.Select(_, t @ Term.Name("withBody")) =>
         Patch.replaceTree(t, "withEntity")
+      case Term.Apply(
+          Term.Select(_, fm @ Term.Name("flatMap")),
+          List(Term.Apply(Term.Select(_, Term.Name("withBody")), _))) =>
+        Patch.replaceTree(fm, "map")
+
     }.asPatch
 
   private[this] def containsWithBody(t: Tree): Boolean =

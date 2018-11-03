@@ -29,6 +29,7 @@ object Http4s018To020 {
 
   val requestWithBody: IO[Request[IO]] = Request().withBody("hello")
   def responseWithBody: IO[Response[IO]] = Ok().withBody("world")
+  def responseWithBody2: IO[Response[IO]] = Ok().flatMap(_.withBody("world"))
 
   val x = MediaType.`application/atom+xml`
   val y = MediaType.`application/vnd.google-earth.kml+xml`
