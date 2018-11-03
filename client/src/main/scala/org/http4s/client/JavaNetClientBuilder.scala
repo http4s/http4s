@@ -8,6 +8,7 @@ import fs2.io.{readInputStream, writeOutputStream}
 import java.io.IOException
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
+import org.http4s.internal.BackendBuilder
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, blocking}
@@ -27,14 +28,15 @@ import scala.concurrent.duration._
   * resources, and any resources allocated while using this client
   * are reclaimed by the JVM at its own leisure.
   */
-sealed abstract class JavaNetClientBuilder private (
+sealed abstract class JavaNetClientBuilder[F[_]] private (
     val connectTimeout: Duration,
     val readTimeout: Duration,
     val proxy: Option[Proxy],
     val hostnameVerifier: Option[HostnameVerifier],
     val sslSocketFactory: Option[SSLSocketFactory],
     val blockingExecutionContext: ExecutionContext
-) {
+)(implicit protected val F: Async[F], cs: ContextShift[F])
+    extends BackendBuilder[F, Client[F]] {
   private def copy(
       connectTimeout: Duration = connectTimeout,
       readTimeout: Duration = readTimeout,
@@ -42,8 +44,8 @@ sealed abstract class JavaNetClientBuilder private (
       hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
       sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
       blockingExecutionContext: ExecutionContext = blockingExecutionContext
-  ): JavaNetClientBuilder =
-    new JavaNetClientBuilder(
+  ): JavaNetClientBuilder[F] =
+    new JavaNetClientBuilder[F](
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       proxy = proxy,
@@ -52,42 +54,44 @@ sealed abstract class JavaNetClientBuilder private (
       blockingExecutionContext = blockingExecutionContext
     ) {}
 
-  def withConnectTimeout(connectTimeout: Duration): JavaNetClientBuilder =
+  def withConnectTimeout(connectTimeout: Duration): JavaNetClientBuilder[F] =
     copy(connectTimeout = connectTimeout)
 
-  def withReadTimeout(readTimeout: Duration): JavaNetClientBuilder =
+  def withReadTimeout(readTimeout: Duration): JavaNetClientBuilder[F] =
     copy(readTimeout = readTimeout)
 
-  def withProxyOption(proxy: Option[Proxy]): JavaNetClientBuilder =
+  def withProxyOption(proxy: Option[Proxy]): JavaNetClientBuilder[F] =
     copy(proxy = proxy)
-  def withProxy(proxy: Proxy): JavaNetClientBuilder =
+  def withProxy(proxy: Proxy): JavaNetClientBuilder[F] =
     withProxyOption(Some(proxy))
-  def withoutProxy: JavaNetClientBuilder =
+  def withoutProxy: JavaNetClientBuilder[F] =
     withProxyOption(None)
 
-  def withHostnameVerifierOption(hostnameVerifier: Option[HostnameVerifier]): JavaNetClientBuilder =
+  def withHostnameVerifierOption(
+      hostnameVerifier: Option[HostnameVerifier]): JavaNetClientBuilder[F] =
     copy(hostnameVerifier = hostnameVerifier)
-  def withHostnameVerifier(hostnameVerifier: HostnameVerifier): JavaNetClientBuilder =
+  def withHostnameVerifier(hostnameVerifier: HostnameVerifier): JavaNetClientBuilder[F] =
     withHostnameVerifierOption(Some(hostnameVerifier))
-  def withoutHostnameVerifier: JavaNetClientBuilder =
+  def withoutHostnameVerifier: JavaNetClientBuilder[F] =
     withHostnameVerifierOption(None)
 
-  def withSslSocketFactoryOption(sslSocketFactory: Option[SSLSocketFactory]): JavaNetClientBuilder =
+  def withSslSocketFactoryOption(
+      sslSocketFactory: Option[SSLSocketFactory]): JavaNetClientBuilder[F] =
     copy(sslSocketFactory = sslSocketFactory)
-  def withSslSocketFactory(sslSocketFactory: SSLSocketFactory): JavaNetClientBuilder =
+  def withSslSocketFactory(sslSocketFactory: SSLSocketFactory): JavaNetClientBuilder[F] =
     withSslSocketFactoryOption(Some(sslSocketFactory))
-  def withoutSslSocketFactory: JavaNetClientBuilder =
+  def withoutSslSocketFactory: JavaNetClientBuilder[F] =
     withSslSocketFactoryOption(None)
 
   def withBlockingExecutionContext(
-      blockingExecutionContext: ExecutionContext): JavaNetClientBuilder =
+      blockingExecutionContext: ExecutionContext): JavaNetClientBuilder[F] =
     copy(blockingExecutionContext = blockingExecutionContext)
 
   /** Creates a [[Client]].
     *
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
-  def create[F[_]](implicit F: Async[F], cs: ContextShift[F]): Client[F] =
+  def create: Client[F] =
     Client { req: Request[F] =>
       def respond(conn: HttpURLConnection): F[Response[F]] =
         for {
@@ -114,23 +118,10 @@ sealed abstract class JavaNetClientBuilder private (
       } yield resp
     }
 
-  /** Creates a [[Client]] resource.
-    *
-    * The release of this resource is a no-op. $WHYNOSHUTDOWN
-    */
-  def resource[F[_]](implicit F: Async[F], cs: ContextShift[F]): Resource[F, Client[F]] =
+  def resource: Resource[F, Client[F]] =
     Resource.make(F.delay(create))(_ => F.unit)
 
-  /** Creates a [[Client]] stream.
-    *
-    * The bracketed release on this stream is a no-op. $WHYNOSHUTDOWN
-    */
-  def stream[F[_]](implicit F: Async[F], cs: ContextShift[F]): Stream[F, Client[F]] =
-    Stream.resource(resource)
-
-  private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(
-      implicit F: Async[F],
-      cs: ContextShift[F]) =
+  private def fetchResponse(req: Request[F], conn: HttpURLConnection) =
     for {
       _ <- writeBody(req, conn)
       code <- F.delay(conn.getResponseCode)
@@ -149,16 +140,14 @@ sealed abstract class JavaNetClientBuilder private (
     case _ => 0
   }
 
-  private def openConnection[F[_]](url: URL)(implicit F: Sync[F]) = proxy match {
+  private def openConnection(url: URL)(implicit F: Sync[F]) = proxy match {
     case Some(p) =>
       F.delay(url.openConnection(p).asInstanceOf[HttpURLConnection])
     case None =>
       F.delay(url.openConnection().asInstanceOf[HttpURLConnection])
   }
 
-  private def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(
-      implicit F: Async[F],
-      cs: ContextShift[F]): F[Unit] =
+  private def writeBody(req: Request[F], conn: HttpURLConnection): F[Unit] =
     if (req.isChunked) {
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
@@ -179,8 +168,7 @@ sealed abstract class JavaNetClientBuilder private (
           F.delay(conn.setDoOutput(false))
       }
 
-  private def readBody[F[_]](
-      conn: HttpURLConnection)(implicit F: Sync[F], cs: ContextShift[F]): Stream[F, Byte] = {
+  private def readBody(conn: HttpURLConnection): Stream[F, Byte] = {
     def inputStream =
       F.delay(Option(conn.getInputStream)).recoverWith {
         case _: IOException if conn.getResponseCode > 0 =>
@@ -192,7 +180,7 @@ sealed abstract class JavaNetClientBuilder private (
     }
   }
 
-  private def configureSsl[F[_]](conn: HttpURLConnection)(implicit F: Sync[F]) =
+  private def configureSsl(conn: HttpURLConnection) =
     conn match {
       case connSsl: HttpsURLConnection =>
         for {
@@ -210,8 +198,10 @@ object JavaNetClientBuilder {
     * @param blockingExecutionContext An `ExecutionContext` on which
     * blocking operations will be performed.
     */
-  def apply(blockingExecutionContext: ExecutionContext): JavaNetClientBuilder =
-    new JavaNetClientBuilder(
+  def apply[F[_]](blockingExecutionContext: ExecutionContext)(
+      implicit F: Async[F],
+      cs: ContextShift[F]): JavaNetClientBuilder[F] =
+    new JavaNetClientBuilder[F](
       connectTimeout = 1.minute,
       readTimeout = 1.minute,
       proxy = None,
