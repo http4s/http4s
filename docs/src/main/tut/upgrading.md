@@ -6,7 +6,7 @@ weight: 2
 
 ## Automated upgrading with scalafix
 
-Http4s 0.20 comes with a scalafix that does some of the migration automatically.
+Http4s 0.20 comes with a [scalafix](https://scalacenter.github.io/scalafix/) that does some of the migration automatically.
 
 Before you upgrade manually, we recommend you run this scalafix.
 
@@ -25,4 +25,7 @@ $ sbt ";scalafixEnable; scalafix Http4s018To020"
 ```
 
 Once you have applied it, you can remove the imports and try to compile your code.
-The compiler should help you in the upgrade. For further information about the changes from 0.28, check the [changelog](https://http4s.org/changelog/)
+
+The compiler errors should help you in showing what's left to upgrade.
+
+For further information about the changes from 0.18, check the [changelog](https://http4s.org/changelog/)
