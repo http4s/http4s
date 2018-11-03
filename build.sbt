@@ -307,6 +307,7 @@ lazy val scalafixInputs = http4sProject("scalafix-inputs")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     skip in publish := true,
+    fork := true,
     libraryDependencies ++= Seq(
       "org.http4s" %% "http4s-blaze-client" % "0.18.20",
       "org.http4s" %% "http4s-dsl" % "0.18.20"
@@ -320,6 +321,7 @@ lazy val scalafixOutputs= http4sProject("scalafix-outputs")
   .settings(
     skip in publish := true,
     skip in compile := true,
+    fork := true,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions in Compile -= "-Xfatal-warnings",
     scalacOptions in Test -= "-Xfatal-warnings"
@@ -329,6 +331,7 @@ lazy val scalafixOutputs= http4sProject("scalafix-outputs")
 lazy val scalafixRules = http4sProject("scalafix")
   .settings(
     description := "Scalafix for http4s",
+    fork := true,
     libraryDependencies += scalafixCore,
     addCompilerPlugin(scalafixSemanticdb),
   )
@@ -336,6 +339,7 @@ lazy val scalafixRules = http4sProject("scalafix")
 lazy val scalafixTests = http4sProject("scalafix-tests")
   .settings(
     skip in publish := true,
+    fork := true,
     libraryDependencies += scalafixTestKit,
     compile.in(Compile) :=
       compile.in(Compile).dependsOn(compile.in(scalafixInputs, Compile)).value,

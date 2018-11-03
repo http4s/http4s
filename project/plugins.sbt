@@ -1,7 +1,4 @@
-resolvers ++= Seq(
-  "jgit-repo" at "http://download.eclipse.org/jgit/maven",
-  Resolver.sonatypeRepo("releases")
-)
+resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
 
 addSbtPlugin("com.earldouglas"     %  "xsbt-web-plugin"           % "4.0.2")
 addSbtPlugin("com.github.cb372"    %  "sbt-explicit-dependencies" % "0.2.6")
