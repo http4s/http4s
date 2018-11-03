@@ -299,7 +299,7 @@ lazy val bench = http4sProject("bench")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Benchmarks for http4s",
-    libraryDependencies += circeParser
+    libraryDependencies += circeParser,
   )
   .dependsOn(core, circe)
 
