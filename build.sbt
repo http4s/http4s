@@ -378,6 +378,10 @@ lazy val docs = http4sProject("docs")
         examplesTomcat,
         examplesWar,
         mimedbGenerator,
+        scalafixRules,
+        scalafixInputs,
+        scalafixOutputs,
+        scalafixTests
       ),
     scalacOptions in Tut ~= {
       val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
