@@ -11,7 +11,9 @@ import org.http4s.headers.{AgentProduct, `User-Agent`}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import org.http4s.MediaType._
 import org.http4s.{ResponseCookie => Cookie}
+import org.http4s.MediaType.{ application, image }
 
 object Http4s018To020 {
   // Add code that needs fixing here.
@@ -30,6 +32,8 @@ object Http4s018To020 {
 
   val x = MediaType.application.`atom+xml`
   val y = MediaType.application.`vnd.google-earth.kml+xml`
+  val z = image.jpeg
+  val zz = org.http4s.MediaType.application.`atom+xml`
 
   val cookie: Option[Cookie] = None
 
