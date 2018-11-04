@@ -16,6 +16,7 @@ import scala.concurrent.ExecutionContext
   * entire resulting A. If an error occurs it will result in a failed effect.
   * The default decoders provided here are not streaming, but one could implement
   * a streaming decoder by having the value of A be some kind of streaming construct.
+  *
   * @tparam T result type produced by the decoder
   */
 @implicitNotFound(
@@ -93,6 +94,7 @@ trait EntityDecoder[F[_], T] { self =>
     *
     * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
     * and if not, defer to the second [[EntityDecoder]]
+    *
     * @param other backup [[EntityDecoder]]
     */
   def orElse[T2 >: T](other: EntityDecoder[F, T2])(implicit F: Functor[F]): EntityDecoder[F, T2] =
@@ -110,7 +112,7 @@ trait EntityDecoder[F[_], T] { self =>
   * This companion object provides a way to create `new EntityDecoder`s along
   * with some commonly used instances which can be resolved implicitly.
   */
-object EntityDecoder extends EntityDecoderInstances {
+object EntityDecoder {
 
   // This is not a real media type but will still be matched by `*/*`
   private val UndefinedMediaType = new MediaType("UNKNOWN", "UNKNOWN")
@@ -185,11 +187,6 @@ object EntityDecoder extends EntityDecoderInstances {
   def decodeString[F[_]: Sync](msg: Message[F])(
       implicit defaultCharset: Charset = DefaultCharset): F[String] =
     msg.bodyAsText.compile.foldMonoid
-}
-
-/** Implementations of the EntityDecoder instances */
-trait EntityDecoderInstances {
-  import org.http4s.EntityDecoder._
 
   /////////////////// Instances //////////////////////////////////////////////
 

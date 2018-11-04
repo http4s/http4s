@@ -1,10 +1,12 @@
 package org.http4s
 package util
 
+import org.http4s.testing.ErrorReportingUtils
 import org.specs2.mutable.Specification
+
 import scala.concurrent.ExecutionContext
 
-abstract class ExecutionSpec extends Specification {
+abstract class ExecutionSpec extends Specification with ErrorReportingUtils {
   def ec: ExecutionContext
   def ecName: String
 
@@ -54,8 +56,10 @@ abstract class ExecutionSpec extends Specification {
     "submit a failing job" in {
       val i = 0
 
-      submit {
-        sys.error("Boom")
+      silenceSystemErr {
+        submit {
+          sys.error("Boom")
+        }
       }
 
       (i must be).equalTo(0)
@@ -64,10 +68,12 @@ abstract class ExecutionSpec extends Specification {
     "interleave failing and successful `Runnables`" in {
       var i = 0
 
-      submit {
-        for (j <- 0 until 10) {
-          submit {
-            if (j % 2 == 0) submit { i += 1 } else submit { sys.error("Boom") }
+      silenceSystemErr {
+        submit {
+          for (j <- 0 until 10) {
+            submit {
+              if (j % 2 == 0) submit { i += 1 } else submit { sys.error("Boom") }
+            }
           }
         }
       }

@@ -3,8 +3,7 @@ package org.http4s.server.websocket
 import cats._
 import cats.implicits._
 import fs2._
-import org.http4s.websocket.WebsocketBits.WebSocketFrame
-import org.http4s.websocket.{WebSocketContext, Websocket}
+import org.http4s.websocket.{WebSocket, WebSocketContext, WebSocketFrame}
 import org.http4s.{AttributeEntry, Headers, Response, Status}
 
 /**
@@ -35,7 +34,7 @@ import org.http4s.{AttributeEntry, Headers, Response, Status}
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
   */
-case class WebSocketBuilder[F[_]](
+final case class WebSocketBuilder[F[_]](
     send: Stream[F, WebSocketFrame],
     receive: Sink[F, WebSocketFrame],
     headers: Headers,
@@ -59,7 +58,7 @@ object WebSocketBuilder {
           _.withAttribute(
             AttributeEntry(
               websocketKey[F],
-              WebSocketContext(Websocket(send, receive, onClose), headers, onHandshakeFailure))))
+              WebSocketContext(WebSocket(send, receive, onClose), headers, onHandshakeFailure))))
   }
   def apply[F[_]: Applicative]: Builder[F] = new Builder[F]
 }

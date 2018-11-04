@@ -31,7 +31,7 @@ object ResourceService {
       case request if request.pathInfo.startsWith(config.pathPrefix) =>
         StaticFile
           .fromResource(
-            PathNormalizer.removeDotSegments(
+            Uri.removeDotSegments(
               s"${config.basePath}/${getSubPath(request.pathInfo, config.pathPrefix)}"),
             config.blockingExecutionContext,
             Some(request),

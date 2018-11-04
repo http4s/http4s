@@ -12,37 +12,31 @@ import java.nio.ByteBuffer
 import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
 import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
-import org.http4s.internal.loggingAsyncCallback
+import org.http4s.internal.{invokeCallback, loggingAsyncCallback}
 import org.log4s.getLogger
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
 
-private[jetty] case class ResponseListener[F[_]](
+private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[ByteBuffer]],
-    cb: Callback[DisposableResponse[F]])(implicit val F: Effect[F], ec: ExecutionContext)
+    cb: Callback[Resource[F, Response[F]]])(implicit val F: ConcurrentEffect[F])
     extends JettyResponse.Listener.Adapter {
 
   import ResponseListener.logger
 
   override def onHeaders(response: JettyResponse): Unit = {
-    val dr = Status
+    val r = Status
       .fromInt(response.getStatus)
       .map { s =>
-        DisposableResponse[F](
-          response = Response(
-            status = s,
-            httpVersion = getHttpVersion(response.getVersion),
-            headers = getHeaders(response.getHeaders),
-            body = queue.dequeue.unNoneTerminate.flatMap(bBuf => chunk(Chunk.byteBuffer(bBuf)))
-          ),
-          F.unit
-        )
+        Resource.pure[F, Response[F]](Response(
+          status = s,
+          httpVersion = getHttpVersion(response.getVersion),
+          headers = getHeaders(response.getHeaders),
+          body = queue.dequeue.unNoneTerminate.flatMap(bBuf => chunk(Chunk.byteBuffer(bBuf)))
+        ))
       }
       .leftMap(t => { abort(t, response); t })
 
-    ec.execute(new Runnable {
-      override def run(): Unit = cb(dr)
-    })
+    invokeCallback(logger)(cb(r))
   }
 
   private def getHttpVersion(version: JHttpVersion): HttpVersion =
@@ -70,9 +64,7 @@ private[jetty] case class ResponseListener[F[_]](
   }
 
   override def onFailure(response: JettyResponse, failure: Throwable): Unit =
-    ec.execute(new Runnable {
-      override def run(): Unit = cb(Left(failure))
-    })
+    invokeCallback(logger)(cb(Left(failure)))
 
   // the entire response has been received
   override def onSuccess(response: JettyResponse): Unit =
@@ -101,9 +93,8 @@ private[jetty] case class ResponseListener[F[_]](
 private[jetty] object ResponseListener {
   private val logger = getLogger
 
-  def apply[F[_]](cb: Callback[DisposableResponse[F]])(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext): F[ResponseListener[F]] =
+  def apply[F[_]](cb: Callback[Resource[F, Response[F]]])(
+      implicit F: ConcurrentEffect[F]): F[ResponseListener[F]] =
     Queue
       .synchronous[F, Option[ByteBuffer]]
       .map(q => ResponseListener(q, cb))

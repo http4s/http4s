@@ -173,7 +173,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
         def go(): Unit =
           try {
             val parseResult = doParseContent(currentBuffer)
-            logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
+            logger.debug(s"Parse result: $parseResult, content complete: ${contentComplete()}")
             parseResult match {
               case Some(result) =>
                 cb(Either.right(Chunk.byteBuffer(result).some))
@@ -219,7 +219,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   protected def fatalError(t: Throwable, msg: String): Unit = {
     logger.error(t)(s"Fatal Error: $msg")
     stageShutdown()
-    sendOutboundCommand(Command.Error(t))
+    closePipeline(Some(t))
   }
 
   /** Cleans out any remaining body from the parser */

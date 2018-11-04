@@ -1,16 +1,17 @@
 package org.http4s
 package client
 
-import cats.data.Kleisli
 import cats.effect.{Async, ContextShift, Resource, Sync}
 import cats.implicits._
 import fs2.Stream
 import fs2.io.{readInputStream, writeOutputStream}
+import java.io.IOException
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, blocking}
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{ExecutionContext, blocking}
+import scala.concurrent.duration._
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
@@ -22,7 +23,6 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
   *
   * @param blockingExecutionContext An `ExecutionContext` on which
   * blocking operations will be performed.
-  *
   * @define WHYNOSHUTDOWN Creation of the client allocates no
   * resources, and any resources allocated while using this client
   * are reclaimed by the JVM at its own leisure.
@@ -87,14 +87,39 @@ sealed abstract class JavaNetClientBuilder private (
     *
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
-  def create[F[_]](implicit F: Async[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
+  def create[F[_]](implicit F: Async[F], cs: ContextShift[F]): Client[F] =
+    Client { req: Request[F] =>
+      def respond(conn: HttpURLConnection): F[Response[F]] =
+        for {
+          _ <- configureSsl(conn)
+          _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
+          _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
+          _ <- F.delay(conn.setRequestMethod(req.method.renderString))
+          _ <- F.delay(req.headers.foreach {
+            case Header(name, value) => conn.setRequestProperty(name.value, value)
+          })
+          _ <- F.delay(conn.setInstanceFollowRedirects(false))
+          _ <- F.delay(conn.setDoInput(true))
+          resp <- cs.evalOn(blockingExecutionContext)(blocking(fetchResponse(req, conn)))
+        } yield resp
+
+      for {
+        url <- Resource.liftF(F.delay(new URL(req.uri.toString)))
+        conn <- Resource.make(openConnection(url)) { conn =>
+          F.delay(conn.getInputStream().close()).recoverWith {
+            case _: IOException => F.delay(Option(conn.getErrorStream()).foreach(_.close()))
+          }
+        }
+        resp <- Resource.liftF(respond(conn))
+      } yield resp
+    }
 
   /** Creates a [[Client]] resource.
     *
     * The release of this resource is a no-op. $WHYNOSHUTDOWN
     */
   def resource[F[_]](implicit F: Async[F], cs: ContextShift[F]): Resource[F, Client[F]] =
-    Resource.make(F.delay(create))(_.shutdown)
+    Resource.make(F.delay(create))(_ => F.unit)
 
   /** Creates a [[Client]] stream.
     *
@@ -102,23 +127,6 @@ sealed abstract class JavaNetClientBuilder private (
     */
   def stream[F[_]](implicit F: Async[F], cs: ContextShift[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
-
-  private def open[F[_]](implicit F: Async[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
-    for {
-      url <- F.delay(new URL(req.uri.toString))
-      conn <- openConnection(url)
-      _ <- configureSsl(conn)
-      _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
-      _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
-      _ <- F.delay(conn.setRequestMethod(req.method.renderString))
-      _ <- F.delay(req.headers.foreach {
-        case Header(name, value) => conn.setRequestProperty(name.value, value)
-      })
-      _ <- F.delay(conn.setInstanceFollowRedirects(false))
-      _ <- F.delay(conn.setDoInput(true))
-      resp <- cs.evalOn(blockingExecutionContext)(blocking(fetchResponse(req, conn)))
-    } yield DisposableResponse(resp, F.delay(conn.getInputStream.close()))
-  }
 
   private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(
       implicit F: Async[F],
@@ -134,8 +142,7 @@ sealed abstract class JavaNetClientBuilder private (
             .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
             .toList
         ))
-      body = readInputStream(F.delay(conn.getInputStream), 4096, blockingExecutionContext)
-    } yield Response(status = status, headers = headers, body = body)
+    } yield Response(status = status, headers = headers, body = readBody(conn))
 
   private def timeoutMillis(d: Duration): Int = d match {
     case d: FiniteDuration if d > Duration.Zero => d.toMillis.max(0).min(Int.MaxValue).toInt
@@ -151,7 +158,7 @@ sealed abstract class JavaNetClientBuilder private (
 
   private def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(
       implicit F: Async[F],
-      cs: ContextShift[F]) =
+      cs: ContextShift[F]): F[Unit] =
     if (req.isChunked) {
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
@@ -171,6 +178,19 @@ sealed abstract class JavaNetClientBuilder private (
         case _ =>
           F.delay(conn.setDoOutput(false))
       }
+
+  private def readBody[F[_]](
+      conn: HttpURLConnection)(implicit F: Sync[F], cs: ContextShift[F]): Stream[F, Byte] = {
+    def inputStream =
+      F.delay(Option(conn.getInputStream)).recoverWith {
+        case _: IOException if conn.getResponseCode > 0 =>
+          F.delay(Option(conn.getErrorStream))
+      }
+    Stream.eval(inputStream).flatMap {
+      case Some(in) => readInputStream(F.pure(in), 4096, blockingExecutionContext, false)
+      case None => Stream.empty
+    }
+  }
 
   private def configureSsl[F[_]](conn: HttpURLConnection)(implicit F: Sync[F]) =
     conn match {
@@ -192,8 +212,8 @@ object JavaNetClientBuilder {
     */
   def apply(blockingExecutionContext: ExecutionContext): JavaNetClientBuilder =
     new JavaNetClientBuilder(
-      connectTimeout = Duration.Inf,
-      readTimeout = Duration.Inf,
+      connectTimeout = 1.minute,
+      readTimeout = 1.minute,
       proxy = None,
       hostnameVerifier = None,
       sslSocketFactory = None,

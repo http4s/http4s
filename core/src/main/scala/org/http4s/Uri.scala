@@ -4,16 +4,17 @@ import cats._
 import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.StandardCharsets
 import org.http4s.Uri._
-import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
+import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.language.experimental.macros
 import scala.math.Ordered
-import scala.reflect.macros.whitebox.Context
+import scala.reflect.macros.whitebox
 
 /** Representation of the [[Request]] URI
+  *
   * @param scheme     optional Uri Scheme. eg, http, https
   * @param authority  optional Uri Authority. eg, localhost:8080, www.foo.bar
   * @param path       url-encoded string representation of the path component of the Uri.
@@ -117,8 +118,8 @@ final case class Uri(
   override protected def replaceQuery(query: Query): Self = copy(query = query)
 }
 
-object Uri extends UriFunctions {
-  class Macros(val c: Context) {
+object Uri {
+  class Macros(val c: whitebox.Context) {
     import c.universe._
 
     def uriLiteral(s: c.Expr[String]): Tree =
@@ -128,7 +129,7 @@ object Uri extends UriFunctions {
             .fromString(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              qValue =>
+              _ =>
                 q"_root_.org.http4s.Uri.fromString($s).fold(throw _, _root_.scala.Predef.identity)"
             )
         case _ =>
@@ -202,18 +203,17 @@ object Uri extends UriFunctions {
       }
     }
 
-    implicit val http4sInstancesForScheme: Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] =
-      new Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] {
-        def show(s: Scheme): String = s.toString
-
+    implicit val http4sOrderForScheme: Order[Scheme] =
+      Order.fromComparable
+    implicit val http4sShowForScheme: Show[Scheme] =
+      Show.fromToString
+    implicit val http4sInstancesForScheme: HttpCodec[Scheme] =
+      new HttpCodec[Scheme] {
         def parse(s: String): ParseResult[Scheme] =
           Scheme.parse(s)
 
         def render(writer: Writer, scheme: Scheme): writer.type =
           writer << scheme.value
-
-        def compare(x: Scheme, y: Scheme) =
-          x.compare(y)
       }
   }
 
@@ -260,17 +260,6 @@ object Uri extends UriFunctions {
   object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
   object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
 
-  implicit val eqInstance: Eq[Uri] = Eq.fromUniversalEquals
-}
-
-trait UriFunctions {
-
-  /**
-    * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
-    * at compile time.
-    */
-  def uri(s: String): Uri = macro Uri.Macros.uriLiteral
-
   /**
     * Resolve a relative Uri reference, per RFC 3986 sec 5.2
     */
@@ -295,29 +284,98 @@ trait UriFunctions {
 
   /**
     * Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
+    * Adapted from"
+    * https://github.com/Norconex/commons-lang/blob/c83fdeac7a60ac99c8602e0b47056ad77b08f570/norconex-commons-lang/src/main/java/com/norconex/commons/lang/url/URLNormalizer.java#L429
     */
-  def removeDotSegments(path: Path): Path = {
-    def loop(input: List[Char], output: List[Char], depth: Int): Path = input match {
-      case Nil => output.reverse.mkString
-      case '.' :: '.' :: '/' :: rest => loop(rest, output, depth) // remove initial ../
-      case '.' :: '/' :: rest => loop(rest, output, depth) // remove initial ./
-      case '/' :: '.' :: '/' :: rest => loop('/' :: rest, output, depth) // collapse initial /./
-      case '/' :: '.' :: Nil => loop('/' :: Nil, output, depth) // collapse /.
-      case '/' :: '.' :: '.' :: '/' :: rest => // collapse /../ and pop dir
-        if (depth == 0) loop('/' :: rest, output, depth)
-        else loop('/' :: rest, output.dropWhile(_ != '/').drop(1), depth - 1)
-      case '/' :: '.' :: '.' :: Nil => // collapse /.. and pop dir
-        if (depth == 0) loop('/' :: Nil, output, depth)
-        else loop('/' :: Nil, output.dropWhile(_ != '/').drop(1), depth - 1)
-      case ('.' :: Nil) | ('.' :: '.' :: Nil) => // drop orphan . or ..
-        output.reverse.mkString
-      case ('/' :: rest) => // move "/segment"
-        val (take, leave) = rest.span(_ != '/')
-        loop(leave, ('/' :: take).reverse ++ output, depth + 1)
-      case _ => // move "segment"
-        val (take, leave) = input.span(_ != '/')
-        loop(leave, take.reverse ++ output, depth + 1)
+  def removeDotSegments(path: String): String = {
+    // (Bulleted comments are from RFC3986, section-5.2.4)
+
+    // 1.  The input buffer is initialized with the now-appended path
+    //     components and the output buffer is initialized to the empty
+    //     string.
+    val in = new StringBuilder(path)
+    val out = new StringBuilder
+
+    // 2.  While the input buffer is not empty, loop as follows:
+    while (in.nonEmpty) {
+
+      // A.  If the input buffer begins with a prefix of "../" or "./",
+      //     then remove that prefix from the input buffer; otherwise,
+      if (startsWith(in, "../"))
+        deleteStart(in, "../")
+      else if (startsWith(in, "./"))
+        deleteStart(in, "./")
+
+      // B.  if the input buffer begins with a prefix of "/./" or "/.",
+      //     where "." is a complete path segment, then replace that
+      //     prefix with "/" in the input buffer; otherwise,
+      else if (startsWith(in, "/./"))
+        replaceStart(in, "/./", "/")
+      else if (equalStrings(in, "/."))
+        replaceStart(in, "/.", "/")
+
+      // C.  if the input buffer begins with a prefix of "/../" or "/..",
+      //     where ".." is a complete path segment, then replace that
+      //     prefix with "/" in the input buffer and remove the last
+      //     segment and its preceding "/" (if any) from the output
+      //     buffer; otherwise,
+      else if (startsWith(in, "/../")) {
+        replaceStart(in, "/../", "/")
+        removeLastSegment(out)
+      } else if (equalStrings(in, "/..")) {
+        replaceStart(in, "/..", "/")
+        removeLastSegment(out)
+      }
+
+      // D.  if the input buffer consists only of "." or "..", then remove
+      //      that from the input buffer; otherwise,
+      else if (equalStrings(in, ".."))
+        deleteStart(in, "..")
+      else if (equalStrings(in, "."))
+        deleteStart(in, ".")
+
+      // E.  move the first path segment in the input buffer to the end of
+      //     the output buffer, including the initial "/" character (if
+      //     any) and any subsequent characters up to, but not including,
+      //     the next "/" character or the end of the input buffer.
+      else
+        in.indexOf("/", 1) match {
+          case nextSlashIndex if nextSlashIndex > -1 =>
+            out.append(in.substring(0, nextSlashIndex))
+            in.delete(0, nextSlashIndex)
+          case _ =>
+            out.append(in)
+            in.setLength(0)
+        }
     }
-    loop(path.toList, Nil, 0)
+
+    // 3.  Finally, the output buffer is returned as the result of
+    //     remove_dot_segments.
+    out.toString
   }
+
+  // Helper functions for removeDotSegments
+  private def startsWith(b: StringBuilder, str: String): Boolean =
+    b.indexOf(str) == 0
+  private def equalStrings(b: StringBuilder, str: String): Boolean =
+    b.length == str.length && startsWith(b, str)
+  private def deleteStart(b: StringBuilder, str: String): StringBuilder =
+    b.delete(0, str.length)
+  private def replaceStart(b: StringBuilder, target: String, replacement: String): StringBuilder = {
+    deleteStart(b, target)
+    b.insert(0, replacement)
+  }
+  private def removeLastSegment(b: StringBuilder): Unit =
+    b.lastIndexOf("/") match {
+      case -1 => b.setLength(0)
+      case n => b.setLength(n)
+    }
+
+  /**
+    * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
+    * at compile time.
+    */
+  def uri(s: String): Uri = macro Uri.Macros.uriLiteral
+
+  implicit val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals
 }

@@ -1,9 +1,9 @@
 package org.http4s.dsl
 
-import org.http4s.{Http4s, Method}
+import org.http4s.Method
 import org.http4s.dsl.impl._
 
-trait Http4sDsl[F[_]] extends Http4s with Methods with Statuses with Responses[F] with Auth {
+trait Http4sDsl[F[_]] extends Methods with Statuses with Responses[F] with Auth {
   import Http4sDsl._
 
   type Path = impl.Path
@@ -19,6 +19,20 @@ trait Http4sDsl[F[_]] extends Http4s with Methods with Statuses with Responses[F
   val -> : impl.->.type = impl.->
   val /: : impl./:.type = impl./:
   val +& : impl.+&.type = impl.+&
+
+  /**
+    * Alias for `->`.
+    *
+    * Note: Due to infix operation precedence, `→` has a lower priority than `/`. So you have to use parentheses in
+    * pattern matching when using this operator.
+    *
+    * For example:
+    * {{{
+    *   (request.method, Path(request.path)) match {
+    *     case Method.GET → (Root / "test.json") => ...
+    * }}}
+    */
+  val → : impl.->.type = impl.->
 
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar

@@ -40,7 +40,7 @@ private[parser] trait CookieHeader {
 
   private class CookieParser(input: ParserInput) extends BaseCookieParser[headers.Cookie](input) {
     def entry: Rule1[headers.Cookie] = rule {
-      oneOrMore(CookiePair(RequestCookie)).separatedBy(";" ~ OptWS) ~ EOI ~> {
+      oneOrMore(CookiePair(RequestCookie)).separatedBy(";" ~ OptWS) ~ optional(";") ~ EOI ~> {
         xs: Seq[RequestCookie] =>
           headers.Cookie(xs.head, xs.tail: _*)
       }

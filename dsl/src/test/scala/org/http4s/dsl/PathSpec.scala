@@ -9,6 +9,7 @@ package dsl
 
 import cats.effect.IO
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 
 class PathSpec extends Http4sSpec {
   "Path" should {
@@ -54,6 +55,14 @@ class PathSpec extends Http4sSpec {
       val req = Request[IO](method = Method.GET, uri = uri("/foo/test.json"))
       (req match {
         case GET -> Root / "foo" / "test.json" => true
+        case _ => false
+      }) must beTrue
+    }
+
+    "→ extractor /test.json" in {
+      val req = Request[IO](method = Method.GET, uri = uri("/test.json"))
+      (req match {
+        case GET → (Root / "test.json") => true
         case _ => false
       }) must beTrue
     }

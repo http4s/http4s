@@ -33,6 +33,9 @@ import scala.concurrent.duration._
   * @param socketAddress: Socket Address the server will be mounted at
   * @param executionContext: Execution Context the underlying blaze futures
   *    will be executed upon.
+  * @param responseHeaderTimeout: Time from when the request is made until a
+  *    response line is generated before a 503 response is returned and the
+  *    `HttpApp` is canceled
   * @param idleTimeout: Period of Time a connection can remain idle before the
   *    connection is timed out and disconnected.
   *    Duration.Inf disables this feature.
@@ -57,6 +60,7 @@ import scala.concurrent.duration._
 class BlazeServerBuilder[F[_]](
     socketAddress: InetSocketAddress,
     executionContext: ExecutionContext,
+    responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     isNio2: Boolean,
     connectorPoolSize: Int,
@@ -69,7 +73,7 @@ class BlazeServerBuilder[F[_]](
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-)(implicit protected val F: ConcurrentEffect[F])
+)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
@@ -83,6 +87,7 @@ class BlazeServerBuilder[F[_]](
       socketAddress: InetSocketAddress = socketAddress,
       executionContext: ExecutionContext = executionContext,
       idleTimeout: Duration = idleTimeout,
+      responseHeaderTimeout: Duration = responseHeaderTimeout,
       isNio2: Boolean = isNio2,
       connectorPoolSize: Int = connectorPoolSize,
       bufferSize: Int = bufferSize,
@@ -98,6 +103,7 @@ class BlazeServerBuilder[F[_]](
     new BlazeServerBuilder(
       socketAddress,
       executionContext,
+      responseHeaderTimeout,
       idleTimeout,
       isNio2,
       connectorPoolSize,
@@ -146,6 +152,9 @@ class BlazeServerBuilder[F[_]](
 
   override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
+  def withResponseHeaderTimeout(responseHeaderTimeout: Duration): Self =
+    copy(responseHeaderTimeout = responseHeaderTimeout)
+
   def withConnectorPoolSize(size: Int): Self = copy(connectorPoolSize = size)
 
   def withBufferSize(size: Int): Self = copy(bufferSize = size)
@@ -166,119 +175,118 @@ class BlazeServerBuilder[F[_]](
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  def start: F[Server[F]] = F.delay {
+  def resource: Resource[F, Server[F]] =
+    Resource(F.delay {
 
-    def resolveAddress(address: InetSocketAddress) =
-      if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
-      else address
+      def resolveAddress(address: InetSocketAddress) =
+        if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
+        else address
 
-    val pipelineFactory: SocketConnection => Future[LeafBuilder[ByteBuffer]] = {
-      conn: SocketConnection =>
-        def requestAttributes(secure: Boolean) =
-          (conn.local, conn.remote) match {
-            case (local: InetSocketAddress, remote: InetSocketAddress) =>
-              AttributeMap(
-                AttributeEntry(
-                  Request.Keys.ConnectionInfo,
-                  Request.Connection(
-                    local = local,
-                    remote = remote,
-                    secure = secure
-                  )))
-            case _ =>
-              AttributeMap.empty
+      val pipelineFactory: SocketConnection => Future[LeafBuilder[ByteBuffer]] = {
+        conn: SocketConnection =>
+          def requestAttributes(secure: Boolean) =
+            (conn.local, conn.remote) match {
+              case (local: InetSocketAddress, remote: InetSocketAddress) =>
+                AttributeMap(
+                  AttributeEntry(
+                    Request.Keys.ConnectionInfo,
+                    Request.Connection(
+                      local = local,
+                      remote = remote,
+                      secure = secure
+                    )))
+              case _ =>
+                AttributeMap.empty
+            }
+
+          def http1Stage(secure: Boolean) =
+            Http1ServerStage(
+              httpApp,
+              requestAttributes(secure = secure),
+              executionContext,
+              enableWebSockets,
+              maxRequestLineLen,
+              maxHeadersLen,
+              serviceErrorHandler,
+              responseHeaderTimeout
+            )
+
+          def http2Stage(engine: SSLEngine): ALPNServerSelector =
+            ProtocolSelector(
+              engine,
+              httpApp,
+              maxRequestLineLen,
+              maxHeadersLen,
+              requestAttributes(secure = true),
+              executionContext,
+              serviceErrorHandler,
+              responseHeaderTimeout
+            )
+
+          def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
+            if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
+            else lb
+
+          Future.successful {
+            getContext() match {
+              case Some((ctx, clientAuth)) =>
+                val engine = ctx.createSSLEngine()
+                engine.setUseClientMode(false)
+                engine.setNeedClientAuth(clientAuth)
+
+                var lb = LeafBuilder(
+                  if (isHttp2Enabled) http2Stage(engine)
+                  else http1Stage(secure = true)
+                )
+                lb = prependIdleTimeout(lb)
+                lb.prepend(new SSLStage(engine))
+
+              case None =>
+                if (isHttp2Enabled)
+                  logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
+                var lb = LeafBuilder(http1Stage(secure = false))
+                lb = prependIdleTimeout(lb)
+                lb
+            }
           }
+      }
 
-        def http1Stage(secure: Boolean) =
-          Http1ServerStage(
-            httpApp,
-            requestAttributes(secure = secure),
-            executionContext,
-            enableWebSockets,
-            maxRequestLineLen,
-            maxHeadersLen,
-            serviceErrorHandler
-          )
+      val factory =
+        if (isNio2)
+          NIO2SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
+        else
+          NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
 
-        def http2Stage(engine: SSLEngine): ALPNServerSelector =
-          ProtocolSelector(
-            engine,
-            httpApp,
-            maxRequestLineLen,
-            maxHeadersLen,
-            requestAttributes(secure = true),
-            executionContext,
-            serviceErrorHandler
-          )
+      val address = resolveAddress(socketAddress)
 
-        def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
-          if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
-          else lb
+      // if we have a Failure, it will be caught by the effect
+      val serverChannel = factory.bind(address, pipelineFactory).get
 
-        Future.successful {
-          getContext() match {
-            case Some((ctx, clientAuth)) =>
-              val engine = ctx.createSSLEngine()
-              engine.setUseClientMode(false)
-              engine.setNeedClientAuth(clientAuth)
+      val server = new Server[F] {
+        val address: InetSocketAddress =
+          serverChannel.socketAddress
 
-              var lb = LeafBuilder(
-                if (isHttp2Enabled) http2Stage(engine)
-                else http1Stage(secure = true)
-              )
-              lb = prependIdleTimeout(lb)
-              lb.prepend(new SSLStage(engine))
+        val isSecure = sslBits.isDefined
 
-            case None =>
-              if (isHttp2Enabled)
-                logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-              var lb = LeafBuilder(http1Stage(secure = false))
-              lb = prependIdleTimeout(lb)
-              lb
-          }
-        }
-    }
+        override def toString: String =
+          s"BlazeServer($address)"
+      }
 
-    val factory =
-      if (isNio2)
-        NIO2SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
-      else
-        NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
-
-    val address = resolveAddress(socketAddress)
-
-    // if we have a Failure, it will be caught by the effect
-    val serverChannel = factory.bind(address, pipelineFactory).get
-
-    val server = new Server[F] {
-      override def shutdown: F[Unit] = F.delay {
+      val shutdown = F.delay {
         serverChannel.close()
         factory.closeGroup()
       }
 
-      override def onShutdown(f: => Unit): this.type = {
-        serverChannel.addShutdownHook(() => f)
-        this
-      }
+      Option(banner)
+        .filter(_.nonEmpty)
+        .map(_.mkString("\n", "\n", ""))
+        .foreach(logger.info(_))
 
-      val address: InetSocketAddress =
-        serverChannel.socketAddress
+      logger.info(
+        s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
 
-      val isSecure = sslBits.isDefined
-
-      override def toString: String =
-        s"BlazeServer($address)"
-    }
-
-    Option(banner)
-      .filter(_.nonEmpty)
-      .map(_.mkString("\n", "\n", ""))
-      .foreach(logger.info(_))
-
-    logger.info(
-      s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
-    server
-  }
+      server -> shutdown
+    })
 
   private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
     case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
@@ -317,10 +325,11 @@ class BlazeServerBuilder[F[_]](
 }
 
 object BlazeServerBuilder {
-  def apply[F[_]](implicit F: ConcurrentEffect[F]): BlazeServerBuilder[F] =
+  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,
+      responseHeaderTimeout = 1.minute,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
       isNio2 = false,
       connectorPoolSize = channel.DefaultPoolSize,
@@ -331,7 +340,7 @@ object BlazeServerBuilder {
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = 40 * 1024,
       httpApp = defaultApp[F],
-      serviceErrorHandler = DefaultServiceErrorHandler,
+      serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = ServerBuilder.DefaultBanner
     )
 

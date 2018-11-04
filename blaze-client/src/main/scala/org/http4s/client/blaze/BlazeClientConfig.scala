@@ -5,7 +5,7 @@ import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
 import org.http4s.headers.`User-Agent`
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 /** Config object for the blaze clients
   *
@@ -70,7 +70,7 @@ object BlazeClientConfig {
     BlazeClientConfig(
       responseHeaderTimeout = bits.DefaultResponseHeaderTimeout,
       idleTimeout = bits.DefaultTimeout,
-      requestTimeout = Duration.Inf,
+      requestTimeout = 1.minute,
       userAgent = bits.DefaultUserAgent,
       maxTotalConnections = bits.DefaultMaxTotalConnections,
       maxWaitQueueLimit = bits.DefaultMaxWaitQueueLimit,

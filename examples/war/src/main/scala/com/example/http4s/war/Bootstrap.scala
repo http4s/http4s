@@ -11,7 +11,7 @@ class Bootstrap extends ServletContextListener with IOApp {
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     val ctx = sce.getServletContext
-    ctx.mountService("example", new ExampleService[IO].service)
+    ctx.mountService("example", new ExampleService[IO].routes)
     ()
   }
 

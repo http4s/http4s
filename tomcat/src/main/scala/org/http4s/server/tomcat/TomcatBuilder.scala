@@ -8,7 +8,7 @@ import java.util
 import java.util.concurrent.Executor
 import javax.servlet.http.HttpServlet
 import javax.servlet.{DispatcherType, Filter}
-import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
+import org.apache.catalina.Context
 import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
@@ -150,92 +150,85 @@ sealed class TomcatBuilder[F[_]] private (
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  override def start: F[Server[F]] = F.delay {
-    val tomcat = new Tomcat
+  override def resource: Resource[F, Server[F]] =
+    Resource(F.delay {
+      val tomcat = new Tomcat
 
-    val docBase = getClass.getResource("/") match {
-      case null => null
-      case resource => resource.getPath
-    }
-    tomcat.addContext("", docBase)
+      val docBase = getClass.getResource("/") match {
+        case null => null
+        case resource => resource.getPath
+      }
+      tomcat.addContext("", docBase)
 
-    val conn = tomcat.getConnector()
+      val conn = tomcat.getConnector()
 
-    sslBits.foreach { sslBits =>
-      conn.setSecure(true)
-      conn.setScheme("https")
-      conn.setAttribute("keystoreFile", sslBits.keyStore.path)
-      conn.setAttribute("keystorePass", sslBits.keyStore.password)
-      conn.setAttribute("keyPass", sslBits.keyManagerPassword)
+      sslBits.foreach {
+        sslBits =>
+          conn.setSecure(true)
+          conn.setScheme("https")
+          conn.setAttribute("keystoreFile", sslBits.keyStore.path)
+          conn.setAttribute("keystorePass", sslBits.keyStore.password)
+          conn.setAttribute("keyPass", sslBits.keyManagerPassword)
 
-      conn.setAttribute("clientAuth", sslBits.clientAuth)
-      conn.setAttribute("sslProtocol", sslBits.protocol)
+          conn.setAttribute("clientAuth", sslBits.clientAuth)
+          conn.setAttribute("sslProtocol", sslBits.protocol)
 
-      sslBits.trustStore.foreach { ts =>
-        conn.setAttribute("truststoreFile", ts.path)
-        conn.setAttribute("truststorePass", ts.password)
+          sslBits.trustStore.foreach { ts =>
+            conn.setAttribute("truststoreFile", ts.path)
+            conn.setAttribute("truststorePass", ts.password)
+          }
+
+          conn.setPort(socketAddress.getPort)
+
+          conn.setAttribute("SSLEnabled", true)
       }
 
+      conn.setAttribute("address", socketAddress.getHostString)
       conn.setPort(socketAddress.getPort)
+      conn.setAttribute(
+        "connection_pool_timeout",
+        if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
-      conn.setAttribute("SSLEnabled", true)
-    }
-
-    conn.setAttribute("address", socketAddress.getHostString)
-    conn.setPort(socketAddress.getPort)
-    conn.setAttribute(
-      "connection_pool_timeout",
-      if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
-
-    externalExecutor.foreach { ee =>
-      conn.getProtocolHandler match {
-        case p: AbstractProtocol[_] =>
-          p.setExecutor(ee)
-        case _ =>
-          logger.warn("Could not set external executor. Defaulting to internal")
+      externalExecutor.foreach { ee =>
+        conn.getProtocolHandler match {
+          case p: AbstractProtocol[_] =>
+            p.setExecutor(ee)
+          case _ =>
+            logger.warn("Could not set external executor. Defaulting to internal")
+        }
       }
-    }
 
-    val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
-    for ((mount, i) <- mounts.zipWithIndex)
-      mount.f(rootContext, i, this)
+      val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
+      for ((mount, i) <- mounts.zipWithIndex)
+        mount.f(rootContext, i, this)
 
-    tomcat.start()
+      tomcat.start()
 
-    val server = new Server[F] {
-      override def shutdown: F[Unit] =
-        F.delay {
-          tomcat.stop()
-          tomcat.destroy()
+      val server = new Server[F] {
+        lazy val address: InetSocketAddress = {
+          val host = socketAddress.getHostString
+          val port = tomcat.getConnector.getLocalPort
+          new InetSocketAddress(host, port)
         }
 
-      override def onShutdown(f: => Unit): this.type = {
-        tomcat.getServer.addLifecycleListener(new LifecycleListener {
-          override def lifecycleEvent(event: LifecycleEvent): Unit =
-            if (Lifecycle.AFTER_STOP_EVENT.equals(event.getLifecycle))
-              f
-        })
-        this
+        lazy val isSecure: Boolean = sslBits.isDefined
       }
 
-      lazy val address: InetSocketAddress = {
-        val host = socketAddress.getHostString
-        val port = tomcat.getConnector.getLocalPort
-        new InetSocketAddress(host, port)
+      val shutdown = F.delay {
+        tomcat.stop()
+        tomcat.destroy()
       }
 
-      lazy val isSecure: Boolean = sslBits.isDefined
-    }
+      banner.foreach(logger.info(_))
+      val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
+        case Array(_, version) => version
+        case _ => ServerInfo.getServerInfo // well, we tried
+      }
+      logger.info(
+        s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
 
-    banner.foreach(logger.info(_))
-    val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
-      case Array(_, version) => version
-      case _ => ServerInfo.getServerInfo // well, we tried
-    }
-    logger.info(
-      s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
-    server
-  }
+      server -> shutdown
+    })
 }
 
 object TomcatBuilder {

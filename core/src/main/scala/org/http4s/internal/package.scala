@@ -1,9 +1,14 @@
 package org.http4s
 
-import cats.effect.{Async, ConcurrentEffect, Effect, IO}
+import cats.effect._
+import cats.effect.implicits._
 import cats.implicits._
+import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
+import org.http4s.util.execution.direct
 import org.log4s.Logger
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 import scala.util.control.NoStackTrace
 
 package object internal {
@@ -96,6 +101,65 @@ package object internal {
       Some(out)
     } catch {
       case HexDecodeException => None
+    }
+  }
+
+  // Adapted from https://github.com/typelevel/cats-effect/issues/199#issuecomment-401273282
+  private[http4s] def fromFuture[F[_], A](f: F[Future[A]])(implicit F: Async[F]): F[A] =
+    f.flatMap { future =>
+      future.value match {
+        case Some(value) =>
+          F.fromTry(value)
+        case None =>
+          F.async { cb =>
+            future.onComplete {
+              case Success(a) => cb(Right(a))
+              case Failure(t) => cb(Left(t))
+            }(direct)
+          }
+      }
+    }
+
+  private[http4s] def allocated[F[_], A](resource: Resource[F, A])(
+      implicit F: Bracket[F, Throwable]): F[(A, F[Unit])] = {
+    /* Derived from https://github.com/typelevel/cats-effect/blob/c62c6c76b3066c500fca2f9e0897605bc12eb2a0/core/shared/src/main/scala/cats/effect/Resource.scala */
+
+    // Indirection for calling `loop` needed because `loop` must be @tailrec
+    def continue(
+        current: Resource[F, Any],
+        stack: List[Any => Resource[F, Any]],
+        release: F[Unit]): F[(Any, F[Unit])] =
+      loop(current, stack, release)
+
+    // Interpreter that knows how to evaluate a Resource data structure;
+    // Maintains its own stack for dealing with Bind chains
+    @tailrec def loop(
+        current: Resource[F, Any],
+        stack: List[Any => Resource[F, Any]],
+        release: F[Unit]): F[(Any, F[Unit])] =
+      current match {
+        case Resource.Allocate(resource) =>
+          F.bracketCase(resource) {
+            case (a, rel) =>
+              stack match {
+                case Nil => F.pure(a -> rel(ExitCase.Completed).guarantee(release))
+                case f0 :: xs => continue(f0(a), xs, rel(ExitCase.Completed).guarantee(release))
+              }
+          } {
+            case (_, ExitCase.Completed) =>
+              F.unit
+            case ((_, release), ec) =>
+              release(ec)
+          }
+        case Resource.Bind(source, f0) =>
+          loop(source, f0.asInstanceOf[Any => Resource[F, Any]] :: stack, release)
+        case Resource.Suspend(resource) =>
+          resource.flatMap(continue(_, stack, release))
+      }
+
+    loop(resource.asInstanceOf[Resource[F, Any]], Nil, F.unit).map {
+      case (a, release) =>
+        (a.asInstanceOf[A], release)
     }
   }
 }

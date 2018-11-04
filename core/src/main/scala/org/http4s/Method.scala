@@ -1,10 +1,10 @@
 package org.http4s
 
-import cats._
 import cats.implicits._
+import cats.{Eq, Show}
+import org.http4s.Method.Semantics
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
-import org.http4s.Method.Semantics
 
 /**
   * An HTTP method.
@@ -16,7 +16,7 @@ sealed abstract case class Method private (name: String) extends Renderable with
   final override def render(writer: Writer): writer.type = writer << name
 }
 
-object Method extends MethodInstances {
+object Method {
   sealed trait Semantics {
     def isIdempotent: Boolean
     def isSafe: Boolean
@@ -144,12 +144,7 @@ object Method extends MethodInstances {
   )
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap
-}
 
-trait MethodInstances {
-  implicit val http4sEqForMethod: Eq[Method] =
-    Eq.fromUniversalEquals
-
-  implicit val http4sShowForMethod: Show[Method] =
-    Show.fromToString
+  implicit val http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
+  implicit val http4sShowForMethod: Show[Method] = Show.fromToString
 }

@@ -1,14 +1,16 @@
 package org.http4s
 package client
 
-import cats.syntax.applicative._
 import cats.effect._
+import cats.effect.concurrent.Ref
+import cats.implicits._
 import fs2._
 import org.http4s.Method._
 import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
+import org.http4s.Uri.uri
 import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThrownMatchers {
@@ -40,7 +42,9 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       disposed = true
       ()
     }
-    val disposingClient = Client(app.map(r => DisposableResponse(r, dispose)), IO.unit)
+    val disposingClient = Client { req: Request[IO] =>
+      Resource.make(app(req))(_ => dispose)
+    }
     f(disposingClient).attempt.unsafeRunSync()
     disposed must beTrue
   }
@@ -234,28 +238,21 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
         EntityDecoder.text[IO].orElse(edec)) must returnValue("Accept: text/*, image/jpeg")
     }
 
-    "streaming returns a stream" in {
+    "stream returns a stream" in {
       client
-        .streaming(req)(_.body.through(fs2.text.utf8Decode))
-        .compile
-        .toVector
-        .unsafeRunSync() must_== Vector("hello")
-    }
-
-    "streaming returns a stream from a request task" in {
-      client
-        .streaming(req)(_.body.through(fs2.text.utf8Decode))
+        .stream(req)
+        .flatMap(_.body.through(fs2.text.utf8Decode))
         .compile
         .toVector
         .unsafeRunSync() must_== Vector("hello")
     }
 
     "streaming disposes of the response on success" in {
-      assertDisposes(_.streaming(req)(_.body).compile.drain)
+      assertDisposes(_.stream(req).compile.drain)
     }
 
     "streaming disposes of the response on failure" in {
-      assertDisposes(_.streaming(req)(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
+      assertDisposes(_.stream(req).flatMap(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
     }
 
     "toService disposes of the response on success" in {
@@ -281,8 +278,29 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       client.toHttpApp(req).flatMap(_.as[String]) must returnValue("hello")
     }
 
-    "toHttpApp allows the response to be read" in {
-      client.toHttpApp(req).flatMap(_.as[String]) must returnValue("hello")
+    "toHttpApp disposes of resources in reverse order of acquisition" in {
+      Ref[IO].of(Vector.empty[Int]).flatMap { released =>
+        Client[IO] { _ =>
+          for {
+            _ <- List(1, 2, 3).traverse { i =>
+              Resource(IO.pure(() -> released.update(_ :+ i)))
+            }
+          } yield Response()
+        }.toHttpApp(req).flatMap(_.as[Unit]) >> released.get
+      } must returnValue(Vector(3, 2, 1))
+    }
+
+    "toHttpApp releases acquired resources on failure" in {
+      Ref[IO].of(Vector.empty[Int]).flatMap { released =>
+        Client[IO] { _ =>
+          for {
+            _ <- List(1, 2, 3).traverse { i =>
+              Resource(IO.pure(() -> released.update(_ :+ i)))
+            }
+            _ <- Resource.liftF[IO, Unit](IO.raiseError(SadTrombone))
+          } yield Response()
+        }.toHttpApp(req).flatMap(_.as[Unit]).attempt >> released.get
+      } must returnValue(Vector(3, 2, 1))
     }
   }
 

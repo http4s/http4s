@@ -5,6 +5,7 @@ package middleware
 import cats.effect._
 import fs2.Stream._
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 
 class DefaultHeadSpec extends Http4sSpec {
   val app = DefaultHead(HttpRoutes.of[IO] {

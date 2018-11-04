@@ -5,6 +5,7 @@ package staticcontent
 import cats.effect._
 import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}
 import org.http4s.server.middleware.TranslateUri
+import org.http4s.Uri.uri
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 

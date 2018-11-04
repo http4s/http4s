@@ -5,6 +5,7 @@ package blaze
 import cats.effect._
 import cats.implicits._
 import fs2.Stream._
+import org.http4s.implicits._
 import org.http4s.Charset._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._

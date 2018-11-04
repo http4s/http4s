@@ -47,13 +47,13 @@ class StatusSpec extends Http4sSpec {
   }
 
   "The collection of registered statuses" should {
-    "contain 58 standard ones" in {
-      Status.registered.size must_== 58
+    "contain 61 standard ones" in {
+      Status.registered.size must_== 61
     }
 
     "not contain any custom statuses" in {
       getStatus(371)
-      Status.registered.size must_== 58
+      Status.registered.size must_== 61
     }
   }
 

@@ -7,8 +7,16 @@ import cats.implicits._
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.http4s.syntax.string._
 import org.log4s.getLogger
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 package object server {
+
+  object defaults {
+
+    /** The time to wait for a graceful shutdown */
+    val ShutdownTimeout: Duration = 30.seconds
+  }
 
   /**
     * A middleware is a function of one [[Service]] to another, possibly of a
@@ -101,7 +109,7 @@ package object server {
         s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
           .getOrElse("<unknown>")}""")
       mf.toHttpResponse(req.httpVersion)
-    case t if !t.isInstanceOf[VirtualMachineError] =>
+    case NonFatal(t) =>
       serviceErrorLogger.error(t)(
         s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse(
           "<unknown>")}""")
