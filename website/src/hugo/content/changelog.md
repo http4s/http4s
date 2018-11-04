@@ -10,6 +10,9 @@ it.
 
 # v0.20.0-SNAPSHOT
 
+## Bug fixes
+* [#2239](https://github.com/http4s/http4s/pull/2239): Fix hang when `.allocate` on a client builder fails
+
 ## Breaking changes
 * [#2207](https://github.com/http4s/http4s/pull/2207): Remove `PathNormalizer`. The functionality is now on `Uri.removeDotSegments`.
 * [#2210](https://github.com/http4s/http4s/pull/2210): Streamline instances:
