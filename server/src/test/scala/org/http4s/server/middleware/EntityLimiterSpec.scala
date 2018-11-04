@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.Method._
 import org.http4s.Status._
+import org.http4s.Uri.uri
 
 class EntityLimiterSpec extends Http4sSpec {
 

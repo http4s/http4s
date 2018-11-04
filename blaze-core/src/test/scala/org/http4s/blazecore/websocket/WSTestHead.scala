@@ -3,7 +3,7 @@ package org.http4s.blazecore.websocket
 import cats.effect.{ContextShift, IO, Timer}
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
-import org.http4s.websocket.WebsocketBits.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -66,6 +66,8 @@ sealed abstract class WSTestHead(
       .timeoutTo(timeoutSeconds.seconds, IO.pure(Nil))
 
   override def name: String = "WS test stage"
+
+  override protected def doClosePipeline(cause: Option[Throwable]): Unit = {}
 }
 
 object WSTestHead {

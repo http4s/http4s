@@ -8,11 +8,12 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
+import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.headers.`User-Agent`
-import org.http4s.syntax.async._
+import org.http4s.internal.fromFuture
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
@@ -28,18 +29,20 @@ final private class Http1Support[F[_]](
     maxHeaderLength: Int,
     maxChunkSize: Int,
     parserMode: ParserMode,
-    userAgent: Option[`User-Agent`]
-)(implicit F: Effect[F]) {
+    userAgent: Option[`User-Agent`],
+    channelOptions: ChannelOptions
+)(implicit F: ConcurrentEffect[F]) {
 
   // SSLContext.getDefault is effectful and can fail - don't force it until we have to.
   private lazy val sslContext = sslContextOption.getOrElse(SSLContext.getDefault)
-  private val connectionManager = new ClientChannelFactory(bufferSize, asynchronousChannelGroup)
+  private val connectionManager =
+    new ClientChannelFactory(bufferSize, asynchronousChannelGroup, channelOptions)
 
 ////////////////////////////////////////////////////
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
     getAddress(requestKey) match {
-      case Right(a) => F.fromFuture(buildPipeline(requestKey, a))(executionContext)
+      case Right(a) => fromFuture(F.delay(buildPipeline(requestKey, a)))
       case Left(t) => F.raiseError(t)
     }
 

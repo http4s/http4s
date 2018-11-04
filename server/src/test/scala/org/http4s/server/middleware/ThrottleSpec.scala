@@ -1,15 +1,16 @@
 package org.http4s.server.middleware
 
-import cats.effect.{IO, Timer}
-import cats.effect.laws.util.TestContext
-import org.http4s.{Http4sSpec, HttpApp, Request, Status}
-import cats.implicits._
-import org.http4s.dsl.io._
 import cats.effect.IO.ioEffect
+import cats.effect.laws.util.TestContext
+import cats.effect.{IO, Timer}
+import cats.implicits._
+import org.http4s.Uri.uri
+import org.http4s.dsl.io._
+import org.http4s.server.middleware.Throttle._
+import org.http4s.{Http4sSpec, HttpApp, Request, Status}
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
 import scala.concurrent.duration._
-import org.specs2.concurrent.ExecutionEnv
-import Throttle._
 
 class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatchers {
   "LocalTokenBucket" should {

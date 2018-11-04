@@ -7,6 +7,7 @@ import cats.effect.concurrent.Ref
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.Stream
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 import org.specs2.specification.Tables
 import scala.concurrent.duration._
 

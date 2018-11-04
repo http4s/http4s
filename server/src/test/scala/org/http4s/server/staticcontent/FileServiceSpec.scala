@@ -5,6 +5,7 @@ package staticcontent
 import cats.effect._
 import fs2._
 import java.io.File
+import org.http4s.Uri.uri
 import org.http4s.server.middleware.TranslateUri
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {

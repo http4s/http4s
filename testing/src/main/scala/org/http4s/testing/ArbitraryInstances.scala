@@ -704,7 +704,7 @@ trait ArbitraryInstances {
 
   implicit val http4sTestingArbitraryForLink: Arbitrary[Link] = Arbitrary {
     for {
-      uri <- arbitraryUri.arbitrary
+      uri <- http4sTestingArbitraryForUri.arbitrary
     } yield Link(uri)
   }
 

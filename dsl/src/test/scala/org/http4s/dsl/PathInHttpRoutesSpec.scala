@@ -5,6 +5,7 @@ import cats.data.Validated._
 import cats.effect.IO
 import cats.implicits._
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 
 object PathInHttpRoutesSpec extends Http4sSpec {
 

@@ -108,7 +108,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def addToWaitQueue(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     F.delay {
-      if (waitQueue.length <= maxWaitQueueLimit) {
+      if (waitQueue.length < maxWaitQueueLimit) {
         waitQueue.enqueue(Waiting(key, callback, Instant.now()))
       } else {
         logger.error(s"Max wait length reached, not scheduling.")

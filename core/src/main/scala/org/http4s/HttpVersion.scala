@@ -1,8 +1,8 @@
 package org.http4s
 
-import cats._
 import cats.data.{Writer => _}
 import cats.implicits._
+import cats.{Order, Show}
 import org.http4s.internal.parboiled2._
 import org.http4s.parser._
 import org.http4s.util._
@@ -20,7 +20,7 @@ final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
     (this.major, this.minor).compare((that.major, that.minor))
 }
 
-object HttpVersion extends HttpVersionInstances {
+object HttpVersion {
   val `HTTP/1.0` = new HttpVersion(1, 0)
   val `HTTP/1.1` = new HttpVersion(1, 1)
   val `HTTP/2.0` = new HttpVersion(2, 0)
@@ -50,9 +50,9 @@ object HttpVersion extends HttpVersionInstances {
     else if (minor < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $minor")
     else if (minor > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $minor")
     else ParseResult.success(new HttpVersion(major, minor))
-}
 
-trait HttpVersionInstances {
-  implicit val HttpVersionShow = Show.fromToString[HttpVersion]
-  implicit val HttpVersionOrder = Order.fromOrdering[HttpVersion]
+  implicit val http4sHttpOrderForVersion: Order[HttpVersion] =
+    Order.fromComparable
+  implicit val http4sHttpShowForVersion: Show[HttpVersion] =
+    Show.fromToString
 }

@@ -27,7 +27,6 @@ lazy val core = libraryProject("core")
       cats,
       catsEffect,
       fs2Io,
-      http4sWebsocket,
       log4s,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
@@ -60,33 +59,22 @@ lazy val server = libraryProject("server")
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
-lazy val serverMetrics = libraryProject("server-metrics")
+lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
-    description := "Support for Dropwizard Metrics on the server",
-    libraryDependencies ++= Seq(
-      metricsCore,
-      metricsJson
-    )
-  )
-  .dependsOn(server % "compile;test->test")
-
-lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
-  .settings(
-    description := "Support for Prometheus Metrics on the server",
+    description := "Support for Prometheus Metrics",
     libraryDependencies ++= Seq(
       prometheusCommon,
-      prometheusHotspot
+      prometheusHotspot,
+      prometheusClient
     ),
   )
-  .dependsOn(server % "compile;test->test", theDsl)
-
-lazy val prometheusClientMetrics = libraryProject("prometheus-client-metrics")
-  .settings(
-    description := "Support for Prometheus Metrics on the client",
-    libraryDependencies += prometheusClient
+  .dependsOn(
+    core % "compile->compile",
+    theDsl % "compile->compile",
+    testing % "test->test",
+    server % "test->compile",
+    client % "test->compile"
   )
-  .dependsOn(client % "compile;test->test")
-
 lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
@@ -99,17 +87,19 @@ lazy val client = libraryProject("client")
     theDsl % "test->compile",
     scalaXml % "test->compile")
 
-lazy val clientMetrics = libraryProject("client-metrics")
+lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
-    description := "Support for Dropwizard Metrics on the client",
+    description := "Support for Dropwizard Metrics",
     libraryDependencies ++= Seq(
-      metricsCore
-    )
-  )
+      dropwizardMetricsCore,
+      dropwizardMetricsJson
+    )  )
   .dependsOn(
-    client % "compile;test->test",
-    blazeClient % "test->compile",
-    blazeServer % "test->compile"
+    core % "compile->compile",
+    testing % "test->test",
+    theDsl % "test->compile",
+    client % "test->compile",
+    server % "test->compile"
   )
 
 lazy val blazeCore = libraryProject("blaze-core")
@@ -396,7 +386,7 @@ lazy val docs = http4sProject("docs")
       }
     },
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
@@ -429,7 +419,7 @@ lazy val examples = http4sProject("examples")
     ),
     TwirlKeys.templateImports := Nil
   )
-  .dependsOn(server, serverMetrics, theDsl, circe, scalaXml, twirl)
+  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -437,7 +427,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(
     description := "Examples of http4s server and clients on blaze",
     fork := true,
-    libraryDependencies ++= Seq(alpnBoot, metricsJson),
+    libraryDependencies ++= Seq(alpnBoot, dropwizardMetricsJson),
     javaOptions in run ++= addAlpnPath((managedClasspath in Runtime).value)
   )
   .dependsOn(blazeServer, blazeClient)

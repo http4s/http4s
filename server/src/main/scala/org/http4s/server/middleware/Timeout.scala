@@ -36,9 +36,7 @@ object Timeout {
   def apply[F[_], G[_], A](timeout: FiniteDuration)(
       @deprecatedName('service) http: Kleisli[F, A, Response[G]])(
       implicit F: Concurrent[F],
-      T: Timer[F],
-      W: EntityEncoder[G, String]): Kleisli[F, A, Response[G]] =
-    apply(
-      timeout,
-      Response[G](Status.InternalServerError).withEntity("The response timed out.").pure[F])(http)
+      T: Timer[F]
+  ): Kleisli[F, A, Response[G]] =
+    apply(timeout, Response.timeout[G].pure[F])(http)
 }

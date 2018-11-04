@@ -11,6 +11,7 @@ import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, blocking}
+import scala.concurrent.duration._
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
@@ -211,8 +212,8 @@ object JavaNetClientBuilder {
     */
   def apply(blockingExecutionContext: ExecutionContext): JavaNetClientBuilder =
     new JavaNetClientBuilder(
-      connectTimeout = Duration.Inf,
-      readTimeout = Duration.Inf,
+      connectTimeout = 1.minute,
+      readTimeout = 1.minute,
       proxy = None,
       hostnameVerifier = None,
       sslSocketFactory = None,

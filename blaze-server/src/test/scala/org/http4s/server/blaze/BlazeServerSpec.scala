@@ -6,11 +6,15 @@ import cats.effect.IO
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
+import scala.concurrent.duration._
 import scala.io.Source
 
 class BlazeServerSpec extends Http4sSpec {
 
-  def builder = BlazeServerBuilder[IO].withExecutionContext(testExecutionContext)
+  def builder =
+    BlazeServerBuilder[IO]
+      .withResponseHeaderTimeout(1.second)
+      .withExecutionContext(testExecutionContext)
 
   val service: HttpApp[IO] = HttpApp {
     case GET -> Root / "thread" / "routing" =>
@@ -22,6 +26,10 @@ class BlazeServerSpec extends Http4sSpec {
 
     case req @ POST -> Root / "echo" =>
       Ok(req.body)
+
+    case _ -> Root / "never" =>
+      IO.never
+
     case _ => NotFound()
   }
 
@@ -38,6 +46,16 @@ class BlazeServerSpec extends Http4sSpec {
         .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
         .getLines
         .mkString
+
+    // This should be in IO and shifted but I'm tired of fighting this.
+    def getStatus(path: String): IO[Status] = {
+      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+      for {
+        conn <- IO(url.openConnection().asInstanceOf[HttpURLConnection])
+        _ = conn.setRequestMethod("GET")
+        status <- IO.fromEither(Status.fromInt(conn.getResponseCode()))
+      } yield status
+    }
 
     // This too
     def post(path: String, body: String): String = {
@@ -63,6 +81,10 @@ class BlazeServerSpec extends Http4sSpec {
       "be able to echo its input" in {
         val input = """{ "Hello": "world" }"""
         post("/echo", input) must startWith(input)
+      }
+
+      "return a 503 if the server doesn't respond" in {
+        getStatus("/never") must returnValue(Status.ServiceUnavailable)
       }
     }
   }

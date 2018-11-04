@@ -6,7 +6,7 @@ import org.http4s.MediaType
 import org.http4s.testing._
 import org.specs2.mutable.Specification
 
-class MediaRangeSpec extends Specification with Http4s {
+class MediaRangeSpec extends Specification {
   def ext = Map("foo" -> "bar")
 
   "MediaRanges" should {
@@ -27,8 +27,8 @@ class MediaRangeSpec extends Specification with Http4s {
     }
 
     "Be satisfiedBy MediaTypes correctly" in {
-      `text/*`.satisfiedBy(MediaType.text css) must be_==(true)
-      `text/*`.satisfiedBy(MediaType.text css) must be_==(true)
+      `text/*`.satisfiedBy(MediaType.text.css) must be_==(true)
+      `text/*`.satisfiedBy(MediaType.text.css) must be_==(true)
       `text/*`.satisfiedBy(`audio/aiff`) must be_==(false)
     }
 
@@ -45,14 +45,14 @@ class MediaRangeSpec extends Specification with Http4s {
 
       MediaType.text.html.withExtensions(ext) must be_!=(MediaType.text.html)
 
-      MediaType.text.html must be_!=(MediaType.text css)
+      MediaType.text.html must be_!=(MediaType.text.css)
     }
 
     "Be satisfiedBy MediaTypes correctly" in {
-      MediaType.text.html.satisfiedBy(MediaType.text css) must be_==(false)
+      MediaType.text.html.satisfiedBy(MediaType.text.css) must be_==(false)
       MediaType.text.html.satisfiedBy(MediaType.text.html) must be_==(true)
 
-      MediaType.text.html.satisfies(MediaType.text css) must be_==(false)
+      MediaType.text.html.satisfies(MediaType.text.css) must be_==(false)
     }
 
     "Not be satisfied by MediaRanges" in {

@@ -3,8 +3,8 @@ package org.http4s
 import cats._
 import cats.effect.{ContextShift, Effect, Sync}
 import cats.implicits._
-import fs2._
 import fs2.Stream._
+import fs2._
 import fs2.io.file.readAll
 import fs2.io.readInputStream
 import java.io._
@@ -48,7 +48,9 @@ trait EntityEncoder[F[_], A] { self =>
   }
 }
 
-object EntityEncoder extends EntityEncoderInstances {
+object EntityEncoder {
+
+  private val DefaultChunkSize = 4096
 
   /** summon an implicit [[EntityEncoder]] */
   def apply[F[_], A](implicit ev: EntityEncoder[F, A]): EntityEncoder[F, A] = ev
@@ -75,10 +77,6 @@ object EntityEncoder extends EntityEncoderInstances {
       val c = toChunk(a)
       Entity[F](chunk(c).covary[F], Some(c.size.toLong))
     }
-}
-
-trait EntityEncoderInstances0 {
-  import EntityEncoder._
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
   def showEncoder[F[_], A](
@@ -113,12 +111,6 @@ trait EntityEncoderInstances0 {
             W.headers.put(`Transfer-Encoding`(TransferCoding.chunked))
         }
     }
-}
-
-trait EntityEncoderInstances extends EntityEncoderInstances0 {
-  import EntityEncoder._
-
-  private val DefaultChunkSize = 4096
 
   implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
     emptyEncoder[F, Unit]

@@ -26,11 +26,25 @@ object AsyncHttpClient {
   val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
-    .setRequestTimeout(30000)
+    .setRequestTimeout(60000)
     .setThreadFactory(threadFactory(name = { i =>
       s"http4s-async-http-client-worker-${i}"
     }))
     .build()
+
+  /**
+    * Allocates a Client and its shutdown mechanism for freeing resources.
+    */
+  def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
+      implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
+    F.delay(new DefaultAsyncHttpClient(config))
+      .map(c =>
+        (Client[F] { req =>
+          Resource(F.async[(Response[F], F[Unit])] { cb =>
+            c.executeRequest(toAsyncRequest(req), asyncHandler(cb))
+            ()
+          })
+        }, F.delay(c.close)))
 
   /**
     * Create an HTTP client based on the AsyncHttpClient library
@@ -40,15 +54,7 @@ object AsyncHttpClient {
     */
   def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
       implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    Resource
-      .make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close()))
-      .map(client =>
-        Client[F] { req =>
-          Resource(F.async[(Response[F], F[Unit])] { cb =>
-            client.executeRequest(toAsyncRequest(req), asyncHandler(cb))
-            ()
-          })
-      })
+    Resource(allocate(config))
 
   /**
     * Create a bracketed HTTP client based on the AsyncHttpClient library.

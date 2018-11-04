@@ -2,7 +2,10 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
+import cats.effect.concurrent.{Deferred, Ref}
 import cats.implicits._
+import fs2.Stream
+import java.util.concurrent.TimeoutException
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
@@ -17,12 +20,14 @@ class BlazeClientSpec extends Http4sSpec {
 
   def mkClient(
       maxConnectionsPerRequestKey: Int,
-      responseHeaderTimeout: Duration = 1.minute
+      responseHeaderTimeout: Duration = 1.minute,
+      requestTimeout: Duration = 1.minute
   ) =
     BlazeClientBuilder[IO](testExecutionContext)
       .withSslContext(bits.TrustingSslContext)
       .withCheckEndpointAuthentication(false)
       .withResponseHeaderTimeout(responseHeaderTimeout)
+      .withRequestTimeout(requestTimeout)
       .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
       .resource
 
@@ -44,11 +49,15 @@ class BlazeClientSpec extends Http4sSpec {
             .compile
             .drain
           val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> IO.sleep(Random.nextInt(1000).millis) *> flushOutputStream)
-            .unsafeRunSync()
+          (writeBody *> flushOutputStream).unsafeRunSync()
 
         case None => srv.sendError(404)
       }
+
+    override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
+      resp.setStatus(Status.Ok.code)
+      req.getInputStream.close()
+    }
   }
 
   "Blaze Http1Client" should {
@@ -58,7 +67,6 @@ class BlazeClientSpec extends Http4sSpec {
         mkClient(0),
         mkClient(1),
         mkClient(3),
-        mkClient(1, 2.seconds),
         mkClient(1, 20.seconds),
         JettyScaffold[IO](5, false, testServlet),
         JettyScaffold[IO](1, true, testServlet)
@@ -67,7 +75,6 @@ class BlazeClientSpec extends Http4sSpec {
           failClient,
           successClient,
           client,
-          failTimeClient,
           successTimeClient,
           jettyServer,
           jettySslServer
@@ -99,51 +106,55 @@ class BlazeClientSpec extends Http4sSpec {
             Uri.fromString(s"http://$name:$port/simple").yolo
           }
 
-          (0 until 42)
-            .map { _ =>
+          (1 to Runtime.getRuntime.availableProcessors * 5).toList
+            .parTraverse { _ =>
               val h = hosts(Random.nextInt(hosts.length))
-              val resp =
-                client.expect[String](h).unsafeRunTimed(timeout)
-              resp.map(_.length > 0)
+              client.expect[String](h).map(_.nonEmpty)
             }
-            .forall(_.contains(true)) must beTrue
+            .map(_.forall(identity))
+            .unsafeRunTimed(timeout) must beSome(true)
         }
 
-        "obey response line timeout" in {
+        "obey response header timeout" in {
           val address = addresses(0)
           val name = address.getHostName
           val port = address.getPort
-          failTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .unsafeToFuture()
-          failTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .unsafeToFuture()
-          val resp = failTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .map(_.right.exists(_.nonEmpty))
-            .unsafeToFuture()
-          Await.result(resp, 6 seconds) must beFalse
+          mkClient(1, responseHeaderTimeout = 100.millis)
+            .use { client =>
+              val submit = client.expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+              submit
+            }
+            .unsafeRunSync() must throwA[TimeoutException]
         }
 
         "unblock waiting connections" in {
           val address = addresses(0)
           val name = address.getHostName
           val port = address.getPort
-          successTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .unsafeToFuture()
+          mkClient(1)
+            .use { client =>
+              val submit = successTimeClient
+                .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+              for {
+                _ <- submit.start
+                r <- submit.attempt
+              } yield r
+            }
+            .unsafeRunSync() must beRight
+        }
 
-          val resp = successTimeClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .map(_.right.exists(_.nonEmpty))
-            .unsafeToFuture()
-          Await.result(resp, 6 seconds) must beTrue
+        "reset request timeout" in {
+          val address = addresses(0)
+          val name = address.getHostName
+          val port = address.getPort
+
+          Ref[IO].of(0L).flatMap { nanos =>
+            mkClient(1, requestTimeout = 1.second).use { client =>
+              val submit =
+                client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))
+              submit *> timer.sleep(2.seconds) *> submit
+            }
+          } must returnValue(Status.Ok)
         }
 
         "drain waiting connections after shutdown" in {
@@ -170,6 +181,24 @@ class BlazeClientSpec extends Http4sSpec {
             .unsafeToFuture()
 
           Await.result(resp, 6.seconds) must beTrue
+        }
+
+        "cancel infinite request on completion" in {
+          val address = addresses(0)
+          val name = address.getHostName
+          val port = address.getPort
+          Deferred[IO, Unit]
+            .flatMap { reqClosed =>
+              mkClient(1, requestTimeout = 10.seconds).use { client =>
+                val body = Stream(0.toByte).repeat.onFinalize(reqClosed.complete(()))
+                val req = Request[IO](
+                  method = Method.POST,
+                  uri = Uri.fromString(s"http://$name:$port/").yolo
+                ).withBodyStream(body)
+                client.status(req) >> reqClosed.get
+              }
+            }
+            .unsafeRunTimed(5.seconds) must beSome(())
         }
       }
     }

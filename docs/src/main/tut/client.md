@@ -40,6 +40,7 @@ in an [[`IOApp`]]:
 ```tut:book:silent
 import scala.concurrent.ExecutionContext.global
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 ```
 
 Finish setting up our server:
@@ -192,6 +193,90 @@ val withPath = baseUri.withPath("/bar/baz")
 val withQuery = withPath.withQueryParam("hello", "world")
 ```
 
+## Middleware
+
+Like the server [middleware], the client middleware is a wrapper around a
+`Client` that provides a means of accessing or manipulating `Request`s
+and `Response`s being sent.
+
+### Included Middleware
+
+Http4s includes some middleware Out of the Box in the `org.http4s.client.middleware`
+package. These include:
+
+* Following of redirect responses ([Follow Redirect])
+* Retrying of requests ([Retry])
+* Metrics gathering ([Metrics])
+* Logging of requests ([Request Logger])
+* Logging of responses ([Response Logger])
+* Logging of requests and responses ([Logger])
+
+### Metrics Middleware
+
+Apart from the middleware mentioned in the previous section. There is, as well,
+Out of the Box middleware for Dropwizard and Prometheus metrics
+
+#### Dropwizard Metrics Middleware
+
+To make use of this metrics middleware the following dependencies are needed:
+
+```scala
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-client" % http4sVersion,
+  "org.http4s" %% "http4s-dropwizard-metrics" % http4sVersion
+)
+```
+
+We can create a middleware that registers metrics prefixed with a
+provided prefix like this.
+
+```tut:book:silent
+import org.http4s.client.middleware.Metrics
+import org.http4s.metrics.dropwizard.Dropwizard
+import com.codahale.metrics.SharedMetricRegistries
+```
+```tut:book
+implicit val clock = Clock.create[IO]
+val registry = SharedMetricRegistries.getOrCreate("default")
+val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+
+val meteredClient = Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
+```
+
+A `classifier` is just a function Request[F] => Option[String] that allows
+to add a subprefix to every metric based on the `Request`
+
+#### Prometheus Metrics Middleware
+
+To make use of this metrics middleware the following dependencies are needed:
+
+```scala
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-client" % http4sVersion,
+  "org.http4s" %% "http4s-prometheus-metrics" % http4sVersion
+)
+```
+
+We can create a middleware that registers metrics prefixed with a
+provided prefix like this.
+
+```tut:book:silent
+import org.http4s.client.middleware.Metrics
+import org.http4s.metrics.prometheus.Prometheus
+import io.prometheus.client.CollectorRegistry
+```
+```tut:book
+implicit val clock = Clock.create[IO]
+val registry = new CollectorRegistry()
+val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+
+val meteredClient = Metrics[IO](Prometheus(registry, "prefix"), requestMethodClassifier)(httpClient)
+```
+
+
+A `classifier` is just a function Request[F] => Option[String] that allows
+to add a label to every metric based on the `Request`
+
 ## Examples
 
 ### Send a GET request, treating the response as a string
@@ -290,3 +375,10 @@ blockingEC.shutdown()
 [`ContextShift`]: https://typelevel.org/cats-effect/datatypes/contextshift.html
 [`ConcurrentEffect`]: https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html
 [`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html
+[middleware]: ../middleware
+[Follow Redirect]: ../api/org/http4s/client/middleware/FollowRedirect$
+[Retry]: .../api/org/http4s/client/middleware/Retry$
+[Metrics]: .../api/org/http4s/client/middleware/FollowRedirect$
+[Request Logger]: .../api/org/http4s/client/middleware/RequestLogger$
+[Response Logger]: .../api/org/http4s/client/middleware/ResponseLogger$
+[Logger]: .../api/org/http4s/client/middleware/Logger$
