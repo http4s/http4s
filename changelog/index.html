@@ -89,6 +89,12 @@ it.</p>
 
 <h1 id="v0-20-0-snapshot">v0.20.0-SNAPSHOT</h1>
 
+<h2 id="bug-fixes">Bug fixes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
+</ul>
+
 <h2 id="breaking-changes">Breaking changes</h2>
 
 <ul>
@@ -113,7 +119,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2237">#2237</a>: Support parsing cookies with trailing semi-colons. This is invalid per spec, but seen often in the wild.</li>
 </ul>
 
-<h2 id="bug-fixes">Bug fixes</h2>
+<h2 id="bug-fixes-1">Bug fixes</h2>
 
 <h2 id="documentation">Documentation</h2>
 
@@ -175,7 +181,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2190">#2190</a>: Add <code>channelOptions</code> to blaze-client to customize socket options.</li>
 </ul>
 
-<h2 id="bug-fixes-1">Bug fixes</h2>
+<h2 id="bug-fixes-2">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2166">#2166</a>: Fix request timeout calculation in blaze-client to resolve &ldquo;Client response header timeout after 0 millseconds&rdquo; error.</li>
@@ -200,7 +206,7 @@ it.</p>
 
 <h1 id="v0-18-21-snapshot">v0.18.21-SNAPSHOT</h1>
 
-<h2 id="bug-fixes-2">Bug fixes</h2>
+<h2 id="bug-fixes-3">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2231">#2231</a>: Fix off-by-one error that lets blaze-client wait queue grow one past its limit</li>
@@ -208,7 +214,7 @@ it.</p>
 
 <h1 id="v0-18-20-2018-10-18">v0.18.20 (2018-10-18)</h1>
 
-<h2 id="bug-fixes-3">Bug fixes</h2>
+<h2 id="bug-fixes-4">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2181">#2181</a>: Honor <code>redactHeadersWhen</code> in client <code>RequestLogger</code> middleware</li>
@@ -382,7 +388,7 @@ it.</p>
 
 <h1 id="v0-18-19-2018-09-27">v0.18.19 (2018-09-27)</h1>
 
-<h2 id="bug-fixes-4">Bug fixes</h2>
+<h2 id="bug-fixes-5">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2101">#2101</a>: <code>haveHeaders</code> checks by equality, not reference</li>
@@ -397,7 +403,7 @@ it.</p>
 
 <h1 id="v0-18-18-2018-09-18">v0.18.18 (2018-09-18)</h1>
 
-<h2 id="bug-fixes-5">Bug fixes</h2>
+<h2 id="bug-fixes-6">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2048">#2048</a>: Correct misleading logging in <code>Retry</code> middleware</li>
