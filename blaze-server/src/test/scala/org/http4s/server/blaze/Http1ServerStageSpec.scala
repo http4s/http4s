@@ -3,6 +3,7 @@ package blaze
 
 import cats.data.Kleisli
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -449,15 +450,22 @@ class Http1ServerStageSpec extends Http4sSpec {
   }
 
   "cancels on stage shutdown" in {
-    var canceled = false
-    // This request will trigger a stage shutdown due to too short a body
-    val req = "POST /fail HTTP/1.0\r\nContent-Length: 100\r\n\r\nOverpromise and underdeliver"
-    val app: HttpApp[IO] = HttpApp { req =>
-      req.as[String].start.attempt >>
-        IO.cancelable(_ => IO { canceled = true })
-    }
-    runRequest(List(req), app)
-    eventually(canceled must_== true)
+    Deferred[IO, Unit]
+      .flatMap { canceled =>
+        Deferred[IO, Unit].flatMap { gate =>
+          val req = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+          val app: HttpApp[IO] = HttpApp { req =>
+            gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
+          }
+          for {
+            head <- IO(runRequest(List(req), app))
+            _ <- gate.get
+            _ <- IO(head.closePipeline(None))
+            _ <- canceled.get
+          } yield ()
+        }
+      }
+      .unsafeRunTimed(3.seconds) must beSome(())
   }
 
   "Disconnect if we read an EOF" in {
