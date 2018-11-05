@@ -42,6 +42,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   override def doClosePipeline(cause: Option[Throwable]): Unit = {
     closeCauses :+= cause
     cause.foreach(logger.error(_)(s"$name received unhandled error command"))
+    sendInboundCommand(Disconnected)
   }
 }
 

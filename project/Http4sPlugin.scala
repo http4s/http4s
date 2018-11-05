@@ -277,7 +277,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.6.0"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M9"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M10"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.4.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.0.0"
@@ -318,8 +318,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
-  def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
-  def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
+  def scalaCompiler(so: String, sv: String) = so             %  "scala-compiler"            % sv
+  lazy val scalafixCore                     = "ch.epfl.scala"          %% "scalafix-core"             % "0.9.0"
+  lazy val scalafixTestKit                  = "ch.epfl.scala"          % "scalafix-testkit"           % scalafixCore.revision % Test cross CrossVersion.full
+  def scalaReflect(so: String, sv: String)  = so             %  "scala-reflect"             % sv
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.1"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"

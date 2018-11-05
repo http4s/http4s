@@ -10,13 +10,23 @@ it.
 
 # v0.20.0-SNAPSHOT
 
+## Bug fixes
+* [#2239](https://github.com/http4s/http4s/pull/2239): Fix hang when `.allocate` on a client builder fails
+
 ## Breaking changes
 * [#2207](https://github.com/http4s/http4s/pull/2207): Remove `PathNormalizer`. The functionality is now on `Uri.removeDotSegments`.
+* [#2210](https://github.com/http4s/http4s/pull/2210): Streamline instances:
+  * `Http4s`, `Http4sInstances`, and `Http4sFunctions` are deprecated
+  * Move instances `F[A]` for cats type classes `F` into companions of `A`
+  * `Http4sDsl` no longer mixes in `UriFunctions`
+  * `EntityEncoderInstances` and `EntityDecoderInstances` are removed. The instances moved to the companion objects.
 
 ## Enhancements
 * [#2205](https://github.com/http4s/http4s/pull/2205): Add new `ResponseTiming` middleware, which adds a header to the Response as opposed to full `MetricsOps`.
 * [#2222](https://github.com/http4s/http4s/pull/2222): Add `shutdownTimeout` property to `JettyBuilder`.  Shutdown of the server waits for existing connections to complete for up to this duration before a hard shutdown with a `TimeoutException`.
 * [#2227](https://github.com/http4s/http4s/pull/2227): Add `withMaxHeaderLength` setter to `BlazeClientBuilder`
+* [#2230](https://github.com/http4s/http4s/pull/2230): `DefaultServerErrorHandler` only handles `NonFatal` `Throwable`s, instead of all `Throwable`s that aren't `VirtualMachineError`s
+* [#2237](https://github.com/http4s/http4s/pull/2237): Support parsing cookies with trailing semi-colons. This is invalid per spec, but seen often in the wild.
 
 ## Bug fixes
 
@@ -30,7 +40,9 @@ it.
 
 ## Dependency upgrades
 * async-http-client-2.6.0
+* blaze-0.14.0-M10
 * circe-0.10.1
+* json4s-3.6.2
 * sbt-native-packager-1.3.12 (examples only)
 * tut-0.6.9 (docs only)
 
@@ -70,6 +82,11 @@ Due to the inadvertent release of 0.19.0, we have opened a new minor version.  T
 * alpn-boot-8.1.13.v20181017 (examples only)
 * blaze-0.14.0-M9
 * sbt-native-packager-1.3.11 (examples only)
+
+# v0.18.21-SNAPSHOT
+
+## Bug fixes
+* [#2231](https://github.com/http4s/http4s/pull/2231): Fix off-by-one error that lets blaze-client wait queue grow one past its limit
 
 # v0.18.20 (2018-10-18)
 

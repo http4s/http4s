@@ -69,11 +69,7 @@ class BlazeBuilder[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
-    extends ServerBuilder[F]
-    with IdleTimeoutSupport[F]
-    with SSLKeyStoreSupport[F]
-    with SSLContextSupport[F]
-    with server.WebSocketSupport[F] {
+    extends ServerBuilder[F] {
   type Self = BlazeBuilder[F]
 
   private[this] val logger = getLogger
@@ -124,17 +120,17 @@ class BlazeBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen): Self =
     copy(maxRequestLineLen = maxRequestLineLen, maxHeadersLen = maxHeadersLen)
 
-  override def withSSL(
+  def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
-      protocol: String,
-      trustStore: Option[StoreInfo],
-      clientAuth: Boolean): Self = {
+      protocol: String = "TLS",
+      trustStore: Option[StoreInfo] = None,
+      clientAuth: Boolean = false): Self = {
     val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
     copy(sslBits = Some(bits))
   }
 
-  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self =
+  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -143,7 +139,7 @@ class BlazeBuilder[F[_]](
   def withExecutionContext(executionContext: ExecutionContext): BlazeBuilder[F] =
     copy(executionContext = executionContext)
 
-  override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
+  def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
   def withConnectorPoolSize(size: Int): Self = copy(connectorPoolSize = size)
 
@@ -151,7 +147,7 @@ class BlazeBuilder[F[_]](
 
   def withNio2(isNio2: Boolean): Self = copy(isNio2 = isNio2)
 
-  override def withWebSockets(enableWebsockets: Boolean): Self =
+  def withWebSockets(enableWebsockets: Boolean): Self =
     copy(enableWebSockets = enableWebsockets)
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)

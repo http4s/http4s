@@ -3,6 +3,7 @@ package blaze
 
 import cats.data.Kleisli
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -17,6 +18,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSpec {
+  sequential
+
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
     val a = new Array[Byte](b.remaining())
@@ -444,6 +447,25 @@ class Http1ServerStageSpec extends Http4sSpec {
         results._1 must_== InternalServerError
       }
     }
+  }
+
+  "cancels on stage shutdown" in {
+    Deferred[IO, Unit]
+      .flatMap { canceled =>
+        Deferred[IO, Unit].flatMap { gate =>
+          val req = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+          val app: HttpApp[IO] = HttpApp { req =>
+            gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
+          }
+          for {
+            head <- IO(runRequest(List(req), app))
+            _ <- gate.get
+            _ <- IO(head.closePipeline(None))
+            _ <- canceled.get
+          } yield ()
+        }
+      }
+      .unsafeRunTimed(3.seconds) must beSome(())
   }
 
   "Disconnect if we read an EOF" in {
