@@ -649,10 +649,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="MessageFailure.html" title="Indicates a failure to handle an HTTP Message."></a>
                         <a href="MessageFailure.html" title="Indicates a failure to handle an HTTP Message.">MessageFailure</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="MessageOps.html" title=""></a>
-                        <a href="MessageOps.html" title="">MessageOps</a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="Method$.html" title=""></a>
                         <a class="class" href="Method.html" title="An HTTP method."></a>
                         <a href="Method.html" title="An HTTP method.">Method</a>
@@ -717,10 +713,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="RequestOps.html" title=""></a>
-                        <a href="RequestOps.html" title="">RequestOps</a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -728,10 +720,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <span class="separator"></span>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="ResponseOps.html" title=""></a>
-                        <a href="ResponseOps.html" title="">ResponseOps</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="ServerSentEvent$.html" title=""></a>
                         <a class="class" href="ServerSentEvent.html" title=""></a>
@@ -801,18 +789,17 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">Message</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>
+        <span class="name">Message</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and
-Response while most of the functionality is found in <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a> and
-<a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response.
+</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>[<span class="extype" name="org.http4s.Message.F">F</span>], <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">
               Known Subclasses
@@ -843,7 +830,7 @@ Response while most of the functionality is found in <a href="MessageOps.html" c
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.Message"><span>Message</span></li><li class="in" name="org.http4s.MessageOps"><span>MessageOps</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.Message"><span>Message</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -870,7 +857,7 @@ Response while most of the functionality is found in <a href="MessageOps.html" c
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.Message.Self" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.Message.Self" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}"></a><a id="Self:Self"></a>
       <span class="permalink">
       <a href="../../org/http4s/Message.html#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" title="Permalink">
@@ -885,7 +872,7 @@ Response while most of the functionality is found in <a href="MessageOps.html" c
         <span class="name">Self</span><span class="result"> &lt;: <a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>] { type Self = Message.this.Self }</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      
     </li></ol>
             </div>
 
@@ -924,9 +911,9 @@ Response while most of the functionality is found in <a href="MessageOps.html" c
       
       
     </li><li name="org.http4s.Message#change" visbl="prt" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="change(body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Message.this.Self"></a><a id="change(EntityBody[F],Headers,AttributeMap):Self"></a>
+      <a id="change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Message.this.Self"></a><a id="change(HttpVersion,EntityBody[F],Headers,AttributeMap):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#change(body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Message.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -935,7 +922,7 @@ Response while most of the functionality is found in <a href="MessageOps.html" c
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">change</span><span class="params">(<span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Message.F">F</span>] = <span class="symbol">body</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">headers</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">attributes</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">change</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol">httpVersion</span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Message.F">F</span>] = <span class="symbol">body</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">headers</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">attributes</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -971,26 +958,6 @@ Response while most of the functionality is found in <a href="MessageOps.html" c
       </span>
       
       
-    </li><li name="org.http4s.Message#withBodyStream" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="withBodyStream(body:org.http4s.EntityBody[F]):Message.this.Self"></a><a id="withBodyStream(EntityBody[F]):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Message.html#withBodyStream(body:org.http4s.EntityBody[F]):Message.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withBodyStream</span><span class="params">(<span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
-or <code>Content-Length</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
-or <code>Content-Length</code>. Most use cases are better served by <a href="#withEntity[T](b:T)(implicitw:org.http4s.EntityEncoder[F,T]):Message.this.Self" class="extmbr" name="org.http4s.Message#withEntity">withEntity</a>,
-which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> to maintain the headers.
-</p></div></div>
     </li></ol>
             </div>
 
@@ -1088,22 +1055,23 @@ which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.Entit
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.MessageOps#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]"></a><a id="as[T](FlatMap[F],EntityDecoder[F,T]):F[T]"></a>
+    </li><li name="org.http4s.Message#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="as[T](implicitF:cats.Functor[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]"></a><a id="as[T](Functor[F],EntityDecoder[F,T]):F[T]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]" title="Permalink">
+      <a href="../../org/http4s/Message.html#as[T](implicitF:cats.Functor[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">as</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.FlatMap">FlatMap</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <span class="extype" name="org.http4s.MessageOps.as.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Message.F">F</span>[<span class="extype" name="org.http4s.MessageOps.as.T">T</span>]</span>
+        <span class="name">as</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <span class="extype" name="org.http4s.Message.as.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Message.F">F</span>[<span class="extype" name="org.http4s.Message.as.T">T</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Decode the <a href="" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><p>If no valid <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> has been described, allow Ok</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the effect which will generate the T</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      <p class="shortcomment cmt">Decode the <a href="" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><p>If no valid <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> has been described, allow Ok
+</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the effect which will generate the T</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -1121,9 +1089,9 @@ which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.Entit
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.Message#attemptAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="attemptAs[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):org.http4s.DecodeResult[F,T]"></a><a id="attemptAs[T](FlatMap[F],EntityDecoder[F,T]):DecodeResult[F,T]"></a>
+      <a id="attemptAs[T](implicitdecoder:org.http4s.EntityDecoder[F,T]):org.http4s.DecodeResult[F,T]"></a><a id="attemptAs[T](EntityDecoder[F,T]):DecodeResult[F,T]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#attemptAs[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):org.http4s.DecodeResult[F,T]" title="Permalink">
+      <a href="../../org/http4s/Message.html#attemptAs[T](implicitdecoder:org.http4s.EntityDecoder[F,T]):org.http4s.DecodeResult[F,T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1132,12 +1100,12 @@ which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.Entit
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">attemptAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.FlatMap">FlatMap</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>)</span><span class="result">: <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>
+        <span class="name">attemptAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>)</span><span class="result">: <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.Message.F">F</span>, <span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Decode the <a href="" class="extype" name="org.http4s.Message">Message</a> to the specified type
 </p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="" class="extype" name="org.http4s.Message">Message</a> to the specified type
-</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the effect which will generate the <code>DecodeResult[T]</code></p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the effect which will generate the <code>DecodeResult[T]</code></p></dd></dl></div>
     </li><li name="org.http4s.Message#bodyAsText" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="bodyAsText(implicitdefaultCharset:org.http4s.Charset):fs2.Stream[F,String]"></a><a id="bodyAsText(Charset):Stream[F,String]"></a>
       <span class="permalink">
@@ -1146,7 +1114,7 @@ which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.Entit
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -1169,8 +1137,8 @@ which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.Entit
         <span class="name">charset</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present. Does
-not introspect the body for media types that define a charset
+      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present.
+Does not introspect the body for media types that define a charset
 internally.
 </p></div></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -1341,24 +1309,24 @@ internally.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.MessageOps#filterHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="filterHeaders((Header)⇒Boolean)(Functor[F]):Self"></a>
+    </li><li name="org.http4s.Message#filterHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean):Message.this.Self"></a><a id="filterHeaders((Header)⇒Boolean):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#filterHeaders(f:org.http4s.Header=&gt;Boolean)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#filterHeaders(f:org.http4s.Header=&gt;Boolean):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Remove headers that satisfy the predicate
-</p><div class="fullcomment"><div class="comment cmt"><p>Remove headers that satisfy the predicate
-</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which lacks the specified headers</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      <p class="shortcomment cmt">Keep headers that satisfy the predicate
+</p><div class="fullcomment"><div class="comment cmt"><p>Keep headers that satisfy the predicate
+</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which has only headers that satisfy the predicate</p></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -1528,75 +1496,39 @@ internally.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.MessageOps#putHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="putHeaders(headers:org.http4s.Header*)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="putHeaders(Header*)(Functor[F]):Self"></a>
+    </li><li name="org.http4s.Message#putHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="putHeaders(headers:org.http4s.Header*):Message.this.Self"></a><a id="putHeaders(Header*):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#putHeaders(headers:org.http4s.Header*)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#putHeaders(headers:org.http4s.Header*):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name
-The passed headers are assumed to contain no duplicate Singleton headers.</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those of the same header name
-The passed headers are assumed to contain no duplicate Singleton headers.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#removeHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeHeader(key:org.http4s.HeaderKey)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="removeHeader(HeaderKey)(Functor[F]):Self"></a>
+The passed headers are assumed to contain no duplicate Singleton headers.</p>
+    </li><li name="org.http4s.Message#removeHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="removeHeader(key:org.http4s.HeaderKey):Message.this.Self"></a><a id="removeHeader(HeaderKey):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#removeHeader(key:org.http4s.HeaderKey)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#removeHeader(key:org.http4s.HeaderKey):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeHeader</span><span class="params">(<span name="key">key: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">removeHeader</span><span class="params">(<span name="key">key: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="replaceAllHeaders(headers:org.http4s.Header*)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="replaceAllHeaders(Header*)(Functor[F]):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Message.html#replaceAllHeaders(headers:org.http4s.Header*)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
       
-      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="replaceAllHeaders(headers:org.http4s.Headers)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="replaceAllHeaders(Headers)(Functor[F]):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Message.html#replaceAllHeaders(headers:org.http4s.Headers)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -1644,13 +1576,13 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="name">trailerHeaders</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Message.F">F</span>[<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">The trailer headers, as specified in Section 3.6.1 of RFC 2616.</p><div class="fullcomment"><div class="comment cmt"><p>The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
-task might not complete unless the entire body has been consumed.
+      <p class="shortcomment cmt">The trailer headers, as specified in Section 3.6.1 of RFC 2616.</p><div class="fullcomment"><div class="comment cmt"><p>The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
+F might not complete until the entire body has been consumed.
 </p></div></div>
-    </li><li name="org.http4s.Message#transformHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers)(implicitF:cats.Functor[F]):Message.this.Self"></a><a id="transformHeaders((Headers)⇒Headers)(Functor[F]):Self"></a>
+    </li><li name="org.http4s.Message#transformHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):Message.this.Self"></a><a id="transformHeaders((Headers)⇒Headers):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers)(implicitF:cats.Functor[F]):Message.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1659,10 +1591,10 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">transformHeaders</span><span class="params">(<span name="f">f: (<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>) ⇒ <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">transformHeaders</span><span class="params">(<span name="f">f: (<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>) ⇒ <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -1732,9 +1664,9 @@ task might not complete unless the entire body has been consumed.
               
         </dd></dl></div>
     </li><li name="org.http4s.Message#withAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withAttribute[A](key:org.http4s.AttributeKey[A],value:A)(implicitF:cats.Functor[F]):Message.this.Self"></a><a id="withAttribute[A](AttributeKey[A],A)(Functor[F]):Self"></a>
+      <a id="withAttribute[A](entry:org.http4s.AttributeEntry[A]):Message.this.Self"></a><a id="withAttribute[A](AttributeEntry[A]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withAttribute[A](key:org.http4s.AttributeKey[A],value:A)(implicitF:cats.Functor[F]):Message.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withAttribute[A](entry:org.http4s.AttributeEntry[A]):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1743,16 +1675,16 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.A">A</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="entry">entry: <a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withAttribute[V](entry:org.http4s.AttributeEntry[V])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withAttribute[V](AttributeEntry[V])(Functor[F]):Self"></a>
+      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
+</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
+</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">entry</dt><dd class="cmt"><p><a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> entry to add</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl></div>
+    </li><li name="org.http4s.Message#withAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withAttribute[A](key:org.http4s.AttributeKey[A],value:A):Message.this.Self"></a><a id="withAttribute[A](AttributeKey[A],A):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withAttribute[V](entry:org.http4s.AttributeEntry[V])(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withAttribute[A](key:org.http4s.AttributeKey[A],value:A):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1761,48 +1693,84 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="V">V</span>]</span><span class="params">(<span name="entry">entry: <a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a>[<span class="extype" name="org.http4s.MessageOps.withAttribute.V">V</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.A">A</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">V</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">entry</dt><dd class="cmt"><p><a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> entry to add</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withContentType(contentType:org.http4s.headers.Content-Type)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentType(Content-Type)(Functor[F]):Self"></a>
+      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
+</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
+</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl></div>
+    </li><li name="org.http4s.Message#withAttributes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withAttributes(attributes:org.http4s.AttributeMap):Message.this.Self"></a><a id="withAttributes(AttributeMap):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withContentType(contentType:org.http4s.headers.Content-Type)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withAttributes(attributes:org.http4s.AttributeMap):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withAttributes</span><span class="params">(<span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withContentTypeOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withContentTypeOption(contentTypeO:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentTypeOption(Option[Content-Type])(Functor[F]):Self"></a>
+      
+    </li><li name="org.http4s.Message#withBodyStream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withBodyStream(body:org.http4s.EntityBody[F]):Message.this.Self"></a><a id="withBodyStream(EntityBody[F]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withContentTypeOption(contentTypeO:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withBodyStream(body:org.http4s.EntityBody[F]):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentTypeOption</span><span class="params">(<span name="contentTypeO">contentTypeO: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withBodyStream</span><span class="params">(<span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      <p class="shortcomment cmt">Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
+or <code>Content-Length</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
+or <code>Content-Length</code>. Most use cases are better served by <a href="#withEntity[T](b:T)(implicitw:org.http4s.EntityEncoder[F,T]):Message.this.Self" class="extmbr" name="org.http4s.Message#withEntity">withEntity</a>,
+which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> to maintain the headers.
+</p></div></div>
+    </li><li name="org.http4s.Message#withContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withContentType(contentType:org.http4s.headers.Content-Type):Message.this.Self"></a><a id="withContentType(Content-Type):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withContentType(contentType:org.http4s.headers.Content-Type):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.Message#withContentTypeOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withContentTypeOption(contentTypeO:Option[org.http4s.headers.Content-Type]):Message.this.Self"></a><a id="withContentTypeOption(Option[Content-Type]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withContentTypeOption(contentTypeO:Option[org.http4s.headers.Content-Type]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContentTypeOption</span><span class="params">(<span name="contentTypeO">contentTypeO: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      
     </li><li name="org.http4s.Message#withEmptyBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withEmptyBody(implicitF:cats.Functor[F]):Message.this.Self"></a><a id="withEmptyBody(Functor[F]):Self"></a>
+      <a id="withEmptyBody:Message.this.Self"></a><a id="withEmptyBody:Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withEmptyBody(implicitF:cats.Functor[F]):Message.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withEmptyBody:Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1811,7 +1779,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withEmptyBody</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withEmptyBody</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Set an empty entity body on this message, and remove all payload headers
@@ -1834,54 +1802,120 @@ that make no sense with an empty body.</p>
       <p class="shortcomment cmt">Replace the body of this message with a new body
 </p><div class="fullcomment"><div class="comment cmt"><p>Replace the body of this message with a new body
 </p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the Body</p></dd><dt class="param">b</dt><dd class="cmt"><p>body to attach to this method</p></dd><dt class="param">w</dt><dd class="cmt"><p><a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> with which to convert the body to an <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></p></dd><dt>returns</dt><dd class="cmt"><p>a new message with the new body</p></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withTrailerHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withTrailerHeaders(trailerHeaders:F[org.http4s.Headers])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withTrailerHeaders(F[Headers])(Functor[F]):Self"></a>
+    </li><li name="org.http4s.Message#withHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withHeaders(headers:org.http4s.Header*):Message.this.Self"></a><a id="withHeaders(Header*):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withTrailerHeaders(trailerHeaders:F[org.http4s.Headers])(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withHeaders(headers:org.http4s.Header*):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withTrailerHeaders</span><span class="params">(<span name="trailerHeaders">trailerHeaders: <span class="extype" name="org.http4s.Message.F">F</span>[<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withType(t:org.http4s.MediaType)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withType(MediaType)(Functor[F]):Self"></a>
+      
+    </li><li name="org.http4s.Message#withHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withHeaders(headers:org.http4s.Headers):Message.this.Self"></a><a id="withHeaders(Headers):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withType(t:org.http4s.MediaType)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withHeaders(headers:org.http4s.Headers):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withType</span><span class="params">(<span name="t">t: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Added the <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">org.http4s.headers.Content-Type</a> header to the response</p><div class="fullcomment"><div class="comment cmt"><p>Added the <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">org.http4s.headers.Content-Type</a> header to the response</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withoutContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withoutContentType(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withoutContentType(Functor[F]):Self"></a>
+      
+    </li><li name="org.http4s.Message#withHttpVersion" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withHttpVersion(httpVersion:org.http4s.HttpVersion):Message.this.Self"></a><a id="withHttpVersion(HttpVersion):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withoutContentType(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withHttpVersion(httpVersion:org.http4s.HttpVersion):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withoutContentType</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withHttpVersion</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      
+    </li><li name="org.http4s.Message#withTrailerHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withTrailerHeaders(trailerHeaders:F[org.http4s.Headers]):Message.this.Self"></a><a id="withTrailerHeaders(F[Headers]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withTrailerHeaders(trailerHeaders:F[org.http4s.Headers]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withTrailerHeaders</span><span class="params">(<span name="trailerHeaders">trailerHeaders: <span class="extype" name="org.http4s.Message.F">F</span>[<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.Message#withoutAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withoutAttribute(key:org.http4s.AttributeKey[_]):Message.this.Self"></a><a id="withoutAttribute(AttributeKey[_]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withoutAttribute(key:org.http4s.AttributeKey[_]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withoutAttribute</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[_]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns a new message object without the specified key in the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
+</p><div class="fullcomment"><div class="comment cmt"><p>Returns a new message object without the specified key in the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
+</p></div><dl class="paramcmts block"><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> to remove</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object without the key</p></dd></dl></div>
+    </li><li name="org.http4s.Message#withoutContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withoutContentType:Message.this.Self"></a><a id="withoutContentType:Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withoutContentType:Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withoutContentType</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.Message#withoutTrailerHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withoutTrailerHeaders:Message.this.Self"></a><a id="withoutTrailerHeaders:Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withoutTrailerHeaders:Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withoutTrailerHeaders</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(Message[F],B)"></a>
       <span class="permalink">
@@ -1910,7 +1944,45 @@ that make no sense with an empty body.</p>
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.Message#withBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.Message#replaceAllHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="replaceAllHeaders(headers:org.http4s.Header*):Message.this.Self"></a><a id="replaceAllHeaders(Header*):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#replaceAllHeaders(headers:org.http4s.Header*):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use withHeaders instead">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use withHeaders instead</p></dd></dl></div>
+    </li><li name="org.http4s.Message#replaceAllHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="replaceAllHeaders(headers:org.http4s.Headers):Message.this.Self"></a><a id="replaceAllHeaders(Headers):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#replaceAllHeaders(headers:org.http4s.Headers):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use withHeaders instead">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use withHeaders instead</p></dd></dl></div>
+    </li><li name="org.http4s.Message#withBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withBody[T](b:T)(implicitF:cats.Applicative[F],implicitw:org.http4s.EntityEncoder[F,T]):F[Message.this.Self]"></a><a id="withBody[T](T)(Applicative[F],EntityEncoder[F,T]):F[Self]"></a>
       <span class="permalink">
       <a href="../../org/http4s/Message.html#withBody[T](b:T)(implicitF:cats.Applicative[F],implicitw:org.http4s.EntityEncoder[F,T]):F[Message.this.Self]" title="Permalink">
@@ -1929,14 +2001,31 @@ that make no sense with an empty body.</p>
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Use withEntity</p></dd></dl></div>
+    </li><li name="org.http4s.Message#withType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withType(t:org.http4s.MediaType)(implicitF:cats.Functor[F]):Message.this.Self"></a><a id="withType(MediaType)(Functor[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withType(t:org.http4s.MediaType)(implicitF:cats.Functor[F]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use withContentType(Content-Type(t)) instead">withType</span><span class="params">(<span name="t">t: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use withContentType(<code>Content-Type</code>(t)) instead</p></dd></dl></div>
     </li></ol>
             </div>
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.MessageOps">
-              <h3>Inherited from <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>

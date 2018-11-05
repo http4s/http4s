@@ -649,10 +649,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="MessageFailure.html" title="Indicates a failure to handle an HTTP Message."></a>
                         <a href="MessageFailure.html" title="Indicates a failure to handle an HTTP Message.">MessageFailure</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="MessageOps.html" title=""></a>
-                        <a href="MessageOps.html" title="">MessageOps</a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="Method$.html" title=""></a>
                         <a class="class" href="Method.html" title="An HTTP method."></a>
                         <a href="Method.html" title="An HTTP method.">Method</a>
@@ -717,10 +713,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="RequestOps.html" title=""></a>
-                        <a href="RequestOps.html" title="">RequestOps</a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
@@ -728,10 +720,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <span class="separator"></span>
                         <a class="class" href="ResponseCookie.html" title=""></a>
                         <a href="ResponseCookie.html" title="">ResponseCookie</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="ResponseOps.html" title=""></a>
-                        <a href="ResponseOps.html" title="">ResponseOps</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="ServerSentEvent$.html" title=""></a>
                         <a class="class" href="ServerSentEvent.html" title=""></a>
@@ -1594,9 +1582,9 @@ constructed from a partial function and combined as a
       <p class="shortcomment cmt">Indicates that a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> attempting to be decoded has no <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> and no
 <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> was lenient enough to accept it.</p>
     </li><li name="org.http4s.Message" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="Message[F[_]]extendsMessageOps[F]"></a><a id="Message[F[_]]:Message[F]"></a>
+      <a id="Message[F[_]]extendsAnyRef"></a><a id="Message[F[_]]:Message[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#Message[F[_]]extendsMessageOps[F]" title="Permalink">
+      <a href="../../org/http4s/index.html#Message[F[_]]extendsAnyRef" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1605,12 +1593,11 @@ constructed from a partial function and combined as a
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Represents a HTTP Message." href="Message.html"><span class="name">Message</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>
+        <a title="Represents a HTTP Message." href="Message.html"><span class="name">Message</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
-      <p class="shortcomment cmt">Represents a HTTP Message.</p><div class="fullcomment"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and
-Response while most of the functionality is found in <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a> and
-<a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl></div>
+      <p class="shortcomment cmt">Represents a HTTP Message.</p><div class="fullcomment"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response.
+</p></div></div>
     </li><li name="org.http4s.MessageBodyFailure" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="MessageBodyFailureextendsRuntimeExceptionwithDecodeFailure"></a><a id="MessageBodyFailure:MessageBodyFailure"></a>
       <span class="permalink">
@@ -1643,22 +1630,6 @@ Response while most of the functionality is found in <a href="MessageOps.html" c
       </span>
       
       <p class="shortcomment cmt">Indicates a failure to handle an HTTP <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.</p>
-    </li><li name="org.http4s.MessageOps" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="MessageOps[F[_]]extendsAny"></a><a id="MessageOps[F[_]]:MessageOps[F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#MessageOps[F[_]]extendsAny" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="MessageOps.html"><span class="name">MessageOps</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.Method" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="MethodextendsRenderablewithMethod.SemanticswithProductwithSerializable"></a><a id="Method:Method"></a>
       <span class="permalink">
@@ -1879,9 +1850,9 @@ Usually used in conjunction with <a href="QueryParamEncoder.html" class="extype"
       
       
     </li><li name="org.http4s.Request" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="Request[F[_]]extendsMessage[F]withRequestOps[F]withProductwithSerializable"></a><a id="Request[F[_]]:Request[F]"></a>
+      <a id="Request[F[_]]extendsMessage[F]withProductwithSerializable"></a><a id="Request[F[_]]:Request[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#Request[F[_]]extendsMessage[F]withRequestOps[F]withProductwithSerializable" title="Permalink">
+      <a href="../../org/http4s/index.html#Request[F[_]]extendsMessage[F]withProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1890,7 +1861,7 @@ Usually used in conjunction with <a href="QueryParamEncoder.html" class="extype"
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Representation of an incoming HTTP message" href="Request.html"><span class="name">Request</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Request.F">F</span>] with <a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a>[<span class="extype" name="org.http4s.Request.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Representation of an incoming HTTP message" href="Request.html"><span class="name">Request</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Request.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Representation of an incoming HTTP message</p><div class="fullcomment"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
@@ -1928,26 +1899,10 @@ status line, headers, and a possible request body.
       </span>
       
       
-    </li><li name="org.http4s.RequestOps" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="RequestOps[F[_]]extendsAnywithMessageOps[F]"></a><a id="RequestOps[F[_]]:RequestOps[F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#RequestOps[F[_]]extendsAnywithMessageOps[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="RequestOps.html"><span class="name">RequestOps</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>[<span class="extype" name="org.http4s.RequestOps.F">F</span>]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.Response" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Response[F[_]]extendsMessage[F]withResponseOps[F]withProductwithSerializable"></a><a id="Response[F[_]]:Response[F]"></a>
+      <a id="Response[F[_]]extendsMessage[F]withProductwithSerializable"></a><a id="Response[F[_]]:Response[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#Response[F[_]]extendsMessage[F]withResponseOps[F]withProductwithSerializable" title="Permalink">
+      <a href="../../org/http4s/index.html#Response[F[_]]extendsMessage[F]withProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1956,7 +1911,7 @@ status line, headers, and a possible request body.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Representation of the HTTP response to send back to the client" href="Response.html"><span class="name">Response</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>] = <span class="symbol"><span class="name"><a href="#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Representation of the HTTP response to send back to the client" href="Response.html"><span class="name">Response</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>] = <span class="symbol"><span class="name"><a href="#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Representation of the HTTP response to send back to the client
@@ -1976,22 +1931,6 @@ status line, headers, and a possible request body.
       </span>
       <span class="symbol">
         <a title="" href="ResponseCookie.html"><span class="name">ResponseCookie</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>] = <span class="symbol">None</span></span>, <span name="domain">domain: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="extension">extension: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.ResponseOps" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ResponseOps[F[_]]extendsAnywithMessageOps[F]"></a><a id="ResponseOps[F[_]]:ResponseOps[F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#ResponseOps[F[_]]extendsAnywithMessageOps[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="ResponseOps.html"><span class="name">ResponseOps</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>[<span class="extype" name="org.http4s.ResponseOps.F">F</span>]</span>
       </span>
       
       
