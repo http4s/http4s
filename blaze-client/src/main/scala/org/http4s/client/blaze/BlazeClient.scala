@@ -63,11 +63,16 @@ object BlazeClient {
           // Add the timeout stage to the pipeline
           val res: F[Resource[F, Response[F]]] = {
 
-            val idleTimeoutF = F.cancelable[TimeoutException] { cb =>
-              val stage = new IdleTimeoutStage[ByteBuffer](idleTimeout, cb, scheduler, ec)
-              next.connection.spliceBefore(stage)
-              stage.stageStartup()
-              F.delay(stage.removeStage)
+            val idleTimeoutF = idleTimeout match {
+              case timeout: FiniteDuration =>
+                F.cancelable[TimeoutException] { cb =>
+                  val stage = new IdleTimeoutStage[ByteBuffer](timeout, cb, scheduler, ec)
+                  next.connection.spliceBefore(stage)
+                  stage.stageStartup()
+                  F.delay(stage.removeStage)
+                }
+              case _ =>
+                F.never[TimeoutException]
             }
 
             next.connection.runRequest(req, idleTimeoutF).attempt.flatMap {
