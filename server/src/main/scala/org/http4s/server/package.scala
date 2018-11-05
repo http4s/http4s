@@ -10,12 +10,25 @@ import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
+import java.net.{InetAddress, InetSocketAddress}
+
 package object server {
 
   object defaults {
+    val AsyncTimeout: Duration = 30.seconds
+    val Banner =
+      """|  _   _   _        _ _
+         | | |_| |_| |_ _ __| | | ___
+         | | ' \  _|  _| '_ \_  _(_-<
+         | |_||_\__|\__| .__/ |_|/__/
+         |             |_|""".stripMargin.split("\n").toList
+    val Host = InetAddress.getLoopbackAddress.getHostAddress
+    val HttpPort = 8080
+    val IdleTimeout: Duration = 30.seconds
 
     /** The time to wait for a graceful shutdown */
     val ShutdownTimeout: Duration = 30.seconds
+    val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
   }
 
   /**

@@ -10,23 +10,20 @@ import java.net.{InetAddress, InetSocketAddress}
 import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
-import scala.concurrent.duration._
 
-trait ServerBuilder[F[_]] {
-  import ServerBuilder._
-
+private[http4s] trait ServerBuilder[F[_]] {
   type Self <: ServerBuilder[F]
 
   protected implicit def F: Concurrent[F]
 
   def bindSocketAddress(socketAddress: InetSocketAddress): Self
 
-  final def bindHttp(port: Int = DefaultHttpPort, host: String = DefaultHost): Self =
+  final def bindHttp(port: Int = defaults.HttpPort, host: String = defaults.Host): Self =
     bindSocketAddress(InetSocketAddress.createUnresolved(host, port))
 
-  final def bindLocal(port: Int): Self = bindHttp(port, DefaultHost)
+  final def bindLocal(port: Int): Self = bindHttp(port, defaults.Host)
 
-  final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
+  final def bindAny(host: String = defaults.Host): Self = bindHttp(0, host)
 
   /** Sets the handler for errors thrown invoking the service.  Is not
     * guaranteed to be invoked on errors on the server backend, such as
@@ -74,31 +71,26 @@ trait ServerBuilder[F[_]] {
 }
 
 object ServerBuilder {
-  // Defaults for core server builder functionality
+  @deprecated("Use InetAddress.getLoopbackAddress.getHostAddress", "0.20.0-M2")
   val LoopbackAddress = InetAddress.getLoopbackAddress.getHostAddress
-  val DefaultHost = LoopbackAddress
-  val DefaultHttpPort = 8080
-  val DefaultSocketAddress = InetSocketAddress.createUnresolved(DefaultHost, DefaultHttpPort)
-  val DefaultBanner =
-    """|  _   _   _        _ _     
-       | | |_| |_| |_ _ __| | | ___
-       | | ' \  _|  _| '_ \_  _(_-<
-       | |_||_\__|\__| .__/ |_|/__/
-       |             |_|""".stripMargin.split("\n").toList
+  @deprecated("Use org.http4s.server.defaults.Host", "0.20.0-M2")
+  val DefaultHost = defaults.Host
+  @deprecated("Use org.http4s.server.defaults.HttpPort", "0.20.0-M2")
+  val DefaultHttpPort = defaults.HttpPort
+  @deprecated("Use org.http4s.server.defaults.SocketAddress", "0.20.0-M2")
+  val DefaultSocketAddress = defaults.SocketAddress
+  @deprecated("Use org.http4s.server.defaults.Banner", "0.20.0-M2")
+  val DefaultBanner = defaults.Banner
 }
 
-trait IdleTimeoutSupport[F[_]] { this: ServerBuilder[F] =>
-  def withIdleTimeout(idleTimeout: Duration): Self
-}
 object IdleTimeoutSupport {
-  val DefaultIdleTimeout = 30.seconds
+  @deprecated("Moved to org.http4s.server.defaults.IdleTimeout", "0.20.0-M2")
+  val DefaultIdleTimeout = defaults.IdleTimeout
 }
 
-trait AsyncTimeoutSupport[F[_]] { this: ServerBuilder[F] =>
-  def withAsyncTimeout(asyncTimeout: Duration): Self
-}
 object AsyncTimeoutSupport {
-  val DefaultAsyncTimeout = 30.seconds
+  @deprecated("Moved to org.http4s.server.defaults.AsyncTimeout", "0.20.0-M2")
+  val DefaultAsyncTimeout = defaults.AsyncTimeout
 }
 
 sealed trait SSLConfig
@@ -113,38 +105,6 @@ final case class KeyStoreBits(
 
 final case class SSLContextBits(sslContext: SSLContext, clientAuth: Boolean) extends SSLConfig
 
-trait SSLKeyStoreSupport[F[_]] { this: ServerBuilder[F] =>
-  def withSSL(
-      keyStore: StoreInfo,
-      keyManagerPassword: String,
-      protocol: String = "TLS",
-      trustStore: Option[StoreInfo] = None,
-      clientAuth: Boolean = false): Self
-}
 object SSLKeyStoreSupport {
   final case class StoreInfo(path: String, password: String)
-}
-
-trait SSLContextSupport[F[_]] { this: ServerBuilder[F] =>
-  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self
-}
-
-/*
-trait MetricsSupport { this: ServerBuilder =>
-  /**
- * Triggers collection of backend-specific Metrics into the specified `MetricRegistry`.
- */
-  def withMetricRegistry(metricRegistry: MetricRegistry): Self
-
-  /** Sets the prefix for metrics gathered by the server.*/
-  def withMetricPrefix(metricPrefix: String): Self
-}
-object MetricsSupport {
-  val DefaultPrefix = "org.http4s.server"
-}
- */
-
-trait WebSocketSupport[F[_]] { this: ServerBuilder[F] =>
-  /* Enable websocket support */
-  def withWebSockets(enableWebsockets: Boolean): Self
 }
