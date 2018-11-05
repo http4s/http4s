@@ -132,7 +132,7 @@ sealed trait Message[F[_]] { self =>
 
   /**
     * The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
-    * F might not complete unless the entire body has been consumed.
+    * F might not complete until the entire body has been consumed.
     */
   def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
     attributes.get(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
@@ -149,24 +149,23 @@ sealed trait Message[F[_]] { self =>
   final def withoutContentType: Self =
     filterHeaders(_.isNot(`Content-Type`))
 
-  @deprecated("Use Option.fold instead", "0.20.0-M2")
   final def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
     contentTypeO.fold(withoutContentType)(withContentType)
 
-  lazy val contentType: Option[`Content-Type`] =
+  final def contentType: Option[`Content-Type`] =
     headers.get(`Content-Type`)
 
-  lazy val contentLength: Option[Long] =
+  final def contentLength: Option[Long] =
     headers.get(`Content-Length`).map(_.length)
 
   /** Returns the charset parameter of the `Content-Type` header, if present.
     * Does not introspect the body for media types that define a charset
     * internally.
     */
-  lazy val charset: Option[Charset] =
+  final def charset: Option[Charset] =
     contentType.flatMap(_.charset)
 
-  lazy val isChunked: Boolean =
+  final def isChunked: Boolean =
     headers.get(`Transfer-Encoding`).exists(_.values.contains_(TransferCoding.chunked))
 
   // Attribute methods
@@ -310,9 +309,9 @@ sealed abstract case class Request[F[_]](
   def withPathInfo(pi: String): Self =
     withUri(uri.withPath(scriptName + pi))
 
-  lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
+  final def pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
-  lazy val queryString: String = uri.query.renderString
+  final def queryString: String = uri.query.renderString
 
   /**
     * Representation of the query string as a map
@@ -334,7 +333,7 @@ sealed abstract case class Request[F[_]](
     * The query string is lazily parsed. If an error occurs during parsing
     * an empty `Map` is returned.
     */
-  lazy val multiParams: Map[String, Seq[String]] = uri.multiParams
+  final def multiParams: Map[String, Seq[String]] = uri.multiParams
 
   /** View of the head elements of the URI parameters in query string.
     *
@@ -342,7 +341,7 @@ sealed abstract case class Request[F[_]](
     *
     * @see multiParams
     */
-  lazy val params: Map[String, String] = uri.params
+  final def params: Map[String, String] = uri.params
 
   /** Add a Cookie header for the provided [[Cookie]] */
   final def addCookie(cookie: RequestCookie): Self =
@@ -352,36 +351,36 @@ sealed abstract case class Request[F[_]](
   final def addCookie(name: String, content: String): Self =
     addCookie(RequestCookie(name, content))
 
-  lazy val authType: Option[AuthScheme] =
+  final def authType: Option[AuthScheme] =
     headers.get(Authorization).map(_.credentials.authScheme)
 
-  private lazy val connectionInfo: Option[Connection] = attributes.get(Keys.ConnectionInfo)
+  private final def connectionInfo: Option[Connection] = attributes.get(Keys.ConnectionInfo)
 
-  lazy val remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
+  final def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
 
   /**
     *Returns the the X-Forwarded-For value if present, else the remote address.
     */
-  lazy val from: Option[InetAddress] =
+  final def from: Option[InetAddress] =
     headers
       .get(`X-Forwarded-For`)
       .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
 
-  lazy val remoteAddr: Option[String] = remote.map(_.getHostString)
-  lazy val remoteHost: Option[String] = remote.map(_.getHostName)
-  lazy val remotePort: Option[Int] = remote.map(_.getPort)
+  final def remoteAddr: Option[String] = remote.map(_.getHostString)
+  final def remoteHost: Option[String] = remote.map(_.getHostName)
+  final def remotePort: Option[Int] = remote.map(_.getPort)
 
-  lazy val remoteUser: Option[String] = None
+  final def remoteUser: Option[String] = None
 
-  lazy val server: Option[InetSocketAddress] = connectionInfo.map(_.local)
-  lazy val serverAddr: String =
+  final def server: Option[InetSocketAddress] = connectionInfo.map(_.local)
+  final def serverAddr: String =
     server
       .map(_.getHostString)
       .orElse(uri.host.map(_.value))
       .orElse(headers.get(Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
 
-  lazy val serverPort: Int =
+  final def serverPort: Int =
     server
       .map(_.getPort)
       .orElse(uri.port)
@@ -389,9 +388,9 @@ sealed abstract case class Request[F[_]](
       .getOrElse(80) // scalastyle:ignore
 
   /** Whether the Request was received over a secure medium */
-  lazy val isSecure: Option[Boolean] = connectionInfo.map(_.secure)
+  final def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
 
-  lazy val serverSoftware: ServerSoftware =
+  final def serverSoftware: ServerSoftware =
     attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
