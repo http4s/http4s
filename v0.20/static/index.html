@@ -148,7 +148,7 @@ val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, blockingEc, request)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$73459/1751861611@3794723e)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$75712/1198740299@78463c3f)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -186,7 +186,7 @@ val webjars: HttpRoutes[IO] = webjarService(
     blockingExecutionContext = blockingEc
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$73529/1161867127@64f87450)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$75782/1791845840@16641b25)
 </code></pre>
 
 <pre><code class="language-scala">blockingEc.shutdown()
@@ -200,6 +200,10 @@ val webjars: HttpRoutes[IO] = webjarService(
             
             <li class="nav-item">
 	      <a class="nav-link" href="/v0.20/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.20/upgrading/">Upgrading from 0.18</a>
             </li>
             
             <li class="nav-item">

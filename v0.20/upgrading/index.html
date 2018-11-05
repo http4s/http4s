@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>http4s | GZip Compression</title>
+  <title>http4s | Upgrading from 0.18</title>
 
   <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.20/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.20/css/font-awesome.min.css" >  
@@ -67,7 +67,7 @@
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
           
-<a href="https://github.com/http4s/http4s/edit/release-0.20.x/docs/src/main/tut/gzip.md" class="btn btn-secondary btn-sm">
+<a href="https://github.com/http4s/http4s/edit/release-0.20.x/docs/src/main/tut/upgrading.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -79,102 +79,38 @@
           </span>
 
           
-          <h1>GZip Compression</h1>
+          <h1>Upgrading from 0.18</h1>
           
           
-          <p>Http4s provides <a href="../middleware">Middleware</a>, named <code>GZip</code>, for allowing for the compression of the <code>Response</code>
-body using GZip.</p>
+          
 
-<p>Examples in this document have the following dependencies.</p>
+<h2 id="automated-upgrading-with-scalafix">Automated upgrading with scalafix</h2>
 
-<pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
-  &quot;org.http4s&quot; %% &quot;http4s-server&quot; % http4sVersion
-)
-</code></pre>
+<p>Http4s 0.20 comes with a <a href="https://scalacenter.github.io/scalafix/">scalafix</a> that does some of the migration automatically.</p>
 
-<p>And we need some imports.</p>
+<p>Before you upgrade manually, we recommend you run this scalafix.</p>
 
-<pre><code class="language-scala">import cats.effect._
-import org.http4s._
-import org.http4s.dsl.io._
-import org.http4s.implicits._
-</code></pre>
+<ol>
+<li>Make sure your scala version is &gt;= <code>2.11.12</code> or <code>2.12.7</code></li>
+<li>Add the scalafix plugin to your <code>project/plugins.sbt</code>
+<code>scala
+addSbtPlugin(&quot;ch.epfl.scala&quot; % &quot;sbt-scalafix&quot; % &quot;0.9.0&quot;)
+</code></li>
+<li>Add this line to your <code>build.sbt</code> and upgrade the http4s version to the latest 0.20 release.
+<code>scala
+scalafixDependencies in ThisBuild += &quot;org.http4s&quot; %% &quot;http4s-scalafix&quot; % http4s020Version
+</code></li>
+<li>Run
+<code>sh
+$ sbt &quot;;scalafixEnable; scalafix Http4s018To020&quot;
+</code></li>
+</ol>
 
-<p>Let&rsquo;s start by making a simple service that returns a (relatively) large string
-in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
+<p>Once you have applied it, you can remove the imports and try to compile your code.</p>
 
-<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
-  case _ =&gt;
-    Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
-}
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$67417/404972210@3131091d)
+<p>The compiler errors should help you in showing what&rsquo;s left to upgrade.</p>
 
-val request = Request[IO](Method.GET, Uri.uri(&quot;/&quot;))
-// request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
-
-// Do not call 'unsafeRun' in your code - see note at bottom.
-val response = service.orNotFound(request).unsafeRunSync
-// response: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117))
-
-val body = response.as[String].unsafeRunSync
-// body: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
-
-body.length
-// res1: Int = 117
-</code></pre>
-
-<p>Now we can wrap the service in the <code>GZip</code> middleware.</p>
-
-<pre><code class="language-scala">import org.http4s.server.middleware._
-// import org.http4s.server.middleware._
-
-val zipService = GZip(service)
-// zipService: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$67710/1281297052@3eb9f6ab)
-
-// Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(request).unsafeRunSync
-// response: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117))
-
-val body = response.as[String].unsafeRunSync
-// body: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
-
-body.length
-// res3: Int = 117
-</code></pre>
-
-<p>So far, there was no change. That&rsquo;s because the caller needs to inform us that
-they will accept GZipped responses via an <code>Accept-Encoding</code> header. Acceptable
-values for the <code>Accept-Encoding</code> header are <strong>&ldquo;gzip&rdquo;</strong>, <strong>&ldquo;x-gzip&rdquo;</strong>, and <strong>&ldquo;*&rdquo;</strong>.</p>
-
-<pre><code class="language-scala">val acceptHeader = Header(&quot;Accept-Encoding&quot;, &quot;gzip&quot;)
-// acceptHeader: org.http4s.Header.Raw = Accept-Encoding: gzip
-
-val zipRequest = request.putHeaders(acceptHeader)
-// zipRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Accept-Encoding: gzip))
-
-// Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(zipRequest).unsafeRunSync
-// response: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip))
-
-val body = response.as[String].unsafeRunSync
-// body: String = &quot; �????????�T(J-HM,Qȭ,N�IS(�H�S�T�U(�KI-R(.)J-.�S�2?UX�&lt;u???&quot;
-
-body.length
-// res5: Int = 59
-</code></pre>
-
-<p>Notice how the response no longer looks very String-like and it&rsquo;s shorter in
-length. Also, there is a <code>Content-Encoding</code> header in the response with a value
-of <strong>&ldquo;gzip&rdquo;</strong>.</p>
-
-<p>As described in <a href="../middleware">Middleware</a>, services and middleware can be composed such
-that only some of your endpoints are GZip enabled.</p>
-
-<p><strong>NOTE:</strong> In this documentation, we are calling <code>unsafeRunSync</code> to extract values out
-of a service or middleware code. You can work with values while keeping them inside the
-<code>F</code> using <code>map</code>, <code>flatMap</code> and/or <code>for</code>. Remember, your service returns an
-<code>F[Response]</code>.</p>
+<p>For further information about the changes from 0.18, check the <a href="https://http4s.org/changelog/">changelog</a></p>
 
         </div>
 
@@ -187,7 +123,7 @@ of a service or middleware code. You can work with values while keeping them ins
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link" href="/v0.20/upgrading/">Upgrading from 0.18</a>
+	      <a class="nav-link active" href="/v0.20/upgrading/">Upgrading from 0.18</a>
             </li>
             
             <li class="nav-item">
@@ -211,7 +147,7 @@ of a service or middleware code. You can work with values while keeping them ins
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link active" href="/v0.20/gzip/">GZip Compression</a>
+	      <a class="nav-link" href="/v0.20/gzip/">GZip Compression</a>
             </li>
             
             <li class="nav-item">
