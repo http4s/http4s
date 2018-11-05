@@ -83,7 +83,7 @@ sealed trait Message[F[_]] { self =>
   def withEmptyBody: Self =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
 
-  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
+  def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
     charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
@@ -102,32 +102,32 @@ sealed trait Message[F[_]] { self =>
     * @param f predicate
     * @return a new message object which has only headers that satisfy the predicate
     */
-  final def filterHeaders(f: Header => Boolean): Self =
+  def filterHeaders(f: Header => Boolean): Self =
     transformHeaders(_.filter(f))
 
-  final def removeHeader(key: HeaderKey): Self =
+  def removeHeader(key: HeaderKey): Self =
     filterHeaders(_.isNot(key))
 
   /** Add the provided headers to the existing headers, replacing those of the same header name
     * The passed headers are assumed to contain no duplicate Singleton headers.
     */
-  final def putHeaders(headers: Header*): Self =
+  def putHeaders(headers: Header*): Self =
     transformHeaders(_.put(headers: _*))
 
   /** Replace the existing headers with those provided */
   @deprecated("Use withHeaders instead", "0.20.0-M2")
-  final def replaceAllHeaders(headers: Headers): Self =
+  def replaceAllHeaders(headers: Headers): Self =
     withHeaders(headers)
 
   /** Replace the existing headers with those provided */
   @deprecated("Use withHeaders instead", "0.20.0-M2")
-  final def replaceAllHeaders(headers: Header*): Self =
+  def replaceAllHeaders(headers: Header*): Self =
     withHeaders(headers: _*)
 
-  final def withTrailerHeaders(trailerHeaders: F[Headers]): Self =
+  def withTrailerHeaders(trailerHeaders: F[Headers]): Self =
     withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
 
-  final def withoutTrailerHeaders: Self =
+  def withoutTrailerHeaders: Self =
     withoutAttribute(Message.Keys.TrailerHeaders[F])
 
   /**
@@ -140,32 +140,32 @@ sealed trait Message[F[_]] { self =>
   // Specific header methods
 
   @deprecated("Use withContentType(`Content-Type`(t)) instead", "0.20.0-M2")
-  final def withType(t: MediaType)(implicit F: Functor[F]): Self =
+  def withType(t: MediaType)(implicit F: Functor[F]): Self =
     withContentType(`Content-Type`(t))
 
-  final def withContentType(contentType: `Content-Type`): Self =
+  def withContentType(contentType: `Content-Type`): Self =
     putHeaders(contentType)
 
-  final def withoutContentType: Self =
+  def withoutContentType: Self =
     filterHeaders(_.isNot(`Content-Type`))
 
-  final def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
+  def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
     contentTypeO.fold(withoutContentType)(withContentType)
 
-  final def contentType: Option[`Content-Type`] =
+  def contentType: Option[`Content-Type`] =
     headers.get(`Content-Type`)
 
-  final def contentLength: Option[Long] =
+  def contentLength: Option[Long] =
     headers.get(`Content-Length`).map(_.length)
 
   /** Returns the charset parameter of the `Content-Type` header, if present.
     * Does not introspect the body for media types that define a charset
     * internally.
     */
-  final def charset: Option[Charset] =
+  def charset: Option[Charset] =
     contentType.flatMap(_.charset)
 
-  final def isChunked: Boolean =
+  def isChunked: Boolean =
     headers.get(`Transfer-Encoding`).exists(_.values.contains_(TransferCoding.chunked))
 
   // Attribute methods
@@ -217,7 +217,7 @@ sealed trait Message[F[_]] { self =>
     * @tparam T type of the result
     * @return the effect which will generate the T
     */
-  final def as[T](implicit F: Functor[F], decoder: EntityDecoder[F, T]): F[T] =
+  def as[T](implicit F: Functor[F], decoder: EntityDecoder[F, T]): F[T] =
     attemptAs.fold(throw _, identity)
 
 }
@@ -309,9 +309,9 @@ sealed abstract case class Request[F[_]](
   def withPathInfo(pi: String): Self =
     withUri(uri.withPath(scriptName + pi))
 
-  final def pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
+  def pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
-  final def queryString: String = uri.query.renderString
+  def queryString: String = uri.query.renderString
 
   /**
     * Representation of the query string as a map
@@ -333,7 +333,7 @@ sealed abstract case class Request[F[_]](
     * The query string is lazily parsed. If an error occurs during parsing
     * an empty `Map` is returned.
     */
-  final def multiParams: Map[String, Seq[String]] = uri.multiParams
+  def multiParams: Map[String, Seq[String]] = uri.multiParams
 
   /** View of the head elements of the URI parameters in query string.
     *
@@ -341,46 +341,46 @@ sealed abstract case class Request[F[_]](
     *
     * @see multiParams
     */
-  final def params: Map[String, String] = uri.params
+  def params: Map[String, String] = uri.params
 
   /** Add a Cookie header for the provided [[Cookie]] */
-  final def addCookie(cookie: RequestCookie): Self =
+  def addCookie(cookie: RequestCookie): Self =
     putHeaders(Cookie(NonEmptyList.of(cookie)))
 
   /** Add a Cookie header with the provided values */
-  final def addCookie(name: String, content: String): Self =
+  def addCookie(name: String, content: String): Self =
     addCookie(RequestCookie(name, content))
 
-  final def authType: Option[AuthScheme] =
+  def authType: Option[AuthScheme] =
     headers.get(Authorization).map(_.credentials.authScheme)
 
-  private final def connectionInfo: Option[Connection] = attributes.get(Keys.ConnectionInfo)
+  private def connectionInfo: Option[Connection] = attributes.get(Keys.ConnectionInfo)
 
-  final def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
+  def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
 
   /**
     *Returns the the X-Forwarded-For value if present, else the remote address.
     */
-  final def from: Option[InetAddress] =
+  def from: Option[InetAddress] =
     headers
       .get(`X-Forwarded-For`)
       .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
 
-  final def remoteAddr: Option[String] = remote.map(_.getHostString)
-  final def remoteHost: Option[String] = remote.map(_.getHostName)
-  final def remotePort: Option[Int] = remote.map(_.getPort)
+  def remoteAddr: Option[String] = remote.map(_.getHostString)
+  def remoteHost: Option[String] = remote.map(_.getHostName)
+  def remotePort: Option[Int] = remote.map(_.getPort)
 
-  final def remoteUser: Option[String] = None
+  def remoteUser: Option[String] = None
 
-  final def server: Option[InetSocketAddress] = connectionInfo.map(_.local)
-  final def serverAddr: String =
+  def server: Option[InetSocketAddress] = connectionInfo.map(_.local)
+  def serverAddr: String =
     server
       .map(_.getHostString)
       .orElse(uri.host.map(_.value))
       .orElse(headers.get(Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
 
-  final def serverPort: Int =
+  def serverPort: Int =
     server
       .map(_.getPort)
       .orElse(uri.port)
@@ -388,9 +388,9 @@ sealed abstract case class Request[F[_]](
       .getOrElse(80) // scalastyle:ignore
 
   /** Whether the Request was received over a secure medium */
-  final def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
+  def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
 
-  final def serverSoftware: ServerSoftware =
+  def serverSoftware: ServerSoftware =
     attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
@@ -402,7 +402,7 @@ sealed abstract case class Request[F[_]](
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
     * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
     */
-  final def decode[A](
+  def decode[A](
       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
     decodeWith(decoder, strict = false)(f)
 
@@ -412,7 +412,7 @@ sealed abstract case class Request[F[_]](
     * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
     * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
-  final def decodeStrict[A](
+  def decodeStrict[A](
       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
     decodeWith(decoder, strict = true)(f)
 
