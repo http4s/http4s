@@ -150,7 +150,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$60395/1253192178@b7d4659)
+// helloWorldService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$59499/1235918291@923603)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -188,7 +188,7 @@ val tweetService = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$60395/1253192178@9efbd68)
+// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$59499/1235918291@19b23cdd)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -220,13 +220,13 @@ import org.http4s.server.Router
 // import org.http4s.server.Router
 
 val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$60596/697554831@3f87846)
+// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$59700/2088241062@45cef499)
 
 val httpApp = Router(&quot;/&quot; -&gt; helloWorldService, &quot;/api&quot; -&gt; services).orNotFound
-// httpApp: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.syntax.KleisliResponseOps$$Lambda$60607/1484766565@702890ac)
+// httpApp: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.syntax.KleisliResponseOps$$Lambda$59711/953956629@5cb64e4b)
 
 val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, &quot;localhost&quot;).withHttpApp(httpApp)
-// serverBuilder: org.http4s.server.blaze.BlazeServerBuilder[cats.effect.IO] = org.http4s.server.blaze.BlazeServerBuilder@22970345
+// serverBuilder: org.http4s.server.blaze.BlazeServerBuilder[cats.effect.IO] = org.http4s.server.blaze.BlazeServerBuilder@5c4152f1
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -236,7 +236,7 @@ associates a base path with a <code>HttpRoutes</code>.</p>
 <p>We start a server resource in the background.  The server will run until we cancel the fiber:</p>
 
 <pre><code class="language-scala">val fiber = serverBuilder.resource.use(_ =&gt; IO.never).start.unsafeRunSync()
-// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$901193724,IO$1805652916)
+// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$1459015491,IO$1024997595)
 </code></pre>
 
 <p>Use curl, or your favorite HTTP client, to see your service in action:</p>
