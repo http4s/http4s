@@ -52,7 +52,7 @@ class ResponderSpec extends Specification {
         resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       (wHeader.headers.toList must have).length(3)
 
-      val newHeaders = wHeader.replaceAllHeaders(Date(HttpDate.now))
+      val newHeaders = wHeader.withHeaders(Date(HttpDate.now))
       (newHeaders.headers.toList must have).length(1)
       newHeaders.headers.get(Connection) must beNone
     }
@@ -62,7 +62,7 @@ class ResponderSpec extends Specification {
         resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       (wHeader.headers.toList must have).length(3)
 
-      val newHeaders = wHeader.replaceAllHeaders(Headers(Date(HttpDate.now)))
+      val newHeaders = wHeader.withHeaders(Headers(Date(HttpDate.now)))
       (newHeaders.headers.toList must have).length(1)
       newHeaders.headers.get(Connection) must beNone
     }
