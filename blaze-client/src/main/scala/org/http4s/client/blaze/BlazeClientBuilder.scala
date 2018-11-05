@@ -5,11 +5,10 @@ package blaze
 import cats.effect._
 import cats.implicits._
 import fs2.Stream
-import java.net.{SocketOption, StandardSocketOptions}
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
-import org.http4s.blaze.channel.{ChannelOptions, OptionValue}
-import org.http4s.blazecore.tickWheelResource
+import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.internal.allocated
 import scala.concurrent.ExecutionContext
@@ -33,7 +32,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val executionContext: ExecutionContext,
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions
-) {
+) extends BlazeBackendBuilder[Client[F]] {
+  type Self = BlazeClientBuilder[F]
+
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
       idleTimeout: Duration = idleTimeout,
@@ -136,53 +137,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
-  def channelOption[A](socketOption: SocketOption[A]) =
-    channelOptions.options.collectFirst {
-      case OptionValue(key, value) if key == socketOption =>
-        value.asInstanceOf[A]
-    }
   def withChannelOptions(channelOptions: ChannelOptions): BlazeClientBuilder[F] =
     copy(channelOptions = channelOptions)
-  def withChannelOption[A](key: SocketOption[A], value: A): BlazeClientBuilder[F] =
-    withChannelOptions(
-      ChannelOptions(channelOptions.options.filterNot(_.key == key) :+ OptionValue(key, value)))
-  def withDefaultChannelOption[A](key: SocketOption[A]): BlazeClientBuilder[F] =
-    withChannelOptions(ChannelOptions(channelOptions.options.filterNot(_.key == key)))
-
-  def socketSendBufferSize: Option[Int] =
-    channelOption(StandardSocketOptions.SO_SNDBUF).map(Int.unbox)
-  def withSocketSendBufferSize(socketSendBufferSize: Int): BlazeClientBuilder[F] =
-    withChannelOption(StandardSocketOptions.SO_SNDBUF, Int.box(socketSendBufferSize))
-  def withDefaultSocketSendBufferSize: BlazeClientBuilder[F] =
-    withDefaultChannelOption(StandardSocketOptions.SO_SNDBUF)
-
-  def socketReceiveBufferSize: Option[Int] =
-    channelOption(StandardSocketOptions.SO_RCVBUF).map(Int.unbox)
-  def withSocketReceiveBufferSize(socketReceiveBufferSize: Int): BlazeClientBuilder[F] =
-    withChannelOption(StandardSocketOptions.SO_RCVBUF, Int.box(socketReceiveBufferSize))
-  def withDefaultSocketReceiveBufferSize: BlazeClientBuilder[F] =
-    withDefaultChannelOption(StandardSocketOptions.SO_RCVBUF)
-
-  def socketKeepAlive: Option[Boolean] =
-    channelOption(StandardSocketOptions.SO_KEEPALIVE).map(Boolean.unbox)
-  def withSocketKeepAlive(socketKeepAlive: Boolean): BlazeClientBuilder[F] =
-    withChannelOption(StandardSocketOptions.SO_KEEPALIVE, Boolean.box(socketKeepAlive))
-  def withDefaultSocketKeepAlive: BlazeClientBuilder[F] =
-    withDefaultChannelOption(StandardSocketOptions.SO_KEEPALIVE)
-
-  def socketReuseAddress: Option[Boolean] =
-    channelOption(StandardSocketOptions.SO_REUSEADDR).map(Boolean.unbox)
-  def withSocketReuseAddress(socketReuseAddress: Boolean): BlazeClientBuilder[F] =
-    withChannelOption(StandardSocketOptions.SO_REUSEADDR, Boolean.box(socketReuseAddress))
-  def withDefaultSocketReuseAddress: BlazeClientBuilder[F] =
-    withDefaultChannelOption(StandardSocketOptions.SO_REUSEADDR)
-
-  def tcpNoDelay: Option[Boolean] =
-    channelOption(StandardSocketOptions.TCP_NODELAY).map(Boolean.unbox)
-  def withTcpNoDelay(tcpNoDelay: Boolean): BlazeClientBuilder[F] =
-    withChannelOption(StandardSocketOptions.TCP_NODELAY, Boolean.box(tcpNoDelay))
-  def withDefaultTcpNoDelay: BlazeClientBuilder[F] =
-    withDefaultChannelOption(StandardSocketOptions.TCP_NODELAY)
 
   def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
     allocated(resource)

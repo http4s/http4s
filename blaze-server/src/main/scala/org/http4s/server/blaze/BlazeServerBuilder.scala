@@ -12,13 +12,14 @@ import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
-import org.http4s.blaze.channel
-import org.http4s.blaze.channel.SocketConnection
+import org.http4s.blaze.channel.{ChannelOptions, DefaultPoolSize, SocketConnection}
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
+import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
+import org.http4s.blazecore.BlazeBackendBuilder
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.log4s.getLogger
 import scala.collection.immutable
@@ -72,9 +73,11 @@ class BlazeServerBuilder[F[_]](
     maxHeadersLen: Int,
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    val channelOptions: ChannelOptions
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
+    with BlazeBackendBuilder[Server[F]]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
     with SSLContextSupport[F]
@@ -98,7 +101,8 @@ class BlazeServerBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen,
       httpApp: HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
-      banner: immutable.Seq[String] = banner
+      banner: immutable.Seq[String] = banner,
+      channelOptions: ChannelOptions = channelOptions
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
@@ -115,7 +119,8 @@ class BlazeServerBuilder[F[_]](
       maxHeadersLen,
       httpApp,
       serviceErrorHandler,
-      banner
+      banner,
+      channelOptions
     )
 
   /** Configure HTTP parser length limits
@@ -174,6 +179,9 @@ class BlazeServerBuilder[F[_]](
 
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
+
+  def withChannelOptions(channelOptions: ChannelOptions): BlazeServerBuilder[F] =
+    copy(channelOptions = channelOptions)
 
   def resource: Resource[F, Server[F]] =
     Resource(F.delay {
@@ -253,9 +261,9 @@ class BlazeServerBuilder[F[_]](
 
       val factory =
         if (isNio2)
-          NIO2SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
+          NIO2SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize, channelOptions)
         else
-          NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
+          NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize, channelOptions)
 
       val address = resolveAddress(socketAddress)
 
@@ -332,7 +340,7 @@ object BlazeServerBuilder {
       responseHeaderTimeout = 1.minute,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
       isNio2 = false,
-      connectorPoolSize = channel.DefaultPoolSize,
+      connectorPoolSize = DefaultPoolSize,
       bufferSize = 64 * 1024,
       enableWebSockets = true,
       sslBits = None,
@@ -341,7 +349,8 @@ object BlazeServerBuilder {
       maxHeadersLen = 40 * 1024,
       httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
-      banner = ServerBuilder.DefaultBanner
+      banner = ServerBuilder.DefaultBanner,
+      channelOptions = ChannelOptions(Vector.empty)
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =
