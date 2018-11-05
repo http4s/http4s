@@ -14,10 +14,11 @@ import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
-import org.http4s.syntax.all._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
+import org.http4s.blazecore.tickWheelResource
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.syntax.all._
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -175,7 +176,7 @@ class BlazeBuilder[F[_]](
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  def resource: Resource[F, Server[F]] =
+  def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
     Resource(F.delay {
       val aggregateService: HttpApp[F] =
         Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
@@ -210,7 +211,9 @@ class BlazeBuilder[F[_]](
               maxRequestLineLen,
               maxHeadersLen,
               serviceErrorHandler,
-              Duration.Inf
+              Duration.Inf,
+              idleTimeout,
+              scheduler
             )
 
           def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -222,7 +225,9 @@ class BlazeBuilder[F[_]](
               requestAttributes(secure = true),
               executionContext,
               serviceErrorHandler,
-              Duration.Inf
+              Duration.Inf,
+              idleTimeout,
+              scheduler
             )
 
           def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
@@ -289,6 +294,7 @@ class BlazeBuilder[F[_]](
 
       server -> shutdown
     })
+  }
 
   private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
     case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>

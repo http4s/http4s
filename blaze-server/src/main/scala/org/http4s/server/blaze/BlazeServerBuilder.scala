@@ -18,7 +18,8 @@ import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
+import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blazecore.tickWheelResource
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.log4s.getLogger
 import scala.collection.immutable
@@ -175,7 +176,7 @@ class BlazeServerBuilder[F[_]](
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  def resource: Resource[F, Server[F]] =
+  def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
     Resource(F.delay {
 
       def resolveAddress(address: InetSocketAddress) =
@@ -208,7 +209,9 @@ class BlazeServerBuilder[F[_]](
               maxRequestLineLen,
               maxHeadersLen,
               serviceErrorHandler,
-              responseHeaderTimeout
+              responseHeaderTimeout,
+              idleTimeout,
+              scheduler
             )
 
           def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -220,12 +223,10 @@ class BlazeServerBuilder[F[_]](
               requestAttributes(secure = true),
               executionContext,
               serviceErrorHandler,
-              responseHeaderTimeout
+              responseHeaderTimeout,
+              idleTimeout,
+              scheduler
             )
-
-          def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
-            if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
-            else lb
 
           Future.successful {
             getContext() match {
@@ -234,19 +235,15 @@ class BlazeServerBuilder[F[_]](
                 engine.setUseClientMode(false)
                 engine.setNeedClientAuth(clientAuth)
 
-                var lb = LeafBuilder(
+                LeafBuilder(
                   if (isHttp2Enabled) http2Stage(engine)
                   else http1Stage(secure = true)
-                )
-                lb = prependIdleTimeout(lb)
-                lb.prepend(new SSLStage(engine))
+                ).prepend(new SSLStage(engine))
 
               case None =>
                 if (isHttp2Enabled)
                   logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-                var lb = LeafBuilder(http1Stage(secure = false))
-                lb = prependIdleTimeout(lb)
-                lb
+                LeafBuilder(http1Stage(secure = false))
             }
           }
       }
@@ -287,6 +284,7 @@ class BlazeServerBuilder[F[_]](
 
       server -> shutdown
     })
+  }
 
   private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
     case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>

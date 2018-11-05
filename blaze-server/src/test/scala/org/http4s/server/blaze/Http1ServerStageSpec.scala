@@ -9,14 +9,20 @@ import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H, _}
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.Command.Connected
+import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
+import org.specs2.specification.AfterAll
 import org.specs2.specification.core.Fragment
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class Http1ServerStageSpec extends Http4sSpec {
+class Http1ServerStageSpec extends Http4sSpec with AfterAll {
+  val tickWheel = new TickWheelExecutor()
+
+  def afterAll = tickWheel.shutdown()
+
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
     val a = new Array[Byte](b.remaining())
@@ -47,7 +53,10 @@ class Http1ServerStageSpec extends Http4sSpec {
       maxReqLine,
       maxHeaders,
       DefaultServiceErrorHandler,
-      30.seconds)
+      30.seconds,
+      30.seconds,
+      tickWheel
+    )
 
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Connected)
