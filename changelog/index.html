@@ -87,13 +87,7 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v0-20-0-snapshot">v0.20.0-SNAPSHOT</h1>
-
-<h2 id="bug-fixes">Bug fixes</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
-</ul>
+<h1 id="v0-20-0-m2-2018-11-05">v0.20.0-M2 (2018-11-05)</h1>
 
 <h2 id="breaking-changes">Breaking changes</h2>
 
@@ -107,6 +101,25 @@ it.</p>
 <li><code>Http4sDsl</code> no longer mixes in <code>UriFunctions</code></li>
 <li><code>EntityEncoderInstances</code> and <code>EntityDecoderInstances</code> are removed. The instances moved to the companion objects.</li>
 </ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/2243">#2243</a>: Cleanup <code>ServerBuilder</code> defaults and traits
+
+<ul>
+<li>Make <code>ServerBuilder</code> private.  The public server builders (e.g., <code>BlazeServerBuilder</code>) remain, but they no longer implement a public interface.</li>
+<li>Remove <code>IdleTimeoutSupport</code>, <code>AsyncTimeout</code>, <code>SSLKeyStoreSupport</code>, <code>SSLContextSupport</code>, and <code>WebSocketSupport</code> traits. The properties remain on the public server builders.</li>
+<li>Deprecated defaults on those support companion objects, in favor of <code>org.http4s.server.defaults</code>.</li>
+</ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/2063">#2063</a>: Cancel request whenever a blaze server connection is shutdown.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2234">#2234</a>: Clean up <code>Message</code> trait
+
+<ul>
+<li>Remove deprecated <code>EffectMessageSyntax</code>, <code>EffectRequestSyntax</code>, <code>EffectResponseSyntax</code> traits and associated objects</li>
+<li>Remove <code>MessageOps</code>, <code>RequestOps</code>, and <code>ResponseOps</code> and put the removed methods, sans unneeded implicit parameters, directly in the classes</li>
+<li>Deprecate <code>replaceAllHeaders</code>, pointing to <code>withHeaders</code> instead.</li>
+<li>Deprecate <code>withType</code>, which takes a <code>MediaType</code> and just wraps it in a <code>Content-Type</code></li>
+<li>Add <code>withoutAttribute</code> and <code>withoutTrailerHeaders</code> to complement the with variants</li>
+<li>Correct <code>filterHeaders</code>&rsquo; scaladoc comment, which described the opposite of the behavior</li>
+<li>Fix bug in <code>withoutContentType</code></li>
+</ul></li>
 </ul>
 
 <h2 id="enhancements">Enhancements</h2>
@@ -117,9 +130,22 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2227">#2227</a>: Add <code>withMaxHeaderLength</code> setter to <code>BlazeClientBuilder</code></li>
 <li><a href="https://github.com/http4s/http4s/pull/2230">#2230</a>: <code>DefaultServerErrorHandler</code> only handles <code>NonFatal</code> <code>Throwable</code>s, instead of all <code>Throwable</code>s that aren&rsquo;t <code>VirtualMachineError</code>s</li>
 <li><a href="https://github.com/http4s/http4s/pull/2237">#2237</a>: Support parsing cookies with trailing semi-colons. This is invalid per spec, but seen often in the wild.</li>
+<li><a href="https://github.com/http4s/http4s/pull/1687">#1687</a>: Add a modeled <code>Link</code> header.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2244">#2244</a>: Refactor blaze-server idle timeout
+
+<ul>
+<li>Quiet <code>Abnormal NIO1HeadStage termination\njava.util.concurrent.TimeoutException: Timeout of 30 seconds triggered. Killing pipeline.</code> error logging, even on idling persistent connections.  This is reduced to a debug log.</li>
+<li>Use a <code>TickWheelExecutor</code> resource per blaze-server instead of a global that does not shut down when the server does.</li>
+</ul></li>
 </ul>
 
-<h2 id="bug-fixes-1">Bug fixes</h2>
+<h2 id="bug-fixes">Bug fixes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
+<li><a href="https://github.com/http4s/http4s/pull/2214">#2214</a>: Add a scalafix from http4s-0.18.20 to 0.20.0-M2.  See <a href="https://http4s.org/v0.20/upgrading/">upgrading</a> for instructions.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2241">#2241</a>: Restrict internal <code>IdleTimeoutStage</code> to a <code>FiniteDuration</code>.  Fixes an exception when converting to milliseconds when debug logging.</li>
+</ul>
 
 <h2 id="documentation">Documentation</h2>
 
@@ -181,7 +207,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2190">#2190</a>: Add <code>channelOptions</code> to blaze-client to customize socket options.</li>
 </ul>
 
-<h2 id="bug-fixes-2">Bug fixes</h2>
+<h2 id="bug-fixes-1">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2166">#2166</a>: Fix request timeout calculation in blaze-client to resolve &ldquo;Client response header timeout after 0 millseconds&rdquo; error.</li>
@@ -204,9 +230,9 @@ it.</p>
 <li>sbt-native-packager-1.3.11 (examples only)</li>
 </ul>
 
-<h1 id="v0-18-21-snapshot">v0.18.21-SNAPSHOT</h1>
+<h1 id="v0-18-21-2018-11-05">v0.18.21 (2018-11-05)</h1>
 
-<h2 id="bug-fixes-3">Bug fixes</h2>
+<h2 id="bug-fixes-2">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2231">#2231</a>: Fix off-by-one error that lets blaze-client wait queue grow one past its limit</li>
@@ -214,7 +240,7 @@ it.</p>
 
 <h1 id="v0-18-20-2018-10-18">v0.18.20 (2018-10-18)</h1>
 
-<h2 id="bug-fixes-4">Bug fixes</h2>
+<h2 id="bug-fixes-3">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2181">#2181</a>: Honor <code>redactHeadersWhen</code> in client <code>RequestLogger</code> middleware</li>
@@ -388,7 +414,7 @@ it.</p>
 
 <h1 id="v0-18-19-2018-09-27">v0.18.19 (2018-09-27)</h1>
 
-<h2 id="bug-fixes-5">Bug fixes</h2>
+<h2 id="bug-fixes-4">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2101">#2101</a>: <code>haveHeaders</code> checks by equality, not reference</li>
@@ -403,7 +429,7 @@ it.</p>
 
 <h1 id="v0-18-18-2018-09-18">v0.18.18 (2018-09-18)</h1>
 
-<h2 id="bug-fixes-6">Bug fixes</h2>
+<h2 id="bug-fixes-5">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2048">#2048</a>: Correct misleading logging in <code>Retry</code> middleware</li>
