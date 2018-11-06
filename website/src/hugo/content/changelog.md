@@ -100,7 +100,7 @@ Due to the inadvertent release of 0.19.0, we have opened a new minor version.  T
 * blaze-0.14.0-M9
 * sbt-native-packager-1.3.11 (examples only)
 
-# v0.18.21-SNAPSHOT
+# v0.18.21 (2018-11-05)
 
 ## Bug fixes
 * [#2231](https://github.com/http4s/http4s/pull/2231): Fix off-by-one error that lets blaze-client wait queue grow one past its limit
