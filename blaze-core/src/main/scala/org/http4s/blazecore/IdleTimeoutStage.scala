@@ -25,7 +25,7 @@ final private[http4s] class IdleTimeoutStage[A](
     override def run(): Unit = {
       val t = new TimeoutException(s"Idle timeout after ${timeout.toMillis} ms.")
       logger.debug(t.getMessage)
-      cb(Left(t))
+      cb(Right(t))
       removeStage()
     }
   }

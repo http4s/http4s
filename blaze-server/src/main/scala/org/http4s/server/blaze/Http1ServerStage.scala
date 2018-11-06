@@ -5,13 +5,14 @@ package blaze
 import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
 import cats.implicits._
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
-import org.http4s.blaze.util.BufferTools
+import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
-import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.unsafeRunAsync
@@ -31,7 +32,9 @@ private[blaze] object Http1ServerStage {
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
       serviceErrorHandler: ServiceErrorHandler[F],
-      responseHeaderTimeout: Duration)(
+      responseHeaderTimeout: Duration,
+      idleTimeout: Duration,
+      scheduler: TickWheelExecutor)(
       implicit F: ConcurrentEffect[F],
       timer: Timer[F]): Http1ServerStage[F] =
     if (enableWebSockets)
@@ -42,7 +45,9 @@ private[blaze] object Http1ServerStage {
         maxRequestLineLen,
         maxHeadersLen,
         serviceErrorHandler,
-        responseHeaderTimeout) with WebSocketSupport[F]
+        responseHeaderTimeout,
+        idleTimeout,
+        scheduler) with WebSocketSupport[F]
     else
       new Http1ServerStage(
         routes,
@@ -51,7 +56,9 @@ private[blaze] object Http1ServerStage {
         maxRequestLineLen,
         maxHeadersLen,
         serviceErrorHandler,
-        responseHeaderTimeout)
+        responseHeaderTimeout,
+        idleTimeout,
+        scheduler)
 }
 
 private[blaze] class Http1ServerStage[F[_]](
@@ -61,7 +68,9 @@ private[blaze] class Http1ServerStage[F[_]](
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
     serviceErrorHandler: ServiceErrorHandler[F],
-    responseHeaderTimeout: Duration)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+    responseHeaderTimeout: Duration,
+    idleTimeout: Duration,
+    scheduler: TickWheelExecutor)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
@@ -90,8 +99,25 @@ private[blaze] class Http1ServerStage[F[_]](
   // Will act as our loop
   override def stageStartup(): Unit = {
     logger.debug("Starting HTTP pipeline")
+    initIdleTimeout()
     requestLoop()
   }
+
+  private def initIdleTimeout() =
+    idleTimeout match {
+      case f: FiniteDuration =>
+        val cb: Callback[TimeoutException] = {
+          case Left(t) =>
+            fatalError(t, "Error in idle timeout callback")
+          case Right(_) =>
+            logger.debug("Shutting down due to idle timeout")
+            closePipeline(None)
+        }
+        val stage = new IdleTimeoutStage[ByteBuffer](f, cb, scheduler, executionContext)
+        spliceBefore(stage)
+        stage.stageStartup()
+      case _ =>
+    }
 
   private val handleReqRead: Try[ByteBuffer] => Unit = {
     case Success(buff) => reqLoopCallback(buff)

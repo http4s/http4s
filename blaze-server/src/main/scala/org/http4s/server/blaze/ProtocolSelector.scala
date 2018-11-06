@@ -8,6 +8,7 @@ import javax.net.ssl.SSLEngine
 import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
 import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import org.http4s.blaze.util.TickWheelExecutor
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
@@ -21,7 +22,9 @@ private[blaze] object ProtocolSelector {
       requestAttributes: AttributeMap,
       executionContext: ExecutionContext,
       serviceErrorHandler: ServiceErrorHandler[F],
-      responseHeaderTimeout: Duration)(
+      responseHeaderTimeout: Duration,
+      idleTimeout: Duration,
+      scheduler: TickWheelExecutor)(
       implicit F: ConcurrentEffect[F],
       timer: Timer[F]): ALPNServerSelector = {
 
@@ -35,7 +38,10 @@ private[blaze] object ProtocolSelector {
             requestAttributes,
             httpApp,
             serviceErrorHandler,
-            responseHeaderTimeout))
+            responseHeaderTimeout,
+            idleTimeout,
+            scheduler
+          ))
       }
 
       val localSettings =
@@ -58,7 +64,9 @@ private[blaze] object ProtocolSelector {
         maxRequestLineLen,
         maxHeadersLen,
         serviceErrorHandler,
-        responseHeaderTimeout
+        responseHeaderTimeout,
+        idleTimeout,
+        scheduler
       )
 
     def preference(protos: Set[String]): String =
