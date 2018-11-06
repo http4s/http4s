@@ -75,11 +75,7 @@ class BlazeServerBuilder[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
-    extends ServerBuilder[F]
-    with IdleTimeoutSupport[F]
-    with SSLKeyStoreSupport[F]
-    with SSLContextSupport[F]
-    with server.WebSocketSupport[F] {
+    extends ServerBuilder[F] {
   type Self = BlazeServerBuilder[F]
 
   private[this] val logger = getLogger
@@ -132,17 +128,17 @@ class BlazeServerBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen): Self =
     copy(maxRequestLineLen = maxRequestLineLen, maxHeadersLen = maxHeadersLen)
 
-  override def withSSL(
+  def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
-      protocol: String,
-      trustStore: Option[StoreInfo],
-      clientAuth: Boolean): Self = {
+      protocol: String = "TLS",
+      trustStore: Option[StoreInfo] = None,
+      clientAuth: Boolean = false): Self = {
     val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
     copy(sslBits = Some(bits))
   }
 
-  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self =
+  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -151,7 +147,7 @@ class BlazeServerBuilder[F[_]](
   def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
     copy(executionContext = executionContext)
 
-  override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
+  def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): Self =
     copy(responseHeaderTimeout = responseHeaderTimeout)
@@ -162,7 +158,7 @@ class BlazeServerBuilder[F[_]](
 
   def withNio2(isNio2: Boolean): Self = copy(isNio2 = isNio2)
 
-  override def withWebSockets(enableWebsockets: Boolean): Self =
+  def withWebSockets(enableWebsockets: Boolean): Self =
     copy(enableWebSockets = enableWebsockets)
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
@@ -325,10 +321,10 @@ class BlazeServerBuilder[F[_]](
 object BlazeServerBuilder {
   def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
-      socketAddress = ServerBuilder.DefaultSocketAddress,
+      socketAddress = defaults.SocketAddress,
       executionContext = ExecutionContext.global,
       responseHeaderTimeout = 1.minute,
-      idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+      idleTimeout = defaults.IdleTimeout,
       isNio2 = false,
       connectorPoolSize = channel.DefaultPoolSize,
       bufferSize = 64 * 1024,
@@ -339,7 +335,7 @@ object BlazeServerBuilder {
       maxHeadersLen = 40 * 1024,
       httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
-      banner = ServerBuilder.DefaultBanner
+      banner = defaults.Banner
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =

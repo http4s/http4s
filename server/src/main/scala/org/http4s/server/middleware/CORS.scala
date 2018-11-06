@@ -43,9 +43,7 @@ object CORS {
     */
   def apply[F[_], G[_]](
       @deprecatedName('service) http: Http[F, G],
-      config: CORSConfig = DefaultCORSConfig)(
-      implicit F: Applicative[F],
-      G: Functor[G]): Http[F, G] =
+      config: CORSConfig = DefaultCORSConfig)(implicit F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(origin: Header, acrm: Header): Response[G] =

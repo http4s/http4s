@@ -1,12 +1,14 @@
-package org.http4s.server
+package org.http4s
+package server
 package blaze
 
 import cats.data.Kleisli
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.{headers => H, _}
+import org.http4s.{headers => H}
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.Command.Connected
 import org.http4s.blaze.util.TickWheelExecutor
@@ -15,10 +17,12 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.specs2.specification.AfterAll
 import org.specs2.specification.core.Fragment
-import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.Await
 
 class Http1ServerStageSpec extends Http4sSpec with AfterAll {
+  sequential
+
   val tickWheel = new TickWheelExecutor()
 
   def afterAll = tickWheel.shutdown()
@@ -229,7 +233,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       val dateHeader = Date(HttpDate.Epoch)
       val routes = HttpRoutes
         .of[IO] {
-          case req => IO.pure(Response(body = req.body).replaceAllHeaders(dateHeader))
+          case req => IO.pure(Response(body = req.body).withHeaders(dateHeader))
         }
         .orNotFound
 
@@ -453,6 +457,25 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
         results._1 must_== InternalServerError
       }
     }
+  }
+
+  "cancels on stage shutdown" in {
+    Deferred[IO, Unit]
+      .flatMap { canceled =>
+        Deferred[IO, Unit].flatMap { gate =>
+          val req = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+          val app: HttpApp[IO] = HttpApp { req =>
+            gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
+          }
+          for {
+            head <- IO(runRequest(List(req), app))
+            _ <- gate.get
+            _ <- IO(head.closePipeline(None))
+            _ <- canceled.get
+          } yield ()
+        }
+      }
+      .unsafeRunTimed(3.seconds) must beSome(())
   }
 
   "Disconnect if we read an EOF" in {

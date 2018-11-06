@@ -318,8 +318,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
-  def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
-  def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
+  def scalaCompiler(so: String, sv: String) = so             %  "scala-compiler"            % sv
+  lazy val scalafixCore                     = "ch.epfl.scala"          %% "scalafix-core"             % "0.9.0"
+  lazy val scalafixTestKit                  = "ch.epfl.scala"          % "scalafix-testkit"           % scalafixCore.revision % Test cross CrossVersion.full
+  def scalaReflect(so: String, sv: String)  = so             %  "scala-reflect"             % sv
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.1"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"

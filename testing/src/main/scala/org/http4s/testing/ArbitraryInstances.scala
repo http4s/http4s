@@ -702,6 +702,12 @@ trait ArbitraryInstances {
     } yield Uri(scheme, authority, path, query, fragment)
   }
 
+  implicit val http4sTestingArbitraryForLink: Arbitrary[Link] = Arbitrary {
+    for {
+      uri <- http4sTestingArbitraryForUri.arbitrary
+    } yield Link(uri)
+  }
+
   implicit val http4sTestingCogenForUri: Cogen[Uri] =
     Cogen[String].contramap(_.renderString)
 

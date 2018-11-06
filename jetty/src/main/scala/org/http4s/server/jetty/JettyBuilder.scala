@@ -33,10 +33,7 @@ sealed class JettyBuilder[F[_]] private (
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
-    with ServerBuilder[F]
-    with IdleTimeoutSupport[F]
-    with SSLKeyStoreSupport[F]
-    with SSLContextSupport[F] {
+    with ServerBuilder[F] {
 
   type Self = JettyBuilder[F]
 
@@ -66,17 +63,17 @@ sealed class JettyBuilder[F[_]] private (
       serviceErrorHandler,
       banner)
 
-  override def withSSL(
+  def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
-      protocol: String,
-      trustStore: Option[StoreInfo],
-      clientAuth: Boolean
+      protocol: String = "TLS",
+      trustStore: Option[StoreInfo] = None,
+      clientAuth: Boolean = false
   ): Self =
     copy(
       sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
 
-  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self =
+  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -120,10 +117,10 @@ sealed class JettyBuilder[F[_]] private (
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     })
 
-  override def withIdleTimeout(idleTimeout: Duration): Self =
+  def withIdleTimeout(idleTimeout: Duration): Self =
     copy(idleTimeout = idleTimeout)
 
-  override def withAsyncTimeout(asyncTimeout: Duration): Self =
+  def withAsyncTimeout(asyncTimeout: Duration): Self =
     copy(asyncTimeout = asyncTimeout)
 
   /** Sets the graceful shutdown timeout for Jetty.  Closing the resource
@@ -238,16 +235,16 @@ sealed class JettyBuilder[F[_]] private (
 
 object JettyBuilder {
   def apply[F[_]: ConcurrentEffect] = new JettyBuilder[F](
-    socketAddress = ServerBuilder.DefaultSocketAddress,
+    socketAddress = defaults.SocketAddress,
     threadPool = new QueuedThreadPool(),
-    idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-    asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
-    shutdownTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+    idleTimeout = defaults.IdleTimeout,
+    asyncTimeout = defaults.AsyncTimeout,
+    shutdownTimeout = defaults.ShutdownTimeout,
     servletIo = ServletContainer.DefaultServletIo,
     sslBits = None,
     mounts = Vector.empty,
     serviceErrorHandler = DefaultServiceErrorHandler,
-    banner = ServerBuilder.DefaultBanner
+    banner = defaults.Banner
   )
 }
 

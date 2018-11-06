@@ -2,7 +2,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
@@ -77,9 +77,10 @@ private[blaze] class Http1ServerStage[F[_]](
   // micro-optimization: unwrap the routes and call its .run directly
   private[this] val runApp = httpApp.run
 
-  // both `parser` and `isClosed` are protected by synchronization on `parser`
+  // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
+  private[this] var cancelToken: Option[CancelToken[F]] = None
 
   val name = "Http4sServerStage"
 
@@ -177,13 +178,16 @@ private[blaze] class Http1ServerStage[F[_]](
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
 
-            F.runAsync(action) {
-                case Right(()) => IO.unit
-                case Left(t) =>
-                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                    closeConnection())
-              }
-              .unsafeRunSync()
+            parser.synchronized {
+              cancelToken = Some(
+                F.runCancelable(action) {
+                    case Right(()) => IO.unit
+                    case Left(t) =>
+                      IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                        closeConnection())
+                  }
+                  .unsafeRunSync())
+            }
           }
         })
       case Left((e, protocol)) =>
@@ -286,10 +290,19 @@ private[blaze] class Http1ServerStage[F[_]](
   override protected def stageShutdown(): Unit = {
     logger.debug("Shutting down HttpPipeline")
     parser.synchronized {
+      cancel()
       isClosed = true
       parser.shutdownParser()
     }
     super.stageShutdown()
+  }
+
+  private def cancel(): Unit = cancelToken.foreach { token =>
+    F.runAsync(token) {
+        case Right(_) => IO(logger.debug("Canceled request"))
+        case Left(t) => IO(logger.error(t)("Error canceling request"))
+      }
+      .unsafeRunSync()
   }
 
   final protected def badMessage(
@@ -298,7 +311,7 @@ private[blaze] class Http1ServerStage[F[_]](
       req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection("close".ci), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -310,7 +323,7 @@ private[blaze] class Http1ServerStage[F[_]](
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection("close".ci), `Content-Length`.zero)
     renderResponse(req, resp, bodyCleanup) // will terminate the connection due to connection: close header
   }
 

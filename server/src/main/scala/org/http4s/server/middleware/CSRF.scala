@@ -59,7 +59,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     onFailure: Response[G],
     createIfNotFound: Boolean,
     key: SecretKey,
-    headerCheck: Request[G] => Boolean)(implicit F: Sync[F], G: Applicative[G]) { self =>
+    headerCheck: Request[G] => Boolean)(implicit F: Sync[F]) { self =>
   import CSRF._
 
   /** Sign our token using the current time in milliseconds as a nonce

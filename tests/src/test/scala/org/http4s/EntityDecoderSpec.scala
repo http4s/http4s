@@ -229,7 +229,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
 
       val decoded = decoder
-        .decode(Request().replaceAllHeaders(`Content-Type`(MediaType.text.plain)), strict = true)
+        .decode(Request().withHeaders(`Content-Type`(MediaType.text.plain)), strict = true)
         .swap
         .semiflatMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`))
 
