@@ -8,10 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.0-SNAPSHOT
-
-## Bug fixes
-* [#2239](https://github.com/http4s/http4s/pull/2239): Fix hang when `.allocate` on a client builder fails
+# v0.20.0-M2 (2018-11-05)
 
 ## Breaking changes
 * [#2207](https://github.com/http4s/http4s/pull/2207): Remove `PathNormalizer`. The functionality is now on `Uri.removeDotSegments`.
@@ -20,6 +17,19 @@ it.
   * Move instances `F[A]` for cats type classes `F` into companions of `A`
   * `Http4sDsl` no longer mixes in `UriFunctions`
   * `EntityEncoderInstances` and `EntityDecoderInstances` are removed. The instances moved to the companion objects.
+* [#2243](https://github.com/http4s/http4s/pull/2243): Cleanup `ServerBuilder` defaults and traits
+  * Make `ServerBuilder` private.  The public server builders (e.g., `BlazeServerBuilder`) remain, but they no longer implement a public interface.
+  * Remove `IdleTimeoutSupport`, `AsyncTimeout`, `SSLKeyStoreSupport`, `SSLContextSupport`, and `WebSocketSupport` traits. The properties remain on the public server builders.
+  * Deprecated defaults on those support companion objects, in favor of `org.http4s.server.defaults`.
+* [#2063](https://github.com/http4s/http4s/pull/2063): Cancel request whenever a blaze server connection is shutdown.
+* [#2234](https://github.com/http4s/http4s/pull/2234): Clean up `Message` trait
+  * Remove deprecated `EffectMessageSyntax`, `EffectRequestSyntax`, `EffectResponseSyntax` traits and associated objects
+  * Remove `MessageOps`, `RequestOps`, and `ResponseOps` and put the removed methods, sans unneeded implicit parameters, directly in the classes
+  * Deprecate `replaceAllHeaders`, pointing to `withHeaders` instead.
+  * Deprecate `withType`, which takes a `MediaType` and just wraps it in a `Content-Type`
+  * Add `withoutAttribute` and `withoutTrailerHeaders` to complement the with variants
+  * Correct `filterHeaders`' scaladoc comment, which described the opposite of the behavior
+  * Fix bug in `withoutContentType`
 
 ## Enhancements
 * [#2205](https://github.com/http4s/http4s/pull/2205): Add new `ResponseTiming` middleware, which adds a header to the Response as opposed to full `MetricsOps`.
@@ -27,8 +37,15 @@ it.
 * [#2227](https://github.com/http4s/http4s/pull/2227): Add `withMaxHeaderLength` setter to `BlazeClientBuilder`
 * [#2230](https://github.com/http4s/http4s/pull/2230): `DefaultServerErrorHandler` only handles `NonFatal` `Throwable`s, instead of all `Throwable`s that aren't `VirtualMachineError`s
 * [#2237](https://github.com/http4s/http4s/pull/2237): Support parsing cookies with trailing semi-colons. This is invalid per spec, but seen often in the wild.
+* [#1687](https://github.com/http4s/http4s/pull/1687): Add a modeled `Link` header.
+* [#2244](https://github.com/http4s/http4s/pull/2244): Refactor blaze-server idle timeout
+  * Quiet `Abnormal NIO1HeadStage termination\njava.util.concurrent.TimeoutException: Timeout of 30 seconds triggered. Killing pipeline.` error logging, even on idling persistent connections.  This is reduced to a debug log.
+  * Use a `TickWheelExecutor` resource per blaze-server instead of a global that does not shut down when the server does.
 
 ## Bug fixes
+* [#2239](https://github.com/http4s/http4s/pull/2239): Fix hang when `.allocate` on a client builder fails
+* [#2214](https://github.com/http4s/http4s/pull/2214): Add a scalafix from http4s-0.18.20 to 0.20.0-M2.  See [upgrading](https://http4s.org/v0.20/upgrading/) for instructions.
+* [#2241](https://github.com/http4s/http4s/pull/2241): Restrict internal `IdleTimeoutStage` to a `FiniteDuration`.  Fixes an exception when converting to milliseconds when debug logging.
 
 ## Documentation
 * [#2223](https://github.com/http4s/http4s/pull/2223): Fix color of EOL label on v0.19
