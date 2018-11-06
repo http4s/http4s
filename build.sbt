@@ -314,7 +314,10 @@ lazy val scalafixInputs = http4sProject("scalafix-inputs")
     ),
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions in Compile -= "-Xfatal-warnings",
-    scalacOptions in Test -= "-Xfatal-warnings"  )
+    scalacOptions in Test -= "-Xfatal-warnings",
+    // These dependencies are purposefully old
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.http4s")
+  )
 
 lazy val scalafixOutputs= http4sProject("scalafix-outputs")
   .enablePlugins(PrivateProjectPlugin)
