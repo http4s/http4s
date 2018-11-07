@@ -309,8 +309,8 @@ lazy val scalafixInputs = http4sProject("scalafix-inputs")
     skip in publish := true,
     fork := true,
     libraryDependencies ++= Seq(
-      "org.http4s" %% "http4s-blaze-client" % "0.18.20",
-      "org.http4s" %% "http4s-dsl" % "0.18.20"
+      "org.http4s" %% "http4s-blaze-client" % "0.18.21",
+      "org.http4s" %% "http4s-dsl" % "0.18.21"
     ),
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions in Compile -= "-Xfatal-warnings",
