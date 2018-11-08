@@ -14,6 +14,7 @@ object GetRoutes {
   val NoContentPath = "/no-content"
   val NotFoundPath = "/not-found"
   val EmptyNotFoundPath = "/empty-not-found"
+  val InternalServerErrorPath = "/internal-server-error"
 
   def getPaths(implicit timer: Timer[IO]): Map[String, Response[IO]] =
     Map(
@@ -26,6 +27,7 @@ object GetRoutes {
           Response[IO](Ok).withEntity("delayed path").pure[IO],
       NoContentPath -> Response[IO](NoContent).pure[IO],
       NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
-      EmptyNotFoundPath -> Response[IO](NotFound).pure[IO]
+      EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],
+      InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO]
     ).mapValues(_.unsafeRunSync())
 }

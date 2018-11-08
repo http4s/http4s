@@ -67,6 +67,8 @@ class BlazeClientSpec extends Http4sSpec {
         mkClient(0),
         mkClient(1),
         mkClient(3),
+        mkClient(3),
+        mkClient(3),
         mkClient(1, 20.seconds),
         JettyScaffold[IO](5, false, testServlet),
         JettyScaffold[IO](1, true, testServlet)
@@ -75,6 +77,8 @@ class BlazeClientSpec extends Http4sSpec {
           failClient,
           successClient,
           client,
+          seqClient,
+          parClient,
           successTimeClient,
           jettyServer,
           jettySslServer
@@ -112,6 +116,70 @@ class BlazeClientSpec extends Http4sSpec {
               client.expect[String](h).map(_.nonEmpty)
             }
             .map(_.forall(identity))
+            .unsafeRunTimed(timeout) must beSome(true)
+        }
+
+        "behave and not deadlock on failures with parTraverse" in {
+          val failedHosts = addresses.map { address =>
+            val name = address.getHostName
+            val port = address.getPort
+            Uri.fromString(s"http://$name:$port/internal-server-error").yolo
+          }
+
+          val successHosts = addresses.map { address =>
+            val name = address.getHostName
+            val port = address.getPort
+            Uri.fromString(s"http://$name:$port/simple").yolo
+          }
+
+          val failedRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
+            val h = failedHosts(Random.nextInt(failedHosts.length))
+            parClient.expect[String](h)
+          }
+
+          val sucessRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
+            val h = successHosts(Random.nextInt(successHosts.length))
+            parClient.expect[String](h).map(_.nonEmpty)
+          }
+
+            val allRequests = for {
+            _ <- failedRequests.handleErrorWith(_ => IO.unit)
+            r <- sucessRequests
+          } yield r
+
+          allRequests.map(_.forall(identity))
+            .unsafeRunTimed(timeout) must beSome(true)
+        }
+
+        "behave and not deadlock on failures with parSequence" in {
+          val failedHosts = addresses.map { address =>
+            val name = address.getHostName
+            val port = address.getPort
+            Uri.fromString(s"http://$name:$port/internal-server-error").yolo
+          }
+
+          val successHosts = addresses.map { address =>
+            val name = address.getHostName
+            val port = address.getPort
+            Uri.fromString(s"http://$name:$port/simple").yolo
+          }
+
+          val failedRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
+              val h = failedHosts(Random.nextInt(failedHosts.length))
+              seqClient.expect[String](h)
+            }.parSequence
+
+          val sucessRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
+              val h = successHosts(Random.nextInt(successHosts.length))
+              seqClient.expect[String](h).map(_.nonEmpty)
+            }.parSequence
+
+          val allRequests = for {
+            _ <- failedRequests.handleErrorWith(_ => IO.unit)
+            r <- sucessRequests
+          } yield r
+
+          allRequests.map(_.forall(identity))
             .unsafeRunTimed(timeout) must beSome(true)
         }
 
