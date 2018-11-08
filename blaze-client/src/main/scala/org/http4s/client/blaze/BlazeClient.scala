@@ -75,26 +75,31 @@ object BlazeClient {
                 F.never[TimeoutException]
             }
 
-            next.connection.runRequest(req, idleTimeoutF).attempt.flatMap {
-              case Right(r) =>
+            next.connection
+              .runRequest(req, idleTimeoutF)
+              .flatMap { r =>
                 val dispose = manager.release(next.connection)
                 F.pure(Resource(F.pure(r -> dispose)))
-
-              case Left(Command.EOF) =>
-                invalidate(next.connection).flatMap { _ =>
-                  if (next.fresh)
-                    F.raiseError(
-                      new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
-                  else {
-                    manager.borrow(key).flatMap { newConn =>
-                      loop(newConn)
+              }
+              .recoverWith {
+                case Command.EOF =>
+                  invalidate(next.connection).flatMap { _ =>
+                    if (next.fresh)
+                      F.raiseError(
+                        new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
+                    else {
+                      manager.borrow(key).flatMap { newConn =>
+                        loop(newConn)
+                      }
                     }
                   }
-                }
-
-              case Left(e) =>
-                invalidate(next.connection) *> F.raiseError(e)
-            }
+              }
+              .guaranteeCase {
+                case ExitCase.Completed =>
+                  F.unit
+                case ExitCase.Error(_) | ExitCase.Canceled =>
+                  invalidate(next.connection)
+              }
           }
 
           Deferred[F, Unit].flatMap { gate =>
