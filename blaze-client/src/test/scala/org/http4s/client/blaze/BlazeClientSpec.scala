@@ -277,6 +277,27 @@ class BlazeClientSpec extends Http4sSpec {
             }
             .unsafeRunTimed(5.seconds) must beSome(())
         }
+
+        "doesn't leak connection on timeout" in {
+          val address = addresses.head
+          val name = address.getHostName
+          val port = address.getPort
+          val uri = Uri.fromString(s"http://$name:$port/simple").yolo
+
+          mkClient(1)
+            .use { client =>
+              val req = Request[IO](uri = uri)
+              client
+                .fetch(req) { _ =>
+                  IO.never
+                }
+                .timeout(250.millis)
+                .attempt >>
+                client.status(req)
+            }
+            .unsafeRunTimed(5.seconds)
+            .attempt must_== Some(Right(Status.Ok))
+        }
       }
     }
   }
