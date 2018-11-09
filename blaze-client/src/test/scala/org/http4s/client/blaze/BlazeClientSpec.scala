@@ -132,17 +132,19 @@ class BlazeClientSpec extends Http4sSpec {
             Uri.fromString(s"http://$name:$port/simple").yolo
           }
 
-          val failedRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
-            val h = failedHosts(Random.nextInt(failedHosts.length))
-            parClient.expect[String](h)
-          }
+          val failedRequests =
+            (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
+              val h = failedHosts(Random.nextInt(failedHosts.length))
+              parClient.expect[String](h)
+            }
 
-          val sucessRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
-            val h = successHosts(Random.nextInt(successHosts.length))
-            parClient.expect[String](h).map(_.nonEmpty)
-          }
+          val sucessRequests =
+            (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
+              val h = successHosts(Random.nextInt(successHosts.length))
+              parClient.expect[String](h).map(_.nonEmpty)
+            }
 
-            val allRequests = for {
+          val allRequests = for {
             _ <- failedRequests.handleErrorWith(_ => IO.unit)
             _ <- failedRequests.handleErrorWith(_ => IO.unit)
             _ <- failedRequests.handleErrorWith(_ => IO.unit)
@@ -152,7 +154,8 @@ class BlazeClientSpec extends Http4sSpec {
             r <- sucessRequests
           } yield r
 
-          allRequests.map(_.forall(identity))
+          allRequests
+            .map(_.forall(identity))
             .unsafeRunTimed(timeout) must beSome(true)
         }
 
@@ -170,14 +173,14 @@ class BlazeClientSpec extends Http4sSpec {
           }
 
           val failedRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
-              val h = failedHosts(Random.nextInt(failedHosts.length))
-              seqClient.expect[String](h)
-            }.parSequence
+            val h = failedHosts(Random.nextInt(failedHosts.length))
+            seqClient.expect[String](h)
+          }.parSequence
 
           val sucessRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
-              val h = successHosts(Random.nextInt(successHosts.length))
-              seqClient.expect[String](h).map(_.nonEmpty)
-            }.parSequence
+            val h = successHosts(Random.nextInt(successHosts.length))
+            seqClient.expect[String](h).map(_.nonEmpty)
+          }.parSequence
 
           val allRequests = for {
             _ <- failedRequests.handleErrorWith(_ => IO.unit)
@@ -188,7 +191,8 @@ class BlazeClientSpec extends Http4sSpec {
             r <- sucessRequests
           } yield r
 
-          allRequests.map(_.forall(identity))
+          allRequests
+            .map(_.forall(identity))
             .unsafeRunTimed(timeout) must beSome(true)
         }
 
