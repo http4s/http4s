@@ -113,7 +113,7 @@ package object oauth1 {
             t.mediaType == MediaType.application.`x-www-form-urlencoded` =>
         req.as[UrlForm].map { urlform =>
           val bodyparams = urlform.values.toSeq
-            .flatMap { case (k, vs) => if (vs.isEmpty) Seq(k -> "") else vs.map((k, _)) }
+            .flatMap { case (k, vs) => if (vs.isEmpty) Seq(k -> "") else vs.toList.map((k, _)) }
 
           implicit val charset = req.charset.getOrElse(Charset.`UTF-8`)
           req.withEntity(urlform) -> (qparams ++ bodyparams)

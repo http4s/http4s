@@ -1,6 +1,7 @@
 package org.http4s
 
 import cats._
+import cats.data._
 import cats.effect.Sync
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s.headers._
@@ -8,23 +9,23 @@ import org.http4s.parser._
 import org.http4s.util._
 import scala.io.Codec
 
-class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
+class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
   override def toString: String = values.toString()
 
-  def get(key: String): Seq[String] =
-    this.getOrElse(key, Seq.empty[String])
+  def get(key: String): Chain[String] =
+    this.getOrElse(key, Chain.empty[String])
 
-  def getOrElse(key: String, default: => Seq[String]): Seq[String] =
+  def getOrElse(key: String, default: => Chain[String]): Chain[String] =
     values.getOrElse(key, default)
 
   def getFirst(key: String): Option[String] =
-    values.get(key).flatMap(_.headOption)
+    values.get(key).flatMap(_.uncons).map { case (s, _) => s }
 
   def getFirstOrElse(key: String, default: => String): String =
     this.getFirst(key).getOrElse(default)
 
   def +(kv: (String, String)): UrlForm = {
-    val newValues = values.get(kv._1).fold(Seq(kv._2))(_ :+ kv._2)
+    val newValues = values.get(kv._1).fold(Chain(kv._2))(_ :+ kv._2)
     UrlForm(values.updated(kv._1, newValues))
   }
 
@@ -49,11 +50,11 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
 
   /**
     * @param key name of the field
-    * @param vals a sequence of values for the field
+    * @param vals a Chain of values for the field
     * @param ev evidence of the existence of `QueryParamEncoder[T]`
     * @return `UrlForm` updated with `key` and `vals` if key does not exist in `values`, otherwise `vals` will be appended to the existing entry. If `vals` is empty, `UrlForm` will remain as is
     */
-  def updateFormFields[T](key: String, vals: Seq[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
+  def updateFormFields[T](key: String, vals: Chain[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
     vals.foldLeft(this)(_.updateFormField(key, _)(ev))
 
   /* same as `updateFormField(key, value)` */
@@ -65,7 +66,7 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
     updateFormField(key, value)
 
   /* same as `updatedParamEncoders`(key, vals) */
-  def ++?[T: QueryParamEncoder](key: String, vals: Seq[T]): UrlForm =
+  def ++?[T: QueryParamEncoder](key: String, vals: Chain[T]): UrlForm =
     updateFormFields(key, vals)
 }
 
@@ -73,16 +74,16 @@ object UrlForm {
 
   val empty: UrlForm = new UrlForm(Map.empty)
 
-  def apply(values: Map[String, Seq[String]]): UrlForm =
-    // value "" -> Seq() is just noise and it is not maintain during encoding round trip
+  def apply(values: Map[String, Chain[String]]): UrlForm =
+    // value "" -> Chain() is just noise and it is not maintain during encoding round trip
     if (values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
     else new UrlForm(values)
 
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)
 
-  def fromSeq(values: Seq[(String, String)]): UrlForm =
-    apply(values: _*)
+  def fromChain(values: Chain[(String, String)]): UrlForm =
+    apply(values.toList: _*)
 
   implicit def entityEncoder[F[_]](
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
@@ -110,13 +111,7 @@ object UrlForm {
     override def empty: UrlForm = UrlForm.empty
 
     override def combine(x: UrlForm, y: UrlForm): UrlForm =
-      UrlForm(x.values.foldLeft(y.values) {
-        case (my, (k, x)) =>
-          my.updated(k, my.get(k) match {
-            case Some(y) => x ++ y
-            case None => x
-          })
-      })
+      UrlForm(x.values |+| y.values)
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
@@ -124,7 +119,7 @@ object UrlForm {
       urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(q => UrlForm(q.multiParams))
+      .map(q => UrlForm(q.multiParams.mapValues(Chain.fromSeq)))
       .leftMap { parseFailure =>
         MalformedMessageBodyFailure(parseFailure.message, None)
       }
@@ -146,7 +141,7 @@ object UrlForm {
         if (vs.isEmpty) sb.append(encodedKey)
         else {
           var first = true
-          vs.foreach { v =>
+          vs.map { v =>
             if (!first) sb.append('&')
             else first = false
             sb.append(encodedKey)

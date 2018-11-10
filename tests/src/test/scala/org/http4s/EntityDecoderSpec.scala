@@ -13,6 +13,7 @@ import fs2._
 import fs2.Stream._
 import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
+import cats.data.Chain
 import org.http4s.Status.Ok
 import org.http4s.testing._
 import org.http4s.headers.`Content-Type`
@@ -326,9 +327,9 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "Decode form encoded body" in {
       val urlForm = UrlForm(
         Map(
-          "Formula" -> Seq("a + b == 13%!"),
-          "Age" -> Seq("23"),
-          "Name" -> Seq("Jonathan Doe")
+          "Formula" -> Chain("a + b == 13%!"),
+          "Age" -> Chain("23"),
+          "Name" -> Chain("Jonathan Doe")
         ))
       val resp: IO[Response[IO]] = Request[IO]()
         .withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))

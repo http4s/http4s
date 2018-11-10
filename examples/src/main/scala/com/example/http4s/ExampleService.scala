@@ -85,8 +85,8 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
         // EntityDecoders allow turning the body into something useful
         req
           .decode[UrlForm] { data =>
-            data.values.get("sum") match {
-              case Some(Seq(s, _*)) =>
+            data.values.get("sum").flatMap(_.uncons) match {
+              case Some((s, _)) =>
                 val sum = s.split(' ').filter(_.length > 0).map(_.trim.toInt).sum
                 Ok(sum.toString)
 
