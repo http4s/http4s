@@ -262,9 +262,12 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
       .toOption
 }
 
+/**
+  * Flag (value-less) query param extractor
+  */
 abstract class FlagQueryParamMatcher(name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[Option[Unit]] =
-    Some(params.get(name).map(_ => ()))
+  def unapply(params: Map[String, Seq[String]]): Option[Boolean] =
+    Some(params.contains(name))
 }
 
 /**

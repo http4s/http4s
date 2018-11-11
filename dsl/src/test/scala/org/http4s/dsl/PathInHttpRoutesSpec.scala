@@ -71,10 +71,8 @@ object PathInHttpRoutesSpec extends Http4sSpec {
         case Invalid(errors) => BadRequest(errors.toList.map(_.details).mkString("\n"))
       }
     case GET -> Root / "flagparam" :? Flag(flag) =>
-      flag match {
-        case Some(_) => Ok("flag present")
-        case None => Ok("flag not present")
-      }
+      if(flag) Ok("flag present")
+      else Ok("flag not present")
     case r =>
       NotFound(s"404 Not Found: ${r.pathInfo}")
   }
