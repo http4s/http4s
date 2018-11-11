@@ -262,6 +262,11 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
       .toOption
 }
 
+abstract class FlagQueryParamMatcher(name: String) {
+  def unapply(params: Map[String, Seq[String]]): Option[Option[Unit]] =
+    Some(params.get(name).map(_ => ()))
+}
+
 /**
   * Capture a query parameter that appears 0 or more times.
   *
