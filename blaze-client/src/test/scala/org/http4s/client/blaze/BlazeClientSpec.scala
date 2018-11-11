@@ -145,7 +145,7 @@ class BlazeClientSpec extends Http4sSpec {
             }
 
           val allRequests = for {
-            _ <- failedRequests.handleErrorWith(_ => IO.unit)
+            _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
             r <- sucessRequests
           } yield r
 
@@ -178,7 +178,7 @@ class BlazeClientSpec extends Http4sSpec {
           }.parSequence
 
           val allRequests = for {
-            _ <- failedRequests.handleErrorWith(_ => IO.unit)
+            _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
             r <- sucessRequests
           } yield r
 
