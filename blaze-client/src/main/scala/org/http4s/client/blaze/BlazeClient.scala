@@ -78,9 +78,13 @@ object BlazeClient {
 
               val res = next.connection
                 .runRequest(req, idleTimeoutF)
-                .flatMap { r =>
-                  val dispose = manager.release(next.connection)
-                  F.pure(Resource(F.pure(r -> dispose)))
+                .map { r =>
+                  Resource.makeCase(F.pure(r)) {
+                    case (_, ExitCase.Completed) =>
+                      manager.release(next.connection)
+                    case _ =>
+                      manager.invalidate(next.connection)
+                  }
                 }
                 .recoverWith {
                   case Command.EOF =>
