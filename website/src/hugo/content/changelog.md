@@ -8,6 +8,22 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.0-SNAPSHOT
+
+## Bugfixes
+* [#2260](https://github.com/http4s/http4s/pull/2260): Fix leak in blaze-client on a canceled connection
+
+## Internal
+* [#2250](https://github.com/http4s/http4s/pull/2250): Ignore http4s updates in scalafix-inputs
+* [#2267](https://github.com/http4s/http4s/pull/2267): Drop appveyor continuous integration
+
+## Documentation
+* [#2255](https://github.com/http4s/http4s/pull/2255): Improve scalafix docs
+
+## Dependency upgrades
+* blaze-0.14.0-M11
+* tomcat-9.0.13
+
 # v0.20.0-M2 (2018-11-05)
 
 ## Breaking changes
