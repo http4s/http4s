@@ -166,7 +166,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeServerBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>
+        <span class="name">BlazeServerBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>] with <span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder">BlazeBackendBuilder</span>[<a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]]</span>
       </span>
       </h4>
 
@@ -176,7 +176,7 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>], <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]], <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder">BlazeBackendBuilder</span>[<a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]], <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>], <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]], <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -202,7 +202,7 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.blaze.BlazeServerBuilder"><span>BlazeServerBuilder</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="org.http4s.internal.BackendBuilder"><span>BackendBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.blaze.BlazeServerBuilder"><span>BlazeServerBuilder</span></li><li class="in" name="org.http4s.blazecore.BlazeBackendBuilder"><span>BlazeBackendBuilder</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="org.http4s.internal.BackendBuilder"><span>BackendBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -228,9 +228,9 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.blaze.BlazeServerBuilder#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(socketAddress:java.net.InetSocketAddress,executionContext:scala.concurrent.ExecutionContext,responseHeaderTimeout:scala.concurrent.duration.Duration,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLConfig],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,httpApp:org.http4s.HttpApp[F],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F],banner:scala.collection.immutable.Seq[String])(implicitF:cats.effect.ConcurrentEffect[F],implicittimer:cats.effect.Timer[F]):org.http4s.server.blaze.BlazeServerBuilder[F]"></a><a id="&lt;init&gt;:BlazeServerBuilder[F]"></a>
+      <a id="&lt;init&gt;(socketAddress:java.net.InetSocketAddress,executionContext:scala.concurrent.ExecutionContext,responseHeaderTimeout:scala.concurrent.duration.Duration,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLConfig],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,httpApp:org.http4s.HttpApp[F],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F],banner:scala.collection.immutable.Seq[String],channelOptions:org.http4s.blaze.channel.ChannelOptions)(implicitF:cats.effect.ConcurrentEffect[F],implicittimer:cats.effect.Timer[F]):org.http4s.server.blaze.BlazeServerBuilder[F]"></a><a id="&lt;init&gt;:BlazeServerBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#&lt;init&gt;(socketAddress:java.net.InetSocketAddress,executionContext:scala.concurrent.ExecutionContext,responseHeaderTimeout:scala.concurrent.duration.Duration,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLConfig],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,httpApp:org.http4s.HttpApp[F],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F],banner:scala.collection.immutable.Seq[String])(implicitF:cats.effect.ConcurrentEffect[F],implicittimer:cats.effect.Timer[F]):org.http4s.server.blaze.BlazeServerBuilder[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#&lt;init&gt;(socketAddress:java.net.InetSocketAddress,executionContext:scala.concurrent.ExecutionContext,responseHeaderTimeout:scala.concurrent.duration.Duration,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLConfig],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,httpApp:org.http4s.HttpApp[F],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F],banner:scala.collection.immutable.Seq[String],channelOptions:org.http4s.blaze.channel.ChannelOptions)(implicitF:cats.effect.ConcurrentEffect[F],implicittimer:cats.effect.Timer[F]):org.http4s.server.blaze.BlazeServerBuilder[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -239,7 +239,7 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeServerBuilder</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="executionContext">executionContext: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="responseHeaderTimeout">responseHeaderTimeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="isNio2">isNio2: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="connectorPoolSize">connectorPoolSize: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="enableWebSockets">enableWebSockets: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="sslBits">sslBits: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a>]</span>, <span name="isHttp2Enabled">isHttp2Enabled: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="maxRequestLineLen">maxRequestLineLen: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxHeadersLen">maxHeadersLen: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="httpApp">httpApp: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>, <span name="serviceErrorHandler">serviceErrorHandler: <a href="../index.html#ServiceErrorHandler[F[_]]=org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>, <span name="banner">banner: <a href="http://www.scala-lang.org/api/2.12.7/scala/collection/immutable/Seq.html#scala.collection.immutable.Seq" class="extype" name="scala.collection.immutable.Seq">Seq</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>, <span name="timer">timer: <span class="extype" name="cats.effect.Timer">Timer</span>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>)</span>
+        <span class="name">BlazeServerBuilder</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="executionContext">executionContext: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="responseHeaderTimeout">responseHeaderTimeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="isNio2">isNio2: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="connectorPoolSize">connectorPoolSize: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="enableWebSockets">enableWebSockets: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="sslBits">sslBits: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a>]</span>, <span name="isHttp2Enabled">isHttp2Enabled: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="maxRequestLineLen">maxRequestLineLen: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxHeadersLen">maxHeadersLen: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="httpApp">httpApp: <a href="../../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>, <span name="serviceErrorHandler">serviceErrorHandler: <a href="../index.html#ServiceErrorHandler[F[_]]=org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>, <span name="banner">banner: <a href="http://www.scala-lang.org/api/2.12.7/scala/collection/immutable/Seq.html#scala.collection.immutable.Seq" class="extype" name="scala.collection.immutable.Seq">Seq</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="channelOptions">channelOptions: <span class="extype" name="org.http4s.blaze.channel.ChannelOptions">ChannelOptions</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>, <span name="timer">timer: <span class="extype" name="cats.effect.Timer">Timer</span>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>)</span>
       </span>
       
       <p class="shortcomment cmt"></p>
@@ -263,7 +263,7 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
         <span class="name">Self</span><span class="result alias"> = <a href="" class="extype" name="org.http4s.server.blaze.BlazeServerBuilder">BlazeServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeServerBuilder">BlazeServerBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeServerBuilder">BlazeServerBuilder</a> → BlazeBackendBuilder → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -484,6 +484,38 @@ sessions, tests, and other situations where composing a
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeServerBuilder">BlazeServerBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#channelOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="channelOption[A](socketOption:java.net.SocketOption[A]):Option[A]"></a><a id="channelOption[A](SocketOption[A]):Option[A]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#channelOption[A](socketOption:java.net.SocketOption[A]):Option[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="socketOption">socketOption: <span class="extype" name="java.net.SocketOption">SocketOption</span>[<span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder.channelOption.A">A</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder.channelOption.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.server.blaze.BlazeServerBuilder#channelOptions" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="channelOptions:org.http4s.blaze.channel.ChannelOptions"></a><a id="channelOptions:ChannelOptions"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#channelOptions:org.http4s.blaze.channel.ChannelOptions" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelOptions</span><span class="result">: <span class="extype" name="org.http4s.blaze.channel.ChannelOptions">ChannelOptions</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeServerBuilder">BlazeServerBuilder</a> → BlazeBackendBuilder</dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -843,6 +875,70 @@ that runs for the rest of the JVM's life.
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
 Useful for servers with associated lifetime behaviors.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#socketKeepAlive" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="socketKeepAlive:Option[Boolean]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#socketKeepAlive:Option[Boolean]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">socketKeepAlive</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#socketReceiveBufferSize" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="socketReceiveBufferSize:Option[Int]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#socketReceiveBufferSize:Option[Int]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">socketReceiveBufferSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#socketReuseAddress" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="socketReuseAddress:Option[Boolean]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#socketReuseAddress:Option[Boolean]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">socketReuseAddress</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#socketSendBufferSize" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="socketSendBufferSize:Option[Int]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#socketSendBufferSize:Option[Int]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">socketSendBufferSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
     </li><li name="org.http4s.internal.BackendBuilder#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="stream:fs2.Stream[F,A]"></a><a id="stream:Stream[F,Server[F]]"></a>
       <span class="permalink">
@@ -878,6 +974,22 @@ The backend is shut down when the stream is finalized.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#tcpNoDelay" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="tcpNoDelay:Option[Boolean]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#tcpNoDelay:Option[Boolean]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">tcpNoDelay</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
@@ -994,6 +1106,38 @@ The backend is shut down when the stream is finalized.
       </span>
       
       
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withChannelOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withChannelOption[A](key:java.net.SocketOption[A],value:A):BlazeBackendBuilder.this.Self"></a><a id="withChannelOption[A](SocketOption[A],A):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withChannelOption[A](key:java.net.SocketOption[A],value:A):BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withChannelOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <span class="extype" name="java.net.SocketOption">SocketOption</span>[<span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder.withChannelOption.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder.withChannelOption.A">A</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.server.blaze.BlazeServerBuilder#withChannelOptions" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withChannelOptions(channelOptions:org.http4s.blaze.channel.ChannelOptions):org.http4s.server.blaze.BlazeServerBuilder[F]"></a><a id="withChannelOptions(ChannelOptions):BlazeServerBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withChannelOptions(channelOptions:org.http4s.blaze.channel.ChannelOptions):org.http4s.server.blaze.BlazeServerBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withChannelOptions</span><span class="params">(<span name="channelOptions">channelOptions: <span class="extype" name="org.http4s.blaze.channel.ChannelOptions">ChannelOptions</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.blaze.BlazeServerBuilder">BlazeServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeServerBuilder">BlazeServerBuilder</a> → BlazeBackendBuilder</dd></dl></div>
     </li><li name="org.http4s.server.blaze.BlazeServerBuilder#withConnectorPoolSize" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withConnectorPoolSize(size:Int):BlazeServerBuilder.this.Self"></a><a id="withConnectorPoolSize(Int):Self"></a>
       <span class="permalink">
@@ -1010,6 +1154,102 @@ The backend is shut down when the stream is finalized.
       </span>
       
       
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withDefaultChannelOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withDefaultChannelOption[A](key:java.net.SocketOption[A]):BlazeBackendBuilder.this.Self"></a><a id="withDefaultChannelOption[A](SocketOption[A]):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withDefaultChannelOption[A](key:java.net.SocketOption[A]):BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withDefaultChannelOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <span class="extype" name="java.net.SocketOption">SocketOption</span>[<span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder.withDefaultChannelOption.A">A</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withDefaultSocketKeepAlive" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withDefaultSocketKeepAlive:BlazeBackendBuilder.this.Self"></a><a id="withDefaultSocketKeepAlive:Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withDefaultSocketKeepAlive:BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withDefaultSocketKeepAlive</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withDefaultSocketReceiveBufferSize" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withDefaultSocketReceiveBufferSize:BlazeBackendBuilder.this.Self"></a><a id="withDefaultSocketReceiveBufferSize:Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withDefaultSocketReceiveBufferSize:BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withDefaultSocketReceiveBufferSize</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withDefaultSocketReuseAddress" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withDefaultSocketReuseAddress:BlazeBackendBuilder.this.Self"></a><a id="withDefaultSocketReuseAddress:Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withDefaultSocketReuseAddress:BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withDefaultSocketReuseAddress</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withDefaultSocketSendBufferSize" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withDefaultSocketSendBufferSize:BlazeBackendBuilder.this.Self"></a><a id="withDefaultSocketSendBufferSize:Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withDefaultSocketSendBufferSize:BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withDefaultSocketSendBufferSize</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withDefaultTcpNoDelay" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withDefaultTcpNoDelay:BlazeBackendBuilder.this.Self"></a><a id="withDefaultTcpNoDelay:Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withDefaultTcpNoDelay:BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withDefaultTcpNoDelay</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
     </li><li name="org.http4s.server.blaze.BlazeServerBuilder#withExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withExecutionContext(executionContext:scala.concurrent.ExecutionContext):org.http4s.server.blaze.BlazeServerBuilder[F]"></a><a id="withExecutionContext(ExecutionContext):BlazeServerBuilder[F]"></a>
       <span class="permalink">
@@ -1159,6 +1399,86 @@ for example, an infinite request line.
 guaranteed to be invoked on errors on the server backend, such as
 parsing a request or handling a context timeout.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeServerBuilder">BlazeServerBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withSocketKeepAlive" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withSocketKeepAlive(socketKeepAlive:Boolean):BlazeBackendBuilder.this.Self"></a><a id="withSocketKeepAlive(Boolean):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withSocketKeepAlive(socketKeepAlive:Boolean):BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withSocketKeepAlive</span><span class="params">(<span name="socketKeepAlive">socketKeepAlive: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withSocketReceiveBufferSize" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withSocketReceiveBufferSize(socketReceiveBufferSize:Int):BlazeBackendBuilder.this.Self"></a><a id="withSocketReceiveBufferSize(Int):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withSocketReceiveBufferSize(socketReceiveBufferSize:Int):BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withSocketReceiveBufferSize</span><span class="params">(<span name="socketReceiveBufferSize">socketReceiveBufferSize: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withSocketReuseAddress" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withSocketReuseAddress(socketReuseAddress:Boolean):BlazeBackendBuilder.this.Self"></a><a id="withSocketReuseAddress(Boolean):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withSocketReuseAddress(socketReuseAddress:Boolean):BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withSocketReuseAddress</span><span class="params">(<span name="socketReuseAddress">socketReuseAddress: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withSocketSendBufferSize" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withSocketSendBufferSize(socketSendBufferSize:Int):BlazeBackendBuilder.this.Self"></a><a id="withSocketSendBufferSize(Int):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withSocketSendBufferSize(socketSendBufferSize:Int):BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withSocketSendBufferSize</span><span class="params">(<span name="socketSendBufferSize">socketSendBufferSize: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withTcpNoDelay" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withTcpNoDelay(tcpNoDelay:Boolean):BlazeBackendBuilder.this.Self"></a><a id="withTcpNoDelay(Boolean):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeServerBuilder.html#withTcpNoDelay(tcpNoDelay:Boolean):BlazeBackendBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withTcpNoDelay</span><span class="params">(<span name="tcpNoDelay">tcpNoDelay: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeServerBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
     </li><li name="org.http4s.server.blaze.BlazeServerBuilder#withWebSockets" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withWebSockets(enableWebsockets:Boolean):BlazeServerBuilder.this.Self"></a><a id="withWebSockets(Boolean):Self"></a>
       <span class="permalink">
@@ -1221,7 +1541,9 @@ parsing a request or handling a context timeout.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.server.ServerBuilder">
+        <div class="parent" name="org.http4s.blazecore.BlazeBackendBuilder">
+              <h3>Inherited from <span class="extype" name="org.http4s.blazecore.BlazeBackendBuilder">BlazeBackendBuilder</span>[<a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]]</h3>
+            </div><div class="parent" name="org.http4s.server.ServerBuilder">
               <h3>Inherited from <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]</h3>
             </div><div class="parent" name="org.http4s.internal.BackendBuilder">
               <h3>Inherited from <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.blaze.BlazeServerBuilder.F">F</span>]]</h3>
