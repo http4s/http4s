@@ -457,10 +457,10 @@ user data). Please do not use the CSRF protection from this middleware as a safe
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CSRF#checkCSRFDefault" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="checkCSRFDefault(r:org.http4s.Request[G],http:F[org.http4s.Response[G]]):F[org.http4s.Response[G]]"></a><a id="checkCSRFDefault(Request[G],F[Response[G]]):F[Response[G]]"></a>
+    </li><li name="org.http4s.server.middleware.CSRF#checkCSRF" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="checkCSRF(r:org.http4s.Request[G],http:F[org.http4s.Response[G]]):F[org.http4s.Response[G]]"></a><a id="checkCSRF(Request[G],F[Response[G]]):F[Response[G]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF.html#checkCSRFDefault(r:org.http4s.Request[G],http:F[org.http4s.Response[G]]):F[org.http4s.Response[G]]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF.html#checkCSRF(r:org.http4s.Request[G],http:F[org.http4s.Response[G]]):F[org.http4s.Response[G]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -469,11 +469,10 @@ user data). Please do not use the CSRF protection from this middleware as a safe
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">checkCSRFDefault</span><span class="params">(<span name="r">r: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]</span>, <span name="http">http: <span class="extype" name="org.http4s.server.middleware.CSRF.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]]</span>
+        <span class="name">checkCSRF</span><span class="params">(<span name="r">r: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]</span>, <span name="http">http: <span class="extype" name="org.http4s.server.middleware.CSRF.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">Check for CSRF validity for an unsafe action.</p><div class="fullcomment"><div class="comment cmt"><p>Check for CSRF validity for an unsafe action.</p><p>Check for the default header value
-</p></div></div>
+      <p class="shortcomment cmt">Check for CSRF validity for an unsafe action.</p>
     </li><li name="org.http4s.server.middleware.CSRF#checkCSRFToken" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="checkCSRFToken(r:org.http4s.Request[G],respAction:F[org.http4s.Response[G]],rawToken:String)(implicitF:cats.effect.Sync[F]):F[org.http4s.Response[G]]"></a><a id="checkCSRFToken(Request[G],F[Response[G]],String)(Sync[F]):F[Response[G]]"></a>
       <span class="permalink">
@@ -516,22 +515,6 @@ user data). Please do not use the CSRF protection from this middleware as a safe
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CSRF#cookieName" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="cookieName:String"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF.html#cookieName:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">cookieName</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      
     </li><li name="org.http4s.server.middleware.CSRF#createRequestCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="createRequestCookie(token:org.http4s.server.middleware.CSRF.CSRFToken):org.http4s.RequestCookie"></a><a id="createRequestCookie(CSRFToken):RequestCookie"></a>
       <span class="permalink">
@@ -744,22 +727,6 @@ user data). Please do not use the CSRF protection from this middleware as a safe
       <p class="shortcomment cmt">Decode our CSRF token, check the signature
 and extract the original token string to sign
 </p>
-    </li><li name="org.http4s.server.middleware.CSRF#filter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="filter(predicate:org.http4s.Request[G]=&gt;Boolean,r:org.http4s.Request[G],http:org.http4s.Http[F,G]):F[org.http4s.Response[G]]"></a><a id="filter((Request[G])⇒Boolean,Request[G],Http[F,G]):F[Response[G]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF.html#filter(predicate:org.http4s.Request[G]=&gt;Boolean,r:org.http4s.Request[G],http:org.http4s.Http[F,G]):F[org.http4s.Response[G]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">filter</span><span class="params">(<span name="predicate">predicate: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol"><span class="name"><a href="../../Request.html#method:org.http4s.Method">_.method.isSafe</a></span></span></span>, <span name="r">r: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]</span>, <span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Check predicate, then apply the correct csrf policy *</p>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -840,6 +807,22 @@ and extract the original token string to sign
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#getHeaderToken" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getHeaderToken(r:org.http4s.Request[G]):Option[String]"></a><a id="getHeaderToken(Request[G]):Option[String]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF.html#getHeaderToken(r:org.http4s.Request[G]):Option[String]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getHeaderToken</span><span class="params">(<span name="r">r: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
@@ -859,22 +842,6 @@ and extract the original token string to sign
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CSRF#headerName" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="headerName:org.http4s.util.CaseInsensitiveString"></a><a id="headerName:CaseInsensitiveString"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF.html#headerName:org.http4s.util.CaseInsensitiveString" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">headerName</span><span class="result">: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>
-      </span>
-      
-      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -945,6 +912,22 @@ and extract the original token string to sign
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#onfailureF" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="onfailureF:F[org.http4s.Response[G]]"></a><a id="onfailureF:F[Response[G]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF.html#onfailureF:F[org.http4s.Response[G]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onfailureF</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.G">G</span>]]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.server.middleware.CSRF#refreshOrCreate" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="refreshOrCreate[M[_]](r:org.http4s.Request[G])(implicitF:cats.effect.Sync[M]):cats.data.EitherT[M,org.http4s.server.middleware.CSRF.CSRFCheckFailed,org.http4s.server.middleware.CSRF.CSRFToken]"></a><a id="refreshOrCreate[M[_]](Request[G])(Sync[M]):EitherT[M,CSRFCheckFailed,CSRFToken]"></a>
       <span class="permalink">
