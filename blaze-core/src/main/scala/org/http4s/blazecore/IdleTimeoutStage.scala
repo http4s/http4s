@@ -7,10 +7,10 @@ import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
 import org.log4s.getLogger
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 final private[http4s] class IdleTimeoutStage[A](
-    timeout: Duration,
+    timeout: FiniteDuration,
     cb: Callback[TimeoutException],
     exec: TickWheelExecutor,
     ec: ExecutionContext)
@@ -25,7 +25,7 @@ final private[http4s] class IdleTimeoutStage[A](
     override def run(): Unit = {
       val t = new TimeoutException(s"Idle timeout after ${timeout.toMillis} ms.")
       logger.debug(t.getMessage)
-      cb(Left(t))
+      cb(Right(t))
       removeStage()
     }
   }

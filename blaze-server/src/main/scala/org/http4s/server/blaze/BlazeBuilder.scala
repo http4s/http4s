@@ -14,10 +14,11 @@ import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
-import org.http4s.syntax.all._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
+import org.http4s.blazecore.tickWheelResource
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.syntax.all._
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -69,11 +70,7 @@ class BlazeBuilder[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
-    extends ServerBuilder[F]
-    with IdleTimeoutSupport[F]
-    with SSLKeyStoreSupport[F]
-    with SSLContextSupport[F]
-    with server.WebSocketSupport[F] {
+    extends ServerBuilder[F] {
   type Self = BlazeBuilder[F]
 
   private[this] val logger = getLogger
@@ -124,17 +121,17 @@ class BlazeBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen): Self =
     copy(maxRequestLineLen = maxRequestLineLen, maxHeadersLen = maxHeadersLen)
 
-  override def withSSL(
+  def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
-      protocol: String,
-      trustStore: Option[StoreInfo],
-      clientAuth: Boolean): Self = {
+      protocol: String = "TLS",
+      trustStore: Option[StoreInfo] = None,
+      clientAuth: Boolean = false): Self = {
     val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
     copy(sslBits = Some(bits))
   }
 
-  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self =
+  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -143,7 +140,7 @@ class BlazeBuilder[F[_]](
   def withExecutionContext(executionContext: ExecutionContext): BlazeBuilder[F] =
     copy(executionContext = executionContext)
 
-  override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
+  def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
   def withConnectorPoolSize(size: Int): Self = copy(connectorPoolSize = size)
 
@@ -151,7 +148,7 @@ class BlazeBuilder[F[_]](
 
   def withNio2(isNio2: Boolean): Self = copy(isNio2 = isNio2)
 
-  override def withWebSockets(enableWebsockets: Boolean): Self =
+  def withWebSockets(enableWebsockets: Boolean): Self =
     copy(enableWebSockets = enableWebsockets)
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
@@ -175,7 +172,7 @@ class BlazeBuilder[F[_]](
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  def resource: Resource[F, Server[F]] =
+  def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
     Resource(F.delay {
       val aggregateService: HttpApp[F] =
         Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
@@ -210,7 +207,9 @@ class BlazeBuilder[F[_]](
               maxRequestLineLen,
               maxHeadersLen,
               serviceErrorHandler,
-              Duration.Inf
+              Duration.Inf,
+              idleTimeout,
+              scheduler
             )
 
           def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -222,7 +221,9 @@ class BlazeBuilder[F[_]](
               requestAttributes(secure = true),
               executionContext,
               serviceErrorHandler,
-              Duration.Inf
+              Duration.Inf,
+              idleTimeout,
+              scheduler
             )
 
           def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
@@ -289,6 +290,7 @@ class BlazeBuilder[F[_]](
 
       server -> shutdown
     })
+  }
 
   private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
     case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>

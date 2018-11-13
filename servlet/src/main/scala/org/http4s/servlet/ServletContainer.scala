@@ -5,9 +5,9 @@ import cats.effect._
 import java.util
 import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
-import org.http4s.server.{AsyncTimeoutSupport, ServerBuilder}
+import org.http4s.server.ServerBuilder
 
-abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] with AsyncTimeoutSupport[F] {
+abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
   type Self <: ServletContainer[F]
 
   /**
