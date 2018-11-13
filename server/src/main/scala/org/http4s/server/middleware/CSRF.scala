@@ -386,7 +386,7 @@ object CSRF {
       def extractToken: G[Option[String]] =
         r.attemptAs[UrlForm]
           .value
-          .map(_.fold(_ => none[String], _.values.get(fieldName).flatMap(_.headOption)))
+          .map(_.fold(_ => none[String], _.values.get(fieldName).flatMap(_.uncons.map(_._1))))
 
       r.headers.get(headers.`Content-Type`) match {
         case Some(headers.`Content-Type`(MediaType.application.`x-www-form-urlencoded`, _)) =>
