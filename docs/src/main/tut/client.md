@@ -315,12 +315,12 @@ case class AuthResponse(access_token: String)
 implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
 
 val postRequest = POST(
-  Uri.uri("https://my-lovely-api.com/oauth2/token"),
   UrlForm(
     "grant_type" -> "client_credentials",
     "client_id" -> "my-awesome-client",
     "client_secret" -> "s3cr3t"
-  )
+  ),
+  Uri.uri("https://my-lovely-api.com/oauth2/token")
 )
 
 httpClient.expect[AuthResponse](postRequest)

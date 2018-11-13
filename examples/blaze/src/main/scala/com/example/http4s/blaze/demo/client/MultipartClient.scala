@@ -29,7 +29,7 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4s
   private val request =
     for {
       body <- image.map(multipart)
-      req <- POST(Uri.uri("http://localhost:8080/v1/multipart"), body)
+      req <- POST(body, Uri.uri("http://localhost:8080/v1/multipart"))
     } yield req.withHeaders(body.headers)
 
   override def run(args: List[String]): IO[ExitCode] =

@@ -116,32 +116,21 @@ object RetryPolicy {
     GatewayTimeout
   )
 
-  /** Default logic for whether a request is retriable.  Returns true if
-    * the request method does not permit a body and the result is
-    * either a throwable or has one of the `RetriableStatuses`.
-    *
-    * Caution: more restrictive than 0.16.  That would inspect the
-    * body for effects, and resumbmit only if the body was pure (i.e.,
-    * only emits and halts).  The fs2 algebra does not let us inspect
-    * the stream for effects, so we can't safely resubmit.  For the
-    * old behavior, use [[unsafeRetriable]].  To ignore the response
-    * codes, see [[recklesslyRetriable]].
-    */
-  def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    req.method.isInstanceOf[Method.NoBody] && isErrorOrRetriableStatus(result)
-
   /** Returns true if the request method is idempotent and the result is
-    * either a throwable or has one of the `RetriableStatuses`.  This is
-    * the `defaultRetriable` behavior from 0.16.
+    * either a throwable or has one of the `RetriableStatuses`.
     *
     * Caution: if the request body is effectful, the effects will be
     * run twice.  The most common symptom of this will be resubmitting
-    * an empty request body.
+    * an idempotent request.
     */
-  def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
+  def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
     req.method.isIdempotent && isErrorOrRetriableStatus(result)
 
-  /** Like [[unsafeRetriable]], but returns true even if the request method
+  @deprecated("Use defaultRetriable instead", "0.19.0")
+  def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
+    defaultRetriable(req, result)
+
+  /** Like [[defaultRetriable]], but returns true even if the request method
     * is not idempotent.  This is useful if failed requests are assumed to
     * have not reached their destination, which is a dangerous assumption.
     * Use at your own risk.
