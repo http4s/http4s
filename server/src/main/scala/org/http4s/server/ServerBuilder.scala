@@ -8,10 +8,11 @@ import fs2._
 import fs2.concurrent.SignallingRef
 import java.net.{InetAddress, InetSocketAddress}
 import javax.net.ssl.SSLContext
+import org.http4s.internal.BackendBuilder
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
 
-private[http4s] trait ServerBuilder[F[_]] {
+trait ServerBuilder[F[_]] extends BackendBuilder[F, Server[F]] {
   type Self <: ServerBuilder[F]
 
   protected implicit def F: Concurrent[F]
@@ -35,11 +36,6 @@ private[http4s] trait ServerBuilder[F[_]] {
     * server is started and ready to accept requests.
     */
   def resource: Resource[F, Server[F]]
-
-  /** Returns a Server stream.  The stream does not emit until the
-    * server is started and ready to accept requests.
-    */
-  def stream: Stream[F, Server[F]] = Stream.resource(resource)
 
   /**
     * Runs the server as a process that never emits.  Useful for a server

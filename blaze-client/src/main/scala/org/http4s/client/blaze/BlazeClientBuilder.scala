@@ -4,13 +4,12 @@ package blaze
 
 import cats.effect._
 import cats.implicits._
-import fs2.Stream
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.headers.{AgentProduct, `User-Agent`}
-import org.http4s.internal.allocated
+import org.http4s.internal.BackendBuilder
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -32,7 +31,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val executionContext: ExecutionContext,
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions
-) extends BlazeBackendBuilder[Client[F]] {
+)(implicit protected val F: ConcurrentEffect[F])
+    extends BlazeBackendBuilder[Client[F]]
+    with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
 
   private def copy(
@@ -140,10 +141,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withChannelOptions(channelOptions: ChannelOptions): BlazeClientBuilder[F] =
     copy(channelOptions = channelOptions)
 
-  def allocate(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
-    allocated(resource)
-
-  def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+  def resource: Resource[F, Client[F]] =
     tickWheelResource.flatMap { scheduler =>
       connectionManager.map { manager =>
         BlazeClient.makeClient(
@@ -156,9 +154,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         )
       }
     }
-
-  def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
-    Stream.resource(resource)
 
   private def connectionManager(
       implicit F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
@@ -191,7 +186,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 }
 
 object BlazeClientBuilder {
-  def apply[F[_]](
+  def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
       sslContext: Option[SSLContext] = Some(SSLContext.getDefault)): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
