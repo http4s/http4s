@@ -55,13 +55,14 @@ class CSRFSpec extends Http4sSpec {
     .map(_.withClock(testClock).withCookieName(cookieName).build)
     .unsafeRunSync()
 
-  val csrfForm: CSRF[IO, IO] = CSRF.withGeneratedKey[IO, IO](defaultOriginCheck)
-    .map(_
-      .withClock(testClock)
-      .withCookieName(cookieName)
-      .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](headerName.value, FunctionK.id))
-      .build
-    ).unsafeRunSync()
+  val csrfForm: CSRF[IO, IO] = CSRF
+    .withGeneratedKey[IO, IO](defaultOriginCheck)
+    .map(
+      _.withClock(testClock)
+        .withCookieName(cookieName)
+        .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](headerName.value, FunctionK.id))
+        .build)
+    .unsafeRunSync()
 
   ///
 
@@ -99,23 +100,23 @@ class CSRFSpec extends Http4sSpec {
 
     "Extract a valid token from header or form field when form enabled" in {
 
-      def check(f: (String, Request[IO]) => Request[IO]): IO[Response[IO]] = {
+      def check(f: (String, Request[IO]) => Request[IO]): IO[Response[IO]] =
         for {
           token <- csrfForm.generateToken[IO]
-             ts =  unlift(token)
-            req =  csrfForm.embedInRequestCookie(f(ts, dummyRequest), token)
-            res <- csrfForm.checkCSRF(req, dummyRoutes.run(req))
+          ts = unlift(token)
+          req = csrfForm.embedInRequestCookie(f(ts, dummyRequest), token)
+          res <- csrfForm.checkCSRF(req, dummyRoutes.run(req))
         } yield res
-      }
 
       val hn = headerName.value
 
-      val fromHeader   = check((ts, r) ⇒ r.putHeaders(Header(hn, ts)))
-      val fromForm     = check((ts, r) ⇒ r.withEntity(UrlForm(hn -> ts)))
-      val preferHeader = check((ts, r) ⇒ r.withEntity(UrlForm(hn -> "bogus")).putHeaders(Header(hn, ts)))
+      val fromHeader = check((ts, r) ⇒ r.putHeaders(Header(hn, ts)))
+      val fromForm = check((ts, r) ⇒ r.withEntity(UrlForm(hn -> ts)))
+      val preferHeader =
+        check((ts, r) ⇒ r.withEntity(UrlForm(hn -> "bogus")).putHeaders(Header(hn, ts)))
 
-      fromHeader.unsafeRunSync().status   must_== Status.Ok
-      fromForm.unsafeRunSync().status     must_== Status.Ok
+      fromHeader.unsafeRunSync().status must_== Status.Ok
+      fromForm.unsafeRunSync().status must_== Status.Ok
       preferHeader.unsafeRunSync().status must_== Status.Ok
 
     }
@@ -133,8 +134,7 @@ class CSRFSpec extends Http4sSpec {
     "fail a request with an invalid cookie, despite it being a safe method" in {
       val response =
         csrf
-          .validate()(dummyRoutes)(
-            passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
+          .validate()(dummyRoutes)(passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
           .unsafeRunSync()
 
       response.status must_== Status.Forbidden // Must fail
