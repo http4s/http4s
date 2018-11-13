@@ -96,7 +96,7 @@ import scala.concurrent.ExecutionContext
 import java.util.concurrent._
 
 val blockingEC = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(5))
-val httpClient: Client[IO] = JavaNetClientBuilder(blockingEC).create
+val httpClient: Client[IO] = JavaNetClientBuilder[IO](blockingEC).create
 ```
 
 ### Describing a call

@@ -21,7 +21,7 @@ import okhttp3.{
 import okio.BufferedSink
 import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.Client
-import org.http4s.internal.invokeCallback
+import org.http4s.internal.{BackendBuilder, invokeCallback}
 import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -43,7 +43,8 @@ import scala.util.control.NonFatal
 sealed abstract class OkHttpBuilder[F[_]] private (
     val okHttpClient: OkHttpClient,
     val blockingExecutionContext: ExecutionContext
-) {
+)(implicit protected val F: ConcurrentEffect[F], cs: ContextShift[F])
+    extends BackendBuilder[F, Client[F]] {
   private[this] val logger = getLogger
 
   private def copy(
@@ -61,23 +62,12 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     *
     * The shutdown method on this client is a no-op.  $WHYNOSHUTDOWN
     */
-  def create(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Client[F] = Client(run)
+  def create: Client[F] = Client(run)
 
-  /** Creates the [[org,http4s.client.Client]] as a resource.
-    *
-    * The release on this resource is a no-op.  $WHYNOSHUTDOWN
-    */
-  def resource(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Resource[F, Client[F]] =
+  def resource: Resource[F, Client[F]] =
     Resource.make(F.delay(create))(_ => F.unit)
 
-  /** Creates the [[org,http4s.client.Client]] as a singleton stream.
-    *
-    * The bracketed release on this stream is a no-op.  $WHYNOSHUTDOWN
-    */
-  def stream(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Stream[F, Client[F]] =
-    Stream.resource(resource)
-
-  private def run(req: Request[F])(implicit F: ConcurrentEffect[F], cs: ContextShift[F]) =
+  private def run(req: Request[F]) =
     Resource.suspend(F.async[Resource[F, Response[F]]] { cb =>
       okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
       ()
@@ -188,9 +178,9 @@ object OkHttpBuilder {
     * @param okHttpClient the underlying client.
     * @param blockingExecutionContext $BLOCKINGEC
     */
-  def apply[F[_]](
-      okHttpClient: OkHttpClient,
-      blockingExecutionContext: ExecutionContext): OkHttpBuilder[F] =
+  def apply[F[_]](okHttpClient: OkHttpClient, blockingExecutionContext: ExecutionContext)(
+      implicit F: ConcurrentEffect[F],
+      cs: ContextShift[F]): OkHttpBuilder[F] =
     new OkHttpBuilder[F](okHttpClient, blockingExecutionContext) {}
 
   /** Create a builder with a default OkHttp client.  The builder is
@@ -200,10 +190,12 @@ object OkHttpBuilder {
     * @param blockingExecutionContext $BLOCKINGEC
     */
   def withDefaultClient[F[_]](blockingExecutionContext: ExecutionContext)(
-      implicit F: Sync[F]): Resource[F, OkHttpBuilder[F]] =
+      implicit F: ConcurrentEffect[F],
+      cs: ContextShift[F]): Resource[F, OkHttpBuilder[F]] =
     defaultOkHttpClient.map(apply(_, blockingExecutionContext))
 
-  private def defaultOkHttpClient[F[_]](implicit F: Sync[F]): Resource[F, OkHttpClient] =
+  private def defaultOkHttpClient[F[_]](
+      implicit F: ConcurrentEffect[F]): Resource[F, OkHttpClient] =
     Resource.make(F.delay(new OkHttpClient()))(shutdown(_))
 
   private def shutdown[F[_]](client: OkHttpClient)(implicit F: Sync[F]) =
