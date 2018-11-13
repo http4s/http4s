@@ -59,70 +59,76 @@ object BlazeClient {
             .invalidate(connection)
             .handleError(e => logger.error(e)("Error invalidating connection"))
 
-        def loop(next: manager.NextConnection): F[Resource[F, Response[F]]] = {
-          // Add the timeout stage to the pipeline
-          val res: F[Resource[F, Response[F]]] = {
-
-            val idleTimeoutF = idleTimeout match {
-              case timeout: FiniteDuration =>
-                F.cancelable[TimeoutException] { cb =>
-                  val stage = new IdleTimeoutStage[ByteBuffer](timeout, cb, scheduler, ec)
-                  next.connection.spliceBefore(stage)
-                  stage.stageStartup()
-                  F.delay(stage.removeStage)
-                }
-              case _ =>
-                F.never[TimeoutException]
-            }
-
-            next.connection
-              .runRequest(req, idleTimeoutF)
-              .flatMap { r =>
-                val dispose = manager.release(next.connection)
-                F.pure(Resource(F.pure(r -> dispose)))
+        def loop: F[Resource[F, Response[F]]] =
+          manager
+            .borrow(key)
+            .bracketCase({ next =>
+              // Add the timeout stage to the pipeline
+              val idleTimeoutF = idleTimeout match {
+                case timeout: FiniteDuration =>
+                  F.cancelable[TimeoutException] { cb =>
+                    val stage = new IdleTimeoutStage[ByteBuffer](timeout, cb, scheduler, ec)
+                    next.connection.spliceBefore(stage)
+                    stage.stageStartup()
+                    F.delay(stage.removeStage)
+                  }
+                case _ =>
+                  F.never[TimeoutException]
               }
-              .recoverWith {
-                case Command.EOF =>
-                  invalidate(next.connection).flatMap { _ =>
-                    if (next.fresh)
-                      F.raiseError(
-                        new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
-                    else {
-                      manager.borrow(key).flatMap { newConn =>
-                        loop(newConn)
+
+              val res = next.connection
+                .runRequest(req, idleTimeoutF)
+                .map { r =>
+                  Resource.makeCase(F.pure(r)) {
+                    case (_, ExitCase.Completed) =>
+                      manager.release(next.connection)
+                    case _ =>
+                      manager.invalidate(next.connection)
+                  }
+                }
+                .recoverWith {
+                  case Command.EOF =>
+                    invalidate(next.connection).flatMap { _ =>
+                      if (next.fresh)
+                        F.raiseError(
+                          new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
+                      else {
+                        loop
                       }
                     }
-                  }
-              }
-              .guaranteeCase {
-                case ExitCase.Completed =>
-                  F.unit
-                case ExitCase.Error(_) | ExitCase.Canceled =>
-                  invalidate(next.connection)
-              }
-          }
-
-          Deferred[F, Unit].flatMap { gate =>
-            val responseHeaderTimeoutF =
-              F.delay {
-                  val stage =
-                    new ResponseHeaderTimeoutStage[ByteBuffer](responseHeaderTimeout, scheduler, ec)
-                  next.connection.spliceBefore(stage)
-                  stage
                 }
-                .bracket(stage =>
-                  F.asyncF[TimeoutException] { cb =>
-                    F.delay(stage.init(cb)) >> gate.complete(())
-                })(stage => F.delay(stage.removeStage()))
 
-            F.racePair(gate.get *> res, responseHeaderTimeoutF).flatMap {
-              case Left((r, fiber)) => fiber.cancel.as(r)
-              case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+              Deferred[F, Unit].flatMap {
+                gate =>
+                  val responseHeaderTimeoutF: F[TimeoutException] =
+                    F.delay {
+                        val stage =
+                          new ResponseHeaderTimeoutStage[ByteBuffer](
+                            responseHeaderTimeout,
+                            scheduler,
+                            ec)
+                        next.connection.spliceBefore(stage)
+                        stage
+                      }
+                      .bracket(stage =>
+                        F.asyncF[TimeoutException] { cb =>
+                          F.delay(stage.init(cb)) >> gate.complete(())
+                      })(stage => F.delay(stage.removeStage()))
+
+                  F.racePair(gate.get *> res, responseHeaderTimeoutF)
+                    .flatMap[Resource[F, Response[F]]] {
+                      case Left((r, fiber)) => fiber.cancel.as(r)
+                      case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+                    }
+              }
+            }) {
+              case (_, ExitCase.Completed) =>
+                F.unit
+              case (next, ExitCase.Error(_) | ExitCase.Canceled) =>
+                invalidate(next.connection)
             }
-          }
-        }
 
-        val res = manager.borrow(key).flatMap(loop)
+        val res = loop
         requestTimeout match {
           case d: FiniteDuration =>
             F.racePair(
