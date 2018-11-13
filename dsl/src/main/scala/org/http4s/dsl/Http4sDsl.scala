@@ -44,6 +44,7 @@ trait Http4sDsl[F[_]] extends Methods with Statuses with Responses[F] with Auth 
   type OptionalMultiQueryParamDecoderMatcher[T] = impl.OptionalMultiQueryParamDecoderMatcher[T]
   type OptionalQueryParamMatcher[T] = impl.OptionalQueryParamMatcher[T]
   type ValidatingQueryParamDecoderMatcher[T] = impl.ValidatingQueryParamDecoderMatcher[T]
+  type FlagQueryParamMatcher = impl.FlagQueryParamMatcher
   type OptionalValidatingQueryParamDecoderMatcher[T] =
     impl.OptionalValidatingQueryParamDecoderMatcher[T]
 
