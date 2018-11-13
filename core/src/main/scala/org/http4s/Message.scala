@@ -1,6 +1,7 @@
 package org.http4s
 
 import cats._
+import cats.data.NonEmptyList
 import cats.implicits._
 import fs2._
 import fs2.text._
@@ -10,12 +11,9 @@ import org.http4s.headers._
 import org.log4s.getLogger
 
 /**
-  * Represents a HTTP Message. The interesting subclasses are Request and
-  * Response while most of the functionality is found in [[MessageOps]] and
-  * [[ResponseOps]]
-  * @see [[MessageOps]], [[ResponseOps]]
+  * Represents a HTTP Message. The interesting subclasses are Request and Response.
   */
-sealed trait Message[F[_]] extends MessageOps[F] { self =>
+sealed trait Message[F[_]] { self =>
   type Self <: Message[F] { type Self = self.Self }
 
   def httpVersion: HttpVersion
@@ -24,27 +22,27 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
 
   def body: EntityBody[F]
 
-  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
-    charset.getOrElse(defaultCharset) match {
-      case Charset.`UTF-8` =>
-        // suspect this one is more efficient, though this is superstition
-        body.through(utf8Decode)
-      case cs =>
-        body.through(util.decode(cs))
-    }
-
   def attributes: AttributeMap
 
   protected def change(
+      httpVersion: HttpVersion = httpVersion,
       body: EntityBody[F] = body,
       headers: Headers = headers,
       attributes: AttributeMap = attributes): Self
 
-  override def transformHeaders(f: Headers => Headers)(implicit F: Functor[F]): Self =
-    change(headers = f(headers))
+  def withHttpVersion(httpVersion: HttpVersion): Self =
+    change(httpVersion = httpVersion)
 
-  override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
-    change(attributes = attributes.put(key, value))
+  def withHeaders(headers: Headers): Self =
+    change(headers = headers)
+
+  def withHeaders(headers: Header*): Self =
+    withHeaders(Headers(headers.toList))
+
+  def withAttributes(attributes: AttributeMap): Self =
+    change(attributes = attributes)
+
+  // Body methods
 
   @deprecated("Use withEntity", "0.19")
   def withBody[T](b: T)(implicit F: Applicative[F], w: EntityEncoder[F, T]): F[Self] =
@@ -76,33 +74,131 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
-  def withBodyStream(body: EntityBody[F]): Self
+  def withBodyStream(body: EntityBody[F]): Self =
+    change(body = body)
 
   /** Set an empty entity body on this message, and remove all payload headers
     * that make no sense with an empty body.
     */
-  def withEmptyBody(implicit F: Functor[F]): Self =
+  def withEmptyBody: Self =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
 
-  def contentLength: Option[Long] = headers.get(`Content-Length`).map(_.length)
+  def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
+    charset.getOrElse(defaultCharset) match {
+      case Charset.`UTF-8` =>
+        // suspect this one is more efficient, though this is superstition
+        body.through(utf8Decode)
+      case cs =>
+        body.through(util.decode(cs))
+    }
 
-  def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
+  // General header methods
 
-  /** Returns the charset parameter of the `Content-Type` header, if present. Does
-    * not introspect the body for media types that define a charset
+  def transformHeaders(f: Headers => Headers): Self =
+    change(headers = f(headers))
+
+  /** Keep headers that satisfy the predicate
+    *
+    * @param f predicate
+    * @return a new message object which has only headers that satisfy the predicate
+    */
+  def filterHeaders(f: Header => Boolean): Self =
+    transformHeaders(_.filter(f))
+
+  def removeHeader(key: HeaderKey): Self =
+    filterHeaders(_.isNot(key))
+
+  /** Add the provided headers to the existing headers, replacing those of the same header name
+    * The passed headers are assumed to contain no duplicate Singleton headers.
+    */
+  def putHeaders(headers: Header*): Self =
+    transformHeaders(_.put(headers: _*))
+
+  /** Replace the existing headers with those provided */
+  @deprecated("Use withHeaders instead", "0.20.0-M2")
+  def replaceAllHeaders(headers: Headers): Self =
+    withHeaders(headers)
+
+  /** Replace the existing headers with those provided */
+  @deprecated("Use withHeaders instead", "0.20.0-M2")
+  def replaceAllHeaders(headers: Header*): Self =
+    withHeaders(headers: _*)
+
+  def withTrailerHeaders(trailerHeaders: F[Headers]): Self =
+    withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
+
+  def withoutTrailerHeaders: Self =
+    withoutAttribute(Message.Keys.TrailerHeaders[F])
+
+  /**
+    * The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
+    * F might not complete until the entire body has been consumed.
+    */
+  def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
+    attributes.get(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
+
+  // Specific header methods
+
+  @deprecated("Use withContentType(`Content-Type`(t)) instead", "0.20.0-M2")
+  def withType(t: MediaType)(implicit F: Functor[F]): Self =
+    withContentType(`Content-Type`(t))
+
+  def withContentType(contentType: `Content-Type`): Self =
+    putHeaders(contentType)
+
+  def withoutContentType: Self =
+    filterHeaders(_.isNot(`Content-Type`))
+
+  def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
+    contentTypeO.fold(withoutContentType)(withContentType)
+
+  def contentType: Option[`Content-Type`] =
+    headers.get(`Content-Type`)
+
+  def contentLength: Option[Long] =
+    headers.get(`Content-Length`).map(_.length)
+
+  /** Returns the charset parameter of the `Content-Type` header, if present.
+    * Does not introspect the body for media types that define a charset
     * internally.
     */
-  def charset: Option[Charset] = contentType.flatMap(_.charset)
+  def charset: Option[Charset] =
+    contentType.flatMap(_.charset)
 
   def isChunked: Boolean =
     headers.get(`Transfer-Encoding`).exists(_.values.contains_(TransferCoding.chunked))
 
-  /**
-    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
-    * task might not complete unless the entire body has been consumed.
+  // Attribute methods
+
+  /** Generates a new message object with the specified key/value pair appended to the [[AttributeMap]]
+    *
+    * @param key [[AttributeKey]] with which to associate the value
+    * @param value value associated with the key
+    * @tparam A type of the value to store
+    * @return a new message object with the key/value pair appended
     */
-  def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
-    attributes.get(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
+  def withAttribute[A](key: AttributeKey[A], value: A): Self =
+    change(attributes = attributes.put(key, value))
+
+  /** Generates a new message object with the specified key/value pair appended to the [[AttributeMap]]
+    *
+    * @param entry [[AttributeEntry]] entry to add
+    * @tparam A type of the value to store
+    * @return a new message object with the key/value pair appended
+    */
+  def withAttribute[A](entry: AttributeEntry[A]): Self =
+    withAttribute(entry.key, entry.value)
+
+  /**
+    * Returns a new message object without the specified key in the [[AttributeMap]]
+    *
+    * @param key [[AttributeKey]] to remove
+    * @return a new message object without the key
+    */
+  def withoutAttribute(key: AttributeKey[_]): Self =
+    change(attributes = attributes.remove(key))
+
+  // Decoding methods
 
   /** Decode the [[Message]] to the specified type
     *
@@ -110,10 +206,20 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * @tparam T type of the result
     * @return the effect which will generate the `DecodeResult[T]`
     */
-  override def attemptAs[T](
-      implicit F: FlatMap[F],
-      decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
+  def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
     decoder.decode(this, strict = false)
+
+  /** Decode the [[Message]] to the specified type
+    *
+    * If no valid [[Status]] has been described, allow Ok
+    *
+    * @param decoder [[EntityDecoder]] used to decode the [[Message]]
+    * @tparam T type of the result
+    * @return the effect which will generate the T
+    */
+  def as[T](implicit F: Functor[F], decoder: EntityDecoder[F, T]): F[T] =
+    attemptAs.fold(throw _, identity)
+
 }
 
 object Message {
@@ -144,13 +250,12 @@ sealed abstract case class Request[F[_]](
     headers: Headers = Headers.empty,
     body: EntityBody[F] = EmptyBody,
     attributes: AttributeMap = AttributeMap.empty
-) extends Message[F]
-    with RequestOps[F] {
+) extends Message[F] {
   import Request._
 
   type Self = Request[F]
 
-  private def requestCopy(
+  private def copy(
       method: Method = this.method,
       uri: Uri = this.uri,
       httpVersion: HttpVersion = this.httpVersion,
@@ -167,62 +272,44 @@ sealed abstract case class Request[F[_]](
       attributes = attributes
     )
 
-  @deprecated(
-    message = "Copy method is unsafe for setting path info. Use with... methods instead",
-    "0.17.0-M3")
-  def copy(
-      method: Method = this.method,
-      uri: Uri = this.uri,
-      httpVersion: HttpVersion = this.httpVersion,
-      headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
-      attributes: AttributeMap = this.attributes
-  ): Request[F] =
-    requestCopy(
+  def mapK[G[_]](f: F ~> G): Request[G] =
+    Request[G](
       method = method,
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      body = body.translate(f),
       attributes = attributes
     )
 
-  def mapK[G[_]](f: F ~> G): Request[G] = Request[G](
-    method = method,
-    uri = uri,
-    httpVersion = httpVersion,
-    headers = headers,
-    body = body.translate(f),
-    attributes = attributes
-  )
+  def withMethod(method: Method): Self =
+    copy(method = method)
 
-  def withMethod(method: Method) = requestCopy(method = method)
-  def withUri(uri: Uri) =
-    requestCopy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
-  def withHttpVersion(httpVersion: HttpVersion) = requestCopy(httpVersion = httpVersion)
-  def withHeaders(headers: Headers) = requestCopy(headers = headers)
-  def withAttributes(attributes: AttributeMap) = requestCopy(attributes = attributes)
-
-  def withBodyStream(body: EntityBody[F]): Request[F] =
-    requestCopy(body = body)
+  def withUri(uri: Uri): Self =
+    copy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
 
   override protected def change(
+      httpVersion: HttpVersion,
       body: EntityBody[F],
       headers: Headers,
-      attributes: AttributeMap): Self =
-    requestCopy(body = body, headers = headers, attributes = attributes)
-
-  lazy val authType: Option[AuthScheme] = headers.get(Authorization).map(_.credentials.authScheme)
+      attributes: AttributeMap
+  ): Self =
+    copy(
+      httpVersion = httpVersion,
+      body = body,
+      headers = headers,
+      attributes = attributes
+    )
 
   lazy val (scriptName, pathInfo) = {
     val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
     uri.path.splitAt(caret)
   }
 
-  def withPathInfo(pi: String)(implicit F: Functor[F]): Self =
+  def withPathInfo(pi: String): Self =
     withUri(uri.withPath(scriptName + pi))
 
-  lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
+  def pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
   def queryString: String = uri.query.renderString
 
@@ -256,33 +343,44 @@ sealed abstract case class Request[F[_]](
     */
   def params: Map[String, String] = uri.params
 
-  private lazy val connectionInfo = attributes.get(Keys.ConnectionInfo)
+  /** Add a Cookie header for the provided [[Cookie]] */
+  def addCookie(cookie: RequestCookie): Self =
+    putHeaders(Cookie(NonEmptyList.of(cookie)))
 
-  lazy val remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
+  /** Add a Cookie header with the provided values */
+  def addCookie(name: String, content: String): Self =
+    addCookie(RequestCookie(name, content))
+
+  def authType: Option[AuthScheme] =
+    headers.get(Authorization).map(_.credentials.authScheme)
+
+  private def connectionInfo: Option[Connection] = attributes.get(Keys.ConnectionInfo)
+
+  def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
 
   /**
-    Returns the the forwardFor value if present, else the remote address.
+    *Returns the the X-Forwarded-For value if present, else the remote address.
     */
   def from: Option[InetAddress] =
     headers
       .get(`X-Forwarded-For`)
       .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
 
-  lazy val remoteAddr: Option[String] = remote.map(_.getHostString)
-  lazy val remoteHost: Option[String] = remote.map(_.getHostName)
-  lazy val remotePort: Option[Int] = remote.map(_.getPort)
+  def remoteAddr: Option[String] = remote.map(_.getHostString)
+  def remoteHost: Option[String] = remote.map(_.getHostName)
+  def remotePort: Option[Int] = remote.map(_.getPort)
 
-  lazy val remoteUser: Option[String] = None
+  def remoteUser: Option[String] = None
 
-  lazy val server: Option[InetSocketAddress] = connectionInfo.map(_.local)
-  lazy val serverAddr: String =
+  def server: Option[InetSocketAddress] = connectionInfo.map(_.local)
+  def serverAddr: String =
     server
       .map(_.getHostString)
       .orElse(uri.host.map(_.value))
       .orElse(headers.get(Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
 
-  lazy val serverPort: Int =
+  def serverPort: Int =
     server
       .map(_.getPort)
       .orElse(uri.port)
@@ -290,7 +388,7 @@ sealed abstract case class Request[F[_]](
       .getOrElse(80) // scalastyle:ignore
 
   /** Whether the Request was received over a secure medium */
-  lazy val isSecure: Option[Boolean] = connectionInfo.map(_.secure)
+  def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
 
   def serverSoftware: ServerSoftware =
     attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
@@ -298,6 +396,25 @@ sealed abstract case class Request[F[_]](
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
       implicit F: Monad[F]): F[Response[F]] =
     decoder.decode(this, strict = strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
+
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
+    */
+  def decode[A](
+      f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+    decodeWith(decoder, strict = false)(f)
+
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
+    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
+    */
+  def decodeStrict[A](
+      f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+    decodeWith(decoder, strict = true)(f)
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
@@ -326,10 +443,10 @@ object Request {
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
   object Keys {
-    val PathInfoCaret = AttributeKey[Int]
-    val PathTranslated = AttributeKey[File]
-    val ConnectionInfo = AttributeKey[Connection]
-    val ServerSoftware = AttributeKey[ServerSoftware]
+    val PathInfoCaret: AttributeKey[Int] = AttributeKey[Int]
+    val PathTranslated: AttributeKey[File] = AttributeKey[File]
+    val ConnectionInfo: AttributeKey[Connection] = AttributeKey[Connection]
+    val ServerSoftware: AttributeKey[ServerSoftware] = AttributeKey[ServerSoftware]
   }
 }
 
@@ -347,8 +464,8 @@ final case class Response[F[_]](
     headers: Headers = Headers.empty,
     body: EntityBody[F] = EmptyBody,
     attributes: AttributeMap = AttributeMap.empty)
-    extends Message[F]
-    with ResponseOps[F] {
+    extends Message[F] {
+
   type Self = Response[F]
 
   def mapK[G[_]](f: F ~> G): Response[G] = Response[G](
@@ -359,28 +476,47 @@ final case class Response[F[_]](
     attributes = attributes
   )
 
-  override def withStatus(status: Status)(implicit F: Functor[F]): Self =
+  def withStatus(status: Status): Self =
     copy(status = status)
 
-  def withBodyStream(body: EntityBody[F]): Self =
-    copy(body = body)
-
   override protected def change(
+      httpVersion: HttpVersion,
       body: EntityBody[F],
       headers: Headers,
-      attributes: AttributeMap): Self =
-    copy(body = body, headers = headers, attributes = attributes)
+      attributes: AttributeMap
+  ): Self =
+    copy(
+      httpVersion = httpVersion,
+      body = body,
+      headers = headers,
+      attributes = attributes
+    )
 
-  override def toString: String = {
-    val newHeaders = headers.redactSensitive()
-    s"""Response(status=${status.code}, headers=$newHeaders)"""
-  }
+  /** Add a Set-Cookie header for the provided [[ResponseCookie]] */
+  def addCookie(cookie: ResponseCookie): Self =
+    putHeaders(`Set-Cookie`(cookie))
 
-  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
+  /** Add a [[`Set-Cookie`]] header with the provided values */
+  def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Self =
+    addCookie(ResponseCookie(name, content, expires))
+
+  /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
+  def removeCookie(cookie: ResponseCookie): Self =
+    putHeaders(cookie.clearCookie)
+
+  /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
+  def removeCookie(name: String): Self =
+    putHeaders(ResponseCookie(name, "").clearCookie)
+
+  /** Returns a list of cookies from the [[`Set-Cookie`]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion. */
   def cookies: List[ResponseCookie] =
     `Set-Cookie`.from(headers).map(_.cookie)
+
+  override def toString: String =
+    s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
+
 }
 
 object Response {

@@ -5,9 +5,9 @@ import cats.implicits._
 import org.http4s.headers.`Set-Cookie`
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
-import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
+import scala.collection.{GenTraversableOnce, immutable, mutable}
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])

@@ -32,9 +32,7 @@ sealed class TomcatBuilder[F[_]] private (
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
-    with ServerBuilder[F]
-    with IdleTimeoutSupport[F]
-    with SSLKeyStoreSupport[F] {
+    with ServerBuilder[F] {
 
   type Self = TomcatBuilder[F]
 
@@ -62,12 +60,12 @@ sealed class TomcatBuilder[F[_]] private (
       serviceErrorHandler,
       banner)
 
-  override def withSSL(
+  def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
-      protocol: String,
-      trustStore: Option[StoreInfo],
-      clientAuth: Boolean): Self =
+      protocol: String = "TLS",
+      trustStore: Option[StoreInfo] = None,
+      clientAuth: Boolean = false): Self =
     copy(
       sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
 
@@ -135,10 +133,10 @@ sealed class TomcatBuilder[F[_]] private (
    * attribute worker.maintain with a default interval of 60 seconds. In the worst case the connection
    * may not timeout for an additional 59.999 seconds from the specified Duration
    */
-  override def withIdleTimeout(idleTimeout: Duration): Self =
+  def withIdleTimeout(idleTimeout: Duration): Self =
     copy(idleTimeout = idleTimeout)
 
-  override def withAsyncTimeout(asyncTimeout: Duration): Self =
+  def withAsyncTimeout(asyncTimeout: Duration): Self =
     copy(asyncTimeout = asyncTimeout)
 
   override def withServletIo(servletIo: ServletIo[F]): Self =
@@ -235,15 +233,15 @@ object TomcatBuilder {
 
   def apply[F[_]: ConcurrentEffect]: TomcatBuilder[F] =
     new TomcatBuilder[F](
-      socketAddress = ServerBuilder.DefaultSocketAddress,
+      socketAddress = defaults.SocketAddress,
       externalExecutor = None,
-      idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-      asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+      idleTimeout = defaults.IdleTimeout,
+      asyncTimeout = defaults.AsyncTimeout,
       servletIo = ServletContainer.DefaultServletIo[F],
       sslBits = None,
       mounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
-      banner = ServerBuilder.DefaultBanner
+      banner = defaults.Banner
     )
 }
 

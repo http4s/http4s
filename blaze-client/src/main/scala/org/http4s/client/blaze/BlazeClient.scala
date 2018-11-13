@@ -63,33 +63,43 @@ object BlazeClient {
           // Add the timeout stage to the pipeline
           val res: F[Resource[F, Response[F]]] = {
 
-            val idleTimeoutF = F.cancelable[TimeoutException] { cb =>
-              val stage = new IdleTimeoutStage[ByteBuffer](idleTimeout, cb, scheduler, ec)
-              next.connection.spliceBefore(stage)
-              stage.stageStartup()
-              F.delay(stage.removeStage)
+            val idleTimeoutF = idleTimeout match {
+              case timeout: FiniteDuration =>
+                F.cancelable[TimeoutException] { cb =>
+                  val stage = new IdleTimeoutStage[ByteBuffer](timeout, cb, scheduler, ec)
+                  next.connection.spliceBefore(stage)
+                  stage.stageStartup()
+                  F.delay(stage.removeStage)
+                }
+              case _ =>
+                F.never[TimeoutException]
             }
 
-            next.connection.runRequest(req, idleTimeoutF).attempt.flatMap {
-              case Right(r) =>
+            next.connection
+              .runRequest(req, idleTimeoutF)
+              .flatMap { r =>
                 val dispose = manager.release(next.connection)
                 F.pure(Resource(F.pure(r -> dispose)))
-
-              case Left(Command.EOF) =>
-                invalidate(next.connection).flatMap { _ =>
-                  if (next.fresh)
-                    F.raiseError(
-                      new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
-                  else {
-                    manager.borrow(key).flatMap { newConn =>
-                      loop(newConn)
+              }
+              .recoverWith {
+                case Command.EOF =>
+                  invalidate(next.connection).flatMap { _ =>
+                    if (next.fresh)
+                      F.raiseError(
+                        new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
+                    else {
+                      manager.borrow(key).flatMap { newConn =>
+                        loop(newConn)
+                      }
                     }
                   }
-                }
-
-              case Left(e) =>
-                invalidate(next.connection) *> F.raiseError(e)
-            }
+              }
+              .guaranteeCase {
+                case ExitCase.Completed =>
+                  F.unit
+                case ExitCase.Error(_) | ExitCase.Canceled =>
+                  invalidate(next.connection)
+              }
           }
 
           Deferred[F, Unit].flatMap { gate =>

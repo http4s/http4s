@@ -17,9 +17,8 @@ import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
-import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
-import org.http4s.blazecore.BlazeBackendBuilder
+import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.log4s.getLogger
 import scala.collection.immutable
@@ -77,11 +76,7 @@ class BlazeServerBuilder[F[_]](
     val channelOptions: ChannelOptions
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
-    with BlazeBackendBuilder[Server[F]]
-    with IdleTimeoutSupport[F]
-    with SSLKeyStoreSupport[F]
-    with SSLContextSupport[F]
-    with server.WebSocketSupport[F] {
+    with BlazeBackendBuilder[Server[F]] {
   type Self = BlazeServerBuilder[F]
 
   private[this] val logger = getLogger
@@ -136,17 +131,17 @@ class BlazeServerBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen): Self =
     copy(maxRequestLineLen = maxRequestLineLen, maxHeadersLen = maxHeadersLen)
 
-  override def withSSL(
+  def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
-      protocol: String,
-      trustStore: Option[StoreInfo],
-      clientAuth: Boolean): Self = {
+      protocol: String = "TLS",
+      trustStore: Option[StoreInfo] = None,
+      clientAuth: Boolean = false): Self = {
     val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
     copy(sslBits = Some(bits))
   }
 
-  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self =
+  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -155,7 +150,7 @@ class BlazeServerBuilder[F[_]](
   def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
     copy(executionContext = executionContext)
 
-  override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
+  def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): Self =
     copy(responseHeaderTimeout = responseHeaderTimeout)
@@ -166,7 +161,7 @@ class BlazeServerBuilder[F[_]](
 
   def withNio2(isNio2: Boolean): Self = copy(isNio2 = isNio2)
 
-  override def withWebSockets(enableWebsockets: Boolean): Self =
+  def withWebSockets(enableWebsockets: Boolean): Self =
     copy(enableWebSockets = enableWebsockets)
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
@@ -183,7 +178,7 @@ class BlazeServerBuilder[F[_]](
   def withChannelOptions(channelOptions: ChannelOptions): BlazeServerBuilder[F] =
     copy(channelOptions = channelOptions)
 
-  def resource: Resource[F, Server[F]] =
+  def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
     Resource(F.delay {
 
       def resolveAddress(address: InetSocketAddress) =
@@ -216,7 +211,9 @@ class BlazeServerBuilder[F[_]](
               maxRequestLineLen,
               maxHeadersLen,
               serviceErrorHandler,
-              responseHeaderTimeout
+              responseHeaderTimeout,
+              idleTimeout,
+              scheduler
             )
 
           def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -228,12 +225,10 @@ class BlazeServerBuilder[F[_]](
               requestAttributes(secure = true),
               executionContext,
               serviceErrorHandler,
-              responseHeaderTimeout
+              responseHeaderTimeout,
+              idleTimeout,
+              scheduler
             )
-
-          def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
-            if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
-            else lb
 
           Future.successful {
             getContext() match {
@@ -242,19 +237,15 @@ class BlazeServerBuilder[F[_]](
                 engine.setUseClientMode(false)
                 engine.setNeedClientAuth(clientAuth)
 
-                var lb = LeafBuilder(
+                LeafBuilder(
                   if (isHttp2Enabled) http2Stage(engine)
                   else http1Stage(secure = true)
-                )
-                lb = prependIdleTimeout(lb)
-                lb.prepend(new SSLStage(engine))
+                ).prepend(new SSLStage(engine))
 
               case None =>
                 if (isHttp2Enabled)
                   logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-                var lb = LeafBuilder(http1Stage(secure = false))
-                lb = prependIdleTimeout(lb)
-                lb
+                LeafBuilder(http1Stage(secure = false))
             }
           }
       }
@@ -295,6 +286,7 @@ class BlazeServerBuilder[F[_]](
 
       server -> shutdown
     })
+  }
 
   private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
     case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
@@ -335,10 +327,10 @@ class BlazeServerBuilder[F[_]](
 object BlazeServerBuilder {
   def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
-      socketAddress = ServerBuilder.DefaultSocketAddress,
+      socketAddress = defaults.SocketAddress,
       executionContext = ExecutionContext.global,
       responseHeaderTimeout = 1.minute,
-      idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+      idleTimeout = defaults.IdleTimeout,
       isNio2 = false,
       connectorPoolSize = DefaultPoolSize,
       bufferSize = 64 * 1024,
@@ -349,7 +341,7 @@ object BlazeServerBuilder {
       maxHeadersLen = 40 * 1024,
       httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
-      banner = ServerBuilder.DefaultBanner,
+      banner = defaults.Banner,
       channelOptions = ChannelOptions(Vector.empty)
     )
 
