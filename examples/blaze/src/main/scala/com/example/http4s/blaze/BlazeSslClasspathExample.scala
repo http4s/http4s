@@ -1,13 +1,29 @@
 package com.example.http4s.blaze
 
 import cats.effect._
-import com.example.http4s.ssl.SslClasspathExample
-import org.http4s.server.blaze.BlazeBuilder
+import cats.implicits._
+import com.example.http4s.ssl
+import fs2._
+import org.http4s.server.blaze.BlazeServerBuilder
 
-class BlazeSslClasspathExample(implicit timer: Timer[IO], ctx: ContextShift[IO])
-    extends SslClasspathExample[IO]
-    with IOApp {
-  def builder: BlazeBuilder[IO] = BlazeBuilder[IO]
-  def run(args: List[String]): IO[ExitCode] =
-    sslStream.compile.toList.map(_.head)
+object BlazeSslClasspathExample extends IOApp {
+
+  override def run(args: List[String]): IO[ExitCode] =
+    BlazeSslClasspathExampleApp.stream[IO].compile.drain.as(ExitCode.Success)
+
+}
+
+object BlazeSslClasspathExampleApp {
+
+  def stream[F[_]: ConcurrentEffect: ContextShift: Timer]: Stream[F, ExitCode] =
+    for {
+      context <- Stream.eval(
+        ssl.loadContextFromClasspath[F](ssl.keystorePassword, ssl.keyManagerPassword))
+      exitCode <- BlazeServerBuilder[F]
+        .bindHttp(8443)
+        .withSSLContext(context)
+        .withHttpApp(BlazeExampleApp.httpApp[F])
+        .serve
+    } yield exitCode
+
 }

@@ -11,6 +11,9 @@ object GetRoutes {
   val SimplePath = "/simple"
   val ChunkedPath = "/chunked"
   val DelayedPath = "/delayed"
+  val NoContentPath = "/no-content"
+  val NotFoundPath = "/not-found"
+  val EmptyNotFoundPath = "/empty-not-found"
 
   def getPaths(implicit timer: Timer[IO]): Map[String, Response[IO]] =
     Map(
@@ -20,6 +23,9 @@ object GetRoutes {
         .pure[IO],
       DelayedPath ->
         timer.sleep(1.second) *>
-          Response[IO](Ok).withEntity("delayed path").pure[IO]
+          Response[IO](Ok).withEntity("delayed path").pure[IO],
+      NoContentPath -> Response[IO](NoContent).pure[IO],
+      NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
+      EmptyNotFoundPath -> Response[IO](NotFound).pure[IO]
     ).mapValues(_.unsafeRunSync())
 }

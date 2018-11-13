@@ -10,7 +10,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.12.6" // Also supports 2.11.x
+scalaVersion := "2.12.7" // Also supports 2.11.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
@@ -55,10 +55,12 @@ Wherever you are in your studies, let's create our first
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-You also will need a `ContextShift`.
+You also will need a `ContextShift` and a `Timer`.  These come for
+free if you are in an `IOApp`.
 
 ```tut:book:silent
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 ```
 
 Using the [http4s-dsl], we can construct an `HttpRoutes` by pattern
@@ -127,17 +129,17 @@ import org.http4s.server.Router
 
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
-val builder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp).start
+val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp)
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
 using defaults of port 8080 and the loopback address. The `mountService` call
 associates a base path with a `HttpRoutes`.
 
-A builder can be `run` to start the server.
+We start a server resource in the background.  The server will run until we cancel the fiber:
 
 ```tut:book
-val server = builder.unsafeRunSync()
+val fiber = serverBuilder.resource.use(_ => IO.never).start.unsafeRunSync()
 ```
 
 Use curl, or your favorite HTTP client, to see your service in action:
@@ -148,11 +150,10 @@ $ curl http://localhost:8080/hello/Pete
 
 ## Cleaning up
 
-Our server consumes system resources. Let's clean up by shutting it
-down:
+We can shut down the server by canceling its fiber.
 
 ```tut:book
-server.shutdown.unsafeRunSync()
+fiber.cancel.unsafeRunSync()
 ```
 
 ### Running your service as an `App`
@@ -175,6 +176,7 @@ import cats.implicits._
 import org.http4s.HttpRoutes
 import org.http4s.syntax._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.server.blaze._
 
 object Main extends IOApp {

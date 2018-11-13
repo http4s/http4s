@@ -3,6 +3,7 @@ package org.http4s.server.middleware
 import cats.effect._
 import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
 import org.http4s.server.{MockRoute, Router}
+import org.http4s.Uri.uri
 
 class AutoSlashSpec extends Http4sSpec {
 

@@ -1,10 +1,12 @@
 package org.http4s
 
-package object servlet {
-  protected[servlet] type BodyWriter[F[_]] = (Response[F], F[Unit]) => F[Unit]
+import cats.effect.Async
 
-  protected[servlet] def NullBodyWriter[F[_]]: BodyWriter[F] =
-    (_, timeout) => timeout
+package object servlet {
+  protected[servlet] type BodyWriter[F[_]] = Response[F] => F[Unit]
+
+  protected[servlet] def NullBodyWriter[F[_]](implicit F: Async[F]): BodyWriter[F] =
+    _ => F.unit
 
   protected[servlet] val DefaultChunkSize = 4096
 }

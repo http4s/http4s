@@ -12,7 +12,7 @@ import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.syntax.string._
-import org.http4s.websocket.WebsocketHandshake
+import org.http4s.websocket.WebSocketHandshake
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -30,14 +30,14 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
       case None => super.renderResponse(req, resp, cleanup)
       case Some(wsContext) =>
         val hdrs = req.headers.map(h => (h.name.toString, h.value))
-        if (WebsocketHandshake.isWebSocketRequest(hdrs)) {
-          WebsocketHandshake.serverHandshake(hdrs) match {
+        if (WebSocketHandshake.isWebSocketRequest(hdrs)) {
+          WebSocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
               logger.info(s"Invalid handshake $code, $msg")
               unsafeRunAsync {
                 wsContext.failureResponse
                   .map(
-                    _.replaceAllHeaders(
+                    _.withHeaders(
                       Connection("close".ci),
                       Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
                     ))

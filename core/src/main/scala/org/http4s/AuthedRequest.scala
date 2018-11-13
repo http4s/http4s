@@ -4,7 +4,7 @@ import cats._
 import cats.data._
 import cats.implicits._
 
-case class AuthedRequest[F[_], A](authInfo: A, req: Request[F])
+final case class AuthedRequest[F[_], A](authInfo: A, req: Request[F])
 
 object AuthedRequest {
   def apply[F[_]: Functor, T](

@@ -2,6 +2,7 @@ package org.http4s
 package server
 
 import cats.effect._
+import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 
 class RouterSpec extends Http4sSpec {

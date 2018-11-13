@@ -3,6 +3,7 @@ package server
 
 import cats.effect._
 import cats.implicits._
+import org.http4s.Uri.uri
 
 class HttpRoutesSpec extends Http4sSpec {
 

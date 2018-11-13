@@ -6,7 +6,7 @@ import cats.implicits._
 import org.http4s.Status.{Accepted, Ok}
 import org.http4s.server.middleware.PushSupport._
 
-object MockRoute extends Http4s {
+object MockRoute {
 
   def route(): HttpRoutes[IO] = HttpRoutes.of {
     case req if req.uri.path === "/ping" =>
@@ -26,6 +26,6 @@ object MockRoute extends Http4s {
 
     /** For testing the PushSupport middleware */
     case req if req.uri.path === "/push" =>
-      Response[IO](Ok).withEntity("Hello").pure[IO].push("/ping")(req)
+      Response[IO](Ok).withEntity("Hello").push("/ping")(req).pure[IO]
   }
 }

@@ -2,7 +2,6 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Accept-Encoding`
-import org.http4s.Http4s._
 import org.specs2.mutable.Specification
 
 class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {
@@ -10,11 +9,11 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
     HttpHeaderParser.ACCEPT_ENCODING(value)
 
   val gzip = `Accept-Encoding`(ContentCoding.gzip)
-  val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.5)))
-  val gzip55 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.55)))
-  val gzip555 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.555)))
+  val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(QValue.q(0.5)))
+  val gzip55 = `Accept-Encoding`(ContentCoding.gzip.withQValue(QValue.q(0.55)))
+  val gzip555 = `Accept-Encoding`(ContentCoding.gzip.withQValue(QValue.q(0.555)))
 
-  val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(1.0)))
+  val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(QValue.q(1.0)))
 
   "Accept-Encoding parser" should {
 

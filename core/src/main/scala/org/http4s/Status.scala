@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Order, Show}
 import org.http4s.Status.ResponseClass
 import org.http4s.util.Renderable
 
@@ -10,7 +10,6 @@ import org.http4s.util.Renderable
   *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
-  *
   * @see [http://tools.ietf.org/html/rfc7231#section-6 RFC7231, Section 6]
   * @see [http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]
   */
@@ -130,6 +129,7 @@ object Status {
   val SwitchingProtocols: Status = register(
     Status(101, "Switching Protocols", isEntityAllowed = false))
   val Processing: Status = register(Status(102, "Processing", isEntityAllowed = false))
+  val EarlyHints: Status = register(Status(103, "Early Hints", isEntityAllowed = false))
 
   val Ok: Status = register(Status(200, "OK"))
   val Created: Status = register(Status(201, "Created"))
@@ -169,9 +169,11 @@ object Status {
   val UnsupportedMediaType: Status = register(Status(415, "Unsupported Media Type"))
   val RangeNotSatisfiable: Status = register(Status(416, "Range Not Satisfiable"))
   val ExpectationFailed: Status = register(Status(417, "Expectation Failed"))
+  val MisdirectedRequest: Status = register(Status(421, "Misdirected Request"))
   val UnprocessableEntity: Status = register(Status(422, "Unprocessable Entity"))
   val Locked: Status = register(Status(423, "Locked"))
   val FailedDependency: Status = register(Status(424, "Failed Dependency"))
+  val TooEarly: Status = register(Status(425, "Too Early"))
   val UpgradeRequired: Status = register(Status(426, "Upgrade Required"))
   val PreconditionRequired: Status = register(Status(428, "Precondition Required"))
   val TooManyRequests: Status = register(Status(429, "Too Many Requests"))
@@ -192,9 +194,6 @@ object Status {
     Status(511, "Network Authentication Required"))
   // scalastyle:on magic.number
 
-}
-
-trait StatusInstances {
-  implicit val StatusShow = Show.fromToString[Status]
-  implicit val StatusOrder = Order.fromOrdering[Status]
+  implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]
+  implicit val http4sShowForStatus: Show[Status] = Show.fromToString[Status]
 }

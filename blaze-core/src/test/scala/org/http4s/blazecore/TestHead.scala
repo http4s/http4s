@@ -1,6 +1,8 @@
 package org.http4s
 package blazecore
 
+import cats.effect.IO
+import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
@@ -8,23 +10,24 @@ import org.http4s.blaze.util.TickWheelExecutor
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
+import scodec.bits.ByteVector
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
-  private var acc = Vector[Array[Byte]]()
+  private var acc = ByteVector.empty
   private val p = Promise[ByteBuffer]
 
   var closed = false
 
-  def getBytes(): Array[Byte] = acc.toArray.flatten
+  @volatile var closeCauses = Vector[Option[Throwable]]()
 
-  def result = p.future
+  def getBytes(): Array[Byte] = acc.toArray
+
+  val result = p.future
 
   override def writeRequest(data: ByteBuffer): Future[Unit] = synchronized {
     if (closed) Future.failed(EOF)
     else {
-      val cpy = new Array[Byte](data.remaining())
-      data.get(cpy)
-      acc :+= cpy
+      acc ++= ByteVector.view(data)
       util.FutureUnit
     }
   }
@@ -36,11 +39,10 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
     ()
   }
 
-  override def outboundCommand(cmd: OutboundCommand): Unit = cmd match {
-    case Connect => stageStartup()
-    case Disconnect => stageShutdown()
-    case Error(e) => logger.error(e)(s"$name received unhandled error command")
-    case _ => // hushes ClientStageTimeout commands that we can't see here
+  override def doClosePipeline(cause: Option[Throwable]): Unit = {
+    closeCauses :+= cause
+    cause.foreach(logger.error(_)(s"$name received unhandled error command"))
+    sendInboundCommand(Disconnected)
   }
 }
 
@@ -54,6 +56,25 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
       sendInboundCommand(Disconnected)
       Future.failed(EOF)
     }
+  }
+}
+
+final class QueueTestHead(queue: Queue[IO, Option[ByteBuffer]]) extends TestHead("QueueTestHead") {
+  private val closedP = Promise[Nothing]
+
+  override def readRequest(size: Int): Future[ByteBuffer] = {
+    val p = Promise[ByteBuffer]
+    p.tryCompleteWith(queue.dequeue1.flatMap {
+      case Some(bb) => IO.pure(bb)
+      case None => IO.raiseError(EOF)
+    }.unsafeToFuture)
+    p.tryCompleteWith(closedP.future)
+    p.future
+  }
+
+  override def stageShutdown(): Unit = {
+    closedP.tryFailure(EOF)
+    super.stageShutdown()
   }
 }
 
@@ -76,14 +97,6 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
   override def stageShutdown(): Unit = synchronized {
     clear()
     super.stageShutdown()
-  }
-
-  override def outboundCommand(cmd: OutboundCommand): Unit = self.synchronized {
-    cmd match {
-      case Disconnect => clear()
-      case _ =>
-    }
-    super.outboundCommand(cmd)
   }
 
   override def readRequest(size: Int): Future[ByteBuffer] = self.synchronized {

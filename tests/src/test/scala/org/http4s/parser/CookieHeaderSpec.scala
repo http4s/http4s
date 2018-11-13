@@ -28,11 +28,15 @@ class CookieHeaderSpec extends Specification with HeaderParserHelper[headers.Coo
   def hparse(value: String): ParseResult[headers.Cookie] = HttpHeaderParser.COOKIE(value)
 
   val cookiestr = "key1=value1; key2=\"value2\""
+  val cookiestrSemicolon: String = cookiestr + ";"
   val cookies = Seq(RequestCookie("key1", "value1"), RequestCookie("key2", "value2"))
 
   "Cookie parser" should {
     "parse a cookie" in {
       parse(cookiestr).values.toList must be_==(cookies)
+    }
+    "parse a cookie (semicolon at the end)" in {
+      parse(cookiestrSemicolon).values.toList must be_==(cookies)
     }
   }
 }

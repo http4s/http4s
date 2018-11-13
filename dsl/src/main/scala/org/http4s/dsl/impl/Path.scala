@@ -84,7 +84,7 @@ object ~ {
     }
 }
 
-case class /(parent: Path, child: String) extends Path {
+final case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
 
   def lastOption: Some[String] = Some(child)
@@ -260,6 +260,14 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
       .flatMap(_.headOption)
       .traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
       .toOption
+}
+
+/**
+  * Flag (value-less) query param extractor
+  */
+abstract class FlagQueryParamMatcher(name: String) {
+  def unapply(params: Map[String, Seq[String]]): Option[Boolean] =
+    Some(params.contains(name))
 }
 
 /**

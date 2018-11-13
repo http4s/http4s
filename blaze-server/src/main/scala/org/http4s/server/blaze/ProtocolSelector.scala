@@ -2,25 +2,31 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.ConcurrentEffect
+import cats.effect.{ConcurrentEffect, Timer}
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
 import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
 import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import org.http4s.blaze.util.TickWheelExecutor
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private[blaze] object ProtocolSelector {
-  def apply[F[_]: ConcurrentEffect](
+  def apply[F[_]](
       engine: SSLEngine,
       httpApp: HttpApp[F],
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
       requestAttributes: AttributeMap,
       executionContext: ExecutionContext,
-      serviceErrorHandler: ServiceErrorHandler[F]): ALPNServerSelector = {
+      serviceErrorHandler: ServiceErrorHandler[F],
+      responseHeaderTimeout: Duration,
+      idleTimeout: Duration,
+      scheduler: TickWheelExecutor)(
+      implicit F: ConcurrentEffect[F],
+      timer: Timer[F]): ALPNServerSelector = {
 
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { streamId: Int =>
@@ -31,7 +37,11 @@ private[blaze] object ProtocolSelector {
             executionContext,
             requestAttributes,
             httpApp,
-            serviceErrorHandler))
+            serviceErrorHandler,
+            responseHeaderTimeout,
+            idleTimeout,
+            scheduler
+          ))
       }
 
       val localSettings =
@@ -53,7 +63,10 @@ private[blaze] object ProtocolSelector {
         enableWebSockets = false,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler
+        serviceErrorHandler,
+        responseHeaderTimeout,
+        idleTimeout,
+        scheduler
       )
 
     def preference(protos: Set[String]): String =

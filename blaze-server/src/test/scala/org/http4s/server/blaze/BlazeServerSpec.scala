@@ -6,12 +6,15 @@ import cats.effect.IO
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
-import org.specs2.specification.AfterAll
+import scala.concurrent.duration._
 import scala.io.Source
 
-class BlazeServerSpec extends Http4sSpec with AfterAll {
+class BlazeServerSpec extends Http4sSpec {
 
-  def builder = BlazeServerBuilder[IO].withExecutionContext(testExecutionContext)
+  def builder =
+    BlazeServerBuilder[IO]
+      .withResponseHeaderTimeout(1.second)
+      .withExecutionContext(testExecutionContext)
 
   val service: HttpApp[IO] = HttpApp {
     case GET -> Root / "thread" / "routing" =>
@@ -23,49 +26,66 @@ class BlazeServerSpec extends Http4sSpec with AfterAll {
 
     case req @ POST -> Root / "echo" =>
       Ok(req.body)
+
+    case _ -> Root / "never" =>
+      IO.never
+
     case _ => NotFound()
   }
 
-  val server =
+  val serverR =
     builder
       .bindAny()
       .withHttpApp(service)
-      .start
-      .unsafeRunSync()
+      .resource
 
-  def afterAll = server.shutdownNow()
+  withResource(serverR) { server =>
+    // This should be in IO and shifted but I'm tired of fighting this.
+    def get(path: String): String =
+      Source
+        .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+        .getLines
+        .mkString
 
-  // This should be in IO and shifted but I'm tired of fighting this.
-  private def get(path: String): String =
-    Source
-      .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-      .getLines
-      .mkString
-
-  // This too
-  private def post(path: String, body: String): String = {
-    val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
-    val conn = url.openConnection().asInstanceOf[HttpURLConnection]
-    val bytes = body.getBytes(StandardCharsets.UTF_8)
-    conn.setRequestMethod("POST")
-    conn.setRequestProperty("Content-Length", bytes.size.toString)
-    conn.setDoOutput(true)
-    conn.getOutputStream.write(bytes)
-    Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
-  }
-
-  "A server" should {
-    "route requests on the service executor" in {
-      get("/thread/routing") must startWith("http4s-spec-")
+    // This should be in IO and shifted but I'm tired of fighting this.
+    def getStatus(path: String): IO[Status] = {
+      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+      for {
+        conn <- IO(url.openConnection().asInstanceOf[HttpURLConnection])
+        _ = conn.setRequestMethod("GET")
+        status <- IO.fromEither(Status.fromInt(conn.getResponseCode()))
+      } yield status
     }
 
-    "execute the service task on the service executor" in {
-      get("/thread/effect") must startWith("http4s-spec-")
+    // This too
+    def post(path: String, body: String): String = {
+      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+      val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+      val bytes = body.getBytes(StandardCharsets.UTF_8)
+      conn.setRequestMethod("POST")
+      conn.setRequestProperty("Content-Length", bytes.size.toString)
+      conn.setDoOutput(true)
+      conn.getOutputStream.write(bytes)
+      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
     }
 
-    "be able to echo its input" in {
-      val input = """{ "Hello": "world" }"""
-      post("/echo", input) must startWith(input)
+    "A server" should {
+      "route requests on the service executor" in {
+        get("/thread/routing") must startWith("http4s-spec-")
+      }
+
+      "execute the service task on the service executor" in {
+        get("/thread/effect") must startWith("http4s-spec-")
+      }
+
+      "be able to echo its input" in {
+        val input = """{ "Hello": "world" }"""
+        post("/echo", input) must startWith(input)
+      }
+
+      "return a 503 if the server doesn't respond" in {
+        getStatus("/never") must returnValue(Status.ServiceUnavailable)
+      }
     }
   }
 }

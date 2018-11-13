@@ -2,6 +2,7 @@ package com.example.http4s.blaze
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
+import java.net.URL
 import org.http4s._
 import org.http4s.Uri._
 import org.http4s.client.Client
@@ -13,7 +14,7 @@ import scala.concurrent.ExecutionContext.global
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
 
-  val bottle = getClass.getResource("/beerbottle.png")
+  val bottle: URL = getClass.getResource("/beerbottle.png")
 
   def go(client: Client[IO]): IO[String] = {
     // n.b. This service does not appear to gracefully handle chunked requests.
@@ -29,7 +30,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
       ))
 
     val request: IO[Request[IO]] =
-      Method.POST(url, multipart).map(_.replaceAllHeaders(multipart.headers))
+      Method.POST(url, multipart).map(_.withHeaders(multipart.headers))
 
     client.expect[String](request)
   }
@@ -37,6 +38,6 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
   def run(args: List[String]): IO[ExitCode] =
     BlazeClientBuilder[IO](global).resource
       .use(go)
-      .flatMap(s => IO(println))
+      .flatMap(s => IO(println(s)))
       .as(ExitCode.Success)
 }

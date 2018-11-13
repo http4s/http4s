@@ -45,7 +45,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
             val port = address.getPort
             val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
             client
-              .fetch(req)(resp => IO(checkResponse(resp, expected)))
+              .fetch(req)(resp => checkResponse(resp, expected))
               .unsafeRunTimed(timeout)
               .get
           }
@@ -97,16 +97,16 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
     }
   }
 
-  private def checkResponse(rec: Response[IO], expected: Response[IO]) = {
+  private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
     val hs = rec.headers.toSeq
-
-    rec.status must be_==(expected.status)
-
-    collectBody(rec.body) must be_==(collectBody(expected.body))
-
-    expected.headers.foreach(h => h must beOneOf(hs: _*))
-
-    rec.httpVersion must be_==(expected.httpVersion)
+    for {
+      _ <- IO(rec.status must be_==(expected.status))
+      body <- rec.body.compile.to[Array]
+      expBody <- expected.body.compile.to[Array]
+      _ <- IO(body must_== expBody)
+      _ <- IO(expected.headers.foreach(h => h must beOneOf(hs: _*)))
+      _ <- IO(rec.httpVersion must be_==(expected.httpVersion))
+    } yield true
   }
 
   private def renderResponse(srv: HttpServletResponse, resp: Response[IO]): Unit = {
@@ -124,7 +124,4 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
       .drain
       .unsafeRunSync()
   }
-
-  private def collectBody(body: EntityBody[IO]): Array[Byte] =
-    body.compile.toVector.unsafeRunSync().toArray
 }

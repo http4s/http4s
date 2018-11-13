@@ -7,7 +7,7 @@ import org.http4s.ServerSentEvent._
 import org.http4s.util.{Renderable, Writer}
 import scala.util.Try
 
-case class ServerSentEvent(
+final case class ServerSentEvent(
     data: String,
     eventType: Option[String] = None,
     id: Option[EventId] = None,
@@ -32,7 +32,7 @@ case class ServerSentEvent(
 object ServerSentEvent {
   val empty = ServerSentEvent("")
 
-  case class EventId(value: String)
+  final case class EventId(value: String)
 
   object EventId {
     val reset: EventId = EventId("")

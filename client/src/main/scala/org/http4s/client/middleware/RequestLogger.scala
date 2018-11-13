@@ -2,7 +2,6 @@ package org.http4s
 package client
 package middleware
 
-import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
@@ -21,13 +20,14 @@ object RequestLogger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
   )(client: Client[F]): Client[F] =
-    client.copy(open = Kleisli {
-      req =>
-        if (!logBody)
+    Client { req =>
+      if (!logBody)
+        Resource.liftF(
           Logger.logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(
-            logger.info(_)) *> client.open(req)
-        else
-          Ref[F].of(Vector.empty[Chunk[Byte]]).flatMap { vec =>
+            logger.info(_))) *> client.run(req)
+      else
+        Resource.suspend {
+          Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
             val newBody = Stream
               .eval(vec.get)
               .flatMap(v => Stream.emits(v).covary[F])
@@ -45,7 +45,8 @@ object RequestLogger {
                 )
             )
 
-            client.open(changedRequest)
+            client.run(changedRequest)
           }
-    })
+        }
+    }
 }

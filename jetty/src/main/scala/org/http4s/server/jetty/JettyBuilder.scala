@@ -9,9 +9,9 @@ import javax.net.ssl.SSLContext
 import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{ServerConnector, Server => JServer}
+import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
-import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
-import org.eclipse.jetty.util.component.LifeCycle
+import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -25,6 +25,7 @@ sealed class JettyBuilder[F[_]] private (
     threadPool: ThreadPool,
     private val idleTimeout: Duration,
     private val asyncTimeout: Duration,
+    shutdownTimeout: Duration,
     private val servletIo: ServletIo[F],
     sslBits: Option[SSLConfig],
     mounts: Vector[Mount[F]],
@@ -32,10 +33,7 @@ sealed class JettyBuilder[F[_]] private (
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
-    with ServerBuilder[F]
-    with IdleTimeoutSupport[F]
-    with SSLKeyStoreSupport[F]
-    with SSLContextSupport[F] {
+    with ServerBuilder[F] {
 
   type Self = JettyBuilder[F]
 
@@ -46,6 +44,7 @@ sealed class JettyBuilder[F[_]] private (
       threadPool: ThreadPool = threadPool,
       idleTimeout: Duration = idleTimeout,
       asyncTimeout: Duration = asyncTimeout,
+      shutdownTimeout: Duration = shutdownTimeout,
       servletIo: ServletIo[F] = servletIo,
       sslBits: Option[SSLConfig] = sslBits,
       mounts: Vector[Mount[F]] = mounts,
@@ -57,23 +56,24 @@ sealed class JettyBuilder[F[_]] private (
       threadPool,
       idleTimeout,
       asyncTimeout,
+      shutdownTimeout,
       servletIo,
       sslBits,
       mounts,
       serviceErrorHandler,
       banner)
 
-  override def withSSL(
+  def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
-      protocol: String,
-      trustStore: Option[StoreInfo],
-      clientAuth: Boolean
+      protocol: String = "TLS",
+      trustStore: Option[StoreInfo] = None,
+      clientAuth: Boolean = false
   ): Self =
     copy(
       sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
 
-  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self =
+  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -117,11 +117,16 @@ sealed class JettyBuilder[F[_]] private (
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     })
 
-  override def withIdleTimeout(idleTimeout: Duration): Self =
+  def withIdleTimeout(idleTimeout: Duration): Self =
     copy(idleTimeout = idleTimeout)
 
-  override def withAsyncTimeout(asyncTimeout: Duration): Self =
+  def withAsyncTimeout(asyncTimeout: Duration): Self =
     copy(asyncTimeout = asyncTimeout)
+
+  /** Sets the graceful shutdown timeout for Jetty.  Closing the resource
+    * will wait this long before a forcible stop. */
+  def withShutdownTimeout(shutdownTimeout: Duration): Self =
+    copy(shutdownTimeout = shutdownTimeout)
 
   override def withServletIo(servletIo: ServletIo[F]): Self =
     copy(servletIo = servletIo)
@@ -168,66 +173,78 @@ sealed class JettyBuilder[F[_]] private (
     }
   }
 
-  def start: F[Server[F]] = F.delay {
-    val jetty = new JServer(threadPool)
+  def resource: Resource[F, Server[F]] =
+    Resource(F.delay {
+      val jetty = new JServer(threadPool)
 
-    val context = new ServletContextHandler()
-    context.setContextPath("/")
+      val context = new ServletContextHandler()
+      context.setContextPath("/")
 
-    jetty.setHandler(context)
+      jetty.setHandler(context)
 
-    val connector = getConnector(jetty)
+      val connector = getConnector(jetty)
 
-    connector.setHost(socketAddress.getHostString)
-    connector.setPort(socketAddress.getPort)
-    connector.setIdleTimeout(if (idleTimeout.isFinite()) idleTimeout.toMillis else -1)
-    jetty.addConnector(connector)
+      connector.setHost(socketAddress.getHostString)
+      connector.setPort(socketAddress.getPort)
+      connector.setIdleTimeout(if (idleTimeout.isFinite()) idleTimeout.toMillis else -1)
+      jetty.addConnector(connector)
 
-    for ((mount, i) <- mounts.zipWithIndex)
-      mount.f(context, i, this)
+      // Jetty graceful shutdown does not work without a stats handler
+      val stats = new StatisticsHandler
+      stats.setHandler(jetty.getHandler)
+      jetty.setHandler(stats)
 
-    jetty.start()
+      jetty.setStopTimeout(shutdownTimeout match {
+        case d: FiniteDuration => d.toMillis
+        case _ => 0L
+      })
 
-    val server = new Server[F] {
-      override def shutdown: F[Unit] =
-        F.delay(jetty.stop())
+      for ((mount, i) <- mounts.zipWithIndex)
+        mount.f(context, i, this)
 
-      override def onShutdown(f: => Unit): this.type = {
-        jetty.addLifeCycleListener {
-          new AbstractLifeCycleListener {
-            override def lifeCycleStopped(event: LifeCycle): Unit = f
-          }
+      jetty.start()
+
+      val server = new Server[F] {
+        lazy val address: InetSocketAddress = {
+          val host = socketAddress.getHostString
+          val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
+          new InetSocketAddress(host, port)
         }
-        this
+
+        lazy val isSecure: Boolean = sslBits.isDefined
       }
 
-      lazy val address: InetSocketAddress = {
-        val host = socketAddress.getHostString
-        val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
-        new InetSocketAddress(host, port)
-      }
+      banner.foreach(logger.info(_))
+      logger.info(
+        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
 
-      lazy val isSecure: Boolean = sslBits.isDefined
+      server -> shutdown(jetty)
+    })
+
+  private def shutdown(jetty: JServer): F[Unit] =
+    F.async[Unit] { cb =>
+      jetty.addLifeCycleListener(
+        new AbstractLifeCycle.AbstractLifeCycleListener {
+          override def lifeCycleStopped(ev: LifeCycle) = cb(Right(()))
+          override def lifeCycleFailure(ev: LifeCycle, cause: Throwable) = cb(Left(cause))
+        }
+      )
+      jetty.stop()
     }
-
-    banner.foreach(logger.info(_))
-    logger.info(
-      s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
-    server
-  }
 }
 
 object JettyBuilder {
   def apply[F[_]: ConcurrentEffect] = new JettyBuilder[F](
-    socketAddress = ServerBuilder.DefaultSocketAddress,
+    socketAddress = defaults.SocketAddress,
     threadPool = new QueuedThreadPool(),
-    idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-    asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+    idleTimeout = defaults.IdleTimeout,
+    asyncTimeout = defaults.AsyncTimeout,
+    shutdownTimeout = defaults.ShutdownTimeout,
     servletIo = ServletContainer.DefaultServletIo,
     sslBits = None,
     mounts = Vector.empty,
     serviceErrorHandler = DefaultServiceErrorHandler,
-    banner = ServerBuilder.DefaultBanner
+    banner = defaults.Banner
   )
 }
 
