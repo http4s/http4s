@@ -291,7 +291,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       client.expect[String](GET(uri("http://www.foo.com/"))) must returnValue("hello")
 
       // The PUT: /put path just echoes the body
-      client.expect[String](PUT(uri("http://www.foo.com/put"), "hello?")) must returnValue("hello?")
+      client.expect[String](PUT("hello?", uri("http://www.foo.com/put"))) must returnValue("hello?")
     }
   }
 }
