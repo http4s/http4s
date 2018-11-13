@@ -10,6 +10,9 @@ it.
 
 # v0.20.0-SNAPSHOT
 
+## Breaking changes
+* [#2228](https://github.com/http4s/http4s/pull/2228): Support more attributes for the response cookie in `CSRF` middleware. Configuration is now done through a builder, similar to backends.
+
 ## Bugfixes
 * [#2260](https://github.com/http4s/http4s/pull/2260): Fix leak in blaze-client on a canceled connection
 * [#2258](https://github.com/http4s/http4s/pull/2258): Fix deadlocks in the blaze-client pool manager under cancellation and certain other failures.
@@ -17,10 +20,12 @@ it.
 ## Enhancements
 * [#2266](https://github.com/http4s/http4s/pull/2266): Support flag query parameters (i.e., parameters with no value) in the DSL with `FlagQueryParamMatcher`.
 * [#2240](https://github.com/http4s/http4s/pull/2240): Add `.resource`, `.stream`. and `.allocate` constructors to all server and client builders.
+* [#2242](https://github.com/http4s/http4s/pull/2242): Support setting socket channel options on blaze-server.
 
 ## Internal
 * [#2250](https://github.com/http4s/http4s/pull/2250): Ignore http4s updates in scalafix-inputs
 * [#2267](https://github.com/http4s/http4s/pull/2267): Drop appveyor continuous integration
+* [#2256](https://github.com/http4s/http4s/pull/2256): Bump base version of scalafix to 0.18.21.
 
 ## Documentation
 * [#2255](https://github.com/http4s/http4s/pull/2255): Improve scalafix docs
