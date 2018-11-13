@@ -162,7 +162,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">OkHttpBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">OkHttpBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
       </span>
       </h4>
 
@@ -171,7 +171,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]], <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -197,7 +197,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.client.okhttp.OkHttpBuilder"><span>OkHttpBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.client.okhttp.OkHttpBuilder"><span>OkHttpBuilder</span></li><li class="in" name="org.http4s.internal.BackendBuilder"><span>BackendBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -320,6 +320,47 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.client.okhttp.OkHttpBuilder#F" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="F:cats.effect.ConcurrentEffect[F]"></a><a id="F:ConcurrentEffect[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#F:cats.effect.ConcurrentEffect[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">F</span><span class="result">: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.okhttp.OkHttpBuilder">OkHttpBuilder</a> → BackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.internal.BackendBuilder#allocate" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="allocate:F[(A,F[Unit])]"></a><a id="allocate:F[(Client[F],F[Unit])]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#allocate:F[(A,F[Unit])]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">allocate</span><span class="result">: <span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>[(<a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>], <span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>])]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns an effect that allocates a backend and an <code>F[Unit]</code> to
+release it.</p><div class="fullcomment"><div class="comment cmt"><p>Returns an effect that allocates a backend and an <code>F[Unit]</code> to
+release it.  The returned <code>F</code> waits until the backend is ready
+to process requests.  The second element of the tuple shuts
+down the backend when run.</p><p>Unlike <a href="#resource:cats.effect.Resource[F,org.http4s.client.Client[F]]" class="extmbr" name="org.http4s.client.okhttp.OkHttpBuilder#resource">resource</a> and <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.okhttp.OkHttpBuilder#stream">stream</a>, there is no automatic
+release of the backend.  This function is intended for REPL
+sessions, tests, and other situations where composing a
+<span class="extype" name="cats.effect.Resource">cats.effect.Resource</span> or <span class="extype" name="fs2.Stream">fs2.Stream</span> is not tenable.
+<a href="#resource:cats.effect.Resource[F,org.http4s.client.Client[F]]" class="extmbr" name="org.http4s.client.okhttp.OkHttpBuilder#resource">resource</a> or <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.okhttp.OkHttpBuilder#stream">stream</a> is recommended wherever possible.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>BackendBuilder</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -377,9 +418,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.client.okhttp.OkHttpBuilder#create" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="create(implicitF:cats.effect.ConcurrentEffect[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.client.Client[F]"></a><a id="create(ConcurrentEffect[F],ContextShift[F]):Client[F]"></a>
+      <a id="create:org.http4s.client.Client[F]"></a><a id="create:Client[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#create(implicitF:cats.effect.ConcurrentEffect[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.client.Client[F]" title="Permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#create:org.http4s.client.Client[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -388,7 +429,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">create</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
+        <span class="name">create</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Creates the <a href="../Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a></p><div class="fullcomment"><div class="comment cmt"><p>Creates the <a href="../Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a></p><p>The shutdown method on this client is a no-op.  It is assumed that the OkHttp client is
@@ -677,9 +718,9 @@ their own.</p></div></div>
       
       
     </li><li name="org.http4s.client.okhttp.OkHttpBuilder#resource" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="resource(implicitF:cats.effect.ConcurrentEffect[F],implicitcs:cats.effect.ContextShift[F]):cats.effect.Resource[F,org.http4s.client.Client[F]]"></a><a id="resource(ConcurrentEffect[F],ContextShift[F]):Resource[F,Client[F]]"></a>
+      <a id="resource:cats.effect.Resource[F,org.http4s.client.Client[F]]"></a><a id="resource:Resource[F,Client[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#resource(implicitF:cats.effect.ConcurrentEffect[F],implicitcs:cats.effect.ContextShift[F]):cats.effect.Resource[F,org.http4s.client.Client[F]]" title="Permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#resource:cats.effect.Resource[F,org.http4s.client.Client[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -688,17 +729,16 @@ their own.</p></div></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">resource</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
+        <span class="name">resource</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">Creates the <span class="extype" name="org,http4s.client.Client">org,http4s.client.Client</span> as a resource.</p><div class="fullcomment"><div class="comment cmt"><p>Creates the <span class="extype" name="org,http4s.client.Client">org,http4s.client.Client</span> as a resource.</p><p>The release on this resource is a no-op.  It is assumed that the OkHttp client is
-passed to us as a Resource, or that the caller will shut it down, or
-that the caller is comfortable letting OkHttp's resources expire on
-their own.</p></div></div>
-    </li><li name="org.http4s.client.okhttp.OkHttpBuilder#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="stream(implicitF:cats.effect.ConcurrentEffect[F],implicitcs:cats.effect.ContextShift[F]):fs2.Stream[F,org.http4s.client.Client[F]]"></a><a id="stream(ConcurrentEffect[F],ContextShift[F]):Stream[F,Client[F]]"></a>
+      <p class="shortcomment cmt">Returns the backend as a resource.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the backend as a resource.  Resource acquire waits
+until the backend is ready to process requests.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.okhttp.OkHttpBuilder">OkHttpBuilder</a> → BackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.internal.BackendBuilder#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="stream:fs2.Stream[F,A]"></a><a id="stream:Stream[F,Client[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#stream(implicitF:cats.effect.ConcurrentEffect[F],implicitcs:cats.effect.ContextShift[F]):fs2.Stream[F,org.http4s.client.Client[F]]" title="Permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#stream:fs2.Stream[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -707,13 +747,13 @@ their own.</p></div></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stream</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
+        <span class="name">stream</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">Creates the <span class="extype" name="org,http4s.client.Client">org,http4s.client.Client</span> as a singleton stream.</p><div class="fullcomment"><div class="comment cmt"><p>Creates the <span class="extype" name="org,http4s.client.Client">org,http4s.client.Client</span> as a singleton stream.</p><p>The bracketed release on this stream is a no-op.  It is assumed that the OkHttp client is
-passed to us as a Resource, or that the caller will shut it down, or
-that the caller is comfortable letting OkHttp's resources expire on
-their own.</p></div></div>
+      <p class="shortcomment cmt">Returns the backend as a single-element stream.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the backend as a single-element stream.  The stream
+does not emit until the backend is ready to process requests.
+The backend is shut down when the stream is finalized.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>BackendBuilder</dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -876,7 +916,9 @@ their own.</p></div></div>
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="org.http4s.internal.BackendBuilder">
+              <h3>Inherited from <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>

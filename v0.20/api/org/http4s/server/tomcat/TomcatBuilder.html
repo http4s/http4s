@@ -162,7 +162,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">TomcatBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>] with <span class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</span>
+        <span class="name">TomcatBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>] with <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</span>
       </span>
       </h4>
 
@@ -171,7 +171,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>], <span class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>], <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>], <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>], <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]], <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -197,7 +197,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.tomcat.TomcatBuilder"><span>TomcatBuilder</span></li><li class="in" name="org.http4s.servlet.ServletContainer"><span>ServletContainer</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.tomcat.TomcatBuilder"><span>TomcatBuilder</span></li><li class="in" name="org.http4s.servlet.ServletContainer"><span>ServletContainer</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="org.http4s.internal.BackendBuilder"><span>BackendBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -239,7 +239,7 @@
         <span class="name">Self</span><span class="result alias"> = <a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a> → ServerBuilder</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -354,7 +354,32 @@
         <span class="name">F</span><span class="result">: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → ServerBuilder</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> → BackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.internal.BackendBuilder#allocate" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="allocate:F[(A,F[Unit])]"></a><a id="allocate:F[(Server[F],F[Unit])]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#allocate:F[(A,F[Unit])]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">allocate</span><span class="result">: <span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>[(<a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>], <span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>])]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns an effect that allocates a backend and an <code>F[Unit]</code> to
+release it.</p><div class="fullcomment"><div class="comment cmt"><p>Returns an effect that allocates a backend and an <code>F[Unit]</code> to
+release it.  The returned <code>F</code> waits until the backend is ready
+to process requests.  The second element of the tuple shuts
+down the backend when run.</p><p>Unlike <a href="#resource:cats.effect.Resource[F,org.http4s.server.Server[F]]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder#resource">resource</a> and <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder#stream">stream</a>, there is no automatic
+release of the backend.  This function is intended for REPL
+sessions, tests, and other situations where composing a
+<span class="extype" name="cats.effect.Resource">cats.effect.Resource</span> or <span class="extype" name="fs2.Stream">fs2.Stream</span> is not tenable.
+<a href="#resource:cats.effect.Resource[F,org.http4s.server.Server[F]]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder#resource">resource</a> or <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder#stream">stream</a> is recommended wherever possible.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>BackendBuilder</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -386,7 +411,7 @@
         <span class="name">bindAny</span><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.Host</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ServerBuilder</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#bindHttp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="bindHttp(port:Int,host:String):ServerBuilder.this.Self"></a><a id="bindHttp(Int,String):Self"></a>
       <span class="permalink">
@@ -402,7 +427,7 @@
         <span class="name">bindHttp</span><span class="params">(<span name="port">port: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.HttpPort</a></span></span></span>, <span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="../package$$defaults$.html">defaults.Host</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ServerBuilder</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#bindLocal" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="bindLocal(port:Int):ServerBuilder.this.Self"></a><a id="bindLocal(Int):Self"></a>
       <span class="permalink">
@@ -418,7 +443,7 @@
         <span class="name">bindLocal</span><span class="params">(<span name="port">port: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ServerBuilder</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.tomcat.TomcatBuilder#bindSocketAddress" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="bindSocketAddress(socketAddress:java.net.InetSocketAddress):TomcatBuilder.this.Self"></a><a id="bindSocketAddress(InetSocketAddress):Self"></a>
       <span class="permalink">
@@ -434,7 +459,7 @@
         <span class="name">bindSocketAddress</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → ServerBuilder</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -796,7 +821,7 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
       
       <p class="shortcomment cmt">Returns a Server resource.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a Server resource.  The resource is not acquired until the
 server is started and ready to accept requests.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → ServerBuilder</dd></dl></div>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> → BackendBuilder</dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="serve:fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
       <span class="permalink">
@@ -814,7 +839,7 @@ server is started and ready to accept requests.
       
       <p class="shortcomment cmt">Runs the server as a process that never emits.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a process that never emits.  Useful for a server
 that runs for the rest of the JVM's life.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>ServerBuilder</dd></dl></div>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serveWhile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serveWhile(SignallingRef[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
       <span class="permalink">
@@ -832,11 +857,11 @@ that runs for the rest of the JVM's life.
       
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
 Useful for servers with associated lifetime behaviors.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>ServerBuilder</dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="stream:fs2.Stream[F,org.http4s.server.Server[F]]"></a><a id="stream:Stream[F,Server[F]]"></a>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.internal.BackendBuilder#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="stream:fs2.Stream[F,A]"></a><a id="stream:Stream[F,Server[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#stream:fs2.Stream[F,org.http4s.server.Server[F]]" title="Permalink">
+      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#stream:fs2.Stream[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -848,9 +873,10 @@ Useful for servers with associated lifetime behaviors.
         <span class="name">stream</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns a Server stream.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a Server stream.  The stream does not emit until the
-server is started and ready to accept requests.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>ServerBuilder</dd></dl></div>
+      <p class="shortcomment cmt">Returns the backend as a single-element stream.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the backend as a single-element stream.  The stream
+does not emit until the backend is ready to process requests.
+The backend is shut down when the stream is finalized.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>BackendBuilder</dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -982,7 +1008,7 @@ server is started and ready to accept requests.
         <span class="name">withBanner</span><span class="params">(<span name="banner">banner: <a href="http://www.scala-lang.org/api/2.12.7/scala/collection/immutable/Seq.html#scala.collection.immutable.Seq" class="extype" name="scala.collection.immutable.Seq">Seq</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Set the banner to display when the server starts up</p><div class="fullcomment"><div class="comment cmt"><p>Set the banner to display when the server starts up</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → ServerBuilder</dd></dl></div>
+      <p class="shortcomment cmt">Set the banner to display when the server starts up</p><div class="fullcomment"><div class="comment cmt"><p>Set the banner to display when the server starts up</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.tomcat.TomcatBuilder#withExternalExecutor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withExternalExecutor(executor:java.util.concurrent.Executor):org.http4s.server.tomcat.TomcatBuilder[F]"></a><a id="withExternalExecutor(Executor):TomcatBuilder[F]"></a>
       <span class="permalink">
@@ -1065,7 +1091,7 @@ server is started and ready to accept requests.
       <p class="shortcomment cmt">Sets the handler for errors thrown invoking the service.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the handler for errors thrown invoking the service.  Is not
 guaranteed to be invoked on errors on the server backend, such as
 parsing a request or handling a context timeout.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → ServerBuilder</dd></dl></div>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.tomcat.TomcatBuilder#withServletIo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withServletIo(servletIo:org.http4s.servlet.ServletIo[F]):TomcatBuilder.this.Self"></a><a id="withServletIo(ServletIo[F]):Self"></a>
       <span class="permalink">
@@ -1099,7 +1125,7 @@ Not to be confused with the server connectors.
         <span class="name">withoutBanner</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Disable the banner when the server starts up</p><div class="fullcomment"><div class="comment cmt"><p>Disable the banner when the server starts up</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>ServerBuilder</dd></dl></div>
+      <p class="shortcomment cmt">Disable the banner when the server starts up</p><div class="fullcomment"><div class="comment cmt"><p>Disable the banner when the server starts up</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(TomcatBuilder[F],B)"></a>
       <span class="permalink">
@@ -1133,7 +1159,9 @@ Not to be confused with the server connectors.
         <div class="parent" name="org.http4s.servlet.ServletContainer">
               <h3>Inherited from <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</h3>
             </div><div class="parent" name="org.http4s.server.ServerBuilder">
-              <h3>Inherited from <span class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</h3>
+              <h3>Inherited from <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</h3>
+            </div><div class="parent" name="org.http4s.internal.BackendBuilder">
+              <h3>Inherited from <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

@@ -770,9 +770,9 @@ CPU time, SSL handshakes, etc. Because it can contain significant resources it
 must have a mechanism to free resources associated with it.
 </p></div></div>
     </li><li name="org.http4s.client.JavaNetClientBuilder" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="JavaNetClientBuilderextendsAnyRef"></a><a id="JavaNetClientBuilder:JavaNetClientBuilder"></a>
+      <a id="JavaNetClientBuilder[F[_]]extendsBackendBuilder[F,org.http4s.client.Client[F]]"></a><a id="JavaNetClientBuilder[F[_]]:JavaNetClientBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#JavaNetClientBuilderextendsAnyRef" title="Permalink">
+      <a href="../../../org/http4s/client/index.html#JavaNetClientBuilder[F[_]]extendsBackendBuilder[F,org.http4s.client.Client[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -781,7 +781,7 @@ must have a mechanism to free resources associated with it.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="Builder for a Client backed by on java.net.HttpUrlConnection." href="JavaNetClientBuilder.html"><span class="name">JavaNetClientBuilder</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="Builder for a Client backed by on java.net.HttpUrlConnection." href="JavaNetClientBuilder.html"><span class="name">JavaNetClientBuilder</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="org.http4s.internal.BackendBuilder">BackendBuilder</span>[<span class="extype" name="org.http4s.client.JavaNetClientBuilder.F">F</span>, <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.JavaNetClientBuilder.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Builder for a <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> backed by on <code>java.net.HttpUrlConnection</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Builder for a <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> backed by on <code>java.net.HttpUrlConnection</code>.</p><p>The java.net client adds no dependencies beyond <code>http4s-client</code>.
