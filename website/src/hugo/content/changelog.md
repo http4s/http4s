@@ -12,6 +12,11 @@ it.
 
 ## Bugfixes
 * [#2260](https://github.com/http4s/http4s/pull/2260): Fix leak in blaze-client on a canceled connection
+* [#2258](https://github.com/http4s/http4s/pull/2258): Fix deadlocks in the blaze-client pool manager under cancellation and certain other failures.
+
+## Enhancements
+* [#2266](https://github.com/http4s/http4s/pull/2266): Support flag query parameters (i.e., parameters with no value) in the DSL with `FlagQueryParamMatcher`.
+* [#2240](https://github.com/http4s/http4s/pull/2240): Add `.resource`, `.stream`. and `.allocate` constructors to all server and client builders.
 
 ## Internal
 * [#2250](https://github.com/http4s/http4s/pull/2250): Ignore http4s updates in scalafix-inputs
@@ -25,6 +30,9 @@ it.
 * tomcat-9.0.13
 
 # v0.20.0-M2 (2018-11-05)
+
+## Bug fixes
+* [#2239](https://github.com/http4s/http4s/pull/2239): Fix hang when `.allocate` on a client builder fails
 
 ## Breaking changes
 * [#2207](https://github.com/http4s/http4s/pull/2207): Remove `PathNormalizer`. The functionality is now on `Uri.removeDotSegments`.
