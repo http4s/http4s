@@ -941,9 +941,9 @@ sessions, tests, and other situations where composing a
 that runs for the rest of the JVM's life.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serveWhile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serveWhile(SignallingRef[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
+      <a id="serveWhile(terminateWhenTrue:fs2.concurrent.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serveWhile(Signal[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/ServletContainer.html#serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]" title="Permalink">
+      <a href="../../../org/http4s/servlet/ServletContainer.html#serveWhile(terminateWhenTrue:fs2.concurrent.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -952,7 +952,7 @@ that runs for the rest of the JVM's life.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.concurrent.SignallingRef">SignallingRef</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>
+        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.concurrent.Signal">Signal</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
