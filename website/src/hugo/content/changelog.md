@@ -12,6 +12,9 @@ it.
 
 ## Breaking changes
 * [#2228](https://github.com/http4s/http4s/pull/2228): Support more attributes for the response cookie in `CSRF` middleware. Configuration is now done through a builder, similar to backends.
+* [#2269](https://github.com/http4s/http4s/pull/2269): In the client DSL, move the body parameter ahead of the `Uri`. This works around an ambiguous overload that previously made it impossible to call `(Uri, Header)` on methods that take a body.
+* [#2262](https://github.com/http4s/http4s/pull/2262): Replace `Seq` with `Chain` in `UrlForm`.
+* [#2197](https://github.com/http4s/http4s/pull/2262): Require `Signal` rather than `SignallingRef` in `serveWhile`
 
 ## Bugfixes
 * [#2260](https://github.com/http4s/http4s/pull/2260): Fix leak in blaze-client on a canceled connection
@@ -21,11 +24,13 @@ it.
 * [#2266](https://github.com/http4s/http4s/pull/2266): Support flag query parameters (i.e., parameters with no value) in the DSL with `FlagQueryParamMatcher`.
 * [#2240](https://github.com/http4s/http4s/pull/2240): Add `.resource`, `.stream`. and `.allocate` constructors to all server and client builders.
 * [#2242](https://github.com/http4s/http4s/pull/2242): Support setting socket channel options on blaze-server.
+* [#2270](https://github.com/http4s/http4s/pull/2270): Refresh `MimeDB` from the IANA registry.
 
 ## Internal
 * [#2250](https://github.com/http4s/http4s/pull/2250): Ignore http4s updates in scalafix-inputs
 * [#2267](https://github.com/http4s/http4s/pull/2267): Drop appveyor continuous integration
 * [#2256](https://github.com/http4s/http4s/pull/2256): Bump base version of scalafix to 0.18.21.
+* [#2271](https://github.com/http4s/http4s/pull/2271): Fix compilation error introduced between [#2228](https://github.com/http4s/http4s/pull/2228) and [#2262](https://github.com/http4s/http4s/pull/2262).
 
 ## Documentation
 * [#2255](https://github.com/http4s/http4s/pull/2255): Improve scalafix docs
