@@ -1943,6 +1943,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.evolv.ecig.settings", Compressible, NotBinary)
       lazy val `vnd.evolv.ecig.theme`: MediaType =
         new MediaType("application", "vnd.evolv.ecig.theme", Compressible, NotBinary)
+      lazy val `vnd.exstream-empower+zip`: MediaType =
+        new MediaType("application", "vnd.exstream-empower+zip", Uncompressible, NotBinary)
       lazy val `vnd.ezpix-album`: MediaType =
         new MediaType("application", "vnd.ezpix-album", Compressible, NotBinary, List("ez2"))
       lazy val `vnd.ezpix-package`: MediaType =
@@ -2931,8 +2933,6 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.oma.dcdc", Compressible, NotBinary)
       lazy val `vnd.oma.dd2+xml`: MediaType =
         new MediaType("application", "vnd.oma.dd2+xml", Compressible, NotBinary, List("dd2"))
-      lazy val `vnd.oma.drm.risd+xml`: MediaType =
-        new MediaType("application", "vnd.oma.drm.risd+xml", Compressible, NotBinary)
       lazy val part_1: List[MediaType] = List(
         `vnd.cirpack.isdn-ext`,
         `vnd.citationstyles.style+xml`,
@@ -3074,6 +3074,7 @@ private[http4s] trait MimeDB {
         `vnd.evolv.ecig.profile`,
         `vnd.evolv.ecig.settings`,
         `vnd.evolv.ecig.theme`,
+        `vnd.exstream-empower+zip`,
         `vnd.ezpix-album`,
         `vnd.ezpix-package`,
         `vnd.f-secure.mobile`,
@@ -3432,11 +3433,12 @@ private[http4s] trait MimeDB {
         `vnd.oma.cab-user-prefs+xml`,
         `vnd.oma.dcd`,
         `vnd.oma.dcdc`,
-        `vnd.oma.dd2+xml`,
-        `vnd.oma.drm.risd+xml`
+        `vnd.oma.dd2+xml`
       )
     }
     trait application_2 {
+      lazy val `vnd.oma.drm.risd+xml`: MediaType =
+        new MediaType("application", "vnd.oma.drm.risd+xml", Compressible, NotBinary)
       lazy val `vnd.oma.group-usage-list+xml`: MediaType =
         new MediaType("application", "vnd.oma.group-usage-list+xml", Compressible, NotBinary)
       lazy val `vnd.oma.lwm2m+json`: MediaType =
@@ -4943,9 +4945,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "xhtml+xml", Compressible, NotBinary, List("xhtml", "xht"))
       lazy val `xhtml-voice+xml`: MediaType =
         new MediaType("application", "xhtml-voice+xml", Compressible, NotBinary)
-      lazy val `xliff+xml`: MediaType =
-        new MediaType("application", "xliff+xml", Compressible, NotBinary)
       lazy val part_2: List[MediaType] = List(
+        `vnd.oma.drm.risd+xml`,
         `vnd.oma.group-usage-list+xml`,
         `vnd.oma.lwm2m+json`,
         `vnd.oma.lwm2m+tlv`,
@@ -5444,11 +5445,12 @@ private[http4s] trait MimeDB {
         `xcon-conference-info-diff+xml`,
         `xenc+xml`,
         `xhtml+xml`,
-        `xhtml-voice+xml`,
-        `xliff+xml`
+        `xhtml-voice+xml`
       )
     }
     trait application_3 {
+      lazy val `xliff+xml`: MediaType =
+        new MediaType("application", "xliff+xml", Compressible, NotBinary)
       lazy val `xml`: MediaType = new MediaType(
         "application",
         "xml",
@@ -5494,6 +5496,7 @@ private[http4s] trait MimeDB {
       lazy val `zlib`: MediaType = new MediaType("application", "zlib", Compressible, NotBinary)
       lazy val `zstd`: MediaType = new MediaType("application", "zstd", Compressible, NotBinary)
       lazy val part_3: List[MediaType] = List(
+        `xliff+xml`,
         `xml`,
         `xml-dtd`,
         `xml-external-parsed-entity`,
