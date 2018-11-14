@@ -61,7 +61,7 @@ object Prometheus {
     * * @param registry a metrics collector registry
     * * @param prefix a prefix that will be added to all metrics
     **/
-  def apply[F[_]](registry: CollectorRegistry, prefix: String)(implicit F: Sync[F]): MetricsOps[F] =
+  def apply[F[_]](registry: CollectorRegistry, prefix: String = "org_http4s_server")(implicit F: Sync[F]): MetricsOps[F] =
     new MetricsOps[F] {
 
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
