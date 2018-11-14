@@ -303,62 +303,6 @@ lazy val bench = http4sProject("bench")
   )
   .dependsOn(core, circe)
 
-lazy val scalafixInputs = http4sProject("scalafix-inputs")
-  .enablePlugins(PrivateProjectPlugin)
-  .settings(
-    skip in publish := true,
-    fork := true,
-    libraryDependencies ++= Seq(
-      "org.http4s" %% "http4s-blaze-client" % "0.18.21",
-      "org.http4s" %% "http4s-dsl" % "0.18.21"
-    ),
-    addCompilerPlugin(scalafixSemanticdb),
-    scalacOptions in Compile -= "-Xfatal-warnings",
-    scalacOptions in Test -= "-Xfatal-warnings",
-    // These dependencies are purposefully old
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.http4s")
-  )
-
-lazy val scalafixOutputs= http4sProject("scalafix-outputs")
-  .enablePlugins(PrivateProjectPlugin)
-  .settings(
-    skip in publish := true,
-    skip in compile := true,
-    fork := true,
-    addCompilerPlugin(scalafixSemanticdb),
-    scalacOptions in Compile -= "-Xfatal-warnings",
-    scalacOptions in Test -= "-Xfatal-warnings"
-  )
-  .dependsOn(theDsl, blazeClient)
-
-lazy val scalafixRules = http4sProject("scalafix")
-  .settings(
-    description := "Scalafix for http4s",
-    fork := true,
-    libraryDependencies += scalafixCore,
-    addCompilerPlugin(scalafixSemanticdb),
-  )
-
-lazy val scalafixTests = http4sProject("scalafix-tests")
-  .settings(
-    skip in publish := true,
-    fork := true,
-    libraryDependencies += scalafixTestKit,
-    compile.in(Compile) :=
-      compile.in(Compile).dependsOn(compile.in(scalafixInputs, Compile)).value,
-    scalafixTestkitOutputSourceDirectories :=
-      sourceDirectories.in(scalafixOutputs, Compile).value,
-    scalafixTestkitInputSourceDirectories :=
-      sourceDirectories.in(scalafixInputs, Compile).value,
-    scalafixTestkitInputClasspath :=
-      fullClasspath.in(scalafixInputs, Compile).value,
-    addCompilerPlugin(scalafixSemanticdb),
-    scalacOptions in Compile -= "-Xfatal-warnings",
-    scalacOptions in Test -= "-Xfatal-warnings"
-  )
-  .dependsOn(scalafixRules)
-  .enablePlugins(ScalafixTestkitPlugin, PrivateProjectPlugin)
-
 lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,
@@ -384,11 +328,7 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
-        mimedbGenerator,
-        scalafixRules,
-        scalafixInputs,
-        scalafixOutputs,
-        scalafixTests
+        mimedbGenerator
       ),
     scalacOptions in Tut ~= {
       val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
