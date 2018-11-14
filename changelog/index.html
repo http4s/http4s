@@ -93,6 +93,9 @@ it.</p>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2228">#2228</a>: Support more attributes for the response cookie in <code>CSRF</code> middleware. Configuration is now done through a builder, similar to backends.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2269">#2269</a>: In the client DSL, move the body parameter ahead of the <code>Uri</code>. This works around an ambiguous overload that previously made it impossible to call <code>(Uri, Header)</code> on methods that take a body.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2262">#2262</a>: Replace <code>Seq</code> with <code>Chain</code> in <code>UrlForm</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2262">#2197</a>: Require <code>Signal</code> rather than <code>SignallingRef</code> in <code>serveWhile</code></li>
 </ul>
 
 <h2 id="bugfixes">Bugfixes</h2>
@@ -108,6 +111,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2266">#2266</a>: Support flag query parameters (i.e., parameters with no value) in the DSL with <code>FlagQueryParamMatcher</code>.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2240">#2240</a>: Add <code>.resource</code>, <code>.stream</code>. and <code>.allocate</code> constructors to all server and client builders.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2242">#2242</a>: Support setting socket channel options on blaze-server.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2270">#2270</a>: Refresh <code>MimeDB</code> from the IANA registry.</li>
 </ul>
 
 <h2 id="internal">Internal</h2>
@@ -116,6 +120,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2250">#2250</a>: Ignore http4s updates in scalafix-inputs</li>
 <li><a href="https://github.com/http4s/http4s/pull/2267">#2267</a>: Drop appveyor continuous integration</li>
 <li><a href="https://github.com/http4s/http4s/pull/2256">#2256</a>: Bump base version of scalafix to 0.18.21.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2271">#2271</a>: Fix compilation error introduced between <a href="https://github.com/http4s/http4s/pull/2228">#2228</a> and <a href="https://github.com/http4s/http4s/pull/2262">#2262</a>.</li>
 </ul>
 
 <h2 id="documentation">Documentation</h2>
