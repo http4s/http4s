@@ -62,7 +62,7 @@ object Dropwizard {
     * @param registry a dropwizard metric registry
     * @param prefix a prefix that will be added to all metrics
     */
-  def apply[F[_]](registry: MetricRegistry, prefix: String)(implicit F: Sync[F]): MetricsOps[F] =
+  def apply[F[_]](registry: MetricRegistry, prefix: String = "org.http4s.server")(implicit F: Sync[F]): MetricsOps[F] =
     new MetricsOps[F] {
 
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
