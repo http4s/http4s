@@ -58,3 +58,5 @@ lazy val tests = project
   )
   .dependsOn(rules)
   .enablePlugins(ScalafixTestkitPlugin)
+
+addCommandAlias("ci", ";clean ;test")
