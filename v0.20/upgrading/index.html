@@ -92,22 +92,15 @@
 
 <p>Make sure your scala version is &gt;= <code>2.11.12</code> or <code>2.12.7</code></p>
 
-<p>Add the scalafix plugin to your <code>project/plugins.sbt</code></p>
+<p>Add the scalafix plugin to your <code>project/plugins.sbt</code> or to your global plugins.</p>
 
 <pre><code class="language-sbt">addSbtPlugin(&quot;ch.epfl.scala&quot; % &quot;sbt-scalafix&quot; % &quot;0.9.0&quot;)
 </code></pre>
 
-<p>Add this line to your <code>build.sbt</code> and upgrade the http4s version to the latest 0.20 release.</p>
-
-<pre><code class="language-sbt">scalafixDependencies in ThisBuild += &quot;org.http4s&quot; %% &quot;http4s-scalafix&quot; % http4s020Version
-</code></pre>
-
 <p>Run</p>
 
-<pre><code class="language-sh">$ sbt &quot;;scalafixEnable; scalafix Http4s018To020&quot;
+<pre><code class="language-sh">$ sbt &quot;;scalafixEnable; scalafix github:http4s/http4s/v0_20&quot;
 </code></pre>
-
-<p>Once you have applied it, you can remove the imports and try to compile your code.</p>
 
 <p>The compiler errors should help you in showing what&rsquo;s left to upgrade.</p>
 
