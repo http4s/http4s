@@ -1,5 +1,5 @@
 /*
-rule = Http4s018To020
+rule = v0_20
 */
 package fix
 import java.util.concurrent.Executors
