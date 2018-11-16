@@ -8,6 +8,11 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.0-SNAPSHOT
+
+## Enhancements
+* [#2275](https://github.com/http4s/http4s/pull/2275): Set default prefix for Prometheus and Dropwizard metrics backends.
+
 # v0.20.0-M3 (2018-11-13)
 
 ## Breaking changes
