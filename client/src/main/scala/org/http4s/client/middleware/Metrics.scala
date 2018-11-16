@@ -42,19 +42,24 @@ object Metrics {
       req: Request[F])(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
     (for {
       start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
-      _ <- Resource.liftF(ops.increaseActiveRequests(classifierF(req)))
+      _ <- Resource.make(ops.increaseActiveRequests(classifierF(req)))(_ =>
+        ops.decreaseActiveRequests(classifierF(req)))
       resp <- client.run(req)
       end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
       _ <- Resource.liftF(ops.recordHeadersTime(req.method, end - start, classifierF(req)))
-      _ <- Resource.liftF(ops.decreaseActiveRequests(classifierF(req)))
-      elapsed <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start))
-      _ <- Resource.liftF(ops.recordTotalTime(req.method, resp.status, elapsed, classifierF(req)))
-    } yield resp).handleErrorWith { e: Throwable =>
-      Resource.liftF[F, Response[F]](
-        ops.decreaseActiveRequests(classifierF(req)) *> registerError(ops, classifierF(req))(e) *>
-          F.raiseError[Response[F]](e)
-      )
-    }
+    } yield
+      resp.copy(
+        body = resp.body.onFinalize(
+          clock
+            .monotonic(TimeUnit.NANOSECONDS)
+            .flatMap(now =>
+              ops.recordTotalTime(req.method, resp.status, now - start, classifierF(req))))))
+      .handleErrorWith { e: Throwable =>
+        Resource.liftF[F, Response[F]](
+          ops.decreaseActiveRequests(classifierF(req)) *> registerError(ops, classifierF(req))(e) *>
+            F.raiseError[Response[F]](e)
+        )
+      }
 
   private def registerError[F[_]](ops: MetricsOps[F], classifier: Option[String])(
       e: Throwable): F[Unit] =
