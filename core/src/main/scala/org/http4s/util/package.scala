@@ -23,12 +23,16 @@ package object util {
           if (outputString.isEmpty) Pull.done.as(None)
           else Pull.output1(outputString).as(None)
         case Some((chunk, stream)) =>
-          val bytes = chunk.toArray
-          val byteBuffer = ByteBuffer.wrap(bytes)
-          val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
-          decoder.decode(byteBuffer, charBuffer, false)
-          val nextStream = stream.consChunk(Chunk.byteBuffer(byteBuffer.slice()))
-          Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
+          if (chunk.nonEmpty) {
+            val bytes = chunk.toArray
+            val byteBuffer = ByteBuffer.wrap(bytes)
+            val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
+            decoder.decode(byteBuffer, charBuffer, false)
+            val nextStream = stream.consChunk(Chunk.byteBuffer(byteBuffer.slice()))
+            Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
+          } else {
+            Pull.output(Chunk.empty[String]).as(Some(stream))
+          }
       }
     }
   }
