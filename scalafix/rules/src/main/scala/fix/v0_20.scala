@@ -228,28 +228,27 @@ object MimeRules {
   }
 }
 
-
 object WithBodyRules {
-  def unapply(t: Tree): Option[Patch] = t match {
+  def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
     case Defn.Val(_, _, tpe, rhs) if containsWithBody(rhs) =>
-      Some(replaceWithBody(rhs) + tpe.map(removeExternalF))
+      tpe.map(removeExternalF)
     case Defn.Def(_, _, _, _, tpe, rhs) if containsWithBody(rhs) =>
-      Some(replaceWithBody(rhs) + tpe.map(removeExternalF))
+      tpe.map(removeExternalF)
     case Defn.Var(_, _, tpe, rhs) if rhs.exists(containsWithBody) =>
-      Some(rhs.map(replaceWithBody).asPatch + tpe.map(removeExternalF))
+      tpe.map(removeExternalF)
+    case Term.Apply(
+        Term.Select(_, fm @ Term.Name("flatMap")),
+          List(Term.Apply(Term.Select(_, withBodyMatcher(_)), _))) =>
+      Some(Patch.replaceTree(fm, "map"))
+    case withBodyMatcher(t : Term.Name) =>
+      Some(Patch.renameSymbol(t.symbol, "withEntity"))
+    case withBodyEffectMatcher(t : Term.Name) =>
+      Some(Patch.renameSymbol(t.symbol, "withEntity"))
     case _ => None
   }
 
-  private[this] def replaceWithBody(t: Tree) =
-    t.collect {
-      case Term.Select(_, t @ Term.Name("withBody")) =>
-        Patch.replaceTree(t, "withEntity")
-      case Term.Apply(
-      Term.Select(_, fm @ Term.Name("flatMap")),
-      List(Term.Apply(Term.Select(_, Term.Name("withBody")), _))) =>
-        Patch.replaceTree(fm, "map")
-
-    }.asPatch
+  private[this] val withBodyMatcher = SymbolMatcher.normalized("org/http4s/Message#withBody.")
+  private[this] val withBodyEffectMatcher = SymbolMatcher.normalized("org/http4s/syntax/EffectMessageSyntax#withBody.")
 
   private[this] def containsWithBody(t: Tree): Boolean =
     t.collect {
