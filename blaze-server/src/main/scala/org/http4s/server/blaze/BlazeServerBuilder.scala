@@ -178,6 +178,12 @@ class BlazeServerBuilder[F[_]](
   def withChannelOptions(channelOptions: ChannelOptions): BlazeServerBuilder[F] =
     copy(channelOptions = channelOptions)
 
+  def withMaxRequestLineLength(maxRequestLineLength: Int): BlazeServerBuilder[F] =
+    copy(maxRequestLineLen = maxRequestLineLength)
+
+  def withMaxHeadersLength(maxHeadersLength: Int): BlazeServerBuilder[F] =
+    copy(maxHeadersLen = maxHeadersLength)
+
   def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
     Resource(F.delay {
 

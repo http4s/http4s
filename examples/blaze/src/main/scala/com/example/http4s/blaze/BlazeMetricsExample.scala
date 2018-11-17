@@ -3,10 +3,11 @@ package com.example.http4s.blaze
 import cats.effect._
 import com.codahale.metrics.{Timer => _, _}
 import com.example.http4s.ExampleService
-import org.http4s.HttpRoutes
+import org.http4s.HttpApp
+import org.http4s.implicits._
 import org.http4s.metrics.dropwizard._
 import org.http4s.server.{HttpMiddleware, Router}
-import org.http4s.server.blaze.BlazeBuilder
+import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.Metrics
 
 class BlazeMetricsExample(implicit timer: Timer[IO], ctx: ContextShift[IO])
@@ -20,15 +21,15 @@ class BlazeMetricsExampleApp[F[_]: ConcurrentEffect: ContextShift: Timer] {
   val metricsRegistry: MetricRegistry = new MetricRegistry()
   val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
 
-  def service: HttpRoutes[F] =
+  def app: HttpApp[F] =
     Router(
-      "" -> metrics(new ExampleService[F].routes),
-      "/metrics" -> metricsService[F](metricsRegistry)
-    )
+      "/http4s" -> metrics(new ExampleService[F].routes),
+      "/http4s/metrics" -> metricsService[F](metricsRegistry)
+    ).orNotFound
 
   def stream: fs2.Stream[F, ExitCode] =
-    BlazeBuilder[F]
+    BlazeServerBuilder[F]
       .bindHttp(8080)
-      .mountService(service, "/http4s")
+      .withHttpApp(app)
       .serve
 }
