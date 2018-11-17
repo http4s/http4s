@@ -237,8 +237,8 @@ object WithBodyRules {
       Patch.replaceTree(fm, "map")
     case withBodyMatcher(t : Term.Name) =>
       Patch.renameSymbol(t.symbol, "withEntity")
-    case withBodyEffectMatcher(t : Term.Name) =>
-      Patch.renameSymbol(t.symbol, "withEntity")
+    case withBodyEffectMatcher(t@Term.Apply(Term.Select(s, Term.Name("withBody")), params)) =>
+      Patch.replaceTree(t, s"$s.map(_.withEntity(${params.mkString(", ")}))")
   }
 
   private[this] val withBodyMatcher = SymbolMatcher.normalized("org/http4s/Message#withBody.")

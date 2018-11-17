@@ -21,7 +21,7 @@ object Http4s018To020 {
   // Add code that needs fixing here.
 
   def service(): HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case _ @ GET -> Root => Ok().withEntity("hello")
+    case _ @ GET -> Root => Ok().map(_.withEntity("hello"))
   }
 
   def serviceWithoutExplicitType(): HttpRoutes[IO] = HttpRoutes.of {
@@ -36,7 +36,7 @@ object Http4s018To020 {
     }
     nested
   }
-  def responseWithBody: IO[Response[IO]] = Ok().withEntity("world")
+  def responseWithBody: IO[Response[IO]] = Ok().map(_.withEntity("world"))
   def responseWithBody2: IO[Response[IO]] = Ok().map(_.withEntity("world"))
 
   val x = MediaType.application.`atom+xml`
