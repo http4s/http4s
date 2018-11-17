@@ -32,6 +32,13 @@ object Http4s018To020 {
   }
 
   val requestWithBody: IO[Request[IO]] = Request().withBody("hello")
+  val requestWithBody2 = {
+    val nested = {
+      implicit def encoder[A]: EntityEncoder[IO, A] = ???
+      Some("world").map(Request[IO]().withBody)
+    }
+    nested
+  }
   def responseWithBody: IO[Response[IO]] = Ok().withBody("world")
   def responseWithBody2: IO[Response[IO]] = Ok().flatMap(_.withBody("world"))
 
