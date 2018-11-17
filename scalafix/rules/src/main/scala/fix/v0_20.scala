@@ -7,35 +7,32 @@ import scala.meta._
 class v0_20 extends SemanticRule("v0_20") {
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    doc.tree.collect {
-      case HttpServiceRules(patch) => patch
-      case WithBodyRules(patch) => patch
-      case CookiesRules(patch) => patch
-      case MimeRules(patch) => patch
-      case ClientRules(patch) => patch
-    }
+    HttpServiceRules(doc.tree) ++
+    WithBodyRules(doc.tree) ++
+    CookiesRules(doc.tree) ++
+    MimeRules(doc.tree) ++
+    ClientRules(doc.tree) ++
+    ServerRules(doc.tree)
   }.asPatch
 
   object CookiesRules {
-    def unapply(t: Tree): Option[Patch] = t match {
-      case Importer(Term.Select(Term.Name("org"), Term.Name("http4s")), is) =>
-        Some(is.collect {
-          case c @ Importee.Name(Name("Cookie")) =>
-            Patch.addGlobalImport(
-              Importer(
-                Term.Select(Term.Name("org"), Term.Name("http4s")),
-                List(Importee.Rename(Name("ResponseCookie"), Name("Cookie"))))) +
-              Patch.removeImportee(c)
-          case c @ Importee.Rename(Name("Cookie"), rename) =>
-            Patch.addGlobalImport(
-              Importer(
-                Term.Select(Term.Name("org"), Term.Name("http4s")),
-                List(Importee.Rename(Name("ResponseCookie"), rename)))) +
-              Patch.removeImportee(c)
-        }.asPatch)
-      case _ => None
+    def apply(t: Tree)(implicit doc: SemanticDocument): List[Patch] = t.collect{
+      case s @ responseCookieMatcher(_: Importee) =>
+        Patch.replaceSymbols(s.symbol.value -> "org.http4s.ResponseCookie")
     }
+
+    private[this] val responseCookieMatcher = SymbolMatcher.normalized("org/http4s/Cookie.")
   }
+}
+
+object ServerRules {
+  def apply(t: Tree)(implicit doc: SemanticDocument): List[Patch] = t.collect{
+    // Client builders
+    case s @ serverBuilderMatcher(_: Term.Name) =>
+      Patch.replaceSymbols(s.symbol.value -> "org.http4s.server.blaze.BlazeServerBuilder")
+  }
+
+  private[this] val serverBuilderMatcher = SymbolMatcher.normalized("org/http4s/server/blaze/BlazeBuilder")
 }
 
 
@@ -48,10 +45,10 @@ object ClientType {
 }
 
 object ClientRules {
-  def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
+  def apply(t: Tree)(implicit doc: SemanticDocument): List[Patch] = t.collect {
     // Client builders
     case Importee.Name(c @ Name("Http1Client")) =>
-      Some(Patch.replaceTree(c, "BlazeClientBuilder"))
+      Patch.replaceTree(c, "BlazeClientBuilder")
     case d @ Defn.Def(
     _,
     _,
@@ -59,19 +56,19 @@ object ClientRules {
     _,
     _,
     c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Apply))
+      patchClient(d, c, configParam, tpes, ClientType.Apply)
     case d @ Defn.Val(
     _,
     _,
     _,
     c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Apply))
+      patchClient(d, c, configParam, tpes, ClientType.Apply)
     case d @ Defn.Var(
     _,
     _,
     _,
     c @ Term.Apply(Term.ApplyType(Term.Name("Http1Client"), tpes), configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Apply))
+      patchClient(d, c, configParam, tpes, ClientType.Apply)
     case d @ Defn.Def(
     _,
     _,
@@ -81,7 +78,7 @@ object ClientRules {
     c @ Term.Apply(
     Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
     configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Stream))
+      patchClient(d, c, configParam, tpes, ClientType.Stream)
     case d @ Defn.Val(
     _,
     _,
@@ -89,7 +86,7 @@ object ClientRules {
     c @ Term.Apply(
     Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
     configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Stream))
+      patchClient(d, c, configParam, tpes, ClientType.Stream)
     case d @ Defn.Var(
     _,
     _,
@@ -97,9 +94,7 @@ object ClientRules {
     c @ Term.Apply(
     Term.ApplyType(Term.Select(Term.Name("Http1Client"), Term.Name("stream")), tpes),
     configParam)) =>
-      Some(patchClient(d, c, configParam, tpes, ClientType.Stream))
-    case _ => None
-
+      patchClient(d, c, configParam, tpes, ClientType.Stream)
   }
 
   private def patchClient(
@@ -196,48 +191,46 @@ object ClientRules {
 
 object HttpServiceRules {
   val httpService = SymbolMatcher.normalized("org/http4s/HttpService.")
-  def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = t match {
+  def apply(t: Tree)(implicit doc: SemanticDocument): List[Patch] = t.collect{
     case httpService(Term.Apply(Term.ApplyType(t, _), _)) =>
-      Some(Patch.replaceTree(t, "HttpRoutes.of"))
-    case httpService(Term.Apply(t: Term.Name, _)) => Some(Patch.replaceTree(t, "HttpRoutes.of"))
-    case Type.Apply(t @ Type.Name("HttpService"), _) => Some(Patch.replaceTree(t, "HttpRoutes"))
-    case t @ Importee.Name(Name("HttpService")) => Some(Patch.replaceTree(t, "HttpRoutes"))
-    case _ => None
+      Patch.replaceTree(t, "HttpRoutes.of")
+    case httpService(Term.Apply(t: Term.Name, _)) => Patch.replaceTree(t, "HttpRoutes.of")
+    case Type.Apply(t @ Type.Name("HttpService"), _) => Patch.replaceTree(t, "HttpRoutes")
+    case t @ Importee.Name(Name("HttpService")) => Patch.replaceTree(t, "HttpRoutes")
   }
 }
 
 object MimeRules {
   private[this] val mimeMatcher = SymbolMatcher.normalized("org/http4s/MediaType#")
 
-  def unapply(t: Tree)(implicit doc: SemanticDocument): Option[Patch] = {
-    val symbol = t.symbol
-    symbol.owner match {
-      case mimeMatcher(_) =>
-        val mediaParts = symbol.displayName.replace("`", "").split("/").map { part =>
-          if (!part.forall(c => c.isLetterOrDigit || c == '_'))
-            s"`$part`"
-          else
-            part
-        }
-        val newSymbol = Symbol(s"${symbol.owner.value}${mediaParts.init.mkString("/")}#")
-
-        Some(
-          Patch.renameSymbol(t.symbol, mediaParts.mkString(".")) + Patch.addGlobalImport(newSymbol))
-      case _ => None
+  def apply(tree: Tree)(implicit doc: SemanticDocument): List[Patch] = {
+    tree.collect {
+      case t: Tree =>
+        val symbol = t.symbol
+        symbol.owner match {
+          case mimeMatcher(_) =>
+            val mediaParts = symbol.displayName.replace("`", "").split("/").map { part =>
+              if (!part.forall(c => c.isLetterOrDigit || c == '_'))
+                s"`$part`"
+              else
+                part
+            }
+            val newSymbol = Symbol(s"${symbol.owner.value}${mediaParts.init.mkString("/")}#")
+            Patch.renameSymbol(t.symbol, mediaParts.mkString(".")) + Patch.addGlobalImport(newSymbol)
+          case _ => Patch.empty
+      }
     }
   }
 }
 
-
 object WithBodyRules {
-  def unapply(t: Tree): Option[Patch] = t match {
+  def apply(t: Tree): List[Patch] = t.collect{
     case Defn.Val(_, _, tpe, rhs) if containsWithBody(rhs) =>
-      Some(replaceWithBody(rhs) + tpe.map(removeExternalF))
+      replaceWithBody(rhs) + tpe.map(removeExternalF)
     case Defn.Def(_, _, _, _, tpe, rhs) if containsWithBody(rhs) =>
-      Some(replaceWithBody(rhs) + tpe.map(removeExternalF))
+      replaceWithBody(rhs) + tpe.map(removeExternalF)
     case Defn.Var(_, _, tpe, rhs) if rhs.exists(containsWithBody) =>
-      Some(rhs.map(replaceWithBody).asPatch + tpe.map(removeExternalF))
-    case _ => None
+      rhs.map(replaceWithBody).asPatch + tpe.map(removeExternalF)
   }
 
   private[this] def replaceWithBody(t: Tree) =

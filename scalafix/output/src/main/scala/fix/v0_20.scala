@@ -8,12 +8,14 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.client.Client
 import org.http4s.headers.{AgentProduct, `User-Agent`}
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import org.http4s.MediaType._
-import org.http4s.{ResponseCookie => Cookie}
+import org.http4s.ResponseCookie
 import org.http4s.MediaType.{ application, image }
+import org.http4s.server.blaze.BlazeServerBuilder
 
 object Http4s018To020 {
   // Add code that needs fixing here.
@@ -35,7 +37,7 @@ object Http4s018To020 {
   val z = image.jpeg
   val zz = org.http4s.MediaType.application.`atom+xml`
 
-  val cookie: Option[Cookie] = None
+  val cookie: Option[ResponseCookie] = None
 
   val config = BlazeClientConfig.defaultConfig.copy(executionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1)))
 
@@ -62,4 +64,9 @@ object Http4s018To020 {
   val clientStream = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second).withMaxChunkSize(3).withParserMode(org.http4s.client.blaze.ParserMode.Strict).withMaxTotalConnections(1).withIdleTimeout(2.second).withMaxWaitQueueLimit(2).withUserAgent(`User-Agent`(AgentProduct("hello"))).withCheckEndpointAuthentication(false).withBufferSize(1).withResponseHeaderTimeout(1.second).withMaxResponseLineSize(1).withMaxHeaderLength(2).withMaxConnectionsPerRequestKey(_ => 1).stream
   val client2 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second).withMaxChunkSize(3).withParserMode(org.http4s.client.blaze.ParserMode.Strict).withMaxTotalConnections(1).withIdleTimeout(2.second).withMaxWaitQueueLimit(2).withUserAgent(`User-Agent`(AgentProduct("hello"))).withCheckEndpointAuthentication(false).withBufferSize(1).withResponseHeaderTimeout(1.second).withMaxResponseLineSize(1).withMaxHeaderLength(2).withMaxConnectionsPerRequestKey(_ => 1).allocate
   val client3 = BlazeClientBuilder[IO](global, Some(SSLContext.getDefault)).withRequestTimeout(3.second).withMaxChunkSize(3).withParserMode(org.http4s.client.blaze.ParserMode.Strict).withMaxTotalConnections(1).withIdleTimeout(2.second).withMaxWaitQueueLimit(2).withUserAgent(`User-Agent`(AgentProduct("hello"))).withCheckEndpointAuthentication(false).withBufferSize(1).withResponseHeaderTimeout(1.second).withMaxResponseLineSize(1).withMaxHeaderLength(2).withMaxConnectionsPerRequestKey(_ => 1).stream
+
+  val server = BlazeServerBuilder[IO]
+    .bindHttp(8080)
+    .mountService(service, "/http4s")
+    .serve
 }

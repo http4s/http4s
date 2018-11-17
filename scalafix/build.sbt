@@ -31,6 +31,7 @@ lazy val input = project.settings(
   skip in publish := true,
   libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-client" % "0.18.21",
+  "org.http4s" %% "http4s-blaze-server" % "0.18.21",
   "org.http4s" %% "http4s-dsl" % "0.18.21"
   )
 )
@@ -40,6 +41,7 @@ lazy val output = project.settings(
   skip in compile := true,
   libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-client" % "0.20.0-M3",
+  "org.http4s" %% "http4s-blaze-server" % "0.20.0-M3",
   "org.http4s" %% "http4s-dsl" % "0.20.0-M3"
   )
 )
