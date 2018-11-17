@@ -110,10 +110,10 @@ val tweetService = HttpRoutes.of[IO] {
 http4s supports multiple server backends.  In this example, we'll use
 [blaze], the native backend supported by http4s.
 
-We start from a `BlazeBuilder`, and then mount the `helloWorldService` under
+We start from a `BlazeServerBuilder`, and then mount the `helloWorldService` under
 the base path of `/` and the remainder of the services under the base
 path of `/api`. The services can be mounted in any order as the request will be
-matched against the longest base paths first. The `BlazeBuilder` is immutable
+matched against the longest base paths first. The `BlazeServerBuilder` is immutable
 with chained methods, each returning a new builder.
 
 Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias

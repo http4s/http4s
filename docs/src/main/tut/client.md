@@ -25,11 +25,12 @@ libraryDependencies ++= Seq(
 ```
 
 Then we create the [service] again so tut picks it up:
-
+>
 ```tut:book:silent
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.server.blaze._
 ```
 
@@ -46,12 +47,12 @@ implicit val timer: Timer[IO] = IO.timer(global)
 Finish setting up our server:
 
 ```tut:book
-val routes = HttpRoutes.of[IO] {
+val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
-}
+}.orNotFound
 
-val server = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(routes, "/").resource
+val server = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(app).resource
 ```
 
 We'll start the server in the background.  The `IO.never` keeps it
