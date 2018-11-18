@@ -51,7 +51,7 @@ object util {
         unit.convert(count, TimeUnit.MILLISECONDS)
       }
 
-      override def monotonic(unit: TimeUnit): F[Long] = Sync[F].delay{
+      override def monotonic(unit: TimeUnit): F[Long] = Sync[F].delay {
         count += 50
         unit.convert(count, TimeUnit.MILLISECONDS)
       }
