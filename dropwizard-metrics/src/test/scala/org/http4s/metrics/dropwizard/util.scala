@@ -46,14 +46,14 @@ object util {
     def apply[F[_]: Sync] = new Clock[F] {
       private var count = 0L
 
-      override def realTime(unit: TimeUnit): F[Long] = {
+      override def realTime(unit: TimeUnit): F[Long] = Sync[F].delay {
         count += 50
-        Sync[F].delay(unit.convert(count, TimeUnit.MILLISECONDS))
+        unit.convert(count, TimeUnit.MILLISECONDS)
       }
 
-      override def monotonic(unit: TimeUnit): F[Long] = {
+      override def monotonic(unit: TimeUnit): F[Long] = Sync[F].delay{
         count += 50
-        Sync[F].delay(unit.convert(count, TimeUnit.MILLISECONDS))
+        unit.convert(count, TimeUnit.MILLISECONDS)
       }
     }
   }

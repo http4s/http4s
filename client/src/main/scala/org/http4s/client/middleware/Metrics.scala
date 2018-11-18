@@ -3,10 +3,13 @@ package org.http4s.client.middleware
 import cats.effect.{Clock, Resource, Sync}
 import cats.implicits._
 import java.util.concurrent.TimeUnit
-import org.http4s.{Request, Response}
+
+import cats.effect.concurrent.Ref
+import org.http4s.{Request, Response, Status}
 import org.http4s.client.Client
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType.{Error, Timeout}
+
 import scala.concurrent.TimeoutException
 
 /**
@@ -41,23 +44,26 @@ object Metrics {
       classifierF: Request[F] => Option[String])(
       req: Request[F])(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
     (for {
+      statusRef <- Resource.liftF(Ref.of[F, Option[Status]](None))
       start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
       _ <- Resource.make(ops.increaseActiveRequests(classifierF(req)))(_ =>
         ops.decreaseActiveRequests(classifierF(req)))
+      _ <- Resource.make(F.delay(())) { _ =>
+        clock
+          .monotonic(TimeUnit.NANOSECONDS)
+          .flatMap(now =>
+            statusRef.get.flatMap(oStatus =>
+              oStatus.traverse_(status =>
+                ops.recordTotalTime(req.method, status, now - start, classifierF(req)))))
+      }
       resp <- client.run(req)
+      _ <- Resource.liftF(statusRef.set(Some(resp.status)))
       end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
       _ <- Resource.liftF(ops.recordHeadersTime(req.method, end - start, classifierF(req)))
-    } yield
-      resp.copy(
-        body = resp.body.onFinalize(
-          clock
-            .monotonic(TimeUnit.NANOSECONDS)
-            .flatMap(now =>
-              ops.recordTotalTime(req.method, resp.status, now - start, classifierF(req))))))
+    } yield resp)
       .handleErrorWith { e: Throwable =>
         Resource.liftF[F, Response[F]](
-          ops.decreaseActiveRequests(classifierF(req)) *> registerError(ops, classifierF(req))(e) *>
-            F.raiseError[Response[F]](e)
+          registerError(ops, classifierF(req))(e) *> F.raiseError[Response[F]](e)
         )
       }
 
