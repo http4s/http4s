@@ -48,7 +48,7 @@ object Metrics {
       start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
       _ <- Resource.make(ops.increaseActiveRequests(classifierF(req)))(_ =>
         ops.decreaseActiveRequests(classifierF(req)))
-      _ <- Resource.make(F.delay(())) { _ =>
+      _ <- Resource.make(F.unit) { _ =>
         clock
           .monotonic(TimeUnit.NANOSECONDS)
           .flatMap(now =>
