@@ -4,7 +4,8 @@ import cats.effect.IO
 import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
 import java.io.IOException
 import java.util.concurrent.TimeoutException
-import org.http4s.{Http4sSpec, HttpApp, Request, Status}
+
+import org.http4s.{EntityDecoder, Http4sSpec, HttpApp, Request, Status, Uri}
 import org.http4s.client.{Client, UnexpectedStatus}
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
@@ -177,6 +178,30 @@ class DropwizardMetricsSpec extends Http4sSpec {
       count(registry, Counter("client.get.active-requests")) must beEqualTo(0)
       valuesOf(registry, Timer("client.get.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("client.get.requests.total")) must beSome(Array(100000000L))
+    }
+
+    "only record total time and decr active requests after client.run releases" in {
+      implicit val clock = FakeClock[IO]
+      val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test11")
+      val meteredClient = Metrics(Dropwizard(registry, "client"))(client)
+
+      val clientRunResource = meteredClient
+        .run(Request[IO](uri = Uri.unsafeFromString("ok")))
+        .use { resp =>
+          IO {
+            (EntityDecoder[IO, String].decode(resp, false).value.unsafeRunSync() must beRight {
+              contain("200 OK")
+            }).and(count(registry, Counter("client.default.active-requests")) must beEqualTo(1))
+              .and(valuesOf(registry, Timer("client.default.requests.total")) must beNone)
+          }
+        }
+        .unsafeRunSync()
+
+      clientRunResource.isSuccess
+      count(registry, Timer("client.default.2xx-responses")) must beEqualTo(1)
+      count(registry, Counter("client.default.active-requests")) must beEqualTo(0)
+      valuesOf(registry, Timer("client.default.requests.headers")) must beSome(Array(50000000L))
+      valuesOf(registry, Timer("client.default.requests.total")) must beSome(Array(100000000L))
     }
   }
 }
