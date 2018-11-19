@@ -12,6 +12,8 @@ import org.http4s.dsl.io._
 import org.http4s.metrics.dropwizard.util._
 import org.http4s.Uri.uri
 
+import scala.util.Try
+
 class DropwizardMetricsSpec extends Http4sSpec {
 
   val client = Client.fromHttpApp[IO](HttpApp[IO](stub))
@@ -192,6 +194,9 @@ class DropwizardMetricsSpec extends Http4sSpec {
             (EntityDecoder[IO, String].decode(resp, false).value.unsafeRunSync() must beRight {
               contain("200 OK")
             }).and(count(registry, Counter("client.default.active-requests")) must beEqualTo(1))
+              .and(valuesOf(registry, Timer("client.default.requests.headers")) must beSome(
+                Array(50000000L)))
+              .and(Try(count(registry, Timer("client.default.2xx-responses"))).toOption must beNone)
               .and(valuesOf(registry, Timer("client.default.requests.total")) must beNone)
           }
         }
@@ -200,7 +205,6 @@ class DropwizardMetricsSpec extends Http4sSpec {
       clientRunResource.isSuccess
       count(registry, Timer("client.default.2xx-responses")) must beEqualTo(1)
       count(registry, Counter("client.default.active-requests")) must beEqualTo(0)
-      valuesOf(registry, Timer("client.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("client.default.requests.total")) must beSome(Array(100000000L))
     }
   }
