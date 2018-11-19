@@ -59,31 +59,43 @@ object BlazeClient {
             .invalidate(connection)
             .handleError(e => logger.error(e)("Error invalidating connection"))
 
-        def loop: F[Resource[F, Response[F]]] =
-          manager
-            .borrow(key)
-            .bracketCase({ next =>
-              // Add the timeout stage to the pipeline
-              val idleTimeoutF = idleTimeout match {
-                case timeout: FiniteDuration =>
-                  F.cancelable[TimeoutException] { cb =>
-                    val stage = new IdleTimeoutStage[ByteBuffer](timeout, cb, scheduler, ec)
-                    next.connection.spliceBefore(stage)
-                    stage.stageStartup()
-                    F.delay(stage.removeStage)
-                  }
-                case _ =>
-                  F.never[TimeoutException]
-              }
+        def borrow =
+          Resource.makeCase(manager.borrow(key)) {
+            case (_, ExitCase.Completed) =>
+              F.unit
+            case (next, ExitCase.Error(_) | ExitCase.Canceled) =>
+              invalidate(next.connection)
+          }
 
+        def idleTimeoutStage(conn: A) =
+          Resource.makeCase({
+            idleTimeout match {
+              case d: FiniteDuration =>
+                val stage = new IdleTimeoutStage[ByteBuffer](d, scheduler, ec)
+                F.delay(conn.spliceBefore(stage)).as(Some(stage))
+              case _ =>
+                F.pure(None)
+            }
+          }) {
+            case (_, ExitCase.Completed) => F.unit
+            case (stageOpt, _) => F.delay(stageOpt.foreach(_.removeStage()))
+          }
+
+        def loop: F[Resource[F, Response[F]]] =
+          borrow.use { next =>
+            idleTimeoutStage(next.connection).use { stageOpt =>
+              val idleTimeoutF = stageOpt match {
+                case Some(stage) => F.async[TimeoutException](stage.init)
+                case None => F.never[TimeoutException]
+              }
               val res = next.connection
                 .runRequest(req, idleTimeoutF)
                 .map { r =>
                   Resource.makeCase(F.pure(r)) {
                     case (_, ExitCase.Completed) =>
-                      manager.release(next.connection)
+                      F.delay(stageOpt.foreach(_.removeStage())).guarantee(manager.release(next.connection))
                     case _ =>
-                      manager.invalidate(next.connection)
+                      F.delay(stageOpt.foreach(_.removeStage())).guarantee(manager.invalidate(next.connection))
                   }
                 }
                 .recoverWith {
@@ -121,12 +133,8 @@ object BlazeClient {
                       case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
                     }
               }
-            }) {
-              case (_, ExitCase.Completed) =>
-                F.unit
-              case (next, ExitCase.Error(_) | ExitCase.Canceled) =>
-                invalidate(next.connection)
             }
+          }
 
         val res = loop
         requestTimeout match {
