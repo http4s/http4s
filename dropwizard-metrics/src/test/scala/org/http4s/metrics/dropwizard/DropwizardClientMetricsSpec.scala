@@ -205,6 +205,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       clientRunResource.isSuccess
       count(registry, Timer("client.default.2xx-responses")) must beEqualTo(1)
       count(registry, Counter("client.default.active-requests")) must beEqualTo(0)
+      valuesOf(registry, Timer("client.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("client.default.requests.total")) must beSome(Array(100000000L))
     }
   }
