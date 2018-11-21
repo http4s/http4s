@@ -2,7 +2,8 @@ package org.http4s
 package testing
 
 import cats._
-import cats.data.NonEmptyList
+import cats.data.{Chain, NonEmptyList}
+import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
 import cats.effect.{Effect, IO}
 import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
@@ -360,7 +361,7 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForUrlForm: Arbitrary[UrlForm] = Arbitrary {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
     // Ain't nobody got time for that.
-    arbitrary[Map[String, Seq[String]]]
+    arbitrary[Map[String, Chain[String]]]
       .map(UrlForm.apply)
       .suchThat(!_.toString.contains('\ufffe'))
   }
@@ -700,6 +701,12 @@ trait ArbitraryInstances {
       query <- http4sTestingArbitraryForQuery.arbitrary
       fragment <- Gen.option(genFragment)
     } yield Uri(scheme, authority, path, query, fragment)
+  }
+
+  implicit val http4sTestingArbitraryForLink: Arbitrary[Link] = Arbitrary {
+    for {
+      uri <- http4sTestingArbitraryForUri.arbitrary
+    } yield Link(uri)
   }
 
   implicit val http4sTestingCogenForUri: Cogen[Uri] =

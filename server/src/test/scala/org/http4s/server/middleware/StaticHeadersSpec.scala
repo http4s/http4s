@@ -3,6 +3,7 @@ package org.http4s.server.middleware
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 
 class StaticHeadersSpec extends Http4sSpec {
 

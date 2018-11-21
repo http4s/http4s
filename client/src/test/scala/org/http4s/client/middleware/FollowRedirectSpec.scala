@@ -9,6 +9,7 @@ import java.util.concurrent.atomic._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.headers._
+import org.http4s.Uri.uri
 import org.specs2.mutable.Tables
 
 class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables {
@@ -168,8 +169,8 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
 
     "Not send sensitive headers when redirecting to a different authority" in {
       val req = PUT(
-        uri("http://localhost/different-authority"),
         "Don't expose mah secrets!",
+        uri("http://localhost/different-authority"),
         Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
@@ -179,8 +180,8 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
 
     "Send sensitive headers when redirecting to same authority" in {
       val req = PUT(
-        uri("http://localhost/307"),
         "You already know mah secrets!",
+        uri("http://localhost/307"),
         Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>

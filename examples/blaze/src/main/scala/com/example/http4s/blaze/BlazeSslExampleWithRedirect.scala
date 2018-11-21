@@ -20,7 +20,7 @@ object BlazeSslExampleWithRedirect extends IOApp {
 
 object BlazeSslExampleWithRedirectApp {
 
-  def redirectStream[F[_]: ConcurrentEffect]: Stream[F, ExitCode] =
+  def redirectStream[F[_]: ConcurrentEffect: Timer]: Stream[F, ExitCode] =
     BlazeServerBuilder[F]
       .bindHttp(8080)
       .withHttpApp(ssl.redirectApp(8443))

@@ -22,6 +22,7 @@ And we need some imports.
 ```tut:silent
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import cats.effect.IO
 ```
 
@@ -33,7 +34,7 @@ val service = HttpRoutes.of[IO] {
     Ok("ok")
 }
 
-val request = Request[IO](Method.GET, uri("/"))
+val request = Request[IO](Method.GET, Uri.uri("/"))
 
 // Do not call 'unsafeRunSync' in your code
 val response = service.orNotFound(request).unsafeRunSync

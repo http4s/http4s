@@ -8,6 +8,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
+import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
@@ -16,7 +17,9 @@ object Retry {
 
   private[this] val logger = getLogger
 
-  def apply[F[_]](policy: RetryPolicy[F])(
+  def apply[F[_]](
+      policy: RetryPolicy[F],
+      redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
       client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       client.run(req).attempt.flatMap {
@@ -24,7 +27,7 @@ object Retry {
           policy(req, right, attempts) match {
             case Some(duration) =>
               logger.info(
-                s"Request $req has failed on attempt #$attempts with reason ${response.status}. Retrying after $duration.")
+                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
               nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`))
             case None =>
               Resource.pure(response)
@@ -39,11 +42,18 @@ object Retry {
               nextAttempt(req, attempts, duration, None)
             case None =>
               logger.info(e)(
-                s"Request $req threw an exception on attempt #$attempts. Giving up."
+                s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
               )
               Resource.liftF(F.raiseError(e))
           }
       }
+
+    def showRequest(request: Request[F], redactWhen: CaseInsensitiveString => Boolean): String = {
+      val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
+      val uri = request.uri.renderString
+      val method = request.method
+      s"method=$method uri=$uri headers=$headers"
+    }
 
     def nextAttempt(
         req: Request[F],
@@ -65,6 +75,13 @@ object Retry {
 
     Client(prepareLoop(_, 1))
   }
+
+  @deprecated("The `redactHeaderWhen` parameter is now available on `apply`.", "0.19.1")
+  def retryWithRedactedHeaders[F[_]](
+      policy: RetryPolicy[F],
+      redactHeaderWhen: CaseInsensitiveString => Boolean)(
+      client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] =
+    apply(policy, redactHeaderWhen)(client)
 }
 
 object RetryPolicy {
@@ -99,32 +116,21 @@ object RetryPolicy {
     GatewayTimeout
   )
 
-  /** Default logic for whether a request is retriable.  Returns true if
-    * the request method does not permit a body and the result is
-    * either a throwable or has one of the `RetriableStatuses`.
-    *
-    * Caution: more restrictive than 0.16.  That would inspect the
-    * body for effects, and resumbmit only if the body was pure (i.e.,
-    * only emits and halts).  The fs2 algebra does not let us inspect
-    * the stream for effects, so we can't safely resubmit.  For the
-    * old behavior, use [[unsafeRetriable]].  To ignore the response
-    * codes, see [[recklesslyRetriable]].
-    */
-  def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    req.method.isInstanceOf[Method.NoBody] && isErrorOrRetriableStatus(result)
-
   /** Returns true if the request method is idempotent and the result is
-    * either a throwable or has one of the `RetriableStatuses`.  This is
-    * the `defaultRetriable` behavior from 0.16.
+    * either a throwable or has one of the `RetriableStatuses`.
     *
     * Caution: if the request body is effectful, the effects will be
     * run twice.  The most common symptom of this will be resubmitting
-    * an empty request body.
+    * an idempotent request.
     */
-  def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
+  def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
     req.method.isIdempotent && isErrorOrRetriableStatus(result)
 
-  /** Like [[unsafeRetriable]], but returns true even if the request method
+  @deprecated("Use defaultRetriable instead", "0.19.0")
+  def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
+    defaultRetriable(req, result)
+
+  /** Like [[defaultRetriable]], but returns true even if the request method
     * is not idempotent.  This is useful if failed requests are assumed to
     * have not reached their destination, which is a dangerous assumption.
     * Use at your own risk.

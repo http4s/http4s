@@ -9,6 +9,7 @@ env:
   - HUGO_VERSION=0.26
   - LOGBACK_ROOT_LEVEL=WARN
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
+  - ROOT_DIR="."
 matrix:
   include:
   - jdk: oraclejdk8
@@ -17,6 +18,13 @@ matrix:
     scala: 2.11.12
   - jdk: openjdk11
     scala: 2.12.7
+  - jdk: oraclejdk8
+    env: 
+    - ROOT_DIR="scalafix"
+    scala: 2.12.7
+  allow_failures:
+    - jdk: openjdk11
+      scala: 2.12.7
 notifications:
   webhooks:
     urls:
@@ -41,7 +49,7 @@ before_script:
   - decrypt_pgp_secrets
   - configure_git
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION ci
+  - cd $ROOT_DIR && sbt ++$TRAVIS_SCALA_VERSION ci
 
 before_cache:
   - cleanup_cache

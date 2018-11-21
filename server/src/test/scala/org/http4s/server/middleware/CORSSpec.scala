@@ -32,7 +32,7 @@ class CORSSpec extends Http4sSpec {
     hs.get(hk).fold(false)(_.value === expected)
 
   def buildRequest(path: String, method: Method = GET) =
-    Request[IO](uri = Uri(path = path), method = method).replaceAllHeaders(
+    Request[IO](uri = Uri(path = path), method = method).withHeaders(
       Header("Origin", "http://allowed.com"),
       Header("Access-Control-Request-Method", "GET"))
 
@@ -130,7 +130,7 @@ class CORSSpec extends Http4sSpec {
     }
 
     "Respond with 403 when origin is not valid" in {
-      val req = buildRequest("/bar").replaceAllHeaders(Header("Origin", "http://blah.com/"))
+      val req = buildRequest("/bar").withHeaders(Header("Origin", "http://blah.com/"))
       cors2.orNotFound(req).map(resp => resp.status.code == 403).unsafeRunSync()
     }
 

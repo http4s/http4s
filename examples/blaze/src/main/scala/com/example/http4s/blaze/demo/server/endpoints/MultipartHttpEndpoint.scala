@@ -3,6 +3,7 @@ package com.example.http4s.blaze.demo.server.endpoints
 import cats.effect.Sync
 import cats.implicits._
 import com.example.http4s.blaze.demo.server.service.FileService
+import org.http4s.EntityDecoder.multipart
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.multipart.Part

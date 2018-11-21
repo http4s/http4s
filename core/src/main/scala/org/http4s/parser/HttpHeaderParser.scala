@@ -26,23 +26,23 @@ import org.http4s.syntax.string._
 
 object HttpHeaderParser
     extends SimpleHeaders
+    with AcceptCharsetHeader
+    with AcceptEncodingHeader
     with AcceptHeader
     with AcceptLanguageHeader
+    with AuthorizationHeader
     with CacheControlHeader
     with ContentTypeHeader
     with CookieHeader
-    with AcceptCharsetHeader
-    with AcceptEncodingHeader
-    with AuthorizationHeader
-    with RangeParser
+    with LinkHeader
     with LocationHeader
+    with OriginHeader
+    with ProxyAuthenticateHeader
+    with RangeParser
     with RefererHeader
     with StrictTransportSecurityHeader
-    with ProxyAuthenticateHeader
     with WwwAuthenticateHeader
-    with ZipkinHeader
-    with OriginHeader {
-
+    with ZipkinHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =

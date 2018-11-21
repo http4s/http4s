@@ -8,9 +8,159 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.19.0 (2018-10-05)
+# v0.20.0-SNAPSHOT
 
-This release is identical to v0.19.0-M4.  It was intended to be the last milestone before we declared the 0.19.x branch stable, but we mistagged it.  Please give it a try, but treat it like the milestone it was intended to be.  *We reserve the right to break binary compatibility until 0.19.1*.
+## Enhancements
+* [#2275](https://github.com/http4s/http4s/pull/2275): Set default prefix for Prometheus and Dropwizard metrics backends.
+
+# v0.20.0-M3 (2018-11-13)
+
+## Breaking changes
+* [#2228](https://github.com/http4s/http4s/pull/2228): Support more attributes for the response cookie in `CSRF` middleware. Configuration is now done through a builder, similar to backends.
+* [#2269](https://github.com/http4s/http4s/pull/2269): In the client DSL, move the body parameter ahead of the `Uri`. This works around an ambiguous overload that previously made it impossible to call `(Uri, Header)` on methods that take a body.
+* [#2262](https://github.com/http4s/http4s/pull/2262): Replace `Seq` with `Chain` in `UrlForm`.
+* [#2197](https://github.com/http4s/http4s/pull/2262): Require `Signal` rather than `SignallingRef` in `serveWhile`
+
+## Bugfixes
+* [#2260](https://github.com/http4s/http4s/pull/2260): Fix leak in blaze-client on a canceled connection
+* [#2258](https://github.com/http4s/http4s/pull/2258): Fix deadlocks in the blaze-client pool manager under cancellation and certain other failures.
+
+## Enhancements
+* [#2266](https://github.com/http4s/http4s/pull/2266): Support flag query parameters (i.e., parameters with no value) in the DSL with `FlagQueryParamMatcher`.
+* [#2240](https://github.com/http4s/http4s/pull/2240): Add `.resource`, `.stream`. and `.allocate` constructors to all server and client builders.
+* [#2242](https://github.com/http4s/http4s/pull/2242): Support setting socket channel options on blaze-server.
+* [#2270](https://github.com/http4s/http4s/pull/2270): Refresh `MimeDB` from the IANA registry.
+
+## Internal
+* [#2250](https://github.com/http4s/http4s/pull/2250): Ignore http4s updates in scalafix-inputs
+* [#2267](https://github.com/http4s/http4s/pull/2267): Drop appveyor continuous integration
+* [#2256](https://github.com/http4s/http4s/pull/2256): Bump base version of scalafix to 0.18.21.
+* [#2271](https://github.com/http4s/http4s/pull/2271): Fix compilation error introduced between [#2228](https://github.com/http4s/http4s/pull/2228) and [#2262](https://github.com/http4s/http4s/pull/2262).
+
+## Documentation
+* [#2255](https://github.com/http4s/http4s/pull/2255): Improve scalafix docs
+
+## Dependency upgrades
+* blaze-0.14.0-M11
+* tomcat-9.0.13
+
+# v0.20.0-M2 (2018-11-05)
+
+## Bug fixes
+* [#2239](https://github.com/http4s/http4s/pull/2239): Fix hang when `.allocate` on a client builder fails
+
+## Breaking changes
+* [#2207](https://github.com/http4s/http4s/pull/2207): Remove `PathNormalizer`. The functionality is now on `Uri.removeDotSegments`.
+* [#2210](https://github.com/http4s/http4s/pull/2210): Streamline instances:
+  * `Http4s`, `Http4sInstances`, and `Http4sFunctions` are deprecated
+  * Move instances `F[A]` for cats type classes `F` into companions of `A`
+  * `Http4sDsl` no longer mixes in `UriFunctions`
+  * `EntityEncoderInstances` and `EntityDecoderInstances` are removed. The instances moved to the companion objects.
+* [#2243](https://github.com/http4s/http4s/pull/2243): Cleanup `ServerBuilder` defaults and traits
+  * Make `ServerBuilder` private.  The public server builders (e.g., `BlazeServerBuilder`) remain, but they no longer implement a public interface.
+  * Remove `IdleTimeoutSupport`, `AsyncTimeout`, `SSLKeyStoreSupport`, `SSLContextSupport`, and `WebSocketSupport` traits. The properties remain on the public server builders.
+  * Deprecated defaults on those support companion objects, in favor of `org.http4s.server.defaults`.
+* [#2063](https://github.com/http4s/http4s/pull/2063): Cancel request whenever a blaze server connection is shutdown.
+* [#2234](https://github.com/http4s/http4s/pull/2234): Clean up `Message` trait
+  * Remove deprecated `EffectMessageSyntax`, `EffectRequestSyntax`, `EffectResponseSyntax` traits and associated objects
+  * Remove `MessageOps`, `RequestOps`, and `ResponseOps` and put the removed methods, sans unneeded implicit parameters, directly in the classes
+  * Deprecate `replaceAllHeaders`, pointing to `withHeaders` instead.
+  * Deprecate `withType`, which takes a `MediaType` and just wraps it in a `Content-Type`
+  * Add `withoutAttribute` and `withoutTrailerHeaders` to complement the with variants
+  * Correct `filterHeaders`' scaladoc comment, which described the opposite of the behavior
+  * Fix bug in `withoutContentType`
+
+## Enhancements
+* [#2205](https://github.com/http4s/http4s/pull/2205): Add new `ResponseTiming` middleware, which adds a header to the Response as opposed to full `MetricsOps`.
+* [#2222](https://github.com/http4s/http4s/pull/2222): Add `shutdownTimeout` property to `JettyBuilder`.  Shutdown of the server waits for existing connections to complete for up to this duration before a hard shutdown with a `TimeoutException`.
+* [#2227](https://github.com/http4s/http4s/pull/2227): Add `withMaxHeaderLength` setter to `BlazeClientBuilder`
+* [#2230](https://github.com/http4s/http4s/pull/2230): `DefaultServerErrorHandler` only handles `NonFatal` `Throwable`s, instead of all `Throwable`s that aren't `VirtualMachineError`s
+* [#2237](https://github.com/http4s/http4s/pull/2237): Support parsing cookies with trailing semi-colons. This is invalid per spec, but seen often in the wild.
+* [#1687](https://github.com/http4s/http4s/pull/1687): Add a modeled `Link` header.
+* [#2244](https://github.com/http4s/http4s/pull/2244): Refactor blaze-server idle timeout
+  * Quiet `Abnormal NIO1HeadStage termination\njava.util.concurrent.TimeoutException: Timeout of 30 seconds triggered. Killing pipeline.` error logging, even on idling persistent connections.  This is reduced to a debug log.
+  * Use a `TickWheelExecutor` resource per blaze-server instead of a global that does not shut down when the server does.
+
+## Bug fixes
+* [#2239](https://github.com/http4s/http4s/pull/2239): Fix hang when `.allocate` on a client builder fails
+* [#2214](https://github.com/http4s/http4s/pull/2214): Add a scalafix from http4s-0.18.20 to 0.20.0-M2.  See [upgrading](https://http4s.org/v0.20/upgrading/) for instructions.
+* [#2241](https://github.com/http4s/http4s/pull/2241): Restrict internal `IdleTimeoutStage` to a `FiniteDuration`.  Fixes an exception when converting to milliseconds when debug logging.
+
+## Documentation
+* [#2223](https://github.com/http4s/http4s/pull/2223): Fix color of EOL label on v0.19
+* [#2226](https://github.com/http4s/http4s/pull/2226): Correct erroneous `Resource` in 0.19.0-M3 changelog
+
+## Internal
+* [#2219](https://github.com/http4s/http4s/pull/2219): Allow test failures on openjdk11 until we can fix the SSL issue
+* [#2221](https://github.com/http4s/http4s/pull/2194): Don't grant MiMa exceptions for 0.19.1, which will never be
+
+## Dependency upgrades
+* async-http-client-2.6.0
+* blaze-0.14.0-M10
+* circe-0.10.1
+* json4s-3.6.2
+* sbt-native-packager-1.3.12 (examples only)
+* tut-0.6.9 (docs only)
+
+# v0.20.0-M1 (2018-10-27)
+
+Due to the inadvertent release of 0.19.0, we have opened a new minor version.  The stable release with MiMa enforcement will be v0.20.0.
+
+## Breaking changes
+* [#2159](https://github.com/http4s/http4s/pull/2159): Add a `responseHeaderTimeout` property to `BlazeServerBuilder`. Responses that timeout are completed with `Response.timeout`, which defaults to 503 Service Unavailable.  `BlazeServerBuilder` now requires a `Timer[F]`.
+* [#2177](https://github.com/http4s/http4s/pull/2177): Deprecate `org.http4s.syntax.async`, which was not directly relevant to HTTP.
+* [#2131](https://github.com/http4s/http4s/pull/2131): Refactor server metrics
+  * `http4s-server-metrics` module merged into `http4s-dropwizard-metrics`
+  * `http4s-prometheus-server-metrics` module merged into `http4s-prometheus-metrics`
+  * The `org.http4s.server.middleware.metrics.Metrics` middleware now takes a `MetricsOps`, implemented by Dropwizard, Prometheus, or your custom interpreter.
+* [#2180](https://github.com/http4s/http4s/pull/2180): Change default response on `Timeout` middlware to `503 Service Unavailable`
+
+## Enhancements
+* [#2159](https://github.com/http4s/http4s/pull/2159): Set default client request timeout to 1 minute
+* [#2163](https://github.com/http4s/http4s/pull/2163): Add `mapK` to `Request` and `Response`
+* [#2168](https://github.com/http4s/http4s/pull/2168): Add `allocate` to client builders
+* [#2174](https://github.com/http4s/http4s/pull/2159): Refactor the blaze-client timeout architecture.
+  * A `TickWheelExecutor` is now allocated per client, instead of globally.
+  * Request rendering and response parsing is now canceled more aggressively on timeout.
+* [#2184](https://github.com/http4s/http4s/pull/2184): Receive response concurrently with sending request in blaze client. This reduces waste when the server is not interested in the entire request body.
+* [#2190](https://github.com/http4s/http4s/pull/2190): Add `channelOptions` to blaze-client to customize socket options.
+
+## Bug fixes
+* [#2166](https://github.com/http4s/http4s/pull/2166): Fix request timeout calculation in blaze-client to resolve "Client response header timeout after 0 millseconds" error.
+* [#2189](https://github.com/http4s/http4s/pull/2189): Manage the `TickWheelTimer` as a resource instead of an `F[A, F[Unit]]`. This prevents a leak in (extremely unlikely) cases of cancellation.
+
+## Internal
+* [#2179](https://github.com/http4s/http4s/pull/2179): Method to silence expected exceptions in tests
+* [#2194](https://github.com/http4s/http4s/pull/2194): Remove ill-conceived, zero-timeout unit tests
+* [#2199](https://github.com/http4s/http4s/pull/2199): Make client test sizes proportional to the number of processors for greater Travis stability
+
+## Dependency upgrades
+* alpn-boot-8.1.13.v20181017 (examples only)
+* blaze-0.14.0-M9
+* sbt-native-packager-1.3.11 (examples only)
+
+# v0.18.21 (2018-11-05)
+
+## Bug fixes
+* [#2231](https://github.com/http4s/http4s/pull/2231): Fix off-by-one error that lets blaze-client wait queue grow one past its limit
+
+# v0.18.20 (2018-10-18)
+
+## Bug fixes
+* [#2181](https://github.com/http4s/http4s/pull/2181): Honor `redactHeadersWhen` in client `RequestLogger` middleware
+
+## Enhancements
+* [#2178](https://github.com/http4s/http4s/pull/2178): Redact sensitive headers by default in `Retry` middleware. Add `retryWithRedactedHeaders` function that parameterizes the headers predicate.
+
+## Documentation
+* [#2147](https://github.com/http4s/http4s/pull/2147): Fix link to v0.19 docs
+
+## Internal
+* [#2130](https://github.com/http4s/http4s/pull/2130): Build with scala-2.12.7 and sbt-1.2.3
+
+# ~~v0.19.0 (2018-10-05)~~
+
+This release is identical to v0.19.0-M4.  We mistagged it.  Please proceed to the 0.20 series.
 
 # v0.19.0-M4 (2018-10-05)
 
@@ -64,7 +214,7 @@ This release is identical to v0.19.0-M4.  It was intended to be the last milesto
   * Added a `ServerBuilder#stream` to construct a `Stream` from a `Resource`.
 * [#2118](https://github.com/http4s/http4s/pull/2118): Finalize various case classes.
 * [#2102](https://github.com/http4s/http4s/pull/2102): Refactoring of `Client` and some builders:
-  * `Client` is no longer a case class.  Construct a new `Client` backend or middleware with `Client.apply(run: Request[F] => Response[F, Resource[F]])` for any `F` with a `Bracket[Throwable, F]`.
+  * `Client` is no longer a case class.  Construct a new `Client` backend or middleware with `Client.apply(run: Request[F] => Resource[F, Response[F]])` for any `F` with a `Bracket[Throwable, F]`.
   * Removed `DisposableResponse[F]` in favor of `Resource[F, Response[F]]`.
   * Removed `Client#open` in favor of `Client#run`.
   * Removed `Client#shutdown` in favor of `cats.effect.Resource` or `fs2.Stream`.

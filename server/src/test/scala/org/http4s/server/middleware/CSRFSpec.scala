@@ -2,11 +2,14 @@ package org.http4s.server.middleware
 
 import java.time.{Clock, Instant, ZoneId}
 import java.util.concurrent.atomic.AtomicLong
+
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers.Referer
+import org.http4s.util.CaseInsensitiveString
 import CSRF.unlift
+import cats.arrow.FunctionK
 
 class CSRFSpec extends Http4sSpec {
 
@@ -27,6 +30,12 @@ class CSRFSpec extends Http4sSpec {
       Instant.ofEpochMilli(clockTick.incrementAndGet())
   }
 
+  val cookieName = "csrf-token"
+  val headerName = CaseInsensitiveString("X-Csrf-Token")
+
+  val defaultOriginCheck: Request[IO] => Boolean =
+    CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, None)
+
   val dummyRoutes: HttpApp[IO] = HttpRoutes
     .of[IO] {
       case GET -> Root =>
@@ -42,31 +51,39 @@ class CSRFSpec extends Http4sSpec {
   val passThroughRequest: Request[IO] = Request[IO]()
 
   val csrf: CSRF[IO, IO] = CSRF
-    .withGeneratedKey[IO, IO](
-      clock = testClock,
-      headerCheck = CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, None))
+    .withGeneratedKey[IO, IO](defaultOriginCheck)
+    .map(_.withClock(testClock).withCookieName(cookieName).build)
     .unsafeRunSync()
+
+  val csrfForm: CSRF[IO, IO] = CSRF
+    .withGeneratedKey[IO, IO](defaultOriginCheck)
+    .map(
+      _.withClock(testClock)
+        .withCookieName(cookieName)
+        .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](headerName.value, FunctionK.id))
+        .build)
+    .unsafeRunSync()
+
+  ///
 
   "CSRF" should {
     "pass through and embed a new token for a safe, fresh request if set" in {
       val response = csrf.validate()(dummyRoutes)(passThroughRequest).unsafeRunSync()
 
       response.status must_== Status.Ok
-      response.cookies.exists(_.name == csrf.cookieName) must_== true
+      response.cookies.exists(_.name == cookieName) must_== true
     }
 
     "pass through and not embed a new token for a safe, fresh request" in {
       val csrfNoEmbed: CSRF[IO, IO] = CSRF
-        .withGeneratedKey[IO, IO](
-          clock = testClock,
-          headerCheck = CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, None),
-          createIfNotFound = false)
+        .withGeneratedKey[IO, IO](defaultOriginCheck)
+        .map(_.withClock(testClock).withCookieName(cookieName).withCreateIfNotFound(false).build)
         .unsafeRunSync()
 
       val response = csrfNoEmbed.validate()(dummyRoutes)(passThroughRequest).unsafeRunSync()
 
       response.status must_== Status.Ok
-      response.cookies.exists(_.name == csrf.cookieName) must_== false
+      response.cookies.exists(_.name == cookieName) must_== false
     }
 
     "Extract a valid token, with a slightly changed nonce, if present" in {
@@ -81,11 +98,34 @@ class CSRFSpec extends Http4sSpec {
       csrf.extractRaw(unlift(newToken)).isRight must_== true
     }
 
+    "Extract a valid token from header or form field when form enabled" in {
+
+      def check(f: (String, Request[IO]) => Request[IO]): IO[Response[IO]] =
+        for {
+          token <- csrfForm.generateToken[IO]
+          ts = unlift(token)
+          req = csrfForm.embedInRequestCookie(f(ts, dummyRequest), token)
+          res <- csrfForm.checkCSRF(req, dummyRoutes.run(req))
+        } yield res
+
+      val hn = headerName.value
+
+      val fromHeader = check((ts, r) ⇒ r.putHeaders(Header(hn, ts)))
+      val fromForm = check((ts, r) ⇒ r.withEntity(UrlForm(hn -> ts)))
+      val preferHeader =
+        check((ts, r) ⇒ r.withEntity(UrlForm(hn -> "bogus")).putHeaders(Header(hn, ts)))
+
+      fromHeader.unsafeRunSync().status must_== Status.Ok
+      fromForm.unsafeRunSync().status must_== Status.Ok
+      preferHeader.unsafeRunSync().status must_== Status.Ok
+
+    }
+
     "pass a request with valid origin a request without any origin, even with a token" in {
       val program: IO[Response[IO]] = for {
         token <- csrf.generateToken[IO]
         req = csrf.embedInRequestCookie(Request[IO](POST), token)
-        v <- csrf.checkCSRFDefault(req, dummyRoutes.run(req))
+        v <- csrf.checkCSRF(req, dummyRoutes.run(req))
       } yield v
 
       program.unsafeRunSync().status must_== Status.Forbidden
@@ -94,12 +134,11 @@ class CSRFSpec extends Http4sSpec {
     "fail a request with an invalid cookie, despite it being a safe method" in {
       val response =
         csrf
-          .validate()(dummyRoutes)(
-            passThroughRequest.addCookie(RequestCookie(csrf.cookieName, "MOOSE")))
+          .validate()(dummyRoutes)(passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
           .unsafeRunSync()
 
       response.status must_== Status.Forbidden // Must fail
-      !response.cookies.exists(_.name == csrf.cookieName) must_== true //Must not embed a new token
+      !response.cookies.exists(_.name == cookieName) must_== true //Must not embed a new token
     }
 
     "pass through and embed a slightly different token for a safe request" in {
@@ -110,7 +149,7 @@ class CSRFSpec extends Http4sSpec {
           response <- csrf.validate()(dummyRoutes)(
             csrf.embedInRequestCookie(passThroughRequest, oldToken))
           newCookie = response.cookies
-            .find(_.name == csrf.cookieName)
+            .find(_.name == cookieName)
             .getOrElse(ResponseCookie("invalid", "Invalid2"))
           raw2 <- IO.fromEither(csrf.extractRaw(newCookie.content))
         } yield (oldToken, raw1, response, newCookie, raw2)).unsafeRunSync()
@@ -134,8 +173,8 @@ class CSRFSpec extends Http4sSpec {
         token <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .putHeaders(Header(csrf.headerName.value, unlift(token)))
-            .addCookie(csrf.cookieName, unlift(token))
+            .putHeaders(Header(headerName.value, unlift(token)))
+            .addCookie(cookieName, unlift(token))
         )
       } yield res
 
@@ -150,7 +189,7 @@ class CSRFSpec extends Http4sSpec {
             csrf.embedInRequestCookie(
               Request[IO](POST)
                 .putHeaders(
-                  Header(csrf.headerName.value, unlift(token)),
+                  Header(headerName.value, unlift(token)),
                   Referer(Uri.unsafeFromString("http://localhost/lol"))),
               token)
           )
@@ -163,7 +202,7 @@ class CSRFSpec extends Http4sSpec {
       val program: IO[Response[IO]] = for {
         token <- csrf.generateToken[IO]
         req = csrf.embedInRequestCookie(Request[IO](POST), token)
-        v <- csrf.checkCSRFDefault(req, dummyRoutes.run(req))
+        v <- csrf.checkCSRF(req, dummyRoutes.run(req))
       } yield v
 
       program.unsafeRunSync().status must_== Status.Forbidden
@@ -175,10 +214,10 @@ class CSRFSpec extends Http4sSpec {
         res <- csrf.validate()(dummyRoutes)(
           Request[IO](POST)
             .putHeaders(
-              Header(csrf.headerName.value, unlift(token)),
+              Header(headerName.value, unlift(token)),
               Header("Origin", "http://example.com"),
               Referer(Uri.unsafeFromString("http://example.com/lol")))
-            .addCookie(csrf.cookieName, unlift(token))
+            .addCookie(cookieName, unlift(token))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden
     }
@@ -194,7 +233,7 @@ class CSRFSpec extends Http4sSpec {
       (for {
         token <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
-          dummyRequest.addCookie(csrf.cookieName, unlift(token))
+          dummyRequest.addCookie(cookieName, unlift(token))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden
     }
@@ -203,7 +242,7 @@ class CSRFSpec extends Http4sSpec {
       (for {
         token <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
-          dummyRequest.putHeaders(Header(csrf.headerName.value, unlift(token)))
+          dummyRequest.putHeaders(Header(headerName.value, unlift(token)))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden
     }
@@ -214,8 +253,8 @@ class CSRFSpec extends Http4sSpec {
         token2 <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .withHeaders(Headers(Header(csrf.headerName.value, unlift(token1))))
-            .addCookie(csrf.cookieName, unlift(token2))
+            .withHeaders(Headers(Header(headerName.value, unlift(token1))))
+            .addCookie(cookieName, unlift(token2))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden
     }
@@ -227,10 +266,10 @@ class CSRFSpec extends Http4sSpec {
           raw1 <- IO.fromEither(csrf.extractRaw(unlift(token)))
           res <- csrf.validate()(dummyRoutes)(
             dummyRequest
-              .putHeaders(Header(csrf.headerName.value, unlift(token)))
-              .addCookie(csrf.cookieName, unlift(token))
+              .putHeaders(Header(headerName.value, unlift(token)))
+              .addCookie(cookieName, unlift(token))
           )
-          rawContent = res.cookies.find(_.name == csrf.cookieName).map(_.content).getOrElse("")
+          rawContent = res.cookies.find(_.name == cookieName).map(_.content).getOrElse("")
           raw2 <- IO.fromEither(csrf.extractRaw(rawContent))
         } yield rawContent != token && raw1 == raw2
 
@@ -243,13 +282,13 @@ class CSRFSpec extends Http4sSpec {
         token2 <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .putHeaders(Header(csrf.headerName.value, unlift(token1)))
-            .addCookie(csrf.cookieName, unlift(token2))
+            .putHeaders(Header(headerName.value, unlift(token1)))
+            .addCookie(cookieName, unlift(token2))
         )
       } yield res).unsafeRunSync()
 
       response.status must_== Status.Forbidden
-      !response.cookies.exists(_.name == csrf.cookieName) must_== true
+      !response.cookies.exists(_.name == cookieName) must_== true
     }
   }
 

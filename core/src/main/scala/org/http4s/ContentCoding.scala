@@ -18,10 +18,10 @@
  */
 package org.http4s
 
-import cats.{Order, Show}
-import cats.syntax.eq._
-import cats.instances.tuple._
 import cats.instances.string._
+import cats.instances.tuple._
+import cats.syntax.eq._
+import cats.{Order, Show}
 import org.http4s.QValue.QValueParser
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.Http4sParser
@@ -65,7 +65,7 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
     ContentCoding.http4sOrderForContentCoding.compare(this, other)
 
   override def render(writer: Writer): writer.type =
-    ContentCoding.http4sInstancesForContentCoding.render(writer, this)
+    ContentCoding.http4sHttpCodecForContentCoding.render(writer, this)
 }
 
 object ContentCoding {
@@ -116,19 +116,16 @@ object ContentCoding {
     }
   }
 
-  implicit val http4sInstancesForContentCoding: Show[ContentCoding] with HttpCodec[ContentCoding] =
-    new Show[ContentCoding] with HttpCodec[ContentCoding] {
-      override def show(s: ContentCoding): String = s.toString
-
+  implicit val http4sOrderForContentCoding: Order[ContentCoding] =
+    Order.by(c => (c.coding.toLowerCase, c.qValue))
+  implicit val http4sShowForContentCoding: Show[ContentCoding] =
+    Show.fromToString
+  implicit val http4sHttpCodecForContentCoding: HttpCodec[ContentCoding] =
+    new HttpCodec[ContentCoding] {
       override def parse(s: String): ParseResult[ContentCoding] =
         ContentCoding.parse(s)
 
       override def render(writer: Writer, coding: ContentCoding): writer.type =
         writer << coding.coding.toLowerCase << coding.qValue
-
     }
-
-  implicit val http4sOrderForContentCoding: Order[ContentCoding] =
-    Order.by(c => (c.coding.toLowerCase, c.qValue))
-
 }

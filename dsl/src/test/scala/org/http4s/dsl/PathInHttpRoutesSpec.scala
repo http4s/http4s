@@ -5,6 +5,7 @@ import cats.data.Validated._
 import cats.effect.IO
 import cats.implicits._
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 
 object PathInHttpRoutesSpec extends Http4sSpec {
 
@@ -30,6 +31,8 @@ object PathInHttpRoutesSpec extends Http4sSpec {
   object OptValidatingCounter extends OptionalValidatingQueryParamDecoderMatcher[Int]("counter")
 
   object MultiOptCounter extends OptionalMultiQueryParamDecoderMatcher[Int]("counter")
+
+  object Flag extends FlagQueryParamMatcher("flag")
 
   val app: HttpApp[IO] = HttpApp {
     case GET -> Root :? I(start) +& L(limit) =>
@@ -67,6 +70,9 @@ object PathInHttpRoutesSpec extends Http4sSpec {
         case Valid(Nil) => Ok("absent")
         case Invalid(errors) => BadRequest(errors.toList.map(_.details).mkString("\n"))
       }
+    case GET -> Root / "flagparam" :? Flag(flag) =>
+      if (flag) Ok("flag present")
+      else Ok("flag not present")
     case r =>
       NotFound(s"404 Not Found: ${r.pathInfo}")
   }
@@ -233,6 +239,24 @@ object PathInHttpRoutesSpec extends Http4sSpec {
           """For input string: "foo"""",
           """For input string: "bar""""
         ))
+    }
+    "optional flag parameter when present" in {
+      val response =
+        serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString("flag"))))
+      response.status must_== Ok
+      response.as[String] must returnValue("flag present")
+    }
+    "optional flag parameter when present with a value" in {
+      val response =
+        serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString("flag=1"))))
+      response.status must_== (Ok)
+      response.as[String] must returnValue("flag present")
+    }
+    "optional flag parameter when not present" in {
+      val response =
+        serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString(""))))
+      response.status must_== (Ok)
+      response.as[String] must returnValue("flag not present")
     }
   }
 }

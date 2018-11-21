@@ -28,53 +28,58 @@ class UrlFormSpec extends Http4sSpec {
             .pure[IO])
         .flatMap { req =>
           UrlForm.entityDecoder[IO].decode(req, strict = false)
-        } must returnRight(urlForm)
+        }
+        .value
+        .unsafeRunSync() === Right(urlForm)
     }
 
     "decodeString . encodeString == right" in prop { (urlForm: UrlForm) =>
-      UrlForm.decodeString(charset)(
-        UrlForm.encodeString(charset)(urlForm)
-      ) must beRight(urlForm)
+      UrlForm
+        .decodeString(charset)(
+          UrlForm.encodeString(charset)(urlForm)
+        )
+        .leftWiden[DecodeFailure] === Right(urlForm)
     }
 
     "get returns elements matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).get("key") must_== Seq("a", "b", "c")
+      UrlForm(Map("key" -> Chain("a", "b", "c"))).get("key") must_== Chain("a", "b", "c")
     }
 
-    "get returns empty Seq if no matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).get("notFound") must_== Seq.empty[String]
+    "get returns empty Chain if no matching key" in {
+      UrlForm(Map("key" -> Chain("a", "b", "c"))).get("notFound") must_== Chain.empty[String]
     }
 
     "getFirst returns first element matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("key") must beSome("a")
+      UrlForm(Map("key" -> Chain("a", "b", "c"))).getFirst("key") must beSome("a")
     }
 
     "getFirst returns None if no matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("notFound") must beNone
+      UrlForm(Map("key" -> Chain("a", "b", "c"))).getFirst("notFound") must beNone
     }
 
     "getOrElse returns elements matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c")))
-        .getOrElse("key", Seq("d")) must_== Seq("a", "b", "c")
+      UrlForm(Map("key" -> Chain("a", "b", "c")))
+        .getOrElse("key", Chain("d")) must_== Chain("a", "b", "c")
     }
 
     "getOrElse returns default if no matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).getOrElse("notFound", Seq("d")) must_== Seq("d")
+      UrlForm(Map("key" -> Chain("a", "b", "c"))).getOrElse("notFound", Chain("d")) must_== Chain(
+        "d")
     }
 
     "getFirstOrElse returns first element matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("key", "d") must_== "a"
+      UrlForm(Map("key" -> Chain("a", "b", "c"))).getFirstOrElse("key", "d") must_== "a"
     }
 
     "getFirstOrElse returns default if no matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
+      UrlForm(Map("key" -> Chain("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
     }
 
     "withFormField encodes T properly if QueryParamEncoder[T] can be resolved" in {
-      UrlForm.empty.updateFormField("foo", 1).get("foo") must_== Seq("1")
-      UrlForm.empty.updateFormField("bar", Some(true)).get("bar") must_== Seq("true")
-      UrlForm.empty.updateFormField("bar", Option.empty[Boolean]).get("bar") must_== Seq()
-      UrlForm.empty.updateFormFields("dummy", List("a", "b", "c")).get("dummy") must_== Seq(
+      UrlForm.empty.updateFormField("foo", 1).get("foo") must_== Chain("1")
+      UrlForm.empty.updateFormField("bar", Some(true)).get("bar") must_== Chain("true")
+      UrlForm.empty.updateFormField("bar", Option.empty[Boolean]).get("bar") must_== Chain()
+      UrlForm.empty.updateFormFields("dummy", Chain("a", "b", "c")).get("dummy") === Chain(
         "a",
         "b",
         "c")
@@ -82,33 +87,33 @@ class UrlFormSpec extends Http4sSpec {
 
     "withFormField is effectively equal to factory constructor that takes a Map" in {
       (
-        UrlForm.empty +? ("foo", 1) +? ("bar", Some(true)) ++? ("dummy", List("a", "b", "c")) ===
-          UrlForm(Map("foo" -> Seq("1"), "bar" -> Seq("true"), "dummy" -> List("a", "b", "c")))
+        UrlForm.empty +? ("foo", 1) +? ("bar", Some(true)) ++? ("dummy", Chain("a", "b", "c")) ===
+          UrlForm(Map("foo" -> Chain("1"), "bar" -> Chain("true"), "dummy" -> Chain("a", "b", "c")))
       )
 
       (
         UrlForm.empty +? ("foo", 1) +? ("bar", Option
-          .empty[Boolean]) ++? ("dummy", List("a", "b", "c")) ===
-          UrlForm(Map("foo" -> Seq("1"), "dummy" -> List("a", "b", "c")))
+          .empty[Boolean]) ++? ("dummy", Chain("a", "b", "c")) ===
+          UrlForm(Map("foo" -> Chain("1"), "dummy" -> Chain("a", "b", "c")))
       )
     }
 
-    "construct consistently from kv-pairs or and Map[String, Seq[String]]" in prop {
+    "construct consistently from kv-pairs or and Map[String, Chain[String]]" in prop {
       map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
           (k, vs) <- map.toSeq
           v <- vs.toList
         } yield k -> v
-        UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.toList))
+        UrlForm(flattened: _*) === UrlForm(map.mapValues(nel => Chain.fromSeq(nel.toList)))
     }
 
-    "construct consistently from Seq of kv-pairs and Map[String, Seq[String]]" in prop {
+    "construct consistently from Chain of kv-pairs and Map[String, Chain[String]]" in prop {
       map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
-          (k, vs) <- map.toSeq
-          v <- vs.toList
-        } yield (k -> v)
-        UrlForm.fromSeq(flattened) must_== UrlForm(map.mapValues(_.toList))
+          (k, vs) <- Chain.fromSeq(map.toSeq)
+          v <- Chain.fromSeq(vs.toList)
+        } yield k -> v
+        UrlForm.fromChain(flattened) === UrlForm(map.mapValues(nel => Chain.fromSeq(nel.toList)))
     }
   }
 

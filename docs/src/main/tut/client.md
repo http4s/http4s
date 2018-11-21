@@ -25,11 +25,12 @@ libraryDependencies ++= Seq(
 ```
 
 Then we create the [service] again so tut picks it up:
-
+>
 ```tut:book:silent
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.server.blaze._
 ```
 
@@ -40,17 +41,18 @@ in an [[`IOApp`]]:
 ```tut:book:silent
 import scala.concurrent.ExecutionContext.global
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 ```
 
 Finish setting up our server:
 
 ```tut:book
-val routes = HttpRoutes.of[IO] {
+val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
-}
+}.orNotFound
 
-val server = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(routes, "/").resource
+val server = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(app).resource
 ```
 
 We'll start the server in the background.  The `IO.never` keeps it
@@ -95,7 +97,7 @@ import scala.concurrent.ExecutionContext
 import java.util.concurrent._
 
 val blockingEC = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(5))
-val httpClient: Client[IO] = JavaNetClientBuilder(blockingEC).create
+val httpClient: Client[IO] = JavaNetClientBuilder[IO](blockingEC).create
 ```
 
 ### Describing a call
@@ -314,12 +316,12 @@ case class AuthResponse(access_token: String)
 implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
 
 val postRequest = POST(
-  Uri.uri("https://my-lovely-api.com/oauth2/token"),
   UrlForm(
     "grant_type" -> "client_credentials",
     "client_id" -> "my-awesome-client",
     "client_secret" -> "s3cr3t"
-  )
+  ),
+  Uri.uri("https://my-lovely-api.com/oauth2/token")
 )
 
 httpClient.expect[AuthResponse](postRequest)

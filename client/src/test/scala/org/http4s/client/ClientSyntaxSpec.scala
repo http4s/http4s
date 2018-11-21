@@ -10,6 +10,7 @@ import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
+import org.http4s.Uri.uri
 import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThrownMatchers {
@@ -282,7 +283,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
         Client[IO] { _ =>
           for {
             _ <- List(1, 2, 3).traverse { i =>
-              Resource(IO.pure(() -> (IO(println("FART")) *> released.update(_ :+ i))))
+              Resource(IO.pure(() -> released.update(_ :+ i)))
             }
           } yield Response()
         }.toHttpApp(req).flatMap(_.as[Unit]) >> released.get
@@ -294,7 +295,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
         Client[IO] { _ =>
           for {
             _ <- List(1, 2, 3).traverse { i =>
-              Resource(IO.pure(() -> (IO(println("FART")) *> released.update(_ :+ i))))
+              Resource(IO.pure(() -> released.update(_ :+ i)))
             }
             _ <- Resource.liftF[IO, Unit](IO.raiseError(SadTrombone))
           } yield Response()
@@ -308,7 +309,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       client.expect[String](GET(uri("http://www.foo.com/"))) must returnValue("hello")
 
       // The PUT: /put path just echoes the body
-      client.expect[String](PUT(uri("http://www.foo.com/put"), "hello?")) must returnValue("hello?")
+      client.expect[String](PUT("hello?", uri("http://www.foo.com/put"))) must returnValue("hello?")
     }
   }
 }

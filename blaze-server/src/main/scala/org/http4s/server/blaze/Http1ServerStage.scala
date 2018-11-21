@@ -2,34 +2,41 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{ConcurrentEffect, IO, Sync}
+import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
 import cats.implicits._
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
-import org.http4s.blaze.util.BufferTools
+import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
-import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
 private[blaze] object Http1ServerStage {
 
-  def apply[F[_]: ConcurrentEffect](
+  def apply[F[_]](
       routes: HttpApp[F],
       attributes: AttributeMap,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
-      serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] =
+      serviceErrorHandler: ServiceErrorHandler[F],
+      responseHeaderTimeout: Duration,
+      idleTimeout: Duration,
+      scheduler: TickWheelExecutor)(
+      implicit F: ConcurrentEffect[F],
+      timer: Timer[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
         routes,
@@ -37,7 +44,10 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler) with WebSocketSupport[F]
+        serviceErrorHandler,
+        responseHeaderTimeout,
+        idleTimeout,
+        scheduler) with WebSocketSupport[F]
     else
       new Http1ServerStage(
         routes,
@@ -45,7 +55,10 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler)
+        serviceErrorHandler,
+        responseHeaderTimeout,
+        idleTimeout,
+        scheduler)
 }
 
 private[blaze] class Http1ServerStage[F[_]](
@@ -54,16 +67,20 @@ private[blaze] class Http1ServerStage[F[_]](
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit protected val F: ConcurrentEffect[F])
+    serviceErrorHandler: ServiceErrorHandler[F],
+    responseHeaderTimeout: Duration,
+    idleTimeout: Duration,
+    scheduler: TickWheelExecutor)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
   // micro-optimization: unwrap the routes and call its .run directly
-  private[this] val routesFn = httpApp.run
+  private[this] val runApp = httpApp.run
 
-  // both `parser` and `isClosed` are protected by synchronization on `parser`
+  // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
+  private[this] var cancelToken: Option[CancelToken[F]] = None
 
   val name = "Http4sServerStage"
 
@@ -82,8 +99,25 @@ private[blaze] class Http1ServerStage[F[_]](
   // Will act as our loop
   override def stageStartup(): Unit = {
     logger.debug("Starting HTTP pipeline")
+    initIdleTimeout()
     requestLoop()
   }
+
+  private def initIdleTimeout() =
+    idleTimeout match {
+      case f: FiniteDuration =>
+        val cb: Callback[TimeoutException] = {
+          case Left(t) =>
+            fatalError(t, "Error in idle timeout callback")
+          case Right(_) =>
+            logger.debug("Shutting down due to idle timeout")
+            closePipeline(None)
+        }
+        val stage = new IdleTimeoutStage[ByteBuffer](f, cb, scheduler, executionContext)
+        spliceBefore(stage)
+        stage.stageStartup()
+      case _ =>
+    }
 
   private val handleReqRead: Try[ByteBuffer] => Unit = {
     case Success(buff) => reqLoopCallback(buff)
@@ -140,17 +174,20 @@ private[blaze] class Http1ServerStage[F[_]](
         executionContext.execute(new Runnable {
           def run(): Unit = {
             val action = Sync[F]
-              .suspend(routesFn(req))
+              .suspend(raceTimeout(req))
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
 
-            F.runAsync(action) {
-                case Right(()) => IO.unit
-                case Left(t) =>
-                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                    closeConnection())
-              }
-              .unsafeRunSync()
+            parser.synchronized {
+              cancelToken = Some(
+                F.runCancelable(action) {
+                    case Right(()) => IO.unit
+                    case Left(t) =>
+                      IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                        closeConnection())
+                  }
+                  .unsafeRunSync())
+            }
           }
         })
       case Left((e, protocol)) =>
@@ -253,13 +290,20 @@ private[blaze] class Http1ServerStage[F[_]](
   override protected def stageShutdown(): Unit = {
     logger.debug("Shutting down HttpPipeline")
     parser.synchronized {
+      cancel()
       isClosed = true
       parser.shutdownParser()
     }
     super.stageShutdown()
   }
 
-  /////////////////// Error handling /////////////////////////////////////////
+  private def cancel(): Unit = cancelToken.foreach { token =>
+    F.runAsync(token) {
+        case Right(_) => IO(logger.debug("Canceled request"))
+        case Left(t) => IO(logger.error(t)("Error canceling request"))
+      }
+      .unsafeRunSync()
+  }
 
   final protected def badMessage(
       debugMessage: String,
@@ -267,7 +311,7 @@ private[blaze] class Http1ServerStage[F[_]](
       req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection("close".ci), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -279,7 +323,17 @@ private[blaze] class Http1ServerStage[F[_]](
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection("close".ci), `Content-Length`.zero)
     renderResponse(req, resp, bodyCleanup) // will terminate the connection due to connection: close header
   }
+
+  private[this] val raceTimeout: Request[F] => F[Response[F]] =
+    responseHeaderTimeout match {
+      case finite: FiniteDuration =>
+        val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
+        req =>
+          F.race(runApp(req), timeoutResponse).map(_.merge)
+      case _ =>
+        runApp
+    }
 }

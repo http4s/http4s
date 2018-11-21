@@ -108,7 +108,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def addToWaitQueue(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     F.delay {
-      if (waitQueue.length <= maxWaitQueueLimit) {
+      if (waitQueue.length < maxWaitQueueLimit) {
         waitQueue.enqueue(Waiting(key, callback, Instant.now()))
       } else {
         logger.error(s"Max wait length reached, not scheduling.")
@@ -287,9 +287,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
     val (expired, rest) = waitQueue.span(w => isExpired(w.at))
     expired.foreach(
       _.callback(Left(new TimeoutException("In wait queue for too long, timing out request."))))
-    logger.debug(s"expired requests: ${expired.length}")
-    waitQueue = rest
-    logger.debug(s"Dropped expired requests: $stats")
+    if (expired.nonEmpty) {
+      logger.debug(s"expired requests: ${expired.length}")
+      waitQueue = rest
+      logger.debug(s"Dropped expired requests: $stats")
+    }
     waitQueue.dequeueFirst { waiter =>
       allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
     }

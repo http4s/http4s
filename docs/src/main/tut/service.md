@@ -55,10 +55,12 @@ Wherever you are in your studies, let's create our first
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-You also will need a `ContextShift`.
+You also will need a `ContextShift` and a `Timer`.  These come for
+free if you are in an `IOApp`.
 
 ```tut:book:silent
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
 ```
 
 Using the [http4s-dsl], we can construct an `HttpRoutes` by pattern
@@ -108,10 +110,10 @@ val tweetService = HttpRoutes.of[IO] {
 http4s supports multiple server backends.  In this example, we'll use
 [blaze], the native backend supported by http4s.
 
-We start from a `BlazeBuilder`, and then mount the `helloWorldService` under
+We start from a `BlazeServerBuilder`, and then mount the `helloWorldService` under
 the base path of `/` and the remainder of the services under the base
 path of `/api`. The services can be mounted in any order as the request will be
-matched against the longest base paths first. The `BlazeBuilder` is immutable
+matched against the longest base paths first. The `BlazeServerBuilder` is immutable
 with chained methods, each returning a new builder.
 
 Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
@@ -174,6 +176,7 @@ import cats.implicits._
 import org.http4s.HttpRoutes
 import org.http4s.syntax._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.server.blaze._
 
 object Main extends IOApp {

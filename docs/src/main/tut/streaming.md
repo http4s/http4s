@@ -88,9 +88,9 @@ import cats.implicits._
 import fs2.Stream
 import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
+import io.circe.Json
 import jawnfs2._
 import java.util.concurrent.{Executors, ExecutorService}
-import io.circe.Json
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.global
 

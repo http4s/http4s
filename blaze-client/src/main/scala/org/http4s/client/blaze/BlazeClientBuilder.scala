@@ -4,10 +4,12 @@ package blaze
 
 import cats.effect._
 import cats.implicits._
-import fs2.Stream
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
+import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.headers.{AgentProduct, `User-Agent`}
+import org.http4s.internal.BackendBuilder
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -27,8 +29,13 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val parserMode: ParserMode,
     val bufferSize: Int,
     val executionContext: ExecutionContext,
-    val asynchronousChannelGroup: Option[AsynchronousChannelGroup]
-) {
+    val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
+    val channelOptions: ChannelOptions
+)(implicit protected val F: ConcurrentEffect[F])
+    extends BlazeBackendBuilder[Client[F]]
+    with BackendBuilder[F, Client[F]] {
+  type Self = BlazeClientBuilder[F]
+
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
       idleTimeout: Duration = idleTimeout,
@@ -45,7 +52,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode: ParserMode = parserMode,
       bufferSize: Int = bufferSize,
       executionContext: ExecutionContext = executionContext,
-      asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
+      channelOptions: ChannelOptions = channelOptions
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -63,11 +71,15 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       bufferSize = bufferSize,
       executionContext = executionContext,
-      asynchronousChannelGroup = asynchronousChannelGroup
+      asynchronousChannelGroup = asynchronousChannelGroup,
+      channelOptions = channelOptions
     ) {}
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
     copy(responseHeaderTimeout = responseHeaderTimeout)
+
+  def withMaxHeaderLength(maxHeaderLength: Int): BlazeClientBuilder[F] =
+    copy(maxHeaderLength = maxHeaderLength)
 
   def withIdleTimeout(idleTimeout: Duration): BlazeClientBuilder[F] =
     copy(idleTimeout = idleTimeout)
@@ -126,18 +138,22 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
-  def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    connectionManager.map(
-      manager =>
+  def withChannelOptions(channelOptions: ChannelOptions): BlazeClientBuilder[F] =
+    copy(channelOptions = channelOptions)
+
+  def resource: Resource[F, Client[F]] =
+    tickWheelResource.flatMap { scheduler =>
+      connectionManager.map { manager =>
         BlazeClient.makeClient(
           manager = manager,
           responseHeaderTimeout = responseHeaderTimeout,
           idleTimeout = idleTimeout,
-          requestTimeout = requestTimeout
-      ))
-
-  def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
-    Stream.resource(resource)
+          requestTimeout = requestTimeout,
+          scheduler = scheduler,
+          ec = executionContext
+        )
+      }
+    }
 
   private def connectionManager(
       implicit F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
@@ -151,30 +167,32 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       maxHeaderLength = maxHeaderLength,
       maxChunkSize = maxChunkSize,
       parserMode = parserMode,
-      userAgent = userAgent
+      userAgent = userAgent,
+      channelOptions = channelOptions
     ).makeClient
     Resource.make(
-      ConnectionManager
-        .pool(
-          builder = http1,
-          maxTotal = maxTotalConnections,
-          maxWaitQueueLimit = maxWaitQueueLimit,
-          maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
-          responseHeaderTimeout = responseHeaderTimeout,
-          requestTimeout = requestTimeout,
-          executionContext = executionContext
-        ))(_.shutdown)
+      ConnectionManager.pool(
+        builder = http1,
+        maxTotal = maxTotalConnections,
+        maxWaitQueueLimit = maxWaitQueueLimit,
+        maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
+        responseHeaderTimeout = responseHeaderTimeout,
+        requestTimeout = requestTimeout,
+        executionContext = executionContext
+      )) { pool =>
+      F.delay { val _ = pool.shutdown() }
+    }
   }
 }
 
 object BlazeClientBuilder {
-  def apply[F[_]](
+  def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
       sslContext: Option[SSLContext] = Some(SSLContext.getDefault)): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = 10.seconds,
       idleTimeout = 1.minute,
-      requestTimeout = Duration.Inf,
+      requestTimeout = 1.minute,
       userAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version)))),
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,
@@ -187,6 +205,7 @@ object BlazeClientBuilder {
       parserMode = ParserMode.Strict,
       bufferSize = 8192,
       executionContext = executionContext,
-      asynchronousChannelGroup = None
+      asynchronousChannelGroup = None,
+      channelOptions = ChannelOptions(Vector.empty)
     ) {}
 }

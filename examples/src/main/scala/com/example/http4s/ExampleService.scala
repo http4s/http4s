@@ -53,7 +53,7 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
 
       case GET -> Root / "redirect" =>
         // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
-        TemporaryRedirect(Location(uri("/http4s/")))
+        TemporaryRedirect(Location(Uri.uri("/http4s/")))
 
       case GET -> Root / "content-change" =>
         // EntityEncoder typically deals with appropriate headers, but they can be overridden
@@ -85,8 +85,8 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
         // EntityDecoders allow turning the body into something useful
         req
           .decode[UrlForm] { data =>
-            data.values.get("sum") match {
-              case Some(Seq(s, _*)) =>
+            data.values.get("sum").flatMap(_.uncons) match {
+              case Some((s, _)) =>
                 val sum = s.split(' ').filter(_.length > 0).map(_.trim.toInt).sum
                 Ok(sum.toString)
 

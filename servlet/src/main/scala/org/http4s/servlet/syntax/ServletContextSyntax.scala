@@ -4,7 +4,8 @@ package syntax
 
 import cats.effect._
 import javax.servlet.{ServletContext, ServletRegistration}
-import org.http4s.server.{AsyncTimeoutSupport, DefaultServiceErrorHandler}
+import org.http4s.server.DefaultServiceErrorHandler
+import org.http4s.server.defaults
 
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps =
@@ -23,7 +24,7 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
       mapping: String = "/*"): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,
-      asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+      asyncTimeout = defaults.AsyncTimeout,
       servletIo = NonBlockingServletIo(DefaultChunkSize),
       serviceErrorHandler = DefaultServiceErrorHandler[F]
     )

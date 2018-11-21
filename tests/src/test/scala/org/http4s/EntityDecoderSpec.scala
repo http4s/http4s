@@ -13,6 +13,7 @@ import fs2._
 import fs2.Stream._
 import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
+import cats.data.Chain
 import org.http4s.Status.Ok
 import org.http4s.testing._
 import org.http4s.headers.`Content-Type`
@@ -229,7 +230,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
 
       val decoded = decoder
-        .decode(Request().replaceAllHeaders(`Content-Type`(MediaType.text.plain)), strict = true)
+        .decode(Request().withHeaders(`Content-Type`(MediaType.text.plain)), strict = true)
         .swap
         .semiflatMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`))
 
@@ -326,9 +327,9 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "Decode form encoded body" in {
       val urlForm = UrlForm(
         Map(
-          "Formula" -> Seq("a + b == 13%!"),
-          "Age" -> Seq("23"),
-          "Name" -> Seq("Jonathan Doe")
+          "Formula" -> Chain("a + b == 13%!"),
+          "Age" -> Chain("23"),
+          "Name" -> Chain("Jonathan Doe")
         ))
       val resp: IO[Response[IO]] = Request[IO]()
         .withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
@@ -370,7 +371,9 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mockServe(Request()) { req =>
-          req.decodeWith(textFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
+          req.decodeWith(
+            EntityDecoder.textFile(tmpFile, testBlockingExecutionContext),
+            strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync
@@ -389,7 +392,9 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) {
           case req =>
-            req.decodeWith(binFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
+            req.decodeWith(
+              EntityDecoder.binFile(tmpFile, testBlockingExecutionContext),
+              strict = false) { _ =>
               Response[IO](Ok).withEntity("Hello").pure[IO]
             }
         }.unsafeRunSync
@@ -407,7 +412,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request[IO]()
-      binary[IO].decode(msg, strict = false) must returnRight(Chunk.empty[Byte])
+      EntityDecoder.binary[IO].decode(msg, strict = false) must returnRight(Chunk.empty[Byte])
     }
 
     "concat Chunks" in {
@@ -415,11 +420,11 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val body = chunk(Chunk.bytes(d1)) ++ chunk(Chunk.bytes(d2))
       val msg = Request[IO](body = body)
       val expected = Chunk.bytes(Array[Byte](1, 2, 3, 4, 5, 6))
-      binary[IO].decode(msg, strict = false) must returnRight(expected)
+      EntityDecoder.binary[IO].decode(msg, strict = false) must returnRight(expected)
     }
 
     "Match any media type" in {
-      binary[IO].matchesMediaType(MediaType.text.plain) must_== true
+      EntityDecoder.binary[IO].matchesMediaType(MediaType.text.plain) must_== true
     }
   }
 

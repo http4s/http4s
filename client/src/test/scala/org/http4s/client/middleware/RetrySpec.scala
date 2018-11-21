@@ -7,6 +7,7 @@ import cats.effect.concurrent.Ref
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.Stream
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 import org.specs2.specification.Tables
 import scala.concurrent.duration._
 
@@ -93,11 +94,8 @@ class RetrySpec extends Http4sSpec with Tables {
     "defaultRetriable does not resubmit bodies on idempotent methods" in {
       resubmit(POST)(RetryPolicy.defaultRetriable) must_== Status.InternalServerError
     }
-    "unsafeRetriable does not resubmit bodies on non-idempotent methods" in {
-      resubmit(POST)(RetryPolicy.unsafeRetriable) must_== Status.InternalServerError
-    }
-    "unsafeRetriable resubmits bodies on idempotent methods" in {
-      resubmit(PUT)(RetryPolicy.unsafeRetriable) must_== Status.Ok
+    "defaultRetriable resubmits bodies on idempotent methods" in {
+      resubmit(PUT)(RetryPolicy.defaultRetriable) must_== Status.Ok
     }
     "recklesslyRetriable resubmits bodies on non-idempotent methods" in {
       resubmit(POST)((req, result) => RetryPolicy.recklesslyRetriable(result)) must_== Status.Ok

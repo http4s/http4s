@@ -3,6 +3,7 @@ package org.http4s.server.middleware
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.Uri.uri
 import org.http4s.util.CaseInsensitiveString
 
 class HeaderEchoSpec extends Http4sSpec {

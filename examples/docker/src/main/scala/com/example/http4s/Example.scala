@@ -15,7 +15,7 @@ object Main extends IOApp {
 
 object ExampleApp {
 
-  def serverStream[F[_]: ConcurrentEffect]: Stream[F, ExitCode] =
+  def serverStream[F[_]: ConcurrentEffect: Timer]: Stream[F, ExitCode] =
     BlazeServerBuilder[F]
       .bindHttp(port = 8080, host = "0.0.0.0")
       .withHttpApp(ExampleRoutes[F]().routes.orNotFound)

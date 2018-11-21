@@ -59,35 +59,20 @@ lazy val server = libraryProject("server")
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
-lazy val serverMetrics = libraryProject("server-metrics")
-  .settings(
-    description := "Support for Dropwizard Metrics on the server",
-    libraryDependencies ++= Seq(
-      dropwizardMetricsCore,
-      dropwizardMetricsJson
-    )
-  )
-  .dependsOn(server % "compile;test->test")
-
-lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
-  .settings(
-    description := "Support for Prometheus Metrics on the server",
-    libraryDependencies ++= Seq(
-      prometheusCommon,
-      prometheusHotspot
-    ),
-  )
-  .dependsOn(server % "compile;test->test", theDsl)
-
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
     description := "Support for Prometheus Metrics",
-    libraryDependencies += prometheusClient
+    libraryDependencies ++= Seq(
+      prometheusCommon,
+      prometheusHotspot,
+      prometheusClient
+    ),
   )
   .dependsOn(
     core % "compile->compile",
+    theDsl % "compile->compile",
     testing % "test->test",
-    theDsl % "test->compile",
+    server % "test->compile",
     client % "test->compile"
   )
 lazy val client = libraryProject("client")
@@ -104,14 +89,17 @@ lazy val client = libraryProject("client")
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
-    description := "Support for Dropwizard Metrics on the client",
-    libraryDependencies += dropwizardMetricsCore
-  )
+    description := "Support for Dropwizard Metrics",
+    libraryDependencies ++= Seq(
+      dropwizardMetricsCore,
+      dropwizardMetricsJson
+    )  )
   .dependsOn(
     core % "compile->compile",
     testing % "test->test",
     theDsl % "test->compile",
-    client % "test->compile"
+    client % "test->compile",
+    server % "test->compile"
   )
 
 lazy val blazeCore = libraryProject("blaze-core")
@@ -340,7 +328,7 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
-        mimedbGenerator,
+        mimedbGenerator
       ),
     scalacOptions in Tut ~= {
       val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
@@ -431,7 +419,7 @@ lazy val examples = http4sProject("examples")
     ),
     TwirlKeys.templateImports := Nil
   )
-  .dependsOn(server, serverMetrics, theDsl, circe, scalaXml, twirl)
+  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")

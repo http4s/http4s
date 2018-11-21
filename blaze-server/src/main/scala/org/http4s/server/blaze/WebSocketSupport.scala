@@ -37,7 +37,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
               unsafeRunAsync {
                 wsContext.failureResponse
                   .map(
-                    _.replaceAllHeaders(
+                    _.withHeaders(
                       Connection("close".ci),
                       Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
                     ))

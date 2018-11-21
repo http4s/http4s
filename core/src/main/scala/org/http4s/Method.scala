@@ -1,10 +1,10 @@
 package org.http4s
 
-import cats._
 import cats.implicits._
+import cats.{Eq, Show}
+import org.http4s.Method.Semantics
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
-import org.http4s.Method.Semantics
 
 /**
   * An HTTP method.
@@ -16,7 +16,7 @@ sealed abstract case class Method private (name: String) extends Renderable with
   final override def render(writer: Writer): writer.type = writer << name
 }
 
-object Method extends MethodInstances {
+object Method {
   sealed trait Semantics {
     def isIdempotent: Boolean
     def isSafe: Boolean
@@ -69,11 +69,11 @@ object Method extends MethodInstances {
   val BIND: IdempotentMethod = new Method("BIND") with Idempotent
   val CHECKIN: IdempotentMethod = new Method("CHECKIN") with Idempotent
   val CHECKOUT: IdempotentMethod = new Method("CHECKOUT") with Idempotent
-  val CONNECT: DefaultMethodNoBody = new Method("CONNECT") with Default with NoBody
+  val CONNECT: DefaultMethodWithBody = new Method("CONNECT") with Default with PermitsBody
   val COPY: IdempotentMethod = new Method("COPY") with Idempotent
-  val DELETE: IdempotentMethodNoBody = new Method("DELETE") with Idempotent with NoBody
-  val GET: SafeMethodNoBody = new Method("GET") with Safe with NoBody
-  val HEAD: SafeMethodNoBody = new Method("HEAD") with Safe with NoBody
+  val DELETE: IdempotentMethodWithBody = new Method("DELETE") with Idempotent with PermitsBody
+  val GET: SafeMethodWithBody = new Method("GET") with Safe with PermitsBody
+  val HEAD: SafeMethodWithBody = new Method("HEAD") with Safe with PermitsBody
   val LABEL: IdempotentMethodWithBody = new Method("LABEL") with Idempotent with PermitsBody
   val LINK: IdempotentMethod = new Method("LINK") with Idempotent
   val LOCK: DefaultMethod = new Method("LOCK") with Default
@@ -144,12 +144,7 @@ object Method extends MethodInstances {
   )
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap
-}
 
-trait MethodInstances {
-  implicit val http4sEqForMethod: Eq[Method] =
-    Eq.fromUniversalEquals
-
-  implicit val http4sShowForMethod: Show[Method] =
-    Show.fromToString
+  implicit val http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
+  implicit val http4sShowForMethod: Show[Method] = Show.fromToString
 }
