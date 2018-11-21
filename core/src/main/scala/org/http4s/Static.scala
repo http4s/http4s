@@ -27,9 +27,10 @@ trait Static[F[_]] {
     blockingExecutionContext: ExecutionContext,
     req: Option[Request[F]] = None): OptionT[F, Response[F]]
 
-  def fromResource(
+  def fromClasspath(
     name: String,
     blockingExecutionContext: ExecutionContext,
+    buffsize: Int = Static.DefaultBufferSize,
     req: Option[Request[F]] = None,
     preferGzipped: Boolean = false): OptionT[F, Response[F]]
 
@@ -37,12 +38,13 @@ trait Static[F[_]] {
   def fromURL(
      url: URL,
      blockingExecutionContext: ExecutionContext,
+     buffsize: Int = Static.DefaultBufferSize,
      req: Option[Request[F]] = None): OptionT[F, Response[F]]
 
   def fromFile(f: File,
                blockingExecutionContext: ExecutionContext,
                start: Long = 0L,
-               end: Option[Long] = None,
+               length: Option[Long] = None,
                buffsize: Int = Static.DefaultBufferSize,
                req: Option[Request[F]] = None,
                etagCalculator: File => F[String] = calcETag _): OptionT[F, Response[F]]
@@ -100,9 +102,10 @@ object Static {
       fromFile(new File(url), blockingExecutionContext, req = req)
 
 
-    def fromResource(
+    def fromClasspath(
                                                 name: String,
                                                 blockingExecutionContext: ExecutionContext,
+                                                buffsize: Int = Static.DefaultBufferSize,
                                                 req: Option[Request[F]] = None,
                                                 preferGzipped: Boolean = false): OptionT[F, Response[F]] = {
       val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists {
@@ -121,17 +124,18 @@ object Static {
           val contentType = nameToContentType(name)
           val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
 
-          fromURL(url, blockingExecutionContext, req).map(
+          fromURL(url, blockingExecutionContext, buffsize, req).map(
             _.removeHeader(`Content-Type`).putHeaders(headers: _*))
         }
         .orElse(OptionT
           .fromOption[F](Option(getClass.getResource(name)))
-          .flatMap(fromURL(_, blockingExecutionContext, req)))
+          .flatMap(fromURL(_, blockingExecutionContext, buffsize, req)))
     }
 
     def fromURL(
        url: URL,
        blockingExecutionContext: ExecutionContext,
+       buffsize: Int = Static.DefaultBufferSize,
        req: Option[Request[F]] = None): OptionT[F, Response[F]] =
       OptionT.liftF(F.delay {
         val urlConn = url.openConnection
@@ -151,7 +155,7 @@ object Static {
           Response(
             headers = headers,
             body =
-              readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blockingExecutionContext)
+              readInputStream[F](F.delay(url.openStream), buffsize, blockingExecutionContext)
           )
         } else {
           urlConn.getInputStream.close()
@@ -163,12 +167,12 @@ object Static {
     def fromFile(f: File,
                  blockingExecutionContext: ExecutionContext,
                  start: Long = 0L,
-                 end: Option[Long] = None,
+                 length: Option[Long] = None,
                  buffsize: Int = 8192,
                  req: Option[Request[F]] = None,
                  etagCalculator: File => F[String] = calcETag _): OptionT[F, Response[F]] =
       OptionT(for {
-        fileEndSize <- end.fold(F.delay(f.length()))(_.pure[F])
+        fileEndSize <- length.fold(F.delay(f.length()))(_.pure[F])
         etagCalc <- etagCalculator(f).map(et => ETag(et))
         res <- F.delay {
           if (f.isFile) {

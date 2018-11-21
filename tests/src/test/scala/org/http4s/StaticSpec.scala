@@ -78,7 +78,7 @@ class StaticSpec extends Http4sSpec {
               f = f,
               blockingExecutionContext = testBlockingExecutionContext,
               start = 0L,
-              end = Some(1L),
+              length = Some(1L),
               buffsize = Static.DefaultBufferSize,
               req = None)
             .value
@@ -116,7 +116,7 @@ class StaticSpec extends Http4sSpec {
             f = file,
             blockingExecutionContext = testBlockingExecutionContext,
             start = 0L,
-            end = Some(fileSize.toLong - 1),
+            length = Some(fileSize.toLong - 1),
             buffsize = Static.DefaultBufferSize,
             req = None)
           .value
