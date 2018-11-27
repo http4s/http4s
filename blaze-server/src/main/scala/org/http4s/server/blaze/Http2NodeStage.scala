@@ -56,9 +56,9 @@ private class Http2NodeStage[F[_]](
             logger.debug("Shutting down due to idle timeout")
             closePipeline(None)
         }
-        val stage = new IdleTimeoutStage[StreamFrame](f, cb, scheduler, executionContext)
+        val stage = new IdleTimeoutStage[StreamFrame](f, scheduler, executionContext)
         spliceBefore(stage)
-        stage.stageStartup()
+        stage.init(cb)
       case _ =>
     }
 

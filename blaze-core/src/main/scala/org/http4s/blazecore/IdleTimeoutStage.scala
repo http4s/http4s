@@ -11,11 +11,12 @@ import scala.concurrent.duration.FiniteDuration
 
 final private[http4s] class IdleTimeoutStage[A](
     timeout: FiniteDuration,
-    cb: Callback[TimeoutException],
     exec: TickWheelExecutor,
     ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
   private[this] val logger = getLogger
+
+  @volatile private var cb: Callback[TimeoutException] = null
 
   private val timeoutState = new AtomicReference[Cancelable](NoOpCancelable)
 
@@ -51,9 +52,9 @@ final private[http4s] class IdleTimeoutStage[A](
     super.stageShutdown()
   }
 
-  override def stageStartup(): Unit = {
-    super.stageStartup()
+  def init(cb: Callback[TimeoutException]): Unit = {
     logger.debug(s"Starting idle timeout stage with timeout of ${timeout.toMillis} ms")
+    stage.cb = cb
     resetTimeout()
   }
 
