@@ -38,4 +38,5 @@ trait PlatformEntityEncoderInstances {
     entityBodyEncoder[F].contramap { in: F[IS] =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize, blockingExecutionContext)
     }
+
 }

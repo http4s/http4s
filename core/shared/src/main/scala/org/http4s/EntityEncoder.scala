@@ -1,12 +1,10 @@
 package org.http4s
 
-import java.io._
-import java.nio.CharBuffer
-
 import cats._
 import cats.effect.{ContextShift, Sync}
 import cats.implicits._
 import fs2.Stream._
+import fs2._
 import java.io._
 import java.nio.CharBuffer
 import org.http4s.headers._
@@ -47,7 +45,7 @@ trait EntityEncoder[F[_], A] { self =>
   }
 }
 
-object EntityEncoder extends EntityEncoderInstances {
+object EntityEncoder extends PlatformEntityEncoderInstances {
 
   /** summon an implicit [[EntityEncoder]] */
   def apply[F[_], A](implicit ev: EntityEncoder[F, A]): EntityEncoder[F, A] = ev
@@ -108,10 +106,6 @@ object EntityEncoder extends EntityEncoderInstances {
             W.headers.put(`Transfer-Encoding`(TransferCoding.chunked))
         }
     }
-}
-
-trait EntityEncoderInstances extends EntityEncoderInstances0 with PlatformEntityEncoderInstances {
-  import EntityEncoder._
 
   implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
     emptyEncoder[F, Unit]
@@ -140,7 +134,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 with PlatformEntity
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { body =>
       Entity(body, None)
     }
-
 
   // TODO parameterize chunk size
   implicit def readerEncoder[F[_], R <: Reader](blockingExecutionContext: ExecutionContext)(

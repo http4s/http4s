@@ -327,8 +327,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.1"
   lazy val specs2Core                       = Def.setting("org.specs2"             %% "specs2-core"               % "4.1.0")
-  lazy val specs2MatcherExtra               = Def.setting("org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision)
-  lazy val specs2Scalacheck                 = Def.setting("org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision)
+  lazy val specs2Matcher                    = Def.setting("org.specs2"             %% "specs2-matcher"            % specs2Core.value.revision)
+  lazy val specs2MatcherExtra               = Def.setting("org.specs2"             %% "specs2-matcher-extra"      % specs2Core.value.revision)
+  lazy val specs2Scalacheck                 = Def.setting("org.specs2"             %% "specs2-scalacheck"         % specs2Core.value.revision)
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.14"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision

@@ -45,7 +45,9 @@ class JVMEntityDecoderSpec extends Http4sSpec with PlatformHttp4sSpec with Platf
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mockServe(Request()) { req =>
-          req.decodeWith(textFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
+          req.decodeWith(
+            EntityDecoder.textFile(tmpFile, testBlockingExecutionContext),
+            strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync
@@ -64,7 +66,9 @@ class JVMEntityDecoderSpec extends Http4sSpec with PlatformHttp4sSpec with Platf
       try {
         val response = mockServe(Request()) {
           case req =>
-            req.decodeWith(binFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
+            req.decodeWith(
+              EntityDecoder.binFile(tmpFile, testBlockingExecutionContext),
+              strict = false) { _ =>
               Response[IO](Ok).withEntity("Hello").pure[IO]
             }
         }.unsafeRunSync

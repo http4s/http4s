@@ -109,7 +109,7 @@ trait EntityDecoder[F[_], T] { self =>
   * This companion object provides a way to create `new EntityDecoder`s along
   * with some commonly used instances which can be resolved implicitly.
   */
-object EntityDecoder {
+object EntityDecoder extends PlatformEntityDecoderInstances {
 
   // This is not a real media type but will still be matched by `*/*`
   private val UndefinedMediaType = new MediaType("UNKNOWN", "UNKNOWN")
@@ -184,11 +184,6 @@ object EntityDecoder {
   def decodeString[F[_]: Sync](msg: Message[F])(
       implicit defaultCharset: Charset = DefaultCharset): F[String] =
     msg.bodyAsText.compile.foldMonoid
-}
-
-/** Implementations of the EntityDecoder instances */
-trait EntityDecoderInstances extends PlatformEntityDecoderInstances {
-  import org.http4s.EntityDecoder._
 
   /////////////////// Instances //////////////////////////////////////////////
 
