@@ -11,12 +11,14 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.client.Client
 import org.http4s.headers.{AgentProduct, `User-Agent`}
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import org.http4s.Cookie
 import org.http4s.MediaType.`image/jpeg`
 import org.http4s.MediaType._
+import org.http4s.server.blaze.BlazeBuilder
 
 object Http4s018To020 {
   // Add code that needs fixing here.
@@ -30,6 +32,13 @@ object Http4s018To020 {
   }
 
   val requestWithBody: IO[Request[IO]] = Request().withBody("hello")
+  val requestWithBody2 = {
+    val nested = {
+      implicit def encoder[A]: EntityEncoder[IO, A] = ???
+      Some("world").map(Request[IO]().withBody)
+    }
+    nested
+  }
   def responseWithBody: IO[Response[IO]] = Ok().withBody("world")
   def responseWithBody2: IO[Response[IO]] = Ok().flatMap(_.withBody("world"))
 
@@ -82,4 +91,9 @@ object Http4s018To020 {
     executionContext = global,
     group = None
   ))
+
+  val server = BlazeBuilder[IO]
+    .bindHttp(8080)
+    .mountService(service, "/http4s")
+    .serve
 }
