@@ -46,5 +46,15 @@ class DecodeSpec extends Http4sSpec {
         }
     }
 
+    "decode an empty chunk" in prop { (cs: Charset) =>
+      val source: Stream[Pure, Byte] = Stream.chunk[Pure, Byte](Chunk.empty[Byte])
+      val expected = new String(source.toVector.toArray, cs.nioCharset)
+      !expected.contains("\ufffd") ==> {
+        // \ufffd means we generated a String unrepresentable by the charset
+        val decoded = decode(cs)(source).toList.combineAll
+        decoded must_== expected
+      }
+    }
+
   }
 }
