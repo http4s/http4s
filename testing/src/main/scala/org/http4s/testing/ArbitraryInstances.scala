@@ -358,6 +358,8 @@ trait ArbitraryInstances {
       } yield `Accept-Language`(tagsWithQ.head, tagsWithQ.tail: _*)
     }
 
+
+
   implicit val http4sTestingArbitraryForUrlForm: Arbitrary[UrlForm] = Arbitrary {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
     // Ain't nobody got time for that.
@@ -491,6 +493,16 @@ trait ArbitraryInstances {
         // age is always positive
         age <- genFiniteDuration
       } yield headers.Age.unsafeFromDuration(age)
+    }
+
+  val genAccessControlMaxAgeNum: Gen[FiniteDuration] =
+  //-1 is the lowest it can go, 86400 is the max browsers support
+    Gen.chooseNum[Long](-1, 86400).map(_.seconds)
+  implicit val http4sTestingArbitraryForAccessControlMaxAge: Arbitrary[`Access-Control-Max-Age`] =
+    Arbitrary {
+      for {
+        age <- genAccessControlMaxAgeNum
+      } yield headers.`Access-Control-Max-Age`.unsafeFromDuration(age)
     }
 
   implicit val http4sTestingArbitraryForSTS: Arbitrary[headers.`Strict-Transport-Security`] =

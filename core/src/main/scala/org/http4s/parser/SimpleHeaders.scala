@@ -31,6 +31,13 @@ import org.http4s.syntax.string._
   */
 private[parser] trait SimpleHeaders {
 
+  def ACCESS_CONTROL_MAX_AGE(value: String): ParseResult[`Access-Control-Max-Age`] =
+    new Http4sHeaderParser[`Access-Control-Max-Age`](value) {
+      def entry = rule {
+        Digits ~ EOL ~> ((t: String) => `Access-Control-Max-Age`.unsafeFromLong(t.toLong))
+      }
+    }.parse
+
   def ALLOW(value: String): ParseResult[Allow] =
     new Http4sHeaderParser[Allow](value) {
       def entry = rule {
