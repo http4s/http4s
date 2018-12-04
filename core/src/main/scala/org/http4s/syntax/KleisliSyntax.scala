@@ -10,7 +10,7 @@ trait KleisliSyntax {
     new KleisliResponseOps[F](service)
 }
 
-final class KleisliResponseOps[F[_]: Functor](val self: Kleisli[OptionT[F, ?], Request[F], Response[F]]) extends AnyVal{
+final class KleisliResponseOps[F[_]: Functor](self: Kleisli[OptionT[F, ?], Request[F], Response[F]]){
   def orNotFound: Http[F, F] =
     Kleisli(a => self.run(a).getOrElse(Response.notFound))
 }
