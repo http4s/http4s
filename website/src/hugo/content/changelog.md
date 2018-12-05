@@ -8,10 +8,39 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.0-SNAPSHOT
+# v0.20.0-M4 (2018-12-05)
+
+## Bugfixes
+* [#2283](https://github.com/http4s/http4s/pull/2283): Fix client metrics bug that decremented active requests and recorded time before the resource was released.
+* [#2288](https://github.com/http4s/http4s/pull/2288): Stop leaking `IdleTimeoutStage`s in the blaze client.  They were not always removed properly, leading to multiple timeout stages remaining in a connection's blaze pipeline.
+* [#2281](https://github.com/http4s/http4s/pull/2281): Fix `ClassCastException` on `decode` of an empty `Chunk`
+* [#2305](https://github.com/http4s/http4s/pull/2305): Correctly shut down the blaze-client
 
 ## Enhancements
 * [#2275](https://github.com/http4s/http4s/pull/2275): Set default prefix for Prometheus and Dropwizard metrics backends.
+* [#2276](https://github.com/http4s/http4s/pull/2276): Make scalafix Github based instead of binary based
+* [#2285](https://github.com/http4s/http4s/pull/2285): Finish deprecating `BlazeServer` in favor of `BlazeServerBuilder`.  The former's internals are now expressed in terms of the latter.
+* [#2286](https://github.com/http4s/http4s/pull/2286): Improvements to scalafix
+  * Fix `withEntitywithEntity` bug in migration
+  * Migration to `BlazeServerBuilder`
+  * Fix `MessageSyntax#withBody`
+  * Import `ResponseCookie` instead of an alias to the old `Cookie`
+
+# Documentation
+* [#2297](https://github.com/http4s/http4s/pull/2297): Remove appveyor badge
+
+## Dependency upgrades
+* cats-1.5.0
+* cats-effect-1.1.0
+* jetty-9.4.14.v20181114
+* kind-projector-0.9.9 (internal)
+* mockito-2.23.4 (tests only)
+* okhttp-3.12.0
+* play-json-2.6.11
+* simpleclient-0.6.0 (Prometheus)FF
+* sbt-1.2.7 (build only)
+* sbt-native-packager-1.3.15 (examples only)
+* tut-0.6.10 (docs only)
 
 # v0.20.0-M3 (2018-11-13)
 
