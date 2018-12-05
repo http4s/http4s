@@ -22,7 +22,7 @@ trait ConnectionManager[F[_], A <: Connection[F]] {
   sealed case class NextConnection(connection: A, fresh: Boolean)
 
   /** Shutdown this client, closing any open connections and freeing resources */
-  def shutdown(): F[Unit]
+  def shutdown: F[Unit]
 
   /** Get a connection for the provided request key. */
   def borrow(requestKey: RequestKey): F[NextConnection]

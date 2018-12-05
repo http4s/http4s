@@ -345,7 +345,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     *
     * @return An effect Of Unit
     */
-  def shutdown(): F[Unit] = semaphore.withPermit {
+  def shutdown: F[Unit] = semaphore.withPermit {
     F.delay {
       logger.info(s"Shutting down connection pool: $stats")
       if (!isClosed) {

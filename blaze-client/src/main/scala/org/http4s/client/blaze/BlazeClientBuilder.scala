@@ -179,9 +179,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         responseHeaderTimeout = responseHeaderTimeout,
         requestTimeout = requestTimeout,
         executionContext = executionContext
-      )) { pool =>
-      F.delay { val _ = pool.shutdown() }
-    }
+      ))(_.shutdown)
   }
 }
 
