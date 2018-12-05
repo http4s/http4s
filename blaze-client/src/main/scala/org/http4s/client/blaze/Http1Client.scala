@@ -43,7 +43,7 @@ object Http1Client {
             requestTimeout = config.requestTimeout,
             executionContext = config.executionContext
           ))(_.shutdown)
-      .map(pool => BlazeClient(pool, config, pool.shutdown(), config.executionContext))
+      .map(pool => BlazeClient(pool, config, pool.shutdown, config.executionContext))
   }
 
   def stream[F[_]](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(
