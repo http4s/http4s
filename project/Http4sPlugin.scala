@@ -312,7 +312,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.23.4"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.12.0"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.6.11"
-  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.5.0"
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.6.0"
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
