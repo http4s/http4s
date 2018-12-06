@@ -17,9 +17,6 @@ private[http4s] trait BackendBuilder[F[_], A] {
     */
   def stream: Stream[F, A] = Stream.resource(resource)
 
-  @deprecated("Use allocated instead", "0.20.0-RC1")
-  final def allocate: F[(A, F[Unit])] = allocated
-
   /** Returns an effect that allocates a backend and an `F[Unit]` to
     * release it.  The returned `F` waits until the backend is ready
     * to process requests.  The second element of the tuple shuts
