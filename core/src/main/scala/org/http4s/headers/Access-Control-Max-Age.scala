@@ -10,7 +10,11 @@ object `Access-Control-Max-Age` extends HeaderKey.Internal[`Access-Control-Max-A
   private class AccessControlMaxAgeImpl(age: Long) extends `Access-Control-Max-Age`(age)
 
   def fromLong(age: Long): ParseResult[`Access-Control-Max-Age`] =
-    ParseResult.success(new AccessControlMaxAgeImpl(age))
+    if (age >= 0) {
+      ParseResult.success(new AccessControlMaxAgeImpl(age))
+    } else {
+      ParseResult.fail("Invalid age value", s"Age param $age must be more or equal to 0 seconds")
+    }
 
   def unsafeFromDuration(age: FiniteDuration): `Access-Control-Max-Age` =
     fromLong(age.toSeconds).fold(throw _, identity)
@@ -31,7 +35,7 @@ object `Access-Control-Max-Age` extends HeaderKey.Internal[`Access-Control-Max-A
   */
 sealed abstract case class `Access-Control-Max-Age`(age: Long) extends Header.Parsed {
 
-  val key = Age
+  val key = `Access-Control-Max-Age`
 
   override val value = Renderer.renderString(age)
 

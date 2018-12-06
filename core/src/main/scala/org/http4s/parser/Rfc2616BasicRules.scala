@@ -48,7 +48,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 
   def Hex = rule { "A" - "F" | "a" - "f" | Digit }
 
-  def Separator = rule { anyOf("()<>@,;:\\\"/[]?={} \t") }
+  def Separator = rule { anyOf("()<>@,;:\\\"/[]?={} \t-") }
 
   def Token: Rule1[String] = rule { capture(oneOrMore(!CTL ~ !Separator ~ ANY)) }
 

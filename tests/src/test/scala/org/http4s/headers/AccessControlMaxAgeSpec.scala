@@ -1,6 +1,6 @@
 package org.http4s.headers
 
-import org.http4s.{ParseResult}
+import org.http4s.{ParseFailure, ParseResult}
 import org.scalacheck.Prop.forAll
 import scala.concurrent.duration._
 
@@ -17,16 +17,16 @@ class AccessControlMaxAgeSpec extends HeaderLaws {
     "build correctly for positives" in {
       `Access-Control-Max-Age`.fromLong(0).right.map(_.value) must beLike { case Right("0") => ok }
     }
-    "build correctly for negatives" in {
-      `Access-Control-Max-Age`.fromLong(-1).right.map(_.value) must beLike { case Right("-1") => ok }
+    "fail for negatives" in {
+      `Access-Control-Max-Age`.fromLong(-10).right.map(_.value) must beLeft
     }
     "build unsafe for positives" in {
       `Access-Control-Max-Age`.unsafeFromDuration(0.seconds).value must_== "0"
       `Access-Control-Max-Age`.unsafeFromLong(10).value must_== "10"
     }
-    "build unsafe for negatives" in {
-      `Access-Control-Max-Age`.unsafeFromDuration(-1.seconds).value must_== "-1"
-      `Access-Control-Max-Age`.unsafeFromLong(-1).value must_== "-1"
+    "fail unsafe for negatives" in {
+      `Access-Control-Max-Age`.unsafeFromDuration(-10.seconds).value must throwA[ParseFailure]
+      `Access-Control-Max-Age`.unsafeFromLong(-10).value must throwA[ParseFailure]
     }
   }
 
@@ -44,11 +44,11 @@ class AccessControlMaxAgeSpec extends HeaderLaws {
       `Access-Control-Max-Age`.parse("120").right.map(_.age) must beRight(120)
     }
     "reject negative values" in {
-      `Access-Control-Max-Age`.parse("-1").right.map(_.age) must beRight(-1)
+      `Access-Control-Max-Age`.parse("-120").right.map(_.age) must beLeft
     }
     "roundtrip" in {
       forAll { l: Long =>
-        (l >= 0) ==> {
+        (l >= -1) ==> {
           `Access-Control-Max-Age`.fromLong(l).right.map(_.value).right.flatMap(`Access-Control-Max-Age`.parse) must_== `Access-Control-Max-Age`.fromLong(l)
         }
       }
