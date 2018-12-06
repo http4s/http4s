@@ -10,6 +10,9 @@ it.
 
 # v0.20.0-M4 (2018-12-05)
 
+Consider the blaze-client beta and all other modules RC quality. Don't forget
+there is a scalafix to assist migration from 0.18!
+
 ## Bugfixes
 * [#2283](https://github.com/http4s/http4s/pull/2283): Fix client metrics bug that decremented active requests and recorded time before the resource was released.
 * [#2288](https://github.com/http4s/http4s/pull/2288): Stop leaking `IdleTimeoutStage`s in the blaze client.  They were not always removed properly, leading to multiple timeout stages remaining in a connection's blaze pipeline.
