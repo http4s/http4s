@@ -87,12 +87,56 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v0-20-0-snapshot">v0.20.0-SNAPSHOT</h1>
+<h1 id="v0-20-0-m4-2018-12-05">v0.20.0-M4 (2018-12-05)</h1>
+
+<p>Consider the blaze-client beta and all other modules RC quality. Don&rsquo;t forget
+there is a scalafix to assist migration from 0.18!</p>
+
+<h2 id="bugfixes">Bugfixes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2283">#2283</a>: Fix client metrics bug that decremented active requests and recorded time before the resource was released.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2288">#2288</a>: Stop leaking <code>IdleTimeoutStage</code>s in the blaze client.  They were not always removed properly, leading to multiple timeout stages remaining in a connection&rsquo;s blaze pipeline.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2281">#2281</a>: Fix <code>ClassCastException</code> on <code>decode</code> of an empty <code>Chunk</code></li>
+<li><a href="https://github.com/http4s/http4s/pull/2305">#2305</a>: Correctly shut down the blaze-client</li>
+</ul>
 
 <h2 id="enhancements">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2275">#2275</a>: Set default prefix for Prometheus and Dropwizard metrics backends.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2276">#2276</a>: Make scalafix Github based instead of binary based</li>
+<li><a href="https://github.com/http4s/http4s/pull/2285">#2285</a>: Finish deprecating <code>BlazeServer</code> in favor of <code>BlazeServerBuilder</code>.  The former&rsquo;s internals are now expressed in terms of the latter.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2286">#2286</a>: Improvements to scalafix
+
+<ul>
+<li>Fix <code>withEntitywithEntity</code> bug in migration</li>
+<li>Migration to <code>BlazeServerBuilder</code></li>
+<li>Fix <code>MessageSyntax#withBody</code></li>
+<li>Import <code>ResponseCookie</code> instead of an alias to the old <code>Cookie</code></li>
+</ul></li>
+</ul>
+
+<h1 id="documentation">Documentation</h1>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2297">#2297</a>: Remove appveyor badge</li>
+</ul>
+
+<h2 id="dependency-upgrades">Dependency upgrades</h2>
+
+<ul>
+<li>cats-1.5.0</li>
+<li>cats-effect-1.1.0</li>
+<li>jetty-9.4.14.v20181114</li>
+<li>kind-projector-0.9.9 (internal)</li>
+<li>mockito-2.23.4 (tests only)</li>
+<li>okhttp-3.12.0</li>
+<li>play-json-2.6.11</li>
+<li>simpleclient-0.6.0 (Prometheus)</li>
+<li>sbt-1.2.7 (build only)</li>
+<li>sbt-native-packager-1.3.15 (examples only)</li>
+<li>tut-0.6.10 (docs only)</li>
 </ul>
 
 <h1 id="v0-20-0-m3-2018-11-13">v0.20.0-M3 (2018-11-13)</h1>
@@ -106,7 +150,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2262">#2197</a>: Require <code>Signal</code> rather than <code>SignallingRef</code> in <code>serveWhile</code></li>
 </ul>
 
-<h2 id="bugfixes">Bugfixes</h2>
+<h2 id="bugfixes-1">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2260">#2260</a>: Fix leak in blaze-client on a canceled connection</li>
@@ -131,13 +175,13 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2271">#2271</a>: Fix compilation error introduced between <a href="https://github.com/http4s/http4s/pull/2228">#2228</a> and <a href="https://github.com/http4s/http4s/pull/2262">#2262</a>.</li>
 </ul>
 
-<h2 id="documentation">Documentation</h2>
+<h2 id="documentation-1">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2255">#2255</a>: Improve scalafix docs</li>
 </ul>
 
-<h2 id="dependency-upgrades">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-1">Dependency upgrades</h2>
 
 <ul>
 <li>blaze-0.14.0-M11</li>
@@ -210,7 +254,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2241">#2241</a>: Restrict internal <code>IdleTimeoutStage</code> to a <code>FiniteDuration</code>.  Fixes an exception when converting to milliseconds when debug logging.</li>
 </ul>
 
-<h2 id="documentation-1">Documentation</h2>
+<h2 id="documentation-2">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2223">#2223</a>: Fix color of EOL label on v0.19</li>
@@ -224,7 +268,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2194">#2221</a>: Don&rsquo;t grant MiMa exceptions for 0.19.1, which will never be</li>
 </ul>
 
-<h2 id="dependency-upgrades-1">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-2">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.6.0</li>
@@ -285,7 +329,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2199">#2199</a>: Make client test sizes proportional to the number of processors for greater Travis stability</li>
 </ul>
 
-<h2 id="dependency-upgrades-2">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-3">Dependency upgrades</h2>
 
 <ul>
 <li>alpn-boot-8.1.13.v20181017 (examples only)</li>
@@ -315,7 +359,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2178">#2178</a>: Redact sensitive headers by default in <code>Retry</code> middleware. Add <code>retryWithRedactedHeaders</code> function that parameterizes the headers predicate.</li>
 </ul>
 
-<h2 id="documentation-2">Documentation</h2>
+<h2 id="documentation-3">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2147">#2147</a>: Fix link to v0.19 docs</li>
@@ -383,7 +427,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2146">#2146</a>: Remove all use of <code>OutboundCommand</code> in blaze integration</li>
 </ul>
 
-<h2 id="dependency-upgrades-3">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-4">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.5.4</li>
@@ -438,7 +482,7 @@ it.</p>
 </ul></li>
 </ul>
 
-<h2 id="bugfixes-1">Bugfixes</h2>
+<h2 id="bugfixes-2">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2069">#2069</a>: Add proper <code>withMaxTotalConnections</code> method to <code>BlazeClientBuilder</code> in place of misnamed <code>withIdleTimeout</code> overload.</li>
@@ -464,7 +508,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2123">#2123</a>: Remove unmaintained <code>load-test</code> module</li>
 </ul>
 
-<h2 id="dependency-upgrades-4">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-5">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.4.0</li>
@@ -506,7 +550,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2095">#2095</a>: Add <code>Monoid[UrlForm]</code> instance</li>
 </ul>
 
-<h2 id="dependency-upgrades-5">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-6">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.4.0</li>
@@ -627,7 +671,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2062">#2062</a>: Eliminate &ldquo;unhandled inbund command: Disconnected&rdquo;` warnings in blaze-server</li>
 </ul>
 
-<h2 id="bugfixes-2">Bugfixes</h2>
+<h2 id="bugfixes-3">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2024">#2027</a>: Miscellaneous websocket fixes
@@ -663,7 +707,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2050">#2052</a>: Introduce expiring <code>TestScheduler</code> to avoid leaking threads on tests</li>
 </ul>
 
-<h2 id="dependency-upgrades-6">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-7">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.5.2</li>
