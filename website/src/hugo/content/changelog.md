@@ -37,7 +37,7 @@ it.
 * mockito-2.23.4 (tests only)
 * okhttp-3.12.0
 * play-json-2.6.11
-* simpleclient-0.6.0 (Prometheus)FF
+* simpleclient-0.6.0 (Prometheus)
 * sbt-1.2.7 (build only)
 * sbt-native-packager-1.3.15 (examples only)
 * tut-0.6.10 (docs only)
