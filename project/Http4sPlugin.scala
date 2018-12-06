@@ -76,7 +76,7 @@ object Http4sPlugin extends AutoPlugin {
     scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, minor)) if minor >= 12 =>
-          Seq("-Ybackend-parallelism", JRuntime.getRuntime.availableProcessors.toString)
+          Seq("-Ybackend-parallelism", math.min(JRuntime.getRuntime.availableProcessors, 16).toString)
         case _ =>
           Seq.empty
       },
