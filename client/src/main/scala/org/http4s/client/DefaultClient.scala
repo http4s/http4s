@@ -8,7 +8,6 @@ import cats.implicits._
 import fs2._
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
-import org.http4s.internal.allocated
 
 private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
     extends Client[F] {
@@ -61,7 +60,7 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpApp: HttpApp[F] = Kleisli { req =>
-    allocated(run(req)).map {
+    run(req).allocated.map {
       case (resp, release) =>
         resp.withBodyStream(resp.body.onFinalize(release))
     }
