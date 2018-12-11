@@ -10,7 +10,6 @@ import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
-import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 
@@ -146,7 +145,7 @@ object RetryPolicy {
   private def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     result match {
       case Right(resp) => RetriableStatuses(resp.status)
-      case Left(_: TimeoutException) => false
+      case Left(WaitQueueTimeoutException) => false
       case _ => true
     }
 

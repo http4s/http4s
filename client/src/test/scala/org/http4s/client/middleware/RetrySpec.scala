@@ -9,7 +9,6 @@ import fs2.Stream
 import org.http4s.dsl.io._
 import org.http4s.Uri.uri
 import org.specs2.specification.Tables
-import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class RetrySpec extends Http4sSpec with Tables {
@@ -108,7 +107,7 @@ class RetrySpec extends Http4sSpec with Tables {
     }
 
     "not retry a TimeoutException" in {
-      val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(new TimeoutException("Timed out request"))))
+      val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(WaitQueueTimeoutException)))
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 1
     }
   }
