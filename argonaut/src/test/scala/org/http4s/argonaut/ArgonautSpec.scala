@@ -12,7 +12,20 @@ import org.http4s.jawn.JawnDecodeSupportSpec
 import org.specs2.specification.core.Fragment
 
 class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
+  object ArgonautInstancesWithCustomErrors extends ArgonautInstances {
+    override def jawnParseExceptionMessage(
+        pe: _root_.jawn.ParseException): _root_.org.http4s.DecodeFailure =
+      MalformedMessageBodyFailure("Custom Invalid JSON")
+    override def jawnEmptyBodyMessage: DecodeFailure =
+      MalformedMessageBodyFailure("Custom Invalid JSON: empty body")
+    override protected def defaultPrettyParams: PrettyParams = PrettyParams.nospace
+  }
+
   testJsonDecoder(jsonDecoder)
+  testJsonDecoderError(ArgonautInstancesWithCustomErrors.jsonDecoder)(
+    emptyBody = { case MalformedMessageBodyFailure("Custom Invalid JSON: empty body", _) => ok },
+    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON", _) => ok },
+  )
 
   sealed case class Foo(bar: Int)
   val foo = Foo(42)

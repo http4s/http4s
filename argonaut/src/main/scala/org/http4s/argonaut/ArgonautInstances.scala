@@ -7,10 +7,11 @@ import cats.Applicative
 import cats.effect.Sync
 import org.http4s.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
+import org.http4s.jawn.JawnInstances
 
-trait ArgonautInstances {
+trait ArgonautInstances extends JawnInstances {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
-    jawn.jawnDecoder
+    jawnDecoder
 
   def jsonOf[F[_]: Sync, A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
