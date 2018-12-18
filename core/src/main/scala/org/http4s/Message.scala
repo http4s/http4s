@@ -3,12 +3,14 @@ package org.http4s
 import cats._
 import cats.data.NonEmptyList
 import cats.implicits._
+import cats.effect._
 import fs2._
 import fs2.text._
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.log4s.getLogger
+import _root_.io.chrisdavenport.vault._
 
 /**
   * Represents a HTTP Message. The interesting subclasses are Request and Response.
@@ -22,13 +24,13 @@ sealed trait Message[F[_]] { self =>
 
   def body: EntityBody[F]
 
-  def attributes: AttributeMap
+  def attributes: Vault
 
   protected def change(
       httpVersion: HttpVersion = httpVersion,
       body: EntityBody[F] = body,
       headers: Headers = headers,
-      attributes: AttributeMap = attributes): Self
+      attributes: Vault = attributes): Self
 
   def withHttpVersion(httpVersion: HttpVersion): Self =
     change(httpVersion = httpVersion)
@@ -39,7 +41,7 @@ sealed trait Message[F[_]] { self =>
   def withHeaders(headers: Header*): Self =
     withHeaders(Headers(headers.toList))
 
-  def withAttributes(attributes: AttributeMap): Self =
+  def withAttributes(attributes: Vault): Self =
     change(attributes = attributes)
 
   // Body methods
@@ -135,7 +137,7 @@ sealed trait Message[F[_]] { self =>
     * F might not complete until the entire body has been consumed.
     */
   def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
-    attributes.get(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
+    attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
 
   // Specific header methods
 
@@ -172,31 +174,22 @@ sealed trait Message[F[_]] { self =>
 
   /** Generates a new message object with the specified key/value pair appended to the [[AttributeMap]]
     *
-    * @param key [[AttributeKey]] with which to associate the value
+    * @param key [[Key]] with which to associate the value
     * @param value value associated with the key
     * @tparam A type of the value to store
     * @return a new message object with the key/value pair appended
     */
-  def withAttribute[A](key: AttributeKey[A], value: A): Self =
-    change(attributes = attributes.put(key, value))
-
-  /** Generates a new message object with the specified key/value pair appended to the [[AttributeMap]]
-    *
-    * @param entry [[AttributeEntry]] entry to add
-    * @tparam A type of the value to store
-    * @return a new message object with the key/value pair appended
-    */
-  def withAttribute[A](entry: AttributeEntry[A]): Self =
-    withAttribute(entry.key, entry.value)
+  def withAttribute[A](key: Key[A], value: A): Self =
+    change(attributes = attributes.insert(key, value))
 
   /**
     * Returns a new message object without the specified key in the [[AttributeMap]]
     *
-    * @param key [[AttributeKey]] to remove
+    * @param key [[Key]] to remove
     * @return a new message object without the key
     */
-  def withoutAttribute(key: AttributeKey[_]): Self =
-    change(attributes = attributes.remove(key))
+  def withoutAttribute(key: Key[_]): Self =
+    change(attributes = attributes.delete(key))
 
   // Decoding methods
 
@@ -225,9 +218,8 @@ sealed trait Message[F[_]] { self =>
 object Message {
   private[http4s] val logger = getLogger
   object Keys {
-    private[this] val trailerHeaders: AttributeKey[Any] = AttributeKey[Any]
-    def TrailerHeaders[F[_]]: AttributeKey[F[Headers]] =
-      trailerHeaders.asInstanceOf[AttributeKey[F[Headers]]]
+    private[this] val trailerHeaders: Key[Any] = Key.newKey[IO, Any].unsafeRunSync
+    def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]
   }
 }
 
@@ -249,7 +241,7 @@ sealed abstract case class Request[F[_]](
     httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
     headers: Headers = Headers.empty,
     body: EntityBody[F] = EmptyBody,
-    attributes: AttributeMap = AttributeMap.empty
+    attributes: Vault = Vault.empty
 ) extends Message[F] {
   import Request._
 
@@ -261,7 +253,7 @@ sealed abstract case class Request[F[_]](
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
       body: EntityBody[F] = this.body,
-      attributes: AttributeMap = this.attributes
+      attributes: Vault = this.attributes
   ): Request[F] =
     Request(
       method = method,
@@ -286,13 +278,13 @@ sealed abstract case class Request[F[_]](
     copy(method = method)
 
   def withUri(uri: Uri): Self =
-    copy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
+    copy(uri = uri, attributes = attributes.delete(Request.Keys.PathInfoCaret))
 
   override protected def change(
       httpVersion: HttpVersion,
       body: EntityBody[F],
       headers: Headers,
-      attributes: AttributeMap
+      attributes: Vault
   ): Self =
     copy(
       httpVersion = httpVersion,
@@ -302,14 +294,14 @@ sealed abstract case class Request[F[_]](
     )
 
   lazy val (scriptName, pathInfo) = {
-    val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
+    val caret = attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
     uri.path.splitAt(caret)
   }
 
   def withPathInfo(pi: String): Self =
     withUri(uri.withPath(scriptName + pi))
 
-  def pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
+  def pathTranslated: Option[File] = attributes.lookup(Keys.PathTranslated)
 
   def queryString: String = uri.query.renderString
 
@@ -354,7 +346,7 @@ sealed abstract case class Request[F[_]](
   def authType: Option[AuthScheme] =
     headers.get(Authorization).map(_.credentials.authScheme)
 
-  private def connectionInfo: Option[Connection] = attributes.get(Keys.ConnectionInfo)
+  private def connectionInfo: Option[Connection] = attributes.lookup(Keys.ConnectionInfo)
 
   def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
 
@@ -391,7 +383,7 @@ sealed abstract case class Request[F[_]](
   def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
 
   def serverSoftware: ServerSoftware =
-    attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
+    attributes.lookup(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
       implicit F: Monad[F]): F[Response[F]] =
@@ -429,7 +421,7 @@ object Request {
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
       body: EntityBody[F] = EmptyBody,
-      attributes: AttributeMap = AttributeMap.empty
+      attributes: Vault = Vault.empty
   ): Request[F] =
     new Request[F](
       method = method,
@@ -443,10 +435,10 @@ object Request {
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
   object Keys {
-    val PathInfoCaret: AttributeKey[Int] = AttributeKey[Int]
-    val PathTranslated: AttributeKey[File] = AttributeKey[File]
-    val ConnectionInfo: AttributeKey[Connection] = AttributeKey[Connection]
-    val ServerSoftware: AttributeKey[ServerSoftware] = AttributeKey[ServerSoftware]
+    val PathInfoCaret: Key[Int] = Key.newKey[IO, Int].unsafeRunSync
+    val PathTranslated: Key[File] = Key.newKey[IO, File].unsafeRunSync
+    val ConnectionInfo: Key[Connection] = Key.newKey[IO, Connection].unsafeRunSync
+    val ServerSoftware: Key[ServerSoftware] = Key.newKey[IO, ServerSoftware].unsafeRunSync
   }
 }
 
@@ -455,7 +447,7 @@ object Request {
   * @param status [[Status]] code and message
   * @param headers [[Headers]] containing all response headers
   * @param body EntityBody[F] representing the possible body of the response
-  * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
+  * @param attributes [[Vault]] containing additional parameters which may be used by the http4s
   *                   backend for additional processing such as java.io.File object
   */
 final case class Response[F[_]](
@@ -463,7 +455,7 @@ final case class Response[F[_]](
     httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
     headers: Headers = Headers.empty,
     body: EntityBody[F] = EmptyBody,
-    attributes: AttributeMap = AttributeMap.empty)
+    attributes: Vault = Vault.empty)
     extends Message[F] {
 
   type Self = Response[F]
@@ -483,7 +475,7 @@ final case class Response[F[_]](
       httpVersion: HttpVersion,
       body: EntityBody[F],
       headers: Headers,
-      attributes: AttributeMap
+      attributes: Vault
   ): Self =
     copy(
       httpVersion = httpVersion,

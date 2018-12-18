@@ -24,6 +24,7 @@ import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import _root_.io.chrisdavenport.vault._
 
 /**
   * BlazeBuilder is the component for the builder pattern aggregating
@@ -196,16 +197,15 @@ class BlazeServerBuilder[F[_]](
           def requestAttributes(secure: Boolean) =
             (conn.local, conn.remote) match {
               case (local: InetSocketAddress, remote: InetSocketAddress) =>
-                AttributeMap(
-                  AttributeEntry(
-                    Request.Keys.ConnectionInfo,
-                    Request.Connection(
-                      local = local,
-                      remote = remote,
-                      secure = secure
-                    )))
+                Vault.empty.insert(
+                  Request.Keys.ConnectionInfo,
+                  Request.Connection(
+                    local = local,
+                    remote = remote,
+                    secure = secure
+                  ))
               case _ =>
-                AttributeMap.empty
+                Vault.empty
             }
 
           def http1Stage(secure: Boolean) =

@@ -11,6 +11,7 @@ import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.blaze.util.TickWheelExecutor
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
+import io.chrisdavenport.vault._
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private[blaze] object ProtocolSelector {
@@ -19,7 +20,7 @@ private[blaze] object ProtocolSelector {
       httpApp: HttpApp[F],
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
-      requestAttributes: AttributeMap,
+      requestAttributes: Vault,
       executionContext: ExecutionContext,
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,

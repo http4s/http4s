@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.data._
-import cats.effect.{ContextShift, Sync}
+import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.Stream._
 import fs2.io._
@@ -12,6 +12,7 @@ import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
+import _root_.io.chrisdavenport.vault._
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -150,7 +151,7 @@ object StaticFile {
             val r = Response(
               headers = Headers(hs),
               body = body,
-              attributes = AttributeMap.empty.put(staticFileKey, f)
+              attributes = Vault.empty.insert(staticFileKey, f)
             )
 
             logger.trace(s"Static file generated response: $r")
@@ -196,5 +197,5 @@ object StaticFile {
       case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
     }
 
-  private[http4s] val staticFileKey = AttributeKey[File]
+  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync
 }

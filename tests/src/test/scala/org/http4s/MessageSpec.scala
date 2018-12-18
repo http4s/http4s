@@ -5,6 +5,7 @@ import cats.effect.IO
 import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
+import _root_.io.chrisdavenport.vault._
 
 class MessageSpec extends Http4sSpec {
 
@@ -14,8 +15,8 @@ class MessageSpec extends Http4sSpec {
       val remote = InetSocketAddress.createUnresolved("www.remote.com", 45444)
 
       "get remote connection info when present" in {
-        val r = Request().withAttribute(
-          Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        val r = Request()
+          .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
         r.server must beSome(local)
         r.remote must beSome(remote)
       }
@@ -27,15 +28,15 @@ class MessageSpec extends Http4sSpec {
       }
 
       "be utilized to determine the address of server and remote" in {
-        val r = Request().withAttribute(
-          Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        val r = Request()
+          .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
         r.serverAddr must_== local.getHostString
         r.remoteAddr must beSome(remote.getHostString)
       }
 
       "be utilized to determine the port of server and remote" in {
-        val r = Request().withAttribute(
-          Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        val r = Request()
+          .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
         r.serverPort must_== local.getPort
         r.remotePort must beSome(remote.getPort)
       }
@@ -45,13 +46,13 @@ class MessageSpec extends Http4sSpec {
           NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress))
         val r = Request()
           .withHeaders(Headers(`X-Forwarded-For`(forwardedValues)))
-          .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+          .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
         r.from must_== forwardedValues.head
       }
 
       "be utilized to determine the from value (remote value if X-Forwarded-For is not present)" in {
         val r = Request()
-          .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+          .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
         r.from must_== Option(remote.getAddress)
       }
 
@@ -78,7 +79,7 @@ class MessageSpec extends Http4sSpec {
     "Request.with..." should {
       val path1 = "/path1"
       val path2 = "/somethingelse"
-      val attributes = AttributeMap(Seq(AttributeEntry(Request.Keys.PathInfoCaret, 3)))
+      val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 3)
 
       "reset pathInfo if uri is changed" in {
         val originalReq = Request(uri = Uri(path = path1), attributes = attributes)

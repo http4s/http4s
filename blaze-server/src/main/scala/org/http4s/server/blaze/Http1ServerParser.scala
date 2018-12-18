@@ -7,6 +7,7 @@ import java.nio.ByteBuffer
 import org.log4s.Logger
 import scala.collection.mutable.ListBuffer
 import scala.util.Either
+import io.chrisdavenport.vault._
 
 private[blaze] final class Http1ServerParser[F[_]](
     logger: Logger,
@@ -29,14 +30,14 @@ private[blaze] final class Http1ServerParser[F[_]](
 
   def collectMessage(
       body: EntityBody[F],
-      attrs: AttributeMap): Either[(ParseFailure, HttpVersion), Request[F]] = {
+      attrs: Vault): Either[(ParseFailure, HttpVersion), Request[F]] = {
     val h = Headers(headers.result())
     headers.clear()
     val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
 
     val attrsWithTrailers =
       if (minorVersion() == 1 && isChunked) {
-        attrs.put(
+        attrs.insert(
           Message.Keys.TrailerHeaders[F],
           F.suspend[Headers] {
             if (!contentComplete()) {

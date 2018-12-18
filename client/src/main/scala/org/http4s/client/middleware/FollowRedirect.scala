@@ -2,12 +2,13 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.{Bracket, Resource}
+import cats.effect._
 import cats.implicits._
 import fs2._
 import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
+import _root_.io.chrisdavenport.vault._
 
 /**
   * Client middleware to follow redirect responses.
@@ -153,12 +154,12 @@ object FollowRedirect {
         None
     }
 
-  private val redirectUrisKey = AttributeKey[List[Uri]]
+  private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync
 
   /**
     * Get the redirection URIs for a `response`.
     * Excludes the initial request URI
     */
   def getRedirectUris[F[_]](response: Response[F]): List[Uri] =
-    response.attributes.get(redirectUrisKey).getOrElse(Nil)
+    response.attributes.lookup(redirectUrisKey).getOrElse(Nil)
 }
