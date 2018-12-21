@@ -24,18 +24,19 @@ trait Path {
 }
 
 object Path {
+
   /** Constructs a path from a single string by splitting on the `'/'`
     * character.
-    *   
+    *
     * Leading slashes do not create an empty path segment.  This is to
     * reflect that there is no distinction between a request to
     * `http://www.example.com` from `http://www.example.com/`.
-    * 
+    *
     * Trailing slashes result in a path with an empty final segment,
     * unless the path is `"/"`, which is `Root`.
-    * 
+    *
     * Segments are URL decoded.
-    * 
+    *
     * {{{
     * scala> Path("").toList
     * res0: List[String] = List()
@@ -57,12 +58,9 @@ object Path {
     if (str == "" || str == "/")
       Root
     else {
-      def loop(str: String): Path = {
-        val slash = str.lastIndexOf('/')
-        val prefix = if (slash <= 0) Root else loop(str.substring(0, slash))
-        prefix / UrlCodingUtils.urlDecode(str.substring(slash + 1))
-      }
-      loop(str)
+      val segments = str.split("/", -1)
+      val segments0 = if (segments.head == "") segments.drop(1) else segments
+      segments0.foldLeft(Root: Path)((path, seg) => path / UrlCodingUtils.urlDecode(seg))
     }
 
   def apply(first: String, rest: String*): Path =

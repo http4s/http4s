@@ -235,5 +235,9 @@ class PathSpec extends Http4sSpec {
     "consistent apply / toList" in prop { p: Path =>
       Path(p.toList) must_== p
     }
+
+    "Path.apply is stack safe" in {
+      Path("/" * 1000000) must beAnInstanceOf[Path]
+    }
   }
 }
