@@ -7,26 +7,28 @@ import cats.Applicative
 import cats.effect.Sync
 import org.http4s.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
-import org.http4s.jawn.JawnInstances
+import jawn.JawnInstances
+import _root_.jawn.ParseException
+import org.http4s.argonaut.ArgonautInstances.DecodeFailureMessage
 
 trait ArgonautInstances extends JawnInstances {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
     jawnDecoder
+
+  protected def jsonDecodeError: (Json, DecodeFailureMessage, CursorHistory) => DecodeFailure =
+    ArgonautInstances.defaultJsonDecodeError
 
   def jsonOf[F[_]: Sync, A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeJson(json)
         .fold(
-          (message, history) =>
-            DecodeResult.failure(
-              InvalidMessageBodyFailure(
-                s"Could not decode JSON: $json, error: $message, cursor: $history")),
+          (message, history) => DecodeResult.failure(jsonDecodeError(json, message, history)),
           DecodeResult.success(_)
         )
     }
 
-  protected def defaultPrettyParams: PrettyParams
+  protected def defaultPrettyParams: PrettyParams = PrettyParams.nospace
 
   implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrettyParams[F](defaultPrettyParams)
@@ -61,9 +63,37 @@ trait ArgonautInstances extends JawnInstances {
   }
 }
 
+sealed case class ArgonautInstancesBuilder private[argonaut] (
+    override val defaultPrettyParams: PrettyParams = PrettyParams.nospace,
+    override val jsonDecodeError: (Json, String, CursorHistory) => DecodeFailure =
+      ArgonautInstances.defaultJsonDecodeError,
+    override val jawnParseExceptionMessage: ParseException => DecodeFailure =
+      JawnInstances.defaultJawnParseExceptionMessage,
+    override val jawnEmptyBodyMessage: DecodeFailure = JawnInstances.defaultJawnEmptyBodyMessage
+) extends ArgonautInstances {
+  def withPrettyParams(pp: PrettyParams): ArgonautInstancesBuilder =
+    this.copy(defaultPrettyParams = pp)
+
+  def withJsonDecodeError(
+      f: (Json, String, CursorHistory) => DecodeFailure): ArgonautInstancesBuilder =
+    this.copy(jsonDecodeError = f)
+
+  def withParseExceptionMessage(f: ParseException => DecodeFailure): ArgonautInstancesBuilder =
+    this.copy(jawnParseExceptionMessage = f)
+
+  def withEmptyBodyMessage(df: DecodeFailure): ArgonautInstancesBuilder =
+    this.copy(jawnEmptyBodyMessage = df)
+}
+
 object ArgonautInstances {
-  def withPrettyParams(pp: PrettyParams): ArgonautInstances =
-    new ArgonautInstances {
-      def defaultPrettyParams: PrettyParams = pp
-    }
+  type DecodeFailureMessage = String
+  def withPrettyParams(pp: PrettyParams): ArgonautInstancesBuilder =
+    builder.withPrettyParams(pp)
+
+  def builder: ArgonautInstancesBuilder = ArgonautInstancesBuilder()
+
+  private[argonaut] def defaultJsonDecodeError
+    : (Json, DecodeFailureMessage, CursorHistory) => DecodeFailure =
+    (json, message, history) =>
+      InvalidMessageBodyFailure(s"Could not decode JSON: $json, error: $message, cursor: $history")
 }

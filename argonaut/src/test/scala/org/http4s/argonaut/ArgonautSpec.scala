@@ -5,21 +5,20 @@ import _root_.argonaut._
 import cats.effect.IO
 import cats.syntax.applicative._
 import java.nio.charset.StandardCharsets
+
 import org.http4s.Status.Ok
 import org.http4s.argonaut._
 import org.http4s.headers.`Content-Type`
-import org.http4s.jawn.JawnDecodeSupportSpec
+import jawn.JawnDecodeSupportSpec
 import org.specs2.specification.core.Fragment
 
 class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
-  object ArgonautInstancesWithCustomErrors extends ArgonautInstances {
-    override def jawnParseExceptionMessage(
-        pe: _root_.jawn.ParseException): _root_.org.http4s.DecodeFailure =
-      MalformedMessageBodyFailure("Custom Invalid JSON")
-    override def jawnEmptyBodyMessage: DecodeFailure =
-      MalformedMessageBodyFailure("Custom Invalid JSON: empty body")
-    override protected def defaultPrettyParams: PrettyParams = PrettyParams.nospace
-  }
+  val ArgonautInstancesWithCustomErrors = ArgonautInstances.builder
+    .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
+    .withParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON"))
+    .withJsonDecodeError((json, message, history) =>
+      InvalidMessageBodyFailure(
+        s"Custom Could not decode JSON: $json, error: $message, cursor: $history"))
 
   testJsonDecoder(jsonDecoder)
   testJsonDecoderError(ArgonautInstancesWithCustomErrors.jsonDecoder)(
@@ -116,6 +115,14 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
           jsonOf[IO, Umlaut].decode(Request[IO]().withEntity(json), strict = true)
         result.value.unsafeRunSync must_== Right(Umlaut(wort))
       }
+    }
+
+    "fail with custom message from an Argonaut decoder" in {
+      val result = ArgonautInstancesWithCustomErrors
+        .jsonOf[IO, Foo]
+        .decode(Request[IO]().withEntity(jObjectFields("bar1" -> jNumberOrNull(42))), strict = true)
+      result.value.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
+        "Custom Could not decode JSON: {\"bar1\":42.0}, error: Attempt to decode value on failed cursor., cursor: CursorHistory(List(El(CursorOpDownField(bar),false)))"))
     }
   }
 

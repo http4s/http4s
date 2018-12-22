@@ -11,10 +11,10 @@ trait JawnInstances {
   def jawnDecoder[F[_]: Sync, J: RawFacade]: EntityDecoder[F, J] =
     EntityDecoder.decodeBy(MediaType.application.json)(jawnDecoderImpl[F, J])
 
-  def jawnParseExceptionMessage(pe: ParseException): DecodeFailure =
-    MalformedMessageBodyFailure("Invalid JSON", Some(pe))
-  def jawnEmptyBodyMessage: DecodeFailure =
-    MalformedMessageBodyFailure("Invalid JSON: empty body")
+  protected def jawnParseExceptionMessage: ParseException => DecodeFailure =
+    JawnInstances.defaultJawnParseExceptionMessage
+  protected def jawnEmptyBodyMessage: DecodeFailure =
+    JawnInstances.defaultJawnEmptyBodyMessage
 
   // some decoders may reuse it and avoid extra content negotiation
   private[http4s] def jawnDecoderImpl[F[_]: Sync, J: RawFacade](
@@ -33,4 +33,12 @@ trait JawnInstances {
         .last
         .map(_.getOrElse(Left(jawnEmptyBodyMessage)))
     }
+}
+
+object JawnInstances {
+  private[http4s] def defaultJawnParseExceptionMessage: ParseException => DecodeFailure =
+    pe => MalformedMessageBodyFailure("Invalid JSON", Some(pe))
+
+  private[http4s] def defaultJawnEmptyBodyMessage: DecodeFailure =
+    MalformedMessageBodyFailure("Invalid JSON: empty body")
 }
