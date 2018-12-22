@@ -4,9 +4,9 @@ import cats.effect.{ConcurrentEffect, ExitCode, IO, IOApp}
 import com.example.http4s.blaze.demo.StreamUtils
 import cats.implicits._
 import io.circe.Json
-import jawn.RawFacade
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.{Request, Uri}
+import org.typelevel.jawn.RawFacade
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object StreamClient extends IOApp {
