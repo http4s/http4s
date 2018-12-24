@@ -63,14 +63,14 @@ trait ArgonautInstances extends JawnInstances {
   }
 }
 
-sealed case class ArgonautInstancesBuilder private[argonaut] (
-    override val defaultPrettyParams: PrettyParams = PrettyParams.nospace,
-    override val jsonDecodeError: (Json, String, CursorHistory) => DecodeFailure =
+sealed abstract case class ArgonautInstancesBuilder private[argonaut] (
+    defaultPrettyParams: PrettyParams = PrettyParams.nospace,
+    jsonDecodeError: (Json, String, CursorHistory) => DecodeFailure =
       ArgonautInstances.defaultJsonDecodeError,
-    override val jawnParseExceptionMessage: ParseException => DecodeFailure =
+    jawnParseExceptionMessage: ParseException => DecodeFailure =
       JawnInstances.defaultJawnParseExceptionMessage,
-    override val jawnEmptyBodyMessage: DecodeFailure = JawnInstances.defaultJawnEmptyBodyMessage
-) extends ArgonautInstances {
+    jawnEmptyBodyMessage: DecodeFailure = JawnInstances.defaultJawnEmptyBodyMessage
+) { self =>
   def withPrettyParams(pp: PrettyParams): ArgonautInstancesBuilder =
     this.copy(defaultPrettyParams = pp)
 
@@ -83,6 +83,27 @@ sealed case class ArgonautInstancesBuilder private[argonaut] (
 
   def withEmptyBodyMessage(df: DecodeFailure): ArgonautInstancesBuilder =
     this.copy(jawnEmptyBodyMessage = df)
+
+  protected def copy(
+      defaultPrettyParams: PrettyParams = self.defaultPrettyParams,
+      jsonDecodeError: (Json, String, CursorHistory) => DecodeFailure = self.jsonDecodeError,
+      jawnParseExceptionMessage: ParseException => DecodeFailure = self.jawnParseExceptionMessage,
+      jawnEmptyBodyMessage: DecodeFailure = self.jawnEmptyBodyMessage
+  ): ArgonautInstancesBuilder =
+    new ArgonautInstancesBuilder(
+      defaultPrettyParams,
+      jsonDecodeError,
+      jawnParseExceptionMessage,
+      jawnEmptyBodyMessage) {}
+
+  def build: ArgonautInstances = new ArgonautInstances {
+    override val defaultPrettyParams: PrettyParams = self.defaultPrettyParams
+    override val jsonDecodeError: (Json, String, CursorHistory) => DecodeFailure =
+      self.jsonDecodeError
+    override val jawnParseExceptionMessage: ParseException => DecodeFailure =
+      self.jawnParseExceptionMessage
+    override val jawnEmptyBodyMessage: DecodeFailure = self.jawnEmptyBodyMessage
+  }
 }
 
 object ArgonautInstances {
@@ -90,7 +111,7 @@ object ArgonautInstances {
   def withPrettyParams(pp: PrettyParams): ArgonautInstancesBuilder =
     builder.withPrettyParams(pp)
 
-  def builder: ArgonautInstancesBuilder = ArgonautInstancesBuilder()
+  val builder: ArgonautInstancesBuilder = new ArgonautInstancesBuilder() {}
 
   private[argonaut] def defaultJsonDecodeError
     : (Json, DecodeFailureMessage, CursorHistory) => DecodeFailure =

@@ -19,6 +19,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     .withJsonDecodeError((json, message, history) =>
       InvalidMessageBodyFailure(
         s"Custom Could not decode JSON: $json, error: $message, cursor: $history"))
+    .build
 
   testJsonDecoder(jsonDecoder)
   testJsonDecoderError(ArgonautInstancesWithCustomErrors.jsonDecoder)(
@@ -43,7 +44,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     }
 
     "write JSON according to custom encoders" in {
-      val custom = ArgonautInstances.withPrettyParams(PrettyParams.spaces2)
+      val custom = ArgonautInstances.withPrettyParams(PrettyParams.spaces2).build
       import custom._
       writeToString(json) must_== ("""{
                                      |  "test" : "ArgonautSupport"
@@ -68,7 +69,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     }
 
     "write JSON according to custom encoders" in {
-      val custom = ArgonautInstances.withPrettyParams(PrettyParams.spaces2)
+      val custom = ArgonautInstances.withPrettyParams(PrettyParams.spaces2).build
       import custom._
       writeToString(foo)(jsonEncoderOf) must_== ("""{
                                                    |  "bar" : 42
