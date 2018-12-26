@@ -16,6 +16,9 @@ final case class WaitQueueFullFailure() extends RuntimeException {
   def message: String = "Wait queue is full"
 }
 
+case object WaitQueueTimeoutException
+    extends TimeoutException("In wait queue for too long, timing out request.")
+
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
     maxTotal: Int,
@@ -204,9 +207,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
       case Some(Waiting(_, callback, at)) =>
         if (isExpired(at)) {
           F.delay(logger.debug(s"Request expired")) *>
-            F.delay(
-              callback(
-                Left(new TimeoutException("In wait queue for too long, timing out request."))))
+            F.delay(callback(Left(WaitQueueTimeoutException)))
         } else {
           F.delay(logger.debug(s"Fulfilling waiting connection request: $stats")) *>
             F.delay(callback(Right(NextConnection(connection, fresh = false))))
@@ -285,8 +286,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def findFirstAllowedWaiter: F[Option[Waiting]] = F.delay {
     val (expired, rest) = waitQueue.span(w => isExpired(w.at))
-    expired.foreach(
-      _.callback(Left(new TimeoutException("In wait queue for too long, timing out request."))))
+    expired.foreach(_.callback(Left(WaitQueueTimeoutException)))
     if (expired.nonEmpty) {
       logger.debug(s"expired requests: ${expired.length}")
       waitQueue = rest

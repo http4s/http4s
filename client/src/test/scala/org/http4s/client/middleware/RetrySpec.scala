@@ -105,5 +105,10 @@ class RetrySpec extends Http4sSpec with Tables {
       val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(new Exception("boom"))))
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 2
     }
+
+    "not retry a TimeoutException" in {
+      val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(WaitQueueTimeoutException)))
+      countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 1
+    }
   }
 }
