@@ -1,10 +1,10 @@
 package org.http4s
 package jawn
 
-import _root_.jawn.{AsyncParser, ParseException, RawFacade}
 import cats.effect._
 import cats.implicits._
 import fs2.Stream
+import org.typelevel.jawn.{AsyncParser, ParseException, RawFacade}
 import jawnfs2._
 
 trait JawnInstances {
