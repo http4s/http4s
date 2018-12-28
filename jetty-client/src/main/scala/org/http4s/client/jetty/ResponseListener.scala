@@ -18,7 +18,7 @@ import scala.collection.JavaConverters._
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[ByteBuffer]],
-    cb: Callback[Resource[F, Response[F]]])(implicit val F: ConcurrentEffect[F])
+    cb: Callback[Resource[F, Response[F]]])(implicit F: ConcurrentEffect[F])
     extends JettyResponse.Listener.Adapter {
 
   import ResponseListener.logger
