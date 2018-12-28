@@ -93,12 +93,15 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
           Request.Keys.ServerSoftware(serverSoftware),
           ServletRequestKeys.HttpSession(Option(req.getSession(false))),
           Request.Keys.SecureSession(
-            (Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
-             Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
-             Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
-             Option(req.getAttribute("javax.servlet.request.X509Certificate")
-             .asInstanceOf[Array[X509Certificate]]))
-           .mapN(SecureSession.apply))
+            (
+              Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
+              Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
+              Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
+              Option(
+                req
+                  .getAttribute("javax.servlet.request.X509Certificate")
+                  .asInstanceOf[Array[X509Certificate]]))
+              .mapN(SecureSession.apply))
         )
       )
 
