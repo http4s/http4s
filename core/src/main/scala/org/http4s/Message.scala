@@ -447,6 +447,7 @@ object Request {
     val PathTranslated: AttributeKey[File] = AttributeKey[File]
     val ConnectionInfo: AttributeKey[Connection] = AttributeKey[Connection]
     val ServerSoftware: AttributeKey[ServerSoftware] = AttributeKey[ServerSoftware]
+    val SecureSession: AttributeKey[Option[SecureSession]] = AttributeKey[Option[SecureSession]]
   }
 }
 
