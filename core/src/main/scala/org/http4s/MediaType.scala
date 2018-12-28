@@ -142,9 +142,9 @@ object MediaRange {
           new MediaType(mainType.toLowerCase, subType.toLowerCase))
   }
 
-  implicit val http4sShowForMediaRange: Show[MediaRange] =
+  implicit final val http4sShowForMediaRange: Show[MediaRange] =
     Show.show(s => s"${s.mainType}/*${MediaRange.extensionsToString(s)}")
-  implicit val http4sOrderForMediaRange: Order[MediaRange] =
+  implicit final val http4sOrderForMediaRange: Order[MediaRange] =
     Order.from { (x, y) =>
       def orderedSubtype(a: MediaRange) = a match {
         case mt: MediaType => mt.subType
@@ -153,7 +153,7 @@ object MediaRange {
       def f(a: MediaRange) = (a.mainType, orderedSubtype(a), a.extensions.toVector.sortBy(_._1))
       Order[(String, String, Vector[(String, String)])].compare(f(x), f(y))
     }
-  implicit val http4sHttpCodecForMediaRange: HttpCodec[MediaRange] =
+  implicit final val http4sHttpCodecForMediaRange: HttpCodec[MediaRange] =
     new HttpCodec[MediaRange] {
       override def parse(s: String): ParseResult[MediaRange] =
         MediaRange.parse(s)
@@ -262,11 +262,11 @@ object MediaType extends MimeDB {
         new MediaType(mainType.toLowerCase, subType.toLowerCase))
   }
 
-  implicit val http4sEqForMediaType: Eq[MediaType] =
+  implicit final val http4sEqForMediaType: Eq[MediaType] =
     Eq.fromUniversalEquals
-  implicit val http4sShowForMediaType: Show[MediaType] =
+  implicit final val http4sShowForMediaType: Show[MediaType] =
     Show.show(s => s"${s.mainType}/${s.subType}${MediaRange.extensionsToString(s)}")
-  implicit val http4sHttpCodecForMediaType: HttpCodec[MediaType] =
+  implicit final val http4sHttpCodecForMediaType: HttpCodec[MediaType] =
     new HttpCodec[MediaType] {
       override def parse(s: String): ParseResult[MediaType] =
         MediaType.parse(s)

@@ -7,11 +7,11 @@ private[authentication] object NonceKeeper {
 
   sealed abstract class Reply
 
-  case object StaleReply extends Reply
+  final case object StaleReply extends Reply
 
-  case object OKReply extends Reply
+  final case object OKReply extends Reply
 
-  case object BadNCReply extends Reply
+  final case object BadNCReply extends Reply
 
 }
 

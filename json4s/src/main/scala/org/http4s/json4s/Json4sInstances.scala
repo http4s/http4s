@@ -57,7 +57,7 @@ trait Json4sInstances[J] {
   def jsonEncoderOf[F[_]: Applicative, A](implicit writer: Writer[A]): EntityEncoder[F, A] =
     jsonEncoder[F, JValue].contramap[A](writer.write)
 
-  implicit val uriWriter: JsonFormat[Uri] =
+  implicit final val uriWriter: JsonFormat[Uri] =
     new JsonFormat[Uri] {
       def read(json: JValue): Uri =
         json match {

@@ -11,7 +11,7 @@ import scala.collection.mutable
 
 /* Temporary parser until jawn-argonaut supports 6.2.x. */
 private[argonaut] object Parser extends SupportParser[Json] {
-  implicit val facade: Facade[Json] =
+  implicit final val facade: Facade[Json] =
     new Facade[Json] {
       override def jnull() = Json.jNull
       override def jfalse() = Json.jFalse

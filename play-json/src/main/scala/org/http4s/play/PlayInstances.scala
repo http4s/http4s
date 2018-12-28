@@ -19,7 +19,7 @@ import play.api.libs.json._
 
 trait PlayInstances {
 
-  def jsonOf[F[_]: Sync, A](implicit decoder: Reads[A]): EntityDecoder[F, A] =
+  final def jsonOf[F[_]: Sync, A](implicit decoder: Reads[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .reads(json)
@@ -30,14 +30,14 @@ trait PlayInstances {
         )
     }
 
-  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JsValue] =
+  implicit final def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JsValue] =
     jawn.jawnDecoder[F, JsValue]
 
-  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A: Writes]
+  final def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A: Writes]
     : EntityEncoder[F, A] =
     jsonEncoder[F].contramap[A](Json.toJson(_))
 
-  implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, JsValue] =
+  implicit final def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, JsValue] =
     EntityEncoder[F, Chunk[Byte]]
       .contramap[JsValue] { json =>
         val bytes = json.toString.getBytes("UTF8")
@@ -45,10 +45,10 @@ trait PlayInstances {
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
-  implicit val writesUri: Writes[Uri] =
+  implicit final val writesUri: Writes[Uri] =
     Writes.contravariantfunctorWrites.contramap[String, Uri](implicitly[Writes[String]], _.toString)
 
-  implicit val readsUri: Reads[Uri] =
+  implicit final val readsUri: Reads[Uri] =
     implicitly[Reads[String]].flatMap { str =>
       Uri
         .fromString(str)
@@ -61,7 +61,7 @@ trait PlayInstances {
         )
     }
 
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+  implicit final class MessageSyntax[F[_]: Sync](self: Message[F]) {
     def decodeJson[A: Reads]: F[A] =
       self.as(implicitly, jsonOf[F, A])
   }

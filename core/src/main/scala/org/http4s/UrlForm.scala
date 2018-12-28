@@ -103,11 +103,11 @@ object UrlForm {
       )
     }
 
-  implicit val eqInstance: Eq[UrlForm] = Eq.instance { (x: UrlForm, y: UrlForm) =>
+  implicit final val eqInstance: Eq[UrlForm] = Eq.instance { (x: UrlForm, y: UrlForm) =>
     x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
   }
 
-  implicit val monoidInstance: Monoid[UrlForm] = new Monoid[UrlForm] {
+  implicit final val monoidInstance: Monoid[UrlForm] = new Monoid[UrlForm] {
     override def empty: UrlForm = UrlForm.empty
 
     override def combine(x: UrlForm, y: UrlForm): UrlForm =

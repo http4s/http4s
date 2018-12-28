@@ -13,7 +13,7 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
   }
 
   object EntityTag {
-    implicit val http4sShowForEntityTag: Show[EntityTag] =
+    implicit final val http4sShowForEntityTag: Show[EntityTag] =
       Show.fromToString
   }
 

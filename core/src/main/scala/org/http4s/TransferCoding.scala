@@ -87,11 +87,11 @@ object TransferCoding {
     }
   }
 
-  implicit val http4sOrderForTransferCoding: Order[TransferCoding] =
+  implicit final val http4sOrderForTransferCoding: Order[TransferCoding] =
     Order.fromComparable
-  implicit val http4sShowForTransferCoding: Show[TransferCoding] =
+  implicit final val http4sShowForTransferCoding: Show[TransferCoding] =
     Show.show(_.coding)
-  implicit val http4sInstancesForTransferCoding: HttpCodec[TransferCoding] =
+  implicit final val http4sInstancesForTransferCoding: HttpCodec[TransferCoding] =
     new HttpCodec[TransferCoding] {
       override def parse(s: String): ParseResult[TransferCoding] =
         TransferCoding.parse(s)

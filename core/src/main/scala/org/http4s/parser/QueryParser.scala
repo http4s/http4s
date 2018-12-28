@@ -111,8 +111,8 @@ private[http4s] object QueryParser {
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
 
   private sealed trait State
-  private case object KEY extends State
-  private case object VALUE extends State
+  private final case object KEY extends State
+  private final case object VALUE extends State
 
   /** Defines the characters that are allowed unquoted within a query string as
     * defined in RFC 3986*/

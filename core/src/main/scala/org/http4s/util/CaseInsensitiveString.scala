@@ -52,7 +52,7 @@ object CaseInsensitiveString extends CaseInsensitiveStringInstances {
 }
 
 private[http4s] sealed trait CaseInsensitiveStringInstances {
-  implicit val http4sMonoidForCaseInsensitiveString: Monoid[CaseInsensitiveString] =
+  implicit final val http4sMonoidForCaseInsensitiveString: Monoid[CaseInsensitiveString] =
     new Monoid[CaseInsensitiveString] {
       override def empty = CaseInsensitiveString.empty
 
@@ -60,9 +60,9 @@ private[http4s] sealed trait CaseInsensitiveStringInstances {
         CaseInsensitiveString(x.value + y.value)
     }
 
-  implicit val http4sOrderForCaseInsensitiveString: Order[CaseInsensitiveString] =
+  implicit final val http4sOrderForCaseInsensitiveString: Order[CaseInsensitiveString] =
     Order.fromOrdering
 
-  implicit val http4sShowForCaseInsensitiveString: Show[CaseInsensitiveString] =
+  implicit final val http4sShowForCaseInsensitiveString: Show[CaseInsensitiveString] =
     Show.fromToString
 }

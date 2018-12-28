@@ -63,11 +63,11 @@ sealed trait TerminationType
 object TerminationType {
 
   /** Signals just a generic abnormal termination */
-  case object Abnormal extends TerminationType
+  final case object Abnormal extends TerminationType
 
   /** Signals an abnormal termination due to an error processing the request, either at the server or client side */
-  case object Error extends TerminationType
+  final case object Error extends TerminationType
 
   /** Signals a client timing out during a request */
-  case object Timeout extends TerminationType
+  final case object Timeout extends TerminationType
 }

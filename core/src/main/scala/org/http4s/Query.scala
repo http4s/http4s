@@ -145,7 +145,7 @@ object Query {
   def newBuilder: mutable.Builder[KeyValue, Query] =
     Vector.newBuilder[KeyValue].mapResult(v => new Query(v))
 
-  implicit val cbf: CanBuildFrom[Query, KeyValue, Query] =
+  implicit final val cbf: CanBuildFrom[Query, KeyValue, Query] =
     new CanBuildFrom[Query, KeyValue, Query] {
       override def apply(from: Query): mutable.Builder[KeyValue, Query] = newBuilder
       override def apply(): mutable.Builder[KeyValue, Query] = newBuilder

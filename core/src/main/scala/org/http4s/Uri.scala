@@ -203,11 +203,11 @@ object Uri {
       }
     }
 
-    implicit val http4sOrderForScheme: Order[Scheme] =
+    implicit final val http4sOrderForScheme: Order[Scheme] =
       Order.fromComparable
-    implicit val http4sShowForScheme: Show[Scheme] =
+    implicit final val http4sShowForScheme: Show[Scheme] =
       Show.fromToString
-    implicit val http4sInstancesForScheme: HttpCodec[Scheme] =
+    implicit final val http4sInstancesForScheme: HttpCodec[Scheme] =
       new HttpCodec[Scheme] {
         def parse(s: String): ParseResult[Scheme] =
           Scheme.parse(s)
@@ -377,5 +377,5 @@ object Uri {
     */
   def uri(s: String): Uri = macro Uri.Macros.uriLiteral
 
-  implicit val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals
+  implicit final val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals
 }

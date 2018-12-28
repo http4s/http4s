@@ -97,10 +97,10 @@ trait CirceInstances {
       implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
-  implicit val encodeUri: Encoder[Uri] =
+  implicit final val encodeUri: Encoder[Uri] =
     Encoder.encodeString.contramap[Uri](_.toString)
 
-  implicit val decodeUri: Decoder[Uri] =
+  implicit final val decodeUri: Decoder[Uri] =
     Decoder.decodeString.emap { str =>
       Uri.fromString(str).leftMap(_ => "Uri")
     }

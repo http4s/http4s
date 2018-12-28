@@ -75,9 +75,9 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F] =
     Stream.suspend {
       sealed trait State
-      case object Init extends State
-      case object Ready extends State
-      case object Complete extends State
+      final case object Init extends State
+      final case object Ready extends State
+      final case object Complete extends State
       sealed case class Errored(t: Throwable) extends State
       sealed case class Blocked(cb: Callback[Option[Chunk[Byte]]]) extends State
 
@@ -173,8 +173,8 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
   override protected[servlet] def initWriter(
       servletResponse: HttpServletResponse): BodyWriter[F] = {
     sealed trait State
-    case object Init extends State
-    case object Ready extends State
+    final case object Init extends State
+    final case object Ready extends State
     sealed case class Errored(t: Throwable) extends State
     sealed case class Blocked(cb: Callback[Chunk[Byte] => Unit]) extends State
     sealed case class AwaitingLastWrite(cb: Callback[Unit]) extends State

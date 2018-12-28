@@ -116,11 +116,11 @@ object ContentCoding {
     }
   }
 
-  implicit val http4sOrderForContentCoding: Order[ContentCoding] =
+  implicit final val http4sOrderForContentCoding: Order[ContentCoding] =
     Order.by(c => (c.coding.toLowerCase, c.qValue))
-  implicit val http4sShowForContentCoding: Show[ContentCoding] =
+  implicit final val http4sShowForContentCoding: Show[ContentCoding] =
     Show.fromToString
-  implicit val http4sHttpCodecForContentCoding: HttpCodec[ContentCoding] =
+  implicit final val http4sHttpCodecForContentCoding: HttpCodec[ContentCoding] =
     new HttpCodec[ContentCoding] {
       override def parse(s: String): ParseResult[ContentCoding] =
         ContentCoding.parse(s)

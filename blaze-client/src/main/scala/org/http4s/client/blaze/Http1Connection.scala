@@ -337,12 +337,12 @@ private final class Http1Connection[F[_]](
 }
 
 private object Http1Connection {
-  case object InProgressException extends Exception("Stage has request in progress")
+  final case object InProgressException extends Exception("Stage has request in progress")
 
   // ADT representing the state that the ClientStage can be in
   private sealed trait State
-  private case object Idle extends State
-  private case object Running extends State
+  private final case object Idle extends State
+  private final case object Running extends State
   private final case class Error(exc: Throwable) extends State
 
   private def getHttpMinor[F[_]](req: Request[F]): Int = req.httpVersion.minor

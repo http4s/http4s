@@ -191,8 +191,8 @@ case class MetricsCollection(
 
 private sealed trait Phase
 private object Phase {
-  case object Headers extends Phase
-  case object Body extends Phase
+  final case object Headers extends Phase
+  final case object Body extends Phase
   def report(s: Phase): String = s match {
     case Headers => "headers"
     case Body => "body"
@@ -201,9 +201,9 @@ private object Phase {
 
 private sealed trait AbnormalTermination
 private object AbnormalTermination {
-  case object Abnormal extends AbnormalTermination
-  case object Error extends AbnormalTermination
-  case object Timeout extends AbnormalTermination
+  final case object Abnormal extends AbnormalTermination
+  final case object Error extends AbnormalTermination
+  final case object Timeout extends AbnormalTermination
   def report(t: AbnormalTermination): String = t match {
     case Abnormal => "abnormal"
     case Timeout => "timeout"

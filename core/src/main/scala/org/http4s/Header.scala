@@ -124,11 +124,11 @@ object Header {
     }
   }
 
-  implicit val HeaderShow: Show[Header] = Show.show[Header] {
+  implicit final val HeaderShow: Show[Header] = Show.show[Header] {
     _.toString
   }
 
-  implicit val HeaderEq: Eq[Header] = Eq.instance[Header] { (a, b) =>
+  implicit final val HeaderEq: Eq[Header] = Eq.instance[Header] { (a, b) =>
     a.name === b.name && a.value === b.value
   }
 

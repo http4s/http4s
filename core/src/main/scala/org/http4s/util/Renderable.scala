@@ -24,7 +24,7 @@ trait Renderer[T] {
 object Renderer {
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
-  implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
+  implicit final val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
 
     private val dateFormat =
       DateTimeFormatter
@@ -38,13 +38,13 @@ object Renderer {
   }
 
   // Render a finite duration in seconds
-  implicit val finiteDurationRenderer: Renderer[FiniteDuration] = new Renderer[FiniteDuration] {
+  implicit final val finiteDurationRenderer: Renderer[FiniteDuration] = new Renderer[FiniteDuration] {
     override def render(writer: Writer, d: FiniteDuration): writer.type =
       writer << d.toSeconds.toString
   }
 
   // Render a long value, e.g. on the Age header
-  implicit val longRenderer: Renderer[Long] = new Renderer[Long] {
+  implicit final val longRenderer: Renderer[Long] = new Renderer[Long] {
     override def render(writer: Writer, d: Long): writer.type =
       writer << d.toString
   }

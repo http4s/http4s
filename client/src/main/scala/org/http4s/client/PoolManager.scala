@@ -16,7 +16,7 @@ final case class WaitQueueFullFailure() extends RuntimeException {
   def message: String = "Wait queue is full"
 }
 
-case object WaitQueueTimeoutException
+final case object WaitQueueTimeoutException
     extends TimeoutException("In wait queue for too long, timing out request.")
 
 private final class PoolManager[F[_], A <: Connection[F]](

@@ -44,6 +44,6 @@ object CharsetRange {
 
   implicit def fromCharset(cs: Charset): CharsetRange.Atom = cs.toRange
 
-  implicit val http4sEqForCharsetRange: Eq[CharsetRange] = Eq.fromUniversalEquals
-  implicit val http4sShowForCharsetRange: Show[CharsetRange] = Show.fromToString
+  implicit final val http4sEqForCharsetRange: Eq[CharsetRange] = Eq.fromUniversalEquals
+  implicit final val http4sShowForCharsetRange: Show[CharsetRange] = Show.fromToString
 }

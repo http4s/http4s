@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 object Throttle {
 
   sealed abstract class TokenAvailability extends Product with Serializable
-  case object TokenAvailable extends TokenAvailability
+  final case object TokenAvailable extends TokenAvailability
   final case class TokenUnavailable(retryAfter: Option[FiniteDuration]) extends TokenAvailability
 
   /**

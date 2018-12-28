@@ -57,11 +57,11 @@ object Status {
       }
   }
 
-  case object Informational extends ResponseClass { val isSuccess = true }
-  case object Successful extends ResponseClass { val isSuccess = true }
-  case object Redirection extends ResponseClass { val isSuccess = true }
-  case object ClientError extends ResponseClass { val isSuccess = false }
-  case object ServerError extends ResponseClass { val isSuccess = false }
+  final case object Informational extends ResponseClass { val isSuccess = true }
+  final case object Successful extends ResponseClass { val isSuccess = true }
+  final case object Redirection extends ResponseClass { val isSuccess = true }
+  final case object ClientError extends ResponseClass { val isSuccess = false }
+  final case object ServerError extends ResponseClass { val isSuccess = false }
 
   object ResponseClass {
     @deprecated("Moved to org.http4s.Status.Informational", "0.16")
@@ -194,6 +194,6 @@ object Status {
     Status(511, "Network Authentication Required"))
   // scalastyle:on magic.number
 
-  implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]
-  implicit val http4sShowForStatus: Show[Status] = Show.fromToString[Status]
+  implicit final val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]
+  implicit final val http4sShowForStatus: Show[Status] = Show.fromToString[Status]
 }

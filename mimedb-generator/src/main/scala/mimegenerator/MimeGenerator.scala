@@ -21,7 +21,7 @@ import treehuggerDSL._
   * converted to a Treehugger syntax tree which is later printed as a scala source file
   */
 object MimeLoader {
-  implicit val MimeDescrDecoder: Decoder[MimeDescr] = deriveDecoder[MimeDescr]
+  implicit final val MimeDescrDecoder: Decoder[MimeDescr] = deriveDecoder[MimeDescr]
   val url = Uri.uri("https://cdn.rawgit.com/jshttp/mime-db/master/db.json")
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2

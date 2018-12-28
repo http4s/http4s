@@ -32,7 +32,7 @@ trait QueryParamKeyLike[T] {
 object QueryParamKeyLike {
   def apply[T](implicit ev: QueryParamKeyLike[T]): QueryParamKeyLike[T] = ev
 
-  implicit val stringKey: QueryParamKeyLike[String] = new QueryParamKeyLike[String] {
+  implicit final val stringKey: QueryParamKeyLike[String] = new QueryParamKeyLike[String] {
     override def getKey(t: String): QueryParameterKey = QueryParameterKey(t)
   }
 }
@@ -59,7 +59,7 @@ object QueryParamEncoder {
   def apply[T](implicit ev: QueryParamEncoder[T]): QueryParamEncoder[T] = ev
 
   /** QueryParamEncoder is a contravariant functor. */
-  implicit val ContravariantQueryParamEncoder: Contravariant[QueryParamEncoder] =
+  implicit final val ContravariantQueryParamEncoder: Contravariant[QueryParamEncoder] =
     new Contravariant[QueryParamEncoder] {
       override def contramap[A, B](fa: QueryParamEncoder[A])(f: B => A) =
         fa.contramap(f)
@@ -134,14 +134,14 @@ object QueryParamDecoder {
     }
 
   /** QueryParamDecoder is a covariant functor. */
-  implicit val FunctorQueryParamDecoder: Functor[QueryParamDecoder] =
+  implicit final val FunctorQueryParamDecoder: Functor[QueryParamDecoder] =
     new Functor[QueryParamDecoder] {
       override def map[A, B](fa: QueryParamDecoder[A])(f: A => B) =
         fa.map(f)
     }
 
   /** QueryParamDecoder is a MonoidK. */
-  implicit val PlusEmptyQueryParamDecoder: MonoidK[QueryParamDecoder] =
+  implicit final val PlusEmptyQueryParamDecoder: MonoidK[QueryParamDecoder] =
     new MonoidK[QueryParamDecoder] {
       def empty[A] =
         fail[A]("Decoding failed.", "Empty decoder (always fails).")
@@ -196,7 +196,7 @@ object QueryParamDecoder {
         value.value.validNel
     }
 
-  implicit val uriQueryParamDecoder: QueryParamDecoder[Uri] =
+  implicit final val uriQueryParamDecoder: QueryParamDecoder[Uri] =
     new QueryParamDecoder[Uri] {
       def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Uri] =
         Uri.fromString(value.value).toValidatedNel

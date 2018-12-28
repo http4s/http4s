@@ -27,13 +27,13 @@ object DigestAuth {
 
   private trait AuthReply[+A]
   private final case class OK[A](authInfo: A) extends AuthReply[A]
-  private case object StaleNonce extends AuthReply[Nothing]
-  private case object BadNC extends AuthReply[Nothing]
-  private case object WrongResponse extends AuthReply[Nothing]
-  private case object BadParameters extends AuthReply[Nothing]
-  private case object UserUnknown extends AuthReply[Nothing]
-  private case object NoCredentials extends AuthReply[Nothing]
-  private case object NoAuthorizationHeader extends AuthReply[Nothing]
+  private final case object StaleNonce extends AuthReply[Nothing]
+  private final case object BadNC extends AuthReply[Nothing]
+  private final case object WrongResponse extends AuthReply[Nothing]
+  private final case object BadParameters extends AuthReply[Nothing]
+  private final case object UserUnknown extends AuthReply[Nothing]
+  private final case object NoCredentials extends AuthReply[Nothing]
+  private final case object NoAuthorizationHeader extends AuthReply[Nothing]
 
   /**
     *

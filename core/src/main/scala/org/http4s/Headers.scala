@@ -118,7 +118,7 @@ final class Headers private (headers: List[Header])
 }
 
 object Headers {
-  val empty = apply()
+  final val empty = apply()
 
   /** Create a new Headers collection from the headers */
   def apply(headers: Header*): Headers = Headers(headers.toList)
@@ -126,7 +126,7 @@ object Headers {
   /** Create a new Headers collection from the headers */
   def apply(headers: List[Header]): Headers = new Headers(headers)
 
-  implicit val canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =
+  implicit final val canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =
     new CanBuildFrom[TraversableOnce[Header], Header, Headers] {
       def apply(from: TraversableOnce[Header]): mutable.Builder[Header, Headers] = newBuilder
 
@@ -136,21 +136,21 @@ object Headers {
   private def newBuilder: mutable.Builder[Header, Headers] =
     new mutable.ListBuffer[Header].mapResult(b => new Headers(b))
 
-  implicit val headersShow: Show[Headers] =
+  implicit final val headersShow: Show[Headers] =
     Show.show[Headers] {
       _.iterator.map(_.show).mkString("Headers(", ", ", ")")
     }
 
-  implicit val HeadersEq: Eq[Headers] = Eq.by(_.toList)
+  implicit final val HeadersEq: Eq[Headers] = Eq.by(_.toList)
 
-  private val PayloadHeaderKeys = Set(
+  private final val PayloadHeaderKeys = Set(
     "Content-Length".ci,
     "Content-Range".ci,
     "Trailer".ci,
     "Transfer-Encoding".ci
   )
 
-  val SensitiveHeaders = Set(
+  final val SensitiveHeaders: Set[CaseInsensitiveString] = Set(
     "Authorization".ci,
     "Cookie".ci,
     "Set-Cookie".ci

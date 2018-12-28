@@ -13,7 +13,7 @@ sealed abstract class Origin extends Header.Parsed {
 object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
   // An Origin header may be the string "null", representing an "opaque origin":
   // https://stackoverflow.com/questions/42239643/when-does-firefox-set-the-origin-header-to-null-in-post-requests
-  case object Null extends Origin {
+  final case object Null extends Origin {
     def renderValue(writer: Writer): writer.type =
       writer << "null"
   }

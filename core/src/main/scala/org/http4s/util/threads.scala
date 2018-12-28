@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 
 object threads {
   final case class ThreadPriority(toInt: Int)
-  case object ThreadPriority {
+  final case object ThreadPriority {
     val Min = ThreadPriority(Thread.MIN_PRIORITY)
     val Norm = ThreadPriority(Thread.NORM_PRIORITY)
     val Max = ThreadPriority(Thread.MAX_PRIORITY)

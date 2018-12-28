@@ -135,7 +135,7 @@ class MethodConcat(val methods: Set[Method]) {
   *   }
   * }}}
   */
-case object Root extends Path {
+final case object Root extends Path {
   def toList: List[String] = Nil
 
   def parent: Path = this
@@ -216,7 +216,7 @@ object +& {
   * param extractor using [[QueryParamDecoder]]:
   * {{{
   *   case class Foo(i: Int)
-  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *   implicit final val fooDecoder: QueryParamDecoder[Foo] = ...
   *
   *   object FooMatcher extends QueryParamDecoderMatcher[Foo]("foo")
   *   val routes = HttpRoutes.of {
@@ -242,8 +242,8 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   *
   * {{{
   *   case class Foo(i: Int)
-  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
-  *   implicit val fooParam: QueryParam[Foo] = ...
+  *   implicit final val fooDecoder: QueryParamDecoder[Foo] = ...
+  *   implicit final val fooParam: QueryParam[Foo] = ...
   *
   *   object FooMatcher extends QueryParamDecoderMatcher[Foo]
   *   val routes = HttpRoutes.of {
@@ -275,8 +275,8 @@ abstract class FlagQueryParamMatcher(name: String) {
   *
   * {{{
   *   case class Foo(i: Int)
-  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
-  *   implicit val fooParam: QueryParam[Foo] = ...
+  *   implicit final val fooDecoder: QueryParamDecoder[Foo] = ...
+  *   implicit final val fooParam: QueryParam[Foo] = ...
   *
   *   object FooMatcher extends OptionalMultiQueryParamDecoderMatcher[Foo]("foo")
   *   val routes = HttpRoutes.of {
@@ -308,7 +308,7 @@ abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
   *
   * {{{
   *  case class Foo(i: Int)
-  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *  implicit final val fooDecoder: QueryParamDecoder[Foo] = ...
   *
   *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
   *  val routes: HttpRoutes.of = {
@@ -333,10 +333,10 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   *
   * {{{
   *  case class Foo(i: Int)
-  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *  implicit final val fooDecoder: QueryParamDecoder[Foo] = ...
   *
   *  case class Bar(i: Int)
-  *  implicit val barDecoder: QueryParamDecoder[Bar] = ...
+  *  implicit final val barDecoder: QueryParamDecoder[Bar] = ...
   *
   *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
   *  object BarMatcher extends OptionalValidatingQueryParamDecoderMatcher[Bar]("bar")

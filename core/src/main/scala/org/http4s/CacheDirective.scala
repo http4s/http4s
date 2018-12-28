@@ -46,7 +46,7 @@ object CacheDirective {
     override def value: String = name + "=" + deltaSeconds.toSeconds
   }
 
-  case object `must-revalidate` extends CacheDirective
+  final case object `must-revalidate` extends CacheDirective
 
   final case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Seq.empty)
       extends CacheDirective {
@@ -54,20 +54,20 @@ object CacheDirective {
       name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
-  case object `no-store` extends CacheDirective
+  final case object `no-store` extends CacheDirective
 
-  case object `no-transform` extends CacheDirective
+  final case object `no-transform` extends CacheDirective
 
-  case object `only-if-cached` extends CacheDirective
+  final case object `only-if-cached` extends CacheDirective
 
   final case class `private`(fieldNames: Seq[CaseInsensitiveString] = Nil) extends CacheDirective {
     override def value: String =
       name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
-  case object `proxy-revalidate` extends CacheDirective
+  final case object `proxy-revalidate` extends CacheDirective
 
-  case object public extends CacheDirective
+  final case object public extends CacheDirective
 
   final case class `s-maxage`(deltaSeconds: Duration) extends CacheDirective {
     override def value: String = name + "=" + deltaSeconds.toSeconds

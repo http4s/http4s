@@ -47,7 +47,7 @@ final case class ParseFailure(sanitized: String, details: String)
 }
 
 object ParseFailure {
-  implicit val eq = Eq.fromUniversalEquals[ParseFailure]
+  implicit final val eq = Eq.fromUniversalEquals[ParseFailure]
 }
 
 object ParseResult {
@@ -63,7 +63,7 @@ object ParseResult {
       case NonFatal(e) => Either.left(ParseFailure(sanitized, e.getMessage))
     }
 
-  implicit val parseResultMonad: MonadError[ParseResult, ParseFailure] =
+  implicit final val parseResultMonad: MonadError[ParseResult, ParseFailure] =
     catsStdInstancesForEither[ParseFailure]
 }
 
@@ -72,7 +72,7 @@ object ParseResult {
 trait DecodeFailure extends MessageFailure
 
 object DecodeFailure {
-  implicit val http4sEqForDecodeFailure: Eq[DecodeFailure] = Eq.fromUniversalEquals
+  implicit final val http4sEqForDecodeFailure: Eq[DecodeFailure] = Eq.fromUniversalEquals
 }
 
 /** Indicates a problem decoding a [[Message]] body. */

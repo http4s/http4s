@@ -33,5 +33,5 @@ object Boundary {
 
   def create: Boundary = Boundary(value(BoundaryLength) + endChar)
 
-  implicit val boundaryEq: Eq[Boundary] = Eq.by(_.value)
+  implicit final val boundaryEq: Eq[Boundary] = Eq.by(_.value)
 }

@@ -4,6 +4,6 @@ package blaze
 sealed abstract class ParserMode extends Product with Serializable
 
 object ParserMode {
-  case object Strict extends ParserMode
-  case object Lenient extends ParserMode
+  final case object Strict extends ParserMode
+  final case object Lenient extends ParserMode
 }

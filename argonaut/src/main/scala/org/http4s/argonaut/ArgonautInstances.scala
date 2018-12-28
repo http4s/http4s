@@ -43,7 +43,7 @@ trait ArgonautInstances {
       implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrettyParams[F](prettyParams).contramap[A](encoder.encode)
 
-  implicit val uriCodec: CodecJson[Uri] = CodecJson(
+  implicit final val uriCodec: CodecJson[Uri] = CodecJson(
     (uri: Uri) => Json.jString(uri.toString),
     c =>
       c.as[String]

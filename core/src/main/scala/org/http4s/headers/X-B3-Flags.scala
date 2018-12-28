@@ -13,13 +13,13 @@ object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Sing
   }
 
   object Flag {
-    case object Debug extends Flag {
+    final case object Debug extends Flag {
       override def longValue: Long = 1 << 0
     }
-    case object SamplingSet extends Flag {
+    final case object SamplingSet extends Flag {
       override def longValue: Long = 1 << 1
     }
-    case object Sampled extends Flag {
+    final case object Sampled extends Flag {
       override def longValue: Long = 1 << 2
     }
   }

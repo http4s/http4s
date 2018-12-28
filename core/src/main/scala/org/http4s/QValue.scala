@@ -125,9 +125,9 @@ object QValue {
     */
   def q(d: Double): QValue = macro Macros.qValueLiteral
 
-  implicit val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
-  implicit val http4sShowForQValue: Show[QValue] = Show.fromToString[QValue]
-  implicit val http4sHttpCodecForQValue: HttpCodec[QValue] = new HttpCodec[QValue] {
+  implicit final val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
+  implicit final val http4sShowForQValue: Show[QValue] = Show.fromToString[QValue]
+  implicit final val http4sHttpCodecForQValue: HttpCodec[QValue] = new HttpCodec[QValue] {
     def parse(s: String): ParseResult[QValue] = QValue.parse(s)
     def render(writer: Writer, q: QValue): writer.type = q.render(writer)
   }
