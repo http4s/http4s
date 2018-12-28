@@ -308,7 +308,7 @@ abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
   *
   * {{{
   *  case class Foo(i: Int)
-  *  implicit final val fooDecoder: QueryParamDecoder[Foo] = ...
+  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
   *
   *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
   *  val routes: HttpRoutes.of = {
@@ -333,10 +333,10 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   *
   * {{{
   *  case class Foo(i: Int)
-  *  implicit final val fooDecoder: QueryParamDecoder[Foo] = ...
+  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
   *
   *  case class Bar(i: Int)
-  *  implicit final val barDecoder: QueryParamDecoder[Bar] = ...
+  *  implicit val barDecoder: QueryParamDecoder[Bar] = ...
   *
   *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
   *  object BarMatcher extends OptionalValidatingQueryParamDecoderMatcher[Bar]("bar")
