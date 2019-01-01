@@ -68,7 +68,7 @@ and experiment directly in the REPL.
 ```tut
 val getRoot = Request[IO](Method.GET, uri("/"))
 
-val io = service.orNotFound.run(getRoot)
+val io = service.apply(getRoot).getOrElseF(NotFound())
 ```
 
 Where is our `Response[F]`?  It hasn't been created yet.  We wrapped it
@@ -86,7 +86,17 @@ But here in the REPL, it's up to us to run it:
 val response = io.unsafeRunSync
 ```
 
-Cool.
+Cool.  Now we will be able to test things like the status:
+
+```tut
+val status = response.status
+```
+
+Or the content of our body:
+
+```tut
+val body = response.bodyAsText.compile.toList.unsafeRunSync().mkString("")
+```
 
 ## Generating responses
 
@@ -110,7 +120,7 @@ service:
 ```tut:book
 HttpService[IO] {
   case _ => Ok()
-}.orNotFound.run(getRoot).unsafeRunSync
+}.apply(getRoot).getOrElseF(NotFound()).unsafeRunSync
 ```
 
 This syntax works for other status codes as well.  In our example, we
@@ -120,7 +130,7 @@ response:
 ```tut:book
 HttpService[IO] {
   case _ => NoContent()
-}.orNotFound.run(getRoot).unsafeRunSync
+}.apply(getRoot).getOrElseF(NotFound()).unsafeRunSync
 ```
 
 ### Headers
