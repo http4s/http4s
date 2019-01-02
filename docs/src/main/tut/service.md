@@ -121,12 +121,14 @@ Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 
 `scalacOptions ++= Seq("-Ypartial-unification")`
 
-```tut:book
+```tut:silent
 import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
 import org.http4s.server.Router
+```
 
+```tut:book
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
 val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp)
@@ -170,7 +172,7 @@ with an abstract `run` method that returns a `IO[ExitCode]`.  An
 the infinite process and gracefully shut down your server when a
 SIGTERM is received.
 
-```tut:book:reset
+```tut:silent:reset
 import cats.effect._
 import cats.implicits._
 import org.http4s.HttpRoutes
@@ -178,7 +180,9 @@ import org.http4s.syntax._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze._
+```
 
+```tut:book
 object Main extends IOApp {
 
   val helloWorldService = HttpRoutes.of[IO] {
