@@ -1,4 +1,5 @@
 package org.http4s.server.blaze
+
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore

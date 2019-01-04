@@ -18,14 +18,14 @@ object SSLContextFactory {
     * @param sslSession Session from which certificate to be read
     * @return Empty array if no certificates can be read from {{{sslSession}}}
     */
-  def getCertChain(sslSession: SSLSession): Array[X509Certificate] =
+  def getCertChain(sslSession: SSLSession): List[X509Certificate] =
     Try {
       val cf = CertificateFactory.getInstance("X.509")
       sslSession.getPeerCertificates.map { certificate =>
         val stream = new ByteArrayInputStream(certificate.getEncoded)
         cf.generateCertificate(stream).asInstanceOf[X509Certificate]
       }
-    }.toOption.getOrElse(Array.empty)
+    }.toOption.getOrElse(Array.empty).toList
 
   /**
     * Given the name of a TLS/SSL cipher suite, return an int representing it effective stream
