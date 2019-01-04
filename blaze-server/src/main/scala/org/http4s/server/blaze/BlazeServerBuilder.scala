@@ -20,6 +20,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.util.SSLContextFactory
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -57,6 +58,7 @@ import scala.concurrent.duration._
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
   */
+//noinspection ScalaStyle
 class BlazeServerBuilder[F[_]](
     socketAddress: InetSocketAddress,
     executionContext: ExecutionContext,
@@ -193,25 +195,39 @@ class BlazeServerBuilder[F[_]](
 
       val pipelineFactory: SocketConnection => Future[LeafBuilder[ByteBuffer]] = {
         conn: SocketConnection =>
-          def requestAttributes(secure: Boolean) =
+          def requestAttributes(secure: Boolean, optionalSslEngine: Option[SSLEngine]): () => AttributeMap =
             (conn.local, conn.remote) match {
               case (local: InetSocketAddress, remote: InetSocketAddress) =>
-                AttributeMap(
+                () => AttributeMap(
                   AttributeEntry(
                     Request.Keys.ConnectionInfo,
                     Request.Connection(
                       local = local,
                       remote = remote,
                       secure = secure
-                    )))
+                    )),
+                  AttributeEntry(
+                    Request.Keys.SecureSession,
+                    //Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
+                    //condition is checked inside a "flatMap" to handle possible "null" as value
+                    Alternative[Option].guard(secure)
+                      .flatMap(_ => optionalSslEngine)
+                      .flatMap(engine => Option(engine.getSession))
+                      .flatMap { session =>
+                        (Option(session.getId).map(id => id.map("%02X" format _).mkString),
+                          Option(session.getCipherSuite),
+                          Option(session.getCipherSuite).map(SSLContextFactory.deduceKeyLength),
+                          SSLContextFactory.getCertChain(session).some
+                        ).mapN(SecureSession.apply)
+                      }))
               case _ =>
-                AttributeMap.empty
+                () => AttributeMap.empty
             }
 
-          def http1Stage(secure: Boolean) =
+          def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =
             Http1ServerStage(
               httpApp,
-              requestAttributes(secure = secure),
+              requestAttributes(secure = secure, engine),
               executionContext,
               enableWebSockets,
               maxRequestLineLen,
@@ -228,7 +244,7 @@ class BlazeServerBuilder[F[_]](
               httpApp,
               maxRequestLineLen,
               maxHeadersLen,
-              requestAttributes(secure = true),
+              requestAttributes(secure = true, engine.some),
               executionContext,
               serviceErrorHandler,
               responseHeaderTimeout,
@@ -245,13 +261,13 @@ class BlazeServerBuilder[F[_]](
 
                 LeafBuilder(
                   if (isHttp2Enabled) http2Stage(engine)
-                  else http1Stage(secure = true)
+                  else http1Stage(secure = true, engine.some)
                 ).prepend(new SSLStage(engine))
 
               case None =>
                 if (isHttp2Enabled)
                   logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-                LeafBuilder(http1Stage(secure = false))
+                LeafBuilder(http1Stage(secure = false, None))
             }
           }
       }
