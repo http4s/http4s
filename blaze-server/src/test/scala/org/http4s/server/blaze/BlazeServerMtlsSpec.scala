@@ -34,14 +34,16 @@ class BlazeServerMtlsSpec extends Http4sSpec {
 
   val service: HttpApp[IO] = HttpApp {
     case req @ GET -> Root / "dummy" =>
+      val output = req
+        .attributes(Request.Keys.SecureSession)
+        .map { session =>
+          session.sslSessionId shouldNotEqual ""
+          session.cipherSuite shouldNotEqual ""
+          session.keySize shouldNotEqual 0
 
-      val output = req.attributes(Request.Keys.SecureSession).map { session =>
-        session.sslSessionId shouldNotEqual ""
-        session.cipherSuite shouldNotEqual ""
-        session.keySize shouldNotEqual 0
-
-        session.X509Certificate.head.getSubjectX500Principal.getName
-      }.getOrElse("Invalid")
+          session.X509Certificate.head.getSubjectX500Principal.getName
+        }
+        .getOrElse("Invalid")
 
       Ok(output)
 
@@ -75,7 +77,6 @@ class BlazeServerMtlsSpec extends Http4sSpec {
   }
 
   withResource(serverR) { server =>
-
     def get(path: String): String = {
       val url = new URL(s"https://localhost:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpsURLConnection]

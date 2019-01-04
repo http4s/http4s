@@ -195,33 +195,40 @@ class BlazeServerBuilder[F[_]](
 
       val pipelineFactory: SocketConnection => Future[LeafBuilder[ByteBuffer]] = {
         conn: SocketConnection =>
-          def requestAttributes(secure: Boolean, optionalSslEngine: Option[SSLEngine]): () => AttributeMap =
+          def requestAttributes(
+              secure: Boolean,
+              optionalSslEngine: Option[SSLEngine]): () => AttributeMap =
             (conn.local, conn.remote) match {
               case (local: InetSocketAddress, remote: InetSocketAddress) =>
-                () => AttributeMap(
-                  AttributeEntry(
-                    Request.Keys.ConnectionInfo,
-                    Request.Connection(
-                      local = local,
-                      remote = remote,
-                      secure = secure
-                    )),
-                  AttributeEntry(
-                    Request.Keys.SecureSession,
-                    //Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
-                    //condition is checked inside a "flatMap" to handle possible "null" as value
-                    Alternative[Option].guard(secure)
-                      .flatMap(_ => optionalSslEngine)
-                      .flatMap(engine => Option(engine.getSession))
-                      .flatMap { session =>
-                        (Option(session.getId).map(id => id.map("%02X" format _).mkString),
-                          Option(session.getCipherSuite),
-                          Option(session.getCipherSuite).map(SSLContextFactory.deduceKeyLength),
-                          SSLContextFactory.getCertChain(session).some
-                        ).mapN(SecureSession.apply)
-                      }))
+                () =>
+                  AttributeMap(
+                    AttributeEntry(
+                      Request.Keys.ConnectionInfo,
+                      Request.Connection(
+                        local = local,
+                        remote = remote,
+                        secure = secure
+                      )),
+                    AttributeEntry(
+                      Request.Keys.SecureSession,
+                      //Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
+                      //condition is checked inside a "flatMap" to handle possible "null" as value
+                      Alternative[Option]
+                        .guard(secure)
+                        .flatMap(_ => optionalSslEngine)
+                        .flatMap(engine => Option(engine.getSession))
+                        .flatMap { session =>
+                          (
+                            Option(session.getId).map(id => id.map("%02X".format(_)).mkString),
+                            Option(session.getCipherSuite),
+                            Option(session.getCipherSuite).map(SSLContextFactory.deduceKeyLength),
+                            SSLContextFactory.getCertChain(session).some).mapN(SecureSession.apply)
+                        }
+                    )
+                  )
               case _ =>
-                () => AttributeMap.empty
+                () =>
+                  AttributeMap.empty
             }
 
           def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =
