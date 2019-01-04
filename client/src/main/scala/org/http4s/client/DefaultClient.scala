@@ -141,6 +141,33 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(s)(defaultOnError)
 
+  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]] = {
+    val r = if (d.consumes.nonEmpty) {
+      val m = d.consumes.toList
+      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
+    } else req
+    fetch(r) {
+      case Successful(resp) =>
+        d.decode(resp, strict = false).fold(throw _, identity).map(_.some)
+      case failedResponse =>
+        failedResponse.status match {
+          case Status.NotFound => Option.empty[A].pure[F]
+          case _ => onError(failedResponse).flatMap(F.raiseError)
+        }
+    }
+  }
+  def expectOptionOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]] =
+    expectOptionOr(Request[F](Method.GET, uri))(onError)
+  def expectOptionOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]] = 
+    Uri.fromString(s).fold(F.raiseError, uri => expectOptionOr[A](uri)(onError))
+
+  def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]] =
+    expectOptionOr(req)(defaultOnError)
+  def expectOption[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[Option[A]] =
+    expectOptionOr(uri)(defaultOnError)
+  def expectOption[A](s: String)(implicit d: EntityDecoder[F, A]): F[Option[A]] =
+    expectOptionOr(s)(defaultOnError)
+
   /**
     * Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
