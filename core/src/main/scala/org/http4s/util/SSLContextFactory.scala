@@ -51,7 +51,6 @@ object SSLContextFactory {
     * @param cipherSuite String name of the TLS cipher suite.
     * @return int indicating the effective key entropy bit-length.
     */
-  //noinspection ScalaStyle
   def deduceKeyLength(cipherSuite: String): Int =
     if (cipherSuite == null) 0
     else if (cipherSuite.contains("WITH_AES_256_")) 256
