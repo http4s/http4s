@@ -18,8 +18,14 @@ import scala.io.Source
   */
 class BlazeServerMtlsSpec extends Http4sSpec {
 
-  //For test cases, don't do any host name verification. Certificates are self-signed and not available to all hosts
-  HttpsURLConnection.setDefaultHostnameVerifier((_: String, _: SSLSession) => true)
+  {
+    val hostnameVerifier: HostnameVerifier = new HostnameVerifier {
+      override def verify(s: String, sslSession: SSLSession): Boolean = true
+    }
+
+    //For test cases, don't do any host name verification. Certificates are self-signed and not available to all hosts
+    HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier)
+  }
 
   def builder: BlazeServerBuilder[IO] =
     BlazeServerBuilder[IO]
