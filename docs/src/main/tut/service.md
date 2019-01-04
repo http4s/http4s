@@ -51,14 +51,14 @@ prefer you can read these introductions first:
 Wherever you are in your studies, let's create our first
 `HttpRoutes`.  Start by pasting these imports into your SBT console:
 
-```tut:book:silent
+```tut:silent
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 You also will need a `ContextShift` and a `Timer`.  These come for
 free if you are in an `IOApp`.
 
-```tut:book:silent
+```tut:silent
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
 implicit val timer: Timer[IO] = IO.timer(global)
 ```

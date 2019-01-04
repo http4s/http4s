@@ -13,7 +13,7 @@ After reading this doc, the reader should feel comfortable writing a unit test u
 
 Now, let's define an `org.http4s.HttpService`.
 
-```tut:book
+```tut:silent
 import cats.implicits._
 import io.circe._
 import io.circe.syntax._
@@ -23,7 +23,9 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
+```
 
+```tut:book
 final case class User(name: String, age: Int) 
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
 

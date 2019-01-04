@@ -170,7 +170,7 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:book:silent
+```tut:silent
 import org.http4s.server.middleware.Metrics
 import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
@@ -196,7 +196,7 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:book:silent
+```tut:silent
 import org.http4s.server.middleware.Metrics
 import org.http4s.metrics.prometheus.Prometheus
 import io.prometheus.client.CollectorRegistry
