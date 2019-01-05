@@ -9,6 +9,7 @@ import cats.effect.Effect
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s._
 import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
 
@@ -101,8 +102,7 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
               Option(
                 req
                   .getAttribute("javax.servlet.request.X509Certificate")
-                  .asInstanceOf[Array[X509Certificate]]
-                  .toList))
+                  .asInstanceOf[Array[X509Certificate]]))
               .mapN(SecureSession.apply))
         )
       )
