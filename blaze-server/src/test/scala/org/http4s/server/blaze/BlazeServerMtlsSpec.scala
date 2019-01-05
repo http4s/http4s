@@ -8,7 +8,8 @@ import cats.effect.{IO, Resource}
 import javax.net.ssl._
 import org.http4s.dsl.io._
 import org.http4s.server.Server
-import org.http4s.{Http4sSpec, HttpApp, Request}
+import org.http4s.server.ServerRequestKeys
+import org.http4s.{Http4sSpec, HttpApp}
 
 import scala.concurrent.duration._
 import scala.io.Source
@@ -35,7 +36,7 @@ class BlazeServerMtlsSpec extends Http4sSpec {
   val service: HttpApp[IO] = HttpApp {
     case req @ GET -> Root / "dummy" =>
       val output = req
-        .attributes(Request.Keys.SecureSession)
+        .attributes(ServerRequestKeys.SecureSession)
         .map { session =>
           session.sslSessionId shouldNotEqual ""
           session.cipherSuite shouldNotEqual ""

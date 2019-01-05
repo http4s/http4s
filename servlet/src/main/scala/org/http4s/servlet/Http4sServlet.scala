@@ -102,7 +102,7 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
               Option(
                 req
                   .getAttribute("javax.servlet.request.X509Certificate")
-                  .asInstanceOf[Array[X509Certificate]]).map(_.toList))
+                  .asInstanceOf[Array[X509Certificate]]))
               .mapN(SecureSession.apply))
         )
       )
