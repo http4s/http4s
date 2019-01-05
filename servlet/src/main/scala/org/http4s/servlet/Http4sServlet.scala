@@ -9,6 +9,7 @@ import cats.effect.Effect
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s._
 import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
@@ -92,7 +93,7 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
             )),
           Request.Keys.ServerSoftware(serverSoftware),
           ServletRequestKeys.HttpSession(Option(req.getSession(false))),
-          Request.Keys.SecureSession(
+          ServerRequestKeys.SecureSession(
             (
               Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
               Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
@@ -100,7 +101,8 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
               Option(
                 req
                   .getAttribute("javax.servlet.request.X509Certificate")
-                  .asInstanceOf[Array[X509Certificate]]))
+                  .asInstanceOf[Array[X509Certificate]]
+                  .toList))
               .mapN(SecureSession.apply))
         )
       )

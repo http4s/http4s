@@ -6,4 +6,4 @@ final case class SecureSession(
     sslSessionId: String,
     cipherSuite: String,
     keySize: Int,
-    X509Certificate: Array[X509Certificate])
+    X509Certificate: List[X509Certificate])
