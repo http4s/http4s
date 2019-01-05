@@ -26,7 +26,7 @@ private[blaze] object Http1ServerStage {
 
   def apply[F[_]](
       routes: HttpApp[F],
-      attributes: AttributeMap,
+      attributes: () => AttributeMap,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
       maxRequestLineLen: Int,
@@ -63,7 +63,7 @@ private[blaze] object Http1ServerStage {
 
 private[blaze] class Http1ServerStage[F[_]](
     httpApp: HttpApp[F],
-    requestAttrs: AttributeMap,
+    requestAttrs: () => AttributeMap,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
@@ -169,7 +169,7 @@ private[blaze] class Http1ServerStage[F[_]](
       buffer,
       () => Either.left(InvalidBodyException("Received premature EOF.")))
 
-    parser.collectMessage(body, requestAttrs) match {
+    parser.collectMessage(body, requestAttrs()) match {
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {

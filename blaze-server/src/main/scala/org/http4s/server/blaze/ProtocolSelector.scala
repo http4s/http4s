@@ -19,7 +19,7 @@ private[blaze] object ProtocolSelector {
       httpApp: HttpApp[F],
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
-      requestAttributes: AttributeMap,
+      requestAttributes: () => AttributeMap,
       executionContext: ExecutionContext,
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
