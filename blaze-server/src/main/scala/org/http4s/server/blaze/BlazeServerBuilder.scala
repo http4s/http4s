@@ -25,6 +25,7 @@ import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scodec.bits.ByteVector
 
 /**
   * BlazeBuilder is the component for the builder pattern aggregating
@@ -58,7 +59,6 @@ import scala.concurrent.duration._
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
   */
-//noinspection ScalaStyle
 class BlazeServerBuilder[F[_]](
     socketAddress: InetSocketAddress,
     executionContext: ExecutionContext,
@@ -219,7 +219,7 @@ class BlazeServerBuilder[F[_]](
                         .flatMap(engine => Option(engine.getSession))
                         .flatMap { session =>
                           (
-                            Option(session.getId).map(id => id.map("%02X".format(_)).mkString),
+                            Option(session.getId).map(ByteVector(_).toHex),
                             Option(session.getCipherSuite),
                             Option(session.getCipherSuite).map(SSLContextFactory.deduceKeyLength),
                             SSLContextFactory.getCertChain(session).some).mapN(SecureSession.apply)
