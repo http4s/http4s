@@ -63,7 +63,7 @@ bases its codecs on runtime reflection.
 
 Let's create a function to produce a simple JSON greeting with circe. First, the imports:
 
-```tut:book:silent
+```tut:silent
 import cats.effect._
 import io.circe._
 import io.circe.literal._
@@ -91,19 +91,23 @@ To encode a Scala value of type `A` into an entity, we need an
 `org.http4s.circe` object, which gives us exactly this for an
 `io.circe.Json` value:
 
-```tut:book
+```tut:silent
 import org.http4s.circe._
+```
 
+```tut:book
 Ok(greeting).unsafeRunSync
 ```
 
 The same `EntityEncoder[Json]` we use on server responses is also
 useful on client requests:
 
-```tut:book
+```tut:silent
 import org.http4s.client._
 import org.http4s.client.dsl.io._
+```
 
+```tut:book
 POST(json"""{"name": "Alice"}""", Uri.uri("/hello")).unsafeRunSync
 ```
 
@@ -148,9 +152,11 @@ That was easy, but gets tedious for applications dealing in lots of
 types.  Fortunately, circe can automatically derive an encoder for us,
 using the field names of the case class as key names in a JSON object:
 
-```tut:book
+```tut:silent
 import io.circe.generic.auto._
+```
 
+```tut:book
 User("Alice").asJson
 ```
 
@@ -164,7 +170,7 @@ POST(User("Bob").asJson, Uri.uri("/hello")).unsafeRunSync
 
 If within some route we serve json only, we can use:
 
-```tut:book
+```tut:silent
 {
 import org.http4s.circe.CirceEntityEncoder._
 }
@@ -209,7 +215,7 @@ POST("""{"name":"Bob"}""", Uri.uri("/hello")).flatMap(_.as[User]).unsafeRunSync
 If we are always decoding from JSON to a typed model, we can use
 the following import:
 
-```tut:book
+```tut:silent
 import org.http4s.circe.CirceEntityDecoder._
 ```
 
@@ -222,7 +228,7 @@ from JSON (even if it is XML or plain text, for instance).
 For more convenience there is import combining both encoding 
 and decoding derivation: 
 
-```tut:book
+```tut:silent
 import org.http4s.circe.CirceEntityCodec._
 ```
 

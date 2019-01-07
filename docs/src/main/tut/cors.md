@@ -40,8 +40,11 @@ service.orNotFound(request).unsafeRunSync
 
 Now we can wrap the service in the `CORS` middleware.
 
-```tut:book
+```tut:silent
 import org.http4s.server.middleware._
+```
+
+```tut:book
 val corsService = CORS(service)
 
 corsService.orNotFound(request).unsafeRunSync
@@ -78,9 +81,11 @@ val duckPost = Request[IO](Method.POST, Uri.uri("/"), headers = Headers(Header("
 Now, we'll create a configuration that limits the allowed methods to `GET`
 and `POST`, pass that to the `CORS` middleware, and try it out on our requests.
 
-```tut:book
+```tut:silent
 import scala.concurrent.duration._
+```
 
+```tut:book
 val methodConfig = CORSConfig(
   anyOrigin = true,
   anyMethod = false,
