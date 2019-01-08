@@ -91,9 +91,9 @@ Instead of passing plain <code>String</code>s, http4s operates on URIs. You can 
 literal URI with</p>
 
 <pre><code class="language-scala">import org.http4s._
-// import org.http4s._
+</code></pre>
 
-val uri = Uri.uri(&quot;http://http4s.org&quot;)
+<pre><code class="language-scala">val uri = Uri.uri(&quot;http://http4s.org&quot;)
 // uri: org.http4s.Uri = http://http4s.org
 </code></pre>
 
@@ -119,9 +119,9 @@ assert(docs == docs2)
 <h3 id="uri-template">URI Template</h3>
 
 <pre><code class="language-scala">import org.http4s.UriTemplate._
-// import org.http4s.UriTemplate._
+</code></pre>
 
-val template = UriTemplate(
+<pre><code class="language-scala">val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName(&quot;http4s.org&quot;))),
   scheme = Some(Uri.Scheme.http),
   path = List(PathElm(&quot;docs&quot;), PathElm(&quot;0.15&quot;))

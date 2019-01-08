@@ -150,7 +150,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$58810/562803259@5c7aac94)
+// helloWorldService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$59860/1643349125@31b2affe)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -188,7 +188,7 @@ val tweetService = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$58810/562803259@4243ed5f)
+// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$59860/1643349125@76d1ea7)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -208,25 +208,19 @@ with chained methods, each returning a new builder.</p>
 <p><code>scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)</code></p>
 
 <pre><code class="language-scala">import cats.implicits._
-// import cats.implicits._
-
 import org.http4s.server.blaze._
-// import org.http4s.server.blaze._
-
 import org.http4s.implicits._
-// import org.http4s.implicits._
-
 import org.http4s.server.Router
-// import org.http4s.server.Router
+</code></pre>
 
-val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$59011/183789973@2992d658)
+<pre><code class="language-scala">val services = tweetService &lt;+&gt; helloWorldService
+// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$60063/333284456@49556d00)
 
 val httpApp = Router(&quot;/&quot; -&gt; helloWorldService, &quot;/api&quot; -&gt; services).orNotFound
-// httpApp: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.syntax.KleisliResponseOps$$Lambda$59022/1126350043@4bf9949e)
+// httpApp: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.syntax.KleisliResponseOps$$Lambda$60074/1419066743@16c33b69)
 
 val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, &quot;localhost&quot;).withHttpApp(httpApp)
-// serverBuilder: org.http4s.server.blaze.BlazeServerBuilder[cats.effect.IO] = org.http4s.server.blaze.BlazeServerBuilder@682a1476
+// serverBuilder: org.http4s.server.blaze.BlazeServerBuilder[cats.effect.IO] = org.http4s.server.blaze.BlazeServerBuilder@347d426c
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -236,7 +230,7 @@ associates a base path with a <code>HttpRoutes</code>.</p>
 <p>We start a server resource in the background.  The server will run until we cancel the fiber:</p>
 
 <pre><code class="language-scala">val fiber = serverBuilder.resource.use(_ =&gt; IO.never).start.unsafeRunSync()
-// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$23162064,IO$980310219)
+// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$1658998024,IO$767116230)
 </code></pre>
 
 <p>Use curl, or your favorite HTTP client, to see your service in action:</p>
@@ -266,27 +260,15 @@ the infinite process and gracefully shut down your server when a
 SIGTERM is received.</p>
 
 <pre><code class="language-scala">import cats.effect._
-// import cats.effect._
-
 import cats.implicits._
-// import cats.implicits._
-
 import org.http4s.HttpRoutes
-// import org.http4s.HttpRoutes
-
 import org.http4s.syntax._
-// import org.http4s.syntax._
-
 import org.http4s.dsl.io._
-// import org.http4s.dsl.io._
-
 import org.http4s.implicits._
-// import org.http4s.implicits._
-
 import org.http4s.server.blaze._
-// import org.http4s.server.blaze._
+</code></pre>
 
-object Main extends IOApp {
+<pre><code class="language-scala">object Main extends IOApp {
 
   val helloWorldService = HttpRoutes.of[IO] {
     case GET -&gt; Root / &quot;hello&quot; / name =&gt;

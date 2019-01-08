@@ -174,9 +174,9 @@ val greeting = hello(&quot;world&quot;)
 <code>io.circe.Json</code> value:</p>
 
 <pre><code class="language-scala">import org.http4s.circe._
-// import org.http4s.circe._
+</code></pre>
 
-Ok(greeting).unsafeRunSync
+<pre><code class="language-scala">Ok(greeting).unsafeRunSync
 // res1: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Type: application/json, Content-Length: 17))
 </code></pre>
 
@@ -184,12 +184,10 @@ Ok(greeting).unsafeRunSync
 useful on client requests:</p>
 
 <pre><code class="language-scala">import org.http4s.client._
-// import org.http4s.client._
-
 import org.http4s.client.dsl.io._
-// import org.http4s.client.dsl.io._
+</code></pre>
 
-POST(json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;, Uri.uri(&quot;/hello&quot;)).unsafeRunSync
+<pre><code class="language-scala">POST(json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;, Uri.uri(&quot;/hello&quot;)).unsafeRunSync
 // res2: org.http4s.Request[cats.effect.IO] = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16))
 </code></pre>
 
@@ -225,7 +223,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$3@185859a8
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$3@113fb591
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -239,9 +237,9 @@ types.  Fortunately, circe can automatically derive an encoder for us,
 using the field names of the case class as key names in a JSON object:</p>
 
 <pre><code class="language-scala">import io.circe.generic.auto._
-// import io.circe.generic.auto._
+</code></pre>
 
-User(&quot;Alice&quot;).asJson
+<pre><code class="language-scala">User(&quot;Alice&quot;).asJson
 // res5: io.circe.Json =
 // {
 //   &quot;name&quot; : &quot;Alice&quot;
@@ -303,7 +301,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@50c28bf9
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@63883f20
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res11: User = User(Alice)
@@ -316,7 +314,6 @@ POST(&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;, Uri
 the following import:</p>
 
 <pre><code class="language-scala">import org.http4s.circe.CirceEntityDecoder._
-// import org.http4s.circe.CirceEntityDecoder._
 </code></pre>
 
 <p>This creates an <code>EntityDecoder[A]</code> for every <code>A</code> that has a <code>Decoder</code> instance.</p>
@@ -329,7 +326,6 @@ from JSON (even if it is XML or plain text, for instance).</p>
 and decoding derivation:</p>
 
 <pre><code class="language-scala">import org.http4s.circe.CirceEntityCodec._
-// import org.http4s.circe.CirceEntityCodec._
 </code></pre>
 
 <h2 id="putting-it-all-together">Putting it all together</h2>

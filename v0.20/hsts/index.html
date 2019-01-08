@@ -110,7 +110,7 @@ import cats.effect.IO
   case _ =&gt;
     Ok(&quot;ok&quot;)
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$64336/1900129755@707e7682)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$65388/935908035@77fa0208)
 
 val request = Request[IO](Method.GET, Uri.uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -126,10 +126,10 @@ response.headers
 <p>If we were to wrap this on the <code>HSTS</code> middleware.</p>
 
 <pre><code class="language-scala">import org.http4s.server.middleware._
-// import org.http4s.server.middleware._
+</code></pre>
 
-val hstsService = HSTS(service)
-// hstsService: cats.data.Kleisli[[A]cats.data.OptionT[cats.effect.IO,A],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$64510/507420130@1045e2f0)
+<pre><code class="language-scala">val hstsService = HSTS(service)
+// hstsService: cats.data.Kleisli[[A]cats.data.OptionT[cats.effect.IO,A],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$65562/702911889@5fcedc66)
 
 // Do not call 'unsafeRunSync' in your code
 val response = hstsService.orNotFound(request).unsafeRunSync
@@ -153,16 +153,14 @@ should be done over <code>https</code> and it will contain the <code>includeSubD
 <p>If you want to <code>preload</code> or change other default values you can pass a custom header, e.g.</p>
 
 <pre><code class="language-scala">import org.http4s.headers._
-// import org.http4s.headers._
-
 import scala.concurrent.duration._
-// import scala.concurrent.duration._
+</code></pre>
 
-val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
+<pre><code class="language-scala">val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
 // hstsHeader: org.http4s.headers.Strict-Transport-Security = Strict-Transport-Security: max-age=2592000; includeSubDomains; preload
 
 val hstsService = HSTS(service, hstsHeader)
-// hstsService: cats.data.Kleisli[[A]cats.data.OptionT[cats.effect.IO,A],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$64510/507420130@26552c59)
+// hstsService: cats.data.Kleisli[[A]cats.data.OptionT[cats.effect.IO,A],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$65562/702911889@aba3b97)
 
 // Do not call 'unsafeRunSync' in your code
 val response = hstsService.orNotFound(request).unsafeRunSync

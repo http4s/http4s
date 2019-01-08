@@ -99,16 +99,9 @@ similar static file hoster, but they&rsquo;re often fast enough.</p>
 <p>Http4s provides a few helpers to handle ETags for you, they&rsquo;re located in <a href="../api/org/http4s/StaticFile$">StaticFile</a>.</p>
 
 <pre><code class="language-scala">import cats.effect._
-// import cats.effect._
-
 import org.http4s._
-// import org.http4s._
-
 import org.http4s.dsl.io._
-// import org.http4s.dsl.io._
-
 import java.io.File
-// import java.io.File
 </code></pre>
 
 <h3 id="prerequisites">Prerequisites</h3>
@@ -148,7 +141,7 @@ val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, blockingEc, request)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$74085/214805751@24e84e62)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$75137/1700164254@67eae5fc)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -170,12 +163,10 @@ class path, as you usually would:</p>
 <p>Then, mount the <code>WebjarService</code> like any other service:</p>
 
 <pre><code class="language-scala">import org.http4s.server.staticcontent.webjarService
-// import org.http4s.server.staticcontent.webjarService
-
 import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
-// import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
+</code></pre>
 
-// only allow js assets
+<pre><code class="language-scala">// only allow js assets
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(&quot;.js&quot;)
 // isJsAsset: (asset: org.http4s.server.staticcontent.WebjarService.WebjarAsset)Boolean
@@ -186,7 +177,7 @@ val webjars: HttpRoutes[IO] = webjarService(
     blockingExecutionContext = blockingEc
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$74155/1308573729@150ee273)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$75209/838753057@3452fae0)
 </code></pre>
 
 <pre><code class="language-scala">blockingEc.shutdown()

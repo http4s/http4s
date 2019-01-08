@@ -125,52 +125,38 @@ runtime errors.</p>
 <p>Decoders&rsquo; content types are used when chaining decoders with <code>orElse</code> in order to
 determine which of the chained decoders are to be used.</p>
 
-<pre><code class="language-scala">scala&gt; import org.http4s._
-import org.http4s._
-
-scala&gt; import org.http4s.headers.`Content-Type`
-import org.http4s.headers.Content$minusType
-
-scala&gt; import org.http4s.dsl.io._
+<pre><code class="language-scala">import org.http4s._
+import org.http4s.headers.`Content-Type`
 import org.http4s.dsl.io._
+import cats._, cats.effect._, cats.implicits._, cats.data._
 
-scala&gt; import cats._, cats.effect._, cats.implicits._, cats.data._
-import cats._
-import cats.effect._
-import cats.implicits._
-import cats.data._
+sealed trait Resp
+case class Audio(body: String) extends Resp
+case class Video(body: String) extends Resp
+</code></pre>
 
-scala&gt; sealed trait Resp
-defined trait Resp
+<pre><code class="language-scala">val response = Ok(&quot;&quot;).map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
+// response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
 
-scala&gt; case class Audio(body: String) extends Resp
-defined class Audio
+val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { msg: Message[IO] =&gt;
+  EitherT {
+    msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
+  }
+}
+// audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$7@d45dd91
 
-scala&gt; case class Video(body: String) extends Resp
-defined class Video
+val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { msg: Message[IO] =&gt;
+  EitherT {
+    msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
+  }
+}
+// videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$7@1c9ea6ca
 
-scala&gt; val response = Ok(&quot;&quot;).map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
-response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
+implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
+// bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$$anon$1$$anon$6@7298edd7
 
-scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { msg: Message[IO] =&gt;
-     |   EitherT {
-     |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
-     |   }
-     | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$7@26987f0b
-
-scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { msg: Message[IO] =&gt;
-     |   EitherT {
-     |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
-     |   }
-     | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$7@6ca49308
-
-scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$$anon$1$$anon$6@338e432
-
-scala&gt; println(response.flatMap(_.as[Resp]).unsafeRunSync)
-Audio()
+println(response.flatMap(_.as[Resp]).unsafeRunSync)
+// Audio()
 </code></pre>
 
 <h2 id="presupplied-encoders-decoders">Presupplied Encoders/Decoders</h2>
