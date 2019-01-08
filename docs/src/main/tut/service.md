@@ -201,6 +201,21 @@ object Main extends IOApp {
 }
 ```
 
+You may also create the server within an `IOApp` using resource:
+
+```tut:book
+object MainWithResource extends IOApp {
+
+  def run(args: List[String]): IO[ExitCode] =
+    BlazeServerBuilder[IO]
+      .bindHttp(8080, "localhost")
+      .withHttpApp(Main.helloWorldService)
+      .resource
+      .use(_ => IO.never)
+      .as(ExitCode.Success)
+}
+```
+
 [blaze]: https://github.com/http4s/blaze
 [tut]: https://github.com/tpolecat/tut
 [Cats Kleisli Datatype]: https://typelevel.org/cats/datatypes/kleisli.html
