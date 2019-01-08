@@ -1,4 +1,5 @@
 package org.http4s.server.blaze
+
 import java.io.ByteArrayInputStream
 import java.security.cert.{CertificateFactory, X509Certificate}
 
