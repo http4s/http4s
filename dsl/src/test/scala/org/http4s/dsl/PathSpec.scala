@@ -8,18 +8,29 @@ package org.http4s
 package dsl
 
 import cats.effect.IO
-import org.http4s.dsl.io._
 import org.http4s.Uri.uri
+import org.http4s.dsl.io._
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.arbitrary
 
 class PathSpec extends Http4sSpec {
+  implicit val arbitraryPath: Arbitrary[Path] =
+    Arbitrary {
+      arbitrary[List[String]].map(Path(_))
+    }
+
   "Path" should {
 
     "/foo/bar" in {
-      Path("/foo/bar").toList must_== (List("foo", "bar"))
+      Path("/foo/bar") must_== Path("foo", "bar")
     }
 
     "foo/bar" in {
-      Path("foo/bar").toList must_== (List("foo", "bar"))
+      Path("foo/bar") must_== Path("foo", "bar")
+    }
+
+    "//foo/bar" in {
+      Path("//foo/bar") must_== Path("", "foo", "bar")
     }
 
     "~ extractor on Path" in {
@@ -219,6 +230,14 @@ class PathSpec extends Http4sSpec {
           }) must beFalse
         }
       }
+    }
+
+    "consistent apply / toList" in prop { p: Path =>
+      Path(p.toList) must_== p
+    }
+
+    "Path.apply is stack safe" in {
+      Path("/" * 1000000) must beAnInstanceOf[Path]
     }
   }
 }

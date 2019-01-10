@@ -24,15 +24,44 @@ trait Path {
 }
 
 object Path {
+
+  /** Constructs a path from a single string by splitting on the `'/'`
+    * character.
+    *
+    * Leading slashes do not create an empty path segment.  This is to
+    * reflect that there is no distinction between a request to
+    * `http://www.example.com` from `http://www.example.com/`.
+    *
+    * Trailing slashes result in a path with an empty final segment,
+    * unless the path is `"/"`, which is `Root`.
+    *
+    * Segments are URL decoded.
+    *
+    * {{{
+    * scala> Path("").toList
+    * res0: List[String] = List()
+    * scala> Path("/").toList
+    * res1: List[String] = List()
+    * scala> Path("a").toList
+    * res2: List[String] = List(a)
+    * scala> Path("/a").toList
+    * res3: List[String] = List(a)
+    * scala> Path("/a/").toList
+    * res4: List[String] = List(a, "")
+    * scala> Path("//a").toList
+    * res5: List[String] = List("", a)
+    * scala> Path("/%2F").toList
+    * res0: List[String] = List(/)
+    * }}}
+    */
   def apply(str: String): Path =
     if (str == "" || str == "/")
       Root
-    else if (!str.startsWith("/"))
-      Path("/" + str)
     else {
-      val slash = str.lastIndexOf('/')
-      val prefix = Path(str.substring(0, slash))
-      prefix / UrlCodingUtils.urlDecode(str.substring(slash + 1))
+      val segments = str.split("/", -1)
+      // .head is safe because split always returns non-empty array
+      val segments0 = if (segments.head == "") segments.drop(1) else segments
+      segments0.foldLeft(Root: Path)((path, seg) => path / UrlCodingUtils.urlDecode(seg))
     }
 
   def apply(first: String, rest: String*): Path =
