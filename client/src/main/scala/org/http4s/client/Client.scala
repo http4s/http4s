@@ -125,7 +125,8 @@ trait Client[F[_]] {
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]]
+  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
+      implicit d: EntityDecoder[F, A]): F[Option[A]]
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
   /**
@@ -195,7 +196,6 @@ object Client {
       implicit F: Bracket[F, Throwable]): Client[F] = new DefaultClient[F] {
     def run(req: Request[F]): Resource[F, Response[F]] = f(req)
   }
-
 
   /** Creates a client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.

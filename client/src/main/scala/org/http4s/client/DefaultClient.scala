@@ -141,7 +141,8 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(s)(defaultOnError)
 
-  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]] = {
+  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
+      implicit d: EntityDecoder[F, A]): F[Option[A]] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
