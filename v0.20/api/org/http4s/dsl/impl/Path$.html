@@ -428,7 +428,7 @@
       </span>
       
       
-    </li><li name="org.http4s.dsl.impl.Path#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.dsl.impl.Path#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(str:String):org.http4s.dsl.impl.Path"></a><a id="apply(String):Path"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/dsl/impl/Path$.html#apply(str:String):org.http4s.dsl.impl.Path" title="Permalink">
@@ -443,7 +443,25 @@
         <span class="name">apply</span><span class="params">(<span name="str">str: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Path.html" class="extype" name="org.http4s.dsl.impl.Path">Path</a></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Constructs a path from a single string by splitting on the <code>'/'</code>
+character.</p><div class="fullcomment"><div class="comment cmt"><p>Constructs a path from a single string by splitting on the <code>'/'</code>
+character.</p><p>Leading slashes do not create an empty path segment.  This is to
+reflect that there is no distinction between a request to
+<code>http://www.example.com</code> from <code>http://www.example.com/</code>.</p><p>Trailing slashes result in a path with an empty final segment,
+unless the path is <code>&quot;/&quot;</code>, which is <code>Root</code>.</p><p>Segments are URL decoded.</p><pre>scala&gt; Path(<span class="lit">""</span>).toList
+res0: <span class="std">List</span>[<span class="std">String</span>] = <span class="std">List</span>()
+scala&gt; Path(<span class="lit">"/"</span>).toList
+res1: <span class="std">List</span>[<span class="std">String</span>] = <span class="std">List</span>()
+scala&gt; Path(<span class="lit">"a"</span>).toList
+res2: <span class="std">List</span>[<span class="std">String</span>] = <span class="std">List</span>(a)
+scala&gt; Path(<span class="lit">"/a"</span>).toList
+res3: <span class="std">List</span>[<span class="std">String</span>] = <span class="std">List</span>(a)
+scala&gt; Path(<span class="lit">"/a/"</span>).toList
+res4: <span class="std">List</span>[<span class="std">String</span>] = <span class="std">List</span>(a, <span class="lit">""</span>)
+scala&gt; Path(<span class="lit">"//a"</span>).toList
+res5: <span class="std">List</span>[<span class="std">String</span>] = <span class="std">List</span>(<span class="lit">""</span>, a)
+scala&gt; Path(<span class="lit">"/%2F"</span>).toList
+res0: <span class="std">List</span>[<span class="std">String</span>] = <span class="std">List</span>(/)</pre></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
