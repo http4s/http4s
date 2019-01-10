@@ -152,21 +152,14 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
       case failedResponse =>
         failedResponse.status match {
           case Status.NotFound => Option.empty[A].pure[F]
+          case Status.Gone => Option.empty[A].pure[F]
           case _ => onError(failedResponse).flatMap(F.raiseError)
         }
     }
   }
-  def expectOptionOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]] =
-    expectOptionOr(Request[F](Method.GET, uri))(onError)
-  def expectOptionOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]] = 
-    Uri.fromString(s).fold(F.raiseError, uri => expectOptionOr[A](uri)(onError))
 
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]] =
     expectOptionOr(req)(defaultOnError)
-  def expectOption[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[Option[A]] =
-    expectOptionOr(uri)(defaultOnError)
-  def expectOption[A](s: String)(implicit d: EntityDecoder[F, A]): F[Option[A]] =
-    expectOptionOr(s)(defaultOnError)
 
   /**
     * Submits a request and decodes the response, regardless of the status code.
