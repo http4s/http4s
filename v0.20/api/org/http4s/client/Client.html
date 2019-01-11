@@ -447,6 +447,38 @@ connection is closed at the completion of the decoding.
 status code is returned.  The underlying HTTP connection is closed at the
 completion of the decoding.
 </p></div></div>
+    </li><li name="org.http4s.client.Client#expectOption" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="expectOption[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[Option[A]]"></a><a id="expectOption[A](Request[F])(EntityDecoder[F,A]):F[Option[A]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expectOption[A](req:org.http4s.Request[F])(implicitd:org.http4s.EntityDecoder[F,A]):F[Option[A]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expectOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOption.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="org.http4s.client.Client.expectOption.A">A</span>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.Client#expectOptionOr" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="expectOptionOr[A](req:org.http4s.Request[F])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[Option[A]]"></a><a id="expectOptionOr[A](Request[F])((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[Option[A]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#expectOptionOr[A](req:org.http4s.Request[F])(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[Option[A]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expectOptionOr</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>)</span><span class="params">(<span name="onError">onError: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="org.http4s.client.Client.expectOptionOr.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="org.http4s.client.Client.expectOptionOr.A">A</span>]]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.client.Client#expectOr" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="expectOr[A](s:String)(onError:org.http4s.Response[F]=&gt;F[Throwable])(implicitd:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="expectOr[A](String)((Response[F])⇒F[Throwable])(EntityDecoder[F,A]):F[A]"></a>
       <span class="permalink">
