@@ -1,4 +1,4 @@
-package org.http4s.util
+package org.http4s.server.blaze
 
 import java.io.ByteArrayInputStream
 import java.security.cert.{CertificateFactory, X509Certificate}
@@ -10,7 +10,7 @@ import scala.util.Try
 /**
   * Based on SSLContextFactory from jetty.
   */
-object SSLContextFactory {
+private[blaze] object SSLContextFactory {
 
   /**
     * Return X509 certificates for the session.
