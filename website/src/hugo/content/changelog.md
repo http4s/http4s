@@ -8,10 +8,41 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.0-M4 (2018-12-05)
+# v0.20.0-M5 (2019-01-11)
 
-Consider the blaze-client beta and all other modules RC quality. Don't forget
+Consider the blaze beta and all other modules RC quality. Don't forget
 there is a scalafix to assist migration from 0.18!
+
+## Breaking changes
+* [#2308](https://github.com/http4s/http4s/pull/2308): Change `allocate` to `allocated` on backend builders for consistency with `cats.effect.Resource#allocated`.
+* [#2332](https://github.com/http4s/http4s/pull/2332): Make double slashes behave more reasonably in the DSL.
+
+## Enhancements
+* [#2309](https://github.com/http4s/http4s/pull/2308): Specialize `TimeoutException` to `WaitQueueTimeoutException` in client pool manager.  Do not retry this by default in `Retry` middleware.
+* [#2342](https://github.com/http4s/http4s/pull/2342): Add `expectOption` and `expectOptionOr` which behave like `expect` and `expectOr` respectively, but return `None` on `404` and `410` responses and `Some[A]` on other successful responses.  Other status codes still raise an error.
+* [#2328](https://github.com/http4s/http4s/pull/2328): Add a `SecureSession` attribute to server requests to expose the SSL session ID, the cipher suite, the key size, and a list of X509 certificates.
+
+## Enhancements
+* [#2337](https://github.com/http4s/http4s/pull/2337): Use `tut:silent` on imports in docs
+* [#2336](https://github.com/http4s/http4s/pull/2336): Add example of building a server from a `Resource`
+
+## Internal
+* [#2310](https://github.com/http4s/http4s/pull/2310): Use max of 16 cores in `-Ybackend-parallelism`
+* [#2332](https://github.com/http4s/http4s/pull/2332): Don't make `F` evidence parameter a val in jetty-client `ResponseListener`.
+
+## Dependency upgrades
+* blaze-0.14.0-M2
+* circe-0.11.0
+* jawn-0.14.1
+* jawn-fs2-0.14.1
+* json4s-3.6.3
+* metrics-4.0.5
+* okhttp-3.12.1
+* play-json-2.6.13
+* scalafix-0.9.1 (scalafix only)
+* tomcat-9.0.14
+
+# v0.20.0-M4 (2018-12-05)
 
 ## Bugfixes
 * [#2283](https://github.com/http4s/http4s/pull/2283): Fix client metrics bug that decremented active requests and recorded time before the resource was released.
