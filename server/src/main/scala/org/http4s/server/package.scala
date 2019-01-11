@@ -31,6 +31,10 @@ package object server {
     val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
   }
 
+  object ServerRequestKeys {
+    val SecureSession: AttributeKey[Option[SecureSession]] = AttributeKey[Option[SecureSession]]
+  }
+
   /**
     * A middleware is a function of one [[Service]] to another, possibly of a
     * different [[Request]] and [[Response]] type.  http4s comes with several
