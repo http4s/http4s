@@ -96,10 +96,10 @@ final case class KeyStoreBits(
     keyManagerPassword: String,
     protocol: String,
     trustStore: Option[StoreInfo],
-    clientAuth: SSLClientAuthMode.Value)
+    clientAuth: SSLClientAuthMode)
     extends SSLConfig
 
-final case class SSLContextBits(sslContext: SSLContext, clientAuth: SSLClientAuthMode.Value)
+final case class SSLContextBits(sslContext: SSLContext, clientAuth: SSLClientAuthMode)
     extends SSLConfig
 
 object SSLKeyStoreSupport {

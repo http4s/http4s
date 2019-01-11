@@ -68,14 +68,14 @@ sealed class JettyBuilder[F[_]] private (
       keyManagerPassword: String,
       protocol: String = "TLS",
       trustStore: Option[StoreInfo] = None,
-      clientAuth: SSLClientAuthMode.Value = SSLClientAuthMode.NotRequested
+      clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested
   ): Self =
     copy(
       sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
 
   def withSSLContext(
       sslContext: SSLContext,
-      clientAuth: SSLClientAuthMode.Value = SSLClientAuthMode.NotRequested): Self =
+      clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -177,17 +177,17 @@ sealed class JettyBuilder[F[_]] private (
 
   private def updateClientAuth(
       sslContextFactory: SslContextFactory,
-      clientAuthMode: SSLClientAuthMode.Value): Unit =
+      clientAuthMode: SSLClientAuthMode): Unit =
     clientAuthMode match {
       case SSLClientAuthMode.NotRequested =>
         sslContextFactory.setWantClientAuth(false)
         sslContextFactory.setNeedClientAuth(false)
 
       case SSLClientAuthMode.Requested =>
-        sslContextFactory.setWantClientAuth(false)
+        sslContextFactory.setWantClientAuth(true)
 
       case SSLClientAuthMode.Required =>
-        sslContextFactory.setNeedClientAuth(false)
+        sslContextFactory.setNeedClientAuth(true)
     }
 
   def resource: Resource[F, Server[F]] =

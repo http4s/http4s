@@ -65,7 +65,7 @@ sealed class TomcatBuilder[F[_]] private (
       keyManagerPassword: String,
       protocol: String = "TLS",
       trustStore: Option[StoreInfo] = None,
-      clientAuth: SSLClientAuthMode.Value = SSLClientAuthMode.NotRequested): Self =
+      clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
     copy(
       sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
 
