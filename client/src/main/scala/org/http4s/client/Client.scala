@@ -125,6 +125,10 @@ trait Client[F[_]] {
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
+  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
+      implicit d: EntityDecoder[F, A]): F[Option[A]]
+  def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
+
   /**
     * Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
