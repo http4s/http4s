@@ -137,7 +137,7 @@ class BlazeServerMtlsSpec extends Http4sSpec {
       }
 
       "fail for invalid client auth" in {
-        get("/dummy", clientAuth = false) shouldEqual "Connection reset"
+        get("/dummy", clientAuth = false) shouldNotEqual "CN=Test,OU=Test,O=Test,L=CA,ST=CA,C=US"
       }
     }
   }
