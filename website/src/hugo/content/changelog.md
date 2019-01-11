@@ -22,7 +22,7 @@ there is a scalafix to assist migration from 0.18!
 * [#2342](https://github.com/http4s/http4s/pull/2342): Add `expectOption` and `expectOptionOr` which behave like `expect` and `expectOr` respectively, but return `None` on `404` and `410` responses and `Some[A]` on other successful responses.  Other status codes still raise an error.
 * [#2328](https://github.com/http4s/http4s/pull/2328): Add a `SecureSession` attribute to server requests to expose the SSL session ID, the cipher suite, the key size, and a list of X509 certificates.
 
-## Enhancements
+## Documentation
 * [#2337](https://github.com/http4s/http4s/pull/2337): Use `tut:silent` on imports in docs
 * [#2336](https://github.com/http4s/http4s/pull/2336): Add example of building a server from a `Resource`
 
