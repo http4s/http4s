@@ -138,12 +138,14 @@ class BlazeServerBuilder[F[_]](
       keyManagerPassword: String,
       protocol: String = "TLS",
       trustStore: Option[StoreInfo] = None,
-      clientAuth: Boolean = false): Self = {
+      clientAuth: SSLClientAuthMode.Value = SSLClientAuthMode.NotRequested): Self = {
     val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
     copy(sslBits = Some(bits))
   }
 
-  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self =
+  def withSSLContext(
+      sslContext: SSLContext,
+      clientAuth: SSLClientAuthMode.Value = SSLClientAuthMode.NotRequested): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -264,7 +266,18 @@ class BlazeServerBuilder[F[_]](
               case Some((ctx, clientAuth)) =>
                 val engine = ctx.createSSLEngine()
                 engine.setUseClientMode(false)
-                engine.setNeedClientAuth(clientAuth)
+
+                clientAuth match {
+                  case SSLClientAuthMode.NotRequested =>
+                    engine.setWantClientAuth(false)
+                    engine.setNeedClientAuth(false)
+
+                  case SSLClientAuthMode.Requested =>
+                    engine.setWantClientAuth(true)
+
+                  case SSLClientAuthMode.Required =>
+                    engine.setNeedClientAuth(true)
+                }
 
                 LeafBuilder(
                   if (isHttp2Enabled) http2Stage(engine)
@@ -317,7 +330,7 @@ class BlazeServerBuilder[F[_]](
     })
   }
 
-  private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
+  private def getContext(): Option[(SSLContext, SSLClientAuthMode.Value)] = sslBits.map {
     case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
       val ksStream = new FileInputStream(keyStore.path)
       val ks = KeyStore.getInstance("JKS")

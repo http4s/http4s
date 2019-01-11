@@ -7,8 +7,7 @@ import java.security.KeyStore
 import cats.effect.{IO, Resource}
 import javax.net.ssl._
 import org.http4s.dsl.io._
-import org.http4s.server.Server
-import org.http4s.server.ServerRequestKeys
+import org.http4s.server.{SSLClientAuthMode, Server, ServerRequestKeys}
 import org.http4s.{Http4sSpec, HttpApp}
 
 import scala.concurrent.duration._
@@ -54,7 +53,7 @@ class BlazeServerMtlsSpec extends Http4sSpec {
   val serverR: Resource[IO, Server[IO]] =
     builder
       .bindAny()
-      .withSSLContext(sslContext, clientAuth = true)
+      .withSSLContext(sslContext, clientAuth = SSLClientAuthMode.Required)
       .withHttpApp(service)
       .resource
 

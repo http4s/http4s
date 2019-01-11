@@ -68,12 +68,14 @@ sealed class JettyBuilder[F[_]] private (
       keyManagerPassword: String,
       protocol: String = "TLS",
       trustStore: Option[StoreInfo] = None,
-      clientAuth: Boolean = false
+      clientAuth: SSLClientAuthMode.Value = SSLClientAuthMode.NotRequested
   ): Self =
     copy(
       sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
 
-  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self =
+  def withSSLContext(
+      sslContext: SSLContext,
+      clientAuth: SSLClientAuthMode.Value = SSLClientAuthMode.NotRequested): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -151,8 +153,8 @@ sealed class JettyBuilder[F[_]] private (
         sslContextFactory.setKeyStorePath(keyStore.path)
         sslContextFactory.setKeyStorePassword(keyStore.password)
         sslContextFactory.setKeyManagerPassword(keyManagerPassword)
-        sslContextFactory.setNeedClientAuth(clientAuth)
         sslContextFactory.setProtocol(protocol)
+        updateClientAuth(sslContextFactory, clientAuth)
 
         trustStore.foreach { trustManagerBits =>
           sslContextFactory.setTrustStorePath(trustManagerBits.path)
@@ -164,7 +166,7 @@ sealed class JettyBuilder[F[_]] private (
       case Some(SSLContextBits(sslContext, clientAuth)) =>
         val sslContextFactory = new SslContextFactory()
         sslContextFactory.setSslContext(sslContext)
-        sslContextFactory.setNeedClientAuth(clientAuth)
+        updateClientAuth(sslContextFactory, clientAuth)
 
         httpsConnector(sslContextFactory)
 
@@ -172,6 +174,21 @@ sealed class JettyBuilder[F[_]] private (
         new ServerConnector(jetty)
     }
   }
+
+  private def updateClientAuth(
+      sslContextFactory: SslContextFactory,
+      clientAuthMode: SSLClientAuthMode.Value): Unit =
+    clientAuthMode match {
+      case SSLClientAuthMode.NotRequested =>
+        sslContextFactory.setWantClientAuth(false)
+        sslContextFactory.setNeedClientAuth(false)
+
+      case SSLClientAuthMode.Requested =>
+        sslContextFactory.setWantClientAuth(false)
+
+      case SSLClientAuthMode.Required =>
+        sslContextFactory.setNeedClientAuth(false)
+    }
 
   def resource: Resource[F, Server[F]] =
     Resource(F.delay {
