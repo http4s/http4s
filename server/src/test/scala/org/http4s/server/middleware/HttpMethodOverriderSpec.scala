@@ -184,7 +184,7 @@ class HttpMethodOverriderSpec extends Http4sSpec {
       res must returnBody(
         mkResponseText(msg = "resource updated", reqMethod = PUT, overriddenMethod = Some(POST)))
 
-      res must returnValue(containHeader(Header(varyHeader, s"$customHeader, $overrideHeader")))
+      res must returnValue(containsHeader(Header(varyHeader, s"$customHeader, $overrideHeader")))
     }
 
     "set vary header when using query method overrider strategy and vary header has not been set" in {
@@ -198,7 +198,7 @@ class HttpMethodOverriderSpec extends Http4sSpec {
       res must returnBody(
         mkResponseText(msg = "resource deleted", reqMethod = DELETE, overriddenMethod = Some(POST)))
 
-      res must returnValue(containHeader(Header(varyHeader, s"$overrideHeader")))
+      res must returnValue(containsHeader(Header(varyHeader, s"$overrideHeader")))
     }
   }
 }
