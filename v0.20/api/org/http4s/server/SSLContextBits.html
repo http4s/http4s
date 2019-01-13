@@ -256,6 +256,10 @@ for serious static content serving.
                         <a class="object" href="Router$.html" title=""></a>
                         <a href="Router$.html" title="">Router</a>
                       </li><li class="current-entities indented3">
+                        <a class="object" href="SSLClientAuthMode$.html" title=""></a>
+                        <a class="trait" href="SSLClientAuthMode.html" title="Client Auth mode for mTLS"></a>
+                        <a href="SSLClientAuthMode.html" title="Client Auth mode for mTLS">SSLClientAuthMode</a>
+                      </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="SSLConfig.html" title=""></a>
                         <a href="SSLConfig.html" title="">SSLConfig</a>
@@ -310,7 +314,7 @@ for serious static content serving.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">SSLContextBits</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">SSLContextBits</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <a href="SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>)</span><span class="result"> extends <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -371,9 +375,9 @@ for serious static content serving.
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.SSLContextBits#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(sslContext:javax.net.ssl.SSLContext,clientAuth:Boolean):org.http4s.server.SSLContextBits"></a><a id="&lt;init&gt;:SSLContextBits"></a>
+      <a id="&lt;init&gt;(sslContext:javax.net.ssl.SSLContext,clientAuth:org.http4s.server.SSLClientAuthMode):org.http4s.server.SSLContextBits"></a><a id="&lt;init&gt;:SSLContextBits"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLContextBits.html#&lt;init&gt;(sslContext:javax.net.ssl.SSLContext,clientAuth:Boolean):org.http4s.server.SSLContextBits" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#&lt;init&gt;(sslContext:javax.net.ssl.SSLContext,clientAuth:org.http4s.server.SSLClientAuthMode):org.http4s.server.SSLContextBits" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -382,7 +386,7 @@ for serious static content serving.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">SSLContextBits</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span>
+        <span class="name">SSLContextBits</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <a href="SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>)</span>
       </span>
       
       
@@ -504,9 +508,9 @@ for serious static content serving.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.server.SSLContextBits#clientAuth" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="clientAuth:Boolean"></a>
+      <a id="clientAuth:org.http4s.server.SSLClientAuthMode"></a><a id="clientAuth:SSLClientAuthMode"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLContextBits.html#clientAuth:Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#clientAuth:org.http4s.server.SSLClientAuthMode" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -515,7 +519,7 @@ for serious static content serving.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">clientAuth</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">clientAuth</span><span class="result">: <a href="SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>
       </span>
       
       

@@ -257,8 +257,8 @@ for serious static content serving.
                         <a href="Router$.html" title="">Router</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="SSLClientAuthMode$.html" title=""></a>
-                        <a class="trait" href="SSLClientAuthMode.html" title="Client Auth mode for mTLS"></a>
-                        <a href="SSLClientAuthMode.html" title="Client Auth mode for mTLS">SSLClientAuthMode</a>
+                        <a class="trait" href="" title="Client Auth mode for mTLS"></a>
+                        <a href="" title="Client Auth mode for mTLS">SSLClientAuthMode</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="SSLConfig.html" title=""></a>
@@ -280,7 +280,7 @@ for serious static content serving.
                         <a class="class" href="Server.html" title=""></a>
                         <a href="Server.html" title="">Server</a>
                       </li><li class="current-entities indented3">
-                        <a class="object" href="" title=""></a>
+                        <a class="object" href="ServerBuilder$.html" title=""></a>
                         <a class="trait" href="ServerBuilder.html" title=""></a>
                         <a href="ServerBuilder.html" title="">ServerBuilder</a>
                       </li><li class="current-entities indented3">
@@ -296,37 +296,43 @@ for serious static content serving.
             </div>
           </div>
           <div id="content">
-            <body class="object value">
+            <body class="trait type">
       <div id="definition">
-        <a href="ServerBuilder.html" title="See companion trait"><div class="big-circle object-companion-trait">o</div></a>
+        <a href="SSLClientAuthMode$.html" title="See companion object"><div class="big-circle trait-companion-object">t</div></a>
         <p id="owner"><a href="../../index.html" class="extype" name="org">org</a>.<a href="../index.html" class="extype" name="org.http4s">http4s</a>.<a href="index.html" class="extype" name="org.http4s.server">server</a></p>
-        <h1><a href="ServerBuilder.html" title="See companion trait">ServerBuilder</a><span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html" title="Permalink">
+        <h1><a href="SSLClientAuthMode$.html" title="See companion object">SSLClientAuthMode</a><span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
         <h3><span class="morelinks"><div>
-            Companion <a href="ServerBuilder.html" title="See companion trait">trait ServerBuilder</a>
+            Companion <a href="SSLClientAuthMode$.html" title="See companion object">object SSLClientAuthMode</a>
           </div></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerBuilder</span>
+        <span class="name">SSLClientAuthMode</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/ServerBuilder.scala" target="_blank">ServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Client Auth mode for mTLS
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/SSLClientAuthMode.scala" target="_blank">SSLClientAuthMode.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
-        </div></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+        </div><div class="toggleContainer block">
+            <span class="toggle">
+              Known Subclasses
+            </span>
+            <div class="subClasses hiddenContent"><a href="SSLClientAuthMode$$NotRequested$.html" class="extype" name="org.http4s.server.SSLClientAuthMode.NotRequested">NotRequested</a>, <a href="SSLClientAuthMode$$Requested$.html" class="extype" name="org.http4s.server.SSLClientAuthMode.Requested">Requested</a>, <a href="SSLClientAuthMode$$Required$.html" class="extype" name="org.http4s.server.SSLClientAuthMode.Required">Required</a></div>
+          </div></div>
         
 
       <div id="mbrsel">
@@ -351,7 +357,12 @@ for serious static content serving.
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.SSLClientAuthMode"><span>SSLClientAuthMode</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  </ol>
+                </div><div class="ancestors">
+                  <span class="filtertype">Implicitly<br />
+                  </span>
+                  <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -373,15 +384,66 @@ for serious static content serving.
 
         
 
-        
+        <div class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="scala.Equals#canEqual" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="canEqual(that:Any):Boolean"></a><a id="canEqual(Any):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#canEqual(that:Any):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">canEqual</span><span class="params">(<span name="that">that: <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Equals</dd></dl></div>
+    </li><li name="scala.Product#productArity" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="productArity:Int"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#productArity:Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">productArity</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
+    </li><li name="scala.Product#productElement" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="productElement(n:Int):Any"></a><a id="productElement(Int):Any"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#productElement(n:Int):Any" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">productElement</span><span class="params">(<span name="n">n: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
+    </li></ol>
+            </div>
 
         <div class="values members">
-              <h3>Value Members</h3>
+              <h3>Concrete Value Members</h3>
               <ol>
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -397,7 +459,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html###():Int" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -410,10 +472,53 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="+(other:String):String"></a><a id="+(String):String"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#+(other:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>] performed by method any2stringadd in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(SSLClientAuthMode,B)"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#-&gt;[B](y:B):(A,B)" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -429,7 +534,7 @@ for serious static content serving.
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -445,7 +550,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#clone():Object" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -466,10 +571,90 @@ for serious static content serving.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((SSLClientAuthMode)⇒Boolean,⇒Any):SSLClientAuthMode"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((SSLClientAuthMode)⇒Boolean):SSLClientAuthMode"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):SSLClientAuthMode"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):SSLClientAuthMode"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#ensuring(cond:Boolean):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>] performed by method Ensuring in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -485,7 +670,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -501,7 +686,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#finalize():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -520,10 +705,33 @@ for serious static content serving.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#formatted(fmtstr:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>] performed by method StringFormat in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -542,7 +750,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#hashCode():Int" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -561,7 +769,7 @@ for serious static content serving.
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -577,7 +785,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -593,7 +801,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#notify():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -612,7 +820,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -628,10 +836,42 @@ for serious static content serving.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="scala.Product#productIterator" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="productIterator:Iterator[Any]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#productIterator:Iterator[Any]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">productIterator</span><span class="result">: <span class="extype" name="scala.Iterator">Iterator</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
+    </li><li name="scala.Product#productPrefix" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="productPrefix:String"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#productPrefix:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">productPrefix</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -647,7 +887,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#toString():String" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -663,7 +903,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#wait():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -685,7 +925,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -707,7 +947,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -728,120 +968,66 @@ for serious static content serving.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(SSLClientAuthMode,B)"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLClientAuthMode.html#→[B](y:B):(A,B)" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
               </ol>
             </div>
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.server.ServerBuilder#DefaultBanner" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DefaultBanner:List[String]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#DefaultBanner:List[String]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use org.http4s.server.defaults.Banner">DefaultBanner</span><span class="result">: <span class="extype" name="scala.List">List</span>[<span class="extype" name="java.lang.String">String</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use org.http4s.server.defaults.Banner</p></dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#DefaultHost" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DefaultHost:String"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#DefaultHost:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use org.http4s.server.defaults.Host">DefaultHost</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use org.http4s.server.defaults.Host</p></dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#DefaultHttpPort" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DefaultHttpPort:Int"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#DefaultHttpPort:Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use org.http4s.server.defaults.HttpPort">DefaultHttpPort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use org.http4s.server.defaults.HttpPort</p></dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#DefaultSocketAddress" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DefaultSocketAddress:java.net.InetSocketAddress"></a><a id="DefaultSocketAddress:InetSocketAddress"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#DefaultSocketAddress:java.net.InetSocketAddress" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use org.http4s.server.defaults.SocketAddress">DefaultSocketAddress</span><span class="result">: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use org.http4s.server.defaults.SocketAddress</p></dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#LoopbackAddress" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="LoopbackAddress:String"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder$.html#LoopbackAddress:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.20.0-M2) Use InetAddress.getLoopbackAddress.getHostAddress">LoopbackAddress</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.0-M2)</i> Use InetAddress.getLoopbackAddress.getHostAddress</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
-        
+        <div class="conversion" name="scala.Predef.any2stringadd">
+              <h3>Inherited by implicit conversion any2stringadd from
+                <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.StringFormat">
+              <h3>Inherited by implicit conversion StringFormat from
+                <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.Ensuring">
+              <h3>Inherited by implicit conversion Ensuring from
+                <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.ArrowAssoc">
+              <h3>Inherited by implicit conversion ArrowAssoc from
+                <a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a>]
+              </h3>
+            </div>
         </div>
 
         <div id="groupedMembers">

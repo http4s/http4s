@@ -503,6 +503,10 @@ for serious static content serving.
                         <a class="object" href="Router$.html" title=""></a>
                         <a href="Router$.html" title="">Router</a>
                       </li><li class="current-entities indented3">
+                        <a class="object" href="SSLClientAuthMode$.html" title=""></a>
+                        <a class="trait" href="SSLClientAuthMode.html" title="Client Auth mode for mTLS"></a>
+                        <a href="SSLClientAuthMode.html" title="Client Auth mode for mTLS">SSLClientAuthMode</a>
+                      </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="SSLConfig.html" title=""></a>
                         <a href="SSLConfig.html" title="">SSLConfig</a>
@@ -754,7 +758,7 @@ for serious static content serving.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="KeyStoreBits.html"><span class="name">KeyStoreBits</span></a><span class="params">(<span name="keyStore">keyStore: <a href="SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a></span>, <span name="keyManagerPassword">keyManagerPassword: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="protocol">protocol: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="trustStore">trustStore: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a>]</span>, <span name="clientAuth">clientAuth: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="KeyStoreBits.html"><span class="name">KeyStoreBits</span></a><span class="params">(<span name="keyStore">keyStore: <a href="SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a></span>, <span name="keyManagerPassword">keyManagerPassword: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="protocol">protocol: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="trustStore">trustStore: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a>]</span>, <span name="clientAuth">clientAuth: <a href="SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>)</span><span class="result"> extends <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -778,6 +782,23 @@ different <a href="../Request.html" class="extype" name="org.http4s.Request">Req
 different <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a> and <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> type.  http4s comes with several
 middlewares for composing common functionality into services.
 </p></div></div>
+    </li><li name="org.http4s.server.SSLClientAuthMode" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SSLClientAuthModeextendsProductwithSerializable"></a><a id="SSLClientAuthMode:SSLClientAuthMode"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/index.html#SSLClientAuthModeextendsProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="Client Auth mode for mTLS" href="SSLClientAuthMode.html"><span class="name">SSLClientAuthMode</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Client Auth mode for mTLS
+</p>
     </li><li name="org.http4s.server.SSLConfig" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="SSLConfigextendsAnyRef"></a><a id="SSLConfig:SSLConfig"></a>
       <span class="permalink">
@@ -806,7 +827,7 @@ middlewares for composing common functionality into services.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="SSLContextBits.html"><span class="name">SSLContextBits</span></a><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="SSLContextBits.html"><span class="name">SSLContextBits</span></a><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <a href="SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a></span>)</span><span class="result"> extends <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -996,6 +1017,22 @@ middlewares for composing common functionality into services.
       </span>
       <span class="symbol">
         <a title="" href="Router$.html"><span class="name">Router</span></a>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.SSLClientAuthMode" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SSLClientAuthMode"></a><a id="SSLClientAuthMode:SSLClientAuthMode"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/index.html#SSLClientAuthMode" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="SSLClientAuthMode$.html"><span class="name">SSLClientAuthMode</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       

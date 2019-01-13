@@ -1096,9 +1096,9 @@ for example, an infinite request line.
       
       
     </li><li name="org.http4s.server.blaze.BlazeBuilder#withSSL" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withSSL(keyStore:org.http4s.server.SSLKeyStoreSupport.StoreInfo,keyManagerPassword:String,protocol:String,trustStore:Option[org.http4s.server.SSLKeyStoreSupport.StoreInfo],clientAuth:Boolean):BlazeBuilder.this.Self"></a><a id="withSSL(StoreInfo,String,String,Option[StoreInfo],Boolean):Self"></a>
+      <a id="withSSL(keyStore:org.http4s.server.SSLKeyStoreSupport.StoreInfo,keyManagerPassword:String,protocol:String,trustStore:Option[org.http4s.server.SSLKeyStoreSupport.StoreInfo],clientAuth:org.http4s.server.SSLClientAuthMode):BlazeBuilder.this.Self"></a><a id="withSSL(StoreInfo,String,String,Option[StoreInfo],SSLClientAuthMode):Self"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#withSSL(keyStore:org.http4s.server.SSLKeyStoreSupport.StoreInfo,keyManagerPassword:String,protocol:String,trustStore:Option[org.http4s.server.SSLKeyStoreSupport.StoreInfo],clientAuth:Boolean):BlazeBuilder.this.Self" title="Permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#withSSL(keyStore:org.http4s.server.SSLKeyStoreSupport.StoreInfo,keyManagerPassword:String,protocol:String,trustStore:Option[org.http4s.server.SSLKeyStoreSupport.StoreInfo],clientAuth:org.http4s.server.SSLClientAuthMode):BlazeBuilder.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1107,14 +1107,14 @@ for example, an infinite request line.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withSSL</span><span class="params">(<span name="keyStore">keyStore: <a href="../SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a></span>, <span name="keyManagerPassword">keyManagerPassword: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="protocol">protocol: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;TLS&quot;</span></span>, <span name="trustStore">trustStore: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a>] = <span class="symbol">None</span></span>, <span name="clientAuth">clientAuth: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
+        <span class="name">withSSL</span><span class="params">(<span name="keyStore">keyStore: <a href="../SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a></span>, <span name="keyManagerPassword">keyManagerPassword: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="protocol">protocol: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;TLS&quot;</span></span>, <span name="trustStore">trustStore: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../SSLKeyStoreSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport.StoreInfo">StoreInfo</a>] = <span class="symbol">None</span></span>, <span name="clientAuth">clientAuth: <a href="../SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> = <span class="symbol"><span class="name"><a href="../SSLClientAuthMode$.html">SSLClientAuthMode.NotRequested</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
       </span>
       
       
     </li><li name="org.http4s.server.blaze.BlazeBuilder#withSSLContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withSSLContext(sslContext:javax.net.ssl.SSLContext,clientAuth:Boolean):BlazeBuilder.this.Self"></a><a id="withSSLContext(SSLContext,Boolean):Self"></a>
+      <a id="withSSLContext(sslContext:javax.net.ssl.SSLContext,clientAuth:org.http4s.server.SSLClientAuthMode):BlazeBuilder.this.Self"></a><a id="withSSLContext(SSLContext,SSLClientAuthMode):Self"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#withSSLContext(sslContext:javax.net.ssl.SSLContext,clientAuth:Boolean):BlazeBuilder.this.Self" title="Permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#withSSLContext(sslContext:javax.net.ssl.SSLContext,clientAuth:org.http4s.server.SSLClientAuthMode):BlazeBuilder.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1123,7 +1123,7 @@ for example, an infinite request line.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withSSLContext</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
+        <span class="name">withSSLContext</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <a href="../SSLClientAuthMode.html" class="extype" name="org.http4s.server.SSLClientAuthMode">SSLClientAuthMode</a> = <span class="symbol"><span class="name"><a href="../SSLClientAuthMode$.html">SSLClientAuthMode.NotRequested</a></span></span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
       </span>
       
       
