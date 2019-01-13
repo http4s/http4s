@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.0-M5 (2019-01-11)
+# v0.20.0-M5 (2019-01-12)
 
 Consider the blaze beta and all other modules RC quality. Don't forget
 there is a scalafix to assist migration from 0.18!
@@ -16,6 +16,7 @@ there is a scalafix to assist migration from 0.18!
 ## Breaking changes
 * [#2308](https://github.com/http4s/http4s/pull/2308): Change `allocate` to `allocated` on backend builders for consistency with `cats.effect.Resource#allocated`.
 * [#2332](https://github.com/http4s/http4s/pull/2332): Make double slashes behave more reasonably in the DSL.
+* [#2351](https://github.com/http4s/http4s/pull/2351): Change `clientAuthMode` on server builders from `Boolean` to sum type `SSLClientAuthMode`
 
 ## Enhancements
 * [#2309](https://github.com/http4s/http4s/pull/2308): Specialize `TimeoutException` to `WaitQueueTimeoutException` in client pool manager.  Do not retry this by default in `Retry` middleware.
