@@ -34,6 +34,11 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       m.headers.aka("the headers")
     }
 
+  def containHeader(h: Header): Matcher[Message[F]] =
+    beSome(h.value) ^^ { m: Message[F] =>
+      m.headers.get(h.name).map(_.value).aka("the particular header")
+    }
+
   def haveMediaType(mt: MediaType): Matcher[Message[F]] =
     beSome(mt) ^^ { m: Message[F] =>
       m.headers.get(`Content-Type`).map(_.mediaType).aka("the media type header")
