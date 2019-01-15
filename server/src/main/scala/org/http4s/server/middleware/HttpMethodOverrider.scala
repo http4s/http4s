@@ -4,17 +4,7 @@ import cats.Applicative
 import cats.data.Kleisli
 import cats.implicits._
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.{
-  AttributeKey,
-  Header,
-  Http,
-  HttpApp,
-  Method,
-  ParseResult,
-  Request,
-  Response,
-  Status
-}
+import org.http4s.{AttributeKey, Header, Http, Method, ParseResult, Request, Response, Status}
 
 object HttpMethodOverrider {
 

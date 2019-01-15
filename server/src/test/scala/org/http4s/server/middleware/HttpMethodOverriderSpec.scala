@@ -24,13 +24,13 @@ class HttpMethodOverriderSpec extends Http4sSpec {
 
   private val postHeaderOverriderConfig = defaultConfig
   private val postQueryOverridersConfig =
-    HttpMethodOverriderConfig(queryOverrideStrategy, List(POST))
+    HttpMethodOverriderConfig(queryOverrideStrategy, Set(POST))
   private val deleteHeaderOverriderConfig =
-    HttpMethodOverriderConfig(headerOverrideStrategy, List(DELETE))
+    HttpMethodOverriderConfig(headerOverrideStrategy, Set(DELETE))
   private val deleteQueryOverridersConfig =
-    HttpMethodOverriderConfig(queryOverrideStrategy, List(DELETE))
+    HttpMethodOverriderConfig(queryOverrideStrategy, Set(DELETE))
   private val noMethodHeaderOverriderConfig =
-    HttpMethodOverriderConfig(headerOverrideStrategy, List.empty)
+    HttpMethodOverriderConfig(headerOverrideStrategy, Set.empty)
 
   private val testApp = Router("/" -> HttpRoutes.of[IO] {
     case r @ GET -> Root / "resources" / "id" =>
@@ -141,13 +141,13 @@ class HttpMethodOverriderSpec extends Http4sSpec {
       res must returnStatus(Status.BadRequest)
     }
 
-    "return 405 when using query method overrider strategy if override method provided is duped" in {
+    "return 400 when using query method overrider strategy if override method provided is duped" in {
       val req = Request[IO](uri = Uri.uri("/resources/id?_method="))
         .withMethod(POST)
       val app = HttpMethodOverrider(testApp, postQueryOverridersConfig)
 
       val res = app(req)
-      res must returnStatus(Status.MethodNotAllowed)
+      res must returnStatus(Status.BadRequest)
     }
 
     "override request method when using header method overrider strategy and be case insensitive" in {
