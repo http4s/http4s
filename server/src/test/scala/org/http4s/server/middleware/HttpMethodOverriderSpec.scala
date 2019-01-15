@@ -131,14 +131,14 @@ class HttpMethodOverriderSpec extends Http4sSpec {
       res must returnStatus(Status.NotFound)
     }
 
-    "return 405 when using header method overrider strategy if override method provided is duped" in {
+    "return 400 when using header method overrider strategy if override method provided is duped" in {
       val req = Request[IO](uri = Uri.uri("/resources/id"))
         .withMethod(POST)
         .withHeaders(Header(overrideHeader, ""))
       val app = HttpMethodOverrider(testApp, postHeaderOverriderConfig)
 
       val res = app(req)
-      res must returnStatus(Status.MethodNotAllowed)
+      res must returnStatus(Status.BadRequest)
     }
 
     "return 405 when using query method overrider strategy if override method provided is duped" in {
