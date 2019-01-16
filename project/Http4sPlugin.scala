@@ -57,8 +57,6 @@ object Http4sPlugin extends AutoPlugin {
     http4sApiVersion in ThisBuild := (version in ThisBuild).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-    coverageEnabled := isTravisBuild.value && http4sPrimary.value,
-    coverageHighlighting := true,
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   ) ++ signingSettings
 
@@ -179,7 +177,8 @@ object Http4sPlugin extends AutoPlugin {
         inquireVersions.when(release),
         setReleaseVersion.when(release),
         tagRelease.when(primary && release),
-        runTestWithCoverage,
+        runClean,
+        runTest,
         releaseStepCommand("mimaReportBinaryIssues"),
         releaseStepCommand("unusedCompileDependenciesTest"),
         releaseStepCommand("test:scalafmt::test").when(primary),
