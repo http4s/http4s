@@ -53,6 +53,7 @@ object Http4sPlugin extends AutoPlugin {
            case _ => false
          })
     },
+    coverageEnabled := false
     http4sMasterBranch := sys.env.get("TRAVIS_BRANCH") == Some("master"),
     http4sApiVersion in ThisBuild := (version in ThisBuild).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
