@@ -1,34 +1,35 @@
 package org.http4s.server.middleware
 
 import cats.effect.IO
+import cats.~>
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.Router
-import org.http4s.server.middleware.HttpMethodOverrider.{
-  HeaderOverrideStrategy,
-  HttpMethodOverriderConfig,
-  QueryOverrideStrategy,
-  defaultConfig
-}
+import org.http4s.server.middleware.HttpMethodOverrider._
 import org.http4s.util.CaseInsensitiveString
 
 class HttpMethodOverriderSpec extends Http4sSpec {
 
   private final val overrideHeader = "X-HTTP-Method-Override"
-  private final val overrideParam = "_method"
+  private final val overrideParam, overrideField: String = "_method"
   private final val varyHeader = "Vary"
   private final val customHeader = "X-Custom-Header"
 
   private val headerOverrideStrategy = HeaderOverrideStrategy(CaseInsensitiveString(overrideHeader))
   private val queryOverrideStrategy = QueryOverrideStrategy(overrideParam)
+  private val formOverrideStrategy = FormOverrideStrategy(overrideParam, λ[IO ~> IO](i => i))
 
   private val postHeaderOverriderConfig = defaultConfig
-  private val postQueryOverridersConfig =
+  private val postQueryOverriderConfig =
     HttpMethodOverriderConfig(queryOverrideStrategy, Set(POST))
+  private val postFormOverriderConfig =
+    HttpMethodOverriderConfig(formOverrideStrategy, Set(POST))
   private val deleteHeaderOverriderConfig =
     HttpMethodOverriderConfig(headerOverrideStrategy, Set(DELETE))
-  private val deleteQueryOverridersConfig =
+  private val deleteQueryOverriderConfig =
     HttpMethodOverriderConfig(queryOverrideStrategy, Set(DELETE))
+  private val deleteFormOverriderConfig =
+    HttpMethodOverriderConfig(formOverrideStrategy, Set(DELETE))
   private val noMethodHeaderOverriderConfig =
     HttpMethodOverriderConfig(headerOverrideStrategy, Set.empty)
 
@@ -90,10 +91,10 @@ class HttpMethodOverriderSpec extends Http4sSpec {
         mkResponseText(msg = "resource deleted", reqMethod = DELETE, overriddenMethod = None))
     }
 
-    "override request method and store the original method if using query method overrider strategy" in {
+    "override request method and store the original method when using query method overrider strategy" in {
       val req = Request[IO](uri = Uri.uri("/resources/id?_method=PUT"))
         .withMethod(POST)
-      val app = HttpMethodOverrider(testApp, postQueryOverridersConfig)
+      val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
 
       val res = app(req)
       res must returnStatus(Status.Ok)
@@ -104,7 +105,33 @@ class HttpMethodOverriderSpec extends Http4sSpec {
     "not override request method when using query method overrider strategy if override method not provided" in {
       val req = Request[IO](uri = Uri.uri("/resources/id"))
         .withMethod(DELETE)
-      val app = HttpMethodOverrider(testApp, deleteQueryOverridersConfig)
+      val app = HttpMethodOverrider(testApp, deleteQueryOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.Ok)
+      res must returnBody(
+        mkResponseText(msg = "resource deleted", reqMethod = DELETE, overriddenMethod = None))
+    }
+
+    "override request method and store the original method when using form method overrider strategy" in {
+      val urlForm = UrlForm("foo" -> "bar", overrideField -> "PUT")
+      val req = Request[IO](uri = Uri.uri("/resources/id"))
+        .withEntity(urlForm)
+        .withMethod(POST)
+      val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.Ok)
+      res must returnBody(
+        mkResponseText(msg = "resource updated", reqMethod = PUT, overriddenMethod = Some(POST)))
+    }
+
+    "not override request method when using form method overrider strategy if override method not provided" in {
+      val urlForm = UrlForm("foo" -> "bar")
+      val req = Request[IO](uri = Uri.uri("/resources/id"))
+        .withEntity(urlForm)
+        .withMethod(DELETE)
+      val app = HttpMethodOverrider(testApp, deleteFormOverriderConfig)
 
       val res = app(req)
       res must returnStatus(Status.Ok)
@@ -125,7 +152,18 @@ class HttpMethodOverriderSpec extends Http4sSpec {
     "return 404 when using query method overrider strategy if override method provided is not recognized" in {
       val req = Request[IO](uri = Uri.uri("/resources/id?_method=INVALID"))
         .withMethod(POST)
-      val app = HttpMethodOverrider(testApp, postQueryOverridersConfig)
+      val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.NotFound)
+    }
+
+    "return 404 when using form method overrider strategy if override method provided is not recognized" in {
+      val urlForm = UrlForm("foo" -> "bar", overrideField -> "INVALID")
+      val req = Request[IO](uri = Uri.uri("/resources/id"))
+        .withEntity(urlForm)
+        .withMethod(POST)
+      val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
       val res = app(req)
       res must returnStatus(Status.NotFound)
@@ -144,7 +182,18 @@ class HttpMethodOverriderSpec extends Http4sSpec {
     "return 400 when using query method overrider strategy if override method provided is duped" in {
       val req = Request[IO](uri = Uri.uri("/resources/id?_method="))
         .withMethod(POST)
-      val app = HttpMethodOverrider(testApp, postQueryOverridersConfig)
+      val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.BadRequest)
+    }
+
+    "return 400 when using form method overrider strategy if override method provided is duped" in {
+      val urlForm = UrlForm("foo" -> "bar", overrideField -> "")
+      val req = Request[IO](uri = Uri.uri("/resources/id"))
+        .withEntity(urlForm)
+        .withMethod(POST)
+      val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
       val res = app(req)
       res must returnStatus(Status.BadRequest)
@@ -165,7 +214,20 @@ class HttpMethodOverriderSpec extends Http4sSpec {
     "override request method when using query method overrider strategy and be case insensitive" in {
       val req = Request[IO](uri = Uri.uri("/resources/id?_method=pUt"))
         .withMethod(POST)
-      val app = HttpMethodOverrider(testApp, postQueryOverridersConfig)
+      val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.Ok)
+      res must returnBody(
+        mkResponseText(msg = "resource updated", reqMethod = PUT, overriddenMethod = Some(POST)))
+    }
+
+    "override request method when form query method overrider strategy and be case insensitive" in {
+      val urlForm = UrlForm("foo" -> "bar", overrideField -> "pUt")
+      val req = Request[IO](uri = Uri.uri("/resources/id"))
+        .withEntity(urlForm)
+        .withMethod(POST)
+      val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
 
       val res = app(req)
       res must returnStatus(Status.Ok)
@@ -187,7 +249,7 @@ class HttpMethodOverriderSpec extends Http4sSpec {
       res must returnValue(containsHeader(Header(varyHeader, s"$customHeader, $overrideHeader")))
     }
 
-    "set vary header when using query method overrider strategy and vary header has not been set" in {
+    "set vary header when using header method overrider strategy and vary header has not been set" in {
       val req = Request[IO](uri = Uri.uri("/resources/id"))
         .withMethod(POST)
         .withHeaders(Header(overrideHeader, "DELETE"))
@@ -199,6 +261,62 @@ class HttpMethodOverriderSpec extends Http4sSpec {
         mkResponseText(msg = "resource deleted", reqMethod = DELETE, overriddenMethod = Some(POST)))
 
       res must returnValue(containsHeader(Header(varyHeader, s"$overrideHeader")))
+    }
+
+    "not set vary header when using query method overrider strategy and vary header has not been set" in {
+      val req = Request[IO](uri = Uri.uri("/resources/id?_method=DELETE"))
+        .withMethod(POST)
+      val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.Ok)
+      res must returnBody(
+        mkResponseText(msg = "resource deleted", reqMethod = DELETE, overriddenMethod = Some(POST)))
+
+      res must returnValue(doesntContainHeader(CaseInsensitiveString(varyHeader)))
+    }
+
+    "not update vary header when using query method overrider strategy and vary header comes pre-populated" in {
+      val req = Request[IO](uri = Uri.uri("/resources/id?_method=PUT"))
+        .withMethod(POST)
+      val app = HttpMethodOverrider(testApp, postQueryOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.Ok)
+      res must returnBody(
+        mkResponseText(msg = "resource updated", reqMethod = PUT, overriddenMethod = Some(POST)))
+
+      res must returnValue(containsHeader(Header(varyHeader, s"$customHeader")))
+    }
+
+    "not set vary header when using form method overrider strategy and vary header has not been set" in {
+      val urlForm = UrlForm("foo" -> "bar", overrideField -> "DELETE")
+      val req = Request[IO](uri = Uri.uri("/resources/id"))
+        .withEntity(urlForm)
+        .withMethod(POST)
+      val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.Ok)
+      res must returnBody(
+        mkResponseText(msg = "resource deleted", reqMethod = DELETE, overriddenMethod = Some(POST)))
+
+      res must returnValue(doesntContainHeader(CaseInsensitiveString(varyHeader)))
+    }
+
+    "not update vary header when using form method overrider strategy and vary header comes pre-populated" in {
+      val urlForm = UrlForm("foo" -> "bar", overrideField -> "PUT")
+      val req = Request[IO](uri = Uri.uri("/resources/id"))
+        .withEntity(urlForm)
+        .withMethod(POST)
+      val app = HttpMethodOverrider(testApp, postFormOverriderConfig)
+
+      val res = app(req)
+      res must returnStatus(Status.Ok)
+      res must returnBody(
+        mkResponseText(msg = "resource updated", reqMethod = PUT, overriddenMethod = Some(POST)))
+
+      res must returnValue(containsHeader(Header(varyHeader, s"$customHeader")))
     }
   }
 }

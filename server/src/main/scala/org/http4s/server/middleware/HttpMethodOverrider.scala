@@ -1,10 +1,23 @@
 package org.http4s.server.middleware
 
-import cats.Applicative
 import cats.data.Kleisli
+import cats.effect.Sync
 import cats.implicits._
+import cats.{Monad, ~>}
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.{AttributeKey, Header, Http, Method, ParseResult, Request, Response, Status}
+import org.http4s.{
+  AttributeKey,
+  Header,
+  Http,
+  Method,
+  ParseResult,
+  Request,
+  Response,
+  Status,
+  UrlForm
+}
+
+import scala.reflect.runtime.universe._
 
 object HttpMethodOverrider {
 
@@ -41,8 +54,10 @@ object HttpMethodOverrider {
   final case class HeaderOverrideStrategy(headerName: CaseInsensitiveString)
       extends OverrideStrategy
   final case class QueryOverrideStrategy(paramName: String) extends OverrideStrategy
-  // TODO: tory to fit this inside the main logic
-  //  final case class FunctionOverrideStrategy[G[_]](fn: Request[G] => Method) extends OverrideStrategy
+  final case class FormOverrideStrategy[G[_], F[_]](
+      fieldName: String,
+      naturalTransformation: G ~> F)
+      extends OverrideStrategy
 
   val defaultConfig = HttpMethodOverriderConfig(
     HeaderOverrideStrategy(CaseInsensitiveString("X-HTTP-Method-Override")),
@@ -57,11 +72,19 @@ object HttpMethodOverrider {
     * the desired one using a custom header or request parameter. The middleware will '''override'''
     * the original verb with the new one for you, allowing the request the be dispatched properly.
     *
-    * @param http [[HttpApp]] to transform
+    * @param http [[Http]] to transform
     * @param config http method overrider config
     */
   def apply[F[_], G[_]](http: Http[F, G], config: HttpMethodOverriderConfig)(
-      implicit F: Applicative[F]): Http[F, G] = {
+      implicit F: Monad[F],
+      S: Sync[G],
+      TT: TypeTag[G ~> F]): Http[F, G] = {
+
+    lazy val runtimeTypeNT = implicitly[TypeTag[G ~> F]].tpe
+
+    val parseMethod = (m: String) => Method.fromString(m.toUpperCase)
+
+    val processRequestWithOriginalMethod = (req: Request[G]) => http(req)
 
     def processRequestWithMethod(
         req: Request[G],
@@ -81,7 +104,7 @@ object HttpMethodOverrider {
               .getOrElse(Header(varyHeaderName.value, headerName.value))
 
           resp.withHeaders(resp.headers.put(updatedVaryHeader))
-        case QueryOverrideStrategy(_) => resp
+        case _ => resp
       }
     }
 
@@ -90,23 +113,35 @@ object HttpMethodOverrider {
       req.withAttributes(attrs).withMethod(om)
     }
 
-    def ignoresOverrideIfNotAllowed(req: Request[G]): Option[Unit] =
-      config.overridableMethods.contains(req.method).guard[Option].as(())
-
-    def parseMethod(m: String): ParseResult[Method] = Method.fromString(m.toUpperCase)
-
-    def getUnsafeOverrideMethod(req: Request[G]): Option[String] =
+    def getUnsafeOverrideMethod(req: Request[G]): F[Option[String]] =
       config.overrideStrategy match {
-        case HeaderOverrideStrategy(headerName) => req.headers.get(headerName).map(_.value)
-        case QueryOverrideStrategy(parameter) => req.params.get(parameter)
+        case HeaderOverrideStrategy(headerName) => F.pure(req.headers.get(headerName).map(_.value))
+        case QueryOverrideStrategy(parameter) => F.pure(req.params.get(parameter))
+        case FormOverrideStrategy(field, f) if runtimeTypeNT == typeOf[G ~> F] =>
+          val nt = f.asInstanceOf[G ~> F]
+          for {
+            formFields <- nt(
+              UrlForm
+                .entityDecoder[G]
+                .decode(req, strict = true)
+                .value
+                .map(_.toOption.map(_.values)))
+
+          } yield formFields.flatMap(_.get(field).flatMap(_.uncons.map(_._1)))
       }
+
+    def processRequest(req: Request[G]): F[Response[G]] = getUnsafeOverrideMethod(req).flatMap {
+      case Some(m: String) => parseMethod.andThen(processRequestWithMethod(req, _)).apply(m)
+      case None => processRequestWithOriginalMethod(req)
+    }
 
     Kleisli { req: Request[G] =>
       {
-        (ignoresOverrideIfNotAllowed(req) *> getUnsafeOverrideMethod(req))
-          .map(parseMethod)
-          .map(processRequestWithMethod(req, _))
-          .getOrElse(http(req))
+        config.overridableMethods
+          .contains(req.method)
+          .guard[Option]
+          .as(processRequest(req))
+          .getOrElse(processRequestWithOriginalMethod(req))
       }
     }
   }
