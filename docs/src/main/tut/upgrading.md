@@ -14,7 +14,7 @@ Make sure your scala version is >= `2.11.12` or `2.12.7`
    
 Add the scalafix plugin to your `project/plugins.sbt` or to your global plugins.
 ```sbt
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.0")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.1")
 ```
 
 Run
