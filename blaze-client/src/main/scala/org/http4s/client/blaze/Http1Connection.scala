@@ -27,6 +27,7 @@ private final class Http1Connection[F[_]](
     maxResponseLineSize: Int,
     maxHeaderLength: Int,
     maxChunkSize: Int,
+    override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`]
 )(implicit protected val F: ConcurrentEffect[F])

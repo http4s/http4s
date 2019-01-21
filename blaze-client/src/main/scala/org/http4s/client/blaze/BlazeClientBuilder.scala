@@ -26,6 +26,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val maxResponseLineSize: Int,
     val maxHeaderLength: Int,
     val maxChunkSize: Int,
+    val chunkBufferMaxSize: Int,
     val parserMode: ParserMode,
     val bufferSize: Int,
     val executionContext: ExecutionContext,
@@ -49,6 +50,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       maxResponseLineSize: Int = maxResponseLineSize,
       maxHeaderLength: Int = maxHeaderLength,
       maxChunkSize: Int = maxChunkSize,
+      chunkBufferMaxSize: Int = chunkBufferMaxSize,
       parserMode: ParserMode = parserMode,
       bufferSize: Int = bufferSize,
       executionContext: ExecutionContext = executionContext,
@@ -68,6 +70,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       maxResponseLineSize = maxResponseLineSize,
       maxHeaderLength = maxHeaderLength,
       maxChunkSize = maxChunkSize,
+      chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
       bufferSize = bufferSize,
       executionContext = executionContext,
@@ -120,6 +123,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withMaxChunkSize(maxChunkSize: Int): BlazeClientBuilder[F] =
     copy(maxChunkSize = maxChunkSize)
 
+  def withChunkBufferMaxSize(chunkBufferMaxSize: Int): BlazeClientBuilder[F] =
+    copy(chunkBufferMaxSize = chunkBufferMaxSize)
+
   def withParserMode(parserMode: ParserMode): BlazeClientBuilder[F] =
     copy(parserMode = parserMode)
 
@@ -166,6 +172,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       maxResponseLineSize = maxResponseLineSize,
       maxHeaderLength = maxHeaderLength,
       maxChunkSize = maxChunkSize,
+      chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
       userAgent = userAgent,
       channelOptions = channelOptions
@@ -200,6 +207,7 @@ object BlazeClientBuilder {
       maxResponseLineSize = 4096,
       maxHeaderLength = 40960,
       maxChunkSize = Int.MaxValue,
+      chunkBufferMaxSize = 1024 * 1024,
       parserMode = ParserMode.Strict,
       bufferSize = 8192,
       executionContext = executionContext,
