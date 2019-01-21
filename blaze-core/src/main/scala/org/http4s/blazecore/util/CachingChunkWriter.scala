@@ -14,7 +14,9 @@ import scala.concurrent._
 private[http4s] class CachingChunkWriter[F[_]](
     pipe: TailStage[ByteBuffer],
     trailer: F[Headers],
-    bufferMaxSize: Int)(implicit protected val F: Effect[F], protected val ec: ExecutionContext)
+    bufferMaxSize: Int = 10 * 1024)(
+    implicit protected val F: Effect[F],
+    protected val ec: ExecutionContext)
     extends Http1Writer[F] {
   import ChunkWriter._
 

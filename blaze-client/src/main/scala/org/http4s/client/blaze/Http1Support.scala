@@ -28,7 +28,6 @@ final private class Http1Support[F[_]](
     maxResponseLineSize: Int,
     maxHeaderLength: Int,
     maxChunkSize: Int,
-    chunkBufferMaxSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions
@@ -66,7 +65,6 @@ final private class Http1Support[F[_]](
       maxResponseLineSize = maxResponseLineSize,
       maxHeaderLength = maxHeaderLength,
       maxChunkSize = maxChunkSize,
-      chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
       userAgent = userAgent
     )

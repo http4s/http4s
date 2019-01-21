@@ -53,7 +53,6 @@ final case class BlazeClientConfig( // HTTP properties
     maxResponseLineSize: Int,
     maxHeaderLength: Int,
     maxChunkSize: Int,
-    chunkBufferMaxSize: Int,
     lenientParser: Boolean,
     // pipeline management
     bufferSize: Int,
@@ -81,7 +80,6 @@ object BlazeClientConfig {
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Integer.MAX_VALUE,
-      chunkBufferMaxSize = 1024 * 1024,
       lenientParser = false,
       bufferSize = bits.DefaultBufferSize,
       executionContext = ExecutionContext.global,

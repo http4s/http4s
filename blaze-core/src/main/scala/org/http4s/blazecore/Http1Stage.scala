@@ -20,8 +20,6 @@ import scala.util.{Failure, Success}
 /** Utility bits for dealing with the HTTP 1.x protocol */
 trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
-  protected val chunkBufferMaxSize: Int
-
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
   protected implicit def executionContext: ExecutionContext
@@ -123,7 +121,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
           case None => // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
             logger.trace("Using Caching Chunk Encoder")
-            new CachingChunkWriter(this, trailer, chunkBufferMaxSize)
+            new CachingChunkWriter(this, trailer)
         }
   }
 
