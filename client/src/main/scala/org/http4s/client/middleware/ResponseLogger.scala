@@ -18,14 +18,16 @@ object ResponseLogger {
   def apply[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
+    val log = logAction.getOrElse{s: String => Sync[F].delay(logger.info(s))}
     Client { req =>
       client.run(req).flatMap { response =>
         if (!logBody)
           Resource.liftF(
             Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-              logger.info(_)) *> F.delay(response))
+              log(_)) *> F.delay(response))
         else
           Resource.suspend {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
@@ -44,7 +46,7 @@ object ResponseLogger {
                   .logMessage[F, Response[F]](response.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
-                    redactHeadersWhen)(logger.info(_))
+                    redactHeadersWhen)(log(_))
                   .attempt
                   .flatMap {
                     case Left(t) => F.delay(logger.error(t)("Error logging response body"))
@@ -55,4 +57,5 @@ object ResponseLogger {
           }
       }
     }
+  }
 }
