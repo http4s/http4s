@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.implicits._
 import cats.data.Kleisli
 import cats.effect._
 import fs2._
@@ -18,18 +19,20 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: String => Unit = logger.info(_)
+      logAction: Option[String => F[Unit]] = None
   )(@deprecatedName('httpService) http: Kleisli[F, Request[F], Response[F]])
-    : Kleisli[F, Request[F], Response[F]] =
-    ResponseLogger(logHeaders, logBody, redactHeadersWhen, logAction)(
-      RequestLogger(logHeaders, logBody, redactHeadersWhen, logAction)(http)
+    : Kleisli[F, Request[F], Response[F]] = {
+      val log : String => F[Unit] = s => Sync[F].delay(logger.info(s))
+    ResponseLogger(logHeaders, logBody, redactHeadersWhen, log.pure[Option])(
+      RequestLogger(logHeaders, logBody, redactHeadersWhen, log.pure[Option])(http)
     )
+  }
 
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => Unit)(implicit F: Sync[F]): F[Unit] = {
+      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
@@ -71,7 +74,7 @@ object Logger {
     else {
       bodyText
         .map(body => s"$prelude $headers $body")
-        .map(text => log(text))
+        .evalMap(text => log(text))
         .compile
         .drain
     }
