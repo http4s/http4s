@@ -26,7 +26,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
   protected implicit def F: Effect[F]
 
-  protected val chunkBufferMaxSize: Int
+  protected def chunkBufferMaxSize: Int
 
   protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer]
 
