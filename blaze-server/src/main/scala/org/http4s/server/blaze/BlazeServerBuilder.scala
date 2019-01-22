@@ -52,7 +52,7 @@ import scodec.bits.ByteVector
   *    If exceeded returns a 400 Bad Request.
   * @param maxHeadersLen: Maximum data that composes the headers.
   *    If exceeded returns a 400 Bad Request.
-  * @param chunkBufferMaxSize Size of the buffer that is used when Content-Length header is not specifiec.
+  * @param chunkBufferMaxSize Size of the buffer that is used when Content-Length header is not specified.
   * @param serviceMounts: The services that are mounted on this server to serve.
   *    These services get assembled into a Router with the longer prefix winning.
   * @param serviceErrorHandler: The last resort to recover and generate a response
