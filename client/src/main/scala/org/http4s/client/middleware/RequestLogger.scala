@@ -21,12 +21,14 @@ object RequestLogger {
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] = {
-    val log = logAction.getOrElse{s: String => Sync[F].delay(logger.info(s))}
+    val log = logAction.getOrElse { s: String =>
+      Sync[F].delay(logger.info(s))
+    }
     Client { req =>
       if (!logBody)
-        Resource.liftF(
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(
-            log(_))) *> client.run(req)
+        Resource.liftF(Logger
+          .logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(log(_))) *> client
+          .run(req)
       else
         Resource.suspend {
           Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>

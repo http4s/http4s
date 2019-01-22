@@ -24,7 +24,9 @@ object RequestLogger {
   )(@deprecatedName('service) httpApp: HttpApp[F])(
       implicit F: Concurrent[F]
   ): HttpApp[F] = {
-    val log = logAction.fold({ s: String => Sync[F].delay(logger.info(s))})(identity)
+    val log = logAction.fold({ s: String =>
+      Sync[F].delay(logger.info(s))
+    })(identity)
     Kleisli { req =>
       if (!logBody) {
         Logger

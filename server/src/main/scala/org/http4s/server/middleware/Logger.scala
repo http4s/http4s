@@ -22,7 +22,7 @@ object Logger {
       logAction: Option[String => F[Unit]] = None
   )(@deprecatedName('httpService) http: Kleisli[F, Request[F], Response[F]])
     : Kleisli[F, Request[F], Response[F]] = {
-      val log : String => F[Unit] = s => Sync[F].delay(logger.info(s))
+    val log: String => F[Unit] = s => Sync[F].delay(logger.info(s))
     ResponseLogger(logHeaders, logBody, redactHeadersWhen, log.pure[Option])(
       RequestLogger(logHeaders, logBody, redactHeadersWhen, log.pure[Option])(http)
     )

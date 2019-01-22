@@ -24,14 +24,14 @@ object ResponseLogger {
       @deprecatedName('service) http: Kleisli[F, A, Response[F]])(
       implicit F: Concurrent[F]
   ): Kleisli[F, A, Response[F]] = {
-    val fallback : String => F[Unit] = s => Sync[F].delay(logger.info(s))
+    val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
     val log = logAction.fold(fallback)(identity)
     Kleisli[F, A, Response[F]] { req =>
       http(req)
         .flatMap { response =>
           if (!logBody)
-            Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-              log) *> F.delay(response)
+            Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(log) *> F
+              .delay(response)
           else
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
               val newBody = Stream
