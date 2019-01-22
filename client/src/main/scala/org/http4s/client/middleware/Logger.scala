@@ -16,8 +16,8 @@ object Logger {
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
-    ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen)(
-      RequestLogger.apply(logHeaders, logBody, redactHeadersWhen)(
+    ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
+      RequestLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
         client
       )
     )
