@@ -22,7 +22,7 @@ class BlazeClientSpec extends Http4sSpec {
       maxConnectionsPerRequestKey: Int,
       responseHeaderTimeout: Duration = 1.minute,
       requestTimeout: Duration = 1.minute,
-      chunkBufferMaxSize: Int = 1024,
+      chunkBufferMaxSize: Int = 1024
   ) =
     BlazeClientBuilder[IO](testExecutionContext)
       .withSslContext(bits.TrustingSslContext)
