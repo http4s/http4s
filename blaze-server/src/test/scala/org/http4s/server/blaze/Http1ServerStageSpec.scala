@@ -56,7 +56,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       enableWebSockets = true,
       maxReqLine,
       maxHeaders,
-      1024 * 1024,
+      10 * 1024,
       DefaultServiceErrorHandler,
       30.seconds,
       30.seconds,
