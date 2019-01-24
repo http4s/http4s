@@ -35,6 +35,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       maxResponseLineSize = 4096,
       maxHeaderLength = 40960,
       maxChunkSize = Int.MaxValue,
+      chunkBufferMaxSize = 1024,
       parserMode = ParserMode.Strict,
       userAgent = userAgent
     )

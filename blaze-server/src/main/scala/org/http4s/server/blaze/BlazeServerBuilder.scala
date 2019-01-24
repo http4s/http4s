@@ -52,6 +52,7 @@ import scodec.bits.ByteVector
   *    If exceeded returns a 400 Bad Request.
   * @param maxHeadersLen: Maximum data that composes the headers.
   *    If exceeded returns a 400 Bad Request.
+  * @param chunkBufferMaxSize Size of the buffer that is used when Content-Length header is not specified.
   * @param serviceMounts: The services that are mounted on this server to serve.
   *    These services get assembled into a Router with the longer prefix winning.
   * @param serviceErrorHandler: The last resort to recover and generate a response
@@ -72,6 +73,7 @@ class BlazeServerBuilder[F[_]](
     isHttp2Enabled: Boolean,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
+    chunkBufferMaxSize: Int,
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
@@ -96,6 +98,7 @@ class BlazeServerBuilder[F[_]](
       http2Support: Boolean = isHttp2Enabled,
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
+      chunkBufferMaxSize: Int = chunkBufferMaxSize,
       httpApp: HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
@@ -114,6 +117,7 @@ class BlazeServerBuilder[F[_]](
       http2Support,
       maxRequestLineLen,
       maxHeadersLen,
+      chunkBufferMaxSize,
       httpApp,
       serviceErrorHandler,
       banner,
@@ -188,6 +192,9 @@ class BlazeServerBuilder[F[_]](
   def withMaxHeadersLength(maxHeadersLength: Int): BlazeServerBuilder[F] =
     copy(maxHeadersLen = maxHeadersLength)
 
+  def withChunkBufferMaxSize(chunkBufferMaxSize: Int): BlazeServerBuilder[F] =
+    copy(chunkBufferMaxSize = chunkBufferMaxSize)
+
   def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
     Resource(F.delay {
 
@@ -241,6 +248,7 @@ class BlazeServerBuilder[F[_]](
               enableWebSockets,
               maxRequestLineLen,
               maxHeadersLen,
+              chunkBufferMaxSize,
               serviceErrorHandler,
               responseHeaderTimeout,
               idleTimeout,
@@ -253,6 +261,7 @@ class BlazeServerBuilder[F[_]](
               httpApp,
               maxRequestLineLen,
               maxHeadersLen,
+              chunkBufferMaxSize,
               requestAttributes(secure = true, engine.some),
               executionContext,
               serviceErrorHandler,
@@ -381,6 +390,7 @@ object BlazeServerBuilder {
       isHttp2Enabled = false,
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = 40 * 1024,
+      chunkBufferMaxSize = 1024 * 1024,
       httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = defaults.Banner,

@@ -35,6 +35,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
+      chunkBufferMaxSize = 1024 * 1024,
       parserMode = ParserMode.Strict,
       userAgent = None
     )
