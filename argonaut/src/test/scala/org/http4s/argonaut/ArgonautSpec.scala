@@ -24,7 +24,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
   testJsonDecoder(jsonDecoder)
   testJsonDecoderError(ArgonautInstancesWithCustomErrors.jsonDecoder)(
     emptyBody = { case MalformedMessageBodyFailure("Custom Invalid JSON: empty body", _) => ok },
-    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON", _) => ok },
+    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON", _) => ok }
   )
 
   sealed case class Foo(bar: Int)
