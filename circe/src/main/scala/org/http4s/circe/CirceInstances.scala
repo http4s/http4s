@@ -167,10 +167,8 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
 }
 
 object CirceInstances {
-  def withPrinter(p: Printer): CirceInstances =
-    new CirceInstances {
-      override val defaultPrinter: Printer = p
-    }
+  def withPrinter(p: Printer): CirceInstancesBuilder =
+    builder.withPrinter(p)
 
   val builder: CirceInstancesBuilder = new CirceInstancesBuilder() {}
 
