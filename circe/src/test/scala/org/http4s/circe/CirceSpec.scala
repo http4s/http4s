@@ -20,7 +20,19 @@ import org.specs2.specification.core.Fragment
 class CirceSpec extends JawnDecodeSupportSpec[Json] {
   implicit val testContext = TestContext()
 
+  val CirceInstancesWithCustomErrors = CirceInstances.builder
+    .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
+    .withJawnParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON"))
+    .withCirceParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON"))
+    .withJsonDecodeError((json, failures) =>
+      InvalidMessageBodyFailure(s"Custom Could not decode JSON: $json, errors: $failures"))
+    .build
+
   testJsonDecoder(jsonDecoder)
+  testJsonDecoderError(CirceInstancesWithCustomErrors.jsonDecoder)(
+    emptyBody = { case MalformedMessageBodyFailure("Custom Invalid JSON: empty body", _) => ok },
+    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON", _) => ok }
+  )
 
   sealed case class Foo(bar: Int)
   val foo = Foo(42)

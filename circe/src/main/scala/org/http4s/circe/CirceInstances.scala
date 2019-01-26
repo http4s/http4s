@@ -5,15 +5,27 @@ import cats._
 import cats.effect._
 import cats.implicits._
 import fs2.Chunk
-import io.circe.{Decoder, Encoder, Json, Printer}
+import io.circe._
 import io.circe.jawn._
 import io.circe.jawn.CirceSupportParser.facade
 import java.nio.ByteBuffer
-import org.http4s.headers.`Content-Type`
 
-trait CirceInstances {
+import cats.data.NonEmptyList
+import org.http4s.headers.`Content-Type`
+import org.http4s.jawn.JawnInstances
+import org.typelevel.jawn.ParseException
+
+trait CirceInstances extends JawnInstances {
+  protected def defaultPrinter: Printer = Printer.noSpaces
+
+  protected def circeParseExceptionMessage: ParsingFailure => DecodeFailure =
+    CirceInstances.defaultCirceParseError
+
+  protected def jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
+    CirceInstances.defaultJsonDecodeError
+
   def jsonDecoderIncremental[F[_]: Sync]: EntityDecoder[F, Json] =
-    jawn.jawnDecoder[F, Json]
+    this.jawnDecoder[F, Json]
 
   def jsonDecoderByteBuffer[F[_]: Sync]: EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
@@ -26,22 +38,23 @@ trait CirceInstances {
           case Right(json) =>
             DecodeResult.success[F, Json](json)
           case Left(pf) =>
-            DecodeResult.failure[F, Json](
-              MalformedMessageBodyFailure("Invalid JSON", Some(pf.underlying)))
+            DecodeResult.failure[F, Json](circeParseExceptionMessage(pf))
         }
       } else {
-        DecodeResult.failure[F, Json](MalformedMessageBodyFailure("Invalid JSON: empty body", None))
+        DecodeResult.failure[F, Json](jawnEmptyBodyMessage)
       }
     }
 
-  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json]
+  // default cutoff value is based on benchmarks results
+  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
+    jsonDecoderAdaptive(cutoff = 100000)
 
   def jsonDecoderAdaptive[F[_]: Sync](cutoff: Long): EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.application.json) { msg =>
       msg.contentLength match {
         case Some(contentLength) if contentLength < cutoff =>
           jsonDecoderByteBufferImpl[F](msg)
-        case _ => jawn.jawnDecoderImpl[F, Json](msg)
+        case _ => this.jawnDecoderImpl[F, Json](msg)
       }
     }
 
@@ -50,9 +63,7 @@ trait CirceInstances {
       decoder
         .decodeJson(json)
         .fold(
-          failure =>
-            DecodeResult.failure(
-              InvalidMessageBodyFailure(s"Could not decode JSON: $json", Some(failure))),
+          failure => DecodeResult.failure(jsonDecodeError(json, NonEmptyList.one(failure))),
           DecodeResult.success(_)
         )
     }
@@ -68,16 +79,10 @@ trait CirceInstances {
       decoder
         .accumulating(json.hcursor)
         .fold(
-          failures =>
-            DecodeResult.failure(
-              InvalidMessageBodyFailure(
-                s"Could not decode JSON: $json",
-                Some(DecodingFailures(failures)))),
+          failures => DecodeResult.failure(jsonDecodeError(json, failures)),
           DecodeResult.success(_)
         )
     }
-
-  protected def defaultPrinter: Printer
 
   implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
@@ -110,15 +115,72 @@ trait CirceInstances {
       self.as(implicitly, jsonOf[F, A])
   }
 }
+sealed abstract case class CirceInstancesBuilder private[circe] (
+    defaultPrinter: Printer = Printer.noSpaces,
+    jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
+      CirceInstances.defaultJsonDecodeError,
+    circeParseExceptionMessage: ParsingFailure => DecodeFailure =
+      CirceInstances.defaultCirceParseError,
+    jawnParseExceptionMessage: ParseException => DecodeFailure =
+      JawnInstances.defaultJawnParseExceptionMessage,
+    jawnEmptyBodyMessage: DecodeFailure = JawnInstances.defaultJawnEmptyBodyMessage
+) { self =>
+  def withPrinter(pp: Printer): CirceInstancesBuilder =
+    this.copy(defaultPrinter = pp)
+
+  def withJsonDecodeError(
+      f: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure): CirceInstancesBuilder =
+    this.copy(jsonDecodeError = f)
+
+  def withJawnParseExceptionMessage(f: ParseException => DecodeFailure): CirceInstancesBuilder =
+    this.copy(jawnParseExceptionMessage = f)
+  def withCirceParseExceptionMessage(f: ParsingFailure => DecodeFailure): CirceInstancesBuilder =
+    this.copy(circeParseExceptionMessage = f)
+
+  def withEmptyBodyMessage(df: DecodeFailure): CirceInstancesBuilder =
+    this.copy(jawnEmptyBodyMessage = df)
+
+  protected def copy(
+      defaultPrinter: Printer = self.defaultPrinter,
+      jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = self.jsonDecodeError,
+      circeParseExceptionMessage: ParsingFailure => DecodeFailure = self.circeParseExceptionMessage,
+      jawnParseExceptionMessage: ParseException => DecodeFailure = self.jawnParseExceptionMessage,
+      jawnEmptyBodyMessage: DecodeFailure = self.jawnEmptyBodyMessage
+  ): CirceInstancesBuilder =
+    new CirceInstancesBuilder(
+      defaultPrinter,
+      jsonDecodeError,
+      circeParseExceptionMessage,
+      jawnParseExceptionMessage,
+      jawnEmptyBodyMessage) {}
+
+  def build: CirceInstances = new CirceInstances {
+    override val defaultPrinter: Printer = self.defaultPrinter
+    override val jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
+      self.jsonDecodeError
+    override val circeParseExceptionMessage: ParsingFailure => DecodeFailure =
+      self.circeParseExceptionMessage
+    override val jawnParseExceptionMessage: ParseException => DecodeFailure =
+      self.jawnParseExceptionMessage
+    override val jawnEmptyBodyMessage: DecodeFailure = self.jawnEmptyBodyMessage
+  }
+}
 
 object CirceInstances {
   def withPrinter(p: Printer): CirceInstances =
     new CirceInstances {
-      val defaultPrinter: Printer = p
-      def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] = defaultJsonDecoder
+      override val defaultPrinter: Printer = p
     }
 
-  // default cutoff value is based on benchmarks results
-  def defaultJsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
-    jsonDecoderAdaptive(cutoff = 100000)
+  val builder: CirceInstancesBuilder = new CirceInstancesBuilder() {}
+
+  private[circe] val defaultCirceParseError: ParsingFailure => DecodeFailure =
+    pe => MalformedMessageBodyFailure("Invalid JSON", Some(pe))
+
+  private[circe] val defaultJsonDecodeError
+    : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
+    InvalidMessageBodyFailure(
+      s"Could not decode JSON: $json",
+      if (failures.tail.isEmpty) Some(failures.head) else Some(DecodingFailures(failures)))
+  }
 }
