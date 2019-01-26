@@ -8,7 +8,7 @@ import cats.effect.Sync
 import org.http4s.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
 import jawn.JawnInstances
-import _root_.jawn.ParseException
+import org.typelevel.jawn.ParseException
 import org.http4s.argonaut.ArgonautInstances.DecodeFailureMessage
 
 trait ArgonautInstances extends JawnInstances {
