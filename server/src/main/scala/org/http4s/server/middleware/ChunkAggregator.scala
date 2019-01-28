@@ -16,7 +16,7 @@ object ChunkAggregator {
     http.flatMapF { response =>
       f(
         response.body.chunks.compile
-          .to[Vector]
+          .toVector
           .map { vec =>
             val body = Chunk.concatBytes(vec)
             removeChunkedTransferEncoding[G](

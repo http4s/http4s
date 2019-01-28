@@ -30,7 +30,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
     case GET -> Root / "ws" =>
       val toClient: Stream[F, WebSocketFrame] =
         Stream.awakeEvery[F](1.seconds).map(d => Text(s"Ping! $d"))
-      val fromClient: Sink[F, WebSocketFrame] = _.evalMap {
+      val fromClient: Pipe[F, WebSocketFrame, Unit] = _.evalMap {
         case Text(t, _) => F.delay(println(t))
         case f => F.delay(println(s"Unknown type: $f"))
       }

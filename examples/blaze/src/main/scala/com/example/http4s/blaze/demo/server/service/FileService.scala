@@ -39,7 +39,7 @@ class FileService[F[_]: ContextShift](implicit F: Effect[F], S: StreamUtils[F]) 
       home <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
       filename <- S.evalF(part.filename.getOrElse("sample"))
       path <- S.evalF(Paths.get(s"$home/$filename"))
-      _ <- part.body to fs2.io.file.writeAll(path, global)
+      _ <- part.body through fs2.io.file.writeAll(path, global)
     } yield ()
 
 }

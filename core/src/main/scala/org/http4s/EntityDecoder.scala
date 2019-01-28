@@ -181,7 +181,7 @@ object EntityDecoder {
 
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(msg.body.chunks.compile.to[Vector].map(Chunk.concatBytes))
+    DecodeResult.success(msg.body.chunks.compile.toVector.map(Chunk.concatBytes))
 
   /** Decodes a message to a String */
   def decodeString[F[_]: Sync](msg: Message[F])(
@@ -222,16 +222,16 @@ object EntityDecoder {
       implicit F: Sync[F],
       cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val sink = writeAll[F](file.toPath, blockingExecutionContext)
-      DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
+      val pipe = writeAll[F](file.toPath, blockingExecutionContext)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
   def textFile[F[_]](file: File, blockingExecutionContext: ExecutionContext)(
       implicit F: Sync[F],
       cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val sink = writeAll[F](file.toPath, blockingExecutionContext)
-      DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
+      val pipe = writeAll[F](file.toPath, blockingExecutionContext)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
   implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
