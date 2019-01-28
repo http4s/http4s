@@ -117,7 +117,7 @@ object EntityDecoder {
   // This is not a real media type but will still be matched by `*/*`
   private val UndefinedMediaType = new MediaType("UNKNOWN", "UNKNOWN")
 
-  /** summon an implicit [[EntityEncoder]] */
+  /** summon an implicit [[EntityDecoder]] */
   def apply[F[_], T](implicit ev: EntityDecoder[F, T]): EntityDecoder[F, T] = ev
 
   implicit def semigroupKForEntityDecoder[F[_]: Functor]: SemigroupK[EntityDecoder[F, ?]] =
@@ -160,7 +160,7 @@ object EntityDecoder {
     *
     * Exceptions thrown by `f` are not caught.  Care should be taken
     * that recoverable errors are returned as a
-    * `DecodeResult.failure`, or that system errors are raised in `F`.
+    * [[DecodeResult.failure]], or that system errors are raised in `F`.
     */
   def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
       f: Message[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
