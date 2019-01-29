@@ -204,7 +204,7 @@ class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
   def stream(blockingEC: ExecutionContext): Stream[F, Unit] = {
     val req = Request[F](Method.GET, Uri.uri(&quot;https://stream.twitter.com/1.1/statuses/sample.json&quot;))
     val s   = jsonStream(&quot;&lt;consumerKey&gt;&quot;, &quot;&lt;consumerSecret&gt;&quot;, &quot;&lt;accessToken&gt;&quot;, &quot;&lt;accessSecret&gt;&quot;)(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout(blockingEC))
+    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blockingEC))
   }
 
   /**

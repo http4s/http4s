@@ -176,7 +176,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Builder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">Builder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
       </span>
       </h4>
 
@@ -185,7 +185,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -370,9 +370,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.server.websocket.WebSocketBuilder.Builder#build" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="build(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Sink[F,org.http4s.websocket.WebSocketFrame],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]],onClose:F[Unit]):F[org.http4s.Response[F]]"></a><a id="build(Stream[F,WebSocketFrame],Sink[F,WebSocketFrame],Headers,F[Response[F]],F[Response[F]],F[Unit]):F[Response[F]]"></a>
+      <a id="build(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,Unit],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]],onClose:F[Unit]):F[org.http4s.Response[F]]"></a><a id="build(Stream[F,WebSocketFrame],Pipe[F,WebSocketFrame,Unit],Headers,F[Response[F]],F[Response[F]],F[Unit]):F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder$$Builder.html#build(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Sink[F,org.http4s.websocket.WebSocketFrame],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]],onClose:F[Unit]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/server/websocket/WebSocketBuilder$$Builder.html#build(send:fs2.Stream[F,org.http4s.websocket.WebSocketFrame],receive:fs2.Pipe[F,org.http4s.websocket.WebSocketFrame,Unit],headers:org.http4s.Headers,onNonWebSocketRequest:F[org.http4s.Response[F]],onHandshakeFailure:F[org.http4s.Response[F]],onClose:F[Unit]):F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -381,7 +381,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">build</span><span class="params">(<span name="send">send: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Sink">Sink</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="../../../index.html">Headers.empty</a></span></span></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>]] = <span class="defval" name='<span class="name"><a href="../../EntityEncoder$.html">Response[F](Status.NotImplemented).withEntity(&quot;This is a WebSocket route.&quot;).pure[F]</a></span>'>...</span></span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>]] = <span class="defval" name='<span class="name"><a href="../../EntityEncoder$.html">Response[F](Status.BadRequest)
+        <span class="name">build</span><span class="params">(<span name="send">send: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>]</span>, <span name="receive">receive: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>, <a href="../../websocket/WebSocketFrame.html" class="extype" name="org.http4s.websocket.WebSocketFrame">WebSocketFrame</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="../../../index.html">Headers.empty</a></span></span></span>, <span name="onNonWebSocketRequest">onNonWebSocketRequest: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>]] = <span class="defval" name='<span class="name"><a href="../../EntityEncoder$.html">Response[F](Status.NotImplemented).withEntity(&quot;This is a WebSocket route.&quot;).pure[F]</a></span>'>...</span></span>, <span name="onHandshakeFailure">onHandshakeFailure: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>]] = <span class="defval" name='<span class="name"><a href="../../EntityEncoder$.html">Response[F](Status.BadRequest)
           .withEntity(&quot;WebSocket handshake failed.&quot;)
           .pure[F]</a></span>'>...</span></span>, <span name="onClose">onClose: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>] = <span class="symbol">Applicative[F].unit</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.websocket.WebSocketBuilder.Builder.F">F</span>]]</span>
       </span>
@@ -399,7 +399,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -503,7 +503,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -634,7 +634,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -807,7 +807,7 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
