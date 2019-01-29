@@ -917,7 +917,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.apply.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.apply.T">T</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.apply.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.apply.T">T</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">summon an implicit <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a></p>
+      <p class="shortcomment cmt">summon an implicit <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a></p>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -1056,7 +1056,7 @@ with some commonly used instances which can be resolved implicitly.
       <p class="shortcomment cmt">Create a new <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a></p><div class="fullcomment"><div class="comment cmt"><p>Create a new <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a></p><p>The new <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> will attempt to decode messages of type <code>T</code>
 only if the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> satisfies the provided <a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>.</p><p>Exceptions thrown by <code>f</code> are not caught.  Care should be taken
 that recoverable errors are returned as a
-<code>DecodeResult.failure</code>, or that system errors are raised in <code>F</code>.
+<a href="DecodeResult$.html#failure[F[_],A](e:org.http4s.DecodeFailure)(implicitF:cats.Applicative[F]):org.http4s.DecodeResult[F,A]" class="extmbr" name="org.http4s.DecodeResult#failure">DecodeResult.failure</a>, or that system errors are raised in <code>F</code>.
 </p></div></div>
     </li><li name="org.http4s.EntityDecoder#decodeString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="decodeString[F[_]](msg:org.http4s.Message[F])(implicitevidence$4:cats.effect.Sync[F],implicitdefaultCharset:org.http4s.Charset):F[String]"></a><a id="decodeString[F[_]](Message[F])(Sync[F],Charset):F[String]"></a>
