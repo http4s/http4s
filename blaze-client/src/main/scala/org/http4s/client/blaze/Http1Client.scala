@@ -3,7 +3,6 @@ package client
 package blaze
 
 import cats.effect._
-import cats.implicits._
 import fs2.Stream
 import org.http4s.blaze.channel.ChannelOptions
 

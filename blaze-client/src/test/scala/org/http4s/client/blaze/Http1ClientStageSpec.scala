@@ -80,7 +80,7 @@ class Http1ClientStageSpec extends Http4sSpec {
           b
         }
         .noneTerminate
-        .to(q.enqueue)
+        .through(q.enqueue)
         .compile
         .drain).start
       req0 = req.withBodyStream(req.body.onFinalize(d.complete(())))

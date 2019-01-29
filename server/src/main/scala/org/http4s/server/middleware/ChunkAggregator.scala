@@ -15,8 +15,7 @@ object ChunkAggregator {
       @deprecatedName('service) http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF { response =>
       f(
-        response.body.chunks.compile
-          .to[Vector]
+        response.body.chunks.compile.toVector
           .map { vec =>
             val body = Chunk.concatBytes(vec)
             removeChunkedTransferEncoding[G](

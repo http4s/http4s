@@ -3,7 +3,6 @@ package client
 package blaze
 
 import cats.effect._
-import cats.implicits._
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
