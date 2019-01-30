@@ -173,7 +173,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -369,7 +369,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">channelRead</span><span class="params">(<span name="size">size: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">-1</span></span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a> = <span class="symbol"><span class="name"><a href="../../../../scala/index.html">Duration.Inf</a></span></span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>]</span>
+        <span class="name">channelRead</span><span class="params">(<span name="size">size: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">-1</span></span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blazecore.websocket.ReadSerializer">ReadSerializer</a> → Tail</dd></dl></div>
@@ -385,7 +385,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <a href="../../../../scala/index.html#Seq[+A]=Seq[A]" class="extmbr" name="scala.Seq">Seq</a>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>]</span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>]</span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
@@ -401,7 +401,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <a href="../../../../scala/index.html#Seq[+A]=Seq[A]" class="extmbr" name="scala.Seq">Seq</a>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="org.http4s.blazecore.websocket.ReadSerializer.I">I</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
@@ -449,7 +449,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -473,7 +473,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">closePipeline</span><span class="params">(<span name="cause">cause: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../../../scala/index.html#Throwable=Throwable" class="extmbr" name="scala.Throwable">Throwable</a>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">closePipeline</span><span class="params">(<span name="cause">cause: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail → Stage</dd></dl></div>
@@ -569,7 +569,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -764,7 +764,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1007,7 +1007,7 @@
             </div><div class="parent" name="org.http4s.blaze.pipeline.Stage">
               <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
