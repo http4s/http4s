@@ -20,14 +20,17 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: String => Unit = logger.info(_)
+      logAction: Option[String => F[Unit]] = None
   )(@deprecatedName('service) httpApp: HttpApp[F])(
       implicit F: Concurrent[F]
-  ): HttpApp[F] =
+  ): HttpApp[F] = {
+    val log = logAction.fold({ s: String =>
+      Sync[F].delay(logger.info(s))
+    })(identity)
     Kleisli { req =>
       if (!logBody) {
         Logger
-          .logMessage[F, Request[F]](req)(logHeaders, logBody)(logAction) *> httpApp(req)
+          .logMessage[F, Request[F]](req)(logHeaders, logBody)(log) *> httpApp(req)
       } else {
         Ref[F]
           .of(Vector.empty[Chunk[Byte]])
@@ -49,7 +52,7 @@ object RequestLogger {
                   Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
-                    redactHeadersWhen)(logAction) *>
+                    redactHeadersWhen)(log) *>
                     F.raiseError[Response[F]](e)
                 case Right(resp) =>
                   F.pure(
@@ -58,7 +61,7 @@ object RequestLogger {
                         Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                           logHeaders,
                           logBody,
-                          redactHeadersWhen)(logAction)
+                          redactHeadersWhen)(log)
                       )
                     )
                   )
@@ -66,5 +69,6 @@ object RequestLogger {
           }
       }
     }
+  }
 
 }
