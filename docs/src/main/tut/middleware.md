@@ -205,7 +205,9 @@ import io.prometheus.client.CollectorRegistry
 implicit val clock = Clock.create[IO]
 val registry = new CollectorRegistry()
 
-val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(apiService)
+val meteredRoutes = Prometheus[IO](registry, "server").map(
+  Metrics[IO](_)(apiService)
+)
 ```
 
 [service]: ../service
