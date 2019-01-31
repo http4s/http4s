@@ -53,7 +53,7 @@ object ResponseLogger {
             }
         }
         .handleErrorWith(t =>
-         log(s"service raised an error: ${t.getClass}") *> F
+          log(s"service raised an error: ${t.getClass}") *> F
             .raiseError[Response[F]](t))
     }
   }
