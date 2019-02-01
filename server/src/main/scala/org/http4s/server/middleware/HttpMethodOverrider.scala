@@ -1,21 +1,13 @@
-package org.http4s.server.middleware
+package org.http4s
+package server
+package middleware
 
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.implicits._
 import cats.{Monad, ~>}
+import org.http4s.Http
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.{
-  AttributeKey,
-  Header,
-  Http,
-  Method,
-  ParseResult,
-  Request,
-  Response,
-  Status,
-  UrlForm
-}
 
 import scala.reflect.runtime.universe._
 
