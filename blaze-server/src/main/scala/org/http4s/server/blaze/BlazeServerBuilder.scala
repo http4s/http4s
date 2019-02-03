@@ -12,12 +12,19 @@ import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
-import org.http4s.blaze.channel.{ChannelOptions, DefaultPoolSize, SocketConnection}
+import org.http4s.blaze.channel.{
+  ChannelOptions,
+  DefaultPoolSize,
+  ServerChannel,
+  ServerChannelGroup,
+  SocketConnection
+}
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -195,148 +202,151 @@ class BlazeServerBuilder[F[_]](
   def withChunkBufferMaxSize(chunkBufferMaxSize: Int): BlazeServerBuilder[F] =
     copy(chunkBufferMaxSize = chunkBufferMaxSize)
 
-  def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
-    Resource(F.delay {
-
-      def resolveAddress(address: InetSocketAddress) =
-        if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
-        else address
-
-      val pipelineFactory: SocketConnection => Future[LeafBuilder[ByteBuffer]] = {
-        conn: SocketConnection =>
-          def requestAttributes(
-              secure: Boolean,
-              optionalSslEngine: Option[SSLEngine]): () => AttributeMap =
-            (conn.local, conn.remote) match {
-              case (local: InetSocketAddress, remote: InetSocketAddress) =>
-                () =>
-                  AttributeMap(
-                    AttributeEntry(
-                      Request.Keys.ConnectionInfo,
-                      Request.Connection(
-                        local = local,
-                        remote = remote,
-                        secure = secure
-                      )),
-                    AttributeEntry(
-                      ServerRequestKeys.SecureSession,
-                      //Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
-                      //condition is checked inside a "flatMap" to handle possible "null" values
-                      Alternative[Option]
-                        .guard(secure)
-                        .flatMap(_ => optionalSslEngine)
-                        .flatMap(engine => Option(engine.getSession))
-                        .flatMap { session =>
-                          (
-                            Option(session.getId).map(ByteVector(_).toHex),
-                            Option(session.getCipherSuite),
-                            Option(session.getCipherSuite).map(SSLContextFactory.deduceKeyLength),
-                            SSLContextFactory.getCertChain(session).some).mapN(SecureSession.apply)
-                        }
-                    )
-                  )
-              case _ =>
-                () =>
-                  AttributeMap.empty
-            }
-
-          def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =
-            Http1ServerStage(
-              httpApp,
-              requestAttributes(secure = secure, engine),
-              executionContext,
-              enableWebSockets,
-              maxRequestLineLen,
-              maxHeadersLen,
-              chunkBufferMaxSize,
-              serviceErrorHandler,
-              responseHeaderTimeout,
-              idleTimeout,
-              scheduler
+  private def pipelineFactory(
+      scheduler: TickWheelExecutor
+  )(conn: SocketConnection): Future[LeafBuilder[ByteBuffer]] = {
+    def requestAttributes(
+        secure: Boolean,
+        optionalSslEngine: Option[SSLEngine]): () => AttributeMap =
+      (conn.local, conn.remote) match {
+        case (local: InetSocketAddress, remote: InetSocketAddress) =>
+          () =>
+            AttributeMap(
+              AttributeEntry(
+                Request.Keys.ConnectionInfo,
+                Request.Connection(
+                  local = local,
+                  remote = remote,
+                  secure = secure
+                )),
+              AttributeEntry(
+                ServerRequestKeys.SecureSession,
+                //Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
+                //condition is checked inside a "flatMap" to handle possible "null" values
+                Alternative[Option]
+                  .guard(secure)
+                  .flatMap(_ => optionalSslEngine)
+                  .flatMap(engine => Option(engine.getSession))
+                  .flatMap { session =>
+                    (
+                      Option(session.getId).map(ByteVector(_).toHex),
+                      Option(session.getCipherSuite),
+                      Option(session.getCipherSuite).map(SSLContextFactory.deduceKeyLength),
+                      SSLContextFactory.getCertChain(session).some).mapN(SecureSession.apply)
+                  }
+              )
             )
+        case _ =>
+          () =>
+            AttributeMap.empty
+      }
 
-          def http2Stage(engine: SSLEngine): ALPNServerSelector =
-            ProtocolSelector(
-              engine,
-              httpApp,
-              maxRequestLineLen,
-              maxHeadersLen,
-              chunkBufferMaxSize,
-              requestAttributes(secure = true, engine.some),
-              executionContext,
-              serviceErrorHandler,
-              responseHeaderTimeout,
-              idleTimeout,
-              scheduler
-            )
+    def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =
+      Http1ServerStage(
+        httpApp,
+        requestAttributes(secure = secure, engine),
+        executionContext,
+        enableWebSockets,
+        maxRequestLineLen,
+        maxHeadersLen,
+        chunkBufferMaxSize,
+        serviceErrorHandler,
+        responseHeaderTimeout,
+        idleTimeout,
+        scheduler
+      )
 
-          Future.successful {
-            getContext() match {
-              case Some((ctx, clientAuth)) =>
-                val engine = ctx.createSSLEngine()
-                engine.setUseClientMode(false)
+    def http2Stage(engine: SSLEngine): ALPNServerSelector =
+      ProtocolSelector(
+        engine,
+        httpApp,
+        maxRequestLineLen,
+        maxHeadersLen,
+        chunkBufferMaxSize,
+        requestAttributes(secure = true, engine.some),
+        executionContext,
+        serviceErrorHandler,
+        responseHeaderTimeout,
+        idleTimeout,
+        scheduler
+      )
 
-                clientAuth match {
-                  case SSLClientAuthMode.NotRequested =>
-                    engine.setWantClientAuth(false)
-                    engine.setNeedClientAuth(false)
+    Future.successful {
+      getContext() match {
+        case Some((ctx, clientAuth)) =>
+          val engine = ctx.createSSLEngine()
+          engine.setUseClientMode(false)
 
-                  case SSLClientAuthMode.Requested =>
-                    engine.setWantClientAuth(true)
+          clientAuth match {
+            case SSLClientAuthMode.NotRequested =>
+              engine.setWantClientAuth(false)
+              engine.setNeedClientAuth(false)
 
-                  case SSLClientAuthMode.Required =>
-                    engine.setNeedClientAuth(true)
-                }
+            case SSLClientAuthMode.Requested =>
+              engine.setWantClientAuth(true)
 
-                LeafBuilder(
-                  if (isHttp2Enabled) http2Stage(engine)
-                  else http1Stage(secure = true, engine.some)
-                ).prepend(new SSLStage(engine))
-
-              case None =>
-                if (isHttp2Enabled)
-                  logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-                LeafBuilder(http1Stage(secure = false, None))
-            }
+            case SSLClientAuthMode.Required =>
+              engine.setNeedClientAuth(true)
           }
+
+          LeafBuilder(
+            if (isHttp2Enabled) http2Stage(engine)
+            else http1Stage(secure = true, engine.some)
+          ).prepend(new SSLStage(engine))
+
+        case None =>
+          if (isHttp2Enabled)
+            logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
+          LeafBuilder(http1Stage(secure = false, None))
       }
+    }
+  }
 
-      val factory =
-        if (isNio2)
-          NIO2SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize, channelOptions)
-        else
-          NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize, channelOptions)
+  def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
+    def resolveAddress(address: InetSocketAddress) =
+      if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
+      else address
 
-      val address = resolveAddress(socketAddress)
+    val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
+      if (isNio2)
+        NIO2SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize, channelOptions)
+      else
+        NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize, channelOptions)
+    })(factory => F.delay { factory.closeGroup() })
 
-      // if we have a Failure, it will be caught by the effect
-      val serverChannel = factory.bind(address, pipelineFactory).get
+    def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
+      Resource.make(F.delay {
+        val address = resolveAddress(socketAddress)
 
-      val server = new Server[F] {
-        val address: InetSocketAddress =
-          serverChannel.socketAddress
+        // if we have a Failure, it will be caught by the effect
+        factory.bind(address, pipelineFactory(scheduler)).get
+      })(serverChannel => F.delay { serverChannel.close() })
 
-        val isSecure = sslBits.isDefined
+    def logStart(server: Server[F]): Resource[F, Unit] =
+      Resource.liftF(F.delay {
+        Option(banner)
+          .filter(_.nonEmpty)
+          .map(_.mkString("\n", "\n", ""))
+          .foreach(logger.info(_))
 
-        override def toString: String =
-          s"BlazeServer($address)"
+        logger.info(
+          s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
+      })
+
+    mkFactory
+      .flatMap(mkServerChannel)
+      .map[Server[F]] { serverChannel =>
+        new Server[F] {
+          val address: InetSocketAddress =
+            serverChannel.socketAddress
+
+          val isSecure = sslBits.isDefined
+
+          override def toString: String =
+            s"BlazeServer($address)"
+        }
       }
-
-      val shutdown = F.delay {
-        serverChannel.close()
-        factory.closeGroup()
-      }
-
-      Option(banner)
-        .filter(_.nonEmpty)
-        .map(_.mkString("\n", "\n", ""))
-        .foreach(logger.info(_))
-
-      logger.info(
-        s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
-
-      server -> shutdown
-    })
+      .flatTap(logStart)
   }
 
   private def getContext(): Option[(SSLContext, SSLClientAuthMode)] = sslBits.map {
