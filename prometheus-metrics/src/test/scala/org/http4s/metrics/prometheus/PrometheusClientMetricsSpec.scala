@@ -19,9 +19,9 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register a 2xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_)(client))
 
-      val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
+      val resp = meteredClient.flatMap(_.expect[String]("ok")).attempt.unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
       count(registry, "2xx_responses", "client") must beEqualTo(1)
@@ -33,10 +33,11 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register a 4xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val prom = Prometheus[IO](registry, "client")
+      val meteredClient = prom.map(Metrics(_)(client))
 
       val resp =
-        meteredClient.expect[String]("bad-request").attempt.unsafeRunSync()
+        meteredClient.flatMap(_.expect[String]("bad-request")).attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
         e must beLike { case UnexpectedStatus(Status(400)) => ok }
@@ -50,10 +51,10 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register a 5xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_)(client))
 
       val resp =
-        meteredClient.expect[String]("internal-server-error").attempt.unsafeRunSync()
+        meteredClient.flatMap(_.expect[String]("internal-server-error")).attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
         e must beLike { case UnexpectedStatus(Status(500)) => ok }
@@ -67,9 +68,9 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register a GET request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_)(client))
 
-      val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
+      val resp = meteredClient.flatMap(_.expect[String]("ok")).attempt.unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
       count(registry, "2xx_responses", "client", "get") must beEqualTo(1)
@@ -81,10 +82,12 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register a POST request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_)(client))
 
       val resp = meteredClient
-        .expect[String](Request[IO](POST, Uri.unsafeFromString("ok")))
+        .flatMap(
+          _.expect[String](Request[IO](POST, Uri.unsafeFromString("ok")))
+        )
         .attempt
         .unsafeRunSync()
 
@@ -98,10 +101,10 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register a PUT request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_)(client))
 
       val resp = meteredClient
-        .expect[String](Request[IO](PUT, Uri.unsafeFromString("ok")))
+        .flatMap(_.expect[String](Request[IO](PUT, Uri.unsafeFromString("ok"))))
         .attempt
         .unsafeRunSync()
 
@@ -115,10 +118,10 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register a DELETE request" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_)(client))
 
       val resp = meteredClient
-        .expect[String](Request[IO](DELETE, Uri.unsafeFromString("ok")))
+        .flatMap(_.expect[String](Request[IO](DELETE, Uri.unsafeFromString("ok"))))
         .attempt
         .unsafeRunSync()
 
@@ -132,10 +135,10 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register an error" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_)(client))
 
       val resp =
-        meteredClient.expect[String]("error").attempt.unsafeRunSync()
+        meteredClient.flatMap(_.expect[String]("error")).attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
         e must beAnInstanceOf[IOException]
@@ -147,10 +150,10 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
     "register a timeout" in {
       implicit val clock = FakeClock[IO]
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"))(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_)(client))
 
       val resp =
-        meteredClient.expect[String]("timeout").attempt.unsafeRunSync()
+        meteredClient.flatMap(_.expect[String]("timeout")).attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
         e must beAnInstanceOf[TimeoutException]
@@ -163,9 +166,9 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       implicit val clock = FakeClock[IO]
       val classifier = (_: Request[IO]) => Some("classifier")
       val registry: CollectorRegistry = new CollectorRegistry()
-      val meteredClient = Metrics(Prometheus(registry, "client"), classifier)(client)
+      val meteredClient = Prometheus(registry, "client").map(Metrics(_, classifier)(client))
 
-      val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
+      val resp = meteredClient.flatMap(_.expect[String]("ok")).attempt.unsafeRunSync()
 
       resp must beRight { contain("200 OK") }
       count(registry, "2xx_responses", "client", "get", "classifier") must beEqualTo(1)

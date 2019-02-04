@@ -271,7 +271,9 @@ implicit val clock = Clock.create[IO]
 val registry = new CollectorRegistry()
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
-val meteredClient = Metrics[IO](Prometheus(registry, "prefix"), requestMethodClassifier)(httpClient)
+val meteredClient = Prometheus[IO](registry, "prefix").map(
+  Metrics[IO](_, requestMethodClassifier)(httpClient)
+)
 ```
 
 
