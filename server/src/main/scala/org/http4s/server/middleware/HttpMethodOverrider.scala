@@ -4,7 +4,10 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.implicits._
+import cats.instances.option._
+import cats.syntax.functor._
+import cats.syntax.flatMap._
+import cats.syntax.alternative._
 import cats.{Monad, ~>}
 import org.http4s.Http
 import org.http4s.util.CaseInsensitiveString
