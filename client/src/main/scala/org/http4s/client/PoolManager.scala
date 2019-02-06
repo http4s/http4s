@@ -172,7 +172,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 val keys = idleQueues.keys
                 if (keys.nonEmpty) {
                   logger.debug(
-                    s"No connections available for the desired key. Evicting random and creating a new connection: $stats")
+                    s"No connections available for the desired key, $key. Evicting random and creating a new connection: $stats")
                   val randKey = keys.iterator.drop(Random.nextInt(keys.size)).next()
                   getConnectionFromQueue(randKey)
                     .fold(logger.warn(s"No connection to evict from the idleQueue for $randKey"))(
@@ -181,7 +181,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                   createConnection(key, callback)
                 } else {
                   logger.debug(
-                    s"No connections available for the desired key. Adding to waitQueue: $stats")
+                    s"No connections available for the desired key, $key. Adding to waitQueue: $stats")
                   addToWaitQueue(key, callback)
                 }
 
