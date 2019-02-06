@@ -15,9 +15,8 @@ import sbt._
 import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
 import sbtrelease._
-import scoverage.ScoverageKeys.{coverageEnabled, coverageHighlighting}
+import scoverage.ScoverageKeys.coverageEnabled
 import verizon.build.RigPlugin
-import verizon.build.RigPlugin.autoImport._
 import verizon.build.common._
 
 object Http4sPlugin extends AutoPlugin {
@@ -95,7 +94,7 @@ object Http4sPlugin extends AutoPlugin {
     }).toSet,
 
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.9" cross CrossVersion.binary),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
 
     scalafmtVersion := "1.5.1",
     scalafmt in Test := {
@@ -274,6 +273,22 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
+  // Borrowed from the cats build
+  def priorTo2_13(scalaVersion: String): Boolean =
+    CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, minor)) if minor < 13 => true
+      case _                              => false
+    }
+
+  def scalacheckVersion(scalaVersion: String): String =
+    if (priorTo2_13(scalaVersion)) "1.13.5" else "1.14.0"
+
+  def disciplineVersion(scalaVersion: String): String =
+    if (priorTo2_13(scalaVersion)) "0.9.0" else "0.11.0"
+
+  def specs2Version(scalaVersion: String): String =
+    if (priorTo2_13(scalaVersion)) "4.1.0" else "4.4.1"
+
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.7.0"
@@ -292,7 +307,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.2"
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.5"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
-  lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
+  def discipline(sv: String)                = "org.typelevel"          %% "discipline"                % disciplineVersion(sv)
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.3"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
@@ -317,15 +332,16 @@ object Http4sPlugin extends AutoPlugin {
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.1"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
-  lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
+  def scalacheck(sv:String)                 = "org.scalacheck"         %% "scalacheck"                % scalacheckVersion(sv)
+  lazy val scalaCollectionCompat            = "org.scala-lang.modules" %% "scala-collection-compat"   % "0.2.1"
   def scalaCompiler(so: String, sv: String) = so             %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so             %  "scala-reflect"             % sv
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.1"
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"
-  lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision
-  lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
-  lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
+  def specs2Core(sv: String)                = "org.specs2"             %% "specs2-core"               % specs2Version(sv)
+  def specs2Matcher(sv: String)             = "org.specs2"             %% "specs2-matcher"            % specs2Version(sv)
+  def specs2MatcherExtra(sv: String)        = "org.specs2"             %% "specs2-matcher-extra"      % specs2Version(sv)
+  def specs2Scalacheck(sv: String)          = "org.specs2"             %% "specs2-scalacheck"         % specs2Version(sv)
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.14"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision

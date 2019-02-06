@@ -14,6 +14,7 @@ Global / cancelable := true
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
+    scalaVersion := "2.13.0-M5",
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](
       version,
@@ -29,7 +30,8 @@ lazy val core = libraryProject("core")
       log4s,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
+      scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided",
+      scalaCollectionCompat
     ),
   )
 
@@ -38,8 +40,8 @@ lazy val testing = libraryProject("testing")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      scalacheck,
-      specs2Matcher
+      scalacheck(scalaVersion.value),
+      specs2Matcher(scalaVersion.value)
     ),
   )
   .dependsOn(core)
@@ -512,12 +514,12 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     catsLaws,
     catsKernelLaws,
-    discipline,
+    discipline(scalaVersion.value),
     logbackClassic,
-    scalacheck, // 0.13.3 fixes None.get
-    specs2Core,
-    specs2MatcherExtra,
-    specs2Scalacheck
+    scalacheck(scalaVersion.value),
+    specs2Core(scalaVersion.value),
+    specs2MatcherExtra(scalaVersion.value),
+    specs2Scalacheck(scalaVersion.value)
   ).map(_ % "test"),
   // don't include scoverage as a dependency in the pom
   // https://github.com/scoverage/sbt-scoverage/issues/153
