@@ -2,14 +2,14 @@ import org.http4s.build.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-organization in ThisBuild := "org.http4s"
+ThisBuild / organization := "org.http4s"
 
 // Root project
 name := "http4s"
 description := "A minimal, Scala-idiomatic library for HTTP"
 enablePlugins(PrivateProjectPlugin)
 
-cancelable in Global := true
+Global / cancelable := true
 
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
@@ -92,7 +92,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
       dropwizardMetricsJson
-    )  )
+    ))
   .dependsOn(
     core % "compile->compile",
     testing % "test->test",
@@ -318,7 +318,7 @@ lazy val docs = http4sProject("docs")
     ),
     description := "Documentation for http4s",
     autoAPIMappings := true,
-    unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
+    ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         bench,
         examples,
@@ -329,12 +329,12 @@ lazy val docs = http4sProject("docs")
         examplesWar,
         mimedbGenerator
       ),
-    scalacOptions in Tut ~= {
+    Tut / scalacOptions ~= {
       val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
       _.filterNot(unwanted) :+ "-Xfatal-warnings"
     },
-    scalacOptions in (Compile, doc) ++= {
+    Compile / doc / scalacOptions ++= {
       scmInfo.value match {
         case Some(s) =>
           val isMaster = git.gitCurrentBranch.value == "master"
@@ -355,14 +355,14 @@ lazy val docs = http4sProject("docs")
             "-doc-source-url",
             path,
             "-sourcepath",
-            (baseDirectory in ThisBuild).value.getAbsolutePath
+            (ThisBuild / baseDirectory).value.getAbsolutePath
           )
         case _ => Seq.empty
       }
     },
-    scalacOptions in (Compile, doc) -= "-Ywarn-unused:imports",
+    Compile / doc / scalacOptions -= "-Ywarn-unused:imports",
     makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
-    baseURL in Hugo := {
+    Hugo / baseURL := {
       val docsPrefix = extractDocsPrefix(version.value)
       if (isTravisBuild.value) new URI(s"https://http4s.org${docsPrefix}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
@@ -373,10 +373,10 @@ lazy val docs = http4sProject("docs")
     },
     siteMappings ++= {
       val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- (mappings in (ScalaUnidoc, packageDoc)).value)
+      for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
         yield (f, s"$docsPrefix/api/$d")
     },
-    includeFilter in ghpagesCleanSite := {
+    ghpagesCleanSite / includeFilter := {
       new FileFilter {
         val docsPrefix = extractDocsPrefix(version.value)
         def accept(f: File) =
@@ -391,14 +391,14 @@ lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
   .settings(
     description := "Common area of http4s.org",
-    baseURL in Hugo := {
+    Hugo / baseURL := {
       if (isTravisBuild.value) new URI(s"https://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
     makeSite := makeSite.dependsOn(http4sBuildData).value,
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    excludeFilter in ghpagesCleanSite :=
+    ghpagesCleanSite / excludeFilter  :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
         def accept(f: File) =
@@ -436,8 +436,8 @@ lazy val examplesDocker = http4sProject("examples-docker")
   .enablePlugins(JavaAppPackaging, DockerPlugin, PrivateProjectPlugin)
   .settings(
     description := "Builds a docker image for a blaze-server",
-    packageName in Docker := "http4s/blaze-server",
-    maintainer in Docker := "http4s",
+    Docker / packageName := "http4s/blaze-server",
+    Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
   )
@@ -448,7 +448,7 @@ lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(
     description := "Example of http4s server on Jetty",
     fork := true,
-    mainClass in reStart := Some("com.example.http4s.jetty.JettyExample")
+    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample")
   )
   .dependsOn(jetty)
 
@@ -457,7 +457,7 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(
     description := "Example of http4s server on Tomcat",
     fork := true,
-    mainClass in reStart := Some("com.example.http4s.tomcat.TomcatExample")
+    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample")
   )
   .dependsOn(tomcat)
 
@@ -468,7 +468,7 @@ lazy val examplesWar = exampleProject("examples-war")
     description := "Example of a WAR deployment of an http4s service",
     fork := true,
     libraryDependencies += javaxServletApi % "provided",
-    containerLibs in Jetty := List(jettyRunner),
+    Jetty / containerLibs := List(jettyRunner),
   )
   .dependsOn(servlet)
 
@@ -522,7 +522,7 @@ lazy val commonSettings = Seq(
   // don't include scoverage as a dependency in the pom
   // https://github.com/scoverage/sbt-scoverage/issues/153
   // this code was copied from https://github.com/mongodb/mongo-spark
-  pomPostProcess := { (node: xml.Node) =>
+  pomPostProcess := { node: xml.Node =>
     new RuleTransformer(new RewriteRule {
       override def transform(node: xml.Node): Seq[xml.Node] = node match {
         case e: xml.Elem
@@ -535,7 +535,7 @@ lazy val commonSettings = Seq(
   },
   ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
   git.remoteRepo := "git@github.com:http4s/http4s.git",
-  includeFilter in Hugo := (
+  Hugo / includeFilter := (
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
       "*.js" | "*.swf" | "*.json" | "*.md" |
       "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
