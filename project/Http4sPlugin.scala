@@ -315,7 +315,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.6.0"
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
-  lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
+  lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.1"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
   def scalaCompiler(so: String, sv: String) = so             %  "scala-compiler"            % sv
