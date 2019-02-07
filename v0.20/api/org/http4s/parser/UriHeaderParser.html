@@ -2069,9 +2069,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.internal.parboiled2.Parser#__matchMap" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="__matchMap(m:Map[String,Any]):Boolean"></a><a id="__matchMap(Map[String,Any]):Boolean"></a>
+      <a id="__matchMap(m:Map[String,Any],ignoreCase:Boolean):Boolean"></a><a id="__matchMap(Map[String,Any],Boolean):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/UriHeaderParser.html#__matchMap(m:Map[String,Any]):Boolean" title="Permalink">
+      <a href="../../../org/http4s/parser/UriHeaderParser.html#__matchMap(m:Map[String,Any],ignoreCase:Boolean):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2080,14 +2080,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">__matchMap</span><span class="params">(<span name="m">m: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">__matchMap</span><span class="params">(<span name="m">m: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>, <span name="ignoreCase">ignoreCase: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
     </li><li name="org.http4s.internal.parboiled2.Parser#__matchMapWrapped" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="__matchMapWrapped(m:Map[String,Any]):Boolean"></a><a id="__matchMapWrapped(Map[String,Any]):Boolean"></a>
+      <a id="__matchMapWrapped(m:Map[String,Any],ignoreCase:Boolean):Boolean"></a><a id="__matchMapWrapped(Map[String,Any],Boolean):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/parser/UriHeaderParser.html#__matchMapWrapped(m:Map[String,Any]):Boolean" title="Permalink">
+      <a href="../../../org/http4s/parser/UriHeaderParser.html#__matchMapWrapped(m:Map[String,Any],ignoreCase:Boolean):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2096,7 +2096,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">__matchMapWrapped</span><span class="params">(<span name="m">m: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">__matchMapWrapped</span><span class="params">(<span name="m">m: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>, <span name="ignoreCase">ignoreCase: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
@@ -3522,6 +3522,28 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.internal.parboiled2.RuleDSLBasics#valueMap" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="valueMap[T](m:Map[String,T],ignoreCase:Boolean)(implicith:org.http4s.internal.parboiled2.support.HListable[T]):org.http4s.internal.parboiled2.RuleN[h.Out]"></a><a id="valueMap[T](Map[String,T],Boolean)(HListable[T]):RuleN[Out]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/UriHeaderParser.html#valueMap[T](m:Map[String,T],ignoreCase:Boolean)(implicith:org.http4s.internal.parboiled2.support.HListable[T]):org.http4s.internal.parboiled2.RuleN[h.Out]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">valueMap</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="m">m: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="org.http4s.internal.parboiled2.RuleDSLBasics.valueMap.T">T</span>]</span>, <span name="ignoreCase">ignoreCase: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="h">h: <span class="extype" name="org.http4s.internal.parboiled2.support.HListable">HListable</span>[<span class="extype" name="org.http4s.internal.parboiled2.RuleDSLBasics.valueMap.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.internal.parboiled2.RuleN">RuleN</span>[<span class="extype" name="org.http4s.internal.parboiled2.support.HListable.Out">Out</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>RuleDSLBasics</dd><dt>Annotations</dt><dd>
+                <span class="name">@compileTimeOnly</span><span class="args">(<span>
+      
+      <span class="defval" name="&quot;Calls to `valueMap` must be inside `rule` macro&quot;">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
     </li><li name="org.http4s.internal.parboiled2.RuleDSLBasics#valueMap" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="valueMap[T](m:Map[String,T])(implicith:org.http4s.internal.parboiled2.support.HListable[T]):org.http4s.internal.parboiled2.RuleN[h.Out]"></a><a id="valueMap[T](Map[String,T])(HListable[T]):RuleN[Out]"></a>
       <span class="permalink">
