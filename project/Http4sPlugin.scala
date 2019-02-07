@@ -330,5 +330,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.14"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.0"
-  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "0.1.0"
+  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "1.0.0"
 }
