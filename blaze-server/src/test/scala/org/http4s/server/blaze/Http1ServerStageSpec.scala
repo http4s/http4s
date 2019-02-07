@@ -52,7 +52,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
     val httpStage = Http1ServerStage[IO](
       httpApp,
-      Vault.empty,
+      () => Vault.empty,
       testExecutionContext,
       enableWebSockets = true,
       maxReqLine,
