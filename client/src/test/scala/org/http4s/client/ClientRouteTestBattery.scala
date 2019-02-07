@@ -11,6 +11,7 @@ import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.specs2.specification.core.Fragments
+import scala.collection.compat._
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http4sClientDsl[IO] {

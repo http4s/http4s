@@ -145,6 +145,7 @@ object RetryPolicy {
   private def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     result match {
       case Right(resp) => RetriableStatuses(resp.status)
+      case Left(WaitQueueTimeoutException) => false
       case _ => true
     }
 

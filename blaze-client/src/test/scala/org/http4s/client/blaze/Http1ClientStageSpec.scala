@@ -35,6 +35,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       maxResponseLineSize = 4096,
       maxHeaderLength = 40960,
       maxChunkSize = Int.MaxValue,
+      chunkBufferMaxSize = 1024,
       parserMode = ParserMode.Strict,
       userAgent = userAgent
     )
@@ -79,7 +80,7 @@ class Http1ClientStageSpec extends Http4sSpec {
           b
         }
         .noneTerminate
-        .to(q.enqueue)
+        .through(q.enqueue)
         .compile
         .drain).start
       req0 = req.withBodyStream(req.body.onFinalize(d.complete(())))

@@ -51,14 +51,14 @@ prefer you can read these introductions first:
 Wherever you are in your studies, let's create our first
 `HttpRoutes`.  Start by pasting these imports into your SBT console:
 
-```tut:book:silent
+```tut:silent
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 You also will need a `ContextShift` and a `Timer`.  These come for
 free if you are in an `IOApp`.
 
-```tut:book:silent
+```tut:silent
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
 implicit val timer: Timer[IO] = IO.timer(global)
 ```
@@ -121,12 +121,14 @@ Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 
 `scalacOptions ++= Seq("-Ypartial-unification")`
 
-```tut:book
+```tut:silent
 import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
 import org.http4s.server.Router
+```
 
+```tut:book
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
 val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp)
@@ -170,7 +172,7 @@ with an abstract `run` method that returns a `IO[ExitCode]`.  An
 the infinite process and gracefully shut down your server when a
 SIGTERM is received.
 
-```tut:book:reset
+```tut:silent:reset
 import cats.effect._
 import cats.implicits._
 import org.http4s.HttpRoutes
@@ -178,7 +180,9 @@ import org.http4s.syntax._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze._
+```
 
+```tut:book
 object Main extends IOApp {
 
   val helloWorldService = HttpRoutes.of[IO] {
@@ -193,6 +197,21 @@ object Main extends IOApp {
       .serve
       .compile
       .drain
+      .as(ExitCode.Success)
+}
+```
+
+You may also create the server within an `IOApp` using resource:
+
+```tut:book
+object MainWithResource extends IOApp {
+
+  def run(args: List[String]): IO[ExitCode] =
+    BlazeServerBuilder[IO]
+      .bindHttp(8080, "localhost")
+      .withHttpApp(Main.helloWorldService)
+      .resource
+      .use(_ => IO.never)
       .as(ExitCode.Success)
 }
 ```

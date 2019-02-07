@@ -40,18 +40,21 @@ service.orNotFound(request).unsafeRunSync
 
 Now we can wrap the service in the `CORS` middleware.
 
-```tut:book
+```tut:silent
 import org.http4s.server.middleware._
+```
+
+```tut:book
 val corsService = CORS(service)
 
 corsService.orNotFound(request).unsafeRunSync
 ```
 
 So far, there was no change. That's because an `Origin` header is required
-in the requests. This, of course, is the responsibility of the caller.
+in the requests and it must include a scheme. This, of course, is the responsibility of the caller.
 
 ```tut:book
-val originHeader = Header("Origin", "somewhere.com")
+val originHeader = Header("Origin", "https://somewhere.com")
 val corsRequest = request.putHeaders(originHeader)
 
 corsService.orNotFound(corsRequest).unsafeRunSync
@@ -70,17 +73,19 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```tut:book
-val googleGet = Request[IO](Method.GET, Uri.uri("/"), headers = Headers(Header("Origin", "google.com")))
-val yahooPut = Request[IO](Method.PUT, Uri.uri("/"), headers = Headers(Header("Origin", "yahoo.com")))
-val duckPost = Request[IO](Method.POST, Uri.uri("/"), headers = Headers(Header("Origin", "duckduckgo.com")))
+val googleGet = Request[IO](Method.GET, Uri.uri("/"), headers = Headers(Header("Origin", "https://google.com")))
+val yahooPut = Request[IO](Method.PUT, Uri.uri("/"), headers = Headers(Header("Origin", "https://yahoo.com")))
+val duckPost = Request[IO](Method.POST, Uri.uri("/"), headers = Headers(Header("Origin", "https://duckduckgo.com")))
 ```
 
 Now, we'll create a configuration that limits the allowed methods to `GET`
 and `POST`, pass that to the `CORS` middleware, and try it out on our requests.
 
-```tut:book
+```tut:silent
 import scala.concurrent.duration._
+```
 
+```tut:book
 val methodConfig = CORSConfig(
   anyOrigin = true,
   anyMethod = false,
@@ -102,7 +107,7 @@ Next, we'll create a configuration that limits the origins to "yahoo.com" and
 ```tut:book
 val originConfig = CORSConfig(
   anyOrigin = false,
-  allowedOrigins = Set("yahoo.com", "duckduckgo.com"),
+  allowedOrigins = Set("https://yahoo.com", "https://duckduckgo.com"),
   allowCredentials = false,
   maxAge = 1.day.toSeconds)
 

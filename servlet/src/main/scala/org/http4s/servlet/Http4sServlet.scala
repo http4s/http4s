@@ -1,6 +1,7 @@
 package org.http4s.servlet
 
 import java.net.InetSocketAddress
+import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 
@@ -8,6 +9,8 @@ import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s._
 import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.server.SecureSession
+import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
@@ -94,6 +97,18 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
           )
           .insert(Request.Keys.ServerSoftware, serverSoftware)
           .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
+          .insert(ServletRequestKeys.HttpSession, 
+            ServerRequestKeys.SecureSession(
+              (
+                Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
+                Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
+                Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
+                Option(
+                  req
+                    .getAttribute("javax.servlet.request.X509Certificate")
+                    .asInstanceOf[Array[X509Certificate]]))
+                .mapN(SecureSession.apply))
+          )
       )
 
   protected def toHeaders(req: HttpServletRequest): Headers = {

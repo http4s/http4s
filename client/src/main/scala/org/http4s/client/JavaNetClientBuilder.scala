@@ -152,7 +152,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
         req.body
-          .to(writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
+          .through(
+            writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
           .compile
           .drain
     } else
@@ -161,7 +162,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           F.delay(conn.setDoOutput(true)) *>
             F.delay(conn.setFixedLengthStreamingMode(len)) *>
             req.body
-              .to(writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
+              .through(
+                writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
               .compile
               .drain
         case _ =>

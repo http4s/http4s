@@ -3,7 +3,6 @@ package client
 package blaze
 
 import cats.effect._
-import cats.implicits._
 import fs2.Stream
 import org.http4s.blaze.channel.ChannelOptions
 
@@ -26,6 +25,7 @@ object Http1Client {
       maxResponseLineSize = config.maxResponseLineSize,
       maxHeaderLength = config.maxHeaderLength,
       maxChunkSize = config.maxChunkSize,
+      chunkBufferMaxSize = config.chunkBufferMaxSize,
       parserMode = if (config.lenientParser) ParserMode.Lenient else ParserMode.Strict,
       userAgent = config.userAgent,
       channelOptions = ChannelOptions(Vector.empty)

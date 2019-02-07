@@ -4,6 +4,7 @@ package circe.test // Get out of circe package so we can import custom instances
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
 import cats.syntax.applicative._
+import cats.syntax.foldable._
 import io.circe._
 import io.circe.syntax._
 import io.circe.testing.instances._
@@ -20,7 +21,26 @@ import org.specs2.specification.core.Fragment
 class CirceSpec extends JawnDecodeSupportSpec[Json] {
   implicit val testContext = TestContext()
 
+  val CirceInstancesWithCustomErrors = CirceInstances.builder
+    .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
+    .withJawnParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON jawn"))
+    .withCirceParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON circe"))
+    .withJsonDecodeError({ (json, failures) =>
+      val failureStr = failures.mkString_("", ", ", "")
+      InvalidMessageBodyFailure(
+        s"Custom Could not decode JSON: ${json.noSpaces}, errors: $failureStr")
+    })
+    .build
+
   testJsonDecoder(jsonDecoder)
+  testJsonDecoderError(CirceInstancesWithCustomErrors.jsonDecoderIncremental)(
+    emptyBody = { case MalformedMessageBodyFailure("Custom Invalid JSON: empty body", _) => ok },
+    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON jawn", _) => ok }
+  )
+  testJsonDecoderError(CirceInstancesWithCustomErrors.jsonDecoderByteBuffer)(
+    emptyBody = { case MalformedMessageBodyFailure("Custom Invalid JSON: empty body", _) => ok },
+    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON circe", _) => ok }
+  )
 
   sealed case class Foo(bar: Int)
   val foo = Foo(42)
@@ -50,7 +70,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     }
 
     "write JSON according to custom encoders" in {
-      val custom = CirceInstances.withPrinter(Printer.spaces2)
+      val custom = CirceInstances.withPrinter(Printer.spaces2).build
       import custom._
       writeToString(json) must_== ("""{
           |  "test" : "CirceSupport"
@@ -75,7 +95,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     }
 
     "write JSON according to custom encoders" in {
-      val custom = CirceInstances.withPrinter(Printer.spaces2)
+      val custom = CirceInstances.withPrinter(Printer.spaces2).build
       import custom._
       writeToString(foo)(jsonEncoderOf) must_== ("""{
           |  "bar" : 42
@@ -128,6 +148,14 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         result.value.unsafeRunSync must_== Right(Umlaut(wort))
       }
     }
+
+    "fail with custom message from a decoder" in {
+      val result = CirceInstancesWithCustomErrors
+        .jsonOf[IO, Bar]
+        .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
+      result.value.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
+        "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor"))
+    }
   }
 
   "accumulatingJsonOf" should {
@@ -146,6 +174,14 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       result.value.unsafeRunSync must beLike {
         case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => ok
       }
+    }
+
+    "fail with custom message from a decoder" in {
+      val result = CirceInstancesWithCustomErrors
+        .accumulatingJsonOf[IO, Bar]
+        .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
+      result.value.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
+        "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor, DecodingFailure at .b: Attempt to decode value on failed cursor"))
     }
   }
 

@@ -35,7 +35,7 @@ $ sbt console
 
 We'll need the following imports to get started:
 
-```tut:book
+```tut:silent
 import cats.effect._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 ```
@@ -133,7 +133,7 @@ Ok("Ok response.").unsafeRunSync.headers
 
 Extra headers can be added using `putHeaders`, for example to specify cache policies:
 
-```tut:book
+```tut:silent
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective.`no-cache`
 import cats.data.NonEmptyList
@@ -208,7 +208,7 @@ NoContent("does not compile")
 While http4s prefers `F[_]: Effect`, you may be working with libraries that
 use standard library `Future`s.  Some relevant imports:
 
-```tut:book
+```tut:silent
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
@@ -253,11 +253,13 @@ An intro to `Stream` is out of scope, but we can glimpse the
 power here.  This stream emits the elapsed time every 100 milliseconds
 for one second:
 
-```tut:book
+```tut:silent
 import fs2.Stream
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+```
 
+```tut:book
 // Provided by `cats.effect.IOApp`
 implicit val timer: Timer[IO] = IO.timer(global)
 
@@ -377,11 +379,13 @@ If you want to extract a variable of type `T`, you can provide a custom extracto
 object which implements `def unapply(str: String): Option[T]`, similar to the way
 in which `IntVar` does it.
 
-```tut:book
+```tut:silent
 import java.time.LocalDate
 import scala.util.Try
 import org.http4s.client.dsl.io._
+```
 
+```tut:book
 object LocalDateVar {
   def unapply(str: String): Option[LocalDate] = {
     if (!str.isEmpty)
@@ -412,10 +416,12 @@ return optional or validated parameter values.
 In the example below we're finding query params named `country` and `year` and
 then parsing them as a `String` and `java.time.Year`.
 
-```tut:book
+```tut:silent
 import java.time.Year
 import cats.data.ValidatedNel
+```
 
+```tut:book
 object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
@@ -435,10 +441,12 @@ val averageTemperatureService = HttpRoutes.of[IO] {
 
 To accept a optional query parameter a `OptionalQueryParamDecoderMatcher` can be used.
 
-```tut:book
+```tut:silent
 import java.time.Year
 import org.http4s.client.dsl.io._
+```
 
+```tut:book
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
 

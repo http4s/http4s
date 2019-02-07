@@ -20,16 +20,18 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: String => Unit = logger.info(_))(
+      logAction: Option[String => F[Unit]] = None)(
       @deprecatedName('service) http: Kleisli[F, A, Response[F]])(
       implicit F: Concurrent[F]
-  ): Kleisli[F, A, Response[F]] =
+  ): Kleisli[F, A, Response[F]] = {
+    val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
+    val log = logAction.fold(fallback)(identity)
     Kleisli[F, A, Response[F]] { req =>
       http(req)
         .flatMap { response =>
           if (!logBody)
-            Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-              logAction) *> F.delay(response)
+            Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(log) *> F
+              .delay(response)
           else
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
               val newBody = Stream
@@ -45,13 +47,14 @@ object ResponseLogger {
                     Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
                       logHeaders,
                       logBody,
-                      redactHeadersWhen)(logAction)
+                      redactHeadersWhen)(log)
                   }
               )
             }
         }
         .handleErrorWith(t =>
-          F.delay(logger.info(s"service raised an error: ${t.getClass}")) *> F
+          log(s"service raised an error: ${t.getClass}") *> F
             .raiseError[Response[F]](t))
     }
+  }
 }

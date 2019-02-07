@@ -21,7 +21,8 @@ class BlazeClientSpec extends Http4sSpec {
   def mkClient(
       maxConnectionsPerRequestKey: Int,
       responseHeaderTimeout: Duration = 1.minute,
-      requestTimeout: Duration = 1.minute
+      requestTimeout: Duration = 1.minute,
+      chunkBufferMaxSize: Int = 1024
   ) =
     BlazeClientBuilder[IO](testExecutionContext)
       .withSslContext(bits.TrustingSslContext)
@@ -29,6 +30,7 @@ class BlazeClientSpec extends Http4sSpec {
       .withResponseHeaderTimeout(responseHeaderTimeout)
       .withRequestTimeout(requestTimeout)
       .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
+      .withChunkBufferMaxSize(chunkBufferMaxSize)
       .resource
 
   private def testServlet = new HttpServlet {

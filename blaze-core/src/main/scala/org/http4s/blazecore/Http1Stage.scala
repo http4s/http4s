@@ -26,6 +26,8 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
   protected implicit def F: Effect[F]
 
+  protected def chunkBufferMaxSize: Int
+
   protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer]
 
   protected def contentComplete(): Boolean
@@ -121,7 +123,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
           case None => // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
             logger.trace("Using Caching Chunk Encoder")
-            new CachingChunkWriter(this, trailer)
+            new CachingChunkWriter(this, trailer, chunkBufferMaxSize)
         }
   }
 

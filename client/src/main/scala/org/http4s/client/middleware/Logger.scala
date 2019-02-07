@@ -13,10 +13,11 @@ object Logger {
   def apply[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
-    ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen)(
-      RequestLogger.apply(logHeaders, logBody, redactHeadersWhen)(
+    ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
+      RequestLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
         client
       )
     )
@@ -25,7 +26,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => Unit)(implicit F: Sync[F]): F[Unit] = {
+      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
@@ -67,7 +68,7 @@ object Logger {
     else {
       bodyText
         .map(body => s"$prelude $headers $body")
-        .map(text => log(text))
+        .evalMap(text => log(text))
         .compile
         .drain
     }

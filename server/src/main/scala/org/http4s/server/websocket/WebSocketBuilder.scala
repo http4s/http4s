@@ -36,7 +36,7 @@ import org.http4s.{Headers, Response, Status}
   */
 final case class WebSocketBuilder[F[_]](
     send: Stream[F, WebSocketFrame],
-    receive: Sink[F, WebSocketFrame],
+    receive: Pipe[F, WebSocketFrame, Unit],
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]])
@@ -45,7 +45,7 @@ object WebSocketBuilder {
   class Builder[F[_]: Applicative] {
     def build(
         send: Stream[F, WebSocketFrame],
-        receive: Sink[F, WebSocketFrame],
+        receive: Pipe[F, WebSocketFrame, Unit],
         headers: Headers = Headers.empty,
         onNonWebSocketRequest: F[Response[F]] =
           Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],

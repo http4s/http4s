@@ -22,9 +22,9 @@ atlassian-ide-plugin.xml
 .ensime_cache
 .cache-main
 .cache-tests
-.bloop
-.metals
 
+.metals
+.bloop
 
 project/travis-deploy-key
 project/.gnupg

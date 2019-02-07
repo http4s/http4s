@@ -1,6 +1,5 @@
 package org.http4s.play
 
-import _root_.jawn.support.play.Parser.facade
 import cats.Applicative
 import cats.effect.Sync
 import fs2.Chunk
@@ -15,6 +14,7 @@ import org.http4s.{
   Uri,
   jawn
 }
+import org.typelevel.jawn.support.play.Parser.facade
 import play.api.libs.json._
 
 trait PlayInstances {

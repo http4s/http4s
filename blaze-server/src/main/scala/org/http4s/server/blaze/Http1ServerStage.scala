@@ -32,6 +32,7 @@ private[blaze] object Http1ServerStage {
       enableWebSockets: Boolean,
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
+      chunkBufferMaxSize: Int,
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
@@ -45,6 +46,7 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
+        chunkBufferMaxSize,
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
@@ -56,6 +58,7 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
+        chunkBufferMaxSize,
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
@@ -68,6 +71,7 @@ private[blaze] class Http1ServerStage[F[_]](
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
+    override val chunkBufferMaxSize: Int,
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
@@ -170,7 +174,7 @@ private[blaze] class Http1ServerStage[F[_]](
       buffer,
       () => Either.left(InvalidBodyException("Received premature EOF.")))
 
-    parser.collectMessage(body, requestAttrs) match {
+    parser.collectMessage(body, requestAttrs()) match {
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {
