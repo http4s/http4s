@@ -27,7 +27,7 @@ private[blaze] object Http1ServerStage {
 
   def apply[F[_]](
       routes: HttpApp[F],
-      attributes: Vault,
+      attributes: () => Vault,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
       maxRequestLineLen: Int,
@@ -67,7 +67,7 @@ private[blaze] object Http1ServerStage {
 
 private[blaze] class Http1ServerStage[F[_]](
     httpApp: HttpApp[F],
-    requestAttrs: Vault,
+    requestAttrs: () => Vault,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,

@@ -27,7 +27,7 @@ private class Http2NodeStage[F[_]](
     streamId: Int,
     timeout: Duration,
     implicit private val executionContext: ExecutionContext,
-    attributes: Vault,
+    attributes: () => Vault,
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
