@@ -15,8 +15,9 @@ class HttpMethodOverriderSpec extends Http4sSpec {
   private final val varyHeader = "Vary"
   private final val customHeader = "X-Custom-Header"
 
-  private def headerOverrideStrategy[F[_], G[_]] = HeaderOverrideStrategy[F, G](CaseInsensitiveString(overrideHeader))
-  private def  queryOverrideStrategy[F[_], G[_]] = QueryOverrideStrategy[F, G](overrideParam)
+  private def headerOverrideStrategy[F[_], G[_]] =
+    HeaderOverrideStrategy[F, G](CaseInsensitiveString(overrideHeader))
+  private def queryOverrideStrategy[F[_], G[_]] = QueryOverrideStrategy[F, G](overrideParam)
   private val formOverrideStrategy = FormOverrideStrategy(overrideParam, λ[IO ~> IO](i => i))
 
   private def postHeaderOverriderConfig[F[_], G[_]] = defaultConfig[F, G]
@@ -24,7 +25,7 @@ class HttpMethodOverriderSpec extends Http4sSpec {
     HttpMethodOverriderConfig[F, G](queryOverrideStrategy, Set(POST))
   private val postFormOverriderConfig =
     HttpMethodOverriderConfig(formOverrideStrategy, Set(POST))
-  private def  deleteHeaderOverriderConfig[F[_], G[_]] =
+  private def deleteHeaderOverriderConfig[F[_], G[_]] =
     HttpMethodOverriderConfig[F, G](headerOverrideStrategy, Set(DELETE))
   private def deleteQueryOverriderConfig[F[_], G[_]] =
     HttpMethodOverriderConfig[F, G](queryOverrideStrategy, Set(DELETE))

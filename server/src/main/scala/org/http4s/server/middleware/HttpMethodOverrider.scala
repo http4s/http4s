@@ -46,15 +46,17 @@ object HttpMethodOverrider {
   sealed trait OverrideStrategy[F[_], G[_]]
   final case class HeaderOverrideStrategy[F[_], G[_]](headerName: CaseInsensitiveString)
       extends OverrideStrategy[F, G]
-  final case class QueryOverrideStrategy[F[_], G[_]](paramName: String) extends OverrideStrategy[F, G]
+  final case class QueryOverrideStrategy[F[_], G[_]](paramName: String)
+      extends OverrideStrategy[F, G]
   final case class FormOverrideStrategy[F[_], G[_]](
       fieldName: String,
       naturalTransformation: G ~> F)
       extends OverrideStrategy[F, G]
 
-  def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] = HttpMethodOverriderConfig[F, G](
-    HeaderOverrideStrategy(CaseInsensitiveString("X-HTTP-Method-Override")),
-    Set(Method.POST))
+  def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] =
+    HttpMethodOverriderConfig[F, G](
+      HeaderOverrideStrategy(CaseInsensitiveString("X-HTTP-Method-Override")),
+      Set(Method.POST))
 
   val overriddenMethodAttrKey: AttributeKey[Method] = AttributeKey[Method]
 
