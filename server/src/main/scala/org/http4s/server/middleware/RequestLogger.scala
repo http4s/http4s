@@ -24,7 +24,7 @@ object RequestLogger {
       fk: F ~> G,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(@deprecatedName('service) httpApp: Http[G, F])(
+  )(@deprecatedName('service) http: Http[G, F])(
       implicit F: Concurrent[F],
       G: MonadError[G, Throwable]
   ): Http[G, F] = {
@@ -33,7 +33,7 @@ object RequestLogger {
     })(identity)
     Kleisli { req =>
       if (!logBody) {
-        httpApp(req) <* fk(
+        http(req) <* fk(
           // Log Occurs at Response Header Time
           Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(log)
         )
@@ -51,7 +51,7 @@ object RequestLogger {
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
             )
-            val response: G[Response[F]] = httpApp(changedRequest)
+            val response: G[Response[F]] = http(changedRequest)
             response.attempt
               .flatMap {
                 case Left(e) =>

@@ -37,16 +37,16 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: HttpApp[F]): HttpApp[F] =
-    apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(http)
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
   def httpRoutes[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: HttpRoutes[F]): HttpRoutes[F] =
-    apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(http)
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
