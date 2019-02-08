@@ -15,23 +15,23 @@ class HttpMethodOverriderSpec extends Http4sSpec {
   private final val varyHeader = "Vary"
   private final val customHeader = "X-Custom-Header"
 
-  private val headerOverrideStrategy = HeaderOverrideStrategy(CaseInsensitiveString(overrideHeader))
-  private val queryOverrideStrategy = QueryOverrideStrategy(overrideParam)
+  private def headerOverrideStrategy[F[_], G[_]] = HeaderOverrideStrategy[F, G](CaseInsensitiveString(overrideHeader))
+  private def  queryOverrideStrategy[F[_], G[_]] = QueryOverrideStrategy[F, G](overrideParam)
   private val formOverrideStrategy = FormOverrideStrategy(overrideParam, λ[IO ~> IO](i => i))
 
-  private val postHeaderOverriderConfig = defaultConfig
-  private val postQueryOverriderConfig =
-    HttpMethodOverriderConfig(queryOverrideStrategy, Set(POST))
+  private def postHeaderOverriderConfig[F[_], G[_]] = defaultConfig[F, G]
+  private def postQueryOverriderConfig[F[_], G[_]] =
+    HttpMethodOverriderConfig[F, G](queryOverrideStrategy, Set(POST))
   private val postFormOverriderConfig =
     HttpMethodOverriderConfig(formOverrideStrategy, Set(POST))
-  private val deleteHeaderOverriderConfig =
-    HttpMethodOverriderConfig(headerOverrideStrategy, Set(DELETE))
-  private val deleteQueryOverriderConfig =
-    HttpMethodOverriderConfig(queryOverrideStrategy, Set(DELETE))
+  private def  deleteHeaderOverriderConfig[F[_], G[_]] =
+    HttpMethodOverriderConfig[F, G](headerOverrideStrategy, Set(DELETE))
+  private def deleteQueryOverriderConfig[F[_], G[_]] =
+    HttpMethodOverriderConfig[F, G](queryOverrideStrategy, Set(DELETE))
   private val deleteFormOverriderConfig =
     HttpMethodOverriderConfig(formOverrideStrategy, Set(DELETE))
-  private val noMethodHeaderOverriderConfig =
-    HttpMethodOverriderConfig(headerOverrideStrategy, Set.empty)
+  private def noMethodHeaderOverriderConfig[F[_], G[_]] =
+    HttpMethodOverriderConfig[F, G](headerOverrideStrategy, Set.empty)
 
   private val testApp = Router("/" -> HttpRoutes.of[IO] {
     case r @ GET -> Root / "resources" / "id" =>

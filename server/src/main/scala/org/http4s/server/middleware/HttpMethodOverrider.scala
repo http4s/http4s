@@ -12,26 +12,24 @@ import cats.{Monad, ~>}
 import org.http4s.Http
 import org.http4s.util.CaseInsensitiveString
 
-import scala.reflect.runtime.universe._
-
 object HttpMethodOverrider {
 
   /**
     * HttpMethodOverrider middleware config options.
     */
-  class HttpMethodOverriderConfig(
-      val overrideStrategy: OverrideStrategy,
+  class HttpMethodOverriderConfig[F[_], G[_]](
+      val overrideStrategy: OverrideStrategy[F, G],
       val overridableMethods: Set[Method]) {
 
-    type Self = HttpMethodOverriderConfig
+    type Self = HttpMethodOverriderConfig[F, G]
 
     private def copy(
-        overrideStrategy: OverrideStrategy = overrideStrategy,
+        overrideStrategy: OverrideStrategy[F, G] = overrideStrategy,
         overridableMethods: Set[Method] = overridableMethods
     ): Self =
-      new HttpMethodOverriderConfig(overrideStrategy, overridableMethods)
+      new HttpMethodOverriderConfig[F, G](overrideStrategy, overridableMethods)
 
-    def withOverrideStrategy(overrideStrategy: OverrideStrategy): Self =
+    def withOverrideStrategy(overrideStrategy: OverrideStrategy[F, G]): Self =
       copy(overrideStrategy = overrideStrategy)
 
     def withOverridableMethods(overridableMethods: Set[Method]): Self =
@@ -39,22 +37,22 @@ object HttpMethodOverrider {
   }
 
   object HttpMethodOverriderConfig {
-    def apply(
-        overrideStrategy: OverrideStrategy,
-        overridableMethods: Set[Method]): HttpMethodOverriderConfig =
-      new HttpMethodOverriderConfig(overrideStrategy, overridableMethods)
+    def apply[F[_], G[_]](
+        overrideStrategy: OverrideStrategy[F, G],
+        overridableMethods: Set[Method]): HttpMethodOverriderConfig[F, G] =
+      new HttpMethodOverriderConfig[F, G](overrideStrategy, overridableMethods)
   }
 
-  sealed trait OverrideStrategy
-  final case class HeaderOverrideStrategy(headerName: CaseInsensitiveString)
-      extends OverrideStrategy
-  final case class QueryOverrideStrategy(paramName: String) extends OverrideStrategy
-  final case class FormOverrideStrategy[G[_], F[_]](
+  sealed trait OverrideStrategy[F[_], G[_]]
+  final case class HeaderOverrideStrategy[F[_], G[_]](headerName: CaseInsensitiveString)
+      extends OverrideStrategy[F, G]
+  final case class QueryOverrideStrategy[F[_], G[_]](paramName: String) extends OverrideStrategy[F, G]
+  final case class FormOverrideStrategy[F[_], G[_]](
       fieldName: String,
       naturalTransformation: G ~> F)
-      extends OverrideStrategy
+      extends OverrideStrategy[F, G]
 
-  val defaultConfig = HttpMethodOverriderConfig(
+  def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] = HttpMethodOverriderConfig[F, G](
     HeaderOverrideStrategy(CaseInsensitiveString("X-HTTP-Method-Override")),
     Set(Method.POST))
 
@@ -70,12 +68,9 @@ object HttpMethodOverrider {
     * @param http [[Http]] to transform
     * @param config http method overrider config
     */
-  def apply[F[_], G[_]](http: Http[F, G], config: HttpMethodOverriderConfig)(
+  def apply[F[_], G[_]](http: Http[F, G], config: HttpMethodOverriderConfig[F, G])(
       implicit F: Monad[F],
-      S: Sync[G],
-      TT: TypeTag[G ~> F]): Http[F, G] = {
-
-    lazy val runtimeTypeNT = implicitly[TypeTag[G ~> F]].tpe
+      S: Sync[G]): Http[F, G] = {
 
     val parseMethod = (m: String) => Method.fromString(m.toUpperCase)
 
@@ -112,16 +107,14 @@ object HttpMethodOverrider {
       config.overrideStrategy match {
         case HeaderOverrideStrategy(headerName) => F.pure(req.headers.get(headerName).map(_.value))
         case QueryOverrideStrategy(parameter) => F.pure(req.params.get(parameter))
-        case FormOverrideStrategy(field, f) if runtimeTypeNT == typeOf[G ~> F] =>
-          val nt = f.asInstanceOf[G ~> F]
+        case FormOverrideStrategy(field, f) =>
           for {
-            formFields <- nt(
+            formFields <- f(
               UrlForm
                 .entityDecoder[G]
                 .decode(req, strict = true)
                 .value
                 .map(_.toOption.map(_.values)))
-
           } yield formFields.flatMap(_.get(field).flatMap(_.uncons.map(_._1)))
       }
 
