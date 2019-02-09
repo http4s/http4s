@@ -1,16 +1,16 @@
 package org.http4s
 package circe
 
+import java.nio.ByteBuffer
+
 import cats._
+import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
 import fs2.Chunk
 import io.circe._
-import io.circe.jawn._
 import io.circe.jawn.CirceSupportParser.facade
-import java.nio.ByteBuffer
-
-import cats.data.NonEmptyList
+import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
@@ -47,10 +47,13 @@ trait CirceInstances extends JawnInstances {
 
   // default cutoff value is based on benchmarks results
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
-    jsonDecoderAdaptive(cutoff = 100000)
+    jsonDecoderAdaptive(cutoff = 100000, MediaType.application.json)
 
-  def jsonDecoderAdaptive[F[_]: Sync](cutoff: Long): EntityDecoder[F, Json] =
-    EntityDecoder.decodeBy(MediaType.application.json) { msg =>
+  def jsonDecoderAdaptive[F[_]: Sync](
+      cutoff: Long,
+      r1: MediaRange,
+      rs: MediaRange*): EntityDecoder[F, Json] =
+    EntityDecoder.decodeBy(r1, rs: _*) { msg =>
       msg.contentLength match {
         case Some(contentLength) if contentLength < cutoff =>
           jsonDecoderByteBufferImpl[F](msg)
@@ -59,7 +62,11 @@ trait CirceInstances extends JawnInstances {
     }
 
   def jsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
-    jsonDecoder[F].flatMapR { json =>
+    jsonOf(MediaType.application.json)
+
+  def jsonOf[F[_]: Sync, A](r1: MediaRange, rs: MediaRange*)(
+      implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+    jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
       decoder
         .decodeJson(json)
         .fold(
