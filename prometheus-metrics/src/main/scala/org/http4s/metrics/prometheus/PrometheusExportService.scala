@@ -57,6 +57,7 @@ object PrometheusExportService {
     cr.register(new ThreadExports())
     cr.register(new ClassLoadingExports())
     cr.register(new VersionInfoExports())
+    cr.register(new MemoryAllocationExports())
   }
 
 }
