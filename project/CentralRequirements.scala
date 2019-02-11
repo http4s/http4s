@@ -2,13 +2,13 @@ package org.http4s.build
 
 import sbt._
 import sbt.Keys._
-import verizon.build.RigPlugin
+import xerial.sbt.Sonatype
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 
 object CentralRequirementsPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
-  override def requires = RigPlugin
+  override def requires = Sonatype
 
   override lazy val projectSettings = Seq(
     sonatypeProfileName := "org.http4s",

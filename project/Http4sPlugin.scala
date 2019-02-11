@@ -15,13 +15,10 @@ import sbt._
 import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
 import sbtrelease._
-import scoverage.ScoverageKeys.{coverageEnabled, coverageHighlighting}
-import verizon.build.RigPlugin
-import verizon.build.RigPlugin.autoImport._
-import verizon.build.common._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
+    val isTravisBuild = settingKey[Boolean]("true if this build is running as either a PR or a release build within Travis CI")
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
     val http4sPrimary = settingKey[Boolean]("Is this the primary build?")
     val http4sPublish = settingKey[Boolean]("Is this a publishing build?")
@@ -34,12 +31,14 @@ object Http4sPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  override def requires = RigPlugin && MimaPlugin && ScalafmtCorePlugin
+  override def requires = MimaPlugin && ScalafmtCorePlugin
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
+    isTravisBuild := sys.env.get("TRAVIS").isDefined,
     http4sPrimary := sys.env.get("TRAVIS_JOB_NUMBER").fold(true)(_.endsWith(".1")),
+    
     // Publishing to gh-pages and sonatype only done from select branches and
     // never from pull requests.
     http4sPublish := {
@@ -53,7 +52,6 @@ object Http4sPlugin extends AutoPlugin {
            case _ => false
          })
     },
-    coverageEnabled := false,
     http4sMasterBranch := sys.env.get("TRAVIS_BRANCH") == Some("master"),
     http4sApiVersion in ThisBuild := (version in ThisBuild).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
@@ -150,7 +148,7 @@ object Http4sPlugin extends AutoPlugin {
       Version(ver).map(v =>
         v.copy(qualifier = v.qualifier.map(_.replaceAllLiterally("-SNAPSHOT", "")))
           .string
-      ).getOrElse(versionFormatError)
+      ).getOrElse(versionFormatError(ver))
     },
     releaseTagName := s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}",
     releasePublishArtifactsAction := Def.taskDyn {
@@ -185,9 +183,8 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand("test:scalafmt::test").when(primary),
         releaseStepCommand("docs/makeSite").when(primary),
         releaseStepCommand("website/makeSite").when(primary),
-        openSonatypeRepo.when(publishable && release),
-        publishToSonatypeWithoutInstrumentation.when(publishable),
-        releaseAndClose.when(publishable && release),
+        releaseStepCommandAndRemaining("+publishSigned").when(publishable),
+        releaseStepCommand("sonatypeReleaseAll").when(publishable && release),
         releaseStepCommand("docs/ghpagesPushSite").when(publishable && primary),
         releaseStepCommand("website/ghpagesPushSite").when(publishable && primary && master),
         setNextVersion.when(publishable && primary && release),
