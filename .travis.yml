@@ -53,5 +53,3 @@ script:
 
 before_cache:
   - cleanup_cache
-after_success:
-  - upload_codecov()
