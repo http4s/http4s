@@ -14,7 +14,7 @@ addSbtPlugin("org.tpolecat"               %  "tut-plugin"                % "0.6.
 addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.3.4")
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.3.4")
 addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.5")
-addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.7.0")
+addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.9.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.2")
 addSbtPlugin("com.github.gseitz"          %  "sbt-release"               % "1.0.11")
 addSbtPlugin("com.jsuereth"               %  "sbt-pgp"                   % "1.1.2")
