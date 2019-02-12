@@ -17,9 +17,9 @@ object URITranslation {
 
     http.local { req: Request[G] =>
       val oldCaret = req.attributes
-        .get(Request.Keys.PathInfoCaret)
+        .lookup(Request.Keys.PathInfoCaret)
         .getOrElse(0)
-      req.withAttribute(Request.Keys.PathInfoCaret(oldCaret + newCaret))
+      req.withAttribute(Request.Keys.PathInfoCaret, oldCaret + newCaret)
     }
   }
 }

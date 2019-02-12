@@ -4,8 +4,10 @@ package middleware
 
 import cats._
 import cats.data.{Kleisli, OptionT}
+import cats.effect._
 import cats.implicits._
 import org.log4s.getLogger
+import io.chrisdavenport.vault._
 
 object PushSupport {
   private[this] val logger = getLogger
@@ -28,13 +30,13 @@ object PushSupport {
       logger.trace(s"Adding push resource: $newUrl")
 
       val newPushResouces = response.attributes
-        .get(pushLocationKey)
+        .lookup(pushLocationKey)
         .map(_ :+ PushLocation(newUrl, cascade))
         .getOrElse(Vector(PushLocation(newUrl, cascade)))
 
       response.copy(
         body = response.body,
-        attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
+        attributes = response.attributes.insert(PushSupport.pushLocationKey, newPushResouces))
     }
 
   }
@@ -55,7 +57,7 @@ object PushSupport {
             .mapF[OptionT[F, ?], Vector[PushResponse[F]]] {
               _.semiflatMap { response =>
                 response.attributes
-                  .get(pushLocationKey)
+                  .lookup(pushLocationKey)
                   .map { pushed =>
                     collectResponse(pushed, req, verify, routes).map(
                       accumulated ++ _ :+ PushResponse(v.location, response))
@@ -88,12 +90,12 @@ object PushSupport {
 
     def gather(req: Request[F])(resp: Response[F]): Response[F] =
       resp.attributes
-        .get(pushLocationKey)
+        .lookup(pushLocationKey)
         .map { fresource =>
           val collected = collectResponse(fresource, req, verify, routes)
           resp.copy(
             body = resp.body,
-            attributes = resp.attributes.put(pushResponsesKey[F], collected)
+            attributes = resp.attributes.insert(pushResponsesKey[F], collected)
           )
         }
         .getOrElse(resp)
@@ -104,11 +106,11 @@ object PushSupport {
   private[PushSupport] final case class PushLocation(location: String, cascade: Boolean)
   private[http4s] final case class PushResponse[F[_]](location: String, resp: Response[F])
 
-  private[PushSupport] val pushLocationKey = AttributeKey[Vector[PushLocation]]
-  private[http4s] def pushResponsesKey[F[_]]: AttributeKey[F[Vector[PushResponse[F]]]] =
-    Keys.PushResponses.asInstanceOf[AttributeKey[F[Vector[PushResponse[F]]]]]
+  private[PushSupport] val pushLocationKey = Key.newKey[IO, Vector[PushLocation]].unsafeRunSync
+  private[http4s] def pushResponsesKey[F[_]]: Key[F[Vector[PushResponse[F]]]] =
+    Keys.PushResponses.asInstanceOf[Key[F[Vector[PushResponse[F]]]]]
 
   private[this] object Keys {
-    val PushResponses: AttributeKey[Any] = AttributeKey[Any]
+    val PushResponses: Key[Any] = Key.newKey[IO, Any].unsafeRunSync
   }
 }

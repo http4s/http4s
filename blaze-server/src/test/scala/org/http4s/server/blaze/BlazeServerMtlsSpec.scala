@@ -35,8 +35,9 @@ class BlazeServerMtlsSpec extends Http4sSpec {
 
   val service: HttpApp[IO] = HttpApp {
     case req @ GET -> Root / "dummy" =>
-      val output = req
-        .attributes(ServerRequestKeys.SecureSession)
+      val output = req.attributes
+        .lookup(ServerRequestKeys.SecureSession)
+        .flatten
         .map { session =>
           session.sslSessionId shouldNotEqual ""
           session.cipherSuite shouldNotEqual ""
@@ -49,8 +50,9 @@ class BlazeServerMtlsSpec extends Http4sSpec {
       Ok(output)
 
     case req @ GET -> Root / "noauth" =>
-      req
-        .attributes(ServerRequestKeys.SecureSession)
+      req.attributes
+        .lookup(ServerRequestKeys.SecureSession)
+        .flatten
         .foreach { session =>
           session.sslSessionId shouldNotEqual ""
           session.cipherSuite shouldNotEqual ""
