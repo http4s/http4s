@@ -32,6 +32,7 @@ import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import _root_.io.chrisdavenport.vault._
 import scodec.bits.ByteVector
 
 /**
@@ -205,21 +206,20 @@ class BlazeServerBuilder[F[_]](
   private def pipelineFactory(
       scheduler: TickWheelExecutor
   )(conn: SocketConnection): Future[LeafBuilder[ByteBuffer]] = {
-    def requestAttributes(
-        secure: Boolean,
-        optionalSslEngine: Option[SSLEngine]): () => AttributeMap =
+    def requestAttributes(secure: Boolean, optionalSslEngine: Option[SSLEngine]): () => Vault =
       (conn.local, conn.remote) match {
         case (local: InetSocketAddress, remote: InetSocketAddress) =>
           () =>
-            AttributeMap(
-              AttributeEntry(
+            Vault.empty
+              .insert(
                 Request.Keys.ConnectionInfo,
                 Request.Connection(
                   local = local,
                   remote = remote,
                   secure = secure
-                )),
-              AttributeEntry(
+                )
+              )
+              .insert(
                 ServerRequestKeys.SecureSession,
                 //Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
                 //condition is checked inside a "flatMap" to handle possible "null" values
@@ -235,10 +235,9 @@ class BlazeServerBuilder[F[_]](
                       SSLContextFactory.getCertChain(session).some).mapN(SecureSession.apply)
                   }
               )
-            )
         case _ =>
           () =>
-            AttributeMap.empty
+            Vault.empty
       }
 
     def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =

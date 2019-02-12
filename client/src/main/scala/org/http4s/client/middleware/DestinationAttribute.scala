@@ -1,8 +1,9 @@
 package org.http4s.client.middleware
 
-import cats.effect.Sync
+import cats.effect._
 import org.http4s._
 import org.http4s.client.Client
+import io.chrisdavenport.vault._
 
 /**
   * Client middleware that sets the destination attribute of every request to the specified value.
@@ -20,9 +21,9 @@ object DestinationAttribute {
     *
     * @return the classifier function
     */
-  def getDestination[F[_]](): Request[F] => Option[String] = _.attributes.get(Destination)
+  def getDestination[F[_]](): Request[F] => Option[String] = _.attributes.lookup(Destination)
 
-  val Destination = AttributeKey[String]
+  val Destination = Key.newKey[IO, String].unsafeRunSync
 
   val EmptyDestination = ""
 

@@ -150,7 +150,7 @@ class BlazeBuilder[F[_]](
         val newCaret = (if (prefix.startsWith("/")) 0 else 1) + prefix.length
 
         service.local { req: Request[F] =>
-          req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
+          req.withAttribute(Request.Keys.PathInfoCaret, newCaret)
         }
       }
     copy(serviceMounts = serviceMounts :+ ServiceMount[F](prefixedService, prefix))

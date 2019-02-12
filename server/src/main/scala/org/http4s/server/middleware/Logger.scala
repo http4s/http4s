@@ -2,9 +2,12 @@ package org.http4s
 package server
 package middleware
 
+import cats._
+import cats.arrow.FunctionK
 import cats.implicits._
-import cats.data.Kleisli
+import cats.data._
 import cats.effect._
+import cats.effect.Sync._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
@@ -15,20 +18,36 @@ import org.log4s.getLogger
 object Logger {
   private[this] val logger = getLogger
 
-  def apply[F[_]: Concurrent](
+  def apply[G[_]: Bracket[?[_], Throwable], F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      fk: F ~> G,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(@deprecatedName('httpService) http: Http[G, F]): Http[G, F] = {
+    val log: String => F[Unit] = logAction.getOrElse { s =>
+      Sync[F].delay(logger.info(s))
+    }
+    ResponseLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(
+      RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
+    )
+  }
+
+  def httpApp[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(@deprecatedName('httpService) http: Kleisli[F, Request[F], Response[F]])
-    : Kleisli[F, Request[F], Response[F]] = {
-    val log: String => F[Unit] = logAction.getOrElse { s =>
-      Sync[F].delay(logger.info(s))
-    }
-    ResponseLogger(logHeaders, logBody, redactHeadersWhen, log.pure[Option])(
-      RequestLogger(logHeaders, logBody, redactHeadersWhen, log.pure[Option])(http)
-    )
-  }
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+
+  def httpRoutes[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,

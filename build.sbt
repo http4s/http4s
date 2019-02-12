@@ -29,6 +29,7 @@ lazy val core = libraryProject("core")
       fs2Io,
       log4s,
       parboiled,
+      vault,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided",
       scalaCollectionCompat

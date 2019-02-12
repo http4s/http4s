@@ -4,12 +4,13 @@ import cats._
 import cats.arrow.Choice
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
+import cats.effect._
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.http4s.syntax.string._
 import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
-
+import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}
 
 package object server {
@@ -32,7 +33,8 @@ package object server {
   }
 
   object ServerRequestKeys {
-    val SecureSession: AttributeKey[Option[SecureSession]] = AttributeKey[Option[SecureSession]]
+    val SecureSession: Key[Option[SecureSession]] =
+      Key.newKey[IO, Option[SecureSession]].unsafeRunSync
   }
 
   /**

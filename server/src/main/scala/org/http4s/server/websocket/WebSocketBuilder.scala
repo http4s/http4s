@@ -4,7 +4,7 @@ import cats._
 import cats.implicits._
 import fs2._
 import org.http4s.websocket.{WebSocket, WebSocketContext, WebSocketFrame}
-import org.http4s.{AttributeEntry, Headers, Response, Status}
+import org.http4s.{Headers, Response, Status}
 
 /**
   * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
@@ -56,9 +56,9 @@ object WebSocketBuilder {
       WebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure).onNonWebSocketRequest
         .map(
           _.withAttribute(
-            AttributeEntry(
-              websocketKey[F],
-              WebSocketContext(WebSocket(send, receive, onClose), headers, onHandshakeFailure))))
+            websocketKey[F],
+            WebSocketContext(WebSocket(send, receive, onClose), headers, onHandshakeFailure))
+        )
   }
   def apply[F[_]: Applicative]: Builder[F] = new Builder[F]
 }
