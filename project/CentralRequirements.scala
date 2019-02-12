@@ -37,6 +37,27 @@ object CentralRequirementsPlugin extends AutoPlugin {
     licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.html")),
     homepage := Some(url("https://http4s.org/")),
     scmInfo := Some(ScmInfo(url("https://github.com/http4s/http4s"), "git@github.com:http4s/http4s.git")),
-    startYear := Some(2013)
+    startYear := Some(2013),
+    publishMavenStyle := true,
+    pomIncludeRepository := { _ => false },
+    publishArtifact in (Compile, packageBin) := true,
+    publishArtifact in (Compile, packageSrc) := true,
+    publishArtifact in Test := false,
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+    credentials ++= (for {
+      username <- sys.env.get("SONATYPE_USERNAME")
+      password <- sys.env.get("SONATYPE_PASSWORD")
+    } yield Credentials(
+        "Sonatype Nexus Repository Manager",
+        "oss.sonatype.org",
+        username, password
+      )
+    ).toSeq
   )
 }
