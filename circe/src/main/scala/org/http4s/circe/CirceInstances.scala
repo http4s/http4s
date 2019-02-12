@@ -62,9 +62,9 @@ trait CirceInstances extends JawnInstances {
     }
 
   def jsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
-    jsonOf(MediaType.application.json)
+    jsonOfWithMedia(MediaType.application.json)
 
-  def jsonOf[F[_]: Sync, A](r1: MediaRange, rs: MediaRange*)(
+  def jsonOfWithMedia[F[_]: Sync, A](r1: MediaRange, rs: MediaRange*)(
       implicit decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
       decoder
