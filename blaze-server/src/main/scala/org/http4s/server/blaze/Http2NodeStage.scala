@@ -21,12 +21,13 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util._
+import _root_.io.chrisdavenport.vault._
 
 private class Http2NodeStage[F[_]](
     streamId: Int,
     timeout: Duration,
     implicit private val executionContext: ExecutionContext,
-    attributes: () => AttributeMap,
+    attributes: () => Vault,
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,

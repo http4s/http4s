@@ -19,6 +19,7 @@ import org.specs2.specification.AfterAll
 import org.specs2.specification.core.Fragment
 import scala.concurrent.duration._
 import scala.concurrent.Await
+import _root_.io.chrisdavenport.vault._
 
 class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   sequential
@@ -51,7 +52,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
     val httpStage = Http1ServerStage[IO](
       httpApp,
-      () => AttributeMap.empty,
+      () => Vault.empty,
       testExecutionContext,
       enableWebSockets = true,
       maxReqLine,
