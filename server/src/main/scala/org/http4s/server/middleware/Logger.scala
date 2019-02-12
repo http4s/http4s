@@ -7,6 +7,7 @@ import cats.arrow.FunctionK
 import cats.implicits._
 import cats.data._
 import cats.effect._
+import cats.effect.Sync._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
@@ -17,7 +18,7 @@ import org.log4s.getLogger
 object Logger {
   private[this] val logger = getLogger
 
-  def apply[G[_]: MonadError[?[_], Throwable], F[_]: Concurrent](
+  def apply[G[_]: Bracket[?[_], Throwable], F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,

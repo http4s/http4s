@@ -6,6 +6,8 @@ import cats._
 import cats.arrow.FunctionK
 import cats.data._
 import cats.effect._
+import cats.effect.implicits._
+import cats.effect.Sync._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
@@ -25,7 +27,7 @@ object ResponseLogger {
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
       @deprecatedName('service) http: Kleisli[G, A, Response[F]])(
-      implicit G: MonadError[G, Throwable],
+      implicit G: Bracket[G, Throwable],
       F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
     val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
     val log = logAction.fold(fallback)(identity)
@@ -34,9 +36,9 @@ object ResponseLogger {
         .flatMap { response =>
           val out =
             if (!logBody)
-              Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-                log) *> F
-                .delay(response)
+              Logger
+                .logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(log)
+                .as(response)
             else
               Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
                 val newBody = Stream
@@ -58,11 +60,11 @@ object ResponseLogger {
               }
           fk(out)
         }
-        .handleErrorWith(t =>
-          fk(
-            log(s"service raised an error: ${t.getClass}") >>
-              F.raiseError[Response[F]](t)
-        ))
+        .guaranteeCase {
+          case ExitCase.Error(t) => fk(log(s"service raised an error: ${t.getClass}"))
+          case ExitCase.Canceled => fk(log(s"service cancelled response"))
+          case ExitCase.Completed => G.unit
+        }
     }
   }
 
