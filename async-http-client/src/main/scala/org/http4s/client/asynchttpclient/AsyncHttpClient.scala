@@ -5,20 +5,27 @@ package asynchttpclient
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import cats.effect.implicits._
-import fs2.Stream._
 import fs2._
+import fs2.Stream._
+import fs2.concurrent.Queue
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
 import _root_.io.netty.handler.codec.http.{DefaultHttpHeaders, HttpHeaders}
 import _root_.io.netty.buffer.Unpooled
+import _root_.io.netty.util.concurrent.{Future => NFuture, GenericFutureListener}
+import java.util.concurrent.{ExecutionException}
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
-import org.http4s.internal.invokeCallback
+import org.asynchttpclient.ws.{WebSocket => AhcWebSocket, WebSocketListener, WebSocketUpgradeHandler}
+import org.http4s.internal.{invoke, invokeCallback}
 import org.http4s.util.threads._
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame._
 import org.log4s.getLogger
 import org.reactivestreams.Publisher
 import scala.collection.JavaConverters._
+import scodec.bits.ByteVector
 
 object AsyncHttpClient {
   private[this] val logger = getLogger
@@ -145,4 +152,80 @@ object AsyncHttpClient {
     Headers(headers.asScala.map { header =>
       Header(header.getKey, header.getValue)
     }.toList)
+
+  def webSocketResource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
+      implicit F: ConcurrentEffect[F]): Resource[F, WebSocketClient[F]] =
+    Resource
+      .make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close()))
+      .map(client =>
+        WebSocketClient[F] { req =>
+          for {
+            receiveQueue <- Queue.unbounded[F, WebSocketFrame]
+            socket <- F.async[WebSocket[F]] { cb =>
+              client
+                .prepareGet(req.uri.renderString)
+                .execute(new WebSocketUpgradeHandler(List(wsListener(cb, receiveQueue)).asJava))
+              ()
+            }
+          } yield socket
+      })
+
+  private def wsListener[F[_]](cb: Callback[WebSocket[F]], receiveQueue: Queue[F, WebSocketFrame])(
+      implicit F: ConcurrentEffect[F]): WebSocketListener =
+    new WebSocketListener {
+      def send(socket: AhcWebSocket, frame: WebSocketFrame) = frame match {
+        case Text(s, last) => socket.sendTextFrame(s, last, 0)
+        case Binary(data, last) => socket.sendBinaryFrame(data.toArray, last, 0)
+        case Continuation(data, last) => socket.sendContinuationFrame(data.toArray, last, 0)
+        case Ping(data) => socket.sendPingFrame(data.toArray)
+        case Pong(data) => socket.sendPongFrame(data.toArray)
+        case close: Close =>
+          // TODO extract reason from close frame
+          socket.sendCloseFrame(close.closeCode, "")
+      }
+
+      def onOpen(ahcSocket: AhcWebSocket): Unit = {
+        val socket = new WebSocket[F] {
+          def read1 = receiveQueue.dequeue1
+          def write1(frame: WebSocketFrame) =
+            fromNettyFuture(send(ahcSocket, frame)).void
+          def localAddress = ahcSocket.getLocalAddress
+          def remoteAddress = ahcSocket.getRemoteAddress
+        }
+        invokeCallback(logger)(cb(Right(socket)))
+      }
+
+      def enqueue(frame: WebSocketFrame): Unit =
+        invoke(logger)(receiveQueue.enqueue1(frame))
+
+      def onClose(ahcSocket: AhcWebSocket, code: Int, reason: String) =
+        Close(code, reason).foreach(enqueue)
+
+      def onError(t: Throwable) =
+        cb(Left(t))
+
+      override def onBinaryFrame(data: Array[Byte], last: Boolean, rsv: Int) =
+        enqueue(Binary(ByteVector.view(data), last))
+
+      override def onTextFrame(s: String, last: Boolean, rsv: Int) =
+        enqueue(Text(s, last))
+
+      override def onPingFrame(data: Array[Byte]) =
+        enqueue(Ping(ByteVector.view(data)))
+
+      override def onPongFrame(data: Array[Byte]) =
+        enqueue(Pong(ByteVector.view(data)))
+    }
+
+  private def fromNettyFuture[F[_], A](nf: NFuture[A])(implicit F: Async[F]): F[A] =
+    F.async[A] { cb =>
+      nf.addListener(new GenericFutureListener[NFuture[A]] {
+        def operationComplete(f: NFuture[A]) =
+          try cb(Right(f.getNow))
+          catch {
+            case ee: ExecutionException => cb(Left(ee.getCause))
+          }
+      })
+      ()
+    }
 }
