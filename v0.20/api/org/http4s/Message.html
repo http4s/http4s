@@ -462,18 +462,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="class" href="AttributeEntry.html" title="A map entry where key is constrained to only be associated with a fixed value of type T."></a>
-                        <a href="AttributeEntry.html" title="A map entry where key is constrained to only be associated with a fixed value of type T.">AttributeEntry</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="AttributeKey$.html" title=""></a>
-                        <a class="class" href="AttributeKey.html" title="A key in an AttributeMap that constrains its associated value to be of type T."></a>
-                        <a href="AttributeKey.html" title="A key in an AttributeMap that constrains its associated value to be of type T.">AttributeKey</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="AttributeMap$.html" title=""></a>
-                        <a class="class" href="AttributeMap.html" title="An immutable map where an AttributeKey  for a fixed type T can only be associated with values of type T."></a>
-                        <a href="AttributeMap.html" title="An immutable map where an AttributeKey  for a fixed type T can only be associated with values of type T.">AttributeMap</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
                         <a class="object" href="AuthScheme$.html" title=""></a>
                         <a href="AuthScheme$.html" title="">AuthScheme</a>
                       </li><li class="current-entities indented2">
@@ -879,9 +867,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="org.http4s.Message#attributes" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="attributes:org.http4s.AttributeMap"></a><a id="attributes:AttributeMap"></a>
+      <a id="attributes:io.chrisdavenport.vault.Vault"></a><a id="attributes:Vault"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#attributes:org.http4s.AttributeMap" title="Permalink">
+      <a href="../../org/http4s/Message.html#attributes:io.chrisdavenport.vault.Vault" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -890,7 +878,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">attributes</span><span class="result">: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>
+        <span class="name">attributes</span><span class="result">: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span></span>
       </span>
       
       
@@ -911,9 +899,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       
     </li><li name="org.http4s.Message#change" visbl="prt" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Message.this.Self"></a><a id="change(HttpVersion,EntityBody[F],Headers,AttributeMap):Self"></a>
+      <a id="change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:io.chrisdavenport.vault.Vault):Message.this.Self"></a><a id="change(HttpVersion,EntityBody[F],Headers,Vault):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Message.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:io.chrisdavenport.vault.Vault):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -922,7 +910,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">change</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol">httpVersion</span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Message.F">F</span>] = <span class="symbol">body</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">headers</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">attributes</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">change</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol">httpVersion</span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Message.F">F</span>] = <span class="symbol">body</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">headers</span></span>, <span name="attributes">attributes: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span> = <span class="symbol">attributes</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -1664,9 +1652,9 @@ F might not complete until the entire body has been consumed.
               
         </dd></dl></div>
     </li><li name="org.http4s.Message#withAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withAttribute[A](entry:org.http4s.AttributeEntry[A]):Message.this.Self"></a><a id="withAttribute[A](AttributeEntry[A]):Self"></a>
+      <a id="withAttribute[A](key:io.chrisdavenport.vault.Key[A],value:A):Message.this.Self"></a><a id="withAttribute[A](Key[A],A):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withAttribute[A](entry:org.http4s.AttributeEntry[A]):Message.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withAttribute[A](key:io.chrisdavenport.vault.Key[A],value:A):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1675,34 +1663,16 @@ F might not complete until the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="entry">entry: <a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <span class="extype" name="io.chrisdavenport.vault.Key">Key</span>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.A">A</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">entry</dt><dd class="cmt"><p><a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> entry to add</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl></div>
-    </li><li name="org.http4s.Message#withAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withAttribute[A](key:org.http4s.AttributeKey[A],value:A):Message.this.Self"></a><a id="withAttribute[A](AttributeKey[A],A):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Message.html#withAttribute[A](key:org.http4s.AttributeKey[A],value:A):Message.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.A">A</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl></div>
+      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <span class="extype" name="AttributeMap">AttributeMap</span>
+</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <span class="extype" name="AttributeMap">AttributeMap</span>
+</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><span class="extype" name="Key">Key</span> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl></div>
     </li><li name="org.http4s.Message#withAttributes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withAttributes(attributes:org.http4s.AttributeMap):Message.this.Self"></a><a id="withAttributes(AttributeMap):Self"></a>
+      <a id="withAttributes(attributes:io.chrisdavenport.vault.Vault):Message.this.Self"></a><a id="withAttributes(Vault):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withAttributes(attributes:org.http4s.AttributeMap):Message.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withAttributes(attributes:io.chrisdavenport.vault.Vault):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1711,7 +1681,7 @@ F might not complete until the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttributes</span><span class="params">(<span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withAttributes</span><span class="params">(<span name="attributes">attributes: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
       
@@ -1867,9 +1837,9 @@ that make no sense with an empty body.</p>
       
       
     </li><li name="org.http4s.Message#withoutAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withoutAttribute(key:org.http4s.AttributeKey[_]):Message.this.Self"></a><a id="withoutAttribute(AttributeKey[_]):Self"></a>
+      <a id="withoutAttribute(key:io.chrisdavenport.vault.Key[_]):Message.this.Self"></a><a id="withoutAttribute(Key[_]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Message.html#withoutAttribute(key:org.http4s.AttributeKey[_]):Message.this.Self" title="Permalink">
+      <a href="../../org/http4s/Message.html#withoutAttribute(key:io.chrisdavenport.vault.Key[_]):Message.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1878,12 +1848,12 @@ that make no sense with an empty body.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withoutAttribute</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[_]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withoutAttribute</span><span class="params">(<span name="key">key: <span class="extype" name="io.chrisdavenport.vault.Key">Key</span>[_]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Returns a new message object without the specified key in the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Returns a new message object without the specified key in the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> to remove</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object without the key</p></dd></dl></div>
+      <p class="shortcomment cmt">Returns a new message object without the specified key in the <span class="extype" name="AttributeMap">AttributeMap</span>
+</p><div class="fullcomment"><div class="comment cmt"><p>Returns a new message object without the specified key in the <span class="extype" name="AttributeMap">AttributeMap</span>
+</p></div><dl class="paramcmts block"><dt class="param">key</dt><dd class="cmt"><p><span class="extype" name="Key">Key</span> to remove</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object without the key</p></dd></dl></div>
     </li><li name="org.http4s.Message#withoutContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withoutContentType:Message.this.Self"></a><a id="withoutContentType:Self"></a>
       <span class="permalink">

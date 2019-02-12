@@ -462,18 +462,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="class" href="AttributeEntry.html" title="A map entry where key is constrained to only be associated with a fixed value of type T."></a>
-                        <a href="AttributeEntry.html" title="A map entry where key is constrained to only be associated with a fixed value of type T.">AttributeEntry</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="AttributeKey$.html" title=""></a>
-                        <a class="class" href="AttributeKey.html" title="A key in an AttributeMap that constrains its associated value to be of type T."></a>
-                        <a href="AttributeKey.html" title="A key in an AttributeMap that constrains its associated value to be of type T.">AttributeKey</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="AttributeMap$.html" title=""></a>
-                        <a class="class" href="AttributeMap.html" title="An immutable map where an AttributeKey  for a fixed type T can only be associated with values of type T."></a>
-                        <a href="AttributeMap.html" title="An immutable map where an AttributeKey  for a fixed type T can only be associated with values of type T.">AttributeMap</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
                         <a class="object" href="AuthScheme$.html" title=""></a>
                         <a href="AuthScheme$.html" title="">AuthScheme</a>
                       </li><li class="current-entities indented2">
@@ -919,9 +907,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.Request#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](method:org.http4s.Method,uri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody[F],attributes:org.http4s.AttributeMap):org.http4s.Request[F]"></a><a id="apply[F[_]](Method,Uri,HttpVersion,Headers,EntityBody[F],AttributeMap):Request[F]"></a>
+      <a id="apply[F[_]](method:org.http4s.Method,uri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody[F],attributes:io.chrisdavenport.vault.Vault):org.http4s.Request[F]"></a><a id="apply[F[_]](Method,Uri,HttpVersion,Headers,EntityBody[F],Vault):Request[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Request$.html#apply[F[_]](method:org.http4s.Method,uri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody[F],attributes:org.http4s.AttributeMap):org.http4s.Request[F]" title="Permalink">
+      <a href="../../org/http4s/Request$.html#apply[F[_]](method:org.http4s.Method,uri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody[F],attributes:io.chrisdavenport.vault.Vault):org.http4s.Request[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -930,7 +918,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Request.apply.F">F</span>] = <span class="symbol"><span class="name"><a href="index.html#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result">: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Request.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Request.apply.F">F</span>] = <span class="symbol"><span class="name"><a href="index.html#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span> = <span class="symbol">Vault.empty</span></span>)</span><span class="result">: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Request.apply.F">F</span>]</span>
       </span>
       
       

@@ -462,18 +462,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
     </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="class" href="AttributeEntry.html" title="A map entry where key is constrained to only be associated with a fixed value of type T."></a>
-                        <a href="AttributeEntry.html" title="A map entry where key is constrained to only be associated with a fixed value of type T.">AttributeEntry</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="AttributeKey$.html" title=""></a>
-                        <a class="class" href="AttributeKey.html" title="A key in an AttributeMap that constrains its associated value to be of type T."></a>
-                        <a href="AttributeKey.html" title="A key in an AttributeMap that constrains its associated value to be of type T.">AttributeKey</a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="AttributeMap$.html" title=""></a>
-                        <a class="class" href="AttributeMap.html" title="An immutable map where an AttributeKey  for a fixed type T can only be associated with values of type T."></a>
-                        <a href="AttributeMap.html" title="An immutable map where an AttributeKey  for a fixed type T can only be associated with values of type T.">AttributeMap</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
                         <a class="object" href="AuthScheme$.html" title=""></a>
                         <a href="AuthScheme$.html" title="">AuthScheme</a>
                       </li><li class="current-entities indented2">
@@ -860,59 +848,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.AttributeEntry" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AttributeEntry[T]extendsProductwithSerializable"></a><a id="AttributeEntry[T]:AttributeEntry[T]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#AttributeEntry[T]extendsProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="A map entry where key is constrained to only be associated with a fixed value of type T." href="AttributeEntry.html"><span class="name">AttributeEntry</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.AttributeEntry.T">T</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.AttributeEntry.T">T</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">A map entry where <code>key</code> is constrained to only be associated with a fixed value of type <code>T</code>.</p>
-    </li><li name="org.http4s.AttributeKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="AttributeKey[T]extendsAnyRef"></a><a id="AttributeKey[T]:AttributeKey[T]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#AttributeKey[T]extendsAnyRef" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="A key in an AttributeMap that constrains its associated value to be of type T." href="AttributeKey.html"><span class="name">AttributeKey</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">A key in an <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> that constrains its associated value to be of type <code>T</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A key in an <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> that constrains its associated value to be of type <code>T</code>.
-The key is uniquely defined by its reference: there are no duplicate keys, even
-those with the same name and type.</p></div></div>
-    </li><li name="org.http4s.AttributeMap" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="AttributeMapextendsAnyRef"></a><a id="AttributeMap:AttributeMap"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#AttributeMapextendsAnyRef" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="An immutable map where an AttributeKey  for a fixed type T can only be associated with values of type T." href="AttributeMap.html"><span class="name">AttributeMap</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">An immutable map where an <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>  for a fixed type <code>T</code> can only be associated with values of type <code>T</code>.</p><div class="fullcomment"><div class="comment cmt"><p>An immutable map where an <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>  for a fixed type <code>T</code> can only be associated with values of type <code>T</code>.
-Because the equality of keys is based on reference, it is therefore possible for this map to contain mappings
-for keys with the same label and same types.</p></div></div>
-    </li><li name="org.http4s.AuthScheme" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.AuthScheme" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="AuthScheme=org.http4s.util.CaseInsensitiveString"></a><a id="AuthScheme:AuthScheme"></a>
       <span class="permalink">
       <a href="../../org/http4s/index.html#AuthScheme=org.http4s.util.CaseInsensitiveString" title="Permalink">
@@ -1911,12 +1847,12 @@ status line, headers, and a possible request body.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Representation of the HTTP response to send back to the client" href="Response.html"><span class="name">Response</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>] = <span class="symbol"><span class="name"><a href="#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Representation of the HTTP response to send back to the client" href="Response.html"><span class="name">Response</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>] = <span class="symbol"><span class="name"><a href="#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span> = <span class="symbol">Vault.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Representation of the HTTP response to send back to the client
 </p><div class="fullcomment"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
-</p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>EntityBody[F] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
+</p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>EntityBody[F] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><span class="extype" name="Vault">Vault</span> containing additional parameters which may be used by the http4s
                   backend for additional processing such as java.io.File object</p></dd></dl></div>
     </li><li name="org.http4s.ResponseCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ResponseCookieextendsRenderablewithProductwithSerializable"></a><a id="ResponseCookie:ResponseCookie"></a>
@@ -2236,38 +2172,6 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
       </span>
       <span class="symbol">
         <span class="name">EmptyBody</span><span class="result">: <a href="#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<a href="http://www.scala-lang.org/api/2.12.7/scala/Nothing.html#scala.Nothing" class="extype" name="scala.Nothing">Nothing</a>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.AttributeKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AttributeKey"></a><a id="AttributeKey:AttributeKey"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#AttributeKey" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="AttributeKey$.html"><span class="name">AttributeKey</span></a>
-      </span>
-      
-      
-    </li><li name="org.http4s.AttributeMap" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AttributeMap"></a><a id="AttributeMap:AttributeMap"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#AttributeMap" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="AttributeMap$.html"><span class="name">AttributeMap</span></a>
       </span>
       
       
