@@ -52,17 +52,35 @@ object Metrics {
   )(req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] = OptionT {
     for {
       initialTime <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- ops.increaseActiveRequests(classifierF(req))
-      responseOpt <- routes(req).value
-        .guaranteeCase {
-          case ExitCase.Completed => Sync[F].unit
-          case ExitCase.Canceled =>
+      result <- ops
+        .increaseActiveRequests(classifierF(req))
+        .bracketCase { _ =>
+          for {
+            responseOpt <- routes(req).value
+            headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
+            result <- responseOpt.fold(
+              onEmpty[F](
+                req.method,
+                initialTime,
+                headersElapsed,
+                ops,
+                emptyResponseHandler,
+                classifierF(req))
+                .as(Option.empty[Response[F]])
+            )(
+              onResponse(req.method, initialTime, headersElapsed, ops, classifierF(req))(_).some
+                .pure[F]
+            )
+          } yield result
+        } {
+          case (_, ExitCase.Completed) => Sync[F].unit
+          case (_, ExitCase.Canceled) =>
             onServiceCanceled(
               initialTime,
               ops,
               classifierF(req)
             )
-          case ExitCase.Error(e) =>
+          case (_, ExitCase.Error(e)) =>
             for {
               headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
               out <- onServiceError(
@@ -75,19 +93,6 @@ object Metrics {
               )
             } yield out
         }
-      headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
-      result <- responseOpt.fold(
-        onEmpty[F](
-          req.method,
-          initialTime,
-          headersElapsed,
-          ops,
-          emptyResponseHandler,
-          classifierF(req))
-          .as(Option.empty[Response[F]])
-      )(
-        onResponse(req.method, initialTime, headersElapsed, ops, classifierF(req))(_).some.pure[F]
-      )
     } yield result
   }
 
