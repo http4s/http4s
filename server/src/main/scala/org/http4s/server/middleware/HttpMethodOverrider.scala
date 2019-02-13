@@ -3,12 +3,13 @@ package server
 package middleware
 
 import cats.data.Kleisli
-import cats.effect.Sync
+import cats.effect._
 import cats.instances.option._
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.alternative._
 import cats.{Monad, ~>}
+import io.chrisdavenport.vault.Key
 import org.http4s.Http
 import org.http4s.util.CaseInsensitiveString
 
@@ -58,7 +59,7 @@ object HttpMethodOverrider {
       HeaderOverrideStrategy(CaseInsensitiveString("X-HTTP-Method-Override")),
       Set(Method.POST))
 
-  val overriddenMethodAttrKey: AttributeKey[Method] = AttributeKey[Method]
+  val overriddenMethodAttrKey: Key[Method] = Key.newKey[IO, Method].unsafeRunSync
 
   /** Simple middleware for HTTP Method Override.
     *
@@ -101,7 +102,7 @@ object HttpMethodOverrider {
     }
 
     def updateRequestWithMethod(req: Request[G], om: Method): Request[G] = {
-      val attrs = req.attributes ++ Seq(overriddenMethodAttrKey(req.method))
+      val attrs = req.attributes.insert(overriddenMethodAttrKey, req.method)
       req.withAttributes(attrs).withMethod(om)
     }
 
