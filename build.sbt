@@ -121,6 +121,27 @@ lazy val blazeClient = libraryProject("blaze-client")
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
+lazy val emberCore = libraryProject("ember-core")
+  .settings(
+    description := "Base library for binding ember to http4s clients and servers",
+  )
+  .dependsOn(core, testing % "test->test")
+
+lazy val emberServer = libraryProject("ember-server")
+  .settings(
+    description := "ember implementation for http4s servers"
+  )
+  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
+
+lazy val emberClient = libraryProject("ember-client")
+  .settings(
+    description := "ember implementation for http4s clients",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.fs2Crypto
+    )
+  )
+  .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
+
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
