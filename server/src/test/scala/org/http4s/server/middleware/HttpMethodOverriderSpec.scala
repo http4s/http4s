@@ -52,7 +52,7 @@ class HttpMethodOverriderSpec extends Http4sSpec {
       .getOrElse(s"[$reqMethod] => $msg")
 
   private def responseText[F[_]](msg: String, req: Request[F]): String = {
-    val overriddenMethod = req.attributes.get(HttpMethodOverrider.overriddenMethodAttrKey)
+    val overriddenMethod = req.attributes.lookup(HttpMethodOverrider.overriddenMethodAttrKey)
     mkResponseText(msg, req.method, overriddenMethod)
   }
 
