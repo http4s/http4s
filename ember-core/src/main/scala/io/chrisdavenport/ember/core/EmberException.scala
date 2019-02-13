@@ -6,9 +6,12 @@ sealed trait EmberException extends RuntimeException
 
 object EmberException {
   final case class Timeout(started: Long, timedOut: Long) extends EmberException {
-    override def getMessage: String = show"Timeout Occured - Started: $started, Timed Out: $timedOut"
+    override def getMessage: String =
+      show"Timeout Occured - Started: $started, Timed Out: $timedOut"
   }
-  final case class IncompleteClientRequest(missing: String) extends IllegalArgumentException with EmberException {
+  final case class IncompleteClientRequest(missing: String)
+      extends IllegalArgumentException
+      with EmberException {
     override def getMessage: String = show"Incomplete Client Request: Mising $missing"
   }
 
@@ -19,5 +22,5 @@ object EmberException {
   final case class ChunkedEncodingError(message: String) extends EmberException {
     override def getMessage: String = message
   }
-  
+
 }
