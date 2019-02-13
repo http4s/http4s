@@ -171,7 +171,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 val keys = idleQueues.keys
                 if (keys.nonEmpty) {
                   F.delay(logger.debug(
-                    s"No connections available for the desired key. Evicting random and creating a new connection: $stats")) *>
+                    s"No connections available for the desired key, $key. Evicting random and creating a new connection: $stats")) *>
                     F.delay(keys.iterator.drop(Random.nextInt(keys.size)).next()).flatMap {
                       randKey =>
                         getConnectionFromQueue(randKey).map(
@@ -181,10 +181,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
                           decrConnection(randKey)
                     } *>
                     createConnection(key, callback)
-
                 } else {
                   F.delay(logger.debug(
-                    s"No connections available for the desired key. Adding to waitQueue: $stats")) *>
+                    s"No connections available for the desired key, $key. Adding to waitQueue: $stats")) *>
                     addToWaitQueue(key, callback)
                 }
 
