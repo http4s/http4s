@@ -62,7 +62,7 @@ object Prometheus {
     * * @param prefix a prefix that will be added to all metrics
     **/
   def apply[F[_]](registry: CollectorRegistry, prefix: String = "org_http4s_server")(
-      implicit F: Sync[F]): MetricsOps[F] =
+      implicit F: Sync[F]): F[MetricsOps[F]] = F.delay {
     new MetricsOps[F] {
 
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
@@ -180,6 +180,7 @@ object Prometheus {
             .register(registry)
         )
     }
+  }
 }
 
 case class MetricsCollection(

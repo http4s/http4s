@@ -238,6 +238,16 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
         EntityDecoder.text[IO].orElse(edec)) must returnValue("Accept: text/*, image/jpeg")
     }
 
+    "return empty with expectOption and not found" in {
+      client.expectOption[String](Request[IO](GET, uri("http://www.foo.com/random-not-found"))) must returnValue(
+        Option.empty[String])
+    }
+    "return expected value with expectOption and a response" in {
+      client.expectOption[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
+        "Accept: text/*".some
+      )
+    }
+
     "stream returns a stream" in {
       client
         .stream(req)

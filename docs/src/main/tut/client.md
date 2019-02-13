@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
 
 Then we create the [service] again so tut picks it up:
 >
-```tut:book:silent
+```tut:silent
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -38,7 +38,7 @@ Blaze needs a [[`ConcurrentEffect`]] instance, which is derived from
 [[`ContextShift`]].  The following lines are not necessary if you are
 in an [[`IOApp`]]:
 
-```tut:book:silent
+```tut:silent
 import scala.concurrent.ExecutionContext.global
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
 implicit val timer: Timer[IO] = IO.timer(global)
@@ -68,7 +68,7 @@ val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 A good default choice is the `BlazeClientBuilder`.  The
 `BlazeClientBuilder` maintains a connection pool and speaks HTTP 1.x.
 
-```tut:book:silent
+```tut:silent
 import org.http4s.client.blaze._
 import org.http4s.client._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -92,7 +92,7 @@ interface!
 It uses blocking IO and is less suited for production, but it is
 highly useful in a REPL:
 
-```tut:book:silent
+```tut:silent
 import scala.concurrent.ExecutionContext
 import java.util.concurrent._
 
@@ -123,7 +123,7 @@ side effects to the end.
 Let's describe how we're going to greet a collection of people in
 parallel:
 
-```tut:book:silent
+```tut:silent
 import cats._, cats.effect._, cats.implicits._
 import org.http4s.Uri
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -231,7 +231,7 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:book:silent
+```tut:silent
 import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
@@ -261,7 +261,7 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:book:silent
+```tut:silent
 import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.prometheus.Prometheus
 import io.prometheus.client.CollectorRegistry
@@ -271,7 +271,9 @@ implicit val clock = Clock.create[IO]
 val registry = new CollectorRegistry()
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
-val meteredClient = Metrics[IO](Prometheus(registry, "prefix"), requestMethodClassifier)(httpClient)
+val meteredClient = Prometheus[IO](registry, "prefix").map(
+  Metrics[IO](_, requestMethodClassifier)(httpClient)
+)
 ```
 
 
@@ -291,7 +293,7 @@ httpClient.expect[String](Uri.uri("https://google.com/"))
 If you need to do something more complicated like setting request headers, you
 can build up a request object and pass that to `expect`:
 
-```tut:book:silent
+```tut:silent
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
 import org.http4s.MediaType

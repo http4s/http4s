@@ -21,16 +21,18 @@ import org.http4s.util.StringWriter
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
+import io.chrisdavenport.vault._
 
 private[blaze] object Http1ServerStage {
 
   def apply[F[_]](
       routes: HttpApp[F],
-      attributes: AttributeMap,
+      attributes: () => Vault,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
+      chunkBufferMaxSize: Int,
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
@@ -44,6 +46,7 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
+        chunkBufferMaxSize,
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
@@ -55,6 +58,7 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
+        chunkBufferMaxSize,
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
@@ -63,10 +67,11 @@ private[blaze] object Http1ServerStage {
 
 private[blaze] class Http1ServerStage[F[_]](
     httpApp: HttpApp[F],
-    requestAttrs: AttributeMap,
+    requestAttrs: () => Vault,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
+    override val chunkBufferMaxSize: Int,
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
@@ -169,7 +174,7 @@ private[blaze] class Http1ServerStage[F[_]](
       buffer,
       () => Either.left(InvalidBodyException("Received premature EOF.")))
 
-    parser.collectMessage(body, requestAttrs) match {
+    parser.collectMessage(body, requestAttrs()) match {
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {

@@ -5,7 +5,6 @@ import java.io.IOException
 import cats.effect._
 import cats.implicits._
 import cats.effect.implicits._
-import fs2._
 import fs2.io._
 import okhttp3.{
   Call,
@@ -132,11 +131,11 @@ sealed abstract class OkHttpBuilder[F[_]] private (
           override def writeTo(sink: BufferedSink): Unit =
             req.body.chunks
               .map(_.toArray)
-              .to(Sink { b: Array[Byte] =>
+              .evalMap { b: Array[Byte] =>
                 F.delay {
                   sink.write(b); ()
                 }
-              })
+              }
               .compile
               .drain
               .runAsync {

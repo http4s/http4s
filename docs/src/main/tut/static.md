@@ -16,7 +16,7 @@ similar static file hoster, but they're often fast enough.
 ## Serving static files
 Http4s provides a few helpers to handle ETags for you, they're located in [StaticFile].
 
-```tut:book
+```tut:silent
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -28,7 +28,7 @@ import java.io.File
 Static file support uses a blocking API, so we'll need a blocking execution
 context:
 
-```tut:book:silent
+```tut:silent
 import java.util.concurrent._
 import scala.concurrent.ExecutionContext
 
@@ -38,11 +38,11 @@ val blockingEc = ExecutionContext.fromExecutorService(Executors.newFixedThreadPo
 It also needs a main thread pool to shift back to.  This is provided when
 we're in IOApp, but you'll need one if you're following along in a REPL:
 
-```tut:book:silent
+```tut:silent
 implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 ```
 
-```tut:book:silent
+```tut:silent
 val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>
     StaticFile.fromFile(new File("relative/path/to/index.html"), blockingEc, Some(request))
@@ -77,10 +77,12 @@ libraryDependencies ++= Seq(
 
 Then, mount the `WebjarService` like any other service:
 
-```tut:book
+```tut:silent
 import org.http4s.server.staticcontent.webjarService
 import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
+```
 
+```tut:book
 // only allow js assets
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")

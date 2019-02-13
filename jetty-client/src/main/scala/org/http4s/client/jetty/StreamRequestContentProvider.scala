@@ -20,13 +20,13 @@ private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[
 
   def write(req: Request[F]): F[Unit] =
     req.body.chunks
-      .to(sink)
+      .through(pipe)
       .compile
       .drain
       .onError { case t => F.delay(logger.error(t)("Unable to write to Jetty sink")) }
 
-  private val sink: Sink[F, Chunk[Byte]] =
-    Sink { c =>
+  private val pipe: Pipe[F, Chunk[Byte], Unit] =
+    _.evalMap { c =>
       write(c)
         .ensure(new Exception("something terrible has happened"))(res => res)
         .map(_ => ())

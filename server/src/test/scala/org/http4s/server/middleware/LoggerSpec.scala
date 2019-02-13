@@ -30,7 +30,7 @@ class LoggerSpec extends Http4sSpec {
   val expectedBody: String = Source.fromInputStream(testResource).mkString
 
   "ResponseLogger" should {
-    val app = ResponseLogger(logHeaders = true, logBody = true)(testApp)
+    val app = ResponseLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
@@ -46,7 +46,7 @@ class LoggerSpec extends Http4sSpec {
   }
 
   "RequestLogger" should {
-    val app = RequestLogger(logHeaders = true, logBody = true)(testApp)
+    val app = RequestLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
@@ -62,7 +62,7 @@ class LoggerSpec extends Http4sSpec {
   }
 
   "Logger" should {
-    val app = Logger(logHeaders = true, logBody = true)(testApp)
+    val app = Logger.httpApp(logHeaders = true, logBody = true)(testApp)
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))

@@ -25,7 +25,7 @@ private[http4s] class Http4sWSStage[F[_]](
   def name: String = "Http4s WebSocket Stage"
 
   //////////////////////// Source and Sink generators ////////////////////////
-  def snk: Sink[F, WebSocketFrame] = _.evalMap { frame =>
+  def snk: Pipe[F, WebSocketFrame, Unit] = _.evalMap { frame =>
     F.delay(sentClose.get()).flatMap { wasCloseSent =>
       if (!wasCloseSent) {
         frame match {
@@ -115,8 +115,8 @@ private[http4s] class Http4sWSStage[F[_]](
     val sendClose: F[Unit] = F.delay(closePipeline(None))
 
     val wsStream = inputstream
-      .to(ws.receive)
-      .concurrently(ws.send.to(snk).drain) //We don't need to terminate if the send stream terminates.
+      .through(ws.receive)
+      .concurrently(ws.send.through(snk).drain) //We don't need to terminate if the send stream terminates.
       .interruptWhen(deadSignal)
       .onFinalize(ws.onClose.attempt.void) //Doing it this way ensures `sendClose` is sent no matter what
       .onFinalize(sendClose)

@@ -4,7 +4,7 @@ import cats._
 import cats.implicits._
 import fs2._
 import org.http4s.websocket.{WebSocket, WebSocketContext, WebSocketFrame}
-import org.http4s.{AttributeEntry, Headers, Response, Status}
+import org.http4s.{Headers, Response, Status}
 
 /**
   * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
@@ -36,7 +36,7 @@ import org.http4s.{AttributeEntry, Headers, Response, Status}
   */
 final case class WebSocketBuilder[F[_]](
     send: Stream[F, WebSocketFrame],
-    receive: Sink[F, WebSocketFrame],
+    receive: Pipe[F, WebSocketFrame, Unit],
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]])
@@ -45,7 +45,7 @@ object WebSocketBuilder {
   class Builder[F[_]: Applicative] {
     def build(
         send: Stream[F, WebSocketFrame],
-        receive: Sink[F, WebSocketFrame],
+        receive: Pipe[F, WebSocketFrame, Unit],
         headers: Headers = Headers.empty,
         onNonWebSocketRequest: F[Response[F]] =
           Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],
@@ -56,9 +56,9 @@ object WebSocketBuilder {
       WebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure).onNonWebSocketRequest
         .map(
           _.withAttribute(
-            AttributeEntry(
-              websocketKey[F],
-              WebSocketContext(WebSocket(send, receive, onClose), headers, onHandshakeFailure))))
+            websocketKey[F],
+            WebSocketContext(WebSocket(send, receive, onClose), headers, onHandshakeFailure))
+        )
   }
   def apply[F[_]: Applicative]: Builder[F] = new Builder[F]
 }

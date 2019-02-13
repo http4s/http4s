@@ -2,6 +2,7 @@ package org.http4s.server.middleware
 
 import cats.data._
 import cats.effect._
+import cats.effect.implicits._
 import cats.implicits._
 import fs2.Stream
 import java.util.concurrent.TimeUnit
@@ -51,32 +52,47 @@ object Metrics {
   )(req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] = OptionT {
     for {
       initialTime <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- ops.increaseActiveRequests(classifierF(req))
-      responseAtt <- routes(req).value.attempt
-      headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
-      result <- responseAtt.fold(
-        e =>
-          onServiceError(
-            req.method,
-            initialTime,
-            headersElapsed,
-            ops,
-            errorResponseHandler(e),
-            classifierF(req)) *>
-            Sync[F].raiseError[Option[Response[F]]](e),
-        _.fold(
-          onEmpty[F](
-            req.method,
-            initialTime,
-            headersElapsed,
-            ops,
-            emptyResponseHandler,
-            classifierF(req))
-            .as(Option.empty[Response[F]])
-        )(
-          onResponse(req.method, initialTime, headersElapsed, ops, classifierF(req))(_).some.pure[F]
-        )
-      )
+      result <- ops
+        .increaseActiveRequests(classifierF(req))
+        .bracketCase { _ =>
+          for {
+            responseOpt <- routes(req).value
+            headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
+            result <- responseOpt.fold(
+              onEmpty[F](
+                req.method,
+                initialTime,
+                headersElapsed,
+                ops,
+                emptyResponseHandler,
+                classifierF(req))
+                .as(Option.empty[Response[F]])
+            )(
+              onResponse(req.method, initialTime, headersElapsed, ops, classifierF(req))(_).some
+                .pure[F]
+            )
+          } yield result
+        } {
+          case (_, ExitCase.Completed) => Sync[F].unit
+          case (_, ExitCase.Canceled) =>
+            onServiceCanceled(
+              initialTime,
+              ops,
+              classifierF(req)
+            )
+          case (_, ExitCase.Error(e)) =>
+            for {
+              headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
+              out <- onServiceError(
+                req.method,
+                initialTime,
+                headersElapsed,
+                ops,
+                errorResponseHandler(e),
+                classifierF(req)
+              )
+            } yield out
+        }
     } yield result
   }
 
@@ -137,6 +153,17 @@ object Metrics {
           ops.recordHeadersTime(method, headerTime - start, classifier) *>
             ops.recordTotalTime(method, status, now - start, classifier) *>
             ops.recordAbnormalTermination(now - start, Error, classifier))
+      _ <- ops.decreaseActiveRequests(classifier)
+    } yield ()
+
+  private def onServiceCanceled[F[_]: Sync](
+      start: Long,
+      ops: MetricsOps[F],
+      classifier: Option[String]
+  )(implicit clock: Clock[F]): F[Unit] =
+    for {
+      now <- clock.monotonic(TimeUnit.NANOSECONDS)
+      _ <- ops.recordAbnormalTermination(now - start, Abnormal, classifier)
       _ <- ops.decreaseActiveRequests(classifier)
     } yield ()
 }

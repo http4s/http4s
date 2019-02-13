@@ -126,7 +126,7 @@ object ClientRules {
       case ClientType.Stream =>
         Patch.addRight(client, ".stream")
       case ClientType.Apply =>
-        Patch.addRight(client, ".allocate") + replaceType(defn)
+        Patch.addRight(client, ".allocated") + replaceType(defn)
     }
 
   private def replaceType(defn: Defn): Patch =

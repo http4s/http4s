@@ -26,7 +26,7 @@ class Http4sWSStageSpec extends Http4sSpec {
       Stream
         .emits(w)
         .covary[IO]
-        .to(outQ.enqueue)
+        .through(outQ.enqueue)
         .compile
         .drain
 

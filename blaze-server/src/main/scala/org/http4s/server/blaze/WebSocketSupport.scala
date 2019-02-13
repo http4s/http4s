@@ -23,7 +23,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
       req: Request[F],
       resp: Response[F],
       cleanup: () => Future[ByteBuffer]): Unit = {
-    val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey[F])
+    val ws = resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F])
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
     ws match {

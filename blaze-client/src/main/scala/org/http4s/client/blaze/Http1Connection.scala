@@ -20,6 +20,7 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
+import _root_.io.chrisdavenport.vault._
 
 private final class Http1Connection[F[_]](
     val requestKey: RequestKey,
@@ -27,6 +28,7 @@ private final class Http1Connection[F[_]](
     maxResponseLineSize: Int,
     maxHeaderLength: Int,
     maxChunkSize: Int,
+    override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`]
 )(implicit protected val F: ConcurrentEffect[F])
@@ -237,21 +239,21 @@ private final class Http1Connection[F[_]](
             reset()
           }
 
-        val (attributes, body): (AttributeMap, EntityBody[F]) = if (doesntHaveBody) {
+        val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
           // responses to HEAD requests do not have a body
           cleanup()
-          (AttributeMap.empty, EmptyBody)
+          (Vault.empty, EmptyBody)
         } else {
           // We are to the point of parsing the body and then cleaning up
           val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
             collectBodyFromParser(buffer, terminationCondition _)
 
           // to collect the trailers we need a cleanup helper and an effect in the attribute map
-          val (trailerCleanup, attributes): (() => Unit, AttributeMap) = {
+          val (trailerCleanup, attributes): (() => Unit, Vault) = {
             if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
               val trailers = new AtomicReference(Headers.empty)
 
-              val attrs = AttributeMap.empty.put[F[Headers]](
+              val attrs = Vault.empty.insert[F[Headers]](
                 Message.Keys.TrailerHeaders[F],
                 F.suspend {
                   if (parser.contentComplete()) F.pure(trailers.get())
@@ -266,7 +268,7 @@ private final class Http1Connection[F[_]](
             } else
               ({ () =>
                 ()
-              }, AttributeMap.empty)
+              }, Vault.empty)
           }
 
           if (parser.contentComplete()) {

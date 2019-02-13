@@ -92,11 +92,11 @@ class Http1WriterSpec extends Http4sSpec {
   }
 
   "CachingChunkWriter" should {
-    runNonChunkedTests(tail => new CachingChunkWriter[IO](tail, IO.pure(Headers())))
+    runNonChunkedTests(tail => new CachingChunkWriter[IO](tail, IO.pure(Headers()), 1024 * 1024))
   }
 
   "CachingStaticWriter" should {
-    runNonChunkedTests(tail => new CachingChunkWriter[IO](tail, IO.pure(Headers())))
+    runNonChunkedTests(tail => new CachingChunkWriter[IO](tail, IO.pure(Headers()), 1024 * 1024))
   }
 
   "FlushingChunkWriter" should {

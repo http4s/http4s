@@ -21,12 +21,13 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util._
+import _root_.io.chrisdavenport.vault._
 
 private class Http2NodeStage[F[_]](
     streamId: Int,
     timeout: Duration,
     implicit private val executionContext: ExecutionContext,
-    attributes: AttributeMap,
+    attributes: () => Vault,
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
@@ -203,7 +204,7 @@ private class Http2NodeStage[F[_]](
     } else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = HHeaders(headers.result())
-      val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
+      val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {
           val action = Sync[F]
