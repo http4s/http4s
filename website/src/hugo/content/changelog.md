@@ -8,6 +8,11 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.22 (2019-02-13)
+
+## Bug fixes
+* [#2389](https://github.com/http4s/http4s/pull/2389): Add `RequestKey` to Logging when eviction is necessary
+
 # v0.18.21 (2018-11-05)
 
 ## Bug fixes
