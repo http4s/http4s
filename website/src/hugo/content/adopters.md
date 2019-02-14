@@ -76,6 +76,9 @@ title: Adopters
 [Nelson](https://verizon.github.io/nelson/)
 : Automated, multi-region container deployment
 
+[Raster Foundry](https://github.com/raster-foundry/raster-foundry)
+: An open source tool for finding, analyzing, and publishing geospatial imagery on the web
+
 [scala-pet-store](https://github.com/pauljamescleary/scala-pet-store)
 : An implementation of the java pet store using FP techniques in scala
 
