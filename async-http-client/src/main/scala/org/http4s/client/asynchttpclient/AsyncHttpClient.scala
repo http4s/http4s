@@ -123,9 +123,9 @@ object AsyncHttpClient {
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers)
-      headers.add(h.name.toString, h.value)
-    new RequestBuilder(request.method.toString)
-      .setUrl(request.uri.toString)
+      headers.add(h.name.value, h.value)
+    new RequestBuilder(request.method.renderString)
+      .setUrl(request.uri.renderString)
       .setHeaders(headers)
       .setBody(getBodyGenerator(request))
       .build()
