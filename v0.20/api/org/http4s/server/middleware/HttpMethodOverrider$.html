@@ -151,8 +151,8 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s.server.middleware">middleware</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title="Removes a trailing slash from Request path"></a>
-                        <a href="" title="Removes a trailing slash from Request path">AutoSlash</a>
+                        <a class="object" href="AutoSlash$.html" title="Removes a trailing slash from Request path"></a>
+                        <a href="AutoSlash$.html" title="Removes a trailing slash from Request path">AutoSlash</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="CORS$.html" title=""></a>
@@ -191,8 +191,8 @@
                         <a href="HeaderEcho$.html" title="">HeaderEcho</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="HttpMethodOverrider$.html" title=""></a>
-                        <a href="HttpMethodOverrider$.html" title="">HttpMethodOverrider</a>
+                        <a class="object" href="" title=""></a>
+                        <a href="" title="">HttpMethodOverrider</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="Jsonp$.html" title="Middleware to support wrapping json responses in jsonp."></a>
@@ -258,8 +258,8 @@
       <div id="definition">
         <div class="big-circle object">o</div>
         <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.server">server</a>.<a href="index.html" class="extype" name="org.http4s.server.middleware">middleware</a></p>
-        <h1>AutoSlash<span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html" title="Permalink">
+        <h1>HttpMethodOverrider<span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -272,15 +272,12 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">AutoSlash</span>
+        <span class="name">HttpMethodOverrider</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Removes a trailing slash from <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> path</p><p>If a route exists with a file style <a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>, eg &quot;/foo&quot;,
-this middleware will cause <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>s with uri = &quot;/foo&quot; and
-uri = &quot;/foo/&quot; to match the route.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/AutoSlash.scala" target="_blank">AutoSlash.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/HttpMethodOverrider.scala" target="_blank">HttpMethodOverrider.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -310,7 +307,7 @@ uri = &quot;/foo/&quot; to match the route.
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.middleware.AutoSlash"><span>AutoSlash</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.middleware.HttpMethodOverrider"><span>HttpMethodOverrider</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -330,7 +327,90 @@ uri = &quot;/foo/&quot; to match the route.
         <div id="allMembers">
         
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.server.middleware.HttpMethodOverrider.FormOverrideStrategy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FormOverrideStrategy[F[_],G[_]]extendsHttpMethodOverrider.OverrideStrategy[F,G]withProductwithSerializable"></a><a id="FormOverrideStrategy[F[_],G[_]]:FormOverrideStrategy[F,G]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#FormOverrideStrategy[F[_],G[_]]extendsHttpMethodOverrider.OverrideStrategy[F,G]withProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpMethodOverrider$$FormOverrideStrategy.html"><span class="name">FormOverrideStrategy</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="fieldName">fieldName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="naturalTransformation">naturalTransformation: <span class="extype" name="cats.~&gt;">~&gt;</span>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.FormOverrideStrategy.G">G</span>, <span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.FormOverrideStrategy.F">F</span>]</span>)</span><span class="result"> extends <a href="HttpMethodOverrider$$OverrideStrategy.html" class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.OverrideStrategy">OverrideStrategy</a>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.FormOverrideStrategy.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.FormOverrideStrategy.G">G</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.HttpMethodOverrider.HeaderOverrideStrategy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HeaderOverrideStrategy[F[_],G[_]]extendsHttpMethodOverrider.OverrideStrategy[F,G]withProductwithSerializable"></a><a id="HeaderOverrideStrategy[F[_],G[_]]:HeaderOverrideStrategy[F,G]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#HeaderOverrideStrategy[F[_],G[_]]extendsHttpMethodOverrider.OverrideStrategy[F,G]withProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpMethodOverrider$$HeaderOverrideStrategy.html"><span class="name">HeaderOverrideStrategy</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result"> extends <a href="HttpMethodOverrider$$OverrideStrategy.html" class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.OverrideStrategy">OverrideStrategy</a>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.HeaderOverrideStrategy.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.HeaderOverrideStrategy.G">G</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.HttpMethodOverrider.HttpMethodOverriderConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpMethodOverriderConfig[F[_],G[_]]extendsAnyRef"></a><a id="HttpMethodOverriderConfig[F[_],G[_]]:HttpMethodOverriderConfig[F,G]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#HttpMethodOverriderConfig[F[_],G[_]]extendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="HttpMethodOverrider middleware config options." href="HttpMethodOverrider$$HttpMethodOverriderConfig.html"><span class="name">HttpMethodOverriderConfig</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">HttpMethodOverrider middleware config options.</p>
+    </li><li name="org.http4s.server.middleware.HttpMethodOverrider.OverrideStrategy" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="OverrideStrategy[F[_],G[_]]extendsAnyRef"></a><a id="OverrideStrategy[F[_],G[_]]:OverrideStrategy[F,G]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#OverrideStrategy[F[_],G[_]]extendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpMethodOverrider$$OverrideStrategy.html"><span class="name">OverrideStrategy</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.HttpMethodOverrider.QueryOverrideStrategy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QueryOverrideStrategy[F[_],G[_]]extendsHttpMethodOverrider.OverrideStrategy[F,G]withProductwithSerializable"></a><a id="QueryOverrideStrategy[F[_],G[_]]:QueryOverrideStrategy[F,G]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#QueryOverrideStrategy[F[_],G[_]]extendsHttpMethodOverrider.OverrideStrategy[F,G]withProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpMethodOverrider$$QueryOverrideStrategy.html"><span class="name">QueryOverrideStrategy</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="paramName">paramName: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="HttpMethodOverrider$$OverrideStrategy.html" class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.OverrideStrategy">OverrideStrategy</a>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.QueryOverrideStrategy.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.QueryOverrideStrategy.G">G</span>] with <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li></ol>
+            </div>
 
         
 
@@ -340,7 +420,7 @@ uri = &quot;/foo/&quot; to match the route.
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -356,7 +436,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html###():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -372,7 +452,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -385,10 +465,10 @@ uri = &quot;/foo/&quot; to match the route.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.AutoSlash#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_],G[_],B](http:cats.data.Kleisli[F,org.http4s.Request[G],B])(implicitF:cats.MonoidK[F],implicitG:cats.Functor[G]):cats.data.Kleisli[F,org.http4s.Request[G],B]"></a><a id="apply[F[_],G[_],B](Kleisli[F,Request[G],B])(MonoidK[F],Functor[G]):Kleisli[F,Request[G],B]"></a>
+    </li><li name="org.http4s.server.middleware.HttpMethodOverrider#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.HttpMethodOverrider.HttpMethodOverriderConfig[F,G])(implicitF:cats.Monad[F],implicitS:cats.effect.Sync[G]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](Http[F,G],HttpMethodOverriderConfig[F,G])(Monad[F],Sync[G]):Http[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#apply[F[_],G[_],B](http:cats.data.Kleisli[F,org.http4s.Request[G],B])(implicitF:cats.MonoidK[F],implicitG:cats.Functor[G]):cats.data.Kleisli[F,org.http4s.Request[G],B]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.HttpMethodOverrider.HttpMethodOverriderConfig[F,G])(implicitF:cats.Monad[F],implicitS:cats.effect.Sync[G]):org.http4s.Http[F,G]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -397,14 +477,18 @@ uri = &quot;/foo/&quot; to match the route.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="B">B</span>]</span><span class="params">(<span name="http">http: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.AutoSlash.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.AutoSlash.apply.G">G</span>], <span class="extype" name="org.http4s.server.middleware.AutoSlash.apply.B">B</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonoidK.html#cats.MonoidK" class="extype" name="cats.MonoidK">MonoidK</a>[<span class="extype" name="org.http4s.server.middleware.AutoSlash.apply.F">F</span>]</span>, <span name="G">G: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.server.middleware.AutoSlash.apply.G">G</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.AutoSlash.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.AutoSlash.apply.G">G</span>], <span class="extype" name="org.http4s.server.middleware.AutoSlash.apply.B">B</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.apply.G">G</span>]</span>, <span name="config">config: <a href="HttpMethodOverrider$$HttpMethodOverriderConfig.html" class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.HttpMethodOverriderConfig">HttpMethodOverriderConfig</a>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.apply.G">G</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.apply.F">F</span>]</span>, <span name="S">S: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.apply.G">G</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.apply.G">G</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Simple middleware for HTTP Method Override.</p><div class="fullcomment"><div class="comment cmt"><p>Simple middleware for HTTP Method Override.</p><p>This middleware lets you use  HTTP verbs such as PUT or DELETE in places where the client
+doesn't support it. Camouflage your request with another HTTP verb(usually POST) and sneak
+the desired one using a custom header or request parameter. The middleware will <b>override</b>
+the original verb with the new one for you, allowing the request the be dispatched properly.
+</p></div><dl class="paramcmts block"><dt class="param">http</dt><dd class="cmt"><p><a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> to transform</p></dd><dt class="param">config</dt><dd class="cmt"><p>http method overrider config</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -420,7 +504,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#clone():Object" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -441,10 +525,26 @@ uri = &quot;/foo/&quot; to match the route.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.HttpMethodOverrider#defaultConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="defaultConfig[F[_],G[_]]:org.http4s.server.middleware.HttpMethodOverrider.HttpMethodOverriderConfig[F,G]"></a><a id="defaultConfig[F[_],G[_]]:HttpMethodOverriderConfig[F,G]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#defaultConfig[F[_],G[_]]:org.http4s.server.middleware.HttpMethodOverrider.HttpMethodOverriderConfig[F,G]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultConfig</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <a href="HttpMethodOverrider$$HttpMethodOverriderConfig.html" class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.HttpMethodOverriderConfig">HttpMethodOverriderConfig</a>[<span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.defaultConfig.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpMethodOverrider.defaultConfig.G">G</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -460,7 +560,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -476,7 +576,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#finalize():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -498,7 +598,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -517,7 +617,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#hashCode():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -536,7 +636,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -552,7 +652,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -568,7 +668,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#notify():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -587,7 +687,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -603,10 +703,26 @@ uri = &quot;/foo/&quot; to match the route.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.HttpMethodOverrider#overriddenMethodAttrKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="overriddenMethodAttrKey:io.chrisdavenport.vault.Key[org.http4s.Method]"></a><a id="overriddenMethodAttrKey:Key[Method]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#overriddenMethodAttrKey:io.chrisdavenport.vault.Key[org.http4s.Method]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">overriddenMethodAttrKey</span><span class="result">: <span class="extype" name="io.chrisdavenport.vault.Key">Key</span>[<a href="../../Method.html" class="extype" name="org.http4s.Method">Method</a>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -622,7 +738,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#toString():String" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -638,7 +754,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#wait():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -660,7 +776,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -682,7 +798,7 @@ uri = &quot;/foo/&quot; to match the route.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/AutoSlash$.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -703,6 +819,22 @@ uri = &quot;/foo/&quot; to match the route.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.HttpMethodOverrider.HttpMethodOverriderConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpMethodOverriderConfig"></a><a id="HttpMethodOverriderConfig:HttpMethodOverriderConfig"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpMethodOverrider$.html#HttpMethodOverriderConfig" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpMethodOverrider$$HttpMethodOverriderConfig$.html"><span class="name">HttpMethodOverriderConfig</span></a>
+      </span>
+      
+      
     </li>
               </ol>
             </div>
