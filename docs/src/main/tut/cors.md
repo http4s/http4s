@@ -66,7 +66,7 @@ composed such that only some of your endpoints are CORS enabled.
 
 ## Configuration
 The example above showed the default configuration for CORS, which adds the
-headers to any successul response, regardless of origin or HTTP method. There
+headers to any successful response, regardless of origin or HTTP method. There
 are configuration options to modify that.
 
 First, we'll create some requests to use in our example. We want these requests
