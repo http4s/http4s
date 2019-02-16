@@ -60,7 +60,7 @@ object Http4sPlugin extends AutoPlugin {
   ) ++ signingSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.7"),
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.8"),
 
     // Rig will take care of this on production builds.  We haven't fully
     // implemented that machinery yet, so we're going to live without this
