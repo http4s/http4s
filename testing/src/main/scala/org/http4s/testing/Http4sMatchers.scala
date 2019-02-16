@@ -4,6 +4,7 @@ package testing
 import cats.syntax.flatMap._
 import cats.data.EitherT
 import org.http4s.headers._
+import org.http4s.util.CaseInsensitiveString
 import org.specs2.matcher._
 
 /** This might be useful in a testkit spinoff.  Let's see what they do for us. */
@@ -32,6 +33,16 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
   def haveHeaders(a: Headers): Matcher[Message[F]] =
     be_===(a) ^^ { m: Message[F] =>
       m.headers.aka("the headers")
+    }
+
+  def containsHeader(h: Header): Matcher[Message[F]] =
+    beSome(h.value) ^^ { m: Message[F] =>
+      m.headers.get(h.name).map(_.value).aka("the particular header")
+    }
+
+  def doesntContainHeader(h: CaseInsensitiveString): Matcher[Message[F]] =
+    beNone ^^ { m: Message[F] =>
+      m.headers.get(h).aka("the particular header")
     }
 
   def haveMediaType(mt: MediaType): Matcher[Message[F]] =

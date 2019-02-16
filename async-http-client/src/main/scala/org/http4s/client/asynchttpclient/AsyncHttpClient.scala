@@ -19,6 +19,9 @@ import org.http4s.util.threads._
 import org.log4s.getLogger
 import org.reactivestreams.Publisher
 import scala.collection.JavaConverters._
+import _root_.io.netty.handler.codec.http.cookie.Cookie
+import org.asynchttpclient.uri.Uri
+import org.asynchttpclient.cookie.CookieStore
 
 object AsyncHttpClient {
   private[this] val logger = getLogger
@@ -30,6 +33,7 @@ object AsyncHttpClient {
     .setThreadFactory(threadFactory(name = { i =>
       s"http4s-async-http-client-worker-${i}"
     }))
+    .setCookieStore(new NoOpCookieStore)
     .build()
 
   /**
@@ -119,9 +123,9 @@ object AsyncHttpClient {
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers)
-      headers.add(h.name.toString, h.value)
-    new RequestBuilder(request.method.toString)
-      .setUrl(request.uri.toString)
+      headers.add(h.name.value, h.value)
+    new RequestBuilder(request.method.renderString)
+      .setUrl(request.uri.renderString)
       .setHeaders(headers)
       .setBody(getBodyGenerator(request))
       .build()
@@ -145,4 +149,12 @@ object AsyncHttpClient {
     Headers(headers.asScala.map { header =>
       Header(header.getKey, header.getValue)
     }.toList)
+  private class NoOpCookieStore extends CookieStore {
+    val empty: java.util.List[Cookie] = new java.util.ArrayList()
+    override def add(uri: Uri, cookie: Cookie): Unit = ()
+    override def get(uri: Uri): java.util.List[Cookie] = empty
+    override def getAll(): java.util.List[Cookie] = empty
+    override def remove(pred: java.util.function.Predicate[Cookie]): Boolean = false
+    override def clear(): Boolean = false
+  }
 }

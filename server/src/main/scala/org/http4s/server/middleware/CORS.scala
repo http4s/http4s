@@ -23,7 +23,7 @@ final case class CORSConfig(
     anyMethod: Boolean = true,
     allowedOrigins: String => Boolean = _ => false,
     allowedMethods: Option[Set[String]] = None,
-    allowedHeaders: Option[Set[String]] = Set("Content-Type", "*").some,
+    allowedHeaders: Option[Set[String]] = Set("Content-Type", "Authorization", "*").some,
     exposedHeaders: Option[Set[String]] = Set("*").some
 )
 
