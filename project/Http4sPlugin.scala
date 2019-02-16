@@ -42,18 +42,18 @@ object Http4sPlugin extends AutoPlugin {
     // Publishing to gh-pages and sonatype only done from select branches and
     // never from pull requests.
     http4sPublish := {
-      sys.env.get("TRAVIS") == Some("true") &&
-        sys.env.get("TRAVIS_PULL_REQUEST") == Some("false") &&
-        sys.env.get("TRAVIS_REPO_SLUG") == Some("http4s/http4s") &&
-        sys.env.get("TRAVIS_JDK_VERSION") == Some("oraclejdk8") &&
+      sys.env.get("TRAVIS").contains("true") &&
+        sys.env.get("TRAVIS_PULL_REQUEST").contains("false") &&
+        sys.env.get("TRAVIS_REPO_SLUG").contains("http4s/http4s") &&
+        sys.env.get("TRAVIS_JDK_VERSION").contains("oraclejdk8") &&
         (sys.env.get("TRAVIS_BRANCH") match {
            case Some("master") => true
            case Some(branch) if branch.startsWith("release-") => true
            case _ => false
          })
     },
-    http4sMasterBranch := sys.env.get("TRAVIS_BRANCH") == Some("master"),
-    http4sApiVersion in ThisBuild := (version in ThisBuild).map {
+    http4sMasterBranch := sys.env.get("TRAVIS_BRANCH").contains("master"),
+    ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
     git.remoteRepo := "git@github.com:http4s/http4s.git"
@@ -68,7 +68,7 @@ object Http4sPlugin extends AutoPlugin {
     scalacOptions -= "-Xcheckinit",
 
     // https://github.com/tkawachi/sbt-doctest/issues/102
-    scalacOptions in (Test, compile) -= "-Ywarn-unused:params",
+    Test / compile / scalacOptions -= "-Ywarn-unused:params",
 
     scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -82,7 +82,7 @@ object Http4sPlugin extends AutoPlugin {
     http4sMimaVersion := {
       version.value match {
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
-          Some(s"${major}.${minor}.${patch.toInt - 1}")
+          Some(s"$major.$minor.${patch.toInt - 1}")
         case _ =>
           None
       }
@@ -96,14 +96,14 @@ object Http4sPlugin extends AutoPlugin {
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
 
     scalafmtVersion := "1.5.1",
-    scalafmt in Test := {
-      (scalafmt in Compile).value
-      (scalafmt in Test).value
+    Test / scalafmt := {
+      (Compile / scalafmt).value
+      (Test / scalafmt).value
       ()
     },
-    test in (Test, scalafmt) := {
-      (test in (Compile, scalafmt)).value
-      (test in (Test, scalafmt)).value
+    Test / scalafmt / test := {
+      (Compile / scalafmt / test).value
+      (Test / scalafmt / test).value
       ()
     },
 
@@ -128,7 +128,7 @@ object Http4sPlugin extends AutoPlugin {
            |"argonaut-shapeless_6.2" = "1.2.0-M6"
            |
            |[releases]
-           |${releases}
+           |$releases
          """.stripMargin
 
       IO.write(dest, buildData)
@@ -150,7 +150,7 @@ object Http4sPlugin extends AutoPlugin {
           .string
       ).getOrElse(versionFormatError(ver))
     },
-    releaseTagName := s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}",
+    releaseTagName := s"v${if (releaseUseGlobalVersion.value) (ThisBuild / version).value else version.value}",
     releasePublishArtifactsAction := Def.taskDyn {
       if (isSnapshot.value) publish
       else publishSigned

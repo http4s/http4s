@@ -40,9 +40,9 @@ object CentralRequirementsPlugin extends AutoPlugin {
     startYear := Some(2013),
     publishMavenStyle := true,
     pomIncludeRepository := { _ => false },
-    publishArtifact in (Compile, packageBin) := true,
-    publishArtifact in (Compile, packageSrc) := true,
-    publishArtifact in Test := false,
+    Compile / packageBin / publishArtifact := true,
+    Compile / packageSrc / publishArtifact := true,
+    Test / publishArtifact := false,
     publishTo := {
       val nexus = "https://oss.sonatype.org/"
       if (isSnapshot.value)
