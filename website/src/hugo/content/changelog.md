@@ -8,9 +8,61 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.0-M6 (2019-02-16)
+
+## Breaking changes
+* [#2369](https://github.com/http4s/http4s/pull/2369): Make `log` operation on logging middlewares return an `F[Unit]` to support pure logging.
+* [#2370](https://github.com/http4s/http4s/pull/2370): `Prometheus.apply` returns in `F[_]` to represent its effect on the collector registry.
+* [#2398](https://github.com/http4s/http4s/pull/2398): Add media ranges to `jsonDecoderAdaptive` to support overriding the media type in an `EntityDecoder`
+* [#2396](https://github.com/http4s/http4s/pull/2396): Parameterize `Logger` middlewares to work with any `Http[G, F]` instead of requiring `HttpApp[F]`.
+* [#2318](https://github.com/http4s/http4s/pull/2318): Replace `AttributeMap` with `io.christopherdavenport.Vault`
+* [#2414](https://github.com/http4s/http4s/pull/2414): Default to a no-op cookie store in async-http-client for more uniform behavior with other clients
+* [#2419](https://github.com/http4s/http4s/pull/2419): Relax constraint on `Retry` middleware from `Effect` to `Sync`
+
+## Bugfixes
+* [#2421](https://github.com/http4s/http4s/pull/2421): Fix buggy use of `toString` in async-http-client when rendering URIs.
+
+## Enhancements
+* [#2364](https://github.com/http4s/http4s/pull/2364): Scalafix `allocate` to `allocated`
+* [#2366](https://github.com/http4s/http4s/pull/2366): Add `chunkBufferMaxSize` parameter to `BlazeClientBuilder` and `BlazeServerBuilder`. Change default to 10kB.
+* [#2316](https://github.com/http4s/http4s/pull/2316): Support custom error messages in circe, argonaut, and jawn.
+* [#2403](https://github.com/http4s/http4s/pull/2403): Add `MemoryAllocationExports` to `PrometheusExportService`
+* [#2355](https://github.com/http4s/http4s/pull/2355), [#2407](https://github.com/http4s/http4s/pull/2407): Add new `HttpMethodOverride` middleware
+* [#2391](https://github.com/http4s/http4s/pull/2391): Add `Authorization` to `*` as a default allowed header in default CORS config
+
+## Documentation
+* [#2378](https://github.com/http4s/http4s/pull/2378): Fix typo in `EntityDecoder` scaladoc
+* [#2374](https://github.com/http4s/http4s/pull/2374): Include scheme in CORS examples
+* [#2399](https://github.com/http4s/http4s/pull/2399): Link to @kubukoz' presentation
+* [#2418](https://github.com/http4s/http4s/pull/2418): Fix typo in CORS documentation
+* [#2420](https://github.com/http4s/http4s/pull/2420): Add Raster Foundry to adopters
+
+## Internal
+* [#2359](https://github.com/http4s/http4s/pull/2359): Remove code coverage checks
+* [#2382](https://github.com/http4s/http4s/pull/2382): Refactor the blaze-server pipeline construction
+* [#2401](https://github.com/http4s/http4s/pull/2401), [#2408](https://github.com/http4s/http4s/pull/2408), [#2409](https://github.com/http4s/http4s/pull/2409): Stop building with sbt-rig, deal with fallout
+
+## Dependency upgrades
+* async-http-client-2.7.0
+* cats-1.6.0
+* circe-0.11.1
+* fs2-1.0.3
+* jawn-fs2-0.14.2
+* json4s-3.6.4
+* log4s-1.7.0
+* mockito-core-2.24.0 (tests only)
+* okhttp-3.13.1
+* parboiled-1.0.1 (http4s' internal fork)
+* play-json-2.7.1
+* sbt-build-info-0.9.0 (build only)
+* sbt-native-packager-1.3.18 (examples only)
+* sbt-updates-0.4.0 (build only)
+* tomcat-9.0.6
+* twirl-1.4.0
+
 # v0.18.22 (2019-02-13)
 
-## Bug fixes
+## Enhancements
 * [#2389](https://github.com/http4s/http4s/pull/2389): Add `RequestKey` to Logging when eviction is necessary
 
 # v0.20.0-M5 (2019-01-12)
