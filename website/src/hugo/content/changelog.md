@@ -29,6 +29,7 @@ it.
 * [#2403](https://github.com/http4s/http4s/pull/2403): Add `MemoryAllocationExports` to `PrometheusExportService`
 * [#2355](https://github.com/http4s/http4s/pull/2355), [#2407](https://github.com/http4s/http4s/pull/2407): Add new `HttpMethodOverride` middleware
 * [#2391](https://github.com/http4s/http4s/pull/2391): Add `Authorization` to `*` as a default allowed header in default CORS config
+* [#2424](https://github.com/http4s/http4s/pull/2424): Include Chunked Transfer-Encoding header in Multipart Requests
 
 ## Documentation
 * [#2378](https://github.com/http4s/http4s/pull/2378): Fix typo in `EntityDecoder` scaladoc
@@ -41,6 +42,7 @@ it.
 * [#2359](https://github.com/http4s/http4s/pull/2359): Remove code coverage checks
 * [#2382](https://github.com/http4s/http4s/pull/2382): Refactor the blaze-server pipeline construction
 * [#2401](https://github.com/http4s/http4s/pull/2401), [#2408](https://github.com/http4s/http4s/pull/2408), [#2409](https://github.com/http4s/http4s/pull/2409): Stop building with sbt-rig, deal with fallout
+* [#2422](https://github.com/http4s/http4s/pull/2422): Use Scala 2.12.8 and slash-syntax in SBT files
 
 ## Dependency upgrades
 * async-http-client-2.7.0
@@ -50,7 +52,7 @@ it.
 * jawn-fs2-0.14.2
 * json4s-3.6.4
 * log4s-1.7.0
-* mockito-core-2.24.0 (tests only)
+* mockito-core-2.24.5 (tests only)
 * okhttp-3.13.1
 * parboiled-1.0.1 (http4s' internal fork)
 * play-json-2.7.1
