@@ -1,2 +1,2 @@
 resolvers += Resolver.sonatypeRepo("releases")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.1")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.4")

@@ -13,18 +13,18 @@ env:
 matrix:
   include:
   - jdk: oraclejdk8
-    scala: 2.12.7
+    scala: 2.12.8
   - jdk: oraclejdk8
     scala: 2.11.12
   - jdk: openjdk11
-    scala: 2.12.7
+    scala: 2.12.8
   - jdk: oraclejdk8
     env: 
     - ROOT_DIR="scalafix"
-    scala: 2.12.7
+    scala: 2.12.8
   allow_failures:
     - jdk: openjdk11
-      scala: 2.12.7
+      scala: 2.12.8
 notifications:
   webhooks:
     urls:

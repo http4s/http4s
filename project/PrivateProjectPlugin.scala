@@ -14,23 +14,22 @@ object PrivateProjectPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] =
     Seq(
-      skip in publish := true,
+      publish / skip := true,
       publish := (()),
-      publishLocal := (()),
-      publishTo := None,
-      publishArtifact in Test := false,
-      publishArtifact in Compile := false,
-      publishArtifact in (Test, packageBin) := false,
-      publishArtifact in (Test, packageDoc) := false,
-      publishArtifact in (Test, packageSrc) := false,
-      publishArtifact in (Compile, packageBin) := false,
-      publishArtifact in (Compile, packageDoc) := false,
-      publishArtifact in (Compile, packageSrc) := false,
-      publishArtifact := false
-    ) ++ Seq(
-      mimaPreviousArtifacts := Set.empty,
-      publishLocalSigned := (()),
       publishSigned := (()),
+      publishLocal := (()),
+      publishLocalSigned := (()),
+      publishArtifact := false,
+      publishTo := None,
+      Test / publishArtifact := false,
+      Test / packageBin / publishArtifact := false,
+      Test / packageDoc / publishArtifact := false,
+      Test / packageSrc / publishArtifact := false,
+      Compile / publishArtifact := false,
+      Compile / packageBin / publishArtifact := false,
+      Compile / packageDoc / publishArtifact := false,
+      Compile / packageSrc / publishArtifact := false,
+      mimaPreviousArtifacts := Set.empty,
       unusedCompileDependenciesTest := (()),
     )
 }
