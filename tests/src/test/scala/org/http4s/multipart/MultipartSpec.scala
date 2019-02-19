@@ -182,6 +182,12 @@ I am a big moose
         )
         part.filename must beEqualTo(Some("file.txt"))
       }
+
+      "include chunked transfer encoding header so that body is streamed by client" in {
+        val multipart = Multipart(Vector())
+        val request = Request(method = Method.POST, uri = url, headers = multipart.headers)
+        request.isChunked must beTrue
+      }
     }
   }
 
