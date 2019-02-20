@@ -25,13 +25,11 @@ object ChunkAggregator {
           })
     }
 
-  def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] = {
+  def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(OptionT.liftK[F])(httpRoutes)
-  }
 
-  def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] = {
+  def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
     apply(FunctionK.id[F])(httpApp)
-  }
 
   private def removeChunkedTransferEncoding[G[_]: Functor](
       resp: Response[G],

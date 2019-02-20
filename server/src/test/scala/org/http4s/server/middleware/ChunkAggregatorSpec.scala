@@ -29,28 +29,25 @@ class ChunkAggregatorSpec extends Http4sSpec {
     def httpRoutes(body: EntityBody[IO], transferCodings: List[TransferCoding]): HttpRoutes[IO] =
       HttpRoutes.liftF(OptionT.liftF(response(body, transferCodings)))
 
-    def httpApp(body: EntityBody[IO], transferCodings: List[TransferCoding]): HttpApp[IO] = {
+    def httpApp(body: EntityBody[IO], transferCodings: List[TransferCoding]): HttpApp[IO] =
       HttpApp.liftF(response(body, transferCodings))
-    }
 
-    def checkAppResponse(app: HttpApp[IO])(responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] = {
-      ChunkAggregator.httpApp(app).run(Request()).unsafeRunSync must beLike
-        {
-          case response =>
-            response.status must_== Ok
-            responseCheck(response)
-        }
-    }
+    def checkAppResponse(app: HttpApp[IO])(
+        responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] =
+      ChunkAggregator.httpApp(app).run(Request()).unsafeRunSync must beLike {
+        case response =>
+          response.status must_== Ok
+          responseCheck(response)
+      }
 
-    def checkRoutesResponse(routes: HttpRoutes[IO])(responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] = {
-
+    def checkRoutesResponse(routes: HttpRoutes[IO])(
+        responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] =
       ChunkAggregator.httpRoutes(routes).run(Request()).value.unsafeRunSync must beSome
         .like {
           case response =>
             response.status must_== Ok
             responseCheck(response)
         }
-    }
 
     "handle an empty body" in {
       checkRoutesResponse(httpRoutes(EmptyBody, Nil)) { response =>
