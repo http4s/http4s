@@ -2,8 +2,9 @@ package org.http4s
 package server
 package middleware
 
+import cats.arrow.FunctionK
 import cats.{FlatMap, Functor, ~>}
-import cats.data.{Kleisli, NonEmptyList}
+import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.Sync
 import cats.implicits._
 import fs2._
@@ -23,6 +24,12 @@ object ChunkAggregator {
               body.size.toLong)
           })
     }
+
+  def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(OptionT.liftK[F])(httpRoutes)
+
+  def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
+    apply(FunctionK.id[F])(httpApp)
 
   private def removeChunkedTransferEncoding[G[_]: Functor](
       resp: Response[G],
