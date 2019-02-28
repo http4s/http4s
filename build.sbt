@@ -30,7 +30,6 @@ lazy val core = libraryProject("core")
       parboiled,
       vault,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
   )
 
