@@ -62,7 +62,7 @@ object ResponseLogger {
         }
         .guaranteeCase {
           case ExitCase.Error(t) => fk(log(s"service raised an error: ${t.getClass}"))
-          case ExitCase.Canceled => fk(log(s"service cancelled response"))
+          case ExitCase.Canceled => fk(log(s"service cancelled response for request [$req]"))
           case ExitCase.Completed => G.unit
         }
     }
