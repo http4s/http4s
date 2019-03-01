@@ -348,7 +348,7 @@ lazy val docs = http4sProject("docs")
             else if (isSnapshot)
               s"${s.browseUrl}/blob/${gitHeadCommit.get}€{FILE_PATH}.scala"
             else
-              s"${s.browseUrl}/blob/v${version}€{FILE_PATH}.scala"
+              s"${s.browseUrl}/blob/v${v}€{FILE_PATH}.scala"
 
           Seq(
             "-implicits",
