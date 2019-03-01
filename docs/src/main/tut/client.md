@@ -380,8 +380,8 @@ blockingEC.shutdown()
 [`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html
 [middleware]: ../middleware
 [Follow Redirect]: ../api/org/http4s/client/middleware/FollowRedirect$
-[Retry]: .../api/org/http4s/client/middleware/Retry$
-[Metrics]: .../api/org/http4s/client/middleware/FollowRedirect$
-[Request Logger]: .../api/org/http4s/client/middleware/RequestLogger$
-[Response Logger]: .../api/org/http4s/client/middleware/ResponseLogger$
-[Logger]: .../api/org/http4s/client/middleware/Logger$
+[Retry]: ../api/org/http4s/client/middleware/Retry$
+[Metrics]: ../api/org/http4s/client/middleware/FollowRedirect$
+[Request Logger]: ../api/org/http4s/client/middleware/RequestLogger$
+[Response Logger]: ../api/org/http4s/client/middleware/ResponseLogger$
+[Logger]: ../api/org/http4s/client/middleware/Logger$
