@@ -98,5 +98,18 @@ class QuerySpec extends Http4sSpec {
       val u = Query(" !$&'()*+,;=:/?@~" -> Some("foo"), "!" -> None)
       u.renderString must_== "%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~=foo&%21"
     }
+
+    "Encode brackets in the value" in {
+      val u = Query("some[a]" -> Some("foo"))
+      u.renderString must_== "some%5Ba%5D=foo"
+    }
+    "Encode brackets in the key" in {
+      val u = Query("some" -> Some("[]"))
+      u.renderString must_== "some=%5B%5D"
+    }
+    "Not encode brackets with a config" in {
+      val u = Query.withConfig(Query.QueryEncodeParams(false,false,false), "some[a]" -> Some("foo"))
+      u.renderString must_== "some[a]=foo"
+    }
   }
 }

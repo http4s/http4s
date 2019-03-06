@@ -17,7 +17,9 @@ import scala.collection.mutable.ListBuffer
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private (pairs: Vector[KeyValue])
+final class Query private (
+    pairs: Vector[KeyValue],
+    queryEncodeParams: Query.QueryEncodeParams = Query.QueryEncodeParams.Default)
     extends IndexedSeq[KeyValue]
     with IndexedSeqOptimized[KeyValue, Query]
     with QueryOps
@@ -47,7 +49,7 @@ final class Query private (pairs: Vector[KeyValue])
   override def render(writer: Writer): writer.type = {
     var first = true
     def encode(s: String) =
-      UrlCodingUtils.urlEncode(s, spaceIsPlus = false, toSkip = NoEncode)
+      UrlCodingUtils.urlEncode(s, spaceIsPlus = false, toSkip = NoEncode(queryEncodeParams))
     pairs.foreach {
       case (n, None) =>
         if (!first) writer.append('&')
@@ -106,17 +108,52 @@ object Query {
 
   val empty: Query = new Query(Vector.empty)
 
+  final class QueryEncodeParams private (
+      val encodeQuestionMark: Boolean,
+      val encodeForwardSlash: Boolean,
+      val encodeBrackets: Boolean
+  )
+
+  object QueryEncodeParams {
+    def apply(
+        encodeQuestionMark: Boolean,
+        encodeForwardSlash: Boolean,
+        encodeBrackets: Boolean): QueryEncodeParams =
+      new QueryEncodeParams(
+        encodeQuestionMark,
+        encodeForwardSlash,
+        encodeBrackets
+      )
+
+    val Default = QueryEncodeParams(
+      encodeQuestionMark = false,
+      encodeForwardSlash = false,
+      encodeBrackets = true
+    )
+  }
+
   /*
    * "The characters slash ("/") and question mark ("?") may represent data
    * within the query component... it is sometimes better for usability to
    * avoid percent-encoding those characters."
    *   -- http://tools.ietf.org/html/rfc3986#section-3.4
+   *
+   * A similar argument can be made for [ and ] which are often used
+   * in a unique context
    */
-  private val NoEncode: CharPredicate =
-    UrlCodingUtils.Unreserved ++ "?/"
+  private def NoEncode(queryEncodeParams: QueryEncodeParams): CharPredicate = {
+    val questionMark = if (!queryEncodeParams.encodeQuestionMark) "?" else ""
+    val forwardSlash = if (!queryEncodeParams.encodeForwardSlash) "/" else ""
+    val brackets = if (!queryEncodeParams.encodeBrackets) "[]" else ""
+
+    UrlCodingUtils.Unreserved ++ questionMark ++ forwardSlash ++ brackets
+  }
 
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)
+
+  def withConfig(config: QueryEncodeParams, xs: (String, Option[String])*): Query =
+    new Query(xs.toVector, config)
 
   def fromPairs(xs: (String, String)*): Query = {
     val b = newBuilder
