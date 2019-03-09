@@ -99,5 +99,7 @@ val webjars: HttpRoutes[IO] = webjarService(
 blockingEc.shutdown()
 ```
 
+Assuming that the service is mounted as root on port `8080`, and you included the webjar `swagger-ui-3.20.9.jar` on your classpath, you would reach the assets with the path: `http://localhost:8080/swagger-ui/3.20.9/index.html`
+
 [StaticFile]: ../api/org/http4s/StaticFile$
 
