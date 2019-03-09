@@ -141,7 +141,7 @@ val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, blockingEc, request)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$76496/1833941784@4ad5c592)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$76011/592735168@7d870cbc)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -177,11 +177,13 @@ val webjars: HttpRoutes[IO] = webjarService(
     blockingExecutionContext = blockingEc
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$76569/269876545@7f64b1dc)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$76084/1653242205@1409775c)
 </code></pre>
 
 <pre><code class="language-scala">blockingEc.shutdown()
 </code></pre>
+
+<p>Assuming that the service is mounted as root on port <code>8080</code>, and you included the webjar <code>swagger-ui-3.20.9.jar</code> on your classpath, you would reach the assets with the path: <code>http://localhost:8080/swagger-ui/3.20.9/index.html</code></p>
 
         </div>
 
