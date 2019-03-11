@@ -341,9 +341,9 @@
       
       
     </li><li name="org.http4s.dsl.impl.AllowResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="AllowResponseGenerator[F[_]]extendsAnywithResponseGenerator"></a><a id="AllowResponseGenerator[F[_]]:AllowResponseGenerator[F]"></a>
+      <a id="AllowResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator"></a><a id="AllowResponseGenerator[F[_],G[_]]:AllowResponseGenerator[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/index.html#AllowResponseGenerator[F[_]]extendsAnywithResponseGenerator" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#AllowResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -352,7 +352,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Helper for the generation of a org.http4s.Response which must contain an Allow header and may contain a body." href="AllowResponseGenerator.html"><span class="name">AllowResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+        <a title="Helper for the generation of a org.http4s.Response which must contain an Allow header and may contain a body." href="AllowResponseGenerator.html"><span class="name">AllowResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
       </span>
       
       <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which must contain
@@ -377,9 +377,9 @@ distinguishes this from other <code>ResponseGenerator</code>s.
       
       
     </li><li name="org.http4s.dsl.impl.EmptyResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="EmptyResponseGenerator[F[_]]extendsAnywithResponseGenerator"></a><a id="EmptyResponseGenerator[F[_]]:EmptyResponseGenerator[F]"></a>
+      <a id="EmptyResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator"></a><a id="EmptyResponseGenerator[F[_],G[_]]:EmptyResponseGenerator[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/index.html#EmptyResponseGenerator[F[_]]extendsAnywithResponseGenerator" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#EmptyResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -388,7 +388,7 @@ distinguishes this from other <code>ResponseGenerator</code>s.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Helper for the generation of a org.http4s.Response which will not contain a body" href="EmptyResponseGenerator.html"><span class="name">EmptyResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+        <a title="Helper for the generation of a org.http4s.Response which will not contain a body" href="EmptyResponseGenerator.html"><span class="name">EmptyResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
       </span>
       
       <p class="shortcomment cmt"> Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><div class="fullcomment"><div class="comment cmt"><p> Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><p>While it is possible to for the <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
@@ -397,9 +397,9 @@ offer shortcut syntax to make intention clear and concise.
                <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: F[Response] = Status.Continue()</pre></li></ol>
             </div></dl></div>
     </li><li name="org.http4s.dsl.impl.EntityResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="EntityResponseGenerator[F[_]]extendsAnywithResponseGenerator"></a><a id="EntityResponseGenerator[F[_]]:EntityResponseGenerator[F]"></a>
+      <a id="EntityResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator"></a><a id="EntityResponseGenerator[F[_],G[_]]:EntityResponseGenerator[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/index.html#EntityResponseGenerator[F[_]]extendsAnywithResponseGenerator" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#EntityResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -408,7 +408,7 @@ offer shortcut syntax to make intention clear and concise.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Helper for the generation of a org.http4s.Response which may contain a body" href="EntityResponseGenerator.html"><span class="name">EntityResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+        <a title="Helper for the generation of a org.http4s.Response which may contain a body" href="EntityResponseGenerator.html"><span class="name">EntityResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
       </span>
       
       <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><p>While it is possible to construct the <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a>
@@ -435,9 +435,9 @@ make intention clear and concise.
       <p class="shortcomment cmt">Flag (value-less) query param extractor
 </p>
     </li><li name="org.http4s.dsl.impl.LocationResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="LocationResponseGenerator[F[_]]extendsAnywithEntityResponseGenerator[F]"></a><a id="LocationResponseGenerator[F[_]]:LocationResponseGenerator[F]"></a>
+      <a id="LocationResponseGenerator[F[_],G[_]]extendsAnywithEntityResponseGenerator[F,G]"></a><a id="LocationResponseGenerator[F[_],G[_]]:LocationResponseGenerator[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/index.html#LocationResponseGenerator[F[_]]extendsAnywithEntityResponseGenerator[F]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#LocationResponseGenerator[F[_],G[_]]extendsAnywithEntityResponseGenerator[F,G]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -446,7 +446,7 @@ make intention clear and concise.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Helper for the generation of a org.http4s.Response which may contain a Location header and may contain a body." href="LocationResponseGenerator.html"><span class="name">LocationResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>]</span>
+        <a title="Helper for the generation of a org.http4s.Response which may contain a Location header and may contain a body." href="LocationResponseGenerator.html"><span class="name">LocationResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain
@@ -614,9 +614,9 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.dsl.impl.ProxyAuthenticateResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="ProxyAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator"></a><a id="ProxyAuthenticateResponseGenerator[F[_]]:ProxyAuthenticateResponseGenerator[F]"></a>
+      <a id="ProxyAuthenticateResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator"></a><a id="ProxyAuthenticateResponseGenerator[F[_],G[_]]:ProxyAuthenticateResponseGenerator[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/index.html#ProxyAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#ProxyAuthenticateResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -625,7 +625,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body." href="ProxyAuthenticateResponseGenerator.html"><span class="name">ProxyAuthenticateResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+        <a title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body." href="ProxyAuthenticateResponseGenerator.html"><span class="name">ProxyAuthenticateResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
       </span>
       
       <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which must contain
@@ -693,9 +693,9 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
       
       
     </li><li name="org.http4s.dsl.impl.Responses" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Responses[F[_]]extendsAnyRef"></a><a id="Responses[F[_]]:Responses[F]"></a>
+      <a id="Responses[F[_],G[_]]extendsAnyRef"></a><a id="Responses[F[_],G[_]]:Responses[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/index.html#Responses[F[_]]extendsAnyRef" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#Responses[F[_],G[_]]extendsAnyRef" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -704,7 +704,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="Responses.html"><span class="name">Responses</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="" href="Responses.html"><span class="name">Responses</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       
@@ -752,9 +752,9 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
     )
   }</pre></div></div>
     </li><li name="org.http4s.dsl.impl.WwwAuthenticateResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="WwwAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator"></a><a id="WwwAuthenticateResponseGenerator[F[_]]:WwwAuthenticateResponseGenerator[F]"></a>
+      <a id="WwwAuthenticateResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator"></a><a id="WwwAuthenticateResponseGenerator[F[_],G[_]]:WwwAuthenticateResponseGenerator[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/index.html#WwwAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#WwwAuthenticateResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -763,7 +763,7 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Helper for the generation of a org.http4s.Response which must contain a WWW-Authenticate header and may contain a body." href="WwwAuthenticateResponseGenerator.html"><span class="name">WwwAuthenticateResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+        <a title="Helper for the generation of a org.http4s.Response which must contain a WWW-Authenticate header and may contain a body." href="WwwAuthenticateResponseGenerator.html"><span class="name">WwwAuthenticateResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
       </span>
       
       <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which must contain
