@@ -154,9 +154,26 @@ private[parser] trait SimpleHeaders {
       }
     }.parse
 
+  def IF_UNMODIFIED_SINCE(value: String): ParseResult[`If-Unmodified-Since`] =
+    new Http4sHeaderParser[`If-Unmodified-Since`](value) {
+      def entry = rule {
+        HttpDate ~ EOL ~> (`If-Unmodified-Since`(_))
+      }
+    }.parse
+
   def ETAG(value: String): ParseResult[ETag] =
     new Http4sHeaderParser[ETag](value) {
       def entry = rule { EntityTag ~> (ETag(_: ETag.EntityTag)) }
+    }.parse
+
+  def IF_MATCH(value: String): ParseResult[`If-Match`] =
+    new Http4sHeaderParser[`If-Match`](value) {
+      def entry = rule {
+        "*" ~ push(`If-Match`.`*`) |
+          oneOrMore(EntityTag).separatedBy(ListSep) ~> { tags: Seq[EntityTag] =>
+            `If-Match`(Some(NonEmptyList.of(tags.head, tags.tail: _*)))
+          }
+      }
     }.parse
 
   def IF_NONE_MATCH(value: String): ParseResult[`If-None-Match`] =
