@@ -269,7 +269,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
                   .eval(Async.shift(executionContext) *> F.delay {
                     stageShutdown()
                   })
-                  .flatMap(_ => Stream.raiseError[Byte](err))
+                  .evalMap(_ => F.raiseError(err))
               }
           }
         }
