@@ -135,8 +135,8 @@ val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpA
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
-using defaults of port 8080 and the loopback address. The `mountService` call
-associates a base path with a `HttpRoutes`.
+using defaults of port 8080 and the loopback address. The `withHttpApp` call
+associates the specified routes with this http server instance.
 
 We start a server resource in the background.  The server will run until we cancel the fiber:
 
