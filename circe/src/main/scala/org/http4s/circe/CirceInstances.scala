@@ -179,10 +179,12 @@ object CirceInstances {
 
   val builder: CirceInstancesBuilder = new CirceInstancesBuilder() {}
 
-  private[circe] val defaultCirceParseError: ParsingFailure => DecodeFailure =
+  // These are lazy since they are used when initializing the `builder`!
+
+  private[circe] lazy val defaultCirceParseError: ParsingFailure => DecodeFailure =
     pe => MalformedMessageBodyFailure("Invalid JSON", Some(pe))
 
-  private[circe] val defaultJsonDecodeError
+  private[circe] lazy val defaultJsonDecodeError
     : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
     InvalidMessageBodyFailure(
       s"Could not decode JSON: $json",
