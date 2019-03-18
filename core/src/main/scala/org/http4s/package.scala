@@ -34,7 +34,6 @@ package object http4s { // scalastyle:ignore
     * and a client can be converted to or from an HTTP app.
     *
     * @tparam F the effect type in which the [[Response]] is returned
-    * @tparam G the effect type of the [[Request]] and [[Response]] bodies
     */
   type HttpApp[F[_]] = Http[F, F]
 
