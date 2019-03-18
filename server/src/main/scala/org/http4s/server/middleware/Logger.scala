@@ -91,13 +91,16 @@ object Logger {
       Stream("").covary[F]
     }
 
-    if (!logBody && !logHeaders) F.unit
-    else {
-      bodyText
-        .map(body => s"$prelude $headers $body")
-        .evalMap(text => log(text))
-        .compile
-        .drain
-    }
+    def msg(body: String) =
+      (logHeaders, logBody) match {
+        case (false, false) => prelude
+        case _ => s"$prelude $headers $body"
+      }
+
+    bodyText
+      .map(msg)
+      .evalMap(log)
+      .compile
+      .drain
   }
 }
