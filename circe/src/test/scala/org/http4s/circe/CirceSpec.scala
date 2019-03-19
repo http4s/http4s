@@ -219,5 +219,32 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     }
   }
 
+  "CirceInstances.builder" should {
+    "handle JSON parsing errors" in {
+      val req = Request[IO]()
+        .withEntity("broken json")
+        .withContentType(`Content-Type`(MediaType.application.json))
+
+      val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
+      val result = decoder.decode(req, true).value.unsafeRunSync
+
+      result must beLeft.like {
+        case _: MalformedMessageBodyFailure => ok
+      }
+    }
+
+    "handle JSON decoding errors" in {
+      val req = Request[IO]()
+        .withEntity(Json.obj())
+
+      val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
+      val result = decoder.decode(req, true).value.unsafeRunSync
+
+      result must beLeft.like {
+        case _: InvalidMessageBodyFailure => ok
+      }
+    }
+  }
+
   checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
 }

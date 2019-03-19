@@ -3,7 +3,7 @@ package org.http4s.dsl
 import org.http4s.Method
 import org.http4s.dsl.impl._
 
-trait Http4sDsl[F[_]] extends Methods with Statuses with Responses[F] with Auth {
+trait Http4sDsl2[F[_], G[_]] extends Methods with Statuses with Responses[F, G] with Auth {
   import Http4sDsl._
 
   type Path = impl.Path
@@ -55,6 +55,8 @@ trait Http4sDsl[F[_]] extends Methods with Statuses with Responses[F] with Auth 
     new MethodConcatOps(methods)
 
 }
+
+trait Http4sDsl[F[_]] extends Http4sDsl2[F, F]
 
 object Http4sDsl {
 

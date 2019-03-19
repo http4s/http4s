@@ -10,8 +10,8 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
+import org.http4s.multipart.{Multipart, Part}
 import org.specs2.specification.core.Fragments
-import scala.collection.compat._
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http4sClientDsl[IO] {
@@ -30,8 +30,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
     override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
       srv.setStatus(200)
       val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
-      srv.getOutputStream.print(s)
-      srv.getOutputStream.flush()
+      srv.getWriter.print(s)
+      srv.getWriter.flush()
     }
   }
 
@@ -93,6 +93,14 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
           val req = POST(Stream("This is chunked.").covary[IO], uri)
           val body = client.expect[String](req)
           body must returnValue("This is chunked.")
+        }
+
+        "POST a multipart body" in {
+          val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+          val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
+          val req = POST(multipart, uri).map(_.withHeaders(multipart.headers))
+          val body = client.expect[String](req)
+          body must returnValue(containing("This is text."))
         }
       }
     }

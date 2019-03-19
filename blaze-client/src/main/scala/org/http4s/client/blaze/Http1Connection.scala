@@ -276,13 +276,14 @@ private final class Http1Connection[F[_]](
             cleanup()
             attributes -> rawBody
           } else {
-            attributes -> rawBody.onFinalize(
-              Stream
-                .eval_(Async.shift(executionContext) *> F.delay {
+            attributes -> rawBody.onFinalizeCase {
+              case ExitCase.Completed =>
+                Async.shift(executionContext) *> F.delay { trailerCleanup(); cleanup(); }
+              case ExitCase.Error(_) | ExitCase.Canceled =>
+                Async.shift(executionContext) *> F.delay {
                   trailerCleanup(); cleanup(); stageShutdown()
-                })
-                .compile
-                .drain)
+                }
+            }
           }
         }
         cb(

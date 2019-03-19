@@ -42,25 +42,25 @@ object Http4sPlugin extends AutoPlugin {
     // Publishing to gh-pages and sonatype only done from select branches and
     // never from pull requests.
     http4sPublish := {
-      sys.env.get("TRAVIS") == Some("true") &&
-        sys.env.get("TRAVIS_PULL_REQUEST") == Some("false") &&
-        sys.env.get("TRAVIS_REPO_SLUG") == Some("http4s/http4s") &&
-        sys.env.get("TRAVIS_JDK_VERSION") == Some("oraclejdk8") &&
+      sys.env.get("TRAVIS").contains("true") &&
+        sys.env.get("TRAVIS_PULL_REQUEST").contains("false") &&
+        sys.env.get("TRAVIS_REPO_SLUG").contains("http4s/http4s") &&
+        sys.env.get("TRAVIS_JDK_VERSION").contains("oraclejdk8") &&
         (sys.env.get("TRAVIS_BRANCH") match {
            case Some("master") => true
            case Some(branch) if branch.startsWith("release-") => true
            case _ => false
          })
     },
-    http4sMasterBranch := sys.env.get("TRAVIS_BRANCH") == Some("master"),
-    http4sApiVersion in ThisBuild := (version in ThisBuild).map {
+    http4sMasterBranch := sys.env.get("TRAVIS_BRANCH").contains("master"),
+    ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   ) ++ signingSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.7"),
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.8"),
 
     // Rig will take care of this on production builds.  We haven't fully
     // implemented that machinery yet, so we're going to live without this
@@ -68,7 +68,7 @@ object Http4sPlugin extends AutoPlugin {
     scalacOptions -= "-Xcheckinit",
 
     // https://github.com/tkawachi/sbt-doctest/issues/102
-    scalacOptions in (Test, compile) -= "-Ywarn-unused:params",
+    Test / compile / scalacOptions -= "-Ywarn-unused:params",
 
     scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -82,7 +82,7 @@ object Http4sPlugin extends AutoPlugin {
     http4sMimaVersion := {
       version.value match {
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
-          Some(s"${major}.${minor}.${patch.toInt - 1}")
+          Some(s"$major.$minor.${patch.toInt - 1}")
         case _ =>
           None
       }
@@ -96,14 +96,14 @@ object Http4sPlugin extends AutoPlugin {
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
 
     scalafmtVersion := "1.5.1",
-    scalafmt in Test := {
-      (scalafmt in Compile).value
-      (scalafmt in Test).value
+    Test / scalafmt := {
+      (Compile / scalafmt).value
+      (Test / scalafmt).value
       ()
     },
-    test in (Test, scalafmt) := {
-      (test in (Compile, scalafmt)).value
-      (test in (Test, scalafmt)).value
+    Test / scalafmt / test := {
+      (Compile / scalafmt / test).value
+      (Test / scalafmt / test).value
       ()
     },
 
@@ -128,7 +128,7 @@ object Http4sPlugin extends AutoPlugin {
            |"argonaut-shapeless_6.2" = "1.2.0-M6"
            |
            |[releases]
-           |${releases}
+           |$releases
          """.stripMargin
 
       IO.write(dest, buildData)
@@ -150,7 +150,7 @@ object Http4sPlugin extends AutoPlugin {
           .string
       ).getOrElse(versionFormatError(ver))
     },
-    releaseTagName := s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}",
+    releaseTagName := s"v${if (releaseUseGlobalVersion.value) (ThisBuild / version).value else version.value}",
     releasePublishArtifactsAction := Def.taskDyn {
       if (isSnapshot.value) publish
       else publishSigned
@@ -289,7 +289,7 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.7.0"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.8.1"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M12"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.6.0"
@@ -306,25 +306,25 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.5"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   def discipline(sv: String)                = "org.typelevel"          %% "discipline"                % disciplineVersion(sv)
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.3"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.4"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.14.2"
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.1"
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.1"
-  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.14.v20181114"
+  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.15.v20190215"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
-  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.14.v20181114"
+  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.15.v20190215"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
-  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.6.4"
+  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.6.5"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.7.0"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.24.0"
-  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.13.1"
-  lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.7.1"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.25.1"
+  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.14.0"
+  lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.7.2"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.6.0"
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
@@ -341,7 +341,7 @@ object Http4sPlugin extends AutoPlugin {
   def specs2MatcherExtra(sv: String)        = "org.specs2"             %% "specs2-matcher-extra"      % specs2Version(sv)
   def specs2Scalacheck(sv: String)          = "org.specs2"             %% "specs2-scalacheck"         % specs2Version(sv)
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.16"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.17"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.0"
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "1.0.0"

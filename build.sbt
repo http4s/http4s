@@ -351,7 +351,7 @@ lazy val docs = http4sProject("docs")
             else if (isSnapshot)
               s"${s.browseUrl}/blob/${gitHeadCommit.get}€{FILE_PATH}.scala"
             else
-              s"${s.browseUrl}/blob/v${version}€{FILE_PATH}.scala"
+              s"${s.browseUrl}/blob/v${v}€{FILE_PATH}.scala"
 
           Seq(
             "-implicits",
@@ -430,7 +430,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     description := "Examples of http4s server and clients on blaze",
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, dropwizardMetricsJson),
-    javaOptions in run ++= addAlpnPath((managedClasspath in Runtime).value)
+    run / javaOptions ++= addAlpnPath((Runtime / managedClasspath).value)
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -480,7 +480,7 @@ def http4sProject(name: String) =
     .settings(commonSettings)
     .settings(
       moduleName := s"http4s-$name",
-      testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
+      Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
       initCommands()
     )
 
@@ -500,10 +500,10 @@ lazy val commonSettings = Seq(
       case _ => "1.8"
     }
   }.value,
-  scalacOptions in Compile ++= Seq(
+  Compile / scalacOptions ++= Seq(
     s"-target:jvm-${http4sJvmTarget.value}"
   ),
-  scalacOptions in (Compile, doc) += "-no-link-warnings",
+  Compile / doc / scalacOptions += "-no-link-warnings",
   javacOptions ++= Seq(
     "-source",
     http4sJvmTarget.value,

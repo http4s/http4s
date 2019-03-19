@@ -6,7 +6,6 @@ import java.nio.file.Files
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.specs2.matcher.MatchResult
-import scala.collection.compat._
 
 class StaticFileSpec extends Http4sSpec {
 
