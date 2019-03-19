@@ -29,6 +29,9 @@ title: Adopters
 [Avias](https://github.com/fiadliel/avias)
 : Functional AWS API implementation for Scala
 
+[circuit-http4s](https://github.com/ChristopherDavenport/circuit-http4s)
+: CircuitBreaker backed Http4s Middlewares
+
 [CouchDB-Scala](https://github.com/beloglazov/couchdb-scala)
 : a purely functional Scala client for CouchDB
 
