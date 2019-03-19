@@ -6,7 +6,6 @@ import cats.effect._
 import fs2._
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
-import scala.collection.compat._
 
 private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
   def routes: HttpRoutes[IO]
