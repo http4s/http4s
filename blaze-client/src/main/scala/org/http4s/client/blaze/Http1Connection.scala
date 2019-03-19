@@ -260,13 +260,17 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
             cleanup()
             attributes -> rawBody
           } else {
-            attributes -> rawBody.onFinalize(
-              Stream
-                .eval_(Async.shift(executionContext) *> F.delay {
-                  trailerCleanup(); cleanup(); stageShutdown()
-                })
-                .compile
-                .drain)
+            attributes -> rawBody
+              .onFinalize(
+                Async.shift(executionContext) *> F.delay { trailerCleanup(); cleanup() }
+              )
+              .handleErrorWith { err =>
+                Stream
+                  .eval(Async.shift(executionContext) *> F.delay {
+                    stageShutdown()
+                  })
+                  .evalMap(_ => F.raiseError(err))
+              }
           }
         }
         cb(
