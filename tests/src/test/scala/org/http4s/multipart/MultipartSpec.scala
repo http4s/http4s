@@ -124,7 +124,7 @@ Content-Type: application/pdf
 
 ------WebKitFormBoundarycaZFo8IAKVROTEeD--
       """.replaceAllLiterally("\n", "\r\n")
-        val header = Headers(
+        val header = Headers.of(
           `Content-Type`(
             MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
         val request = Request[IO](
@@ -153,7 +153,7 @@ I am a big moose
 --bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz--
 
       """.replaceAllLiterally("\n", "\r\n")
-        val header = Headers(
+        val header = Headers.of(
           `Content-Type`(
             MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
         val request = Request[IO](
@@ -169,14 +169,14 @@ I am a big moose
 
       "extract name properly if it is present" in {
         val part = Part(
-          Headers(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
+          Headers.of(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
           Stream.empty.covary[IO])
         part.name must beEqualTo(Some("Rich Homie Quan"))
       }
 
       "extract filename property if it is present" in {
         val part = Part(
-          Headers(
+          Headers.of(
             `Content-Disposition`("form-data", Map("name" -> "file", "filename" -> "file.txt"))),
           Stream.empty.covary[IO]
         )

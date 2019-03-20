@@ -132,7 +132,7 @@ private final class Http1Connection[F[_]](
 
           // Side Effecting Code
           encodeRequestLine(req, rr)
-          Http1Stage.encodeHeaders(req.headers, rr, isServer)
+          Http1Stage.encodeHeaders(req.headers.toList, rr, isServer)
           if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
             rr << userAgent.get << "\r\n"
           }

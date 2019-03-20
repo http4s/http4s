@@ -13,7 +13,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
     val body = "foo"
     val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers
     EntityEncoder.stringEncoder[IO].headers.foldLeft(ok) { (old, h) =>
-      old.and(resultheaders.exists(_ == h) must_=== true)
+      old.and(resultheaders.toList.exists(_ == h) must_=== true)
     }
 
     resultheaders.get(`Content-Length`) must_=== `Content-Length`
@@ -104,7 +104,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
     val resp = MovedPermanently(location, Accept(MediaRange.`audio/*`))
     resp must returnValue(
       haveHeaders(
-        Headers(
+        Headers.of(
           `Content-Length`.zero,
           location,
           Accept(MediaRange.`audio/*`)
@@ -117,7 +117,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
     val resp = MovedPermanently(location, body, Accept(MediaRange.`audio/*`))
     resp must returnValue(
       haveHeaders(
-        Headers(
+        Headers.of(
           `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
           location,
           Accept(MediaRange.`audio/*`),

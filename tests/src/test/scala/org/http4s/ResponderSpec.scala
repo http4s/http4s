@@ -28,7 +28,7 @@ class ResponderSpec extends Specification {
 
       c1.headers.count(_.is(`Content-Type`)) must_== (1)
       c1.headers.count(_.is(`Content-Length`)) must_== (1)
-      (c1.headers must have).length(3)
+      (c1.headers.toList must have).length(3)
       c1.contentType must beSome(`Content-Type`(MediaType.text.plain))
 
       val c2 = c1.withContentType(`Content-Type`(MediaType.application.json, `UTF-8`))
@@ -62,7 +62,7 @@ class ResponderSpec extends Specification {
         resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       (wHeader.headers.toList must have).length(3)
 
-      val newHeaders = wHeader.withHeaders(Headers(Date(HttpDate.now)))
+      val newHeaders = wHeader.withHeaders(Headers.of(Date(HttpDate.now)))
       (newHeaders.headers.toList must have).length(1)
       newHeaders.headers.get(Connection) must beNone
     }

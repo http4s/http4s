@@ -70,7 +70,7 @@ class AuthenticationSpec extends Http4sSpec {
     "Respond to a request with unknown username with 401" in {
       val req = Request[IO](
         uri = Uri(path = "/"),
-        headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
+        headers = Headers.of(Authorization(BasicCredentials("Wrong User", password))))
       val res = basicAuthedService.orNotFound(req).unsafeRunSync
 
       res.status must_=== Unauthorized
@@ -81,7 +81,7 @@ class AuthenticationSpec extends Http4sSpec {
     "Respond to a request with wrong password with 401" in {
       val req = Request[IO](
         uri = Uri(path = "/"),
-        headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
+        headers = Headers.of(Authorization(BasicCredentials(username, "Wrong Password"))))
       val res = basicAuthedService.orNotFound(req).unsafeRunSync
 
       res.status must_=== Unauthorized
@@ -92,7 +92,7 @@ class AuthenticationSpec extends Http4sSpec {
     "Respond to a request with correct credentials" in {
       val req = Request[IO](
         uri = Uri(path = "/"),
-        headers = Headers(Authorization(BasicCredentials(username, password))))
+        headers = Headers.of(Authorization(BasicCredentials(username, password))))
       val res = basicAuthedService.orNotFound(req).unsafeRunSync
 
       res.status must_=== Ok
@@ -102,7 +102,7 @@ class AuthenticationSpec extends Http4sSpec {
   private def parse(value: String) =
     HttpHeaderParser
       .WWW_AUTHENTICATE(value)
-      .fold(err => sys.error(s"Couldn't parse: $value"), identity)
+      .fold(_ => sys.error(s"Couldn't parse: $value"), identity)
 
   "DigestAuthentication" should {
     val digestAuthMiddleware = DigestAuth(realm, authStore)
@@ -162,7 +162,7 @@ class AuthenticationSpec extends Http4sSpec {
       )
       val header = Authorization(Credentials.AuthParams("Digest".ci, params))
 
-      val req2 = Request[IO](uri = Uri(path = "/"), headers = Headers(header))
+      val req2 = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
       val res2 = digest(req2).unsafeRunSync
 
       if (withReplay) {
@@ -257,13 +257,13 @@ class AuthenticationSpec extends Http4sSpec {
         "method" -> method
       )
 
-      val expected = (0 to params.size).map(i => Unauthorized)
+      val expected = (0 to params.size).map(_ => Unauthorized)
 
       val result = (0 to params.size).map(i => {
         val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
         val header = Authorization(
           Credentials.AuthParams("Digest".ci, invalidParams.head, invalidParams.tail: _*))
-        val req = Request[IO](uri = Uri(path = "/"), headers = Headers(header))
+        val req = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
         val res = digestAuthService.orNotFound(req).unsafeRunSync
 
         res.status

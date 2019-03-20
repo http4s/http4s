@@ -98,7 +98,7 @@ class RetrySpec extends Http4sSpec with Tables {
       resubmit(PUT)(RetryPolicy.defaultRetriable) must_== Status.Ok
     }
     "recklesslyRetriable resubmits bodies on non-idempotent methods" in {
-      resubmit(POST)((req, result) => RetryPolicy.recklesslyRetriable(result)) must_== Status.Ok
+      resubmit(POST)((_, result) => RetryPolicy.recklesslyRetriable(result)) must_== Status.Ok
     }
 
     "retry exceptions" in {

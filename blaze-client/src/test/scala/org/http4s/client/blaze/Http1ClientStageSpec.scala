@@ -276,7 +276,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         // body is empty due to it being HEAD request
         response.body.compile.toVector
           .unsafeRunSync()
-          .foldLeft(0L)((long, byte) => long + 1L) must_== 0L
+          .foldLeft(0L)((long, _) => long + 1L) must_== 0L
       } finally {
         tail.shutdown()
       }
@@ -301,7 +301,7 @@ class Http1ClientStageSpec extends Http4sSpec {
           } yield hs
         }
 
-        hs.unsafeRunSync().mkString must_== "Foo: Bar"
+        hs.map(_.toList.mkString).unsafeRunSync() must_== "Foo: Bar"
       }
 
       "Fail to get trailers before they are complete" in {

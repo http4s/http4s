@@ -154,7 +154,7 @@ object Http4sSpec {
     IO.contextShift(TestExecutionContext)
 
   val TestScheduler: ScheduledExecutorService = {
-    val s = new ScheduledThreadPoolExecutor(2, threadFactory(i => "http4s-test-scheduler", true))
+    val s = new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
     s.setKeepAliveTime(10L, TimeUnit.SECONDS)
     s.allowCoreThreadTimeOut(true)
     s

@@ -63,10 +63,10 @@ sealed trait Message[F[_]] { self =>
       case Some(l) =>
         `Content-Length`
           .fromLong(l)
-          .fold(_ => {
+          .fold[Headers](_ => {
             Message.logger.warn(s"Attempt to provide a negative content length of $l")
-            w.headers.toList
-          }, cl => cl :: w.headers.toList)
+            w.headers
+          }, cl => Headers(cl :: w.headers.toList ) )
       case None => w.headers
     }
     change(body = entity.body, headers = headers ++ hs)
@@ -516,7 +516,7 @@ object Response {
     Response(
       Status.NotFound,
       body = Stream("Not found").through(text.utf8Encode),
-      headers = Headers(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)))
+      headers = Headers(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).pure[List]))
 
   def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
 

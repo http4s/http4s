@@ -56,7 +56,7 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
     // a body and a status reason.  We sacrifice the status reason.
     F.delay {
         servletResponse.setStatus(response.status.code)
-        for (header <- response.headers if header.isNot(`Transfer-Encoding`))
+        for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
           servletResponse.addHeader(header.name.toString, header.value)
       }
       .attempt
@@ -116,6 +116,6 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
     } yield Header(name, value)
-    Headers(headers.toSeq: _*)
+    Headers(headers.toList)
   }
 }

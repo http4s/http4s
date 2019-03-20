@@ -10,7 +10,7 @@ class LocationHeaderSpec extends Http4sSpec {
     "Parse a simple uri" in {
       val s = "http://www.foo.com"
       val Right(uri) = Uri.fromString(s)
-      val hs = Headers(Header("Location", s))
+      val hs = Headers.of(Header("Location", s))
 
       hs.get(Location) must beSome(Location(uri))
     }
@@ -18,7 +18,7 @@ class LocationHeaderSpec extends Http4sSpec {
     "Parse a simple uri with a path but no authority" in {
       val s = "http:/foo/bar"
       val Right(uri) = Uri.fromString(s)
-      val hs = Headers(Header("Location", s))
+      val hs = Headers.of(Header("Location", s))
 
       hs.get(Location) must beSome(Location(uri))
     }
@@ -26,7 +26,7 @@ class LocationHeaderSpec extends Http4sSpec {
     "Parse a relative reference" in {
       val s = "/cats"
       val Right(uri) = Uri.fromString(s)
-      val hs = Headers(Header("Location", s))
+      val hs = Headers.of(Header("Location", s))
 
       hs.get(Location) must beSome(Location(uri))
     }

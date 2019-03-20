@@ -5,28 +5,27 @@ import cats.implicits._
 import org.http4s.headers.`Set-Cookie`
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
-import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
-import scala.collection.{GenTraversableOnce, immutable, mutable}
 
 /** A collection of HTTP Headers */
-final class Headers private (headers: List[Header])
-    extends immutable.Iterable[Header]
-    with collection.IterableLike[Header, Headers] {
+final class Headers private (private val headers: List[Header]) extends AnyVal {
 
-  override def toList: List[Header] = headers
+  def toList: List[Header] = headers
 
-  override def isEmpty: Boolean = headers.isEmpty
+  def isEmpty: Boolean = headers.isEmpty
 
-  override protected def newBuilder: mutable.Builder[Header, Headers] = Headers.newBuilder
+  def nonEmpty: Boolean = headers.nonEmpty
 
-  override def drop(n: Int): Headers = if (n == 0) this else new Headers(headers.drop(n))
-
-  override def head: Header = headers.head
-
-  override def foreach[B](f: Header => B): Unit = headers.foreach(f)
+  def drop(n: Int): Headers = if (n == 0) this else new Headers(headers.drop(n))
 
   def iterator: Iterator[Header] = headers.iterator
+
+  def tail: Headers = Headers(headers match {
+    case _ :: xs => xs
+    case n@Nil => n 
+  })
+
+  def head: Header = headers.headOption.fold[Header](throw new NoSuchElementException)(identity)
 
   /** Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
     *
@@ -59,7 +58,7 @@ final class Headers private (headers: List[Header])
   def put(in: Header*): Headers =
     if (in.isEmpty) this
     else if (this.isEmpty) new Headers(in.toList)
-    else this ++ in
+    else this ++ Headers(in.toList)
 
   /** Concatenate the two collections
     * If the resulting collection is of Headers type, duplicate Singleton headers will be removed from
@@ -69,15 +68,11 @@ final class Headers private (headers: List[Header])
     * @tparam B type contained in collection `that`
     * @tparam That resulting type of the new collection
     */
-  override def ++[B >: Header, That](that: GenTraversableOnce[B])(
-      implicit bf: CanBuildFrom[Headers, B, That]): That =
-    if (bf eq Headers.canBuildFrom) { // Making a new Headers collection from a collection of Header's
-      if (that.isEmpty) this.asInstanceOf[That]
-      else if (this.isEmpty) that match {
-        case hs: Headers => hs.asInstanceOf[That]
-        case hs => new Headers(hs.toList.asInstanceOf[List[Header]]).asInstanceOf[That]
-      } else {
-        val hs = that.toList.asInstanceOf[List[Header]]
+  def ++(that: Headers): Headers =
+      if (that.isEmpty) this
+      else if (this.isEmpty) that
+      else {
+        val hs = that.toList
         val acc = new ListBuffer[Header]
         this.headers.foreach { orig =>
           orig.parsed match {
@@ -89,17 +84,31 @@ final class Headers private (headers: List[Header])
         }
 
         val h = new Headers(acc.prependToList(hs))
-        h.asInstanceOf[That]
+        h
       }
-    } else super.++(that)
+  
+  def filterNot(f: Header => Boolean): Headers =
+    Headers(headers.filterNot(f))
 
-  override def hashCode(): Int = this.headers.hashCode()
+  def filter(f: Header => Boolean): Headers =
+    Headers(headers.filter(f))
 
-  override def equals(that: Any): Boolean = that match {
-    case otherheaders: Headers =>
-      this.toList.equals(otherheaders.toList)
-    case _ => false
-  }
+  def collectFirst[B](f: PartialFunction[Header,B]): Option[B] = 
+    headers.collectFirst(f)
+
+  def foldMap[B: Monoid](f: Header => B): B =
+    headers.foldMap(f)
+
+  def foldLeft[A](z: A)(f: (A, Header) => A): A =
+    headers.foldLeft(z)(f)
+
+  def foldRight[A](z: Eval[A])(f: (Header, Eval[A]) => Eval[A]): Eval[A] =
+    Foldable[List].foldRight(headers, z)(f)
+
+  def foreach(f: Header => Unit): Unit =
+    headers.foreach(f)
+
+  def size: Int = headers.size
 
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
@@ -111,30 +120,42 @@ final class Headers private (headers: List[Header])
 
   def redactSensitive(
       redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains): Headers =
-    headers.map {
+    Headers(headers.map {
       case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
       case h => h
-    }
+    })
+
+  def exists(f: Header => Boolean): Boolean =
+    headers.exists(f)
+
+  def forall(f: Header => Boolean): Boolean =
+    headers.forall(f)
+
+  def find(f: Header => Boolean): Option[Header] =
+    headers.find(f)
+
+  def count(f: Header => Boolean): Int =
+    headers.count(f)
+
+  override def toString: String = 
+    Headers.headersShow.show(this)
 }
 
 object Headers {
-  val empty = apply()
+  val empty = apply(List.empty)
+
+  def of(headers: Header*): Headers = 
+    Headers(headers.toList)
+
+  @deprecated("Use Headers.of", "0.20.0")
+  def apply(headers: Header*): Headers =
+    of(headers:_*)
 
   /** Create a new Headers collection from the headers */
-  def apply(headers: Header*): Headers = Headers(headers.toList)
+  // def apply(headers: Header*): Headers = Headers(headers.toList)
 
   /** Create a new Headers collection from the headers */
   def apply(headers: List[Header]): Headers = new Headers(headers)
-
-  implicit val canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =
-    new CanBuildFrom[TraversableOnce[Header], Header, Headers] {
-      def apply(from: TraversableOnce[Header]): mutable.Builder[Header, Headers] = newBuilder
-
-      def apply(): mutable.Builder[Header, Headers] = newBuilder
-    }
-
-  private def newBuilder: mutable.Builder[Header, Headers] =
-    new mutable.ListBuffer[Header].mapResult(b => new Headers(b))
 
   implicit val headersShow: Show[Headers] =
     Show.show[Headers] {
