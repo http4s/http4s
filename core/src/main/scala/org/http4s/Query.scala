@@ -4,10 +4,10 @@ import org.http4s.Query._
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, UrlCodingUtils, Writer}
-import scala.collection.{IndexedSeqOptimized, mutable}
-import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
+import cats._
+import cats.implicits._
 
 /** Collection representation of a query string
   *
@@ -18,27 +18,43 @@ import scala.collection.mutable.ListBuffer
   * by '&' while the key is separated from the value with '='
   */
 final class Query private (pairs: Vector[KeyValue])
-    extends IndexedSeq[KeyValue]
-    with IndexedSeqOptimized[KeyValue, Query]
-    with QueryOps
+    extends QueryOps
     with Renderable {
-  override def apply(idx: Int): KeyValue = pairs(idx)
+  // override def apply(idx: Int): KeyValue = pairs(idx)
 
-  override def length: Int = pairs.length
+  def length: Int = pairs.length
 
-  override def slice(from: Int, until: Int): Query = new Query(pairs.slice(from, until))
+  def slice(from: Int, until: Int): Query = new Query(pairs.slice(from, until))
 
-  override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That =
-    if (bf eq Query.cbf)
-      new Query((elem +: pairs).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
-    else super.+:(elem)
+  def isEmpty: Boolean = pairs.isEmpty
 
-  override def :+[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That =
-    if (bf eq Query.cbf)
-      new Query((pairs :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
-    else super.:+(elem)
+  def nonEmpty: Boolean = pairs.nonEmpty
 
-  override def toVector: Vector[(String, Option[String])] = pairs
+  def exists(f: KeyValue => Boolean): Boolean =
+    pairs.exists(f)
+
+  def filterNot(f: KeyValue => Boolean): Query =
+    new Query(pairs.filterNot(f))
+
+  def filter(f: KeyValue => Boolean): Query =
+    new Query(pairs.filter(f))
+
+  def foreach(f: KeyValue => Unit): Unit =
+    pairs.foreach(f)
+
+  def foldLeft[Z](z: Z)(f: (Z, KeyValue) => Z): Z =
+    pairs.foldLeft(z)(f)
+
+  def foldRight[Z](z: Eval[Z])(f: (KeyValue, Eval[Z]) => Eval[Z]): Eval[Z] =
+    Foldable[Vector].foldRight(pairs, z)(f)
+
+  def +:(elem: KeyValue): Query =
+    new Query(elem +: pairs)
+
+  def :+(elem: KeyValue): Query =
+    new Query(pairs :+ elem)
+
+  def toVector: Vector[(String, Option[String])] = pairs
 
   /** Render the Query as a `String`.
     *
@@ -80,7 +96,7 @@ final class Query private (pairs: Vector[KeyValue])
     if (isEmpty) Map.empty[String, Seq[String]]
     else {
       val m = mutable.Map.empty[String, ListBuffer[String]]
-      foreach {
+      toVector.foreach {
         case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
         case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
@@ -88,8 +104,6 @@ final class Query private (pairs: Vector[KeyValue])
       m.toMap
     }
   }
-
-  override protected[this] def newBuilder: Builder = Query.newBuilder
 
   /////////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
@@ -101,8 +115,6 @@ final class Query private (pairs: Vector[KeyValue])
 
 object Query {
   type KeyValue = (String, Option[String])
-
-  type Builder = mutable.Builder[KeyValue, Query]
 
   val empty: Query = new Query(Vector.empty)
 
@@ -118,10 +130,15 @@ object Query {
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)
 
+  def fromVector(xs: Vector[(String, Option[String])]): Query =
+    new Query(xs)
+
   def fromPairs(xs: (String, String)*): Query = {
-    val b = newBuilder
-    xs.foreach { case (k, v) => b += ((k, Some(v))) }
-    b.result()
+    new Query(
+      xs.toList.foldLeft(Vector.empty[KeyValue]){
+        case (m, (k, s)) => m :+ (k -> s.some)
+      }
+    )
   }
 
   /** Generate a [[Query]] from its `String` representation
@@ -134,22 +151,11 @@ object Query {
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: Map[String, Seq[String]]): Query = {
-    val b = newBuilder
-    map.foreach {
-      case (k, Seq()) => b += ((k, None))
-      case (k, vs) => vs.foreach(v => b += ((k, Some(v))))
-    }
-    b.result()
+    new Query(map.foldLeft(Vector.empty[KeyValue]) {
+      case (m, (k, Seq())) => m :+ (k -> None)
+      case (m, (k, vs)) => vs.toList.foldLeft(m){ case (m, v) => m :+ (k ->  v.some)}
+    })
   }
-
-  def newBuilder: mutable.Builder[KeyValue, Query] =
-    Vector.newBuilder[KeyValue].mapResult(v => new Query(v))
-
-  implicit val cbf: CanBuildFrom[Query, KeyValue, Query] =
-    new CanBuildFrom[Query, KeyValue, Query] {
-      override def apply(from: Query): mutable.Builder[KeyValue, Query] = newBuilder
-      override def apply(): mutable.Builder[KeyValue, Query] = newBuilder
-    }
 
   ///////////////////////////////////////////////////////////////////////
   // Wrap the multiParams to get a Map[String, String] view
