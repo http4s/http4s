@@ -292,16 +292,16 @@ object UriTemplate {
   }
 
   protected def buildQuery(q: Query): org.http4s.Query = {
-    val elements = Query.newBuilder
-    q.map {
-      case ParamElm(n, Nil) => elements += ((n, None))
-      case ParamElm(n, List(v)) => elements += ((n, Some(v)))
-      case ParamElm(n, vs) => vs.foreach(v => elements += ((n, Some(v))))
+    val vec = q.foldLeft(Vector.empty[(String, Option[String])]) {
+      case (elements, ParamElm(n, Nil)) => elements :+ (n -> None)
+      case (elements, ParamElm(n, List(v))) => elements :+ (n -> Some(v))
+      case (elements, ParamElm(n, vs)) => 
+        vs.toList.foldLeft(elements){ case (elements, v) => elements :+ (n -> Some(v))}
       case u =>
         throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
 
-    elements.result()
+    org.http4s.Query.fromVector(vec)
   }
 
   protected def renderPath(p: Path): String = p match {
