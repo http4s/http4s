@@ -74,7 +74,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         Uri.fromString("http://example.org/a file") must_=== Left(
           ParseFailure(
             "Invalid URI",
-            """Invalid input ' ', expected '/', 'EOI', '#', '?' or Pchar (line 1, column 21):
+            """Invalid input ' ', expected Pchar, '/', '?', '#' or 'EOI' (line 1, column 21):
 http://example.org/a file
                     ^"""))
       }

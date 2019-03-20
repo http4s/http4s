@@ -8,6 +8,19 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.23 (2019-03-19)
+
+## Bug fixes
+* [#2453](https://github.com/http4s/http4s/pull/2453): Fix bug in blaze-client that unnecessarily recycled connections.
+
+## Dependency upgrades
+- jetty-9.4.15.v20190215
+- log4s-1.7.0
+- metrics-4.0.5
+- mockito-2.25.1 (test only)
+- scodec-bits-1.1.9
+- tomcat-9.0.17
+
 # v0.18.22 (2019-02-13)
 
 ## Bug fixes
