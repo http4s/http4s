@@ -13,9 +13,10 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 final case class WaitQueueFullFailure() extends RuntimeException {
-  def message: String = "Wait queue is full"
+  @deprecated("Use `getMessage` instead", "0.20.0")
+  def message: String = getMessage
 
-  override def getMessage: String = message
+  override def getMessage: String = "Wait queue is full"
 }
 
 case object WaitQueueTimeoutException
