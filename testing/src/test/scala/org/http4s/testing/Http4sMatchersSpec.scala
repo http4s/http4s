@@ -10,7 +10,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
       val resp = Response[IO]().withEntity("test")
       resp must
         haveHeaders(
-          Headers(
+          Headers.of(
             `Content-Length`.unsafeFromLong(4L),
             `Content-Type`(MediaType.text.`plain`, Charset.`UTF-8`)
           ))

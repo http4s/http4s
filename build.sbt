@@ -14,7 +14,7 @@ Global / cancelable := true
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
-    scalaVersion := "2.13.0-M5",
+    scalaVersion := "2.12.8",
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](
       version,

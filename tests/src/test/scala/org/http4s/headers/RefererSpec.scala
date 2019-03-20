@@ -30,7 +30,7 @@ class RefererSpec extends HeaderLaws {
 
   "should be extractable" in {
     val referer = Referer(getUri("http://localhost:8080"))
-    val request = Request[IO](headers = Headers(referer))
+    val request = Request[IO](headers = Headers.of(referer))
 
     request.headers.get(Referer) should beSome(referer)
   }

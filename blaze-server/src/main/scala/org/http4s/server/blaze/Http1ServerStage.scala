@@ -207,7 +207,7 @@ private[blaze] class Http1ServerStage[F[_]](
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
 
-    Http1Stage.encodeHeaders(resp.headers, rr, isServer = true)
+    Http1Stage.encodeHeaders(resp.headers.toList, rr, isServer = true)
 
     val respTransferCoding = `Transfer-Encoding`.from(resp.headers)
     val lengthHeader = `Content-Length`.from(resp.headers)

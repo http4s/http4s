@@ -34,7 +34,6 @@ class ResponseTimingSpec extends Http4sSpec {
       header.get.value.toInt must_== artificialDelay
     }
   }
-
 }
 
 object Sys {

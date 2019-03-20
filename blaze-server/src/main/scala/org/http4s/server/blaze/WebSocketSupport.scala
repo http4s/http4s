@@ -29,7 +29,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
     ws match {
       case None => super.renderResponse(req, resp, cleanup)
       case Some(wsContext) =>
-        val hdrs = req.headers.map(h => (h.name.toString, h.value))
+        val hdrs = req.headers.toList.map(h => (h.name.toString, h.value))
         if (WebSocketHandshake.isWebSocketRequest(hdrs)) {
           WebSocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
@@ -55,8 +55,10 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n')
               }
 
-              wsContext.headers.foreach(hdr =>
-                sb.append(hdr.name).append(": ").append(hdr.value).append('\r').append('\n'))
+              wsContext.headers.foreach{hdr =>
+                sb.append(hdr.name).append(": ").append(hdr.value).append('\r').append('\n')
+                ()
+              }
 
               sb.append('\r').append('\n')
 

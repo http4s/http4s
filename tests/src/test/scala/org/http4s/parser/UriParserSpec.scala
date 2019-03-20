@@ -196,7 +196,7 @@ class UriParserSpec extends Http4sSpec {
 
     "fail on invalid uri" in {
       val invalid = Seq("^", "]", "/hello/wo%2rld", "/hello/world?bad=enc%ode")
-      forall(invalid) { i =>
+      forall(invalid) { _ =>
         Uri.fromString("^") must beLeft
         Uri.requestTarget("^") must beLeft
       }

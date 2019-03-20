@@ -21,5 +21,5 @@ object StaticHeaders {
 
   def `no-cache`[F[_]: Functor, G[_], A](
       @deprecatedName('service) http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
-    StaticHeaders(Headers(noCacheHeader))(http)
+    StaticHeaders(Headers(noCacheHeader.pure[List]))(http)
 }

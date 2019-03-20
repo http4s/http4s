@@ -253,7 +253,7 @@ class CSRFSpec extends Http4sSpec {
         token2 <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .withHeaders(Headers(Header(headerName.value, unlift(token1))))
+            .withHeaders(Headers.of(Header(headerName.value, unlift(token1))))
             .addCookie(cookieName, unlift(token2))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden

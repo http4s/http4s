@@ -173,7 +173,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
 
       decoder
-        .decode(Request[IO](headers = Headers(`Content-Type`(MediaType.text.plain))), strict = true)
+        .decode(Request[IO](headers = Headers.of(`Content-Type`(MediaType.text.plain))), strict = true)
         .swap
         .semiflatMap(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`)) must returnRight(
         haveStatus(Status.UnprocessableEntity))
@@ -247,7 +247,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
       "should produce a MediaTypeMismatch if message has unsupported content type" in {
         val tpe = MediaType.text.css
-        val req = Request[IO](headers = Headers(`Content-Type`(tpe)))
+        val req = Request[IO](headers = Headers.of(`Content-Type`(tpe)))
         decoder1.decode(req, strict = true) must returnLeft(
           MediaTypeMismatch(tpe, decoder1.consumes))
       }
@@ -257,15 +257,15 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       "A message with a MediaType that is not supported by any of the decoders" +
         " will be attempted by the last decoder" in {
         val reqMediaType = MediaType.application.`atom+xml`
-        val req = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
+        val req = Request[IO](headers = Headers.of(`Content-Type`(reqMediaType)))
         (decoder1 <+> decoder2).decode(req, strict = false) must returnRight(2)
       }
       "A catch all decoder will always attempt to decode a message" in {
         val reqSomeOtherMediaType =
-          Request[IO](headers = Headers(`Content-Type`(`text/x-h`)))
+          Request[IO](headers = Headers.of(`Content-Type`(`text/x-h`)))
         val reqNoMediaType = Request[IO]()
         val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) {
-          msg =>
+          _ =>
             DecodeResult.success(3)
         }
         (decoder1 <+> catchAllDecoder)
@@ -278,7 +278,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         "with ALL supported media types of the composite decoder" in {
         val reqMediaType = `text/x-h`
         val expectedMediaRanges = failDecoder.consumes ++ decoder1.consumes ++ decoder2.consumes
-        val reqSomeOtherMediaType = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
+        val reqSomeOtherMediaType = Request[IO](headers = Headers.of(`Content-Type`(reqMediaType)))
         (decoder1 <+> decoder2 <+> failDecoder)
           .decode(reqSomeOtherMediaType, strict = true) must returnLeft(
           MediaTypeMismatch(reqMediaType, expectedMediaRanges))

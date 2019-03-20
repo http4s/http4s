@@ -10,7 +10,7 @@ import org.openjdk.jmh.annotations._
 class HttpHeadersBench {
   @Benchmark
   def apply(in: HeadersInput) =
-    Headers(in.headerSeq: _*)
+    Headers(in.headerSeq.toList)
 
   @Benchmark
   def add(in: HeadersInput) = {
@@ -39,7 +39,7 @@ class HeadersInput {
     headerSeq = (0 until size).map { i =>
       Header(s"X-Headers-Benchmark-$i", i.toString)
     }
-    headers = Headers(headerSeq: _*)
+    headers = Headers(headerSeq.toList)
     replacement = Header(s"X-Headers-Benchmark-${headers.size / 2}", "replacement")
   }
 }

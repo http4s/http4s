@@ -12,7 +12,7 @@ trait EmptyRequestGenerator[F[_]] extends Any with RequestGenerator {
 
   /** Make a [[org.http4s.Request]] using this [[Method]] */
   final def apply(uri: Uri, headers: Header*)(implicit F: Applicative[F]): F[Request[F]] =
-    F.pure(Request(method, uri, headers = Headers(headers: _*)))
+    F.pure(Request(method, uri, headers = Headers(headers.toList)))
 }
 
 trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
@@ -21,7 +21,7 @@ trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
   final def apply[A](body: A, uri: Uri, headers: Header*)(
       implicit F: Applicative[F],
       w: EntityEncoder[F, A]): F[Request[F]] = {
-    val h = w.headers ++ headers
+    val h = w.headers ++ Headers(headers.toList)
     val entity = w.toEntity(body)
     val newHeaders = entity.length
       .map { l =>

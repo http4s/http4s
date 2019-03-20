@@ -531,7 +531,7 @@ trait ArbitraryInstances {
     }
 
   implicit val http4sTestingArbitraryForHeaders: Arbitrary[Headers] =
-    Arbitrary(listOf(arbitrary[Header]).map(Headers(_: _*)))
+    Arbitrary(listOf(arbitrary[Header]).map(Headers(_)))
 
   implicit val http4sTestingArbitraryForServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
