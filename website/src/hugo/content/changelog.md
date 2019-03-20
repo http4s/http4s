@@ -8,6 +8,52 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.0-M7 (2019-03-20)
+
+## Bugfixes
+* [#2450](https://github.com/http4s/http4s/pull/2450): Fix `CirceInstances.builder` initialization, which referenced unintialized eager vals.
+
+## Enhancements
+* [#2435](https://github.com/http4s/http4s/pull/2435): Log information about canceled requests in `ResponseLogger`
+* [#2429](https://github.com/http4s/http4s/pull/2429): Add `httpRoutes` and `httpApp` convenience constructors to `ChunkAggregator`
+* [#2446](https://github.com/http4s/http4s/pull/2446): Introduce `Http4sDsl2[F[_], G[_]]` trait to support `http4s-directives` library.  `Http4sDsl` extends it as `Http4sDsl[F, F]`.  This change should be invisible to http4s-dsl users.
+* [#2444](https://github.com/http4s/http4s/pull/2444): New modeled headers for `If-Match` and `If-Unmodified-Since`
+* [#2458](https://github.com/http4s/http4s/pull/2458): Building on bugfix in [#2453](https://github.com/http4s/http4s/pull/2453), don't clean up the stage if it's going to be shut down anyway
+
+## Documentation
+* [#2432](https://github.com/http4s/http4s/pull/2432): Fix Github URL in Scaladoc for tagged versions
+* [#2440](https://github.com/http4s/http4s/pull/2440): Fix broken links in client documentation
+* [#2447](https://github.com/http4s/http4s/pull/2447): Clarification of webjar path on static files
+* [#2448](https://github.com/http4s/http4s/pull/2448): Update copyright year
+* [#2454](https://github.com/http4s/http4s/pull/2454): Update `mountService` reference to `withHttpApp`
+* [#2455](https://github.com/http4s/http4s/pull/2455): Remove dangling reference to `G` parameter in `HttpApp` scaladoc
+* [#2460](https://github.com/http4s/http4s/pull/2460): Add `circuit-http4s` to adopters
+
+## Other
+* [#2464](https://github.com/http4s/http4s/pull/2464): Temporarily disable blaze tests that fail only on CI while running on CI.
+
+## Dependency upgrades
+* async-http-client-2.8.1
+* fs2-1.0.4
+* json4s-3.6.5
+* okhttp-3.14.0
+* play-json-2.7.2
+* sbt-explicit-depenendencies-0.2.9 (build only)
+* sbt-native-packager-1.3.19 (example only)
+
+# v0.18.23 (2019-03-19)
+
+## Bug fixes
+* [#2453](https://github.com/http4s/http4s/pull/2453): Fix bug in blaze-client that unnecessarily recycled connections.
+
+## Dependency upgrades
+- jetty-9.4.15.v20190215
+- log4s-1.7.0
+- metrics-4.0.5
+- mockito-2.25.1 (test only)
+- scodec-bits-1.1.9
+- tomcat-9.0.17
+
 # v0.20.0-M6 (2019-02-16)
 
 ## Breaking changes
@@ -61,19 +107,6 @@ it.
 * sbt-updates-0.4.0 (build only)
 * tomcat-9.0.6
 * twirl-1.4.0
-
-# v0.18.23 (2019-03-19)
-
-## Bug fixes
-* [#2453](https://github.com/http4s/http4s/pull/2453): Fix bug in blaze-client that unnecessarily recycled connections.
-
-## Dependency upgrades
-- jetty-9.4.15.v20190215
-- log4s-1.7.0
-- metrics-4.0.5
-- mockito-2.25.1 (test only)
-- scodec-bits-1.1.9
-- tomcat-9.0.17
 
 # v0.18.22 (2019-02-13)
 
