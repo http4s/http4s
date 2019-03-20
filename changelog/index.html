@@ -159,6 +159,25 @@ it.</p>
 <li>twirl-1.4.0</li>
 </ul>
 
+<h1 id="v0-18-23-2019-03-19">v0.18.23 (2019-03-19)</h1>
+
+<h2 id="bug-fixes">Bug fixes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2453">#2453</a>: Fix bug in blaze-client that unnecessarily recycled connections.</li>
+</ul>
+
+<h2 id="dependency-upgrades-1">Dependency upgrades</h2>
+
+<ul>
+<li>jetty-9.4.15.v20190215</li>
+<li>log4s-1.7.0</li>
+<li>metrics-4.0.5</li>
+<li>mockito-2.25.1 (test only)</li>
+<li>scodec-bits-1.1.9</li>
+<li>tomcat-9.0.17</li>
+</ul>
+
 <h1 id="v0-18-22-2019-02-13">v0.18.22 (2019-02-13)</h1>
 
 <h2 id="enhancements-1">Enhancements</h2>
@@ -202,7 +221,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2332">#2332</a>: Don&rsquo;t make <code>F</code> evidence parameter a val in jetty-client <code>ResponseListener</code>.</li>
 </ul>
 
-<h2 id="dependency-upgrades-1">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-2">Dependency upgrades</h2>
 
 <ul>
 <li>blaze-0.14.0-M2</li>
@@ -250,7 +269,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2297">#2297</a>: Remove appveyor badge</li>
 </ul>
 
-<h2 id="dependency-upgrades-2">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-3">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.5.0</li>
@@ -308,7 +327,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2255">#2255</a>: Improve scalafix docs</li>
 </ul>
 
-<h2 id="dependency-upgrades-3">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-4">Dependency upgrades</h2>
 
 <ul>
 <li>blaze-0.14.0-M11</li>
@@ -317,7 +336,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-20-0-m2-2018-11-05">v0.20.0-M2 (2018-11-05)</h1>
 
-<h2 id="bug-fixes">Bug fixes</h2>
+<h2 id="bug-fixes-1">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
@@ -373,7 +392,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="bug-fixes-1">Bug fixes</h2>
+<h2 id="bug-fixes-2">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
@@ -395,7 +414,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2194">#2221</a>: Don&rsquo;t grant MiMa exceptions for 0.19.1, which will never be</li>
 </ul>
 
-<h2 id="dependency-upgrades-4">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-5">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.6.0</li>
@@ -441,7 +460,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2190">#2190</a>: Add <code>channelOptions</code> to blaze-client to customize socket options.</li>
 </ul>
 
-<h2 id="bug-fixes-2">Bug fixes</h2>
+<h2 id="bug-fixes-3">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2166">#2166</a>: Fix request timeout calculation in blaze-client to resolve &ldquo;Client response header timeout after 0 millseconds&rdquo; error.</li>
@@ -456,7 +475,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2199">#2199</a>: Make client test sizes proportional to the number of processors for greater Travis stability</li>
 </ul>
 
-<h2 id="dependency-upgrades-5">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-6">Dependency upgrades</h2>
 
 <ul>
 <li>alpn-boot-8.1.13.v20181017 (examples only)</li>
@@ -466,7 +485,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-21-2018-11-05">v0.18.21 (2018-11-05)</h1>
 
-<h2 id="bug-fixes-3">Bug fixes</h2>
+<h2 id="bug-fixes-4">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2231">#2231</a>: Fix off-by-one error that lets blaze-client wait queue grow one past its limit</li>
@@ -474,7 +493,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-20-2018-10-18">v0.18.20 (2018-10-18)</h1>
 
-<h2 id="bug-fixes-4">Bug fixes</h2>
+<h2 id="bug-fixes-5">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2181">#2181</a>: Honor <code>redactHeadersWhen</code> in client <code>RequestLogger</code> middleware</li>
@@ -554,7 +573,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2146">#2146</a>: Remove all use of <code>OutboundCommand</code> in blaze integration</li>
 </ul>
 
-<h2 id="dependency-upgrades-6">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-7">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.5.4</li>
@@ -635,7 +654,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2123">#2123</a>: Remove unmaintained <code>load-test</code> module</li>
 </ul>
 
-<h2 id="dependency-upgrades-7">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-8">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.4.0</li>
@@ -648,7 +667,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-19-2018-09-27">v0.18.19 (2018-09-27)</h1>
 
-<h2 id="bug-fixes-5">Bug fixes</h2>
+<h2 id="bug-fixes-6">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2101">#2101</a>: <code>haveHeaders</code> checks by equality, not reference</li>
@@ -663,7 +682,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-18-2018-09-18">v0.18.18 (2018-09-18)</h1>
 
-<h2 id="bug-fixes-6">Bug fixes</h2>
+<h2 id="bug-fixes-7">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2048">#2048</a>: Correct misleading logging in <code>Retry</code> middleware</li>
@@ -677,7 +696,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2095">#2095</a>: Add <code>Monoid[UrlForm]</code> instance</li>
 </ul>
 
-<h2 id="dependency-upgrades-8">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-9">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.4.0</li>
@@ -834,7 +853,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2050">#2052</a>: Introduce expiring <code>TestScheduler</code> to avoid leaking threads on tests</li>
 </ul>
 
-<h2 id="dependency-upgrades-9">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-10">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.5.2</li>
