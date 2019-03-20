@@ -30,8 +30,8 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
     override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
       srv.setStatus(200)
       val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
-      srv.getOutputStream.print(s)
-      srv.getOutputStream.flush()
+      srv.getWriter.print(s)
+      srv.getWriter.flush()
     }
   }
 

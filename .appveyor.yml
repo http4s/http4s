@@ -5,7 +5,7 @@ environment:
     TEST_SUITE: test
   matrix:
     - SCALA_VERSION: 2.11.12
-    - SCALA_VERSION: 2.12.7
+    - SCALA_VERSION: 2.12.8
 
 install:
   - ps: |
