@@ -14,6 +14,8 @@ import scala.util.Random
 
 final case class WaitQueueFullFailure() extends RuntimeException {
   def message: String = "Wait queue is full"
+
+  override def getMessage: String = message
 }
 
 case object WaitQueueTimeoutException

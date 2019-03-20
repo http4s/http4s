@@ -77,4 +77,10 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
       } yield ()).unsafeRunTimed(2.seconds) must_== Some(())
     }
   }
+
+  "A WaitQueueFullFailure" should {
+    "render message properly" in {
+      (new WaitQueueFullFailure).toString() must contain("Wait queue is full")
+    }
+  }
 }
