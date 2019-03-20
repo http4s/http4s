@@ -461,7 +461,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     }
   }
 
-  "cancels on stage shutdown" in {
+  "cancels on stage shutdown" in skipOnCi {
     Deferred[IO, Unit]
       .flatMap { canceled =>
         Deferred[IO, Unit].flatMap { gate =>

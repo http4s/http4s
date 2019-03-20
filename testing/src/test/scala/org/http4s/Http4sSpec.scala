@@ -20,6 +20,7 @@ import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.specs2.ScalaCheck
+import org.specs2.execute.{Result, Skipped}
 import org.specs2.matcher._
 import org.specs2.mutable.Specification
 import org.specs2.scalacheck.Parameters
@@ -135,6 +136,11 @@ trait Http4sSpec
       case Resource.Suspend(r) =>
         withResource(r.unsafeRunSync() /* ouch */ )(fs)
     }
+
+  /** These tests are flaky on Travis.  Use sparingly and with great shame. */
+  def skipOnCi(f: => Result): Result =
+    if (sys.env.get("CI").isDefined) Skipped("Flakier than it's worth on CI")
+    else f
 }
 
 object Http4sSpec {
