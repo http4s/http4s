@@ -267,11 +267,11 @@
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Basic OAuth1 message signing support</p><p>This feature is not considered stable.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/3a2411a16328a93a0bf8246118b512343d8b27e0/client/src/main/scala/org/http4s/client/oauth1/oauth1.scala" target="_blank">oauth1.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/vSettingKey(This / This / This / version)/client/src/main/scala/org/http4s/client/oauth1/oauth1.scala" target="_blank">oauth1.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.8/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -331,7 +331,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Representation of a Consumer key and secret" href="Consumer.html"><span class="name">Consumer</span></a><span class="params">(<span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="secret">secret: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Representation of a Consumer key and secret" href="Consumer.html"><span class="name">Consumer</span></a><span class="params">(<span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="secret">secret: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Representation of a Consumer key and secret</p>
@@ -347,7 +347,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Representation of an OAuth Token and Token secret" href="Token.html"><span class="name">Token</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="secret">secret: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Representation of an OAuth Token and Token secret" href="Token.html"><span class="name">Token</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="secret">secret: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Representation of an OAuth Token and Token secret</p>
@@ -371,7 +371,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">signRequest</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="consumer">consumer: <a href="Consumer.html" class="extype" name="org.http4s.client.oauth1.Consumer">Consumer</a></span>, <span name="callback">callback: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>]</span>, <span name="verifier">verifier: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="token">token: <a href="http://www.scala-lang.org/api/2.12.7/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Token.html" class="extype" name="org.http4s.client.oauth1.Token">Token</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="W">W: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>, <a href="../../UrlForm.html" class="extype" name="org.http4s.UrlForm">UrlForm</a>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]]</span>
+        <span class="name">signRequest</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="consumer">consumer: <a href="Consumer.html" class="extype" name="org.http4s.client.oauth1.Consumer">Consumer</a></span>, <span name="callback">callback: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>]</span>, <span name="verifier">verifier: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="token">token: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Token.html" class="extype" name="org.http4s.client.oauth1.Token">Token</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="W">W: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>, <a href="../../UrlForm.html" class="extype" name="org.http4s.UrlForm">UrlForm</a>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Sign the request with an OAuth Authorization header</p><div class="fullcomment"><div class="comment cmt"><p>Sign the request with an OAuth Authorization header</p><p><u>WARNING:</u> POST requests with application/x-www-form-urlencoded bodies
@@ -387,9 +387,9 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.8/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>
