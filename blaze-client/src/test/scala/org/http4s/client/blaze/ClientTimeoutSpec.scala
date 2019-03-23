@@ -7,6 +7,7 @@ import cats.effect.concurrent.Deferred
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.Queue
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
@@ -155,6 +156,30 @@ class ClientTimeoutSpec extends Http4sSpec {
       val c = mkClient(h, tail)(responseHeaderTimeout = 1250.millis)
 
       c.fetchAs[String](FooRequest).unsafeRunSync must_== "done"
+    }
+
+    // Regression test for: https://github.com/http4s/http4s/issues/2386
+    // and https://github.com/http4s/http4s/issues/2338
+    "Eventually timeout on connect timeout" in {
+      val manager = ConnectionManager.basic[IO, BlazeConnection[IO]]({ _ =>
+        // In a real use case this timeout is under OS's control (AsynchronousSocketChannel.connect)
+        IO.sleep(2.seconds) *> IO.raiseError[BlazeConnection[IO]](new IOException())
+      })
+      val c = BlazeClient.makeClient(
+        manager = manager,
+        responseHeaderTimeout = Duration.Inf,
+        idleTimeout = Duration.Inf,
+        requestTimeout = 1.second,
+        scheduler = tickWheel,
+        ec = testExecutionContext
+      )
+
+      // if the 5.seconds timeout is hit, it's a NoSuchElementException,
+      // if the requestTimeout = 1.second is hit then it's a TimeoutException
+      // if establishing connection fails first then it's an IOException
+
+      // The expected behaviour is that the requestTimeout will happen first, but fetchAs will additionally wait for the IO.sleep(2.seconds) to complete.
+      c.fetchAs[String](FooRequest).unsafeRunTimed(5.seconds).get must throwA[TimeoutException]
     }
   }
 }
