@@ -20,10 +20,11 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
 
   def iterator: Iterator[Header] = headers.iterator
 
-  def tail: Headers = Headers(headers match {
-    case _ :: xs => xs
-    case n@Nil => n 
-  })
+  def tail: Headers =
+    Headers(headers match {
+      case _ :: xs => xs
+      case n @ Nil => n
+    })
 
   def head: Header = headers.headOption.fold[Header](throw new NoSuchElementException)(identity)
 
@@ -69,31 +70,31 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
     * @tparam That resulting type of the new collection
     */
   def ++(that: Headers): Headers =
-      if (that.isEmpty) this
-      else if (this.isEmpty) that
-      else {
-        val hs = that.toList
-        val acc = new ListBuffer[Header]
-        this.headers.foreach { orig =>
-          orig.parsed match {
-            case _: Header.Recurring => acc += orig
-            case _: `Set-Cookie` => acc += orig
-            case h if !hs.exists(_.name == h.name) => acc += orig
-            case _ => // NOOP, drop non recurring header that already exists
-          }
+    if (that.isEmpty) this
+    else if (this.isEmpty) that
+    else {
+      val hs = that.toList
+      val acc = new ListBuffer[Header]
+      this.headers.foreach { orig =>
+        orig.parsed match {
+          case _: Header.Recurring => acc += orig
+          case _: `Set-Cookie` => acc += orig
+          case h if !hs.exists(_.name == h.name) => acc += orig
+          case _ => // NOOP, drop non recurring header that already exists
         }
-
-        val h = new Headers(acc.prependToList(hs))
-        h
       }
-  
+
+      val h = new Headers(acc.prependToList(hs))
+      h
+    }
+
   def filterNot(f: Header => Boolean): Headers =
     Headers(headers.filterNot(f))
 
   def filter(f: Header => Boolean): Headers =
     Headers(headers.filter(f))
 
-  def collectFirst[B](f: PartialFunction[Header,B]): Option[B] = 
+  def collectFirst[B](f: PartialFunction[Header, B]): Option[B] =
     headers.collectFirst(f)
 
   def foldMap[B: Monoid](f: Header => B): B =
@@ -137,19 +138,19 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
   def count(f: Header => Boolean): Int =
     headers.count(f)
 
-  override def toString: String = 
+  override def toString: String =
     Headers.headersShow.show(this)
 }
 
 object Headers {
   val empty = apply(List.empty)
 
-  def of(headers: Header*): Headers = 
+  def of(headers: Header*): Headers =
     Headers(headers.toList)
 
   @deprecated("Use Headers.of", "0.20.0")
   def apply(headers: Header*): Headers =
-    of(headers:_*)
+    of(headers: _*)
 
   /** Create a new Headers collection from the headers */
   // def apply(headers: Header*): Headers = Headers(headers.toList)

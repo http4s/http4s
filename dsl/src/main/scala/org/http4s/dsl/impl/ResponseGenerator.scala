@@ -76,10 +76,13 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
   @deprecated("Use `apply(Location(location))` instead", "0.18.0-M2")
   def apply(location: Uri)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(
-      Response[G](status = status, headers = Headers(`Content-Length`.zero :: Location(location) :: Nil)))
+      Response[G](
+        status = status,
+        headers = Headers(`Content-Length`.zero :: Location(location) :: Nil)))
 
   def apply(location: Location, headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response[G](status, headers = Headers(`Content-Length`.zero :: location :: headers.toList)))
+    F.pure(
+      Response[G](status, headers = Headers(`Content-Length`.zero :: location :: headers.toList)))
 
   def apply[A](location: Location, body: A, headers: Header*)(
       implicit F: Monad[F],
@@ -108,13 +111,16 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
     F.pure(
       Response[G](
         status = status,
-        headers = Headers(`Content-Length`.zero :: `WWW-Authenticate`(challenge, challenges: _*) :: Nil)
+        headers =
+          Headers(`Content-Length`.zero :: `WWW-Authenticate`(challenge, challenges: _*) :: Nil)
       ))
 
   def apply(authenticate: `WWW-Authenticate`, headers: Header*)(
       implicit F: Applicative[F]): F[Response[G]] =
     F.pure(
-      Response[G](status, headers = Headers(`Content-Length`.zero :: authenticate :: headers.toList)))
+      Response[G](
+        status,
+        headers = Headers(`Content-Length`.zero :: authenticate :: headers.toList)))
 
   def apply[A](authenticate: `WWW-Authenticate`, body: A, headers: Header*)(
       implicit F: Monad[F],
@@ -169,7 +175,8 @@ trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGe
     F.pure(
       Response[G](
         status = status,
-        headers = Headers(`Content-Length`.zero :: `Proxy-Authenticate`(challenge, challenges: _*) :: Nil)
+        headers =
+          Headers(`Content-Length`.zero :: `Proxy-Authenticate`(challenge, challenges: _*) :: Nil)
       ))
 
   def apply(authenticate: `Proxy-Authenticate`, headers: Header*)(

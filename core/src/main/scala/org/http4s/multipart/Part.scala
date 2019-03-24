@@ -43,7 +43,7 @@ object Part {
       name,
       file.getName,
       readAll[F](file.toPath, blockingExecutionContext, ChunkSize),
-      headers:_*)
+      headers: _*)
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,
@@ -55,7 +55,7 @@ object Part {
       resource.getPath.split("/").last,
       resource.openStream(),
       blockingExecutionContext,
-      headers:_*)
+      headers: _*)
 
   def fileData[F[_]: Sync](
       name: String,
@@ -65,10 +65,11 @@ object Part {
     Part(
       Headers(
         `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) ::
-        Header("Content-Transfer-Encoding", "binary") ::
-        headers.toList
+          Header("Content-Transfer-Encoding", "binary") ::
+          headers.toList
       ),
-      entityBody)
+      entityBody
+    )
 
   // The InputStream is passed by name, and we open it in the by-name
   // argument in callers, so we can avoid lifting into an effect.  Exposing
@@ -84,5 +85,5 @@ object Part {
       name,
       filename,
       readInputStream(F.delay(in), ChunkSize, blockingExecutionContext),
-      headers:_*)
+      headers: _*)
 }

@@ -55,7 +55,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n')
               }
 
-              wsContext.headers.foreach{hdr =>
+              wsContext.headers.foreach { hdr =>
                 sb.append(hdr.name).append(": ").append(hdr.value).append('\r').append('\n')
                 ()
               }

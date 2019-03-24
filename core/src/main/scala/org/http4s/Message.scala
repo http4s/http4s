@@ -66,7 +66,7 @@ sealed trait Message[F[_]] { self =>
           .fold[Headers](_ => {
             Message.logger.warn(s"Attempt to provide a negative content length of $l")
             w.headers
-          }, cl => Headers(cl :: w.headers.toList ) )
+          }, cl => Headers(cl :: w.headers.toList))
       case None => w.headers
     }
     change(body = entity.body, headers = headers ++ hs)

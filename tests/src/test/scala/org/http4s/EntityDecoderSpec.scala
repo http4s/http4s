@@ -173,7 +173,9 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
 
       decoder
-        .decode(Request[IO](headers = Headers.of(`Content-Type`(MediaType.text.plain))), strict = true)
+        .decode(
+          Request[IO](headers = Headers.of(`Content-Type`(MediaType.text.plain))),
+          strict = true)
         .swap
         .semiflatMap(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`)) must returnRight(
         haveStatus(Status.UnprocessableEntity))

@@ -138,8 +138,8 @@ package object server {
           req.httpVersion,
           Headers(
             Connection("close".ci) ::
-            `Content-Length`.zero ::
-            Nil
+              `Content-Length`.zero ::
+              Nil
           )))
   }
 }

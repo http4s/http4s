@@ -113,7 +113,9 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
       body <- rec.body.compile.to[Array]
       expBody <- expected.body.compile.to[Array]
       _ <- IO(body must_== expBody)
-      _ <- IO(expected.headers.foreach{h => h must beOneOf(hs: _*); ()})
+      _ <- IO(expected.headers.foreach { h =>
+        h must beOneOf(hs: _*); ()
+      })
       _ <- IO(rec.httpVersion must be_==(expected.httpVersion))
     } yield true
   }
