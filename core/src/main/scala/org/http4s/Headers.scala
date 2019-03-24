@@ -20,14 +20,6 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
 
   def iterator: Iterator[Header] = headers.iterator
 
-  def tail: Headers =
-    Headers(headers match {
-      case _ :: xs => xs
-      case n @ Nil => n
-    })
-
-  def head: Header = headers.headOption.fold[Header](throw new NoSuchElementException)(identity)
-
   /** Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
     *
     * @param key [[HeaderKey.Extractable]] that can identify the required header

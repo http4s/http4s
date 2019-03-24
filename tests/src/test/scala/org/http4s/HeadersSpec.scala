@@ -45,7 +45,7 @@ class HeadersSpec extends Http4sSpec {
     "Remove duplicate headers which are not of type Recurring on concatenation (++)" in {
       val hs = Headers.of(clength) ++ Headers.of(clength)
       hs.toList.length must_== 1
-      hs.head must_== clength
+      hs.toList.head must_== clength
     }
 
     "Allow multiple Set-Cookie headers" in {
