@@ -103,6 +103,9 @@ title: Adopters
 [Dashing](https://github.com/benfradet/dashing)
 : Dashboards to monitor an open source organization's health
 
+[http4s-chatserver](https://martinsnyder.net/chat)
+: an [open source](https://github.com/MartinSnyder/http4s-chatserver) demonstration of http4s WebSocket support and stateful functional streams
+
 ## Giter8 templates
 
 G8 templates provide a fast way to get started with SBT projects by just running `sbt new <template-name>`.
