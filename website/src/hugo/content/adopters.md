@@ -103,7 +103,7 @@ title: Adopters
 [Dashing](https://github.com/benfradet/dashing)
 : Dashboards to monitor an open source organization's health
 
-[http4s-chatserver](https://martinsnyder.net/chat)
+[http4s-chatserver](https://martinsnyder.net/projects/chat.html)
 : an [open source](https://github.com/MartinSnyder/http4s-chatserver) demonstration of http4s WebSocket support and stateful functional streams
 
 ## Giter8 templates
