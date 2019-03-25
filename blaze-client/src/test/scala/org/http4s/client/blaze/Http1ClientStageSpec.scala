@@ -181,7 +181,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       response must_== "done"
     }
 
-    "Utilize a provided Host header" in {
+    "Utilize a provided Host header" in skipOnCi {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
       val req = FooRequest.withHeaders(headers.Host("bar.test"))
