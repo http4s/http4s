@@ -24,4 +24,4 @@ addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.
 addSbtPlugin("org.scalastyle"             %% "scalastyle-sbt-plugin"     % "1.0.0")
 addSbtPlugin("org.tpolecat"               %  "tut-plugin"                % "0.6.10")
 addSbtPlugin("org.xerial.sbt"             %  "sbt-sonatype"              % "2.4")
-addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.3.4")
+addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.3.5")
