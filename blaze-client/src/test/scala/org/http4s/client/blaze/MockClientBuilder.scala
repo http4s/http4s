@@ -9,7 +9,7 @@ import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
 private[blaze] object MockClientBuilder {
   def builder(
       head: => HeadStage[ByteBuffer],
-      tail: => BlazeConnection[IO]): ConnectionBuilder[IO, BlazeConnection[IO]] = { req =>
+      tail: => BlazeConnection[IO]): ConnectionBuilder[IO, BlazeConnection[IO]] = { _ =>
     IO {
       val t = tail
       LeafBuilder(t).base(head)

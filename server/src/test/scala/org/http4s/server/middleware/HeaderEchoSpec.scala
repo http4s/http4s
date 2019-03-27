@@ -20,20 +20,20 @@ class HeaderEchoSpec extends Http4sSpec {
       val requestMatchingSingleHeaderKey =
         Request[IO](
           uri = uri("/request"),
-          headers = Headers(Header("someheaderkey", "someheadervalue")))
+          headers = Headers.of(Header("someheaderkey", "someheadervalue")))
       val testee = HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService)
       val responseHeaders =
         testee.orNotFound(requestMatchingSingleHeaderKey).unsafeRunSync().headers
 
       responseHeaders.exists(_.value == "someheadervalue") must_== true
-      (responseHeaders must have).size(3)
+      (responseHeaders.toList must have).size(3)
     }
 
     "echo multiple headers" in {
       val requestMatchingMultipleHeaderKeys =
         Request[IO](
           uri = uri("/request"),
-          headers = Headers(
+          headers = Headers.of(
             Header("someheaderkey", "someheadervalue"),
             Header("anotherheaderkey", "anotherheadervalue")))
       val headersToEcho =
@@ -45,21 +45,21 @@ class HeaderEchoSpec extends Http4sSpec {
 
       responseHeaders.exists(_.value == "someheadervalue") must_== true
       responseHeaders.exists(_.value == "anotherheadervalue") must_== true
-      (responseHeaders must have).size(4)
+      (responseHeaders.toList must have).size(4)
     }
 
     "echo only the default headers where none match the key" in {
       val requestMatchingNotPresentHeaderKey =
         Request[IO](
           uri = uri("/request"),
-          headers = Headers(Header("someunmatchedheader", "someunmatchedvalue")))
+          headers = Headers.of(Header("someunmatchedheader", "someunmatchedvalue")))
 
       val testee = HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService)
       val responseHeaders =
         testee.orNotFound(requestMatchingNotPresentHeaderKey).unsafeRunSync().headers
 
       responseHeaders.exists(_.value == "someunmatchedvalue") must_== false
-      (responseHeaders must have).size(2)
+      (responseHeaders.toList must have).size(2)
     }
   }
 

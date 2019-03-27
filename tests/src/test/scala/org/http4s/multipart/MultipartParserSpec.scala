@@ -72,7 +72,7 @@ object MultipartParserSpec extends Specification {
 
           val input = ruinDelims(unprocessedInput)
 
-          val expectedHeaders = Headers(
+          val expectedHeaders = Headers.of(
             `Content-Disposition`(
               "form-data",
               Map("name" -> "upload", "filename" -> "integration.txt")),
@@ -119,7 +119,7 @@ object MultipartParserSpec extends Specification {
           unspool(input, 15).through(multipartPipe(boundary))
         val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
 
-        val expectedHeaders = Headers(
+        val expectedHeaders = Headers.of(
           `Content-Disposition`(
             "form-data",
             Map("name" -> "upload", "filename" -> "integration.txt")),
@@ -163,7 +163,7 @@ object MultipartParserSpec extends Specification {
             .through(multipartPipe(boundary))
         val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
 
-        val expectedHeaders = Headers(
+        val expectedHeaders = Headers.of(
           `Content-Disposition`("form-data", Map("name" -> "http4s很棒", "filename" -> "我老婆太漂亮.txt")),
           `Content-Type`(MediaType.application.`octet-stream`),
           Header("Content-Transfer-Encoding", "binary")
@@ -201,7 +201,7 @@ object MultipartParserSpec extends Specification {
 
         val input = ruinDelims(unprocessedInput)
 
-        val expectedHeaders = Headers(
+        val expectedHeaders = Headers.of(
           `Content-Disposition`(
             "form-data",
             Map("name" -> "upload", "filename" -> "integration.txt")),
@@ -291,7 +291,7 @@ object MultipartParserSpec extends Specification {
         """.stripMargin)
         val end = "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--"
 
-        val expectedHeaders = Headers(
+        val expectedHeaders = Headers.of(
           `Content-Disposition`(
             "form-data",
             Map("name" -> "upload", "filename" -> "integration.txt")),
@@ -337,7 +337,7 @@ object MultipartParserSpec extends Specification {
 
         val input = ruinDelims(unprocessedInput)
 
-        val expectedHeaders = Headers(
+        val expectedHeaders = Headers.of(
           `Content-Disposition`(
             "form-data",
             Map("name" -> "upload", "filename" -> "integration.txt")),
@@ -488,11 +488,11 @@ object MultipartParserSpec extends Specification {
         val headers =
           multipartMaterialized.parts.foldLeft(List.empty[Headers])((l, r) => l ::: List(r.headers))
         headers mustEqual List(
-          Headers(
+          Headers.of(
             `Content-Disposition`("form-data", Map("name" -> "field1")),
             `Content-Type`(MediaType.text.plain)
           ),
-          Headers(
+          Headers.of(
             `Content-Disposition`("form-data", Map("name" -> "field2"))
           )
         )
@@ -522,7 +522,7 @@ object MultipartParserSpec extends Specification {
         val firstPart = results.take(1).compile.last.map(_.get).unsafeRunSync()
         val confirmedError = results.compile.drain.attempt.unsafeRunSync()
 
-        firstPart.headers must_== Headers(
+        firstPart.headers must_== Headers.of(
           `Content-Disposition`("form-data", Map("name" -> "field1")),
           `Content-Type`(MediaType.text.plain))
         firstPart.body
@@ -596,7 +596,7 @@ object MultipartParserSpec extends Specification {
       val headers =
         multipartMaterialized.parts.foldLeft(List.empty[Headers])((l, r) => l ::: List(r.headers))
       headers mustEqual List(
-        Headers(
+        Headers.of(
           `Content-Disposition`("form-data", Map("name" -> "field1")),
           `Content-Type`(MediaType.text.plain)
         )

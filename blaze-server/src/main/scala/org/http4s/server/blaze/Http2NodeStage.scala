@@ -232,6 +232,7 @@ private class Http2NodeStage[F[_]](
       if (h.name != headers.`Transfer-Encoding`.name &&
         h.name != headers.Connection.name) {
         hs += ((h.name.value.toLowerCase(Locale.ROOT), h.value))
+        ()
       }
     }
 

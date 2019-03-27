@@ -35,7 +35,7 @@ object ChunkAggregator {
       resp: Response[G],
       len: Long): Response[G] =
     resp.transformHeaders { headers =>
-      val hs = headers.flatMap {
+      val hs = Headers(headers.toList.flatMap {
         // Remove the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
         // leaving the remaining values unchanged
         case e: `Transfer-Encoding` =>
@@ -47,7 +47,7 @@ object ChunkAggregator {
           Nil
         case header =>
           List(header)
-      }
+      })
       if (len > 0L) hs.put(`Content-Length`.unsafeFromLong(len))
       else hs
     }

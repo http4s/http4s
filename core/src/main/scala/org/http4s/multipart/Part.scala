@@ -31,7 +31,7 @@ object Part {
 
   def formData[F[_]: Sync](name: String, value: String, headers: Header*): Part[F] =
     Part(
-      `Content-Disposition`("form-data", Map("name" -> name)) +: headers,
+      Headers(`Content-Disposition`("form-data", Map("name" -> name)) :: headers.toList),
       Stream.emit(value).through(utf8Encode))
 
   def fileData[F[_]: Sync: ContextShift](
@@ -63,10 +63,13 @@ object Part {
       entityBody: EntityBody[F],
       headers: Header*): Part[F] =
     Part(
-      `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
-        Header("Content-Transfer-Encoding", "binary") +:
-        headers,
-      entityBody)
+      Headers(
+        `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) ::
+          Header("Content-Transfer-Encoding", "binary") ::
+          headers.toList
+      ),
+      entityBody
+    )
 
   // The InputStream is passed by name, and we open it in the by-name
   // argument in callers, so we can avoid lifting into an effect.  Exposing

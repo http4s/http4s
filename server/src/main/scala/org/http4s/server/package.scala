@@ -137,8 +137,9 @@ package object server {
           Status.InternalServerError,
           req.httpVersion,
           Headers(
-            Connection("close".ci),
-            `Content-Length`.zero
+            Connection("close".ci) ::
+              `Content-Length`.zero ::
+              Nil
           )))
   }
 }

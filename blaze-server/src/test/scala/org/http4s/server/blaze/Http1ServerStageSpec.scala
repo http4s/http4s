@@ -172,7 +172,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       val routes = HttpRoutes
         .of[IO] {
           case _ =>
-            val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
+            val headers = Headers.of(H.`Transfer-Encoding`(TransferCoding.identity))
             IO.pure(Response[IO](headers = headers)
               .withEntity("hello world"))
         }
@@ -432,14 +432,14 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
             for {
               _ <- req.body.compile.drain
               hs <- req.trailerHeaders
-              resp <- Ok(hs.mkString)
+              resp <- Ok(hs.toList.mkString)
             } yield resp
 
           case req if req.pathInfo == "/bar" =>
             for {
               // Don't run the body
               hs <- req.trailerHeaders
-              resp <- Ok(hs.mkString)
+              resp <- Ok(hs.toList.mkString)
             } yield resp
         }
         .orNotFound
@@ -466,7 +466,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       .flatMap { canceled =>
         Deferred[IO, Unit].flatMap { gate =>
           val req = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-          val app: HttpApp[IO] = HttpApp { req =>
+          val app: HttpApp[IO] = HttpApp { _ =>
             gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
           }
           for {

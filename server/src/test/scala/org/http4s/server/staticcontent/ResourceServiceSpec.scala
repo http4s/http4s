@@ -41,7 +41,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
     "Try to serve pre-gzipped content if asked to" in {
       val req = Request[IO](
         uri = Uri.fromString("testresource.txt").yolo,
-        headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+        headers = Headers.of(`Accept-Encoding`(ContentCoding.gzip))
       )
       val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
 
@@ -54,7 +54,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
     "Fallback to un-gzipped file if pre-gzipped version doesn't exist" in {
       val req = Request[IO](
         uri = Uri.fromString("testresource2.txt").yolo,
-        headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+        headers = Headers.of(`Accept-Encoding`(ContentCoding.gzip))
       )
       val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
 
