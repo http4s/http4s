@@ -163,23 +163,23 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Eventually timeout on connect timeout" in {
       val manager = ConnectionManager.basic[IO, BlazeConnection[IO]]({ _ =>
         // In a real use case this timeout is under OS's control (AsynchronousSocketChannel.connect)
-        IO.sleep(2.seconds) *> IO.raiseError[BlazeConnection[IO]](new IOException())
+        IO.sleep(1000.millis) *> IO.raiseError[BlazeConnection[IO]](new IOException())
       })
       val c = BlazeClient.makeClient(
         manager = manager,
         responseHeaderTimeout = Duration.Inf,
         idleTimeout = Duration.Inf,
-        requestTimeout = 1.second,
+        requestTimeout = 50.millis,
         scheduler = tickWheel,
         ec = testExecutionContext
       )
 
-      // if the 5.seconds timeout is hit, it's a NoSuchElementException,
-      // if the requestTimeout = 1.second is hit then it's a TimeoutException
+      // if the unsafeRunTimed timeout is hit, it's a NoSuchElementException,
+      // if the requestTimeout is hit then it's a TimeoutException
       // if establishing connection fails first then it's an IOException
 
       // The expected behaviour is that the requestTimeout will happen first, but fetchAs will additionally wait for the IO.sleep(2.seconds) to complete.
-      c.fetchAs[String](FooRequest).unsafeRunTimed(5.seconds).get must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafeRunTimed(1500.millis).get must throwA[TimeoutException]
     }
   }
 }

@@ -60,8 +60,8 @@ object BlazeClient {
             .handleError(e => logger.error(e)("Error invalidating connection"))
 
         def borrow =
-        // TODO: The `attempt` here is a workaround for https://github.com/typelevel/cats-effect/issues/487 .
-        //  It can be removed once the issue is resolved.
+          // TODO: The `attempt` here is a workaround for https://github.com/typelevel/cats-effect/issues/487 .
+          //  It can be removed once the issue is resolved.
           Resource.makeCase(manager.borrow(key).attempt) {
             case (Right(next), ExitCase.Error(_) | ExitCase.Canceled) =>
               invalidate(next.connection)
@@ -119,24 +119,24 @@ object BlazeClient {
                 Deferred[F, Unit].flatMap { gate =>
                   val responseHeaderTimeoutF: F[TimeoutException] =
                     F.delay {
-                      val stage =
-                        new ResponseHeaderTimeoutStage[ByteBuffer](
-                          responseHeaderTimeout,
-                          scheduler,
-                          ec)
-                      next.connection.spliceBefore(stage)
-                      stage
-                    }
+                        val stage =
+                          new ResponseHeaderTimeoutStage[ByteBuffer](
+                            responseHeaderTimeout,
+                            scheduler,
+                            ec)
+                        next.connection.spliceBefore(stage)
+                        stage
+                      }
                       .bracket(stage =>
                         F.asyncF[TimeoutException] { cb =>
                           F.delay(stage.init(cb)) >> gate.complete(())
-                        })(stage => F.delay(stage.removeStage()))
+                      })(stage => F.delay(stage.removeStage()))
 
                   F.racePair(gate.get *> res, responseHeaderTimeoutF)
                     .flatMap[Resource[F, Response[F]]] {
-                    case Left((r, fiber)) => fiber.cancel.as(r)
-                    case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
-                  }
+                      case Left((r, fiber)) => fiber.cancel.as(r)
+                      case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+                    }
                 }
               }
           }
