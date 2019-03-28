@@ -105,7 +105,7 @@ package object oauth1 {
   private[oauth1] def getUserParams[F[_]](req: Request[F])(
       implicit F: Monad[F],
       W: EntityDecoder[F, UrlForm]): F[(Request[F], Seq[(String, String)])] = {
-    val qparams = req.uri.query.map { case (k, ov) => (k, ov.getOrElse("")) }
+    val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {
       case Some(t)

@@ -92,7 +92,7 @@ object Throttle {
       http: Http[F, G])(implicit F: Sync[F], timer: Clock[F]): F[Http[F, G]] = {
     val refillFrequency = per / amount.toLong
     val createBucket = TokenBucket.local(amount, refillFrequency)
-    createBucket.map(bucket => apply(bucket)(http))
+    createBucket.map(bucket => apply(bucket, defaultResponse[G] _)(http))
   }
 
   def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] = {

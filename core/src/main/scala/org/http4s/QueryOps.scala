@@ -102,7 +102,7 @@ trait QueryOps {
     * Creates maybe a new `Self` with the specified parameters. The entire
     * [[Query]] will be replaced with the given one.
     */
-  def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](params: Map[K, Seq[T]]): Self = {
+  def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](params: Map[K, collection.Seq[T]]): Self = {
     val penc = QueryParamKeyLike[K]
     val venc = QueryParamEncoder[T]
     val vec = params.foldLeft(query.toVector) {

@@ -19,17 +19,17 @@ object HSTS {
     preload = false)
 
   def apply[F[_]: Functor, A, G[_]: Functor](
-      @deprecatedName('service) routes: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
+      routes: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     apply(routes, defaultHSTSPolicy)
 
   def apply[F[_]: Functor, A, G[_]: Functor](
-      @deprecatedName('service) http: Kleisli[F, A, Response[G]],
+      http: Kleisli[F, A, Response[G]],
       header: `Strict-Transport-Security`): Kleisli[F, A, Response[G]] = Kleisli { req =>
     http.map(_.putHeaders(header)).apply(req)
   }
 
   def unsafeFromDuration[F[_]: Functor, A, G[_]: Functor](
-      @deprecatedName('service) http: Kleisli[F, A, Response[G]],
+      http: Kleisli[F, A, Response[G]],
       maxAge: FiniteDuration = 365.days,
       includeSubDomains: Boolean = true,
       preload: Boolean = false): Kleisli[F, A, Response[G]] = {

@@ -21,16 +21,14 @@ object VirtualHost {
     * filled in, if possible, using the request Uri or knowledge of the
     * security of the underlying transport protocol.
     */
-  final case class HostService[F[_], G[_]](
-      @deprecatedName('service) http: Http[F, G],
-      p: Host => Boolean)
+  final case class HostService[F[_], G[_]](http: Http[F, G], p: Host => Boolean)
 
   /** Create a [[HostService]] that will match based on the exact host string
     * (discounting case) and port, if the port is given. If the port is not
     * given, it is ignored.
     */
   def exact[F[_], G[_]](
-      @deprecatedName('service) http: Http[F, G],
+      http: Http[F, G],
       requestHost: String,
       port: Option[Int] = None): HostService[F, G] =
     HostService(http, h => h.host.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
@@ -40,7 +38,7 @@ object VirtualHost {
     * given. If the port is not given, it is ignored.
     */
   def wildcard[F[_], G[_]](
-      @deprecatedName('service) http: Http[F, G],
+      http: Http[F, G],
       wildcardHost: String,
       port: Option[Int] = None): HostService[F, G] =
     regex(http, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
@@ -50,7 +48,7 @@ object VirtualHost {
     * is given. If the port is not given, it is ignored.
     */
   def regex[F[_], G[_]](
-      @deprecatedName('service) http: Http[F, G],
+      http: Http[F, G],
       hostRegex: String,
       port: Option[Int] = None): HostService[F, G] = {
     val r = hostRegex.r

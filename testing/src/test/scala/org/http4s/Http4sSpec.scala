@@ -96,7 +96,7 @@ trait Http4sSpec
       implicit p: Parameters,
       f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
-    addFragments(Fragments.foreach(props.properties) {
+    addFragments(Fragments.foreach(props.properties.toList) {
       case (name, prop) =>
         Fragments(name in check(prop, p, f))
     })
@@ -105,7 +105,7 @@ trait Http4sSpec
   def checkAll(
       props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"${props.name} must satisfy"))
-    addFragments(Fragments.foreach(props.properties) {
+    addFragments(Fragments.foreach(props.properties.toList) {
       case (name, prop) =>
         Fragments(name in check(prop, p, f))
     })

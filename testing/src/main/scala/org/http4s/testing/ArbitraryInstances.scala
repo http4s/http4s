@@ -570,7 +570,7 @@ trait ArbitraryInstances {
     for {
       n <- choose(min, max)
       l <- listOfN(n, g).suchThat(_.length == n)
-    } yield l.fold(Monoid[T].empty)(_ |+| _)
+    } yield l.foldLeft(Monoid[T].empty)(_ |+| _)
 
   private def times[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
     listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))

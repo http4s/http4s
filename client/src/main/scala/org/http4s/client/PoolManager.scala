@@ -82,8 +82,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def isExpired(t: Instant): Boolean = {
     val elapsed = Instant.now().toEpochMilli - t.toEpochMilli
-    (requestTimeout.isFinite() && elapsed >= requestTimeout.toMillis) || (responseHeaderTimeout
-      .isFinite() && elapsed >= responseHeaderTimeout.toMillis)
+    (requestTimeout.isFinite && elapsed >= requestTimeout.toMillis) || (responseHeaderTimeout
+      .isFinite && elapsed >= responseHeaderTimeout.toMillis)
   }
 
   /**
@@ -116,6 +116,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     F.delay {
       if (waitQueue.length < maxWaitQueueLimit) {
         waitQueue.enqueue(Waiting(key, callback, Instant.now()))
+        ()
       } else {
         logger.error(s"Max wait length reached, not scheduling.")
         callback(Left(WaitQueueFullFailure()))

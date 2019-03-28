@@ -11,7 +11,7 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
-import org.log4s._
+import org.log4s.getLogger
 import cats.effect.Sync._
 
 /**
@@ -26,7 +26,7 @@ object RequestLogger {
       fk: F ~> G,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(@deprecatedName('service) http: Http[G, F])(
+  )(http: Http[G, F])(
       implicit F: Concurrent[F],
       G: Bracket[G, Throwable]
   ): Http[G, F] = {

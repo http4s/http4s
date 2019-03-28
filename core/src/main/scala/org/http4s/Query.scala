@@ -17,7 +17,7 @@ import scala.collection.immutable
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private (pairs: Vector[KeyValue]) extends QueryOps with Renderable {
+final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Renderable {
   // override def apply(idx: Int): KeyValue = pairs(idx)
 
   def length: Int = pairs.length
@@ -27,6 +27,10 @@ final class Query private (pairs: Vector[KeyValue]) extends QueryOps with Render
   def isEmpty: Boolean = pairs.isEmpty
 
   def nonEmpty: Boolean = pairs.nonEmpty
+
+  def drop(n: Int): Query = new Query(pairs.drop(n))
+
+  def dropRight(n: Int): Query = new Query(pairs.dropRight(n))
 
   def exists(f: KeyValue => Boolean): Boolean =
     pairs.exists(f)
@@ -52,7 +56,12 @@ final class Query private (pairs: Vector[KeyValue]) extends QueryOps with Render
   def :+(elem: KeyValue): Query =
     new Query(pairs :+ elem)
 
+  def ++(pairs: collection.Iterable[(String, Option[String])]): Query =
+    new Query(this.pairs ++ pairs)
+
   def toVector: Vector[(String, Option[String])] = pairs
+
+  def toList: List[(String, Option[String])] = toVector.toList
 
   /** Render the Query as a `String`.
     *

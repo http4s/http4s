@@ -14,8 +14,7 @@ import cats.implicits._
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor, G[_]](@deprecatedName('service) http: Http[F, G])(
-      implicit F: MonoidK[F]): Http[F, G] =
+  def apply[F[_]: Functor, G[_]](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
         case Method.HEAD => {

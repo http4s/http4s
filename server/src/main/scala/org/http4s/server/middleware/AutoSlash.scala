@@ -13,7 +13,7 @@ import cats.implicits._
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-  def apply[F[_], G[_], B](@deprecatedName('service) http: Kleisli[F, Request[G], B])(
+  def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(
       implicit F: MonoidK[F],
       G: Functor[G]): Kleisli[F, Request[G], B] =
     Kleisli { req =>
