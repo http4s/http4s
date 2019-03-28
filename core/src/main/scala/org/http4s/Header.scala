@@ -47,7 +47,7 @@ sealed trait Header extends Renderable with Product {
 
   def isNot(key: HeaderKey): Boolean = !is(key)
 
-  override def toString: String = name + ": " + value
+  override def toString: String = name.toString + ": " + value
 
   def toRaw: Raw = Raw(name, value)
 

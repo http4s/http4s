@@ -35,15 +35,15 @@ sealed trait CacheDirective extends Product with Renderable {
   */
 object CacheDirective {
   final case class `max-age`(deltaSeconds: Duration) extends CacheDirective {
-    override def value: String = name + "=" + deltaSeconds.toSeconds
+    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
 
   final case class `max-stale`(deltaSeconds: Option[Duration] = None) extends CacheDirective {
-    override def value: String = name + deltaSeconds.fold("")("=" + _.toSeconds)
+    override def value: String = name.toString + deltaSeconds.fold("")("=" + _.toSeconds)
   }
 
   final case class `min-fresh`(deltaSeconds: Duration) extends CacheDirective {
-    override def value: String = name + "=" + deltaSeconds.toSeconds
+    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
 
   case object `must-revalidate` extends CacheDirective
@@ -51,7 +51,7 @@ object CacheDirective {
   final case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Seq.empty)
       extends CacheDirective {
     override def value: String =
-      name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
+      name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
   case object `no-store` extends CacheDirective
@@ -62,7 +62,7 @@ object CacheDirective {
 
   final case class `private`(fieldNames: Seq[CaseInsensitiveString] = Nil) extends CacheDirective {
     override def value: String =
-      name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
+      name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
   case object `proxy-revalidate` extends CacheDirective
@@ -70,15 +70,15 @@ object CacheDirective {
   case object public extends CacheDirective
 
   final case class `s-maxage`(deltaSeconds: Duration) extends CacheDirective {
-    override def value: String = name + "=" + deltaSeconds.toSeconds
+    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
 
   final case class `stale-if-error`(deltaSeconds: Duration) extends CacheDirective {
-    override def value: String = name + "=" + deltaSeconds.toSeconds
+    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
 
   final case class `stale-while-revalidate`(deltaSeconds: Duration) extends CacheDirective {
-    override def value: String = name + "=" + deltaSeconds.toSeconds
+    override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
 
   def apply(name: CaseInsensitiveString, argument: Option[String] = None): CacheDirective =
@@ -93,6 +93,6 @@ object CacheDirective {
       override val name: CaseInsensitiveString,
       argument: Option[String] = None)
       extends CacheDirective {
-    override def value: String = name + argument.fold("")("=\"" + _ + '"')
+    override def value: String = name.toString + argument.fold("")("=\"" + _ + '"')
   }
 }
