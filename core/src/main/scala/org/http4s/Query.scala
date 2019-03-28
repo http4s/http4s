@@ -1,14 +1,13 @@
 package org.http4s
 
+import cats._
+import cats.implicits._
 import org.http4s.Query._
+import org.http4s.internal.CollectionCompat
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, UrlCodingUtils, Writer}
 import scala.collection.immutable
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-import cats._
-import cats.implicits._
 
 /** Collection representation of a query string
   *
@@ -87,23 +86,15 @@ final class Query private (pairs: Vector[KeyValue])
     * If multiple values exist for a key, the first is returned. If
     * none exist, the empty `String` "" is returned.
     */
-  def params: immutable.Map[String, String] = new ParamsView(multiParams)
+  lazy val params: immutable.Map[String, String] =
+    CollectionCompat.mapValues(multiParams)(_.headOption.getOrElse(""))
 
   /** Map[String, Seq[String]] representation of the [[Query]]
     *
     * Params are represented as a `Seq[String]` and may be empty.
     */
-  lazy val multiParams: immutable.Map[String, immutable.Seq[String]] = {
-    if (isEmpty) immutable.Map.empty[String, immutable.Seq[String]]
-    else {
-      val m = mutable.Map.empty[String, ListBuffer[String]]
-      toVector.foreach {
-        case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
-        case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
-      }
-      m.view.mapValues(_.result()).toMap
-    }
-  }
+  lazy val multiParams: immutable.Map[String, immutable.Seq[String]] =
+    CollectionCompat.pairsToMultiParams(toVector)
 
   /////////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
@@ -158,22 +149,5 @@ object Query {
       case (m, (k, Seq())) => m :+ (k -> None)
       case (m, (k, vs)) => vs.toList.foldLeft(m){ case (m, v) => m :+ (k ->  v.some)}
     })
-  }
-
-  ///////////////////////////////////////////////////////////////////////
-  // Wrap the multiParams to get a Map[String, String] view
-  private class ParamsView(wrapped: Map[String, Seq[String]]) extends Map[String, String] {
-    override def +[B1 >: String](kv: (String, B1)): Map[String, B1] = {
-      val m = wrapped + (kv)
-      m.asInstanceOf[Map[String, B1]]
-    }
-
-    override def -(key: String): Map[String, String] = new ParamsView(wrapped - key)
-
-    override def iterator: Iterator[(String, String)] =
-      wrapped.iterator.map { case (k, s) => (k, s.headOption.getOrElse("")) }
-
-    override def get(key: String): Option[String] =
-      wrapped.get(key).flatMap(_.headOption)
   }
 }

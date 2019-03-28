@@ -34,6 +34,15 @@ lazy val core = libraryProject("core")
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided",
       scalaCollectionCompat
     ),
+    unmanagedSourceDirectories in Compile ++= {
+      (unmanagedSourceDirectories in Compile).value.map { dir =>
+        val sv = scalaVersion.value
+        CrossVersion.partialVersion(sv) match {
+          case Some((2, 13)) => file(dir.getPath ++ "-2.13")
+          case _             => file(dir.getPath ++ "-2.11-2.12")
+        }
+      }
+    },
   )
 
 lazy val testing = libraryProject("testing")
