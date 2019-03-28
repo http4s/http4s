@@ -25,7 +25,7 @@ private[http4s] object WebSocketHandshake {
       ("Host", host) :: ("Sec-WebSocket-Key", key) :: clientBaseHeaders
 
     /** Check if the server response is a websocket handshake response */
-    def checkResponse(headers: Traversable[(String, String)]): Either[String, Unit] =
+    def checkResponse(headers: Iterable[(String, String)]): Either[String, Unit] =
       if (!headers.exists {
           case (k, v) => k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
         }) {
@@ -46,7 +46,7 @@ private[http4s] object WebSocketHandshake {
 
   /** Checks the headers received from the client and if they are valid, generates response headers */
   def serverHandshake(
-      headers: Traversable[(String, String)]): Either[(Int, String), Seq[(String, String)]] =
+      headers: Iterable[(String, String)]): Either[(Int, String), Seq[(String, String)]] =
     if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") }) {
       Left((-1, "Missing Host Header"))
     } else if (!headers.exists {
@@ -81,7 +81,7 @@ private[http4s] object WebSocketHandshake {
         .getOrElse(Left((-1, "Bad Sec-WebSocket-Key header")))
 
   /** Check if the headers contain an 'Upgrade: websocket' header */
-  def isWebSocketRequest(headers: Traversable[(String, String)]): Boolean =
+  def isWebSocketRequest(headers: Iterable[(String, String)]): Boolean =
     headers.exists {
       case (k, v) => k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
     }
