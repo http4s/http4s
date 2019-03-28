@@ -4,8 +4,9 @@ import org.http4s.Query._
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, UrlCodingUtils, Writer}
-import scala.collection.mutable.ListBuffer
+import scala.collection.immutable
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import cats._
 import cats.implicits._
 
@@ -86,13 +87,13 @@ final class Query private (pairs: Vector[KeyValue])
     * If multiple values exist for a key, the first is returned. If
     * none exist, the empty `String` "" is returned.
     */
-  def params: Map[String, String] = new ParamsView(multiParams)
+  def params: immutable.Map[String, String] = new ParamsView(multiParams)
 
-  /** Map[String, Seq[String] ] representation of the [[Query]]
+  /** Map[String, Seq[String]] representation of the [[Query]]
     *
     * Params are represented as a `Seq[String]` and may be empty.
     */
-  lazy val multiParams: Map[String, Seq[String]] = {
+  lazy val multiParams: immutable.Map[String, immutable.Seq[String]] = {
     if (isEmpty) Map.empty[String, Seq[String]]
     else {
       val m = mutable.Map.empty[String, ListBuffer[String]]
@@ -100,8 +101,7 @@ final class Query private (pairs: Vector[KeyValue])
         case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
         case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
-
-      m.toMap
+      m.mapValues(_.result()).toMap
     }
   }
 
