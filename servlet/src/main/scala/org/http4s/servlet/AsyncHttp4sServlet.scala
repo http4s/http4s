@@ -17,7 +17,7 @@ class AsyncHttp4sServlet[F[_]](
     private[this] var servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: ConcurrentEffect[F])
     extends Http4sServlet[F](service, servletIo) {
-  private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
+  private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1 // -1 == Inf
 
   private[this] val optionTSync = Sync[OptionT[F, ?]]
 

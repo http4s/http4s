@@ -5,6 +5,7 @@ import cats.data._
 import cats.effect.IO
 import cats.implicits._
 import cats.kernel.laws.discipline.MonoidTests
+import org.http4s.internal.CollectionCompat
 
 class UrlFormSpec extends Http4sSpec {
 //  // TODO: arbitrary charsets would be nice
@@ -104,7 +105,7 @@ class UrlFormSpec extends Http4sSpec {
           (k, vs) <- map.toSeq
           v <- vs.toList
         } yield k -> v
-        UrlForm(flattened: _*) === UrlForm(map.mapValues(nel => Chain.fromSeq(nel.toList)))
+        UrlForm(flattened: _*) === UrlForm(CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
     }
 
     "construct consistently from Chain of kv-pairs and Map[String, Chain[String]]" in prop {
@@ -113,7 +114,7 @@ class UrlFormSpec extends Http4sSpec {
           (k, vs) <- Chain.fromSeq(map.toSeq)
           v <- Chain.fromSeq(vs.toList)
         } yield k -> v
-        UrlForm.fromChain(flattened) === UrlForm(map.mapValues(nel => Chain.fromSeq(nel.toList)))
+        UrlForm.fromChain(flattened) === UrlForm(CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
     }
   }
 

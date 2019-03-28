@@ -12,9 +12,9 @@ import org.specs2.matcher.MatchResult
 
 class ChunkAggregatorSpec extends Http4sSpec {
 
-  val transferCodingGen: Gen[Seq[TransferCoding]] =
+  val transferCodingGen: Gen[collection.Seq[TransferCoding]] =
     Gen.someOf(
-      Seq(
+      collection.Seq(
         TransferCoding.compress,
         TransferCoding.deflate,
         TransferCoding.gzip,
@@ -58,7 +58,7 @@ class ChunkAggregatorSpec extends Http4sSpec {
 
     "handle a none" in {
       val routes: HttpRoutes[IO] = HttpRoutes.empty
-      ChunkAggregator.httpRoutes(routes).run(Request()).value must returnValue(None)
+      ChunkAggregator.httpRoutes(routes).run(Request()).value must returnValue(Option.empty[Response[IO]])
     }
 
     "handle chunks" in {

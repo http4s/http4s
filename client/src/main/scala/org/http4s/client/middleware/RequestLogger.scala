@@ -7,7 +7,7 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
-import org.log4s._
+import org.log4s.getLogger
 
 /**
   * Simple Middleware for Logging Requests As They Are Processed

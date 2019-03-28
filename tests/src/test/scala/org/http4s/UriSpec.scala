@@ -422,12 +422,12 @@ http://example.org/a file
 
   "Uri.params.iterate" should {
     "work on an URI without a query" in {
-      foreach(Uri(query = Query.empty).params.iterator) { i =>
+      foreach(Uri(query = Query.empty).params.toSeq) { i =>
         ko(s"should not have $i") // should not happen
       }
     }
     "work on empty list" in {
-      foreach(Uri(query = Query.fromString("")).params.iterator) {
+      foreach(Uri(query = Query.fromString("")).params.toSeq) {
         case (k, v) =>
           k must_== ""
           v must_== ""

@@ -67,6 +67,16 @@ object Http4sPlugin extends AutoPlugin {
     // one for now.
     scalacOptions -= "-Xcheckinit",
 
+    // Getting some spurious unreachable code warnings in 2.13.0-M5
+    scalacOptions -= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 13)) =>
+          "-Xfatal-warnings"
+        case _ =>
+          "I DON'T EXIST I'M WORKING AROUND NOT BEING ABLE TO CALL scalaVersion.value FROM ~="
+      }
+    },
+
     // https://github.com/tkawachi/sbt-doctest/issues/102
     Test / compile / scalacOptions -= "-Ywarn-unused:params",
 
@@ -334,7 +344,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaCollectionCompat            = "org.scala-lang.modules" %% "scala-collection-compat"   % "0.3.0"
   def scalaCompiler(so: String, sv: String) = so             %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so             %  "scala-reflect"             % sv
-  lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
+  lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.8"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.1"
   def specs2Core(sv: String)                = "org.specs2"             %% "specs2-core"               % specs2Version(sv)
   def specs2Matcher(sv: String)             = "org.specs2"             %% "specs2-matcher"            % specs2Version(sv)

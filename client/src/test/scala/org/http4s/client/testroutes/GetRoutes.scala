@@ -5,6 +5,7 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 import org.http4s.Status._
+import org.http4s.internal.CollectionCompat
 import scala.concurrent.duration._
 
 object GetRoutes {
@@ -17,7 +18,7 @@ object GetRoutes {
   val InternalServerErrorPath = "/internal-server-error"
 
   def getPaths(implicit timer: Timer[IO]): Map[String, Response[IO]] =
-    Map(
+    CollectionCompat.mapValues(Map(
       SimplePath -> Response[IO](Ok).withEntity("simple path").pure[IO],
       ChunkedPath -> Response[IO](Ok)
         .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
@@ -29,5 +30,5 @@ object GetRoutes {
       NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
       EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],
       InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO]
-    ).mapValues(_.unsafeRunSync())
+    ))(_.unsafeRunSync())
 }

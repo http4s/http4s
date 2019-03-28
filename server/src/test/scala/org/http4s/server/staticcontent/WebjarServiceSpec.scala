@@ -32,27 +32,27 @@ object WebjarServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Not find missing file" in {
       val req = Request[IO](uri = uri("/test-lib/1.0.0/doesnotexist.txt"))
-      routes.apply(req).value must returnValue(None)
+      routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
 
     "Not find missing library" in {
       val req = Request[IO](uri = uri("/1.0.0/doesnotexist.txt"))
-      routes.apply(req).value must returnValue(None)
+      routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
 
     "Not find missing version" in {
       val req = Request[IO](uri = uri("/test-lib//doesnotexist.txt"))
-      routes.apply(req).value must returnValue(None)
+      routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
 
     "Not find missing asset" in {
       val req = Request[IO](uri = uri("/test-lib/1.0.0/"))
-      routes.apply(req).value must returnValue(None)
+      routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
 
     "Not match a request with POST" in {
       val req = Request[IO](POST, Uri(path = "/test-lib/1.0.0/testresource.txt"))
-      routes.apply(req).value must returnValue(None)
+      routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
   }
 }

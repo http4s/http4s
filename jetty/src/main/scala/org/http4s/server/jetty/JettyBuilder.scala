@@ -203,7 +203,7 @@ sealed class JettyBuilder[F[_]] private (
 
       connector.setHost(socketAddress.getHostString)
       connector.setPort(socketAddress.getPort)
-      connector.setIdleTimeout(if (idleTimeout.isFinite()) idleTimeout.toMillis else -1)
+      connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
       jetty.addConnector(connector)
 
       // Jetty graceful shutdown does not work without a stats handler

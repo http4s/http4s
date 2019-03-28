@@ -18,6 +18,15 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
 
   val app = HttpRoutes
     .of[IO] {
+      case GET -> Root / "loop" / i =>
+        val iteration = i.toInt
+        if (iteration < 3) {
+          val uri = Uri.unsafeFromString(s"/loop/${iteration + 1}")
+          MovedPermanently(Location(uri)).map(_.withEntity(iteration.toString))
+        } else {
+          Ok(iteration.toString)
+        }
+
       case req @ _ -> Root / "ok" =>
         Ok(
           req.body,
@@ -27,15 +36,6 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
             req.headers.get(`Content-Length`).fold(0L)(_.length).toString),
           Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
         )
-
-      case GET -> Root / "loop" / i =>
-        val iteration = i.toInt
-        if (iteration < 3) {
-          val uri = Uri.unsafeFromString(s"/loop/${iteration + 1}")
-          MovedPermanently(Location(uri)).map(_.withEntity(iteration.toString))
-        } else {
-          Ok(iteration.toString)
-        }
 
       case _ -> Root / "different-authority" =>
         TemporaryRedirect(Location(uri("http://www.example.com/ok")))
@@ -203,7 +203,7 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
     "Not add any URIs when there are no redirects" in {
       client.fetch(Request[IO](uri = uri("http://localhost/loop/100"))) {
         case Ok(resp) => IO.pure(FollowRedirect.getRedirectUris(resp))
-      } must returnValue(Nil)
+      } must returnValue(List.empty[Uri])
     }
   }
 }

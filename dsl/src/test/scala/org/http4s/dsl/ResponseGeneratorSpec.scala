@@ -18,7 +18,6 @@ class ResponseGeneratorSpec extends Http4sSpec {
 
     resultheaders.get(`Content-Length`) must_=== `Content-Length`
       .fromLong(body.getBytes.length.toLong)
-      .right
       .toOption
   }
 
@@ -30,7 +29,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
       )
 
     Ok("foo")(Monad[IO], w).map(_.headers.get(Accept)) must returnValue(
-      beSome(Accept(MediaRange.`audio/*`)))
+      Some(Accept(MediaRange.`audio/*`)))
   }
 
   "Explicitly added headers have priority" in {
@@ -50,7 +49,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
      * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
      */
     val resp = NoContent()
-    resp.map(_.contentLength) must returnValue(None)
+    resp.map(_.contentLength) must returnValue(Option.empty[Long])
   }
 
   "ResetContent() generates Content-Length: 0" in {
@@ -81,7 +80,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
      * nothing.
      */
     val resp = NotModified()
-    resp.map(_.contentLength) must returnValue(None)
+    resp.map(_.contentLength) must returnValue(Option.empty[Long])
   }
 
   "EntityResponseGenerator() generates Content-Length: 0" in {
