@@ -220,6 +220,8 @@ lazy val boopickle = libraryProject("boopickle")
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle
     ),
+    // Not published for 2.13.0-M5
+    crossScalaVersions := List("2.11.12", "2.12.8")
   )
   .dependsOn(core, testing % "test->test")
 
