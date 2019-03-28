@@ -31,8 +31,6 @@ lazy val core = libraryProject("core")
       parboiled,
       vault,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided",
-      scalaCollectionCompat
     ),
     unmanagedSourceDirectories in Compile ++= {
       (unmanagedSourceDirectories in Compile).value.map { dir =>
