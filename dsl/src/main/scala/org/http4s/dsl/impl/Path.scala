@@ -236,8 +236,8 @@ object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
   * }}}
   */
 object +& {
-  def unapply(params: Map[String, Seq[String]])
-    : Some[(Map[String, Seq[String]], Map[String, Seq[String]])] =
+  def unapply(params: Map[String, collection.Seq[String]])
+    : Some[(Map[String, collection.Seq[String]], Map[String, collection.Seq[String]])] =
     Some((params, params))
 }
 
@@ -253,13 +253,13 @@ object +& {
   * }}}
   */
 abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[T]] =
+  def unapplySeq(params: Map[String, collection.Seq[String]]): Option[collection.Seq[T]] =
     params
       .get(name)
       .flatMap(values =>
         values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption))
 
-  def unapply(params: Map[String, Seq[String]]): Option[T] =
+  def unapply(params: Map[String, collection.Seq[String]]): Option[T] =
     params
       .get(name)
       .flatMap(_.headOption)
@@ -283,7 +283,7 @@ abstract class QueryParamMatcher[T: QueryParamDecoder: QueryParam]
     extends QueryParamDecoderMatcher[T](QueryParam[T].key.value)
 
 abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[Option[T]] =
+  def unapply(params: Map[String, collection.Seq[String]]): Option[Option[T]] =
     params
       .get(name)
       .flatMap(_.headOption)
@@ -295,7 +295,7 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
   * Flag (value-less) query param extractor
   */
 abstract class FlagQueryParamMatcher(name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[Boolean] =
+  def unapply(params: Map[String, collection.Seq[String]]): Option[Boolean] =
     Some(params.contains(name))
 }
 
@@ -382,7 +382,8 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   * }}}
   */
 abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Some[Option[ValidatedNel[ParseFailure, T]]] =
+  def unapply(
+      params: Map[String, collection.Seq[String]]): Some[Option[ValidatedNel[ParseFailure, T]]] =
     Some {
       params.get(name).flatMap(_.headOption).fold[Option[ValidatedNel[ParseFailure, T]]](None) {
         s =>

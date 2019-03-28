@@ -9,6 +9,7 @@ import javax.crypto
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
+import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
 /** Basic OAuth1 message signing support
@@ -41,7 +42,7 @@ package object oauth1 {
   private[oauth1] def genAuthHeader(
       method: Method,
       uri: Uri,
-      userParams: Seq[(String, String)],
+      userParams: immutable.Seq[(String, String)],
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
@@ -90,13 +91,15 @@ package object oauth1 {
   private[oauth1] def genBaseString(
       method: Method,
       uri: Uri,
-      params: Seq[(String, String)]): String = {
+      params: immutable.Seq[(String, String)]): String = {
     val paramsStr = params.map { case (k, v) => k + "=" + v }.sorted.mkString("&")
 
-    Seq(
-      method.name,
-      encode(uri.copy(query = Query.empty, fragment = None).renderString),
-      encode(paramsStr)).mkString("&")
+    immutable
+      .Seq(
+        method.name,
+        encode(uri.copy(query = Query.empty, fragment = None).renderString),
+        encode(paramsStr))
+      .mkString("&")
   }
 
   private[oauth1] def encode(str: String): String =
@@ -104,7 +107,7 @@ package object oauth1 {
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(
       implicit F: Monad[F],
-      W: EntityDecoder[F, UrlForm]): F[(Request[F], Seq[(String, String)])] = {
+      W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
     val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {

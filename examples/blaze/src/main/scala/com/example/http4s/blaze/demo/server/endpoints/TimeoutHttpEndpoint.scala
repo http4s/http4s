@@ -3,7 +3,7 @@ package com.example.http4s.blaze.demo.server.endpoints
 import cats.effect.{Async, Timer}
 import cats.implicits._
 import java.util.concurrent.TimeUnit
-import org.http4s._
+import org.http4s.{ApiVersion => _, _}
 import org.http4s.dsl.Http4sDsl
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Random

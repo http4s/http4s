@@ -8,6 +8,7 @@ ThisBuild / organization := "org.http4s"
 name := "http4s"
 description := "A minimal, Scala-idiomatic library for HTTP"
 enablePlugins(PrivateProjectPlugin)
+crossScalaVersions := Nil
 
 Global / cancelable := true
 
@@ -302,7 +303,9 @@ lazy val mimedbGenerator = http4sProject("mimedb-generator")
     libraryDependencies ++= Seq(
       Http4sPlugin.treeHugger,
       Http4sPlugin.circeGeneric
-    )
+    ),
+    // Not published for 2.13.0-M5
+    crossScalaVersions := List("2.11.12", "2.12.8")
   )
   .dependsOn(blazeClient, circe)
 
@@ -324,6 +327,7 @@ lazy val docs = http4sProject("docs")
     TutPlugin
   )
   .settings(
+    crossScalaVersions := List("2.12.8"),
     libraryDependencies ++= Seq(
       circeGeneric,
       circeLiteral,

@@ -8,7 +8,7 @@ abstract private[parser] class ChallengeParser[H <: Header](input: ParserInput)
 
   def ChallengeRule: Rule1[Challenge] = rule {
     Token ~ oneOrMore(LWS) ~ zeroOrMore(AuthParam).separatedBy(ListSep) ~> {
-      (scheme: String, params: Seq[(String, String)]) =>
+      (scheme: String, params: collection.Seq[(String, String)]) =>
         val (realms, otherParams) = params.partition(_._1 == "realm")
         Challenge(scheme, realms.headOption.map(_._2).getOrElse(""), otherParams.toMap)
     }

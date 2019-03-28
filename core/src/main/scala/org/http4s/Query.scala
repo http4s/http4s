@@ -93,14 +93,14 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
     * If multiple values exist for a key, the first is returned. If
     * none exist, the empty `String` "" is returned.
     */
-  lazy val params: immutable.Map[String, String] =
+  lazy val params: Map[String, String] =
     CollectionCompat.mapValues(multiParams)(_.headOption.getOrElse(""))
 
   /** Map[String, Seq[String]] representation of the [[Query]]
     *
     * Params are represented as a `Seq[String]` and may be empty.
     */
-  lazy val multiParams: immutable.Map[String, immutable.Seq[String]] =
+  lazy val multiParams: Map[String, immutable.Seq[String]] =
     CollectionCompat.pairsToMultiParams(toVector)
 
   override def equals(that: Any): Boolean =
@@ -159,7 +159,7 @@ object Query {
       }
 
   /** Build a [[Query]] from the `Map` structure */
-  def fromMap(map: Map[String, Seq[String]]): Query =
+  def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
     new Query(map.foldLeft(Vector.empty[KeyValue]) {
       case (m, (k, Seq())) => m :+ (k -> None)
       case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> v.some) }

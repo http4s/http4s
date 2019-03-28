@@ -45,8 +45,8 @@ private[http4s] object WebSocketHandshake {
   }
 
   /** Checks the headers received from the client and if they are valid, generates response headers */
-  def serverHandshake(
-      headers: Iterable[(String, String)]): Either[(Int, String), Seq[(String, String)]] =
+  def serverHandshake(headers: Iterable[(String, String)])
+    : Either[(Int, String), collection.Seq[(String, String)]] =
     if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") }) {
       Left((-1, "Missing Host Header"))
     } else if (!headers.exists {
@@ -70,7 +70,7 @@ private[http4s] object WebSocketHandshake {
         }
         .map {
           case (_, v) =>
-            val respHeaders = Seq(
+            val respHeaders = collection.Seq(
               ("Upgrade", "websocket"),
               ("Connection", "Upgrade"),
               ("Sec-WebSocket-Accept", genAcceptKey(v))

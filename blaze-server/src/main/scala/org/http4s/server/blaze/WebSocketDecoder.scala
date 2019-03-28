@@ -19,7 +19,7 @@ private class WebSocketDecoder
     * @return sequence of ByteBuffers to pass to the head
     */
   @throws[TranscodeError]
-  def messageToBuffer(in: WebSocketFrame): Seq[ByteBuffer] = frameToBuffer(in)
+  def messageToBuffer(in: WebSocketFrame): collection.Seq[ByteBuffer] = frameToBuffer(in)
 
   /** Method that decodes ByteBuffers to objects. None reflects not enough data to decode a message
     * Any unused data in the ByteBuffer will be recycled and available for the next read

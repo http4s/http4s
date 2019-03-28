@@ -38,8 +38,8 @@ private[parser] trait AcceptLanguageHeader {
 
     def languageTag: Rule1[LanguageTag] = rule {
       capture(oneOrMore(Alpha)) ~ zeroOrMore("-" ~ Token) ~ QualityValue ~> {
-        (main: String, sub: Seq[String], q: QValue) =>
-          LanguageTag(main, q, sub)
+        (main: String, sub: collection.Seq[String], q: QValue) =>
+          LanguageTag(main, q, sub.toList)
       }
     }
 

@@ -121,7 +121,7 @@ object UriTemplate {
     }
     path.foreach {
       case p @ PathElm(_) => acc.append(p)
-      case p @ VarExp(Seq(n)) =>
+      case p @ VarExp(collection.Seq(n)) =>
         if (n == name) appendValues()
         else acc.append(p)
       case p @ VarExp(ns) =>
@@ -129,7 +129,7 @@ object UriTemplate {
           appendValues()
           acc.append(VarExp(ns.filterNot(_ == name)))
         } else acc.append(p)
-      case p @ ReservedExp(Seq(n)) =>
+      case p @ ReservedExp(collection.Seq(n)) =>
         if (n == name) appendValues()
         else acc.append(p)
       case p @ ReservedExp(ns) =>
@@ -137,7 +137,7 @@ object UriTemplate {
           appendValues()
           acc.append(VarExp(ns.filterNot(_ == name)))
         } else acc.append(p)
-      case p @ PathExp(Seq(n)) =>
+      case p @ PathExp(collection.Seq(n)) =>
         if (n == name) appendValues()
         else acc.append(p)
       case p @ PathExp(ns) =>
@@ -169,7 +169,7 @@ object UriTemplate {
           acc.append(ParamElm(r, values))
           acc.append(ParamReservedExp(r, ns.filterNot(_ == name)))
         } else acc.append(p)
-      case p @ ParamExp(Seq(n)) =>
+      case p @ ParamExp(collection.Seq(n)) =>
         if (n == name) acc.append(ParamElm(name, values))
         else acc.append(p)
       case p @ ParamExp(ns) =>
@@ -177,7 +177,7 @@ object UriTemplate {
           acc.append(ParamElm(name, values))
           acc.append(ParamExp(ns.filterNot(_ == name)))
         } else acc.append(p)
-      case p @ ParamContExp(Seq(n)) =>
+      case p @ ParamContExp(collection.Seq(n)) =>
         if (n == name) acc.append(ParamElm(name, values))
         else acc.append(p)
       case p @ ParamContExp(ns) =>
@@ -195,7 +195,7 @@ object UriTemplate {
       case p @ FragmentElm(_) => acc.append(p)
       case p @ SimpleFragmentExp(n) =>
         if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
-      case p @ MultiFragmentExp(Seq(n)) =>
+      case p @ MultiFragmentExp(collection.Seq(n)) =>
         if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
       case p @ MultiFragmentExp(ns) =>
         if (ns.contains(name)) {

@@ -31,7 +31,7 @@ private[parser] trait ContentTypeHeader {
       with MediaRange.MediaRangeParser {
     def entry: org.http4s.internal.parboiled2.Rule1[`Content-Type`] = rule {
       (MediaRangeDef ~ optional(zeroOrMore(MediaTypeExtension)) ~ EOL) ~> {
-        (range: MediaRange, exts: Option[Seq[(String, String)]]) =>
+        (range: MediaRange, exts: Option[collection.Seq[(String, String)]]) =>
           val mediaType = range match {
             case m: MediaType => m
             case _ =>

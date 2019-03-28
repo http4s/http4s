@@ -9,6 +9,7 @@ import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
+import scala.collection.immutable
 import scala.math.Ordered
 import scala.reflect.macros.whitebox
 
@@ -71,7 +72,7 @@ final case class Uri(
     * The query string is lazily parsed. If an error occurs during parsing
     * an empty `Map` is returned.
     */
-  def multiParams: Map[String, Seq[String]] = query.multiParams
+  def multiParams: Map[String, immutable.Seq[String]] = query.multiParams
 
   /**
     * View of the head elements of the URI parameters in query string.

@@ -126,7 +126,7 @@ object MediaRange {
   private[http4s] trait MediaRangeParser extends MediaParser { self: PbParser =>
     def MediaRangeFull: Rule1[MediaRange] = rule {
       MediaRangeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-        (mr: MediaRange, ext: Option[Seq[(String, String)]]) =>
+        (mr: MediaRange, ext: Option[collection.Seq[(String, String)]]) =>
           ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
       }
     }
@@ -173,7 +173,7 @@ sealed class MediaType(
     val subType: String,
     val compressible: Boolean = false,
     val binary: Boolean = false,
-    val fileExtensions: Seq[String] = Nil,
+    val fileExtensions: List[String] = Nil,
     extensions: Map[String, String] = Map.empty)
     extends MediaRange(mainType, extensions) {
 
@@ -249,7 +249,7 @@ object MediaType extends MimeDB {
   private[http4s] trait MediaTypeParser extends MediaParser {
     def MediaTypeFull: Rule1[MediaType] = rule {
       MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-        (mr: MediaType, ext: Option[Seq[(String, String)]]) =>
+        (mr: MediaType, ext: Option[collection.Seq[(String, String)]]) =>
           ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
       }
     }

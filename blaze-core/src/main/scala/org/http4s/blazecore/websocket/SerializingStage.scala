@@ -12,5 +12,5 @@ private abstract class PassThrough[I] extends MidStage[I, I] {
 
   def writeRequest(data: I): Future[Unit] = channelWrite(data)
 
-  override def writeRequest(data: Seq[I]): Future[Unit] = channelWrite(data)
+  override def writeRequest(data: collection.Seq[I]): Future[Unit] = channelWrite(data)
 }

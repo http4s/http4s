@@ -14,12 +14,12 @@ class OAuthTest extends Specification {
   val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")
   val token = oauth1.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")
 
-  val userParams = Seq(
+  val userParams = List(
     "file" -> "vacation.jpg",
     "size" -> "original"
   )
 
-  val allParams = Seq(
+  val allParams = List(
     "oauth_consumer_key" -> "dpf43f3p2l4k3l03",
     "oauth_token" -> "nnch734d00sl2jdk",
     "oauth_signature_method" -> "HMAC-SHA1",
@@ -28,7 +28,7 @@ class OAuthTest extends Specification {
     "oauth_version" -> "1.0"
   ) ++ userParams
 
-  val params2 = Seq(
+  val params2 = List(
     "b5" -> Some("=%3D"),
     "a3" -> Some("a"),
     "c@" -> None,

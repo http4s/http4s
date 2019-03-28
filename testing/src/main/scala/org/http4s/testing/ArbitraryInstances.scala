@@ -559,7 +559,7 @@ trait ArbitraryInstances {
 
   // https://tools.ietf.org/html/rfc2234#section-6
   val genHexDigit: Gen[Char] = oneOf(
-    Seq('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
+    List('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
 
   private implicit def http4sTestingSemigroupForGen[T: Semigroup]: Semigroup[Gen[T]] =
     new Semigroup[Gen[T]] {
@@ -639,7 +639,7 @@ trait ArbitraryInstances {
     _.toString)
   val genUnreserved: Gen[Char] =
     oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
-  val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
+  val genSubDelims: Gen[Char] = oneOf(List('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
 
   implicit val http4sTestingArbitraryForScheme: Arbitrary[Uri.Scheme] = Arbitrary {
     frequency(

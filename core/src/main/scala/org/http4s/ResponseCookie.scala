@@ -19,7 +19,6 @@
 package org.http4s
 
 import org.http4s.util.{Renderable, Writer}
-import scala.collection.immutable
 
 object RequestCookieJar {
   def empty: RequestCookieJar = new RequestCookieJar(Nil)
@@ -27,7 +26,7 @@ object RequestCookieJar {
   def apply(cookies: RequestCookie*): RequestCookieJar = new RequestCookieJar(cookies.toList)
 }
 
-class RequestCookieJar private (val cookies: immutable.Seq[RequestCookie]) extends AnyVal {
+class RequestCookieJar private (val cookies: List[RequestCookie]) extends AnyVal {
   def iterator: Iterator[RequestCookie] = cookies.iterator
   def empty: RequestCookieJar = RequestCookieJar.empty
 

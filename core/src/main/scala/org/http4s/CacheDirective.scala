@@ -48,7 +48,7 @@ object CacheDirective {
 
   case object `must-revalidate` extends CacheDirective
 
-  final case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Seq.empty)
+  final case class `no-cache`(fieldNames: List[CaseInsensitiveString] = Nil)
       extends CacheDirective {
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
@@ -60,7 +60,7 @@ object CacheDirective {
 
   case object `only-if-cached` extends CacheDirective
 
-  final case class `private`(fieldNames: Seq[CaseInsensitiveString] = Nil) extends CacheDirective {
+  final case class `private`(fieldNames: List[CaseInsensitiveString] = Nil) extends CacheDirective {
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
