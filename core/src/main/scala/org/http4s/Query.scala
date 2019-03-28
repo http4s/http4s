@@ -103,6 +103,14 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
   lazy val multiParams: immutable.Map[String, immutable.Seq[String]] =
     CollectionCompat.pairsToMultiParams(toVector)
 
+  override def equals(that: Any): Boolean =
+    that match {
+      case that: Query => that.toVector == toVector
+      case _ => false
+    }
+
+  override def hashCode: Int = 31 + toVector.##
+
   /////////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
   override protected val query: Query = this
