@@ -9,7 +9,6 @@ import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
-import scala.language.experimental.macros
 import scala.math.Ordered
 import scala.reflect.macros.whitebox
 
