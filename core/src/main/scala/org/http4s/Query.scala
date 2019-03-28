@@ -17,9 +17,7 @@ import scala.collection.immutable
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private (pairs: Vector[KeyValue])
-    extends QueryOps
-    with Renderable {
+final class Query private (pairs: Vector[KeyValue]) extends QueryOps with Renderable {
   // override def apply(idx: Int): KeyValue = pairs(idx)
 
   def length: Int = pairs.length
@@ -124,13 +122,12 @@ object Query {
   def fromVector(xs: Vector[(String, Option[String])]): Query =
     new Query(xs)
 
-  def fromPairs(xs: (String, String)*): Query = {
+  def fromPairs(xs: (String, String)*): Query =
     new Query(
-      xs.toList.foldLeft(Vector.empty[KeyValue]){
+      xs.toList.foldLeft(Vector.empty[KeyValue]) {
         case (m, (k, s)) => m :+ (k -> s.some)
       }
     )
-  }
 
   /** Generate a [[Query]] from its `String` representation
     *
@@ -138,16 +135,16 @@ object Query {
     */
   def fromString(query: String): Query =
     if (query.isEmpty) new Query(Vector("" -> None))
-    else QueryParser.parseQueryString(query) match {
-      case Right(query) => query
-      case Left(_) => Query.empty
-    }
+    else
+      QueryParser.parseQueryString(query) match {
+        case Right(query) => query
+        case Left(_) => Query.empty
+      }
 
   /** Build a [[Query]] from the `Map` structure */
-  def fromMap(map: Map[String, Seq[String]]): Query = {
+  def fromMap(map: Map[String, Seq[String]]): Query =
     new Query(map.foldLeft(Vector.empty[KeyValue]) {
       case (m, (k, Seq())) => m :+ (k -> None)
-      case (m, (k, vs)) => vs.toList.foldLeft(m){ case (m, v) => m :+ (k ->  v.some)}
+      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> v.some) }
     })
-  }
 }

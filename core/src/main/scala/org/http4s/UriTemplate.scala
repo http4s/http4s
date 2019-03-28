@@ -295,8 +295,8 @@ object UriTemplate {
     val vec = q.foldLeft(Vector.empty[(String, Option[String])]) {
       case (elements, ParamElm(n, Nil)) => elements :+ (n -> None)
       case (elements, ParamElm(n, List(v))) => elements :+ (n -> Some(v))
-      case (elements, ParamElm(n, vs)) => 
-        vs.toList.foldLeft(elements){ case (elements, v) => elements :+ (n -> Some(v))}
+      case (elements, ParamElm(n, vs)) =>
+        vs.toList.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
       case u =>
         throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
