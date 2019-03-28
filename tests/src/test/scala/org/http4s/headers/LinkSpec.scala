@@ -9,7 +9,7 @@ class LinkSpec extends HeaderLaws {
 
   "parse" should {
     "accept format RFC 5988" in {
-      val parsedLink = Link.parse(link).right
+      val parsedLink = Link.parse(link)
       parsedLink.map(_.uri) must beRight(Uri.uri("/feed"))
       parsedLink.map(_.rel) must beRight(Option("alternate"))
       parsedLink.map(_.title) must beRight(Option("main"))

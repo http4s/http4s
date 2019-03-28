@@ -82,8 +82,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def isExpired(t: Instant): Boolean = {
     val elapsed = Instant.now().toEpochMilli - t.toEpochMilli
-    (requestTimeout.isFinite && elapsed >= requestTimeout.toMillis) || (responseHeaderTimeout
-      .isFinite && elapsed >= responseHeaderTimeout.toMillis)
+    (requestTimeout.isFinite && elapsed >= requestTimeout.toMillis) || (responseHeaderTimeout.isFinite && elapsed >= responseHeaderTimeout.toMillis)
   }
 
   /**

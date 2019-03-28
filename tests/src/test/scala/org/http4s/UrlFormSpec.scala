@@ -105,7 +105,8 @@ class UrlFormSpec extends Http4sSpec {
           (k, vs) <- map.toSeq
           v <- vs.toList
         } yield k -> v
-        UrlForm(flattened: _*) === UrlForm(CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+        UrlForm(flattened: _*) === UrlForm(
+          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
     }
 
     "construct consistently from Chain of kv-pairs and Map[String, Chain[String]]" in prop {
@@ -114,7 +115,8 @@ class UrlFormSpec extends Http4sSpec {
           (k, vs) <- Chain.fromSeq(map.toSeq)
           v <- Chain.fromSeq(vs.toList)
         } yield k -> v
-        UrlForm.fromChain(flattened) === UrlForm(CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+        UrlForm.fromChain(flattened) === UrlForm(
+          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
     }
   }
 

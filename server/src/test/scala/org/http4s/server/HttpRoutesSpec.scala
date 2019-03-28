@@ -46,7 +46,8 @@ class HttpRoutesSpec extends Http4sSpec {
     }
 
     "Properly fall through two aggregated service if no path matches" in {
-      aggregate1.apply(Request[IO](uri = uri("/wontMatch"))).value must returnValue(Option.empty[Response[IO]])
+      aggregate1.apply(Request[IO](uri = uri("/wontMatch"))).value must returnValue(
+        Option.empty[Response[IO]])
     }
   }
 }

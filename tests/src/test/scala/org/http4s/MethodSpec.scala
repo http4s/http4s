@@ -10,7 +10,7 @@ class MethodSpec extends Http4sSpec {
 
   "parses own string rendering to equal value" in {
     forAll(genToken) { token =>
-      fromString(token).right.map(_.renderString) must beRight(token)
+      fromString(token).map(_.renderString) must beRight(token)
     }
   }
 

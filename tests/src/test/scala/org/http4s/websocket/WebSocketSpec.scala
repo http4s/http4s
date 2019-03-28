@@ -79,7 +79,7 @@ class WebSocketSpec extends Specification with ScalaCheck {
       } yield chars.mkString
 
       forAll(choose(1000, 4999), reasonGen) { (validCloseCode: Int, validReason: String) =>
-        val frame = Close(validCloseCode, validReason).right.get
+        val frame = Close(validCloseCode, validReason).valueOr(throw _)
         val msg = decode(encode(frame, true), false)
         msg should_== frame
         msg.last should_== true

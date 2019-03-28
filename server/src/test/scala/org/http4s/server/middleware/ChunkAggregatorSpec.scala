@@ -58,7 +58,8 @@ class ChunkAggregatorSpec extends Http4sSpec {
 
     "handle a none" in {
       val routes: HttpRoutes[IO] = HttpRoutes.empty
-      ChunkAggregator.httpRoutes(routes).run(Request()).value must returnValue(Option.empty[Response[IO]])
+      ChunkAggregator.httpRoutes(routes).run(Request()).value must returnValue(
+        Option.empty[Response[IO]])
     }
 
     "handle chunks" in {

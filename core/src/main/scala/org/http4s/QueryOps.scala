@@ -40,18 +40,8 @@ trait QueryOps {
     _withQueryParam(QueryParamKeyLike[K].getKey(name), Nil)
 
   /** alias for withQueryParam */
-  def +?[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, values: List[T]): Self =
+  def +?[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, values: collection.Seq[T]): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(name), values.map(QueryParamEncoder[T].encode))
-
-  /*
-  /** alias for withMaybeQueryParam */
-  def +??[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, value: Maybe[T]): Self =
-    _withMaybeQueryParam(QueryParamKeyLike[K].getKey(name), value map QueryParamEncoder[T].encode)
-
-  /** alias for withMaybeQueryParam */
-  def +??[T: QueryParam : QueryParamEncoder](value: Maybe[T]): Self =
-    _withMaybeQueryParam(QueryParam[T].key, value map QueryParamEncoder[T].encode)
-   */
 
   /** alias for withOptionQueryParam */
   def +??[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, value: Option[T]): Self =
@@ -102,7 +92,8 @@ trait QueryOps {
     * Creates maybe a new `Self` with the specified parameters. The entire
     * [[Query]] will be replaced with the given one.
     */
-  def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](params: Map[K, collection.Seq[T]]): Self = {
+  def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](
+      params: Map[K, collection.Seq[T]]): Self = {
     val penc = QueryParamKeyLike[K]
     val venc = QueryParamEncoder[T]
     val vec = params.foldLeft(query.toVector) {
@@ -143,10 +134,14 @@ trait QueryOps {
     * If a parameter with the given `key` already exists the values will be
     * replaced.
     */
-  def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, values: List[T]): Self =
+  def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](
+      key: K,
+      values: collection.Seq[T]): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(key), values.map(QueryParamEncoder[T].encode))
 
-  private def _withQueryParam(name: QueryParameterKey, values: List[QueryParameterValue]): Self = {
+  private def _withQueryParam(
+      name: QueryParameterKey,
+      values: collection.Seq[QueryParameterValue]): Self = {
     val baseQuery = query.toVector.filter(_._1 != name.value)
     val vec =
       if (values.isEmpty) baseQuery :+ (name.value -> None)
