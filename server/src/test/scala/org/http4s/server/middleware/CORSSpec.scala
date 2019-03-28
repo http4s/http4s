@@ -39,8 +39,8 @@ class CORSSpec extends Http4sSpec {
   "CORS" should {
     "Be omitted when unrequested" in {
       val req = buildRequest("foo")
-      cors1.orNotFound(req).map(_.headers) must returnValue(contain(headerCheck _).not)
-      cors2.orNotFound(req).map(_.headers) must returnValue(contain(headerCheck _).not)
+      cors1.orNotFound(req).map(_.headers.toList) must returnValue(contain(headerCheck _).not)
+      cors2.orNotFound(req).map(_.headers.toList) must returnValue(contain(headerCheck _).not)
     }
 
     "Respect Access-Control-Allow-Credentials" in {
@@ -125,8 +125,8 @@ class CORSSpec extends Http4sSpec {
 
     "Always respond with 200 and empty body for OPTIONS request" in {
       val req = buildRequest("/bar", OPTIONS)
-      cors1.orNotFound(req).map(_.headers must contain(headerCheck _)).unsafeRunSync()
-      cors2.orNotFound(req).map(_.headers must contain(headerCheck _)).unsafeRunSync()
+      cors1.orNotFound(req).map(_.headers.toList must contain(headerCheck _)).unsafeRunSync()
+      cors2.orNotFound(req).map(_.headers.toList must contain(headerCheck _)).unsafeRunSync()
     }
 
     "Respond with 403 when origin is not valid" in {

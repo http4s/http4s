@@ -21,7 +21,7 @@ trait ResponseGenerator extends Any {
   */
 trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response(status, headers = Headers(headers: _*)))
+    F.pure(Response(status, headers = Headers(headers.toList)))
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
@@ -36,7 +36,7 @@ trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   */
 trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response[G](status, headers = Headers(`Content-Length`.zero +: headers: _*)))
+    F.pure(Response[G](status, headers = Headers(`Content-Length`.zero :: headers.toList)))
 
   def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] = {
     val entity = Entity(fs2.Stream.eval(body).flatMap(w.toEntity(_).body))
@@ -55,7 +55,7 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply[A](body: A, headers: Header*)(
       implicit F: Monad[F],
       w: EntityEncoder[G, A]): F[Response[G]] = {
-    val h = w.headers ++ headers
+    val h = w.headers ++ Headers(headers.toList)
     val entity = w.toEntity(body)
     val newHeaders = entity.length
       .map { l =>
@@ -76,10 +76,13 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
   @deprecated("Use `apply(Location(location))` instead", "0.18.0-M2")
   def apply(location: Uri)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(
-      Response[G](status = status, headers = Headers(`Content-Length`.zero, Location(location))))
+      Response[G](
+        status = status,
+        headers = Headers(`Content-Length`.zero :: Location(location) :: Nil)))
 
   def apply(location: Location, headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response[G](status, headers = Headers(`Content-Length`.zero +: location +: headers: _*)))
+    F.pure(
+      Response[G](status, headers = Headers(`Content-Length`.zero :: location :: headers.toList)))
 
   def apply[A](location: Location, body: A, headers: Header*)(
       implicit F: Monad[F],
@@ -108,13 +111,16 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
     F.pure(
       Response[G](
         status = status,
-        headers = Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
+        headers =
+          Headers(`Content-Length`.zero :: `WWW-Authenticate`(challenge, challenges: _*) :: Nil)
       ))
 
   def apply(authenticate: `WWW-Authenticate`, headers: Header*)(
       implicit F: Applicative[F]): F[Response[G]] =
     F.pure(
-      Response[G](status, headers = Headers(`Content-Length`.zero +: authenticate +: headers: _*)))
+      Response[G](
+        status,
+        headers = Headers(`Content-Length`.zero :: authenticate :: headers.toList)))
 
   def apply[A](authenticate: `WWW-Authenticate`, body: A, headers: Header*)(
       implicit F: Monad[F],
@@ -169,7 +175,8 @@ trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGe
     F.pure(
       Response[G](
         status = status,
-        headers = Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
+        headers =
+          Headers(`Content-Length`.zero :: `Proxy-Authenticate`(challenge, challenges: _*) :: Nil)
       ))
 
   def apply(authenticate: `Proxy-Authenticate`, headers: Header*)(

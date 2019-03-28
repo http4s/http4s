@@ -9,7 +9,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
     HttpHeaderParser.WWW_AUTHENTICATE(value)
 
   override def parse(value: String) =
-    hparse(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
+    hparse(value).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
 
   val params = Map("a" -> "b", "c" -> "d")
   val c = Challenge("Basic", "foo")

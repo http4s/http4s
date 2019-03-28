@@ -206,7 +206,7 @@ class BlazeClientSpec extends Http4sSpec {
           val name = address.getHostName
           val port = address.getPort
           mkClient(1)
-            .use { client =>
+            .use { _ =>
               val submit = successTimeClient
                 .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
               for {
@@ -222,7 +222,7 @@ class BlazeClientSpec extends Http4sSpec {
           val name = address.getHostName
           val port = address.getPort
 
-          Ref[IO].of(0L).flatMap { nanos =>
+          Ref[IO].of(0L).flatMap { _ =>
             mkClient(1, requestTimeout = 1.second).use { client =>
               val submit =
                 client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))

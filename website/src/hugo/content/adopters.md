@@ -85,6 +85,9 @@ title: Adopters
 [scala-pet-store](https://github.com/pauljamescleary/scala-pet-store)
 : An implementation of the java pet store using FP techniques in scala
 
+[scala-steward](https://github.com/fthomas/scala-steward)
+: Bot that keeps library dependencies and sbt plugins up-to-date
+
 [Smart Backpacker App](https://github.com/SmartBackpacker/core)
 : Backend of the traveler's app using the Typelevel stack
 
@@ -99,6 +102,9 @@ title: Adopters
 
 [Dashing](https://github.com/benfradet/dashing)
 : Dashboards to monitor an open source organization's health
+
+[http4s-chatserver](https://martinsnyder.net/projects/chat.html)
+: an [open source](https://github.com/MartinSnyder/http4s-chatserver) demonstration of http4s WebSocket support and stateful functional streams
 
 ## Giter8 templates
 

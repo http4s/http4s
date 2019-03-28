@@ -24,13 +24,4 @@ addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.
 addSbtPlugin("org.scalastyle"             %% "scalastyle-sbt-plugin"     % "1.0.0")
 addSbtPlugin("org.tpolecat"               %  "tut-plugin"                % "0.6.10")
 addSbtPlugin("org.xerial.sbt"             %  "sbt-sonatype"              % "2.4")
-
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
-
-// Override until sbt-rig is updated
-addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.5")
-
-// https://github.com/coursier/coursier/issues/450
-classpathTypes += "maven-plugin"
-
-addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.3.4")
+addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.3.5")

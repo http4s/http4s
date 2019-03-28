@@ -288,7 +288,7 @@ object Http4sPlugin extends AutoPlugin {
     if (priorTo2_13(scalaVersion)) "4.1.0" else "4.4.1"
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
-  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
+  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.8.1"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M12"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"

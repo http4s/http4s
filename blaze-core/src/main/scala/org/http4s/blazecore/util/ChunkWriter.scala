@@ -36,7 +36,9 @@ private[util] object ChunkWriter {
       if (trailerHeaders.nonEmpty) {
         val rr = new StringWriter(256)
         rr << "0\r\n" // Last chunk
-        trailerHeaders.foreach(h => h.render(rr) << "\r\n") // trailers
+        trailerHeaders.foreach { h =>
+          h.render(rr) << "\r\n"; ()
+        } // trailers
         rr << "\r\n" // end of chunks
         ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
       } else ChunkEndBuffer

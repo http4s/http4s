@@ -6,6 +6,7 @@ import fs2.Stream
 import scala.concurrent.duration._
 
 class PoolManagerSpec(name: String) extends Http4sSpec {
+  val _ = name
   val key = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.IPv4("127.0.0.1")))
   class TestConnection extends Connection[IO] {
     def isClosed = false
@@ -75,6 +76,12 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
         _ <- pool.invalidate(conn.connection)
         _ <- fiber.join
       } yield ()).unsafeRunTimed(2.seconds) must_== Some(())
+    }
+  }
+
+  "A WaitQueueFullFailure" should {
+    "render message properly" in {
+      (new WaitQueueFullFailure).toString() must contain("Wait queue is full")
     }
   }
 }
