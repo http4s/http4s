@@ -119,7 +119,7 @@ object UrlForm {
       urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(q => UrlForm(q.multiParams.mapValues(Chain.fromSeq).toMap))
+      .map(q => UrlForm(q.multiParams.view.mapValues(Chain.fromSeq).toMap))
       .leftMap { parseFailure =>
         MalformedMessageBodyFailure(parseFailure.message, None)
       }

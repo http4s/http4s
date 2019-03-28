@@ -35,7 +35,6 @@ class RequestCookieJar private (val cookies: Seq[RequestCookie]) extends AnyVal 
   def contains(key: String): Boolean = cookies.exists(_.name == key)
   def getOrElse(key: String, default: => String): RequestCookie =
     get(key).getOrElse(RequestCookie(key, default))
-  override def seq: RequestCookieJar = this
   def default(key: String): RequestCookie =
     throw new NoSuchElementException("Can't find RequestCookie " + key)
 

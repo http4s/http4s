@@ -94,14 +94,14 @@ final class Query private (pairs: Vector[KeyValue])
     * Params are represented as a `Seq[String]` and may be empty.
     */
   lazy val multiParams: immutable.Map[String, immutable.Seq[String]] = {
-    if (isEmpty) Map.empty[String, Seq[String]]
+    if (isEmpty) immutable.Map.empty[String, immutable.Seq[String]]
     else {
       val m = mutable.Map.empty[String, ListBuffer[String]]
       toVector.foreach {
         case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
         case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
-      m.mapValues(_.result()).toMap
+      m.view.mapValues(_.result()).toMap
     }
   }
 
