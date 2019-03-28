@@ -9,6 +9,7 @@ import fs2.text._
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
+import org.http4s.util.decode
 import org.log4s.getLogger
 import _root_.io.chrisdavenport.vault._
 
@@ -91,7 +92,7 @@ sealed trait Message[F[_]] { self =>
         // suspect this one is more efficient, though this is superstition
         body.through(utf8Decode)
       case cs =>
-        body.through(util.decode(cs))
+        body.through(decode(cs))
     }
 
   // General header methods
