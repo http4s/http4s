@@ -3,8 +3,8 @@ package org.http4s.websocket
 import fs2._
 
 private[http4s] final case class WebSocket[F[_]](
-    @deprecatedName('read) send: Stream[F, WebSocketFrame],
-    @deprecatedName('write) receive: Pipe[F, WebSocketFrame, Unit],
+    send: Stream[F, WebSocketFrame],
+    receive: Pipe[F, WebSocketFrame, Unit],
     onClose: F[Unit]
 ) {
 
