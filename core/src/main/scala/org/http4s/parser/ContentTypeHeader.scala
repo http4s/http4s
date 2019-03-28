@@ -45,7 +45,7 @@ private[parser] trait ContentTypeHeader {
 
           exts.foreach(_.foreach {
             case p @ (k, v) =>
-              if (k == "charset") charset = Charset.fromString(v).right.toOption
+              if (k == "charset") charset = Charset.fromString(v).toOption
               else ext += p
           })
 

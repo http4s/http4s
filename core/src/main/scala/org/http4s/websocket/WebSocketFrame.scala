@@ -115,12 +115,12 @@ object WebSocketFrame {
 
   object Close {
     def apply(code: Int): Either[InvalidCloseDataException, Close] =
-      closeCodeToBytes(code).right.map(Close(_))
+      closeCodeToBytes(code).map(Close(_))
 
     def apply(code: Int, reason: String): Either[InvalidCloseDataException, Close] =
       for {
-        c <- closeCodeToBytes(code).right
-        r <- reasonToBytes(reason).right
+        c <- closeCodeToBytes(code): Either[InvalidCloseDataException, ByteVector]
+        r <- reasonToBytes(reason)
       } yield Close(c ++ r)
   }
 }

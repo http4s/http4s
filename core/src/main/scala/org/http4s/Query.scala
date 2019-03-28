@@ -147,7 +147,10 @@ object Query {
     */
   def fromString(query: String): Query =
     if (query.isEmpty) new Query(Vector("" -> None))
-    else QueryParser.parseQueryString(query).right.toOption.getOrElse(Query.empty)
+    else QueryParser.parseQueryString(query) match {
+      case Right(query) => query
+      case Left(_) => Query.empty
+    }
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: Map[String, Seq[String]]): Query = {

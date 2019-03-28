@@ -38,7 +38,6 @@ private[parser] trait SimpleHeaders {
           val ms = ts.map(
             Method
               .fromString(_)
-              .right
               .toOption
               .getOrElse(sys.error("Impossible. Please file a bug report.")))
           Allow(NonEmptyList.of(ms.head, ms.tail: _*))

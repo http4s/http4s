@@ -109,8 +109,10 @@ object Status {
 
     def lookup(code: Int, reason: String): ParseResult[Status] = {
       val lookupResult = lookup(code)
-      if (lookupResult.isRight && lookupResult.right.get.reason == reason) lookupResult
-      else ParseResult.fail("Reason did not match", s"Nonstandard reason: $reason")
+      lookupResult match {
+        case Right(r) if r == reason => lookupResult
+        case _ => ParseResult.fail("Reason did not match", s"Nonstandard reason: $reason")
+      }
     }
 
     def register(status: Status): Status = {
@@ -118,7 +120,7 @@ object Status {
       status
     }
 
-    def all: List[Status] = registry.filter(_.isRight).map(_.right.get).toList
+    def all: List[Status] = registry.collect { case Right(status) => status }.toList
   }
 
   /**
