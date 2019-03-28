@@ -15,13 +15,13 @@ class RetrySpec extends Http4sSpec with Tables {
 
   val app = HttpRoutes
     .of[IO] {
-      case _ -> Root / status =>
-        IO.pure(Response(Status.fromInt(status.toInt).valueOr(throw _)))
       case req @ _ -> Root / "status-from-body" =>
         req.as[String].flatMap {
           case "OK" => Ok()
           case "" => InternalServerError()
         }
+      case _ -> Root / status =>
+        IO.pure(Response(Status.fromInt(status.toInt).valueOr(throw _)))
     }
     .orNotFound
 
