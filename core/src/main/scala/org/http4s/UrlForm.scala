@@ -104,7 +104,7 @@ object UrlForm {
     }
 
   implicit val eqInstance: Eq[UrlForm] = Eq.instance { (x: UrlForm, y: UrlForm) =>
-    x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
+    x.values === y.values
   }
 
   implicit val monoidInstance: Monoid[UrlForm] = new Monoid[UrlForm] {
@@ -119,7 +119,7 @@ object UrlForm {
       urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(q => UrlForm(q.multiParams.mapValues(Chain.fromSeq)))
+      .map(q => UrlForm(q.multiParams.mapValues(Chain.fromSeq).toMap))
       .leftMap { parseFailure =>
         MalformedMessageBodyFailure(parseFailure.message, None)
       }
