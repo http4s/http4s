@@ -33,7 +33,8 @@ package object http4s { // scalastyle:ignore
     * An HTTP app is total on its inputs.  An HTTP app may be run by a server,
     * and a client can be converted to or from an HTTP app.
     *
-    * @tparam F the effect type in which the [[Response]] is returned
+    * @tparam F the effect type in which the [[Response]] is returned, and also
+    * of the [[Request]] and [[Response]] bodies.
     */
   type HttpApp[F[_]] = Http[F, F]
 
