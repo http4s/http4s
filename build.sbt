@@ -8,7 +8,6 @@ ThisBuild / organization := "org.http4s"
 name := "http4s"
 description := "A minimal, Scala-idiomatic library for HTTP"
 enablePlugins(PrivateProjectPlugin)
-scalaVersion := scala_212
 crossScalaVersions := Nil
 
 Global / cancelable := true
@@ -18,9 +17,11 @@ val scala_212 = "2.12.8"
 val scala_211 = "2.11.12"
 
 lazy val crossScalaAll = Seq(
+  scalaVersion := scala_212,
   crossScalaVersions := Seq(scala_213, scala_212, scala_211)
 )
 lazy val crossScalaNo213 = Seq(
+  scalaVersion := scala_212,
   crossScalaVersions := Seq(scala_212, scala_211)
 )
 
@@ -220,6 +221,7 @@ lazy val tomcat = libraryProject("tomcat")
 
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryProject("dsl")
+  .settings(crossScalaAll)
   .settings(
     description := "Simple DSL for writing http4s services"
   )
@@ -440,7 +442,7 @@ lazy val docs = http4sProject("docs")
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
-  settings(crossScalaAll)
+  .settings(crossScalaAll)
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
   .settings(
     description := "Common area of http4s.org",
