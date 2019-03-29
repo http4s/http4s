@@ -157,9 +157,9 @@ object Headers {
 
   implicit val HeadersEq: Eq[Headers] = Eq.by(_.toList)
 
-  implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers]{
+  implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers] {
     def empty: Headers = Headers.empty
-    def combine(xa: Headers, xb: Headers): Headers = 
+    def combine(xa: Headers, xb: Headers): Headers =
       xa ++ xb
   }
 

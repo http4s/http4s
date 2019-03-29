@@ -1,7 +1,7 @@
 package org.http4s
 
 import org.http4s.headers._
-import cats.kernel.laws.discipline.{MonoidTests, EqTests}
+import cats.kernel.laws.discipline.{EqTests, MonoidTests}
 
 class HeadersSpec extends Http4sSpec {
 
