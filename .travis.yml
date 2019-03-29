@@ -73,7 +73,7 @@ jobs:
         - decrypt_pgp_secrets
         - configure_git
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION ci
+        - sbt ci
     - env: TEST="publish docs"
       scala: *scala_version_212
       jdk: *java_8
