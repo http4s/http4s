@@ -61,7 +61,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.8"),
-    crossScalaVersions := List("2.11.12", "2.12.8", "2.13.0-M5"),
+    // crossScalaVersions := List("2.11.12", "2.12.8", "2.13.0-M5"),
 
     // Rig will take care of this on production builds.  We haven't fully
     // implemented that machinery yet, so we're going to live without this
@@ -188,16 +188,16 @@ object Http4sPlugin extends AutoPlugin {
         setReleaseVersion.when(release),
         tagRelease.when(primary && release),
         runClean,
-        runTest,
-        releaseStepCommand("mimaReportBinaryIssues"),
-        releaseStepCommand("unusedCompileDependenciesTest"),
-        releaseStepCommand("test:scalafmt::test").when(primary),
-        releaseStepCommand("docs/makeSite").when(primary),
-        releaseStepCommand("website/makeSite").when(primary),
+        // runTest,
+        releaseStepCommandAndRemaining("+mimaReportBinaryIssues"),
+        // releaseStepCommand("unusedCompileDependenciesTest"),
+        // releaseStepCommand("test:scalafmt::test").when(primary),
+        // releaseStepCommand("docs/makeSite").when(primary),
+        // releaseStepCommand("website/makeSite").when(primary),
         releaseStepCommandAndRemaining("+publishSigned").when(publishable),
         releaseStepCommand("sonatypeReleaseAll").when(publishable && release),
-        releaseStepCommand("docs/ghpagesPushSite").when(publishable && primary),
-        releaseStepCommand("website/ghpagesPushSite").when(publishable && primary && master),
+        // releaseStepCommand("docs/ghpagesPushSite").when(publishable && primary),
+        // releaseStepCommand("website/ghpagesPushSite").when(publishable && primary && master),
         setNextVersion.when(publishable && primary && release),
         commitNextVersion.when(publishable && primary && release),
         pushChanges.when(publishable && primary && release),

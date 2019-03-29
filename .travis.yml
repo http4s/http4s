@@ -38,7 +38,7 @@ jobs:
       jdk: *java_8
     - <<: *tests
       scala: *scala_version_211
-      jdk: *java8
+      jdk: *java_8
     - <<: *tests
       scala: *scala_version_212
       jdk: *java_11
@@ -69,11 +69,26 @@ jobs:
         - export PATH=${PATH}:./vendor/bundle
       install:
         - scripts/install-hugo
-      script:
         - decrypt_deploy_key
         - decrypt_pgp_secrets
         - configure_git
+      script:
         - sbt ++$TRAVIS_SCALA_VERSION ci
+    - env: TEST="publish docs"
+      scala: *scala_version_212
+      jdk: *java_8
+      before_script:
+        - source scripts/helpers
+        - PATH="$HOME/bin:$PATH"
+        - export PATH=${PATH}:./vendor/bundle
+      install:
+        - scripts/install-hugo
+        - decrypt_deploy_key
+        - decrypt_pgp_secrets
+        - configure_git
+      script:
+        - sbt ++$TRAVIS_SCALA_VERSION! docs/ghpagesPushSite
+        - sbt ++$TRAVIS_SCALA_VERSION! website/ghpagesPushSite
   allow_failures:
     jdk: *java_11
     scala: *scala_version_212
