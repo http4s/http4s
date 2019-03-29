@@ -94,6 +94,6 @@ class HeadersSpec extends Http4sSpec {
     }
   }
 
-  checkAll("monoid", MonoidTests[Headers].monoid)
-  checkAll("eq", EqTests[Headers].eqv)
+  checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
+  checkAll("Eq[Headers]", EqTests[Headers].eqv)
 }
