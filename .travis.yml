@@ -25,9 +25,9 @@ jobs:
     - &tests
       env: TEST="test"
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION! test
-        - sbt ++$TRAVIS_SCALA_VERSION! mimaReportBinaryIssues
-        - sbt ++$TRAVIS_SCALA_VERSION! unusedCompileDependenciesTest
+        - sbt ++$TRAVIS_SCALA_VERSION test
+        - sbt ++$TRAVIS_SCALA_VERSION mimaReportBinaryIssues
+        - sbt ++$TRAVIS_SCALA_VERSION unusedCompileDependenciesTest
       scala: *scala_version_211
       jdk: *java_8
     - <<: *tests
@@ -52,13 +52,13 @@ jobs:
       install:
         - scripts/install-hugo
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION! docs/makeSite
-        - sbt ++$TRAVIS_SCALA_VERSION! website/makeSite
+        - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite
+        - sbt ++$TRAVIS_SCALA_VERSION website/makeSite
     - env: TEST="scalafix"
       scala: *scala_version_212
       script:
         - cd scalafix
-        - sbt ++$TRAVIS_SCALA_VERSION! ci
+        - sbt ++$TRAVIS_SCALA_VERSION ci
     - stage: publish
       env: TEST="publish"
       scala: *scala_version_212
@@ -87,8 +87,8 @@ jobs:
         - decrypt_pgp_secrets
         - configure_git
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION! docs/ghpagesPushSite
-        - sbt ++$TRAVIS_SCALA_VERSION! website/ghpagesPushSite
+        - sbt ++$TRAVIS_SCALA_VERSION docs/ghpagesPushSite
+        - sbt ++$TRAVIS_SCALA_VERSION website/ghpagesPushSite
   allow_failures:
     jdk: *java_11
     scala: *scala_version_212
