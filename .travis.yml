@@ -40,6 +40,9 @@ jobs:
     - <<: *tests
       scala: *scala_version_213
       jdk: *java_8
+      script:
+        - sbt ++$TRAVIS_SCALA_VERSION test
+        - sbt ++$TRAVIS_SCALA_VERSION mimaReportBinaryIssues
     - <<: *tests
       scala: *scala_version_211
       jdk: *java_8
