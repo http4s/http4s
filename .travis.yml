@@ -37,11 +37,6 @@ jobs:
     - <<: *tests
       scala: *scala_version_212
       jdk: *java_8
-      script:
-        - sbt ++$TRAVIS_SCALA_VERSION test
-        - sbt ++$TRAVIS_SCALA_VERSION mimaReportBinaryIssues
-        - sbt ++$TRAVIS_SCALA_VERSION unusedCompileDependenciesTest
-        - sbt ++$TRAVIS_SCALA_VERSION test:scalafmt::test
     - <<: *tests
       scala: *scala_version_213
       jdk: *java_8
@@ -70,6 +65,11 @@ jobs:
       script:
         - cd scalafix
         - sbt ++$TRAVIS_SCALA_VERSION ci
+    - env: TEST="scalafmt"
+      scala: *scala_version_212
+      jdk: *java_8
+      script:
+        - sbt ++$TRAVIS_SCALA_VERSION test:scalafmt::test
     - stage: publish
       env: TEST="publish"
       scala: *scala_version_212
