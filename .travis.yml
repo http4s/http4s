@@ -43,6 +43,7 @@ jobs:
       script:
         - sbt ++$TRAVIS_SCALA_VERSION thirteen/test
         - sbt ++$TRAVIS_SCALA_VERSION thirteen/mimaReportBinaryIssues
+        - sbt ++$TRAVIS_SCALA_VERSION thirteen/unusedCompileDependenciesTest
     - <<: *tests
       scala: *scala_version_211
       jdk: *java_8
@@ -63,6 +64,7 @@ jobs:
         - sbt ++$TRAVIS_SCALA_VERSION website/makeSite
     - env: TEST="scalafix"
       scala: *scala_version_212
+      jdk: *java_8
       script:
         - cd scalafix
         - sbt ++$TRAVIS_SCALA_VERSION ci
