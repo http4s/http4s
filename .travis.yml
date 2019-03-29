@@ -5,7 +5,11 @@ sudo: required
 stages:
   - name: test
   - name: publish
-    if: (branch = master AND type = push)
+    branches:
+      only:
+        - master
+        - /^release-/
+    if: type = push
 
 env:
   global:
