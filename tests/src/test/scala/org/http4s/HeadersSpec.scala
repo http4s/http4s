@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.http4s.headers._
+import cats.kernel.laws.discipline.{MonoidTests, EqTests}
 
 class HeadersSpec extends Http4sSpec {
 
@@ -92,4 +93,7 @@ class HeadersSpec extends Http4sSpec {
       h3.equals(h5) must_== true
     }
   }
+
+  checkAll("monoid", MonoidTests[Headers].monoid)
+  checkAll("eq", EqTests[Headers].eqv)
 }
