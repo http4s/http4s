@@ -8,6 +8,50 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.0-RC1 (2019-04-02)
+
+## Breaking changes
+* [#2471](https://github.com/http4s/http4s/pull/2466): `Headers` is no longer an `Iterable[Header]`
+* [#2393](https://github.com/http4s/http4s/pull/2493): Several changes related to 2.13 support:
+  * Replace `Seq` with `List` on:
+    * `` `Accept-Ranges.`.rangeUnits``
+    * ``CacheDirective.`no-cache`.fieldNames``
+    * `CacheDirective.private.fieldNames`
+    * `LanguageTag.subTags`
+    * `MediaType.fileExtensions`
+    * `` `User-Agent`.other``
+  * Replace `Seq` with `immutable.Seq` on:
+    * `Query#multiParams.values`
+    * `Query#params.values`
+    * `Uri#multipParams.values`
+  * `Query` is no longer a `Seq[Query.KeyValue]`
+  * `RequestCookieJar` is no longer an `Iterable[RequestCookie]`.
+      
+## Enhancements
+* [#2466](https://github.com/http4s/http4s/pull/2466): Provide better message for `WaitQueueFullFailure`
+* [#2479](https://github.com/http4s/http4s/pull/2479): Refresh `MimeDb` from the IANA registry
+* [#2393](https://github.com/http4s/http4s/pull/2493): Scala 2.13.0-M5 support
+  * All modules except http4s-boopickle
+  * `Monoid[Headers]` instance
+
+## Bugfixes
+* [#2470](https://github.com/http4s/http4s/pull/2470): Don't wait indefinitely if a request timeout happens while borrowing a connection in blaze-client.
+
+## Documentation
+* [#2469](https://github.com/http4s/http4s/pull/2469): Add scala-steward to adopters
+* [#2472](https://github.com/http4s/http4s/pull/2472): Add http4s-chatserver demo
+* [#2478](https://github.com/http4s/http4s/pull/2478): Better scaladoc for `HttpApp`
+
+## Other
+* [#2474](https://github.com/http4s/http4s/pull/2474): Skip another blaze test that fails only on CI
+
+## Dependency upgrades
+* argonaut-6.2.3
+* blaze-0.14.0-RC1
+* sbt-jmh-0.3.5 (benchmarks only)
+* sbt-native-packager (example only)
+* scalatags-0.6.8
+
 # v0.20.0-M7 (2019-03-20)
 
 ## Bugfixes
