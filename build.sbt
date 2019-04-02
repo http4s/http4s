@@ -5,6 +5,47 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 ThisBuild / organization := "org.http4s"
 Global / cancelable := true
 
+lazy val modules: List[ProjectReference] = List(
+  core,
+  testing,
+  tests,
+  server,
+  prometheusMetrics,
+  client,
+  dropwizardMetrics,
+  blazeCore,
+  blazeServer,
+  blazeClient,
+  asyncHttpClient,
+  jettyClient,
+  okHttpClient,
+  servlet,
+  jetty,
+  tomcat,
+  theDsl,
+  jawn,
+  argonaut,
+  boopickle,
+  circe,
+  json4s,
+  json4sNative,
+  json4sJackson,
+  playJson,
+  scalaXml,
+  twirl,
+  scalatags,
+  mimedbGenerator,
+  bench,
+  docs,
+  website,
+  examples,
+  examplesBlaze,
+  examplesDocker,
+  examplesJetty,
+  examplesTomcat,
+  examplesWar
+)
+
 lazy val root = project.in(file("."))
   .enablePlugins(PrivateProjectPlugin)
   .settings(
@@ -13,46 +54,7 @@ lazy val root = project.in(file("."))
     description := "A minimal, Scala-idiomatic library for HTTP",
     crossScalaVersions := Nil
   )
-  .aggregate(
-    core,
-    testing,
-    tests,
-    server,
-    prometheusMetrics,
-    client,
-    dropwizardMetrics,
-    blazeCore,
-    blazeServer,
-    blazeClient,
-    asyncHttpClient,
-    jettyClient,
-    okHttpClient,
-    servlet,
-    jetty,
-    tomcat,
-    theDsl,
-    jawn,
-    argonaut,
-    boopickle,
-    circe,
-    json4s,
-    json4sNative,
-    json4sJackson,
-    playJson,
-    scalaXml,
-    twirl,
-    scalatags,
-    mimedbGenerator,
-    bench,
-    docs,
-    website,
-    examples,
-    examplesBlaze,
-    examplesDocker,
-    examplesJetty,
-    examplesTomcat,
-    examplesWar
-  )
+  .aggregate(modules: _*)
 
 lazy val thirteen = project
   .enablePlugins(PrivateProjectPlugin)
@@ -60,44 +62,10 @@ lazy val thirteen = project
     crossScalaVersions := Nil
   )
   .aggregate(
-    core,
-    testing,
-    tests,
-    server,
-    prometheusMetrics,
-    client,
-    dropwizardMetrics,
-    blazeCore,
-    blazeServer,
-    blazeClient,
-    asyncHttpClient,
-    jettyClient,
-    okHttpClient,
-    servlet,
-    jetty,
-    tomcat,
-    theDsl,
-    jawn,
-    argonaut,
-    // boopickle,
-    circe,
-    json4s,
-    json4sNative,
-    json4sJackson,
-    playJson,
-    scalaXml,
-    twirl,
-    scalatags,
-    // mimedbGenerator,
-    bench,
-    docs,
-    website,
-    examples,
-    examplesBlaze,
-    examplesDocker,
-    examplesJetty,
-    examplesTomcat,
-    examplesWar
+    modules.filterNot(Set(
+      boopickle,
+      mimedbGenerator
+    )): _*
   )
 
 val scala_213 = "2.13.0-M5"
