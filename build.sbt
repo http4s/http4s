@@ -62,10 +62,11 @@ lazy val thirteen = project
     crossScalaVersions := Nil
   )
   .aggregate(
-    modules.filterNot(Set(
-      boopickle,
-      mimedbGenerator
-    )): _*
+    modules.filterNot {
+      case LocalProject("boopickle") => true
+      case LocalProject("mimedbGenerator") => true
+      case _ => false
+    }: _*
   )
 
 val scala_213 = "2.13.0-M5"
