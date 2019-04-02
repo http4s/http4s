@@ -18,7 +18,7 @@ import scala.collection.immutable
   * by '&' while the key is separated from the value with '='
   */
 final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Renderable {
-  // override def apply(idx: Int): KeyValue = pairs(idx)
+  def apply(idx: Int): KeyValue = pairs(idx)
 
   def length: Int = pairs.length
 
