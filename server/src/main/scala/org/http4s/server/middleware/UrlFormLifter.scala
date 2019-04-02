@@ -17,7 +17,7 @@ import cats.~>
 object UrlFormLifter {
 
   def apply[F[_]: Sync, G[_]: Sync](f: G ~> F)(
-      @deprecatedName('service) http: Kleisli[F, Request[G], Response[G]],
+      http: Kleisli[F, Request[G], Response[G]],
       strictDecode: Boolean = false): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       def addUrlForm(form: UrlForm): F[Response[G]] = {

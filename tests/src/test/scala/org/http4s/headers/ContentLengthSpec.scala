@@ -11,7 +11,7 @@ class ContentLengthSpec extends HeaderLaws {
     }
     "accept non-negative lengths" in prop { length: Long =>
       length >= 0 ==> {
-        `Content-Length`.fromLong(length).right.map(_.length) must beRight(length)
+        `Content-Length`.fromLong(length).map(_.length) must beRight(length)
       }
     }
   }
@@ -38,9 +38,7 @@ class ContentLengthSpec extends HeaderLaws {
       (l >= 0) ==> {
         `Content-Length`
           .fromLong(l)
-          .right
           .map(_.value)
-          .right
           .flatMap(`Content-Length`.parse) must_== `Content-Length`.fromLong(l)
       }
     }
@@ -51,7 +49,6 @@ class ContentLengthSpec extends HeaderLaws {
       length >= 0 ==> {
         `Content-Length`.zero.modify(_ + length) must_== `Content-Length`
           .fromLong(length)
-          .right
           .toOption
       }
     }

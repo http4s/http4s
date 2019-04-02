@@ -19,7 +19,7 @@ private[blaze] final class ReadBufferStage[T] extends MidStage[T, T] {
 
   override def writeRequest(data: T): Future[Unit] = channelWrite(data)
 
-  override def writeRequest(data: Seq[T]): Future[Unit] = channelWrite(data)
+  override def writeRequest(data: collection.Seq[T]): Future[Unit] = channelWrite(data)
 
   override def readRequest(size: Int): Future[T] = lock.synchronized {
     if (buffered == null)

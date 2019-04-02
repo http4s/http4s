@@ -41,7 +41,7 @@ private[parser] trait CacheControlHeader {
 
     def CacheDirective: Rule1[CacheDirective] = rule {
       ("no-cache" ~ optional("=" ~ FieldNames)) ~> (fn =>
-        `no-cache`(fn.map(_.map(_.ci)).getOrElse(Nil))) |
+        `no-cache`(fn.map(_.map(_.ci).toList).getOrElse(Nil))) |
         "no-store" ~ push(`no-store`) |
         "no-transform" ~ push(`no-transform`) |
         "max-age=" ~ DeltaSeconds ~> (s => `max-age`(s)) |
@@ -50,7 +50,7 @@ private[parser] trait CacheControlHeader {
         "only-if-cached" ~ push(`only-if-cached`) |
         "public" ~ push(`public`) |
         "private" ~ optional("=" ~ FieldNames) ~> (fn =>
-          `private`(fn.map(_.map(_.ci)).getOrElse(Nil))) |
+          `private`(fn.map(_.map(_.ci).toList).getOrElse(Nil))) |
         "must-revalidate" ~ push(`must-revalidate`) |
         "proxy-revalidate" ~ push(`proxy-revalidate`) |
         "s-maxage=" ~ DeltaSeconds ~> (s => `s-maxage`(s)) |
@@ -61,7 +61,9 @@ private[parser] trait CacheControlHeader {
         })
     }
 
-    def FieldNames: Rule1[Seq[String]] = rule { oneOrMore(QuotedString).separatedBy(ListSep) }
+    def FieldNames: Rule1[collection.Seq[String]] = rule {
+      oneOrMore(QuotedString).separatedBy(ListSep)
+    }
     def DeltaSeconds: Rule1[Duration] = rule {
       capture(oneOrMore(Digit)) ~> { s: String =>
         Duration(s.toLong, TimeUnit.SECONDS)

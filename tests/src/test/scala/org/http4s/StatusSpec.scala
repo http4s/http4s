@@ -104,9 +104,14 @@ class StatusSpec extends Http4sSpec {
   }
 
   private def getStatus(code: Int) =
-    fromInt(code).right.get
+    fromInt(code) match {
+      case Right(s) => s
+      case Left(t) => throw t
+    }
 
   private def getStatus(code: Int, reason: String) =
-    fromIntAndReason(code, reason).right.get
-
+    fromIntAndReason(code, reason) match {
+      case Right(s) => s
+      case Left(t) => throw t
+    }
 }

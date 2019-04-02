@@ -20,10 +20,10 @@ class RetryAfterSpec extends HeaderLaws {
 
   "build" should {
     "build correctly for positives" in {
-      `Retry-After`.fromLong(0).right.map(_.value) must beLike { case Right("0") => ok }
+      `Retry-After`.fromLong(0).map(_.value) must beLike { case Right("0") => ok }
     }
     "fail for negatives" in {
-      `Retry-After`.fromLong(-10).right.map(_.value) must beLeft
+      `Retry-After`.fromLong(-10).map(_.value) must beLeft
     }
     "build unsafe for positives" in {
       `Retry-After`.unsafeFromDuration(0.seconds).value must_== "0"
@@ -37,11 +37,11 @@ class RetryAfterSpec extends HeaderLaws {
 
   "parse" should {
     "accept http date" in {
-      `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").right.map(_.retry) must_== (Right(
+      `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry) must_== (Right(
         Left(HttpDate.unsafeFromZonedDateTime(gmtDate))))
     }
     "accept duration on seconds" in {
-      `Retry-After`.parse("120").right.map(_.retry) must_== (Right(Right(120L)))
+      `Retry-After`.parse("120").map(_.retry) must_== (Right(Right(120L)))
     }
   }
 }

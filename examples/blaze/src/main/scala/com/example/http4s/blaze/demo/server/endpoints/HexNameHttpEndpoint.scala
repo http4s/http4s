@@ -1,7 +1,7 @@
 package com.example.http4s.blaze.demo.server.endpoints
 
 import cats.effect.Sync
-import org.http4s._
+import org.http4s.{ApiVersion => _, _}
 import org.http4s.dsl.Http4sDsl
 
 class HexNameHttpEndpoint[F[_]: Sync] extends Http4sDsl[F] {

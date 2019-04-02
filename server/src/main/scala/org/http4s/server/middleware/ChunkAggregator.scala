@@ -13,7 +13,7 @@ import org.http4s.headers._
 
 object ChunkAggregator {
   def apply[F[_]: FlatMap, G[_]: Sync, A](f: G ~> F)(
-      @deprecatedName('service) http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
+      http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF { response =>
       f(
         response.body.chunks.compile.toVector

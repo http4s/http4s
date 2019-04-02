@@ -37,23 +37,23 @@ private[parser] trait AcceptHeader {
 
     def FullRange: Rule1[MediaRangeAndQValue] = rule {
       (MediaRangeDef ~ optional(QAndExtensions)) ~> {
-        (mr: MediaRange, params: Option[(QValue, Seq[(String, String)])]) =>
-          val (qValue, extensions) = params.getOrElse((org.http4s.QValue.One, Seq.empty))
+        (mr: MediaRange, params: Option[(QValue, collection.Seq[(String, String)])]) =>
+          val (qValue, extensions) = params.getOrElse((org.http4s.QValue.One, collection.Seq.empty))
           mr.withExtensions(extensions.toMap).withQValue(qValue)
       }
     }
 
-    def QAndExtensions: Rule1[(QValue, Seq[(String, String)])] = rule {
-      AcceptParams | (oneOrMore(MediaTypeExtension) ~> { s: Seq[(String, String)] =>
+    def QAndExtensions: Rule1[(QValue, collection.Seq[(String, String)])] = rule {
+      AcceptParams | (oneOrMore(MediaTypeExtension) ~> { s: collection.Seq[(String, String)] =>
         (org.http4s.QValue.One, s)
       })
     }
 
-    def AcceptParams: Rule1[(QValue, Seq[(String, String)])] = rule {
+    def AcceptParams: Rule1[(QValue, collection.Seq[(String, String)])] = rule {
       (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> (
         (
           _: QValue,
-          _: Seq[(String, String)]))
+          _: collection.Seq[(String, String)]))
     }
   }
 }

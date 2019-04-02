@@ -25,8 +25,7 @@ object ResponseLogger {
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None)(
-      @deprecatedName('service) http: Kleisli[G, A, Response[F]])(
+      logAction: Option[String => F[Unit]] = None)(http: Kleisli[G, A, Response[F]])(
       implicit G: Bracket[G, Throwable],
       F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
     val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))

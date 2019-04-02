@@ -9,16 +9,16 @@ class AgeSpec extends HeaderLaws {
 
   "render" should {
     "age in seconds" in {
-      Age.fromLong(120).right.map(_.renderString) must_== ParseResult.success("Age: 120")
+      Age.fromLong(120).map(_.renderString) must_== ParseResult.success("Age: 120")
     }
   }
 
   "build" should {
     "build correctly for positives" in {
-      Age.fromLong(0).right.map(_.value) must beLike { case Right("0") => ok }
+      Age.fromLong(0).map(_.value) must beLike { case Right("0") => ok }
     }
     "fail for negatives" in {
-      Age.fromLong(-10).right.map(_.value) must beLeft
+      Age.fromLong(-10).map(_.value) must beLeft
     }
     "build unsafe for positives" in {
       Age.unsafeFromDuration(0.seconds).value must_== "0"
@@ -41,15 +41,15 @@ class AgeSpec extends HeaderLaws {
 
   "parse" should {
     "accept duration on seconds" in {
-      Age.parse("120").right.map(_.age) must beRight(120)
+      Age.parse("120").map(_.age) must beRight(120)
     }
     "reject negative values" in {
-      Age.parse("-120").right.map(_.age) must beLeft
+      Age.parse("-120").map(_.age) must beLeft
     }
     "roundtrip" in {
       forAll { l: Long =>
         (l >= 0) ==> {
-          Age.fromLong(l).right.map(_.value).right.flatMap(Age.parse) must_== Age.fromLong(l)
+          Age.fromLong(l).map(_.value).flatMap(Age.parse) must_== Age.fromLong(l)
         }
       }
     }

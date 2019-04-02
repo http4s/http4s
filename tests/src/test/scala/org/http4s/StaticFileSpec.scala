@@ -160,7 +160,7 @@ class StaticFileSpec extends Http4sSpec {
           .fromURL[IO](url, testBlockingExecutionContext)
           .value
           .map(_.flatMap(_.contentLength))
-      len must returnValue(beSome(24005L))
+      len must returnValue(Some(24005L))
     }
   }
 }

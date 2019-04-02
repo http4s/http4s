@@ -2,6 +2,7 @@ package org.http4s
 package parser
 
 import java.nio.CharBuffer
+import org.http4s.internal.CollectionCompat
 import scala.io.Codec
 
 class QueryParserSpec extends Http4sSpec {
@@ -80,7 +81,7 @@ class QueryParserSpec extends Http4sSpec {
     }
 
     "be stack safe" in {
-      val value = Stream.continually('X').take(1000000).mkString
+      val value = CollectionCompat.LazyList.continually('X').take(1000000).mkString
       val query = s"little=x&big=${value}"
       parseQueryString(query) must beRight(Query("little" -> Some("x"), "big" -> Some(value)))
     }

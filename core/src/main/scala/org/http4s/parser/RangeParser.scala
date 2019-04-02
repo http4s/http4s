@@ -53,15 +53,18 @@ private[parser] trait RangeParser {
   private class AcceptRangesParser(input: ParserInput)
       extends Http4sHeaderParser[`Accept-Ranges`](input) {
     def entry: Rule1[`Accept-Ranges`] = rule {
-      RangeUnitsDef ~ EOL ~> (headers.`Accept-Ranges`(_: Seq[RangeUnit]))
+      RangeUnitsDef ~ EOL ~> (headers.`Accept-Ranges`(_: List[RangeUnit]))
     }
 
-    def RangeUnitsDef: Rule1[Seq[RangeUnit]] = rule {
-      NoRangeUnitsDef | zeroOrMore(RangeUnit).separatedBy(ListSep)
+    def RangeUnitsDef: Rule1[List[RangeUnit]] = rule {
+      NoRangeUnitsDef | zeroOrMore(RangeUnit).separatedBy(ListSep) ~> {
+        rangeUnits: collection.Seq[RangeUnit] =>
+          rangeUnits.toList
+      }
     }
 
-    def NoRangeUnitsDef: Rule1[Seq[RangeUnit]] = rule {
-      "none" ~ push(List.empty[RangeUnit])
+    def NoRangeUnitsDef: Rule1[List[RangeUnit]] = rule {
+      "none" ~ push(Nil)
     }
 
     /* 3.12 Range Units http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html */

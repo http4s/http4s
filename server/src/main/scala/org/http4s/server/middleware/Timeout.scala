@@ -18,7 +18,7 @@ object Timeout {
     * @param service [[HttpRoutes]] to transform
     */
   def apply[F[_], G[_], A](timeout: FiniteDuration, timeoutResponse: F[Response[G]])(
-      @deprecatedName('service) http: Kleisli[F, A, Response[G]])(
+      http: Kleisli[F, A, Response[G]])(
       implicit F: Concurrent[F],
       T: Timer[F]): Kleisli[F, A, Response[G]] =
     http
@@ -33,8 +33,7 @@ object Timeout {
     * Internal Server Error` response
     * @param service [[HttpRoutes]] to transform
     */
-  def apply[F[_], G[_], A](timeout: FiniteDuration)(
-      @deprecatedName('service) http: Kleisli[F, A, Response[G]])(
+  def apply[F[_], G[_], A](timeout: FiniteDuration)(http: Kleisli[F, A, Response[G]])(
       implicit F: Concurrent[F],
       T: Timer[F]
   ): Kleisli[F, A, Response[G]] =

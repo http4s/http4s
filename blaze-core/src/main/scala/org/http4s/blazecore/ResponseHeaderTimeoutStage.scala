@@ -39,7 +39,7 @@ final private[http4s] class ResponseHeaderTimeoutStage[A](
     channelWrite(data)
   }
 
-  override def writeRequest(data: Seq[A]): Future[Unit] = {
+  override def writeRequest(data: collection.Seq[A]): Future[Unit] = {
     setTimeout()
     channelWrite(data)
   }

@@ -20,9 +20,9 @@ class AcceptLanguageSpec extends HeaderLaws {
   "matches most specific tag" in {
     val acceptLanguage = `Accept-Language`(
       LanguageTag.*,
-      LanguageTag("de", QValue.q(0.3), Seq("DE", "1996")),
+      LanguageTag("de", QValue.q(0.3), List("DE", "1996")),
       LanguageTag("de", QValue.q(0.1)),
-      LanguageTag("de", QValue.q(0.2), Seq("DE")))
+      LanguageTag("de", QValue.q(0.2), List("DE")))
     acceptLanguage.qValue(LanguageTag("de")) must_== QValue.q(0.1)
     acceptLanguage.qValue(LanguageTag("de", subTags = List("DE"))) must_== QValue.q(0.2)
     acceptLanguage.qValue(LanguageTag("de", subTags = List("DE", "1996"))) must_== QValue.q(0.3)

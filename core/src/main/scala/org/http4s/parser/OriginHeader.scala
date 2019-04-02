@@ -39,7 +39,7 @@ trait OriginHeader {
     }
 
     def hostListEntry: Rule1[Origin] = rule {
-      (host ~ zeroOrMore(" " ~ host)) ~> { (head: Origin.Host, tail: Seq[Origin.Host]) =>
+      (host ~ zeroOrMore(" " ~ host)) ~> { (head: Origin.Host, tail: collection.Seq[Origin.Host]) =>
         Origin.HostList(NonEmptyList(head, tail.toList))
       }
     }

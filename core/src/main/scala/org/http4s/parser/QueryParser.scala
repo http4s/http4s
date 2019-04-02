@@ -7,6 +7,7 @@ import java.nio.CharBuffer
 import org.http4s.util.UrlCodingUtils
 import scala.annotation.switch
 import scala.collection.immutable.BitSet
+import scala.collection.mutable.Builder
 import scala.io.Codec
 
 /** Split an encoded query string into unencoded key value pairs
@@ -23,17 +24,17 @@ private[http4s] class QueryParser(
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input */
   def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
-    val acc = Query.newBuilder
+    val acc: Builder[Query.KeyValue, Vector[Query.KeyValue]] = Vector.newBuilder
     decodeBuffer(input, (k, v) => acc += ((k, v)), flush) match {
       case Some(e) => ParseResult.fail("Decoding of url encoded data failed.", e)
-      case None => ParseResult.success(acc.result)
+      case None => ParseResult.success(Query.fromVector(acc.result))
     }
   }
 
   // Some[String] represents an error message, None = success
-  def decodeBuffer(
+  private def decodeBuffer(
       input: CharBuffer,
-      acc: (String, Option[String]) => Query.Builder,
+      acc: (String, Option[String]) => Builder[Query.KeyValue, Vector[Query.KeyValue]],
       flush: Boolean): Option[String] = {
     val valAcc = new StringBuilder(InitialBufferCapactiy)
 

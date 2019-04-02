@@ -19,58 +19,26 @@
 package org.http4s
 
 import org.http4s.util.{Renderable, Writer}
-import scala.collection.{IterableLike, TraversableOnce, mutable}
-import scala.collection.generic.CanBuildFrom
 
 object RequestCookieJar {
   def empty: RequestCookieJar = new RequestCookieJar(Nil)
 
-  def apply(cookies: RequestCookie*): RequestCookieJar = (newBuilder ++= cookies).result()
-
-  /** The default builder for RequestCookieJar objects.
-    */
-  def newBuilder: mutable.Builder[RequestCookie, RequestCookieJar] =
-    new mutable.Builder[RequestCookie, RequestCookieJar] {
-      private[this] val coll = mutable.ListBuffer[RequestCookie]()
-      def +=(elem: RequestCookie): this.type = {
-        coll += elem
-        this
-      }
-
-      def clear(): Unit = coll.clear()
-
-      def result(): RequestCookieJar = new RequestCookieJar(Vector(coll.toSeq: _*))
-    }
-
-  implicit def canBuildFrom
-    : CanBuildFrom[TraversableOnce[RequestCookie], RequestCookie, RequestCookieJar] =
-    new CanBuildFrom[TraversableOnce[RequestCookie], RequestCookie, RequestCookieJar] {
-      def apply(
-          from: TraversableOnce[RequestCookie]
-      ): mutable.Builder[RequestCookie, RequestCookieJar] = newBuilder
-
-      def apply(): mutable.Builder[RequestCookie, RequestCookieJar] = newBuilder
-    }
-
+  def apply(cookies: RequestCookie*): RequestCookieJar = new RequestCookieJar(cookies.toList)
 }
-class RequestCookieJar(private val headers: Seq[RequestCookie])
-    extends Iterable[RequestCookie]
-    with IterableLike[RequestCookie, RequestCookieJar] {
-  override protected[this] def newBuilder: mutable.Builder[RequestCookie, RequestCookieJar] =
-    RequestCookieJar.newBuilder
-  def iterator: Iterator[RequestCookie] = headers.iterator
+
+class RequestCookieJar private (val cookies: List[RequestCookie]) extends AnyVal {
+  def iterator: Iterator[RequestCookie] = cookies.iterator
   def empty: RequestCookieJar = RequestCookieJar.empty
 
-  def get(key: String): Option[RequestCookie] = headers.find(_.name == key)
+  def get(key: String): Option[RequestCookie] = cookies.find(_.name == key)
   def apply(key: String): RequestCookie = get(key).getOrElse(default(key))
-  def contains(key: String): Boolean = headers.exists(_.name == key)
+  def contains(key: String): Boolean = cookies.exists(_.name == key)
   def getOrElse(key: String, default: => String): RequestCookie =
     get(key).getOrElse(RequestCookie(key, default))
-  override def seq: RequestCookieJar = this
   def default(key: String): RequestCookie =
     throw new NoSuchElementException("Can't find RequestCookie " + key)
 
-  def keySet: Set[String] = headers.map(_.name).toSet
+  def keySet: Set[String] = cookies.map(_.name).toSet
 
   /** Collects all keys of this map in an iterable collection.
     *
@@ -82,13 +50,7 @@ class RequestCookieJar(private val headers: Seq[RequestCookie])
     *
     *  @return the values of this map as an iterable.
     */
-  def values: Iterable[String] = headers.map(_.content)
-
-  /** Collects all values of this map in an iterable collection.
-    *
-    *  @return the values of this map as an iterable.
-    */
-  def cookies: Iterable[RequestCookie] = headers
+  def values: Iterable[String] = cookies.map(_.content)
 
   /** Creates an iterator for all keys.
     *
@@ -109,27 +71,13 @@ class RequestCookieJar(private val headers: Seq[RequestCookie])
     *          the predicate `p`. The resulting map wraps the original map without copying any elements.
     */
   def filterKeys(p: String => Boolean): RequestCookieJar =
-    new RequestCookieJar(headers.filter(c => p(c.name)))
-
-  /* Overridden for efficiency. */
-  override def toSeq: Seq[RequestCookie] = headers
-  override def toBuffer[C >: RequestCookie]: mutable.Buffer[C] = {
-    val result = new mutable.ArrayBuffer[C](size)
-    copyToBuffer(result)
-    result
-  }
-
-  override def equals(o: Any) =
-    o match {
-      case that: RequestCookieJar => this.headers == that.headers
-      case _ => false
-    }
-
-  override def hashCode(): Int =
-    headers.##
+    new RequestCookieJar(cookies.filter(c => p(c.name)))
 
   override def toString(): String =
-    s"RequestCookieJar(${map(_.renderString).mkString("\n")})"
+    s"RequestCookieJar(${cookies.map(_.renderString).mkString("\n")})"
+
+  def ++(cookies: collection.Iterable[RequestCookie]) =
+    new RequestCookieJar(this.cookies ++ cookies)
 }
 
 // see http://tools.ietf.org/html/rfc6265

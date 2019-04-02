@@ -41,7 +41,7 @@ final private[http4s] class IdleTimeoutStage[A](
     channelWrite(data)
   }
 
-  override def writeRequest(data: Seq[A]): Future[Unit] = {
+  override def writeRequest(data: collection.Seq[A]): Future[Unit] = {
     resetTimeout()
     channelWrite(data)
   }

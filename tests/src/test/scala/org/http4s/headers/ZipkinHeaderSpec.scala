@@ -45,8 +45,8 @@ class ZipkinHeaderSpec extends Http4sSpec with HeaderLaws {
       val sampledAndDebugFlag = "5"
       val result = `X-B3-Flags`.parse(sampledAndDebugFlag)
       result must beRight
-      result.right.get.flags must contain(Flag.Sampled)
-      result.right.get.flags must contain(Flag.Debug)
+      result.valueOr(throw _).flags must contain(Flag.Sampled: Flag)
+      result.valueOr(throw _).flags must contain(Flag.Debug: Flag)
     }
 
     "renders when no flags" >> {

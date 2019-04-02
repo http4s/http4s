@@ -9,7 +9,7 @@ import org.http4s.headers._
 package object authentication {
   def challenged[F[_], A](
       challenge: Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]])(
-      @deprecatedName('service) routes: AuthedService[A, F])(implicit F: Sync[F]): HttpRoutes[F] =
+      routes: AuthedService[A, F])(implicit F: Sync[F]): HttpRoutes[F] =
     Kleisli { req =>
       challenge
         .mapF(OptionT.liftF(_))

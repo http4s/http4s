@@ -55,7 +55,7 @@ private[parser] trait AuthorizationHeader {
     }
 
     def CredentialParams: Rule1[NonEmptyList[(String, String)]] = rule {
-      oneOrMore(AuthParam).separatedBy(ListSep) ~> { params: Seq[(String, String)] =>
+      oneOrMore(AuthParam).separatedBy(ListSep) ~> { params: collection.Seq[(String, String)] =>
         NonEmptyList(params.head, params.tail.toList)
       }
     }

@@ -5,7 +5,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
-  def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
+  def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply((first +: more).toList)
   def bytes: `Accept-Ranges` = apply(RangeUnit.Bytes)
   def none: `Accept-Ranges` = apply(Nil)
 
@@ -13,7 +13,7 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
     HttpHeaderParser.ACCEPT_RANGES(s)
 }
 
-final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit])
+final case class `Accept-Ranges` private[http4s] (rangeUnits: List[RangeUnit])
     extends Header.Parsed {
   def key: `Accept-Ranges`.type = `Accept-Ranges`
   def renderValue(writer: Writer): writer.type =

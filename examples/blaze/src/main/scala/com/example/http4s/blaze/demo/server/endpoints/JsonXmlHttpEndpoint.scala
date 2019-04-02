@@ -3,7 +3,7 @@ package com.example.http4s.blaze.demo.server.endpoints
 import cats.effect.Effect
 import cats.syntax.flatMap._
 import io.circe.generic.auto._
-import org.http4s._
+import org.http4s.{ApiVersion => _, _}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 

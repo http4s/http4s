@@ -24,7 +24,7 @@ private trait WriteSerializer[I] extends TailStage[I] { self =>
   override def channelWrite(data: I): Future[Unit] =
     channelWrite(data :: Nil)
 
-  override def channelWrite(data: Seq[I]): Future[Unit] = synchronized {
+  override def channelWrite(data: collection.Seq[I]): Future[Unit] = synchronized {
     if (serializerWritePromise == null) { // there is no queue!
       serializerWritePromise = Promise[Unit]
       val f = super.channelWrite(data)
@@ -91,9 +91,9 @@ trait ReadSerializer[I] extends TailStage[I] {
 
     if (pending == null) serializerDoRead(p, size, timeout) // no queue, just do a read
     else {
-      val started = if (timeout.isFinite()) System.currentTimeMillis() else 0
+      val started = if (timeout.isFinite) System.currentTimeMillis() else 0
       pending.onComplete { _ =>
-        val d = if (timeout.isFinite()) {
+        val d = if (timeout.isFinite) {
           val now = System.currentTimeMillis()
           // make sure now is `now` is not before started since
           // `currentTimeMillis` can return non-monotonic values.

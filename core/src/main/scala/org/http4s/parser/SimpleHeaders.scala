@@ -38,7 +38,6 @@ private[parser] trait SimpleHeaders {
           val ms = ts.map(
             Method
               .fromString(_)
-              .right
               .toOption
               .getOrElse(sys.error("Impossible. Please file a bug report.")))
           Allow(NonEmptyList.of(ms.head, ms.tail: _*))
@@ -78,7 +77,7 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`Content-Disposition`](value) {
       def entry = rule {
         Token ~ zeroOrMore(";" ~ OptWS ~ Parameter) ~ EOL ~> {
-          (token: String, params: Seq[(String, String)]) =>
+          (token: String, params: collection.Seq[(String, String)]) =>
             `Content-Disposition`(token, params.toMap)
         }
       }
@@ -192,7 +191,10 @@ private[parser] trait SimpleHeaders {
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
     new Http4sHeaderParser[`User-Agent`](value) {
       def entry = rule {
-        product ~ zeroOrMore(RWS ~ (product | comment)) ~> (`User-Agent`(_, _))
+        product ~ zeroOrMore(RWS ~ (product | comment)) ~> {
+          (product: AgentProduct, tokens: collection.Seq[AgentToken]) =>
+            (`User-Agent`(product, tokens.toList))
+        }
       }
 
       def product: Rule1[AgentProduct] = rule {

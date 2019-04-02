@@ -118,7 +118,7 @@ trait Writer {
   }
 
   def addStrings(
-      s: Seq[String],
+      s: collection.Seq[String],
       sep: String = "",
       start: String = "",
       end: String = ""): this.type = {
@@ -142,7 +142,7 @@ trait Writer {
   }
 
   def addSeq[T: Renderer](
-      s: Seq[T],
+      s: collection.Seq[T],
       sep: String = "",
       start: String = "",
       end: String = ""): this.type = {

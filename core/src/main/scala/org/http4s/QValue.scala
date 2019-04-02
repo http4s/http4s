@@ -4,7 +4,6 @@ import cats._
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser.{AdditionalRules, Http4sParser}
 import org.http4s.util.Writer
-import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 /**

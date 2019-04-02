@@ -104,14 +104,14 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse User-Agent" in {
-      val header = `User-Agent`(AgentProduct("foo", Some("bar")), Seq(AgentComment("foo")))
+      val header = `User-Agent`(AgentProduct("foo", Some("bar")), List(AgentComment("foo")))
       header.value must_== "foo/bar (foo)"
 
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
       val header2 = `User-Agent`(
         AgentProduct("foo"),
-        Seq(AgentProduct("bar", Some("biz")), AgentComment("blah")))
+        List(AgentProduct("bar", Some("biz")), AgentComment("blah")))
       header2.value must_== "foo bar/biz (blah)"
       HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
 
@@ -119,7 +119,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr)) must beRight(
         `User-Agent`(
           AgentProduct("Mozilla", Some("5.0")),
-          Seq(
+          List(
             AgentComment("Android; Mobile; rv:30.0"),
             AgentProduct("Gecko", Some("30.0")),
             AgentProduct("Firefox", Some("30.0"))

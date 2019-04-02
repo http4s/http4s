@@ -246,7 +246,7 @@ class BlazeClientSpec extends Http4sSpec {
               val resp = drainTestClient
                 .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
                 .attempt
-                .map(_.right.exists(_.nonEmpty))
+                .map(_.exists(_.nonEmpty))
                 .start
 
               // Wait 100 millis to shut down

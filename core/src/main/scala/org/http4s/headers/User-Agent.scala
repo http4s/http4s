@@ -25,7 +25,7 @@ final case class AgentComment(comment: String) extends AgentToken {
   override def render(writer: Writer): writer.type = writer << comment
 }
 
-final case class `User-Agent`(product: AgentProduct, other: Seq[AgentToken] = Seq.empty)
+final case class `User-Agent`(product: AgentProduct, other: List[AgentToken] = Nil)
     extends Header.Parsed {
   def key: `User-Agent`.type = `User-Agent`
 

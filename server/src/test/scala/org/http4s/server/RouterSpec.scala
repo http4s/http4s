@@ -72,7 +72,7 @@ class RouterSpec extends Http4sSpec {
 
     "Return the fallthrough response if no route is found" in {
       val router = Router[IO]("/foo" -> notFound)
-      router(Request[IO](uri = uri("/bar"))).value must returnValue(None)
+      router(Request[IO](uri = uri("/bar"))).value must returnValue(Option.empty[Response[IO]])
     }
   }
 }

@@ -385,12 +385,12 @@ http://example.org/a file
 
   "Uri.params.+" should {
     "add parameter to empty query" in {
-      val i = Uri(query = Query.empty).params + (("param", Seq("value")))
-      i must be_==(Map("param" -> Seq("value")))
+      val i = Uri(query = Query.empty).params + (("param", "value"))
+      i must be_==(Map("param" -> "value"))
     }
     "add parameter" in {
-      val i = Uri(query = Query.fromString("param1")).params + (("param2", Seq()))
-      i must be_==(Map("param1" -> Seq(), "param2" -> Seq()))
+      val i = Uri(query = Query.fromString("param1")).params + (("param2", ""))
+      i must be_==(Map("param1" -> "", "param2" -> ""))
     }
     "replace an existing parameter" in {
       val i = Uri(query = Query.fromString("param=value")).params + (
@@ -422,12 +422,12 @@ http://example.org/a file
 
   "Uri.params.iterate" should {
     "work on an URI without a query" in {
-      foreach(Uri(query = Query.empty).params.iterator) { i =>
+      foreach(Uri(query = Query.empty).params.toSeq) { i =>
         ko(s"should not have $i") // should not happen
       }
     }
     "work on empty list" in {
-      foreach(Uri(query = Query.fromString("")).params.iterator) {
+      foreach(Uri(query = Query.fromString("")).params.toSeq) {
         case (k, v) =>
           k must_== ""
           v must_== ""
@@ -513,9 +513,9 @@ http://example.org/a file
       Uri(query = Query.fromString("&&&=value1")).params.get("") must be_==(Some("value1"))
     }
     "find parameter with empty key and without value" in {
-      Uri(query = Query.fromString("&")).params.get("") must be_==(None)
-      Uri(query = Query.fromString("&&")).params.get("") must be_==(None)
-      Uri(query = Query.fromString("&&&")).params.get("") must be_==(None)
+      Uri(query = Query.fromString("&")).params.get("") must be_==(Some(""))
+      Uri(query = Query.fromString("&&")).params.get("") must be_==(Some(""))
+      Uri(query = Query.fromString("&&&")).params.get("") must be_==(Some(""))
     }
     "find parameter with an empty value" in {
       val u = Uri(query = Query.fromString("param1=&param2=value2"))
@@ -528,9 +528,9 @@ http://example.org/a file
     }
     "find parameter without value" in {
       val u = Uri(query = Query.fromString("param1&param2&param3"))
-      u.params.get("param1") must be_==(None)
-      u.params.get("param2") must be_==(None)
-      u.params.get("param3") must be_==(None)
+      u.params.get("param1") must be_==(Some(""))
+      u.params.get("param2") must be_==(Some(""))
+      u.params.get("param3") must be_==(Some(""))
     }
     "not find an unknown parameter" in {
       Uri(query = Query.fromString("param1&param2&param3")).params.get("param4") must be_==(None)
