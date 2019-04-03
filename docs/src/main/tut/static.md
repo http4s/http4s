@@ -2,6 +2,7 @@
 menu: main
 weight: 140
 title: Static Files
+---
 
 Http4s can serve static files, subject to a configuration policy. There are three 
 locations that Http4s can serve static content from: the filesystem, resources 
