@@ -421,7 +421,7 @@ lazy val docs = http4sProject("docs")
     TutPlugin
   )
   .settings(
-    crossScalaVersions := List(scala_212),
+    crossScalaVersions := List(scala_211, scala_212),
     libraryDependencies ++= Seq(
       circeGeneric,
       circeLiteral,
