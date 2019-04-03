@@ -8,11 +8,11 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.0-RC1 (2019-04-02)
+# v0.20.0-RC1 (2019-04-03)
 
 ## Breaking changes
 * [#2471](https://github.com/http4s/http4s/pull/2466): `Headers` is no longer an `Iterable[Header]`
-* [#2393](https://github.com/http4s/http4s/pull/2493): Several changes related to 2.13 support:
+* [#2393](https://github.com/http4s/http4s/pull/2393): Several changes related to 2.13 support:
   * Replace `Seq` with `List` on:
     * `` `Accept-Ranges.`.rangeUnits``
     * ``CacheDirective.`no-cache`.fieldNames``
@@ -30,7 +30,7 @@ it.
 ## Enhancements
 * [#2466](https://github.com/http4s/http4s/pull/2466): Provide better message for `WaitQueueFullFailure`
 * [#2479](https://github.com/http4s/http4s/pull/2479): Refresh `MimeDb` from the IANA registry
-* [#2393](https://github.com/http4s/http4s/pull/2493): Scala 2.13.0-M5 support
+* [#2393](https://github.com/http4s/http4s/pull/2393): Scala 2.13.0-M5 support
   * All modules except http4s-boopickle
   * `Monoid[Headers]` instance
 
@@ -41,6 +41,7 @@ it.
 * [#2469](https://github.com/http4s/http4s/pull/2469): Add scala-steward to adopters
 * [#2472](https://github.com/http4s/http4s/pull/2472): Add http4s-chatserver demo
 * [#2478](https://github.com/http4s/http4s/pull/2478): Better scaladoc for `HttpApp`
+* [#2480](https://github.com/http4s/http4s/pull/2480): Enhance documentation of static rendering
 
 ## Other
 * [#2474](https://github.com/http4s/http4s/pull/2474): Skip another blaze test that fails only on CI
