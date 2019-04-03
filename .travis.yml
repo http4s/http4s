@@ -52,10 +52,11 @@ jobs:
       jdk: *java_8
       before_install:
         - source scripts/helpers
-        - PATH="$HOME/bin:$PATH"
-        - export PATH=${PATH}:./vendor/bundle
       install:
         - scripts/install-hugo
+      before_script:
+        - PATH="$HOME/bin:$PATH"
+        - export PATH=${PATH}:./vendor/bundle
       script:
         - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite
         - sbt ++$TRAVIS_SCALA_VERSION website/makeSite
@@ -76,8 +77,6 @@ jobs:
       jdk: *java_8
       before_install:
         - source scripts/helpers
-        - PATH="$HOME/bin:$PATH"
-        - export PATH=${PATH}:./vendor/bundle
       install:
         - scripts/install-hugo
         - decrypt_deploy_key
@@ -90,13 +89,14 @@ jobs:
       jdk: *java_8
       before_install:
         - source scripts/helpers
-        - PATH="$HOME/bin:$PATH"
-        - export PATH=${PATH}:./vendor/bundle
       install:
         - scripts/install-hugo
         - decrypt_deploy_key
         - decrypt_pgp_secrets
         - configure_git
+      before_script:
+        - PATH="$HOME/bin:$PATH"
+        - export PATH=${PATH}:./vendor/bundle
       script:
         - sbt ++$TRAVIS_SCALA_VERSION docs/ghpagesPushSite
         - sbt ++$TRAVIS_SCALA_VERSION website/ghpagesPushSite
