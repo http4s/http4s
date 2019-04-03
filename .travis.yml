@@ -50,7 +50,7 @@ jobs:
     - env: TEST="docs"
       scala: *scala_version_212
       jdk: *java_8
-      before_script:
+      before_install:
         - source scripts/helpers
         - PATH="$HOME/bin:$PATH"
         - export PATH=${PATH}:./vendor/bundle
@@ -74,7 +74,7 @@ jobs:
       env: TEST="publish"
       scala: *scala_version_212
       jdk: *java_8
-      before_script:
+      before_install:
         - source scripts/helpers
         - PATH="$HOME/bin:$PATH"
         - export PATH=${PATH}:./vendor/bundle
@@ -88,7 +88,7 @@ jobs:
     - env: TEST="publish docs"
       scala: *scala_version_212
       jdk: *java_8
-      before_script:
+      before_install:
         - source scripts/helpers
         - PATH="$HOME/bin:$PATH"
         - export PATH=${PATH}:./vendor/bundle
