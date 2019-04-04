@@ -782,7 +782,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/MediaType.scala" target="_blank">MediaType.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e7e526961b2ecae0df9ee00e03ec1634c1161122/core/src/main/scala/org/http4s/MediaType.scala" target="_blank">MediaType.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -838,9 +838,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.MediaType#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(mainType:String,subType:String,compressible:Boolean,binary:Boolean,fileExtensions:Seq[String],extensions:Map[String,String]):org.http4s.MediaType"></a><a id="&lt;init&gt;:MediaType"></a>
+      <a id="&lt;init&gt;(mainType:String,subType:String,compressible:Boolean,binary:Boolean,fileExtensions:List[String],extensions:Map[String,String]):org.http4s.MediaType"></a><a id="&lt;init&gt;:MediaType"></a>
       <span class="permalink">
-      <a href="../../org/http4s/MediaType.html#&lt;init&gt;(mainType:String,subType:String,compressible:Boolean,binary:Boolean,fileExtensions:Seq[String],extensions:Map[String,String]):org.http4s.MediaType" title="Permalink">
+      <a href="../../org/http4s/MediaType.html#&lt;init&gt;(mainType:String,subType:String,compressible:Boolean,binary:Boolean,fileExtensions:List[String],extensions:Map[String,String]):org.http4s.MediaType" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -849,7 +849,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">MediaType</span><span class="params">(<span name="mainType">mainType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="subType">subType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="compressible">compressible: <a href="http://www.scala-lang.org/api/2.12.8/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="binary">binary: <a href="http://www.scala-lang.org/api/2.12.8/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="fileExtensions">fileExtensions: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Nil</span></span>, <span name="extensions">extensions: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Map.empty</span></span>)</span>
+        <span class="name">MediaType</span><span class="params">(<span name="mainType">mainType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="subType">subType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="compressible">compressible: <a href="http://www.scala-lang.org/api/2.12.8/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="binary">binary: <a href="http://www.scala-lang.org/api/2.12.8/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="fileExtensions">fileExtensions: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Nil</span></span>, <span name="extensions">extensions: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">Map.empty</span></span>)</span>
       </span>
       
       
@@ -1155,9 +1155,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a></dd></dl></div>
     </li><li name="org.http4s.MediaType#fileExtensions" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fileExtensions:Seq[String]"></a>
+      <a id="fileExtensions:List[String]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/MediaType.html#fileExtensions:Seq[String]" title="Permalink">
+      <a href="../../org/http4s/MediaType.html#fileExtensions:List[String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1166,7 +1166,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">fileExtensions</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">fileExtensions</span><span class="result">: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       

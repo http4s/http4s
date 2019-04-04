@@ -518,12 +518,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: User$minusAgent" class="name">User-Agent</span><span class="params">(<span name="product">product: <a href="AgentProduct.html" class="extype" name="org.http4s.headers.AgentProduct">AgentProduct</a></span>, <span name="other">other: <span class="extype" name="scala.Seq">Seq</span>[<a href="AgentToken.html" class="extype" name="org.http4s.headers.AgentToken">AgentToken</a>] = <span class="symbol">Seq.empty</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span title="gt4s: User$minusAgent" class="name">User-Agent</span><span class="params">(<span name="product">product: <a href="AgentProduct.html" class="extype" name="org.http4s.headers.AgentProduct">AgentProduct</a></span>, <span name="other">other: <span class="extype" name="scala.List">List</span>[<a href="AgentToken.html" class="extype" name="org.http4s.headers.AgentToken">AgentToken</a>] = <span class="symbol">Nil</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/headers/User-Agent.scala" target="_blank">User-Agent.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e7e526961b2ecae0df9ee00e03ec1634c1161122/core/src/main/scala/org/http4s/headers/User-Agent.scala" target="_blank">User-Agent.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -579,9 +579,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.headers.User-Agent#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(product:org.http4s.headers.AgentProduct,other:Seq[org.http4s.headers.AgentToken]):org.http4s.headers.User-Agent"></a><a id="&lt;init&gt;:User-Agent"></a>
+      <a id="&lt;init&gt;(product:org.http4s.headers.AgentProduct,other:List[org.http4s.headers.AgentToken]):org.http4s.headers.User-Agent"></a><a id="&lt;init&gt;:User-Agent"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/User$minusAgent.html#&lt;init&gt;(product:org.http4s.headers.AgentProduct,other:Seq[org.http4s.headers.AgentToken]):org.http4s.headers.User-Agent" title="Permalink">
+      <a href="../../../org/http4s/headers/User$minusAgent.html#&lt;init&gt;(product:org.http4s.headers.AgentProduct,other:List[org.http4s.headers.AgentToken]):org.http4s.headers.User-Agent" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -590,7 +590,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: User$minusAgent" class="name">User-Agent</span><span class="params">(<span name="product">product: <a href="AgentProduct.html" class="extype" name="org.http4s.headers.AgentProduct">AgentProduct</a></span>, <span name="other">other: <span class="extype" name="scala.Seq">Seq</span>[<a href="AgentToken.html" class="extype" name="org.http4s.headers.AgentToken">AgentToken</a>] = <span class="symbol">Seq.empty</span></span>)</span>
+        <span title="gt4s: User$minusAgent" class="name">User-Agent</span><span class="params">(<span name="product">product: <a href="AgentProduct.html" class="extype" name="org.http4s.headers.AgentProduct">AgentProduct</a></span>, <span name="other">other: <span class="extype" name="scala.List">List</span>[<a href="AgentToken.html" class="extype" name="org.http4s.headers.AgentToken">AgentToken</a>] = <span class="symbol">Nil</span></span>)</span>
       </span>
       
       
@@ -1062,9 +1062,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.headers.User-Agent#other" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="other:Seq[org.http4s.headers.AgentToken]"></a><a id="other:Seq[AgentToken]"></a>
+      <a id="other:List[org.http4s.headers.AgentToken]"></a><a id="other:List[AgentToken]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/User$minusAgent.html#other:Seq[org.http4s.headers.AgentToken]" title="Permalink">
+      <a href="../../../org/http4s/headers/User$minusAgent.html#other:List[org.http4s.headers.AgentToken]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1073,7 +1073,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">other</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<a href="AgentToken.html" class="extype" name="org.http4s.headers.AgentToken">AgentToken</a>]</span>
+        <span class="name">other</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="AgentToken.html" class="extype" name="org.http4s.headers.AgentToken">AgentToken</a>]</span>
       </span>
       
       
