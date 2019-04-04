@@ -28,7 +28,7 @@ trait QueryOps {
     _withQueryParam(QueryParam[T].key, QueryParamEncoder[T].encode(value) :: Nil)
 
   /** alias for withQueryParam */
-  def +*?[T: QueryParam: QueryParamEncoder](values: List[T]): Self =
+  def +*?[T: QueryParam: QueryParamEncoder](values: collection.Seq[T]): Self =
     _withQueryParam(QueryParam[T].key, values.map(QueryParamEncoder[T].encode))
 
   /** alias for withQueryParam */
