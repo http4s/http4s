@@ -98,8 +98,8 @@ jobs:
         - PATH="$HOME/bin:$PATH"
         - export PATH=${PATH}:./vendor/bundle
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION docs/ghpagesPushSite
-        - sbt ++$TRAVIS_SCALA_VERSION website/ghpagesPushSite
+        - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite docs/ghpagesPushSite
+        - sbt ++$TRAVIS_SCALA_VERSION website/makeSite website/ghpagesPushSite
   allow_failures:
     jdk: *java_11
     scala: *scala_version_212
