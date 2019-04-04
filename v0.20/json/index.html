@@ -94,7 +94,7 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;0.20.0-SNAPSHOT&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;0.20.0-RC1&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
@@ -223,7 +223,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$3@6905d41
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$3@7a924f27
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -301,7 +301,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@2d536d6a
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@186f914b
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res11: User = User(Alice)
