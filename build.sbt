@@ -36,8 +36,6 @@ lazy val modules: List[ProjectReference] = List(
   scalatags,
   mimedbGenerator,
   bench,
-  docs,
-  website,
   examples,
   examplesBlaze,
   examplesDocker,
