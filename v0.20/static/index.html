@@ -84,30 +84,77 @@
           
           
 
-<h2 id="on-static-data-and-http">On static data and HTTP</h2>
+<p>Http4s can serve static files, subject to a configuration policy. There are three
+locations that Http4s can serve static content from: the filesystem, resources
+using the classloader, and WebJars.</p>
+
+<p>All of these solutions are most likely slower than the equivalent in nginx or a
+similar static file hoster, but they&rsquo;re often fast enough.</p>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>To use fileService, the only configuration required is the relative path to the directory to serve.
+The service will automatically serve index.html if the request path is not a file. This service will also
+remove dot segments, to prevent attackers from reading files not contained in the directory
+being served.</p>
+
+<pre><code class="language-scala">import cats.effect._
+// import cats.effect._
+
+import cats.implicits._
+// import cats.implicits._
+
+import org.http4s.server.blaze.BlazeServerBuilder
+// import org.http4s.server.blaze.BlazeServerBuilder
+
+import org.http4s.server.staticcontent._
+// import org.http4s.server.staticcontent._
+
+import org.http4s.syntax.kleisli._
+// import org.http4s.syntax.kleisli._
+
+object SimpleHttpServer extends IOApp {
+  override def run(args: List[String]): IO[ExitCode] =
+    BlazeServerBuilder[IO]
+      .bindHttp(8080)
+      .withHttpApp(fileService[IO](FileService.Config(&quot;.&quot;)).orNotFound)
+      .serve
+      .compile.drain.as(ExitCode.Success)
+}
+// defined object SimpleHttpServer
+</code></pre>
+
+<p>Static content services can be composed into a larger application by using a <code>Router</code>:</p>
+
+<pre><code class="language-scala">val httpApp: HttpApp[IO] =
+    Router(
+      &quot;api&quot;    -&gt; anotherService
+      &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets))
+// &lt;console&gt;:5: error: ')' expected but string literal found.
+//              &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets))
+//              ^
+// &lt;console&gt;:5: error: unclosed string literal
+//              &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets))
+//                                                         ^
+
+    ).orNotFound
+// &lt;console&gt;:2: error: illegal start of definition
+//            ).orNotFound
+//            ^
+</code></pre>
+
+<h2 id="etags">ETags</h2>
 
 <p>Usually, if you fetch a file via HTTP, it ships with an ETag. An ETag specifies
 a file version. So the next time the browser requests that information, it sends
 the ETag along, and gets a 304 Not Modified back, so you don&rsquo;t have to send the
 data over the wire again.</p>
 
-<p>All of these solutions are most likely slower than the equivalent in nginx or a
-similar static file hoster, but they&rsquo;re often fast enough.</p>
-
-<h2 id="serving-static-files">Serving static files</h2>
-
-<p>Http4s provides a few helpers to handle ETags for you, they&rsquo;re located in <a href="../api/org/http4s/StaticFile$">StaticFile</a>.</p>
-
-<pre><code class="language-scala">import cats.effect._
-import org.http4s._
-import org.http4s.dsl.io._
-import java.io.File
-</code></pre>
-
-<h3 id="prerequisites">Prerequisites</h3>
+<h3 id="execution-context">Execution Context</h3>
 
 <p>Static file support uses a blocking API, so we&rsquo;ll need a blocking execution
-context:</p>
+context. The helpers in <code>org.http4s.server.staticcontent._</code> will use the global execution context, but
+for best results this should overriden according to the desired characteristics of your server.</p>
 
 <pre><code class="language-scala">import java.util.concurrent._
 import scala.concurrent.ExecutionContext
@@ -121,7 +168,16 @@ we&rsquo;re in IOApp, but you&rsquo;ll need one if you&rsquo;re following along 
 <pre><code class="language-scala">implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 </code></pre>
 
-<pre><code class="language-scala">val routes = HttpRoutes.of[IO] {
+<pre><code class="language-scala">val routes = fileService[IO](FileService.Config(&quot;.&quot;, executionContext = blockingEc))
+</code></pre>
+
+<p>For custom behaviour, <code>StaticFile.fromFile</code> can also be used directly in a route, to respond with a file:</p>
+
+<pre><code class="language-scala">import org.http4s._
+import org.http4s.dsl.io._
+import java.io.File
+
+val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / &quot;index.html&quot; =&gt;
     StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), blockingEc, Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
@@ -131,7 +187,14 @@ we&rsquo;re in IOApp, but you&rsquo;ll need one if you&rsquo;re following along 
 <h2 id="serving-from-jars">Serving from jars</h2>
 
 <p>For simple file serving, it&rsquo;s possible to package resources with the jar and
-deliver them from there. Append to the <code>List</code> as needed.</p>
+deliver them from there. For example, for all resources in the classpath under <code>assets</code>:</p>
+
+<pre><code class="language-scala">val routes = resourceService[IO](ResourceService.Config(&quot;/assets&quot;, ExecutionContext.global))
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.ResourceService$$$Lambda$34970/1377020789@6d02aa9)
+</code></pre>
+
+<p>For custom behaviour, <code>StaticFile.fromResource</code> can be used. In this example,
+only files matching a list of extensions are served. Append to the <code>List</code> as needed.</p>
 
 <pre><code class="language-scala">def static(file: String, blockingEc: ExecutionContext, request: Request[IO]) =
   StaticFile.fromResource(&quot;/&quot; + file, blockingEc, Some(request)).getOrElseF(NotFound())
@@ -141,7 +204,7 @@ val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, blockingEc, request)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$34450/928706650@2435812d)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$34969/1329770106@3c6bcb37)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -152,10 +215,10 @@ class path, as you usually would:</p>
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.webjars&quot; % &quot;jquery&quot; % &quot;3.1.1-1&quot;
 )
-// &lt;console&gt;:28: error: not found: value libraryDependencies
+// &lt;console&gt;:38: error: not found: value libraryDependencies
 //        libraryDependencies ++= Seq(
 //        ^
-// &lt;console&gt;:29: error: value % is not a member of String
+// &lt;console&gt;:39: error: value % is not a member of String
 //          &quot;org.webjars&quot; % &quot;jquery&quot; % &quot;3.1.1-1&quot;
 //                        ^
 </code></pre>
@@ -177,7 +240,7 @@ val webjars: HttpRoutes[IO] = webjarService(
     blockingExecutionContext = blockingEc
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$34523/769973011@32d35768)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$35015/312353508@663c64f9)
 </code></pre>
 
 <pre><code class="language-scala">blockingEc.shutdown()
