@@ -28,7 +28,8 @@ object JdkHttpClient {
       Client[F] { req =>
         Resource.liftF {
           F.delay(jdkHttpClient.sendAsync(convertRequest(req), BodyHandlers.ofPublisher))
-            .flatMap(fromJavaFuture(_).map(convertResponse(_)))
+            .flatMap(fromJavaFuture(_))
+            .flatMap(convertResponse(_))
         }
       }
     }
@@ -77,8 +78,7 @@ object JdkHttpClient {
       .version(req.httpVersion match {
         case HttpVersion.`HTTP/1.1` => HttpClient.Version.HTTP_1_1
         case HttpVersion.`HTTP/2.0` => HttpClient.Version.HTTP_2
-        case _ =>
-          throw new IllegalStateException("unsupported http version") // TODO better error handling
+        case _ => HttpClient.Version.HTTP_1_1
       })
     val headers = req.headers.iterator.flatMap { h =>
       // hacky workaround (see e.g. https://stackoverflow.com/questions/53979173)
@@ -89,21 +89,23 @@ object JdkHttpClient {
   }
 
   def convertResponse[F[_]: ConcurrentEffect](
-      res: HttpResponse[Flow.Publisher[util.List[ByteBuffer]]]): Response[F] =
-    Response(
-      status = Status.fromInt(res.statusCode).valueOr(throw _), // TODO better error handling
-      headers = Headers(res.headers.map.asScala.flatMap {
-        case (k, vs) => vs.asScala.map(Header(k, _))
-      }.toList),
-      httpVersion = res.version match {
-        case HttpClient.Version.HTTP_1_1 => HttpVersion.`HTTP/1.1`
-        case HttpClient.Version.HTTP_2 => HttpVersion.`HTTP/2.0`
-      },
-      body = FlowAdapters
-        .toPublisher(res.body)
-        .toStream[F]
-        .flatMap(bs =>
-          Stream.fromIterator(bs.asScala.map(Chunk.byteBuffer).iterator).flatMap(Stream.chunk))
-    )
+      res: HttpResponse[Flow.Publisher[util.List[ByteBuffer]]]): F[Response[F]] =
+    ConcurrentEffect[F].fromEither(Status.fromInt(res.statusCode)).map { status =>
+      Response(
+        status = status, // TODO better error handling
+        headers = Headers(res.headers.map.asScala.flatMap {
+          case (k, vs) => vs.asScala.map(Header(k, _))
+        }.toList),
+        httpVersion = res.version match {
+          case HttpClient.Version.HTTP_1_1 => HttpVersion.`HTTP/1.1`
+          case HttpClient.Version.HTTP_2 => HttpVersion.`HTTP/2.0`
+        },
+        body = FlowAdapters
+          .toPublisher(res.body)
+          .toStream[F]
+          .flatMap(bs =>
+            Stream.fromIterator(bs.asScala.map(Chunk.byteBuffer).iterator).flatMap(Stream.chunk))
+      )
+    }
 
 }
