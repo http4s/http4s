@@ -80,11 +80,11 @@ object JdkHttpClient {
         case HttpVersion.`HTTP/2.0` => HttpClient.Version.HTTP_2
         case _ => HttpClient.Version.HTTP_1_1
       })
-    val headers = req.headers.iterator.flatMap { h =>
-      // hacky workaround (see e.g. https://stackoverflow.com/questions/53979173)
-      if (restrictedHeaders.contains(h.name)) Iterator.empty
-      else Iterator(h.name.value, h.value)
-    }.toArray
+    val headers = req.headers.iterator
+    // hacky workaround (see e.g. https://stackoverflow.com/questions/53979173)
+      .filterNot(h => restrictedHeaders.contains(h.name))
+      .flatMap(h => Iterator(h.name.value, h.value))
+      .toArray
     (if (headers.isEmpty) rb else rb.headers(headers: _*)).build
   }
 
