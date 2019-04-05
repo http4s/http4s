@@ -38,7 +38,7 @@ object Http4sPlugin extends AutoPlugin {
     // secondary builds by the Travis build number.
     isTravisBuild := sys.env.get("TRAVIS").isDefined,
     http4sPrimary := sys.env.get("TRAVIS_JOB_NUMBER").fold(true)(_.endsWith(".1")),
-    
+
     // Publishing to gh-pages and sonatype only done from select branches and
     // never from pull requests.
     http4sPublish := {
@@ -341,6 +341,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.1"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
+  lazy val reactiveStreamsFlowAdapters      = "org.reactivestreams"    %  "reactive-streams-flow-adapters" % "1.0.2" // TODO formatting
   def scalacheck(sv:String)                 = "org.scalacheck"         %% "scalacheck"                % scalacheckVersion(sv)
   def scalaCompiler(so: String, sv: String) = so             %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so             %  "scala-reflect"             % sv

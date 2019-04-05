@@ -19,6 +19,7 @@ lazy val modules: List[ProjectReference] = List(
   asyncHttpClient,
   jettyClient,
   okHttpClient,
+  jdkHttpClient,
   servlet,
   jetty,
   tomcat,
@@ -237,6 +238,17 @@ lazy val okHttpClient = libraryProject("okhttp-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.okhttp
     ),
+  )
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+
+lazy val jdkHttpClient = libraryProject("jdk-http-client")
+  .settings(crossScalaAll)
+  .settings(
+    description := "JDK 11+ http client implementation for http4s clients",
+    libraryDependencies ++= Seq(
+      fs2ReactiveStreams,
+      reactiveStreamsFlowAdapters
+    )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
