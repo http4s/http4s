@@ -92,7 +92,7 @@ object JdkHttpClient {
       res: HttpResponse[Flow.Publisher[util.List[ByteBuffer]]]): F[Response[F]] =
     ConcurrentEffect[F].fromEither(Status.fromInt(res.statusCode)).map { status =>
       Response(
-        status = status, // TODO better error handling
+        status = status,
         headers = Headers(res.headers.map.asScala.flatMap {
           case (k, vs) => vs.asScala.map(Header(k, _))
         }.toList),
