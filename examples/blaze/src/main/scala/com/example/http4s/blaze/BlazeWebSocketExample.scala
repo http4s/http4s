@@ -43,6 +43,16 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
           case _ => Text("Something new")
         }
 
+      /* Note that this use of a queue is not typical of http4s applications.
+       * This creates a single queue to connect the input and ouput activity
+       * on the websocket together. The queue is therefore not accessible outside
+       * of this scope.
+       *
+       * While this meets the contract of the service to echo traffic back to
+       * its source, most applications will want to create the queue object at
+       * a higher level and pass it into the "routes" method or the containing
+       * class constructor.
+       */
       Queue
         .unbounded[F, WebSocketFrame]
         .flatMap { q =>
