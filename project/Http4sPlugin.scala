@@ -296,7 +296,7 @@ object Http4sPlugin extends AutoPlugin {
     if (priorTo2_13(scalaVersion)) "0.9.0" else "0.11.1"
 
   def specs2Version(scalaVersion: String): String =
-    if (priorTo2_13(scalaVersion)) "4.1.0" else "4.4.1"
+    if (priorTo2_13(scalaVersion)) "4.1.0" else "4.5.1"
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
