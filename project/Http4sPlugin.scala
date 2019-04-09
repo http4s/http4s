@@ -293,7 +293,7 @@ object Http4sPlugin extends AutoPlugin {
     if (priorTo2_13(scalaVersion)) "1.13.5" else "1.14.0"
 
   def disciplineVersion(scalaVersion: String): String =
-    if (priorTo2_13(scalaVersion)) "0.9.0" else "0.11.0"
+    if (priorTo2_13(scalaVersion)) "0.9.0" else "0.11.1"
 
   def specs2Version(scalaVersion: String): String =
     if (priorTo2_13(scalaVersion)) "4.1.0" else "4.4.1"
