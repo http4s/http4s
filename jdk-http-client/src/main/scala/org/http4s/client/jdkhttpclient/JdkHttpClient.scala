@@ -6,14 +6,14 @@ import java.net.http.HttpResponse.BodyHandlers
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.nio.ByteBuffer
 import java.util
-import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException, Flow}
-import java.util.function.BiFunction
+import java.util.concurrent.Flow
 
 import cats.effect._
 import cats.implicits._
 import fs2.interop.reactivestreams._
 import fs2.{Chunk, Stream}
 import org.http4s.client.Client
+import org.http4s.internal.fromCompletableFuture
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{Header, Headers, HttpVersion, Request, Response, Status}
 import org.reactivestreams.FlowAdapters
@@ -26,26 +26,12 @@ object JdkHttpClient {
       implicit F: ConcurrentEffect[F]): F[Client[F]] =
     F.delay(builder.build).map { jdkHttpClient =>
       Client[F] { req =>
-        Resource.liftF {
-          F.delay(jdkHttpClient.sendAsync(convertRequest(req), BodyHandlers.ofPublisher))
-            .flatMap(fromJavaFuture(_))
-            .flatMap(convertResponse(_))
-        }
+        Resource.liftF(
+          fromCompletableFuture(
+            F.delay(jdkHttpClient.sendAsync(convertRequest(req), BodyHandlers.ofPublisher)))
+            .flatMap(convertResponse(_)))
       }
     }
-
-  private def fromJavaFuture[F[_], A](cf: CompletableFuture[A])(implicit F: Concurrent[F]): F[A] =
-    F.cancelable(cb => {
-      cf.handle[Unit](new BiFunction[A, Throwable, Unit] {
-        override def apply(result: A, err: Throwable): Unit = err match {
-          case null => cb(Right(result))
-          case _: CancellationException => ()
-          case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
-          case ex => cb(Left(ex))
-        }
-      })
-      F.delay { cf.cancel(true); () }
-    })
 
   // see jdk.internal.net.http.common.Utils#DISALLOWED_HEADERS_SET
   private val restrictedHeaders =
