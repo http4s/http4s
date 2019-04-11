@@ -989,9 +989,9 @@ status line, headers, and a possible request body.
       
       <p class="shortcomment cmt">Add a Cookie header for the provided <span class="extype" name="Cookie">Cookie</span></p>
     </li><li name="org.http4s.Message#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="as[T](implicitF:cats.Functor[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]"></a><a id="as[T](Functor[F],EntityDecoder[F,T]):F[T]"></a>
+      <a id="as[A](implicitF:cats.MonadError[F,Throwable],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="as[A](MonadError[F,Throwable],EntityDecoder[F,A]):F[A]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Request.html#as[T](implicitF:cats.Functor[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]" title="Permalink">
+      <a href="../../org/http4s/Request.html#as[A](implicitF:cats.MonadError[F,Throwable],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1000,11 +1000,11 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">as</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Request.F">F</span>, <span class="extype" name="org.http4s.Message.as.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Request.F">F</span>[<span class="extype" name="org.http4s.Message.as.T">T</span>]</span>
+        <span class="name">as</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.Request.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>, <span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Request.F">F</span>, <span class="extype" name="org.http4s.Message.as.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.Request.F">F</span>[<span class="extype" name="org.http4s.Message.as.A">A</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><p>If no valid <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> has been described, allow Ok
-</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the effect which will generate the T</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the effect which will generate the A</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
