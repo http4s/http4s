@@ -96,7 +96,7 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     } else req
     fetch(r) {
       case Successful(resp) =>
-        d.decode(resp, strict = false).fold(throw _, identity)
+        d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
       case failedResponse =>
         onError(failedResponse).flatMap(F.raiseError)
     }
