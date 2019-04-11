@@ -31,7 +31,9 @@ package object oauth1 {
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token])(implicit F: Monad[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
+      token: Option[Token])(
+      implicit F: MonadError[F, Throwable],
+      W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).map {
       case (req, params) =>
         val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
@@ -106,7 +108,7 @@ package object oauth1 {
     UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = UrlCodingUtils.Unreserved)
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(
-      implicit F: Monad[F],
+      implicit F: MonadError[F, Throwable],
       W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
     val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 
