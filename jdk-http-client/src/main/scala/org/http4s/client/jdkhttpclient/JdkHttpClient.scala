@@ -122,10 +122,10 @@ object JdkHttpClient {
 
   private def convertHttpVersionFromHttp4s[F[_]](version: HttpVersion)(
       implicit F: ApplicativeError[F, Throwable]): F[HttpClient.Version] =
-    F.fromEither(version match {
-      case HttpVersion.`HTTP/1.1` => Right(HttpClient.Version.HTTP_1_1)
-      case HttpVersion.`HTTP/2.0` => Right(HttpClient.Version.HTTP_2)
-      case _ => Left(new IllegalArgumentException("invalid HTTP version"))
-    })
+    version match {
+      case HttpVersion.`HTTP/1.1` => HttpClient.Version.HTTP_1_1.pure[F]
+      case HttpVersion.`HTTP/2.0` => HttpClient.Version.HTTP_2.pure[F]
+      case _ => F.raiseError(new IllegalArgumentException("invalid HTTP version"))
+    }
 
 }
