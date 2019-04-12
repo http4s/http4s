@@ -24,6 +24,8 @@ import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
 import org.http4s.util.{StringWriter, Writer}
+
+import scala.reflect.macros.whitebox
 import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
@@ -277,5 +279,32 @@ object MediaType extends MimeDB {
         writer
       }
     }
+
+  class Macros(val c: whitebox.Context) {
+    import c.universe._
+
+    def mediaTypeLiteral(s: c.Expr[String]): Tree =
+      s.tree match {
+        case Literal(Constant(s: String)) =>
+          MediaType
+            .parse(s)
+            .fold(
+              e => c.abort(c.enclosingPosition, e.details),
+              _ =>
+                q"_root_.org.http4s.MediaType.parse($s).fold(throw _, _root_.scala.Predef.identity)"
+            )
+        case _ =>
+          c.abort(
+            c.enclosingPosition,
+            s"This method uses a macro to verify that a String literal is a valid media type. Use MediaType.parse if you have a dynamic String that you want to parse as a MediaType."
+          )
+      }
+  }
+
+  /**
+    * Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
+    * at compile time.
+    */
+  def mediaType(s: String): MediaType = macro MediaType.Macros.mediaTypeLiteral
 
 }
