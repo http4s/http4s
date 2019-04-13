@@ -48,7 +48,7 @@ class JettyScaffold private (num: Int, secure: Boolean) {
           val sslContext = SSLContext.getInstance("TLS")
           sslContext.init(kmf.getKeyManagers, null, null)
 
-          val sslContextFactory = new SslContextFactory()
+          val sslContextFactory = new SslContextFactory.Server()
           sslContextFactory.setSslContext(sslContext)
 
           val httpsConfig = new HttpConfiguration()
