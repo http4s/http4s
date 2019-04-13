@@ -104,7 +104,7 @@ object Http4sPlugin extends AutoPlugin {
     }).toSet,
 
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.9" cross CrossVersion.binary),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0"),
 
     scalafmtVersion := "1.5.1",
     Test / scalafmt := {
