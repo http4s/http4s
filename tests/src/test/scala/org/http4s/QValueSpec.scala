@@ -32,7 +32,41 @@ class QValueSpec extends Http4sSpec {
     Right(q(1.0)) must_== fromDouble(1.0)
     Right(q(0.5)) must_== fromDouble(0.5)
     Right(q(0.0)) must_== fromDouble(0.0)
-    // q(2.0) // doesn't compile: out of range
-    // q(0.5 + 0.1) // doesn't compile, not a literal
+
+    Right(qValue"1.0") must_== fromDouble(1.0)
+    Right(qValue"0.5") must_== fromDouble(0.5)
+    Right(qValue"0.0") must_== fromDouble(0.0)
+
+    Right(q(0.5 + 0.1)) must_== fromDouble(0.6)
+  }
+
+  "literal syntax should reject invalid values" in {
+    import org.specs2.execute._, Typecheck._
+    import org.specs2.matcher.TypecheckMatchers._
+
+    typecheck {
+      """
+        q(2.0) // doesn't compile: out of range
+      """
+    } should not succeed
+
+    typecheck {
+      """
+        val d: Double = 0.5 + 0.1
+        q(d) // doesn't compile, not a literal
+      """
+    } should not succeed
+
+    typecheck {
+      """
+        qValue"2.0" // doesn't compile: out of range
+      """
+    } should not succeed
+
+    typecheck {
+      """
+        qValue"invalid" // doesn't compile, not parsable as a double
+      """
+    } should not succeed
   }
 }

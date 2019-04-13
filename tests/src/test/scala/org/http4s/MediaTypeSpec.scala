@@ -43,8 +43,10 @@ class MediaTypeSpec extends Http4sSpec {
 
     "parse literals" in {
       val mediaType = MediaType.mediaType("application/json")
+      val mediaTypeSC = mediaType"application/json"
 
       mediaType must_== MediaType.application.`json`
+      mediaTypeSC must_== MediaType.application.`json`
     }
 
     "reject invalid literals" in {
@@ -54,6 +56,12 @@ class MediaTypeSpec extends Http4sSpec {
       typecheck {
         """
            MediaType.mediaType("not valid")
+        """
+      } must not succeed
+
+      typecheck {
+        """
+           mediaType"not valid"
         """
       } must not succeed
     }

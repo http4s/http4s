@@ -375,6 +375,7 @@ object Uri {
     * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
     * at compile time.
     */
+  @deprecated("""use uri"" string interpolation instead""", "0.20")
   def uri(s: String): Uri = macro Uri.Macros.uriLiteral
 
   implicit val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals

@@ -122,6 +122,7 @@ object QValue {
     * q(d) // does not compile: not a literal
     * }}}
     */
+  @deprecated("""use qValue"" string interpolation instead""", "0.20")
   def q(d: Double): QValue = macro Macros.qValueLiteral
 
   implicit val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
