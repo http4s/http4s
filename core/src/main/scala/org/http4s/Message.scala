@@ -208,12 +208,12 @@ sealed trait Message[F[_]] { self =>
     * If no valid [[Status]] has been described, allow Ok
     *
     * @param decoder [[EntityDecoder]] used to decode the [[Message]]
-    * @tparam T type of the result
-    * @return the effect which will generate the T
+    * @tparam A type of the result
+    * @return the effect which will generate the A
     */
-  def as[T](implicit F: Functor[F], decoder: EntityDecoder[F, T]): F[T] =
-    attemptAs.fold(throw _, identity)
-
+  def as[A](implicit F: MonadError[F, Throwable], decoder: EntityDecoder[F, A]): F[A] =
+    // n.b. this is foldF in cats master, and will eventually be further optimized with redeem
+    attemptAs.value.flatMap(_.fold(F.raiseError(_), F.pure(_)))
 }
 
 object Message {

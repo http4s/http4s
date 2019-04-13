@@ -99,7 +99,6 @@ lazy val core = libraryProject("core")
       log4s,
       parboiled,
       vault,
-      scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
     ),
     unmanagedSourceDirectories in Compile ++= {
       (unmanagedSourceDirectories in Compile).value.map { dir =>
@@ -374,7 +373,6 @@ lazy val twirl = http4sProject("twirl")
   .settings(crossScalaAll)
   .settings(
     description := "Twirl template support for http4s",
-    libraryDependencies += twirlApi,
     TwirlKeys.templateImports := Nil
   )
   .enablePlugins(SbtTwirl)

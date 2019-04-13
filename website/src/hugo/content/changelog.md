@@ -11,7 +11,7 @@ it.
 # v0.20.0-RC1 (2019-04-03)
 
 ## Breaking changes
-* [#2471](https://github.com/http4s/http4s/pull/2466): `Headers` is no longer an `Iterable[Header]`
+* [#2471](https://github.com/http4s/http4s/pull/2471): `Headers` is no longer an `Iterable[Header]`
 * [#2393](https://github.com/http4s/http4s/pull/2393): Several changes related to 2.13 support:
   * Replace `Seq` with `List` on:
     * `` `Accept-Ranges.`.rangeUnits``
