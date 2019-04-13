@@ -15,6 +15,9 @@ title: Adopters
 [Eckerd College](https://www.eckerd.edu/)
 : Uses http4s for several of its internal services.
 
+[Formation](https://www.formation.ai/)
+: Uses the client internally
+
 [看录取 Kanluqu](https://www.kanluqu.com)
 : College application resources for Chinese high school students, built entirely upon the Typelevel stack.
 
