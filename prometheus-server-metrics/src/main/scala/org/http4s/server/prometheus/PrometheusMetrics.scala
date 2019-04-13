@@ -184,6 +184,10 @@ object PrometheusMetrics {
       }
     } yield ()
 
+  // https://github.com/prometheus/client_java/blob/parent-0.5.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
+  private val DefaultHistogramBuckets: NonEmptyList[Double] =
+    NonEmptyList(.005, List(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10))
+
   /**
     * Metrics --
     *
@@ -214,13 +218,15 @@ object PrometheusMetrics {
       c: CollectorRegistry,
       prefix: String = "org_http4s_server",
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
-      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
+      responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets
   ): Kleisli[F, HttpService[F], HttpService[F]] = Kleisli { service: HttpService[F] =>
     Sync[F].delay {
       val serviceMetrics =
         ServiceMetrics(
           requestDuration = Histogram
             .build()
+            .buckets(responseDurationSecondsHistogramBuckets.toList : _*)
             .name(prefix + "_" + "response_duration_seconds")
             .help("Response Duration in seconds.")
             .labelNames("method", "serving_phase")
