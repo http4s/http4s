@@ -1,20 +1,18 @@
 package org.http4s.client.jdkhttpclient
 
+import java.net.URI
 import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
-import java.net.{ProxySelector, URI}
 import java.nio.ByteBuffer
-import java.time.{Duration => JDuration}
 import java.util
-import java.util.concurrent.{Executor, Flow}
+import java.util.concurrent.Flow
 
 import cats.ApplicativeError
 import cats.effect._
 import cats.implicits._
 import fs2.interop.reactivestreams._
 import fs2.{Chunk, Stream}
-import javax.net.ssl.SSLContext
 import org.http4s.client.Client
 import org.http4s.internal.fromCompletableFuture
 import org.http4s.util.CaseInsensitiveString
@@ -22,11 +20,18 @@ import org.http4s.{Header, Headers, HttpVersion, Request, Response, Status}
 import org.reactivestreams.FlowAdapters
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
 
-// TODO documentation
 object JdkHttpClient {
 
+  /**
+    * Creates a [[Client]] from an [[HttpClient]]. Note that the creation of an [[HttpClient]] is a
+    * side effect.
+    *
+    * @param jdkHttpClient The [[HttpClient]].
+    * @param ignoredHeaders A set of ignored request headers. Some headers (like Content-Length) are
+    *                       "restricted" and cannot be set by the user. By default, the set of
+    *                       restricted headers of the OpenJDK 11 is used.
+    */
   def apply[F[_]](
       jdkHttpClient: HttpClient,
       ignoredHeaders: Set[CaseInsensitiveString] = restrictedHeaders
@@ -49,7 +54,6 @@ object JdkHttpClient {
           .uri(URI.create(req.uri.renderString))
           .version(version)
         val headers = req.headers.iterator
-        // hacky workaround (see e.g. https://stackoverflow.com/questions/53979173)
           .filterNot(h => ignoredHeaders.contains(h.name))
           .flatMap(h => Iterator(h.name.value, h.value))
           .toArray
@@ -84,27 +88,19 @@ object JdkHttpClient {
     }
   }
 
-  def createUnderlyingClient[F[_]](
-      httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-      connectTimeout: Duration = 10.seconds,
-      redirectPolicy: HttpClient.Redirect = HttpClient.Redirect.NEVER,
-      sslContext: => SSLContext = SSLContext.getDefault,
-      proxySelector: => ProxySelector = ProxySelector.getDefault,
-      customEC: Option[Executor] = None
-  )(implicit F: Sync[F]): F[HttpClient] =
-    convertHttpVersionFromHttp4s[F](httpVersion).flatMap(version =>
-      F.delay {
-        val builder = HttpClient.newBuilder
-          .version(version)
-          .connectTimeout(JDuration.ofNanos(connectTimeout.toNanos))
-          .followRedirects(redirectPolicy)
-          .sslContext(sslContext)
-          .proxy(proxySelector)
-        customEC.fold(builder)(builder.executor).build()
-    })
+  /**
+    * A [[Client]] wrapping the default [[HttpClient]].
+    */
+  def simple[F[_]](implicit F: ConcurrentEffect[F]): F[Client[F]] =
+    F.delay(HttpClient.newHttpClient()).map(apply(_))
 
-  def simple[F[_]: ConcurrentEffect]: F[Client[F]] =
-    createUnderlyingClient[F]().map(apply[F](_))
+  def convertHttpVersionFromHttp4s[F[_]](version: HttpVersion)(
+      implicit F: ApplicativeError[F, Throwable]): F[HttpClient.Version] =
+    version match {
+      case HttpVersion.`HTTP/1.1` => HttpClient.Version.HTTP_1_1.pure[F]
+      case HttpVersion.`HTTP/2.0` => HttpClient.Version.HTTP_2.pure[F]
+      case _ => F.raiseError(new IllegalArgumentException("invalid HTTP version"))
+    }
 
   // see jdk.internal.net.http.common.Utils#DISALLOWED_HEADERS_SET
   private val restrictedHeaders =
@@ -119,13 +115,5 @@ object JdkHttpClient {
       "via",
       "warning"
     ).map(CaseInsensitiveString(_))
-
-  private def convertHttpVersionFromHttp4s[F[_]](version: HttpVersion)(
-      implicit F: ApplicativeError[F, Throwable]): F[HttpClient.Version] =
-    version match {
-      case HttpVersion.`HTTP/1.1` => HttpClient.Version.HTTP_1_1.pure[F]
-      case HttpVersion.`HTTP/2.0` => HttpClient.Version.HTTP_2.pure[F]
-      case _ => F.raiseError(new IllegalArgumentException("invalid HTTP version"))
-    }
 
 }
