@@ -562,6 +562,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="Http4sInstances.html" title="">Http4sInstances</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="class" href="package$$Http4sLiteralSyntax.html" title=""></a>
+                        <a href="package$$Http4sLiteralSyntax.html" title="">Http4sLiteralSyntax</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
                       </li><li class="current-entities indented2">
@@ -604,6 +608,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="LanguageTag$.html" title=""></a>
                         <a class="class" href="LanguageTag.html" title=""></a>
                         <a href="LanguageTag.html" title="">LanguageTag</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala"></a>
+                        <a href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala">LiteralSyntaxMacros</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
@@ -1252,25 +1260,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
-    </li><li name="org.http4s.QValue#q" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="q(d:Double):org.http4s.QValue"></a><a id="q(Double):QValue"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/QValue$.html#q(d:Double):org.http4s.QValue" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">macro </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">q</span><span class="params">(<span name="d">d: <a href="http://www.scala-lang.org/api/2.12.8/scala/Double.html#scala.Double" class="extype" name="scala.Double">Double</a></span>)</span><span class="result">: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Supports a literal syntax for validated QValues.</p><div class="fullcomment"><div class="comment cmt"><p>Supports a literal syntax for validated QValues.</p><p>Example:</p><pre>q(<span class="num">0.5</span>).success == QValue.fromDouble(<span class="num">0.5</span>)
-q(<span class="num">1.1</span>) <span class="cmt">// does not compile: out of range</span>
-<span class="kw">val</span> d = <span class="num">0.5</span>
-q(d) <span class="cmt">// does not compile: not a literal</span></pre></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -1393,7 +1382,32 @@ q(d) <span class="cmt">// does not compile: not a literal</span></pre></div></di
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.QValue#q" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="q(d:Double):org.http4s.QValue"></a><a id="q(Double):QValue"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QValue$.html#q(d:Double):org.http4s.QValue" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">macro </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20) use qValue&quot;&quot; string interpolation instead">q</span><span class="params">(<span name="d">d: <a href="http://www.scala-lang.org/api/2.12.8/scala/Double.html#scala.Double" class="extype" name="scala.Double">Double</a></span>)</span><span class="result">: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Supports a literal syntax for validated QValues.</p><div class="fullcomment"><div class="comment cmt"><p>Supports a literal syntax for validated QValues.</p><p>Example:</p><pre>q(<span class="num">0.5</span>).success == QValue.fromDouble(<span class="num">0.5</span>)
+q(<span class="num">1.1</span>) <span class="cmt">// does not compile: out of range</span>
+<span class="kw">val</span> d = <span class="num">0.5</span>
+q(d) <span class="cmt">// does not compile: not a literal</span></pre></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20)</i> use qValue&quot;&quot; string interpolation instead</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

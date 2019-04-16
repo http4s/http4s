@@ -562,6 +562,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="Http4sInstances.html" title="">Http4sInstances</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="class" href="package$$Http4sLiteralSyntax.html" title=""></a>
+                        <a href="package$$Http4sLiteralSyntax.html" title="">Http4sLiteralSyntax</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
                       </li><li class="current-entities indented2">
@@ -604,6 +608,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="LanguageTag$.html" title=""></a>
                         <a class="class" href="LanguageTag.html" title=""></a>
                         <a href="LanguageTag.html" title="">LanguageTag</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala"></a>
+                        <a href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala">LiteralSyntaxMacros</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
@@ -1390,24 +1398,6 @@ https://github.com/Norconex/commons-lang/blob/c83fdeac7a60ac99c8602e0b47056ad77b
  fails, throws a <a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a>.</p><p> For totality, call <a href="#fromString(s:String):org.http4s.ParseResult[org.http4s.Uri]" class="extmbr" name="org.http4s.Uri#fromString">#fromString</a>.  For compile-time
  verification of literals, call <a href="#uri(s:String):org.http4s.Uri" class="extmbr" name="org.http4s.Uri#uri">#uri</a>.
 </p></div></div>
-    </li><li name="org.http4s.Uri#uri" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="uri(s:String):org.http4s.Uri"></a><a id="uri(String):Uri"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Uri$.html#uri(s:String):org.http4s.Uri" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">macro </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">uri</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Literal syntax for URIs.</p><div class="fullcomment"><div class="comment cmt"><p>Literal syntax for URIs.  Invalid or non-literal arguments are rejected
-at compile time.
-</p></div></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -1546,7 +1536,31 @@ at compile time.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.Uri#uri" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="uri(s:String):org.http4s.Uri"></a><a id="uri(String):Uri"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$.html#uri(s:String):org.http4s.Uri" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">macro </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20) use uri&quot;&quot; string interpolation instead">uri</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Literal syntax for URIs.</p><div class="fullcomment"><div class="comment cmt"><p>Literal syntax for URIs.  Invalid or non-literal arguments are rejected
+at compile time.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20)</i> use uri&quot;&quot; string interpolation instead</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

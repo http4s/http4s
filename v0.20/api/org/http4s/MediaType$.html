@@ -562,6 +562,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="Http4sInstances.html" title="">Http4sInstances</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="class" href="package$$Http4sLiteralSyntax.html" title=""></a>
+                        <a href="package$$Http4sLiteralSyntax.html" title="">Http4sLiteralSyntax</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
                       </li><li class="current-entities indented2">
@@ -604,6 +608,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="LanguageTag$.html" title=""></a>
                         <a class="class" href="LanguageTag.html" title=""></a>
                         <a href="LanguageTag.html" title="">LanguageTag</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala"></a>
+                        <a href="LiteralSyntaxMacros$.html" title="Thanks to ip4s for the singlePartInterpolator implementation https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala">LiteralSyntaxMacros</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
@@ -832,7 +840,26 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div id="allMembers">
         
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.MediaType.Macros" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MacrosextendsAnyRef"></a><a id="Macros:Macros"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MediaType$.html#MacrosextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="MediaType$$Macros.html"><span class="name">Macros</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      
+    </li></ol>
+            </div>
 
         
 
@@ -1612,7 +1639,31 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.MediaType#mediaType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mediaType(s:String):org.http4s.MediaType"></a><a id="mediaType(String):MediaType"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MediaType$.html#mediaType(s:String):org.http4s.MediaType" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">macro </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20) use mediaType&quot;&quot; string interpolation instead">mediaType</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Literal syntax for MediaTypes.</p><div class="fullcomment"><div class="comment cmt"><p>Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
+at compile time.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20)</i> use mediaType&quot;&quot; string interpolation instead</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
