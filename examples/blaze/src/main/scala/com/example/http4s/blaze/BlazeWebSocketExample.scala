@@ -67,7 +67,6 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
   def stream: Stream[F, ExitCode] =
     BlazeServerBuilder[F]
       .bindHttp(8080)
-      .withWebSockets(true)
       .withHttpApp(routes.orNotFound)
       .serve
 }
