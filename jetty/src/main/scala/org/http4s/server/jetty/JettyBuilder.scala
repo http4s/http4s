@@ -14,6 +14,7 @@ import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHo
 import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
+import org.eclipse.jetty.util.AttributesMap
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.log4s.getLogger
@@ -30,7 +31,8 @@ sealed class JettyBuilder[F[_]] private (
     sslBits: Option[SSLConfig],
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    attributes: Map[String, AnyRef]
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
@@ -49,7 +51,8 @@ sealed class JettyBuilder[F[_]] private (
       sslBits: Option[SSLConfig] = sslBits,
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
-      banner: immutable.Seq[String] = banner
+      banner: immutable.Seq[String] = banner,
+      attributes: Map[String, AnyRef] = attributes
   ): Self =
     new JettyBuilder(
       socketAddress,
@@ -61,7 +64,9 @@ sealed class JettyBuilder[F[_]] private (
       sslBits,
       mounts,
       serviceErrorHandler,
-      banner)
+      banner,
+      attributes
+    )
 
   def withSSL(
       keyStore: StoreInfo,
@@ -139,6 +144,9 @@ sealed class JettyBuilder[F[_]] private (
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
+  def withAttributes(attributes: Map[String, AnyRef]): Self =
+    copy(attributes = attributes)
+
   private def getConnector(jetty: JServer): ServerConnector = {
     def httpsConnector(sslContextFactory: SslContextFactory) =
       new ServerConnector(
@@ -195,6 +203,16 @@ sealed class JettyBuilder[F[_]] private (
       val jetty = new JServer(threadPool)
 
       val context = new ServletContextHandler()
+      if (attributes.nonEmpty) {
+        val attributeMap = {
+          val map = new AttributesMap()
+          attributes.foreach {
+            case (k, v) => map.setAttribute(k, v)
+          }
+          map
+        }
+        context.setAttributes(attributeMap)
+      }
       context.setContextPath("/")
 
       jetty.setHandler(context)
@@ -261,7 +279,8 @@ object JettyBuilder {
     sslBits = None,
     mounts = Vector.empty,
     serviceErrorHandler = DefaultServiceErrorHandler,
-    banner = defaults.Banner
+    banner = defaults.Banner,
+    attributes = Map.empty
   )
 }
 
