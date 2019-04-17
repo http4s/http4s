@@ -1,5 +1,6 @@
 package org.http4s.metrics.prometheus
 
+import cats.data.NonEmptyList
 import cats.effect.Sync
 import io.prometheus.client._
 import org.http4s.{Method, Status}
@@ -61,7 +62,7 @@ object Prometheus {
     * * @param registry a metrics collector registry
     * * @param prefix a prefix that will be added to all metrics
     **/
-  def apply[F[_]](registry: CollectorRegistry, prefix: String = "org_http4s_server")(
+  def apply[F[_]](registry: CollectorRegistry, prefix: String = "org_http4s_server", responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets)(
       implicit F: Sync[F]): F[MetricsOps[F]] = F.delay {
     new MetricsOps[F] {
 
@@ -156,6 +157,7 @@ object Prometheus {
         MetricsCollection(
           responseDuration = Histogram
             .build()
+            .buckets(responseDurationSecondsHistogramBuckets.toList : _*)
             .name(prefix + "_" + "response_duration_seconds")
             .help("Response Duration in seconds.")
             .labelNames("classifier", "method", "phase")
@@ -181,6 +183,11 @@ object Prometheus {
         )
     }
   }
+
+  // https://github.com/prometheus/client_java/blob/parent-0.6.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
+  private val DefaultHistogramBuckets: NonEmptyList[Double] =
+    NonEmptyList(.005, List(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10))
+
 }
 
 case class MetricsCollection(
