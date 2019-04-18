@@ -62,7 +62,10 @@ object Prometheus {
     * * @param registry a metrics collector registry
     * * @param prefix a prefix that will be added to all metrics
     **/
-  def apply[F[_]](registry: CollectorRegistry, prefix: String = "org_http4s_server", responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets)(
+  def apply[F[_]](
+      registry: CollectorRegistry,
+      prefix: String = "org_http4s_server",
+      responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets)(
       implicit F: Sync[F]): F[MetricsOps[F]] = F.delay {
     new MetricsOps[F] {
 
@@ -157,7 +160,7 @@ object Prometheus {
         MetricsCollection(
           responseDuration = Histogram
             .build()
-            .buckets(responseDurationSecondsHistogramBuckets.toList : _*)
+            .buckets(responseDurationSecondsHistogramBuckets.toList: _*)
             .name(prefix + "_" + "response_duration_seconds")
             .help("Response Duration in seconds.")
             .labelNames("classifier", "method", "phase")
