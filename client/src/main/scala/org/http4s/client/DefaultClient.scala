@@ -193,6 +193,14 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def status(req: F[Request[F]]): F[Status] =
     req.flatMap(status)
 
+  /** Submits a GET request to the URI and returns the response status */
+  override def statusFromUri(uri: Uri): F[Status] =
+    status(Request[F](uri = uri))
+
+  /** Submits a GET request to the URI and returns the response status */
+  override def statusFromString(s: String): F[Status] =
+    F.fromEither(Uri.fromString(s)).flatMap(statusFromUri)
+
   /** Submits a request and returns true if and only if the response status is
     * successful */
   def successful(req: Request[F]): F[Boolean] =
