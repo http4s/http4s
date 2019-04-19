@@ -8,6 +8,32 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.0
+
+## Breaking changes
+* [#2506](https://github.com/http4s/http4s/pull/2506): Raise `DecodeFailure` with `MonadError` in `Message#as` rather than relying on effect to catch in `fold`. Requires a new `MonadError` constraint.
+
+## Bugfixes
+* [#2502](https://github.com/http4s/http4s/pull/2502): Stop relying on undefined behavior of `fold` to catch errors in client.
+
+## Enhancements
+* [#2508](https://github.com/http4s/http4s/pull/2508): Add `mediaType` String context macro for validating literals.  Provide the same for `uri` and `qValue`, deprecating `Uri.uri` and `QValue.q`.
+
+## Documentation
+* [#2488](https://github.com/http4s/http4s/pull/2488): Fix bad link in changelog
+* [#2494](https://github.com/http4s/http4s/pull/2494): Add note on queue usage to `BlazeWebSocketExample`
+* [#2509](https://github.com/http4s/http4s/pull/2509): Add Formation as adopter
+* [#2516](https://github.com/http4s/http4s/pull/2516): Drop redundant `enableWebSockets` in blaze example.
+
+## Dependency updates
+* jetty-9.4.16.v20190411
+* kind-projector-0.10.0 (build only)
+* okhttp-3.14.1
+* mockito-core-2.27.0 (test only)
+* sbt-jmh-0.3.6 (benchmarks only)
+* tomcat-9.0.19
+* tut-plugin-0.6.11 (docs only)
+
 # v0.20.0-RC1 (2019-04-03)
 
 ## Breaking changes
@@ -26,7 +52,7 @@ it.
     * `Uri#multipParams.values`
   * `Query` is no longer a `Seq[Query.KeyValue]`
   * `RequestCookieJar` is no longer an `Iterable[RequestCookie]`.
-      
+
 ## Enhancements
 * [#2466](https://github.com/http4s/http4s/pull/2466): Provide better message for `WaitQueueFullFailure`
 * [#2479](https://github.com/http4s/http4s/pull/2479): Refresh `MimeDb` from the IANA registry
