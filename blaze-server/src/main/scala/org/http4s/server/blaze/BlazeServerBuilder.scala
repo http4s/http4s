@@ -10,6 +10,7 @@ import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
+import java.util.concurrent.ThreadFactory
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.blaze.channel.{
@@ -28,6 +29,7 @@ import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.util.threads.threadFactory
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -76,6 +78,7 @@ class BlazeServerBuilder[F[_]](
     isNio2: Boolean,
     connectorPoolSize: Int,
     bufferSize: Int,
+    selectorThreadFactory: ThreadFactory,
     enableWebSockets: Boolean,
     sslBits: Option[SSLConfig],
     isHttp2Enabled: Boolean,
@@ -101,6 +104,7 @@ class BlazeServerBuilder[F[_]](
       isNio2: Boolean = isNio2,
       connectorPoolSize: Int = connectorPoolSize,
       bufferSize: Int = bufferSize,
+      selectorThreadFactory: ThreadFactory = selectorThreadFactory,
       enableWebSockets: Boolean = enableWebSockets,
       sslBits: Option[SSLConfig] = sslBits,
       http2Support: Boolean = isHttp2Enabled,
@@ -120,6 +124,7 @@ class BlazeServerBuilder[F[_]](
       isNio2,
       connectorPoolSize,
       bufferSize,
+      selectorThreadFactory,
       enableWebSockets,
       sslBits,
       http2Support,
@@ -174,6 +179,9 @@ class BlazeServerBuilder[F[_]](
   def withConnectorPoolSize(size: Int): Self = copy(connectorPoolSize = size)
 
   def withBufferSize(size: Int): Self = copy(bufferSize = size)
+
+  def withSelectorThreadFactory(selectorThreadFactory: ThreadFactory): Self =
+    copy(selectorThreadFactory = selectorThreadFactory)
 
   def withNio2(isNio2: Boolean): Self = copy(isNio2 = isNio2)
 
@@ -308,9 +316,11 @@ class BlazeServerBuilder[F[_]](
 
     val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
       if (isNio2)
-        NIO2SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize, channelOptions)
+        NIO2SocketServerGroup
+          .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
       else
-        NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize, channelOptions)
+        NIO1SocketServerGroup
+          .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
     })(factory => F.delay { factory.closeGroup() })
 
     def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
@@ -394,6 +404,7 @@ object BlazeServerBuilder {
       isNio2 = false,
       connectorPoolSize = DefaultPoolSize,
       bufferSize = 64 * 1024,
+      selectorThreadFactory = defaultThreadSelectorFactory,
       enableWebSockets = true,
       sslBits = None,
       isHttp2Enabled = false,
@@ -408,4 +419,7 @@ object BlazeServerBuilder {
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =
     Kleisli(_ => Response[F](Status.NotFound).pure[F])
+
+  private def defaultThreadSelectorFactory: ThreadFactory =
+    threadFactory(name = n => s"blaze-selector-${n}", daemon = false)
 }
