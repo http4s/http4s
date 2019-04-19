@@ -111,10 +111,10 @@ def deleteTweet(id: Int): IO[Unit] = ???
 // deleteTweet: (id: Int)cats.effect.IO[Unit]
 
 implicit val tweetWithIdEncoder = jsonEncoderOf[IO, TweetWithId]
-// tweetWithIdEncoder: org.http4s.EntityEncoder[cats.effect.IO,TweetWithId] = org.http4s.EntityEncoder$$anon$1@15c87ed8
+// tweetWithIdEncoder: org.http4s.EntityEncoder[cats.effect.IO,TweetWithId] = org.http4s.EntityEncoder$$anon$1@11d82e7
 
 implicit val tweetDecoder = jsonOf[IO, Tweet]
-// tweetDecoder: org.http4s.EntityDecoder[cats.effect.IO,Tweet] = org.http4s.EntityDecoder$$anon$2@1b49e6a2
+// tweetDecoder: org.http4s.EntityDecoder[cats.effect.IO,Tweet] = org.http4s.EntityDecoder$$anon$2@1459e4df
 
 val tweetService = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
@@ -133,7 +133,7 @@ val tweetService = HttpRoutes.of[IO] {
     deleteTweet(tweetId)
       .flatMap(_ =&gt; Ok())
 }
-// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$21118/568166661@1f7af0b0)
+// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$21202/1683981532@15c10581)
 </code></pre>
 
 <p>There&rsquo;s also <a href="../api/org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
