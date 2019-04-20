@@ -8,7 +8,25 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.0
+# v0.20.0 (2019-04-20)
+
+## Announcements
+
+### blaze-client stability
+
+We are declaring this a stable release, though we acknowledge a handful of lingering issues with the blaze-client.  Users who have trouble with the blaze backend are invited to try the async-http-client, okhttp, or jetty-client backends instead.
+
+### Scala 2.13 compatibility
+
+When our dependencies are published for Scala 2.13.0-RC1, we will publish for it and drop support for Scala 2.13.0-M5.  We know it's out there, and we're as anxious as you.
+
+### cats-2 and http4s-0.21
+
+Cats 2.0 is expected soon, and a Cats Effect 2.0 is under discussion.  These will be binary compatible with their 1.x versions, with the excpetion of their laws modules.  We intend to publish http4s-0.21 on these when they are available in order to provide a compatible stack for our own laws.
+
+### EOL of 0.18
+
+This marks the end of active support for the 0.18 series.  Further releases in that series will require a pull request and an accompanying tale of woe.
 
 ## Breaking changes
 * [#2506](https://github.com/http4s/http4s/pull/2506): Raise `DecodeFailure` with `MonadError` in `Message#as` rather than relying on effect to catch in `fold`. Requires a new `MonadError` constraint.
