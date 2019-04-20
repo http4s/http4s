@@ -18,6 +18,7 @@ it.
 
 ## Enhancements
 * [#2508](https://github.com/http4s/http4s/pull/2508): Add `mediaType` String context macro for validating literals.  Provide the same for `uri` and `qValue`, deprecating `Uri.uri` and `QValue.q`.
+* [#2520](https://github.com/http4s/http4s/pull/2520): Parameterize `selectorThreadFactory` for blaze server.  This allows setting the priority for selector threads.
 
 ## Documentation
 * [#2488](https://github.com/http4s/http4s/pull/2488): Fix bad link in changelog
@@ -25,7 +26,11 @@ it.
 * [#2509](https://github.com/http4s/http4s/pull/2509): Add Formation as adopter
 * [#2516](https://github.com/http4s/http4s/pull/2516): Drop redundant `enableWebSockets` in blaze example.
 
+## Internals
+* [#2521](https://github.com/http4s/http4s/pull/2521): Add utility conversion for `java.util.concurrent.CompletableFuture` to `F[_]: Concurrent`
+
 ## Dependency updates
+* blaze-0.14.0
 * jetty-9.4.16.v20190411
 * kind-projector-0.10.0 (build only)
 * okhttp-3.14.1
