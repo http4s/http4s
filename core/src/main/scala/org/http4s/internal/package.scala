@@ -1,13 +1,16 @@
 package org.http4s
 
+import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException}
+import java.util.function.BiFunction
+
 import cats.effect._
 import cats.implicits._
-import scala.concurrent.ExecutionContext
 import org.http4s.util.execution.direct
 import org.log4s.Logger
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NoStackTrace
+import scala.util.{Failure, Success}
 
 package object internal {
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
@@ -116,5 +119,22 @@ package object internal {
             }(direct)
           }
       }
+    }
+
+  // Adapted from https://github.com/typelevel/cats-effect/issues/160#issue-306054982
+  private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(
+      implicit F: Concurrent[F]): F[A] =
+    fcf.flatMap { cf =>
+      F.cancelable(cb => {
+        cf.handle[Unit](new BiFunction[A, Throwable, Unit] {
+          override def apply(result: A, err: Throwable): Unit = err match {
+            case null => cb(Right(result))
+            case _: CancellationException => ()
+            case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
+            case ex => cb(Left(ex))
+          }
+        })
+        F.delay { cf.cancel(true); () }
+      })
     }
 }
