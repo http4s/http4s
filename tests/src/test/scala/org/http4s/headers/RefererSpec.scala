@@ -4,7 +4,7 @@ import cats.effect.IO
 import org.http4s.{Headers, Request, Uri}
 
 class RefererSpec extends HeaderLaws {
-  checkAll("Referer", headerLaws(`Retry-After`))
+  checkAll("Referer", headerLaws(Referer))
 
   def getUri(uri: String): Uri =
     Uri.fromString(uri).fold(_ => sys.error(s"Failure on uri: $uri"), identity)
