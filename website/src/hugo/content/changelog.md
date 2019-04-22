@@ -8,6 +8,55 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.0 (2019-04-20)
+
+## Announcements
+
+### blaze-client stability
+
+We are declaring this a stable release, though we acknowledge a handful of lingering issues with the blaze-client.  Users who have trouble with the blaze backend are invited to try the async-http-client, okhttp, or jetty-client backends instead.
+
+### Scala 2.13 compatibility
+
+When our dependencies are published for Scala 2.13.0-RC1, we will publish for it and drop support for Scala 2.13.0-M5.  We know it's out there, and we're as anxious as you.
+
+### cats-2 and http4s-0.21
+
+Cats 2.0 is expected soon, and a Cats Effect 2.0 is under discussion.  These will be binary compatible with their 1.x versions, with the exception of their laws modules.  We intend to publish http4s-0.21 on these when they are available in order to provide a compatible stack for our own laws.
+
+### EOL of 0.18
+
+This marks the end of active support for the 0.18 series.  Further releases in that series will require a pull request and an accompanying tale of woe.
+
+## Breaking changes
+* [#2506](https://github.com/http4s/http4s/pull/2506): Raise `DecodeFailure` with `MonadError` in `Message#as` rather than relying on effect to catch in `fold`. Requires a new `MonadError` constraint.
+
+## Bugfixes
+* [#2502](https://github.com/http4s/http4s/pull/2502): Stop relying on undefined behavior of `fold` to catch errors in client.
+
+## Enhancements
+* [#2508](https://github.com/http4s/http4s/pull/2508): Add `mediaType` String context macro for validating literals.  Provide the same for `uri` and `qValue`, deprecating `Uri.uri` and `QValue.q`.
+* [#2520](https://github.com/http4s/http4s/pull/2520): Parameterize `selectorThreadFactory` for blaze server.  This allows setting the priority for selector threads.
+
+## Documentation
+* [#2488](https://github.com/http4s/http4s/pull/2488): Fix bad link in changelog
+* [#2494](https://github.com/http4s/http4s/pull/2494): Add note on queue usage to `BlazeWebSocketExample`
+* [#2509](https://github.com/http4s/http4s/pull/2509): Add Formation as adopter
+* [#2516](https://github.com/http4s/http4s/pull/2516): Drop redundant `enableWebSockets` in blaze example.
+
+## Internals
+* [#2521](https://github.com/http4s/http4s/pull/2521): Add utility conversion for `java.util.concurrent.CompletableFuture` to `F[_]: Concurrent`
+
+## Dependency updates
+* blaze-0.14.0
+* jetty-9.4.16.v20190411
+* kind-projector-0.10.0 (build only)
+* okhttp-3.14.1
+* mockito-core-2.27.0 (test only)
+* sbt-jmh-0.3.6 (benchmarks only)
+* tomcat-9.0.19
+* tut-plugin-0.6.11 (docs only)
+
 # v0.20.0-RC1 (2019-04-03)
 
 ## Breaking changes
@@ -26,7 +75,7 @@ it.
     * `Uri#multipParams.values`
   * `Query` is no longer a `Seq[Query.KeyValue]`
   * `RequestCookieJar` is no longer an `Iterable[RequestCookie]`.
-      
+
 ## Enhancements
 * [#2466](https://github.com/http4s/http4s/pull/2466): Provide better message for `WaitQueueFullFailure`
 * [#2479](https://github.com/http4s/http4s/pull/2479): Refresh `MimeDb` from the IANA registry
