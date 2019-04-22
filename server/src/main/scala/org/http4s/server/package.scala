@@ -1,8 +1,8 @@
 package org.http4s
 
 import cats._
-import cats.arrow.Choice
-import cats.data.{Kleisli, OptionT}
+//import cats.arrow.Choice
+import cats.data.OptionT
 import cats.implicits._
 import cats.effect._
 import org.http4s.headers.{Connection, `Content-Length`}
@@ -48,25 +48,25 @@ package object server {
     * @tparam C the request type of the resulting service
     * @tparam D the response type of the resulting service
     */
-  type Middleware[F[_], A, B, C, D] = Kleisli[F, A, B] => Kleisli[F, C, D]
+  type Middleware[F[_], A, B, C, D] = (A => F[B]) => (C => F[D])
 
-  object Middleware {
-    @deprecated("Construct manually instead", "0.18")
-    def apply[F[_], A, B, C, D](f: (C, Kleisli[F, A, B]) => F[D]): Middleware[F, A, B, C, D] =
-      service => Kleisli(req => f(req, service))
-  }
+//  object Middleware {
+//    @deprecated("Construct manually instead", "0.18")
+//    def apply[F[_], A, B, C, D](f: (C, Kleisli[F, A, B]) => F[D]): Middleware[F, A, B, C, D] =
+//      service => Kleisli(req => f(req, service))
+//  }
 
   /**
     * An HTTP middleware converts an [[HttpRoutes]] to another.
     */
   type HttpMiddleware[F[_]] =
-    Middleware[OptionT[F, ?], Request[F], Response[F], Request[F], Response[F]]
+    (Request[F] => OptionT[F, Response[F]]) => (Request[F] => OptionT[F, Response[F]])
 
   /**
     * An HTTP middleware that authenticates users.
     */
   type AuthMiddleware[F[_], T] =
-    Middleware[OptionT[F, ?], AuthedRequest[F, T], Response[F], Request[F], Response[F]]
+    (AuthedRequest[F, T] => OptionT[F, Response[F]]) => (Request[F] => OptionT[F, Response[F]])
 
   /**
     * Old name for SSLConfig
@@ -77,19 +77,18 @@ package object server {
   object AuthMiddleware {
 
     def apply[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, ?], Request[F], T]
+        authUser: Request[F] => OptionT[F, T]
     ): AuthMiddleware[F, T] =
       noSpider[F, T](authUser, defaultAuthFailure[F])
 
-    def withFallThrough[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, ?], Request[F], T]): AuthMiddleware[F, T] =
-      _.compose(Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r))))
+    def withFallThrough[F[_]: Monad, T](authUser: Request[F] => OptionT[F, T]): AuthMiddleware[F, T] =
+      authService => (r: Request[F]) => authUser(r).flatMap( t => authService(AuthedRequest(t, r)))
 
     def noSpider[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, ?], Request[F], T],
+        authUser: Request[F] => OptionT[F,T],
         onAuthFailure: Request[F] => F[Response[F]]
-    ): AuthMiddleware[F, T] = { service =>
-      Kleisli { r: Request[F] =>
+    ): AuthMiddleware[F, T] = service =>
+      { r: Request[F] =>
         val resp = authUser(r).value.flatMap {
           case Some(authReq) =>
             service(AuthedRequest(authReq, r)).getOrElse(Response[F](Status.NotFound))
@@ -97,14 +96,16 @@ package object server {
         }
         OptionT.liftF(resp)
       }
-    }
+
+    type FOT[F[_], A, B] = A => OptionT[F, B]
 
     def defaultAuthFailure[F[_]](implicit F: Applicative[F]): Request[F] => F[Response[F]] =
       _ => F.pure(Response[F](Status.Unauthorized))
 
+/*
     def apply[F[_], Err, T](
-        authUser: Kleisli[F, Request[F], Either[Err, T]],
-        onFailure: AuthedService[Err, F]
+      authUser: Request[F] => F[Either[Err, T]],
+      onFailure: AuthedService[Err, F]
     )(implicit F: Monad[F], C: Choice[Kleisli[OptionT[F, ?], ?, ?]]): AuthMiddleware[F, T] = {
       service: AuthedService[T, F] =>
         C.choice(onFailure, service)
@@ -114,8 +115,9 @@ package object server {
               suc => AuthedRequest(suc, authed.req)
             )
           }
-          .compose(AuthedRequest(authUser.run).mapF(OptionT.liftF(_)))
+          .compose(AuthedRequest(authUser).mapF(OptionT.liftF(_)))
     }
+ */
   }
 
   private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")

@@ -33,7 +33,7 @@ object RequestLogger {
     val log = logAction.fold({ s: String =>
       Sync[F].delay(logger.info(s))
     })(identity)
-    Kleisli { req =>
+    req =>
       if (!logBody) {
         def logAct = Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(log)
         // This construction will log on Any Error/Cancellation
@@ -91,7 +91,6 @@ object RequestLogger {
             response
           }
       }
-    }
   }
 
   def httpApp[F[_]: Concurrent](

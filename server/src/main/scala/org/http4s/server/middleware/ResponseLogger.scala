@@ -25,12 +25,12 @@ object ResponseLogger {
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None)(http: Kleisli[G, A, Response[F]])(
+      logAction: Option[String => F[Unit]] = None)(http: A => G[Response[F]])(
       implicit G: Bracket[G, Throwable],
-      F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
+      F: Concurrent[F]): A => G[Response[F]] = {
     val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
     val log = logAction.fold(fallback)(identity)
-    Kleisli[G, A, Response[F]] { req =>
+    req =>
       http(req)
         .flatMap { response =>
           val out =
@@ -64,7 +64,6 @@ object ResponseLogger {
           case ExitCase.Canceled => fk(log(s"service cancelled response for request [$req]"))
           case ExitCase.Completed => G.unit
         }
-    }
   }
 
   def httpApp[F[_]: Concurrent, A](
@@ -72,7 +71,8 @@ object ResponseLogger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
-      httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
+      httpApp: A => F[Response[F]]
+  ): A => F[Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
   def httpRoutes[F[_]: Concurrent, A](
@@ -80,6 +80,7 @@ object ResponseLogger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
-      httpRoutes: Kleisli[OptionT[F, ?], A, Response[F]]): Kleisli[OptionT[F, ?], A, Response[F]] =
+      httpRoutes: A => OptionT[F, Response[F]]
+  ): A => OptionT[F, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 }
