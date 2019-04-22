@@ -54,7 +54,9 @@ trait Client[F[_]] {
     */
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A]
 
-  @deprecated("Use toKleisli", "0.18")
+  def toFunction[A](f: Response[F] => F[A]): Request[F] => F[A]
+
+  @deprecated("Use toFunction", "0.18")
   def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A]
 
   /**

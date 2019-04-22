@@ -46,9 +46,11 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A] =
     Kleisli(fetch(_)(f))
 
+  def toFunction[A](f:Response[F] => F[A]): Request[F] => F[A] = req => fetch(req)(f)
+
   @deprecated("Use toKleisli", "0.18")
   def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A] =
-    toKleisli(f)
+    toFunction(f)
 
   /**
     * Returns this client as an [[HttpApp]].  It is the responsibility of
@@ -59,12 +61,11 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
-  def toHttpApp: HttpApp[F] = Kleisli { req =>
+  def toHttpApp: HttpApp[F] = req =>
     run(req).allocated.map {
       case (resp, release) =>
         resp.withBodyStream(resp.body.onFinalize(release))
     }
-  }
 
   /**
     * Returns this client as an [[HttpService]].  It is the
@@ -77,7 +78,7 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     */
   @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
   def toHttpService: HttpService[F] =
-    toHttpApp.mapF(OptionT.liftF(_))
+    toHttpApp.map(OptionT.liftF(_))
 
   def stream(req: Request[F]): Stream[F, Response[F]] =
     Stream.resource(run(req))
