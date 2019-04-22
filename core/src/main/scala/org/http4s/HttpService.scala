@@ -13,7 +13,7 @@ object HttpService extends Serializable {
     */
   @deprecated("Use liftF with an OptionT[F, Response[F]] instead", "0.18")
   def lift[F[_]: Functor](f: Request[F] => F[Response[F]]): HttpService[F] =
-    Kleisli(f.andThen(OptionT.liftF(_)))
+    f.andThen(OptionT.liftF(_))
 
   /** Lifts a partial function to [[HttpRoutes]].  Responds with
     * `OptionT.none` for any request where `pf` is not defined.
@@ -23,7 +23,7 @@ object HttpService extends Serializable {
   @deprecated("Replaced by `HttpRoutes.of`", "0.19")
   def apply[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(
       implicit F: Applicative[F]): HttpRoutes[F] =
-    Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
+    req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none))
 
   @deprecated("Replaced by `HttpRoutes.empty`", "0.19")
   def empty[F[_]: Applicative]: HttpRoutes[F] =

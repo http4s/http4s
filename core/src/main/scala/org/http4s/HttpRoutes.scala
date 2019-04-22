@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.Applicative
-import cats.data.{Kleisli, OptionT}
+import cats.data.OptionT
 import cats.effect.Sync
 import cats.implicits._
 
@@ -17,7 +17,7 @@ object HttpRoutes {
     * @return an [[HttpRoutes]] that wraps `run`
     */
   def apply[F[_]: Sync](run: Request[F] => OptionT[F, Response[F]]): HttpRoutes[F] =
-    Http(run)
+    run
 
   /** Lifts an effectful [[Response]] into an [[HttpRoutes]].
     *
@@ -26,7 +26,7 @@ object HttpRoutes {
     * @return an [[HttpRoutes]] that always returns `fr`
     */
   def liftF[F[_]](fr: OptionT[F, Response[F]]): HttpRoutes[F] =
-    Kleisli.liftF(fr)
+    _ => fr
 
   /** Lifts a [[Response]] into an [[HttpRoutes]].
     *
@@ -35,7 +35,7 @@ object HttpRoutes {
     * @return an [[HttpRoutes]] that always returns `r` in effect `OptionT[F, ?]`
     */
   def pure[F[_]](r: Response[F])(implicit FO: Applicative[OptionT[F, ?]]): HttpRoutes[F] =
-    Kleisli.pure(r)
+    _ => FO.pure(r)
 
   /** Transforms an [[HttpRoutes]] on its input.  The application of the
     * transformed function is suspended in `F` to permit more
@@ -48,7 +48,7 @@ object HttpRoutes {
     * being applied to `fa`
     */
   def local[F[_]: Sync](f: Request[F] => Request[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
-    Http.local[OptionT[F, ?], F](f)(fa)
+    req => fa(f(req))
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
     * partial function is suspended in `F` to permit more efficient combination
@@ -61,7 +61,7 @@ object HttpRoutes {
     */
   def of[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(
       implicit F: Sync[F]): HttpRoutes[F] =
-    Kleisli(req => OptionT(F.suspend(pf.lift(req).sequence)))
+    req => OptionT(F.suspend(pf.lift(req).sequence))
 
   /** An empty set of routes.  Always responds with `pOptionT.none`.
     *

@@ -1,7 +1,6 @@
 package org.http4s
 
 import cats.Applicative
-import cats.data.Kleisli
 import cats.effect.Sync
 
 /** Functions for creating [[HttpApp]] kleislis. */
@@ -16,7 +15,7 @@ object HttpApp {
     * @return an [[HttpApp]] that wraps `run`
     */
   def apply[F[_]: Sync](run: Request[F] => F[Response[F]]): HttpApp[F] =
-    Http(run)
+    run
 
   /** Lifts an effectful [[Response]] into an [[HttpApp]].
     *
@@ -25,7 +24,7 @@ object HttpApp {
     * @return an [[HttpApp]] that always returns `fr`
     */
   def liftF[F[_]](fr: F[Response[F]]): HttpApp[F] =
-    Kleisli.liftF(fr)
+    _ => fr
 
   /** Lifts a [[Response]] into an [[HttpApp]].
     *
@@ -34,7 +33,7 @@ object HttpApp {
     * @return an [[Http]] that always returns `r` in effect `F`
     */
   def pure[F[_]: Applicative](r: Response[F]): HttpApp[F] =
-    Kleisli.pure(r)
+    _ => Applicative[F].pure(r)
 
   /** Transforms an [[HttpApp]] on its input.  The application of the
     * transformed function is suspended in `F` to permit more

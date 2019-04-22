@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.{Applicative, Functor}
-import cats.data.{Kleisli, OptionT}
+import cats.data.OptionT
 
 object AuthedService {
 
@@ -12,7 +12,7 @@ object AuthedService {
     */
   @deprecated("Use liftF with an OptionT[F, Response[F]] instead", "0.18")
   def lift[F[_]: Functor, T](f: AuthedRequest[F, T] => F[Response[F]]): AuthedService[T, F] =
-    Kleisli(f.andThen(OptionT.liftF(_)))
+    f.andThen(OptionT.liftF(_))
 
   /** Lifts a partial function to an `AuthedService`.  Responds with
     * [[org.http4s.Response.notFoundFor]], which generates a 404, for any request
@@ -20,7 +20,7 @@ object AuthedService {
     */
   def apply[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
       implicit F: Applicative[F]): AuthedService[T, F] =
-    Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
+    req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none))
 
   /**
     * The empty service (all requests fallthrough).
@@ -29,6 +29,6 @@ object AuthedService {
     * @return
     */
   def empty[T, F[_]: Applicative]: AuthedService[T, F] =
-    Kleisli.liftF(OptionT.none)
+    _ => OptionT.none[F, Response[F]]
 
 }

@@ -1,7 +1,7 @@
 package org
 
-import cats.data._
-import fs2._
+import cats.data.{OptionT, EitherT}
+import fs2.Stream
 
 package object http4s { // scalastyle:ignore
 
@@ -26,7 +26,7 @@ package object http4s { // scalastyle:ignore
     * @tparam F the effect type in which the [[Response]] is returned
     * @tparam G the effect type of the [[Request]] and [[Response]] bodies
     */
-  type Http[F[_], G[_]] = Kleisli[F, Request[G], Response[G]]
+  type Http[F[_], G[_]] = Request[G] => F[Response[G]]
 
   /** A kleisli with a [[Request]] input and a [[Response]] output, such
     * that the response effect is the same as the request and response bodies'.
@@ -49,8 +49,8 @@ package object http4s { // scalastyle:ignore
     */
   type HttpRoutes[F[_]] = Http[OptionT[F, ?], F]
 
-  @deprecated("Deprecated in favor of just using Kleisli", "0.18")
-  type Service[F[_], A, B] = Kleisli[F, A, B]
+  @deprecated("Deprecated in favor of just using Functions", "0.18")
+  type Service[F[_], A, B] = A => F[B]
 
   @deprecated("Deprecated in favor of HttpRoutes", "0.19")
   type HttpService[F[_]] = HttpRoutes[F]
@@ -59,7 +59,7 @@ package object http4s { // scalastyle:ignore
     * We need to change the order of type parameters to make partial unification
     * trigger. See https://github.com/http4s/http4s/issues/1506
     */
-  type AuthedService[T, F[_]] = Kleisli[OptionT[F, ?], AuthedRequest[F, T], Response[F]]
+  type AuthedService[T, F[_]] = AuthedRequest[F, T] => OptionT[F, Response[F]]
 
   type Callback[A] = Either[Throwable, A] => Unit
 

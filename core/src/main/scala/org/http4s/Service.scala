@@ -1,11 +1,11 @@
 package org.http4s
 
 import cats._
-import cats.data._
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.semigroup._
+import cats.instances.function._
 
-@deprecated("Deprecated in favor of Kleisli", "0.18")
+@deprecated("Deprecated in favor of Functions", "0.18")
 object Service {
 
   /**
@@ -14,7 +14,7 @@ object Service {
     * instead.
     */
   def lift[F[_], A, B](f: A => F[B]): Service[F, A, B] =
-    Kleisli(f)
+    f
 
   /** Lifts a partial function to an `Service`.  Responds with the
     * zero of [B] for any request where `pf` is not defined.
