@@ -22,7 +22,7 @@ When our dependencies are published for Scala 2.13.0-RC1, we will publish for it
 
 ### cats-2 and http4s-0.21
 
-Cats 2.0 is expected soon, and a Cats Effect 2.0 is under discussion.  These will be binary compatible with their 1.x versions, with the excpetion of their laws modules.  We intend to publish http4s-0.21 on these when they are available in order to provide a compatible stack for our own laws.
+Cats 2.0 is expected soon, and a Cats Effect 2.0 is under discussion.  These will be binary compatible with their 1.x versions, with the exception of their laws modules.  We intend to publish http4s-0.21 on these when they are available in order to provide a compatible stack for our own laws.
 
 ### EOL of 0.18
 
