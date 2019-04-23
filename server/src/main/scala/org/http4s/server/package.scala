@@ -90,11 +90,12 @@ package object server {
         onAuthFailure: Request[F] => F[Response[F]]
     ): AuthMiddleware[F, T] = { service =>
       Kleisli { r: Request[F] =>
-        authUser
-          .map(AuthedRequest(_, r))
-          .andThen(service.mapF(o => OptionT.liftF(o.getOrElse(Response[F](Status.NotFound)))))
-          .mapF(o => OptionT.liftF(o.getOrElseF(onAuthFailure(r))))
-          .run(r)
+        val resp = authUser(r).value.flatMap {
+          case Some(authReq) =>
+            service(AuthedRequest(authReq, r)).getOrElse(Response[F](Status.NotFound))
+          case None => onAuthFailure(r)
+        }
+        OptionT.liftF(resp)
       }
     }
 
