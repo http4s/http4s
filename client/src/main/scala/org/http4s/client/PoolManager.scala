@@ -117,7 +117,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         waitQueue.enqueue(Waiting(key, callback, Instant.now()))
         ()
       } else {
-        logger.error(s"Max wait length reached, not scheduling.")
+        logger.error(s"Max wait queue limit of $maxWaitQueueLimit reached, not scheduling.")
         callback(Left(WaitQueueFullFailure()))
       }
     }
