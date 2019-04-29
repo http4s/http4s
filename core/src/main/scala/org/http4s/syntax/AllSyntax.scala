@@ -1,9 +1,7 @@
 package org.http4s
 package syntax
 
-abstract class AllSyntaxBinCompat
-    extends AllSyntax
-    with KleisliSyntaxBinCompat0
+abstract class AllSyntaxBinCompat extends AllSyntax with KleisliSyntaxBinCompat0
 
 trait AllSyntax
     extends AnyRef
