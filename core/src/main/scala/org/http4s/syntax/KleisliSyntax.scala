@@ -10,7 +10,9 @@ trait KleisliSyntax {
   implicit def http4sKleisliResponseSyntax[F[_]: Functor, A](
       service: Kleisli[OptionT[F, ?], A, Response[F]]): KleisliResponseOps[F, A] =
     new KleisliResponseOps[F, A](service)
+}
 
+trait KleisliSyntaxBinCompat0 {
   implicit def http4sKleisliHttpRoutesSyntax[F[_]: Sync](
       routes: HttpRoutes[F]): KleisliHttpRoutesOps[F] =
     new KleisliHttpRoutesOps[F](routes)
