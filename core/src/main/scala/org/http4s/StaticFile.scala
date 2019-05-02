@@ -36,22 +36,21 @@ object StaticFile {
           ContentCoding.`x-gzip`)
     }
 
-    val gzUrl: OptionT[F, URL] =
-      if (tryGzipped) OptionT.fromOption(Option(getClass.getResource(name + ".gz")))
-      else OptionT.none
-
-    gzUrl
-      .flatMap { url =>
+    def gzipped: Option[F[Response[F]]] =
+      Option(getClass.getResource(name + ".gz")).map { url =>
         // Guess content type from the name without ".gz"
         val contentType = nameToContentType(name)
         val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
 
-        fromURL(url, blockingExecutionContext, req).map(
+        fromUrlF(url, blockingExecutionContext, req).map(
           _.removeHeader(`Content-Type`).putHeaders(headers: _*))
       }
-      .orElse(OptionT
-        .fromOption[F](Option(getClass.getResource(name)))
-        .flatMap(fromURL(_, blockingExecutionContext, req)))
+
+    def noGzipped: Option[F[Response[F]]] =
+      Option(getClass.getResource(name)).map(fromUrlF(_, blockingExecutionContext, req))
+
+    val ofr = if (tryGzipped) gzipped.orElse(noGzipped) else noGzipped
+    ofr.fold(OptionT.none[F, Response[F]])(OptionT.liftF(_))
   }
 
   def fromURL[F[_]](
@@ -60,7 +59,13 @@ object StaticFile {
       req: Option[Request[F]] = None)(
       implicit F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
-    OptionT.liftF(F.delay {
+    OptionT.liftF(fromUrlF(url, blockingExecutionContext, req))
+
+  private[this] def fromUrlF[F[_]](
+      url: URL,
+      blockingExecutionContext: ExecutionContext,
+      req: Option[Request[F]])(implicit F: Sync[F], cs: ContextShift[F]): F[Response[F]] =
+    F.delay {
       val urlConn = url.openConnection
       val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
       val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
@@ -84,7 +89,7 @@ object StaticFile {
         urlConn.getInputStream.close()
         Response(NotModified)
       }
-    })
+    }
 
   def calcETag[F[_]: Sync]: File => F[String] =
     f =>
