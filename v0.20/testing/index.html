@@ -67,7 +67,7 @@
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
           
-<a href="https://github.com/http4s/http4s/edit/release-0.20.x/docs/src/main/tut/testing.md" class="btn btn-secondary btn-sm">
+<a href="https://github.com/http4s/http4s/edit/series/0.20/docs/src/main/tut/testing.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -108,7 +108,7 @@ import org.http4s.implicits._
 // defined class User
 
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@53d6f2fb
+// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@34c4478b
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -151,7 +151,7 @@ def check[A](actual:        IO[Response[IO]],
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[cats.effect.IO] = $anon$1@16207868
+// success: UserRepo[cats.effect.IO] = $anon$1@46073cf4
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
@@ -177,7 +177,7 @@ check[Json](response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[cats.effect.IO] = $anon$1@7e02ba1b
+// foundNone: UserRepo[cats.effect.IO] = $anon$1@6a4b043
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
@@ -193,7 +193,7 @@ check[Json](response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@34c8d050
+// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@1bf069f
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/not-a-matching-path&quot;) )
