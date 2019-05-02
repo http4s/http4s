@@ -48,7 +48,7 @@ object Http4sPlugin extends AutoPlugin {
         sys.env.get("TRAVIS_JDK_VERSION").contains("oraclejdk8") &&
         (sys.env.get("TRAVIS_BRANCH") match {
            case Some("master") => true
-           case Some(branch) if branch.startsWith("release-") => true
+           case Some(branch) if branch.startsWith("series/") => true
            case _ => false
          })
     },

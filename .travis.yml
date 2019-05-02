@@ -8,7 +8,7 @@ stages:
     branches:
       only:
         - master
-        - /^release-/
+        - /^series\//
     if: type = push
 
 env:
