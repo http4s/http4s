@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | Streaming</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v0.20/">v0.20 (development)</a>
+  <a class="dropdown-item" href="/v0.19/">v0.19 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          
+<a href="https://github.com/http4s/http4s/edit/series/0.21/docs/src/main/tut/streaming.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>Streaming</h1>
+          
+          
+          
+
+<h2 id="introduction">Introduction</h2>
+
+<p>Streaming lies at the heart of the http4s model of HTTP, in the literal sense that <code>EntityBody[F]</code>
+is just a type alias for <code>Stream[F, Byte]</code>. Please see <a href="../entity">entity</a> for details. This means
+HTTP streaming is provided by both http4s&rsquo; service support and its client support.</p>
+
+<h2 id="streaming-responses-from-your-service">Streaming responses from your service</h2>
+
+<p>Because <code>EntityBody[F]</code>s are streams anyway, returning a stream as a response from your service is
+simplicity itself:</p>
+
+<pre><code class="language-scala">import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import cats.effect._
+import fs2.Stream
+import org.http4s._
+import org.http4s.dsl.io._
+
+// Provided by `cats.effect.IOApp`, needed elsewhere:
+implicit val timer: Timer[IO] = IO.timer(global)
+
+// An infinite stream of the periodic elapsed time
+val seconds = Stream.awakeEvery[IO](1.second)
+
+val routes = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;seconds&quot; =&gt;
+    Ok(seconds.map(_.toString)) // `map` `toString` because there's no `EntityEncoder` for `Duration`
+}
+</code></pre>
+
+<p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
+
+<p>For a more realistic example of streaming results from database queries to the client, please see the
+<a href="https://bitbucket.org/da_terry/scalasyd-doobie-http4s">ScalaSyd 2015</a> example. In particular, if you want to stream JSON responses, please take note of how
+it converts a stream of JSON objects to a JSON array, which is friendlier to clients.</p>
+
+<h2 id="consuming-streams-with-the-client">Consuming streams with the client</h2>
+
+<p>The http4s <a href="../client">client</a> supports consuming chunked HTTP responses as a stream, again because the
+<code>EntityBody[F]</code> is a stream anyway. http4s&rsquo; <code>Client</code> interface consumes streams with the <code>streaming</code>
+function, which takes a <code>Request[F]</code> and a <code>Response[F] =&gt; Stream[F, A]</code> and returns a
+<code>Stream[F, A]</code>. Since an <code>EntityBody[F]</code> is just a <code>Stream[F, Byte]</code>, then, the easiest way
+to consume a stream is just:</p>
+
+<pre><code class="language-scala">client.stream(req).flatMap(_)
+</code></pre>
+
+<p>That gives you a <code>Stream[F, Byte]</code>, but you probably want something other than a <code>Byte</code>.
+Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/streaming/overview">Twitter&rsquo;s streaming APIs</a>, which return a stream of JSON.</p>
+
+<p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.21.0-SNAPSHOT&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.11.1&quot;
+)
+</code></pre>
+
+<p>Next, we want <em>streaming</em> JSON. Because http4s is streaming in its bones, it relies on <a href="https://github.com/non/jawn">jawn</a> for
+streaming JSON support. Most popular JSON libraries, including Circe, provide jawn support, as
+the code below shows. What&rsquo;s left is to integrate jawn&rsquo;s streaming parsing with fs2&rsquo;s Stream.
+That&rsquo;s done by <a href="https://github.com/rossabaker/jawn-fs2">jawn-fs2</a>, which http4s&rsquo; Circe module depends on transitively.</p>
+
+<p>Because Twitter&rsquo;s Streaming APIs literally return a stream of JSON objects, <em>not</em> a JSON array,
+we want to use jawn-fs2&rsquo;s <code>parseJsonStream</code>.</p>
+
+<p>Finally, Twitter&rsquo;s Streaming APIs also require OAuth authentication. So our example is an OAuth
+example as a bonus!</p>
+
+<p>Putting it all together into a small app that will print the JSON objects forever:</p>
+
+<pre><code class="language-scala">import org.http4s._
+import org.http4s.client.blaze._
+import org.http4s.client.oauth1
+import cats.effect._
+import cats.implicits._
+import fs2.Stream
+import fs2.io.stdout
+import fs2.text.{lines, utf8Encode}
+import io.circe.Json
+import jawnfs2._
+import java.util.concurrent.{Executors, ExecutorService}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.global
+
+class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
+  // jawn-fs2 needs to know what JSON AST you want
+  implicit val f = io.circe.jawn.CirceSupportParser.facade
+
+  /* These values are created by a Twitter developer web app.
+   * OAuth signing is an effect due to generating a nonce for each `Request`.
+   */
+  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
+          (req: Request[F]): F[Request[F]] = {
+    val consumer = oauth1.Consumer(consumerKey, consumerSecret)
+    val token    = oauth1.Token(accessToken, accessSecret)
+    oauth1.signRequest(req, consumer, callback = None, verifier = None, token = Some(token))
+  }
+
+  /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and
+   * `parseJsonStream` the `Response[F]`.
+   * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
+   */
+  def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
+            (req: Request[F]): Stream[F, Json] =
+    for {
+      client &lt;- BlazeClientBuilder(global).stream
+      sr  &lt;- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
+      res &lt;- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
+    } yield res
+
+  /* Stream the sample statuses.
+   * Plug in your four Twitter API values here.
+   * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
+   * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
+   */
+  def stream(blockingEC: ExecutionContext): Stream[F, Unit] = {
+    val req = Request[F](Method.GET, Uri.uri(&quot;https://stream.twitter.com/1.1/statuses/sample.json&quot;))
+    val s   = jsonStream(&quot;&lt;consumerKey&gt;&quot;, &quot;&lt;consumerSecret&gt;&quot;, &quot;&lt;accessToken&gt;&quot;, &quot;&lt;accessSecret&gt;&quot;)(req)
+    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blockingEC))
+  }
+
+  /**
+   * We're going to be writing to stdout, which is a blocking API.  We don't
+   * want to block our main threads, so we create a separate pool.  We'll use
+   * `fs2.Stream` to manage the shutdown for us.
+   */
+  def blockingEcStream: Stream[F, ExecutionContext] =
+    Stream.bracket(F.delay(Executors.newFixedThreadPool(4)))(pool =&gt;
+        F.delay(pool.shutdown()))
+      .map(ExecutionContext.fromExecutorService)
+
+  /** Compile our stream down to an effect to make it runnable */
+  def run: F[Unit] =
+    blockingEcStream.flatMap { blockingEc =&gt;
+      stream(blockingEc)
+    }.compile.drain
+}
+</code></pre>
+
+<p><code>TWStream</code> runs any effect type supported by cats-effect.  We need to
+pick a concrete effect, such as <code>cats.effect.IO</code>, to actually run it.
+We&rsquo;ll make use of <code>cats.effect.IOApp</code>, which defines a program in terms
+in the form <code>run(args: List[String]): IO[ExitCode]</code>:</p>
+
+<pre><code class="language-scala">object TWStreamApp extends IOApp {
+  def run(args: List[String]) =
+    (new TWStream[IO]).run.as(ExitCode.Success)
+}
+</code></pre>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/upgrading/">Upgrading from 0.18</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v0.21/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/testing/">Testing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/api">Scaladoc</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/v0.21/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+
