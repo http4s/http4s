@@ -217,7 +217,7 @@ markdown via GitHub.
 
 ### `docs` documentation
 
-Each branch `master` and `release-X.Y`, publishes documentation per
+Each branch `master` and `series/X.Y`, publishes documentation per
 minor version into the `/vX.Y` directory of http4s.org.  The Hugo site
 chrome lives in the `docs/src/hugo` directory, and the [tut] content
 lives in `docs/src/main/tut`.  Tut is used to typecheck our
