@@ -1,6 +1,7 @@
 package org.http4s
 package client
 
+import cats.{Defer, ~>}
 import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Ref
@@ -189,6 +190,15 @@ trait Client[F[_]] {
 
   @deprecated("Use expect", "0.14")
   def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T]
+
+  /**
+    * Translates the effect type of this client from F to G
+    */
+  def imapK[G[_]: Defer: Bracket[?[_], Throwable]](fk: F ~> G)(gK: G ~> F)(
+      implicit b: Bracket[F, Throwable]): Client[G] =
+    Client(
+      (req: Request[G]) => run(req.mapK(gK)).mapK(fk).map(_.mapK(fk))
+    )
 }
 
 object Client {
