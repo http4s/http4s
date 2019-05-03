@@ -59,14 +59,12 @@ object BlazeClient {
             .invalidate(connection)
             .handleError(e => logger.error(e)("Error invalidating connection"))
 
-        def borrow =
-          // TODO: The `attempt` here is a workaround for https://github.com/typelevel/cats-effect/issues/487 .
-          //  It can be removed once the issue is resolved.
-          Resource.makeCase(manager.borrow(key).attempt) {
-            case (Right(next), ExitCase.Error(_) | ExitCase.Canceled) =>
-              invalidate(next.connection)
-            case _ =>
+        def borrow: Resource[F, manager.NextConnection] =
+          Resource.makeCase(manager.borrow(key)) {
+            case (_, ExitCase.Completed) =>
               F.unit
+            case (next, ExitCase.Error(_) | ExitCase.Canceled) =>
+              invalidate(next.connection)
           }
 
         def idleTimeoutStage(conn: A) =
@@ -84,9 +82,7 @@ object BlazeClient {
           }
 
         def loop: F[Resource[F, Response[F]]] =
-          borrow.use {
-            case Left(t) => F.raiseError(t)
-            case Right(next) =>
+          borrow.use { next =>
               idleTimeoutStage(next.connection).use { stageOpt =>
                 val idleTimeoutF = stageOpt match {
                   case Some(stage) => F.async[TimeoutException](stage.init)
