@@ -1,7 +1,6 @@
 package org.http4s
 
 import cats._
-import cats.arrow.Choice
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import cats.effect._
@@ -105,17 +104,16 @@ package object server {
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],
         onFailure: AuthedService[Err, F]
-    )(implicit F: Monad[F], C: Choice[Kleisli[OptionT[F, ?], ?, ?]]): AuthMiddleware[F, T] = {
-      service: AuthedService[T, F] =>
-        C.choice(onFailure, service)
-          .local { authed: AuthedRequest[F, Either[Err, T]] =>
-            authed.authInfo.bimap(
-              err => AuthedRequest(err, authed.req),
-              suc => AuthedRequest(suc, authed.req)
-            )
+    )(implicit F: Monad[F]): AuthMiddleware[F, T] =
+      (service: AuthedService[T, F]) =>
+        Kleisli { req: Request[F] =>
+          OptionT {
+            authUser(req).flatMap {
+              case Left(err) => onFailure(AuthedRequest(err, req)).value
+              case Right(suc) => service(AuthedRequest(suc, req)).value
+            }
           }
-          .compose(AuthedRequest(authUser.run).mapF(OptionT.liftF(_)))
-    }
+      }
   }
 
   private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
