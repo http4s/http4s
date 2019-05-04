@@ -21,9 +21,9 @@ object Timeout {
       http: Kleisli[F, A, Response[G]])(
       implicit F: Concurrent[F],
       T: Timer[F]): Kleisli[F, A, Response[G]] =
-    http
-      .mapF(respF => F.race(respF, T.sleep(timeout) *> timeoutResponse))
-      .map(_.merge)
+    Kleisli { (a: A) =>
+      F.race( http(a), T.sleep(timeout) *> timeoutResponse).map(_.merge)
+    }
 
   /** Transform the service to return a timeout response after the given
     * duration if the service has not yet responded.  If the timeout
