@@ -117,8 +117,8 @@ lazy val testing = libraryProject("testing")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      scalacheck(scalaVersion.value),
-      specs2Matcher(scalaVersion.value)
+      scalacheck,
+      specs2Matcher
     ),
   )
   .dependsOn(core)
@@ -626,12 +626,12 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     catsLaws,
     catsKernelLaws,
-    discipline(scalaVersion.value),
+    discipline,
     logbackClassic,
-    scalacheck(scalaVersion.value),
-    specs2Core(scalaVersion.value),
-    specs2MatcherExtra(scalaVersion.value),
-    specs2Scalacheck(scalaVersion.value)
+    scalacheck,
+    specs2Core,
+    specs2MatcherExtra,
+    specs2Scalacheck
   ).map(_ % "test"),
   ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
   git.remoteRepo := "git@github.com:http4s/http4s.git",
