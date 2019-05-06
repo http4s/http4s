@@ -212,8 +212,8 @@ sealed trait Message[F[_]] { self =>
     * @return the effect which will generate the A
     */
   def as[A](implicit F: MonadError[F, Throwable], decoder: EntityDecoder[F, A]): F[A] =
-    // n.b. this is foldF in cats master, and will eventually be further optimized with redeem
-    attemptAs.value.flatMap(_.fold(F.raiseError(_), F.pure(_)))
+    // n.b. this will be better with redeem in Cats-2.0
+    attemptAs.leftWiden[Throwable].rethrowT
 }
 
 object Message {

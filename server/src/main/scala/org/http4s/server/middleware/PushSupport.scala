@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats._
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import org.log4s.getLogger
@@ -41,42 +41,31 @@ object PushSupport {
 
   }
 
-  private def locToRequest[F[_]: Functor](push: PushLocation, req: Request[F]): Request[F] =
-    req.withPathInfo(push.location)
-
   private def collectResponse[F[_]](
       r: Vector[PushLocation],
       req: Request[F],
       verify: String => Boolean,
-      routes: HttpRoutes[F])(implicit F: Monad[F]): F[Vector[PushResponse[F]]] =
-    r.foldLeft(F.pure(Vector.empty[PushResponse[F]])) { (facc, v) =>
-      if (verify(v.location)) {
-        val newReq = locToRequest(v, req)
-        if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          routes
-            .mapF[OptionT[F, ?], Vector[PushResponse[F]]] {
-              _.semiflatMap { response =>
-                response.attributes
-                  .lookup(pushLocationKey)
-                  .map { pushed =>
-                    collectResponse(pushed, req, verify, routes).map(
-                      accumulated ++ _ :+ PushResponse(v.location, response))
-                  }
-                  .getOrElse(F.pure(accumulated :+ PushResponse(v.location, response)))
-              }
-            }
-            .apply(newReq)
-            .getOrElse(Vector.empty[PushResponse[F]])
-        } else {
-          routes
-            .flatMapF { response =>
-              OptionT.liftF(facc.map(_ :+ PushResponse(v.location, response)))
-            }
-            .apply(newReq)
-            .getOrElse(Vector.empty[PushResponse[F]])
-        }
-      } else facc
-    }
+      routes: HttpRoutes[F])(implicit F: Monad[F]): F[Vector[PushResponse[F]]] = {
+
+    val emptyCollect: F[Vector[PushResponse[F]]] = F.pure(Vector.empty[PushResponse[F]])
+
+    def fetchAndAdd(facc: F[Vector[PushResponse[F]]], v: PushLocation): F[Vector[PushResponse[F]]] =
+      routes(req.withPathInfo(v.location)).value.flatMap {
+        case None => emptyCollect
+        case Some(response) if !v.cascade =>
+          facc.map(_ :+ PushResponse(v.location, response))
+        case Some(response) if v.cascade =>
+          val pr = PushResponse(v.location, response)
+          response.attributes.lookup(pushLocationKey) match {
+            case Some(pushed) => // Need to gather the sub resources
+              val fsubs = collectResponse(pushed, req, verify, routes)
+              F.map2(facc, fsubs)(_ ++ _ :+ pr)
+            case None => facc.map(_ :+ pr)
+          }
+      }
+
+    r.filter(x => verify(x.location)).foldLeft(emptyCollect)(fetchAndAdd)
+  }
 
   /** Transform the route such that requests will gather pushed resources
     *

@@ -381,7 +381,7 @@ blockingEC.shutdown()
 [middleware]: ../middleware
 [Follow Redirect]: ../api/org/http4s/client/middleware/FollowRedirect$
 [Retry]: ../api/org/http4s/client/middleware/Retry$
-[Metrics]: ../api/org/http4s/client/middleware/FollowRedirect$
+[Metrics]: ../api/org/http4s/client/middleware/Metrics$
 [Request Logger]: ../api/org/http4s/client/middleware/RequestLogger$
 [Response Logger]: ../api/org/http4s/client/middleware/ResponseLogger$
 [Logger]: ../api/org/http4s/client/middleware/Logger$

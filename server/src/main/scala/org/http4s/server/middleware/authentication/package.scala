@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect._
+import cats.effect.Sync
 import org.http4s.headers._
 
 package object authentication {
@@ -11,14 +11,14 @@ package object authentication {
       challenge: Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]])(
       routes: AuthedService[A, F])(implicit F: Sync[F]): HttpRoutes[F] =
     Kleisli { req =>
-      challenge
-        .mapF(OptionT.liftF(_))
-        .run(req)
-        .flatMap {
-          case Right(authedRequest) =>
-            routes(authedRequest)
-          case Left(challenge) =>
-            OptionT.some(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge)))
+      OptionT[F, Response[F]] {
+        F.flatMap(challenge(req)) {
+          case Left(challenge) => F.pure(Some(unauthorized(challenge)))
+          case Right(authedRequest) => routes(authedRequest).value
         }
+      }
     }
+
+  private[this] def unauthorized[F[_]](challenge: Challenge): Response[F] =
+    Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge))
 }

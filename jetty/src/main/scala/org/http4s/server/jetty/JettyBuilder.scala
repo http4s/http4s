@@ -149,7 +149,7 @@ sealed class JettyBuilder[F[_]] private (
     sslBits match {
       case Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)) =>
         // SSL Context Factory
-        val sslContextFactory = new SslContextFactory()
+        val sslContextFactory = new SslContextFactory.Server()
         sslContextFactory.setKeyStorePath(keyStore.path)
         sslContextFactory.setKeyStorePassword(keyStore.password)
         sslContextFactory.setKeyManagerPassword(keyManagerPassword)
@@ -164,7 +164,7 @@ sealed class JettyBuilder[F[_]] private (
         httpsConnector(sslContextFactory)
 
       case Some(SSLContextBits(sslContext, clientAuth)) =>
-        val sslContextFactory = new SslContextFactory()
+        val sslContextFactory = new SslContextFactory.Server()
         sslContextFactory.setSslContext(sslContext)
         updateClientAuth(sslContextFactory, clientAuth)
 
@@ -176,7 +176,7 @@ sealed class JettyBuilder[F[_]] private (
   }
 
   private def updateClientAuth(
-      sslContextFactory: SslContextFactory,
+      sslContextFactory: SslContextFactory.Server,
       clientAuthMode: SSLClientAuthMode): Unit =
     clientAuthMode match {
       case SSLClientAuthMode.NotRequested =>

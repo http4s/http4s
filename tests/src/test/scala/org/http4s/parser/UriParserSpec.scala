@@ -2,6 +2,8 @@ package org.http4s.parser
 
 import cats.implicits._
 import java.nio.charset.{StandardCharsets, Charset => NioCharset}
+
+import org.http4s.Uri.Scheme.https
 import org.http4s._
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2._
@@ -280,6 +282,25 @@ class UriParserSpec extends Http4sSpec {
         case u =>
           u must_== Uri(path = "/a/b", query = Query(("foo", None)), fragment = Some("bar"))
       }
+    }
+  }
+
+  "String interpolator" should {
+    "parse valid URIs" in {
+      uri"https://http4s.org" must_== Uri(
+        scheme = Option(https),
+        authority = Option(Uri.Authority(host = RegName("http4s.org".ci))))
+    }
+
+    "reject invalid URIs" in {
+      import org.specs2.execute._, Typecheck._
+      import org.specs2.matcher.TypecheckMatchers._
+
+      typecheck {
+        """
+           uri"not valid"
+        """
+      } must not succeed
     }
   }
 }
