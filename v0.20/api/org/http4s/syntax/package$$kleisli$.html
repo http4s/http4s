@@ -123,6 +123,10 @@
                         <a href="AllSyntax.html" title="">AllSyntax</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
+                        <a class="class" href="AllSyntaxBinCompat.html" title=""></a>
+                        <a href="AllSyntaxBinCompat.html" title="">AllSyntaxBinCompat</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
                         <a class="class" href="AsyncOps.html" title=""></a>
                         <a href="AsyncOps.html" title="">AsyncOps</a>
                       </li><li class="current-entities indented3">
@@ -131,12 +135,24 @@
                         <a href="AsyncSyntax.html" title="">AsyncSyntax</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
+                        <a class="class" href="KleisliHttpAppOps.html" title=""></a>
+                        <a href="KleisliHttpAppOps.html" title="">KleisliHttpAppOps</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="KleisliHttpRoutesOps.html" title=""></a>
+                        <a href="KleisliHttpRoutesOps.html" title="">KleisliHttpRoutesOps</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
                         <a class="class" href="KleisliResponseOps.html" title=""></a>
                         <a href="KleisliResponseOps.html" title="">KleisliResponseOps</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="KleisliSyntax.html" title=""></a>
                         <a href="KleisliSyntax.html" title="">KleisliSyntax</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="KleisliSyntaxBinCompat0.html" title=""></a>
+                        <a href="KleisliSyntaxBinCompat0.html" title="">KleisliSyntaxBinCompat0</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="class" href="LiteralsOps.html" title=""></a>
@@ -208,16 +224,16 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">kleisli</span><span class="result"> extends <a href="KleisliSyntax.html" class="extype" name="org.http4s.syntax.KleisliSyntax">KleisliSyntax</a></span>
+        <span class="name">kleisli</span><span class="result"> extends <a href="KleisliSyntax.html" class="extype" name="org.http4s.syntax.KleisliSyntax">KleisliSyntax</a> with <a href="KleisliSyntaxBinCompat0.html" class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0">KleisliSyntaxBinCompat0</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/syntax/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/784336bffbc656d07385174858e4eaf31a864a66/core/src/main/scala/org/http4s/syntax/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="KleisliSyntax.html" class="extype" name="org.http4s.syntax.KleisliSyntax">KleisliSyntax</a>, <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.8/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="KleisliSyntaxBinCompat0.html" class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0">KleisliSyntaxBinCompat0</a>, <a href="KleisliSyntax.html" class="extype" name="org.http4s.syntax.KleisliSyntax">KleisliSyntax</a>, <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.8/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -243,7 +259,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.syntax.kleisli"><span>kleisli</span></li><li class="in" name="org.http4s.syntax.KleisliSyntax"><span>KleisliSyntax</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.syntax.kleisli"><span>kleisli</span></li><li class="in" name="org.http4s.syntax.KleisliSyntaxBinCompat0"><span>KleisliSyntaxBinCompat0</span></li><li class="in" name="org.http4s.syntax.KleisliSyntax"><span>KleisliSyntax</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -450,6 +466,38 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.syntax.KleisliSyntaxBinCompat0#http4sKleisliHttpAppSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sKleisliHttpAppSyntax[F[_]](app:org.http4s.HttpApp[F])(implicitevidence$3:cats.effect.Sync[F]):org.http4s.syntax.KleisliHttpAppOps[F]"></a><a id="http4sKleisliHttpAppSyntax[F[_]](HttpApp[F])(Sync[F]):KleisliHttpAppOps[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/syntax/package$$kleisli$.html#http4sKleisliHttpAppSyntax[F[_]](app:org.http4s.HttpApp[F])(implicitevidence$3:cats.effect.Sync[F]):org.http4s.syntax.KleisliHttpAppOps[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4sKleisliHttpAppSyntax</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="app">app: <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0.http4sKleisliHttpAppSyntax.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0.http4sKleisliHttpAppSyntax.F">F</span>]</span>)</span><span class="result">: <a href="KleisliHttpAppOps.html" class="extype" name="org.http4s.syntax.KleisliHttpAppOps">KleisliHttpAppOps</a>[<span class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0.http4sKleisliHttpAppSyntax.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="KleisliSyntaxBinCompat0.html" class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0">KleisliSyntaxBinCompat0</a></dd></dl></div>
+    </li><li name="org.http4s.syntax.KleisliSyntaxBinCompat0#http4sKleisliHttpRoutesSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sKleisliHttpRoutesSyntax[F[_]](routes:org.http4s.HttpRoutes[F])(implicitevidence$2:cats.effect.Sync[F]):org.http4s.syntax.KleisliHttpRoutesOps[F]"></a><a id="http4sKleisliHttpRoutesSyntax[F[_]](HttpRoutes[F])(Sync[F]):KleisliHttpRoutesOps[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/syntax/package$$kleisli$.html#http4sKleisliHttpRoutesSyntax[F[_]](routes:org.http4s.HttpRoutes[F])(implicitevidence$2:cats.effect.Sync[F]):org.http4s.syntax.KleisliHttpRoutesOps[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4sKleisliHttpRoutesSyntax</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="routes">routes: <a href="../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0.http4sKleisliHttpRoutesSyntax.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0.http4sKleisliHttpRoutesSyntax.F">F</span>]</span>)</span><span class="result">: <a href="KleisliHttpRoutesOps.html" class="extype" name="org.http4s.syntax.KleisliHttpRoutesOps">KleisliHttpRoutesOps</a>[<span class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0.http4sKleisliHttpRoutesSyntax.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="KleisliSyntaxBinCompat0.html" class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0">KleisliSyntaxBinCompat0</a></dd></dl></div>
     </li><li name="org.http4s.syntax.KleisliSyntax#http4sKleisliResponseSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sKleisliResponseSyntax[F[_],A](service:cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],A,org.http4s.Response[F]])(implicitevidence$1:cats.Functor[F]):org.http4s.syntax.KleisliResponseOps[F,A]"></a><a id="http4sKleisliResponseSyntax[F[_],A](Kleisli[[β$0$]OptionT[F,β$0$],A,Response[F]])(Functor[F]):KleisliResponseOps[F,A]"></a>
       <span class="permalink">
@@ -646,7 +694,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.syntax.KleisliSyntax">
+        <div class="parent" name="org.http4s.syntax.KleisliSyntaxBinCompat0">
+              <h3>Inherited from <a href="KleisliSyntaxBinCompat0.html" class="extype" name="org.http4s.syntax.KleisliSyntaxBinCompat0">KleisliSyntaxBinCompat0</a></h3>
+            </div><div class="parent" name="org.http4s.syntax.KleisliSyntax">
               <h3>Inherited from <a href="KleisliSyntax.html" class="extype" name="org.http4s.syntax.KleisliSyntax">KleisliSyntax</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
