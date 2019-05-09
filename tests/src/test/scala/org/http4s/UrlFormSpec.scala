@@ -4,6 +4,7 @@ import cats.Monoid
 import cats.data._
 import cats.effect.IO
 import cats.implicits._
+import org.http4s.util.FEither._
 import cats.kernel.laws.discipline.MonoidTests
 import org.http4s.internal.CollectionCompat
 
@@ -27,10 +28,9 @@ class UrlFormSpec extends Http4sSpec {
           Request[IO]()
             .withEntity(urlForm)(UrlForm.entityEncoder(charset))
             .pure[IO])
-        .flatMap { req =>
+        .rightFlatMap { req =>
           UrlForm.entityDecoder[IO].decode(req, strict = false)
         }
-        .value
         .unsafeRunSync() === Right(urlForm)
     }
 

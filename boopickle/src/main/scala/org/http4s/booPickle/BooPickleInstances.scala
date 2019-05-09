@@ -10,6 +10,7 @@ import java.nio.ByteBuffer
 import org.http4s._
 import org.http4s.EntityEncoder.chunkEncoder
 import org.http4s.headers.`Content-Type`
+import org.http4s.util.FEither._
 import scala.util.{Failure, Success}
 
 /**
@@ -20,18 +21,17 @@ trait BooPickleInstances {
 
   private def booDecoderByteBuffer[F[_]: Sync, A](msg: Message[F])(
       implicit pickler: Pickler[A]): DecodeResult[F, A] =
-    EntityDecoder.collectBinary(msg).flatMap { chunk =>
+    EntityDecoder.collectBinary(msg).rightTransform { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining) {
         Unpickle[A](pickler).tryFromBytes(bb) match {
           case Success(bb) =>
-            DecodeResult.success[F, A](bb)
+            Right(bb)
           case Failure(pf) =>
-            DecodeResult.failure[F, A](MalformedMessageBodyFailure("Invalid binary body", Some(pf)))
+            Left(MalformedMessageBodyFailure("Invalid binary body", Some(pf)))
         }
-      } else {
-        DecodeResult.failure[F, A](MalformedMessageBodyFailure("Invalid binary: empty body", None))
-      }
+      } else
+        Left(MalformedMessageBodyFailure("Invalid binary: empty body", None))
     }
 
   /**

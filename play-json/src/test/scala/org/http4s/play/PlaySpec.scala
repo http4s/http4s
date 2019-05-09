@@ -48,7 +48,7 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] {
     "decode JSON from a Play decoder" in {
       val result = jsonOf[IO, Foo]
         .decode(Request[IO]().withEntity(Json.obj("bar" -> JsNumber(42)): JsValue), strict = true)
-      result.value.unsafeRunSync must_== Right(Foo(42))
+      result.unsafeRunSync must_== Right(Foo(42))
     }
   }
 

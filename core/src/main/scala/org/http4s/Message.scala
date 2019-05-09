@@ -10,6 +10,7 @@ import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.http4s.util.decode
+import org.http4s.util.FEither._
 import org.log4s.getLogger
 import _root_.io.chrisdavenport.vault._
 
@@ -213,7 +214,7 @@ sealed trait Message[F[_]] { self =>
     */
   def as[A](implicit F: MonadError[F, Throwable], decoder: EntityDecoder[F, A]): F[A] =
     // n.b. this will be better with redeem in Cats-2.0
-    attemptAs.leftWiden[Throwable].rethrowT
+    attemptAs.leftWiden[Throwable].rethrow
 }
 
 object Message {
@@ -388,7 +389,7 @@ sealed abstract case class Request[F[_]](
 
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
       implicit F: Monad[F]): F[Response[F]] =
-    decoder.decode(this, strict = strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
+    F.flatMap(decoder.decode(this, strict = strict))(_.fold(_.toHttpResponse[F](httpVersion), f))
 
   /** Helper method for decoding [[Request]]s
     *

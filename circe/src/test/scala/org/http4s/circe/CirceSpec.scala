@@ -134,7 +134,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         .decode(
           Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))),
           strict = true)
-      result.value.unsafeRunSync must_== Right(Foo(42))
+      result.unsafeRunSync must_== Right(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -145,7 +145,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         val json = Json.obj("wort" -> Json.fromString(wort))
         val result =
           jsonOf[IO, Umlaut].decode(Request[IO]().withEntity(json), strict = true)
-        result.value.unsafeRunSync must_== Right(Umlaut(wort))
+        result.unsafeRunSync must_== Right(Umlaut(wort))
       }
     }
 
@@ -153,7 +153,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       val result = CirceInstancesWithCustomErrors
         .jsonOf[IO, Bar]
         .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
-      result.value.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
+      result.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
         "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor"))
     }
   }
@@ -164,14 +164,14 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         .decode(
           Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))),
           strict = true)
-      result.value.unsafeRunSync must_== Right(Foo(42))
+      result.unsafeRunSync must_== Right(Foo(42))
     }
 
     "return an InvalidMessageBodyFailure with a list of failures on invalid JSON messages" in {
       val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
       val result = accumulatingJsonOf[IO, Bar]
         .decode(Request[IO]().withEntity(json), strict = true)
-      result.value.unsafeRunSync must beLike {
+      result.unsafeRunSync must beLike {
         case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => ok
       }
     }
@@ -180,7 +180,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       val result = CirceInstancesWithCustomErrors
         .accumulatingJsonOf[IO, Bar]
         .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
-      result.value.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
+      result.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
         "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor, DecodingFailure at .b: Attempt to decode value on failed cursor"))
     }
   }
@@ -210,7 +210,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       import org.http4s.circe.CirceEntityDecoder._
       val request = Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42)))
       val result = request.attemptAs[Foo]
-      result.value.unsafeRunSync must_== Right(Foo(42))
+      result.unsafeRunSync must_== Right(Foo(42))
     }
 
     "encode without defining EntityEncoder using default printer" in {
@@ -226,7 +226,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         .withContentType(`Content-Type`(MediaType.application.json))
 
       val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
-      val result = decoder.decode(req, true).value.unsafeRunSync
+      val result = decoder.decode(req, true).unsafeRunSync
 
       result must beLeft.like {
         case _: MalformedMessageBodyFailure => ok
@@ -238,7 +238,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         .withEntity(Json.obj())
 
       val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
-      val result = decoder.decode(req, true).value.unsafeRunSync
+      val result = decoder.decode(req, true).unsafeRunSync
 
       result must beLeft.like {
         case _: InvalidMessageBodyFailure => ok

@@ -2,7 +2,6 @@ package org.http4s
 package testing
 
 import cats.syntax.flatMap._
-import cats.data.EitherT
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.specs2.matcher._
@@ -55,13 +54,13 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       m.headers.get(`Content-Encoding`).map(_.contentCoding).aka("the content encoding header")
     }
 
-  def returnRight[A, B](m: ValueCheck[B]): Matcher[EitherT[F, A, B]] =
-    beRight(m) ^^ { et: EitherT[F, A, B] =>
-      runAwait(et.value).aka("the either task")
+  def returnRight[A, B](m: ValueCheck[B]): Matcher[F[Either[A, B]]] =
+    beRight(m) ^^ { et: F[Either[A, B]] =>
+      runAwait(et).aka("the either task")
     }
 
-  def returnLeft[A, B](m: ValueCheck[A]): Matcher[EitherT[F, A, B]] =
-    beLeft(m) ^^ { et: EitherT[F, A, B] =>
-      runAwait(et.value).aka("the either task")
+  def returnLeft[A, B](m: ValueCheck[A]): Matcher[F[Either[A, B]]] =
+    beLeft(m) ^^ { et: F[Either[A, B]] =>
+      runAwait(et).aka("the either task")
     }
 }

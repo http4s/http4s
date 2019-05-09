@@ -13,6 +13,7 @@ import io.circe.jawn.CirceSupportParser.facade
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnInstances
+import org.http4s.util.FEither._
 import org.typelevel.jawn.ParseException
 
 trait CirceInstances extends JawnInstances {
@@ -31,18 +32,14 @@ trait CirceInstances extends JawnInstances {
     EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
 
   private def jsonDecoderByteBufferImpl[F[_]: Sync](msg: Message[F]): DecodeResult[F, Json] =
-    EntityDecoder.collectBinary(msg).flatMap { chunk =>
+    EntityDecoder.collectBinary(msg).rightTransform { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
-      if (bb.hasRemaining) {
+      if (bb.hasRemaining)
         parseByteBuffer(bb) match {
-          case Right(json) =>
-            DecodeResult.success[F, Json](json)
-          case Left(pf) =>
-            DecodeResult.failure[F, Json](circeParseExceptionMessage(pf))
-        }
-      } else {
-        DecodeResult.failure[F, Json](jawnEmptyBodyMessage)
-      }
+          case Right(json) => Right(json)
+          case Left(pf) => Left(circeParseExceptionMessage(pf))
+        } else
+        Left(jawnEmptyBodyMessage)
     }
 
   // default cutoff value is based on benchmarks results

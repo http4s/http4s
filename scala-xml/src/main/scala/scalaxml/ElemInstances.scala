@@ -7,9 +7,8 @@ import cats.implicits._
 import java.io.StringReader
 import javax.xml.parsers.SAXParserFactory
 
-import cats.data.EitherT
 import org.http4s.headers.`Content-Type`
-
+import org.http4s.util.FEither._
 import scala.util.control.NonFatal
 import scala.xml._
 
@@ -33,18 +32,18 @@ trait ElemInstances {
   implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.text.xml, MediaType.text.html, MediaType.application.xml) { msg =>
-      collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>
+      collectBinary(msg).rightFlatMap { chunk =>
         val source = new InputSource(
           new StringReader(
             new String(chunk.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
-        EitherT(
-          F.delay(XML.loadXML(source, saxParser)).attempt
-        ).leftFlatMap {
-          case e: SAXParseException =>
-            DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
-          case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))
-        }
+        F.delay(XML.loadXML(source, saxParser))
+          .attempt
+          .leftFlatMap {
+            case e: SAXParseException =>
+              F.pure(Left(MalformedMessageBodyFailure("Invalid XML", Some(e))))
+            case NonFatal(e) => F.raiseError[Either[DecodeFailure, Elem]](e)
+          }
       }
 
     }

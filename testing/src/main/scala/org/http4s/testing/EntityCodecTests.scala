@@ -4,7 +4,6 @@ package testing
 import cats.Eq
 import cats.implicits._
 import cats.effect._
-import cats.effect.implicits._
 import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._
 import cats.laws._
@@ -16,12 +15,13 @@ trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
   implicit def encoder: EntityEncoder[F, A]
   implicit def decoder: EntityDecoder[F, A]
 
-  def entityCodecRoundTrip(a: A): IsEq[IO[Either[DecodeFailure, A]]] =
-    (for {
-      entity <- effect.delay(encoder.toEntity(a))
-      message = Request(body = entity.body, headers = encoder.headers)
-      a0 <- decoder.decode(message, strict = true).value
-    } yield a0).toIO <-> IO.pure(Right(a))
+  def entityCodecRoundTrip(a: A): IsEq[IO[Either[DecodeFailure, A]]] = {
+    val fmsg: F[Message[F]] = effect.delay {
+      Request(body = encoder.toEntity(a).body, headers = encoder.headers)
+    }
+    val z: DecodeResult[F, A] = fmsg.flatMap(c => decoder.decode(c, strict = true))
+    effect.toIO(z) <-> IO.pure(Right(a))
+  }
 }
 
 object EntityCodecLaws {

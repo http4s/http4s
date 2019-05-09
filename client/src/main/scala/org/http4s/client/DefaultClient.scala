@@ -8,6 +8,7 @@ import cats.implicits._
 import fs2._
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.util.FEither._
 
 private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
     extends Client[F] {
@@ -96,7 +97,7 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     } else req
     fetch(r) {
       case Successful(resp) =>
-        d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
+        d.decode(resp, strict = false).leftWiden[Throwable].rethrow
       case failedResponse =>
         onError(failedResponse).flatMap(F.raiseError)
     }
@@ -149,7 +150,7 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     } else req
     fetch(r) {
       case Successful(resp) =>
-        d.decode(resp, strict = false).leftWiden[Throwable].rethrowT.map(_.some)
+        d.decode(resp, strict = false).leftWiden[Throwable].rethrow.map(_.some)
       case failedResponse =>
         failedResponse.status match {
           case Status.NotFound => Option.empty[A].pure[F]
@@ -173,7 +174,7 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
     fetch(r) { resp =>
-      d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
+      d.decode(resp, strict = false).leftWiden[Throwable].rethrow
     }
   }
 

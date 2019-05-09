@@ -7,7 +7,6 @@ import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._
 import cats.implicits._
 import cats.laws.discipline.SemigroupKTests
-import cats.laws.discipline.arbitrary._
 import cats.laws.discipline.eq._
 import fs2._
 import fs2.Stream._
@@ -18,6 +17,7 @@ import org.http4s.Status.Ok
 import org.http4s.testing._
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.execution.trampoline
+import org.http4s.util.FEither._
 import org.specs2.execute.PendingUntilFixed
 import org.specs2.scalacheck.Parameters
 import scala.concurrent.ExecutionContext
@@ -38,7 +38,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "EntityDecoder".can {
     val req = Response[IO](Ok).withEntity("foo").pure[IO]
     "flatMapR with success" in {
-      DecodeResult.success(req).flatMap { r =>
+      DecodeResult.success(req).rightFlatMap { r =>
         EntityDecoder
           .text[IO]
           .flatMapR(_ => DecodeResult.success[IO, String]("bar"))
@@ -49,19 +49,18 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "flatMapR with failure" in {
       DecodeResult
         .success(req)
-        .flatMap { r =>
+        .rightFlatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
             .decode(r, strict = false)
-        }
-        .value must returnValue(Left(MalformedMessageBodyFailure("bummer")))
+        } must returnLeft(MalformedMessageBodyFailure("bummer"))
     }
 
     "handleError from failure" in {
       DecodeResult
         .success(req)
-        .flatMap { r =>
+        .rightFlatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
@@ -73,7 +72,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "handleErrorWith success from failure" in {
       DecodeResult
         .success(req)
-        .flatMap { r =>
+        .rightFlatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
@@ -85,21 +84,20 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "recoverWith failure from failure" in {
       DecodeResult
         .success(req)
-        .flatMap { r =>
+        .rightFlatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
             .handleErrorWith(_ =>
               DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")))
             .decode(r, strict = false)
-        }
-        .value must returnValue(Left(MalformedMessageBodyFailure("double bummer")))
+        } must returnLeft(MalformedMessageBodyFailure("double bummer"))
     }
 
     "transform from success" in {
       DecodeResult
         .success(req)
-        .flatMap { r =>
+        .rightFlatMap { r =>
           EntityDecoder
             .text[IO]
             .transform(_ => Right("TRANSFORMED"))
@@ -110,20 +108,19 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "bimap from failure" in {
       DecodeResult
         .success(req)
-        .flatMap { r =>
+        .rightFlatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
             .bimap(_ => MalformedMessageBodyFailure("double bummer"), identity)
             .decode(r, strict = false)
-        }
-        .value must returnValue(Left(MalformedMessageBodyFailure("double bummer")))
+        } must returnLeft(MalformedMessageBodyFailure("double bummer"))
     }
 
     "transformWith from success" in {
       DecodeResult
         .success(req)
-        .flatMap { r =>
+        .rightFlatMap { r =>
           EntityDecoder
             .text[IO]
             .transformWith(_ => DecodeResult.success[IO, String]("TRANSFORMED"))
@@ -134,7 +131,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "biflatMap from failure" in {
       DecodeResult
         .success(req)
-        .flatMap { r =>
+        .rightFlatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
@@ -143,28 +140,27 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
               s => DecodeResult.success(s)
             )
             .decode(r, strict = false)
-        }
-        .value must returnValue(Left(MalformedMessageBodyFailure("double bummer")))
+        } must returnLeft(MalformedMessageBodyFailure("double bummer"))
     }
 
     val nonMatchingDecoder: EntityDecoder[IO, String] =
       EntityDecoder.decodeBy(MediaRange.`video/*`) { _ =>
-        DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
+        DecodeResult.failure[IO, String](MalformedMessageBodyFailure("Nope."))
       }
 
     val decoder1: EntityDecoder[IO, Int] =
       EntityDecoder.decodeBy(`application/gnutar`) { _ =>
-        DecodeResult.success(1)
+        DecodeResult.success[IO, Int](1)
       }
 
     val decoder2: EntityDecoder[IO, Int] =
       EntityDecoder.decodeBy(`application/excel`) { _ =>
-        DecodeResult.success(2)
+        DecodeResult.success[IO, Int](2)
       }
 
     val failDecoder: EntityDecoder[IO, Int] =
       EntityDecoder.decodeBy(`application/soap+xml`) { _ =>
-        DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
+        DecodeResult.failure[IO, Int](MalformedMessageBodyFailure("Nope."))
       }
 
     "Check the validity of a message body" in {
@@ -268,7 +264,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         val reqNoMediaType = Request[IO]()
         val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) {
           _ =>
-            DecodeResult.success(3)
+            DecodeResult.success[IO, Int](3)
         }
         (decoder1 <+> catchAllDecoder)
           .decode(reqSomeOtherMediaType, strict = true) must returnRight(3)
@@ -344,7 +340,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       resp must returnValue(haveStatus(Ok))
       DecodeResult
         .success(resp)
-        .flatMap(UrlForm.entityDecoder[IO].decode(_, strict = true)) must returnRight(urlForm)
+        .rightFlatMap(UrlForm.entityDecoder[IO].decode(_, strict = true)) must returnRight(urlForm)
     }
 
     // TODO: need to make urlDecode strict

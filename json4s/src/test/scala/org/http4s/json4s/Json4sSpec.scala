@@ -43,13 +43,13 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     "decode JSON from an json4s reader" in {
       val result =
         jsonOf[IO, Int].decode(Request[IO]().withEntity("42"), strict = false)
-      result.value.unsafeRunSync must beRight(42)
+      result.unsafeRunSync must beRight(42)
     }
 
     "handle reader failures" in {
       val result =
         jsonOf[IO, Int].decode(Request[IO]().withEntity(""""oops""""), strict = false)
-      result.value.unsafeRunSync must beLeft.like {
+      result.unsafeRunSync must beLeft.like {
         case InvalidMessageBodyFailure("Could not map JSON", _) => ok
       }
     }
@@ -61,13 +61,13 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     "extract JSON from formats" in {
       val result = jsonExtract[IO, Foo]
         .decode(Request[IO]().withEntity(JObject("bar" -> JInt(42))), strict = false)
-      result.value.unsafeRunSync must beRight(Foo(42))
+      result.unsafeRunSync must beRight(Foo(42))
     }
 
     "handle extract failures" in {
       val result = jsonExtract[IO, Foo]
         .decode(Request[IO]().withEntity(""""oops""""), strict = false)
-      result.value.unsafeRunSync must beLeft.like {
+      result.unsafeRunSync must beLeft.like {
         case InvalidMessageBodyFailure("Could not extract JSON", _) => ok
       }
     }

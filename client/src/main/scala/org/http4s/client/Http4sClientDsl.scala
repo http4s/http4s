@@ -5,6 +5,7 @@ package dsl
 import cats.Applicative
 import org.http4s.Method.{NoBody, PermitsBody}
 import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
+import org.http4s.util.FEither._
 
 trait Http4sClientDsl[F[_]] {
   import Http4sClientDsl._
@@ -20,7 +21,7 @@ trait Http4sClientDsl[F[_]] {
       decoder: EntityDecoder[F, T]): EntityDecoder[F, (Headers, T)] = {
     val s = decoder.consumes.toList
     EntityDecoder.decodeBy(s.head, s.tail: _*)(resp =>
-      decoder.decode(resp, strict = true).map(t => (resp.headers, t)))
+      decoder.decode(resp, strict = true).rightMap(t => (resp.headers, t)))
   }
 }
 

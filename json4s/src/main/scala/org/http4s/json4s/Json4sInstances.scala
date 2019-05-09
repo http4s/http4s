@@ -17,13 +17,12 @@ trait Json4sInstances[J] {
 
   def jsonOf[F[_], A](implicit reader: Reader[A], F: Sync[F]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
-      DecodeResult(
-        F.delay(reader.read(json))
-          .map[Either[DecodeFailure, A]](Right(_))
-          .recover {
-            case e: MappingException =>
-              Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
-          })
+      F.delay(reader.read(json))
+        .map[Either[DecodeFailure, A]](Right(_))
+        .recover {
+          case e: MappingException =>
+            Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
+        }
     }
 
   /**
@@ -37,9 +36,8 @@ trait Json4sInstances[J] {
       formats: Formats,
       manifest: Manifest[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
-      DecodeResult(
-        F.delay[Either[DecodeFailure, A]](Right(json.extract[A]))
-          .handleError(e => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))))
+      F.delay[Either[DecodeFailure, A]](Right(json.extract[A]))
+        .handleError(e => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e))))
     }
 
   protected def jsonMethods: JsonMethods[J]

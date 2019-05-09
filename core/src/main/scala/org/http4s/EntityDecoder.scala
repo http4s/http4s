@@ -8,6 +8,7 @@ import fs2.io.file.writeAll
 import java.io.File
 import org.http4s.headers.`Content-Type`
 import org.http4s.multipart.{Multipart, MultipartDecoder}
+import org.http4s.util.FEither._
 import scala.annotation.implicitNotFound
 import scala.concurrent.ExecutionContext
 
@@ -34,13 +35,13 @@ trait EntityDecoder[F[_], T] { self =>
     override def consumes: Set[MediaRange] = self.consumes
 
     override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
-      self.decode(msg, strict).map(f)
+      F.map(self.decode(msg, strict))(_.map(f))
   }
 
   def flatMapR[T2](f: T => DecodeResult[F, T2])(implicit F: Monad[F]): EntityDecoder[F, T2] =
     new EntityDecoder[F, T2] {
       override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
-        self.decode(msg, strict).flatMap(f)
+        self.decode(msg, strict).rightFlatMap(f)
 
       override def consumes: Set[MediaRange] = self.consumes
     }
@@ -69,7 +70,7 @@ trait EntityDecoder[F[_], T] { self =>
       override def consumes: Set[MediaRange] = self.consumes
 
       override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
-        self.decode(msg, strict).transform(t)
+        F.map(self.decode(msg, strict))(t)
     }
 
   def biflatMap[T2](f: DecodeFailure => DecodeResult[F, T2], s: T => DecodeResult[F, T2])(
@@ -85,9 +86,7 @@ trait EntityDecoder[F[_], T] { self =>
       override def consumes: Set[MediaRange] = self.consumes
 
       override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
-        DecodeResult(
-          F.flatMap(self.decode(msg, strict).value)(r => f(r).value)
-        )
+        F.flatMap(self.decode(msg, strict))(f)
     }
 
   /** Combine two [[EntityDecoder]]'s
@@ -194,7 +193,7 @@ object EntityDecoder {
   def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(msg.body.compile.drain *> F.raiseError(t))
+        msg.body.compile.drain *> F.raiseError(t)
       override def consumes: Set[MediaRange] = Set.empty
     }
 
@@ -211,7 +210,7 @@ object EntityDecoder {
   implicit def text[F[_]: Sync](
       implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
-      collectBinary(msg).map(chunk =>
+      collectBinary(msg).rightMap(chunk =>
         new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
 
   implicit def charArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Char]] =
@@ -223,7 +222,7 @@ object EntityDecoder {
       cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       val pipe = writeAll[F](file.toPath, blockingExecutionContext)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
+      F.as(msg.body.through(pipe).compile.drain, Right(file))
     }
 
   def textFile[F[_]](file: File, blockingExecutionContext: ExecutionContext)(
@@ -231,7 +230,7 @@ object EntityDecoder {
       cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
       val pipe = writeAll[F](file.toPath, blockingExecutionContext)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
+      F.as(msg.body.through(pipe).compile.drain, Right(file))
     }
 
   implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
@@ -240,6 +239,6 @@ object EntityDecoder {
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      DecodeResult.success(msg.body.drain.compile.drain)
+      Sync[F].map(msg.body.drain.compile.drain)(Right(_))
     }
 }

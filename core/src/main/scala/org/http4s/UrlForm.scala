@@ -97,11 +97,9 @@ object UrlForm {
       implicit F: Sync[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
-      DecodeResult(
-        EntityDecoder
-          .decodeString(m)
-          .map(decodeString(m.charset.getOrElse(defaultCharset)))
-      )
+      EntityDecoder
+        .decodeString(m)
+        .map(decodeString(m.charset.getOrElse(defaultCharset)))
     }
 
   implicit val eqInstance: Eq[UrlForm] = Eq.instance { (x: UrlForm, y: UrlForm) =>

@@ -50,7 +50,7 @@ class MultipartSpec extends Specification {
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.unsafeRunSync()
 
         result must beRight.like {
           case mp =>
@@ -68,7 +68,7 @@ class MultipartSpec extends Specification {
         val request =
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.unsafeRunSync()
 
         result must beRight.like {
           case mp =>
@@ -96,7 +96,7 @@ class MultipartSpec extends Specification {
           Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.unsafeRunSync()
 
         result must beRight.like {
           case mp =>
@@ -134,7 +134,7 @@ Content-Type: application/pdf
           headers = header)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.unsafeRunSync()
 
         result must beRight
       }
@@ -162,7 +162,7 @@ I am a big moose
           body = Stream.emit(body).through(text.utf8Encode),
           headers = header)
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-        val result = decoded.value.unsafeRunSync()
+        val result = decoded.unsafeRunSync()
 
         result must beRight
       }

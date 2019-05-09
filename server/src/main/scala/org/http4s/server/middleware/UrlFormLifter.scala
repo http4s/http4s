@@ -37,7 +37,7 @@ object UrlFormLifter {
         case Some(headers.`Content-Type`(MediaType.application.`x-www-form-urlencoded`, _))
             if checkRequest(req) =>
           for {
-            decoded <- f(UrlForm.entityDecoder[G].decode(req, strictDecode).value)
+            decoded <- f(UrlForm.entityDecoder[G].decode(req, strictDecode))
             resp <- decoded.fold(
               mf => f(mf.toHttpResponse[G](req.httpVersion)),
               addUrlForm

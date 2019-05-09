@@ -191,7 +191,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
         .run(Request[IO](uri = Uri.unsafeFromString("ok")))
         .use { resp =>
           IO {
-            (EntityDecoder[IO, String].decode(resp, false).value.unsafeRunSync() must beRight {
+            (EntityDecoder[IO, String].decode(resp, false).unsafeRunSync() must beRight {
               contain("200 OK")
             }).and(count(registry, Counter("client.default.active-requests")) must beEqualTo(1))
               .and(valuesOf(registry, Timer("client.default.requests.headers")) must beSome(

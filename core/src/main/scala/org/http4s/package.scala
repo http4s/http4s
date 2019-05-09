@@ -13,7 +13,7 @@ package object http4s { // scalastyle:ignore
 
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
-  type DecodeResult[F[_], A] = EitherT[F, DecodeFailure, A]
+  type DecodeResult[F[_], A] = F[Either[DecodeFailure, A]]
 
   type ParseResult[+A] = Either[ParseFailure, A]
 
