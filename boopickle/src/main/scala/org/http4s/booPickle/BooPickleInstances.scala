@@ -20,18 +20,15 @@ trait BooPickleInstances {
 
   private def booDecoderByteBuffer[F[_]: Sync, A](msg: Message[F])(
       implicit pickler: Pickler[A]): DecodeResult[F, A] =
-    EntityDecoder.collectBinary(msg).flatMap { chunk =>
+    EntityDecoder.collectBinary(msg).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining) {
         Unpickle[A](pickler).tryFromBytes(bb) match {
-          case Success(bb) =>
-            DecodeResult.success[F, A](bb)
-          case Failure(pf) =>
-            DecodeResult.failure[F, A](MalformedMessageBodyFailure("Invalid binary body", Some(pf)))
+          case Success(bb) => Right(bb)
+          case Failure(pf) => Left(MalformedMessageBodyFailure("Invalid binary body", Some(pf)))
         }
-      } else {
-        DecodeResult.failure[F, A](MalformedMessageBodyFailure("Invalid binary: empty body", None))
-      }
+      } else
+        Left(MalformedMessageBodyFailure("Invalid binary: empty body", None))
     }
 
   /**
