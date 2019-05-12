@@ -25,7 +25,7 @@ object AuthedService {
     * @param run the function to lift
     * @return an [[AuthedService]] that wraps `run`
     */
-  def apply[F[_], T](run: AuthedRequest[F, T] => OptionT[F, Response[F]])(
+  def apply_[F[_], T](run: AuthedRequest[F, T] => OptionT[F, Response[F]])(
       implicit F: Sync[F]): AuthedService[T, F] =
     Kleisli(req => OptionT(F.suspend(run(req).value)))
 

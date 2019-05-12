@@ -42,5 +42,5 @@ final class KleisliHttpAppOps[F[_]: Sync](self: HttpApp[F]) {
 
 final class KleisliAuthedServiceOps[F[_]: Sync, A](self: AuthedService[A, F]) {
   def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F): AuthedService[A, G] =
-    AuthedService(authedReq => self.run(authedReq.mapK(gK)).mapK(fk).map(_.mapK(fk)))
+    AuthedService.apply_(authedReq => self.run(authedReq.mapK(gK)).mapK(fk).map(_.mapK(fk)))
 }
