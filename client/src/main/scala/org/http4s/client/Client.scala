@@ -1,7 +1,7 @@
 package org.http4s
 package client
 
-import cats.{Defer, ~>}
+import cats.~>
 import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Ref
@@ -194,7 +194,7 @@ trait Client[F[_]] {
   /**
     * Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Defer: Bracket[?[_], Throwable]](fk: F ~> G)(gK: G ~> F)(
+  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(
       implicit b: Bracket[F, Throwable]): Client[G] =
     Client(
       (req: Request[G]) => run(req.mapK(gK)).mapK(fk).map(_.mapK(fk))
