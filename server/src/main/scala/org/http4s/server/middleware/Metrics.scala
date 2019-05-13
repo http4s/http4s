@@ -39,7 +39,7 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { _: Request[F] =>
         None
       }
-  )(routes: HttpRoutes[F])(implicit F: Effect[F], clock: Clock[F]): HttpRoutes[F] =
+  )(routes: HttpRoutes[F])(implicit F: Sync[F], clock: Clock[F]): HttpRoutes[F] =
     Kleisli(
       metricsService[F](ops, routes, emptyResponseHandler, errorResponseHandler, classifierF)(_))
 
