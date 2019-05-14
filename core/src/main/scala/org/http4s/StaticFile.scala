@@ -166,7 +166,7 @@ object StaticFile {
   private def ifETagModified[F[_]](req: Option[Request[F]], etagCalc: ETag) =
     for {
       r <- req
-      etagHeader <- r.headers.get(ETag)
+      etagHeader <- r.headers.get(`If-None-Match`)
       etagExp = etagHeader.value != etagCalc.value
       _ = logger.trace(
         s"Expired ETag: $etagExp Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")

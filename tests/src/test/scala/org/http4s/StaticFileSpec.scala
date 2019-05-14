@@ -3,7 +3,9 @@ package org.http4s
 import cats.effect.IO
 import java.io.File
 import java.nio.file.Files
+
 import org.http4s.Status.NotModified
+import org.http4s.headers.ETag.EntityTag
 import org.http4s.headers._
 import org.specs2.matcher.MatchResult
 
@@ -57,7 +59,7 @@ class StaticFileSpec extends Http4sSpec {
 
       val request =
         Request[IO]().putHeaders(
-          ETag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}"))
+          `If-None-Match`(EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
         .value
