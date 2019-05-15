@@ -3,8 +3,8 @@ package server
 package middleware
 
 import cats.data.Kleisli
-import cats.effect._
-import cats.implicits._
+import cats.effect.{Concurrent, Timer}
+import cats.syntax.applicative._
 import scala.concurrent.duration.FiniteDuration
 
 object Timeout {
@@ -21,9 +21,7 @@ object Timeout {
       http: Kleisli[F, A, Response[G]])(
       implicit F: Concurrent[F],
       T: Timer[F]): Kleisli[F, A, Response[G]] =
-    http
-      .mapF(respF => F.race(respF, T.sleep(timeout) *> timeoutResponse))
-      .map(_.merge)
+    http.mapF(Concurrent.timeoutTo(_, timeout, timeoutResponse))
 
   /** Transform the service to return a timeout response after the given
     * duration if the service has not yet responded.  If the timeout
