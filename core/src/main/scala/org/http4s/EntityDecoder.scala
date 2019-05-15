@@ -126,28 +126,21 @@ object EntityDecoder {
           a: EntityDecoder[F, T],
           b: EntityDecoder[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
 
-        override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-          msg.headers.get(`Content-Type`) match {
-            case Some(contentType) =>
-              if (a.matchesMediaType(contentType.mediaType)) {
-                a.decode(msg, strict)
-              } else
-                b.decode(msg, strict).leftMap {
-                  case MediaTypeMismatch(actual, expected) =>
-                    MediaTypeMismatch(actual, expected ++ a.consumes)
-                  case other => other
-                }
+        override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] = {
+          val mediaType = msg.headers.get(`Content-Type`).fold(UndefinedMediaType)(_.mediaType)
 
-            case None =>
-              if (a.matchesMediaType(UndefinedMediaType)) {
-                a.decode(msg, strict)
-              } else
-                b.decode(msg, strict).leftMap {
-                  case MediaTypeMissing(expected) =>
-                    MediaTypeMissing(expected ++ a.consumes)
-                  case other => other
-                }
-          }
+          if (a.matchesMediaType(mediaType))
+            a.decode(msg, strict)
+          else
+            b.decode(msg, strict).leftMap {
+              case MediaTypeMismatch(actual, expected) =>
+                MediaTypeMismatch(actual, expected ++ a.consumes)
+              case MediaTypeMissing(expected) =>
+                MediaTypeMissing(expected ++ a.consumes)
+              case other => other
+            }
+
+        }
 
         override def consumes: Set[MediaRange] = a.consumes ++ b.consumes
       }
