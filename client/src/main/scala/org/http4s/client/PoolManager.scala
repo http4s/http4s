@@ -98,18 +98,20 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param callback The callback to complete with the NextConnection.
     */
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
-    if (numConnectionsCheckHolds(key)) {
-      incrConnection(key) *> F.start {
-        Async.shift(executionContext) *> builder(key).attempt.flatMap {
-          case Right(conn) =>
-            F.delay(callback(Right(NextConnection(conn, fresh = true))))
-          case Left(error) =>
-            disposeConnection(key, None) *> F.delay(callback(Left(error)))
-        }
-      }.void
-    } else {
-      addToWaitQueue(key, callback)
-    }
+    F.ifM(F.delay(numConnectionsCheckHolds(key)))(
+      {
+        incrConnection(key) *> F.start {
+          Async.shift(executionContext) *> builder(key).attempt.flatMap {
+            case Right(conn) =>
+              F.delay(callback(Right(NextConnection(conn, fresh = true))))
+            case Left(error) =>
+              disposeConnection(key, None) *> F.delay(callback(Left(error)))
+          }
+        }.void
+      }, {
+        addToWaitQueue(key, callback)
+      }
+    )
 
   private def addToWaitQueue(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     F.delay {
