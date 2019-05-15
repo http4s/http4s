@@ -1,18 +1,21 @@
 package org.http4s
 
+import java.io._
+import java.net.URL
+
+import cats.Semigroup
 import cats.data._
 import cats.effect._
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import fs2.Stream._
 import fs2.io._
 import fs2.io.file.readRange
-import java.io._
-import java.net.URL
+import io.chrisdavenport.vault._
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
+
 import scala.concurrent.ExecutionContext
-import _root_.io.chrisdavenport.vault._
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -132,13 +135,7 @@ object StaticFile {
 
           val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
-          // See if we need to actually resend the file
-          val notModified: Option[Response[F]] = ifModifiedSince(req, lastModified)
-
-          // Check ETag
-          val etagModified: Option[Response[F]] = ifETagModified(req, etagCalc)
-
-          notModified.orElse(etagModified).orElse {
+          notModified(req, etagCalc, lastModified).orElse {
             val (body, contentLength) =
               if (f.length() < end) (empty.covary[F], 0L)
               else (fileToBody[F](f, start, end, blockingExecutionContext), end - start)
@@ -163,25 +160,37 @@ object StaticFile {
       }
     } yield res)
 
-  private def ifETagModified[F[_]](req: Option[Request[F]], etagCalc: ETag) =
+  private def notModified[F[_]](
+      req: Option[Request[F]],
+      etagCalc: ETag,
+      lastModified: Option[HttpDate]): Option[Response[F]] = {
+
+    implicit val conjunction: Semigroup[Boolean] =
+      (x: Boolean, y: Boolean) => x && y
+
+    List(etagMatch(req, etagCalc), notModifiedSince(req, lastModified))
+      .combineAll
+      .filter(identity)
+      .map(_ => Response[F](NotModified))
+  }
+
+  private def etagMatch[F[_]](req: Option[Request[F]], etagCalc: ETag) =
     for {
       r <- req
       etagHeader <- r.headers.get(`If-None-Match`)
-      etagExp = etagHeader.value != etagCalc.value
+      etagMatch = etagHeader.tags.exists(_.exists(_ == etagCalc.tag))
       _ = logger.trace(
-        s"Expired ETag: $etagExp Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
-      nm = Response[F](NotModified) if !etagExp
-    } yield nm
+        s"Matches `If-None-Match`: $etagMatch Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
+    } yield etagMatch
 
-  private def ifModifiedSince[F[_]](req: Option[Request[F]], lastModified: Option[HttpDate]) =
+  private def notModifiedSince[F[_]](req: Option[Request[F]], lastModified: Option[HttpDate]) =
     for {
       r <- req
       h <- r.headers.get(`If-Modified-Since`)
       lm <- lastModified
-      exp = h.date.compareTo(lm) < 0
-      _ = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lm")
-      nm = Response[F](NotModified) if !exp
-    } yield nm
+      notModified = h.date >= lm
+      _ = logger.trace(s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm")
+    } yield notModified
 
   private def fileToBody[F[_]: Sync: ContextShift](
       f: File,
