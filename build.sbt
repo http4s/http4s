@@ -61,7 +61,6 @@ lazy val thirteen = project
   )
   .aggregate(
     modules.filterNot {
-      case LocalProject("boopickle") => true
       case LocalProject("mimedb-generator") => true
       case _ => false
     }: _*
