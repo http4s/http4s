@@ -95,6 +95,7 @@ lazy val core = libraryProject("core")
       "https://oss.sonatype.org/content/repositories/snapshots"),
     libraryDependencies ++= Seq(
       cats,
+      catsEffect,
       fs2Io,
       log4s,
       parboiled,

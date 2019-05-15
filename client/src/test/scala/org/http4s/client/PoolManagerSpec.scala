@@ -8,6 +8,8 @@ import scala.concurrent.duration._
 class PoolManagerSpec(name: String) extends Http4sSpec {
   val _ = name
   val key = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.IPv4("127.0.0.1")))
+  val otherKey = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.IPv4("localhost")))
+
   class TestConnection extends Connection[IO] {
     def isClosed = false
     def isRecyclable = true
@@ -74,6 +76,26 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
         conn <- pool.borrow(key)
         fiber <- pool.borrow(key).start // Should be one waiting
         _ <- pool.invalidate(conn.connection)
+        _ <- fiber.join
+      } yield ()).unsafeRunTimed(2.seconds) must_== Some(())
+    }
+
+    "close an idle connection when at max total connections" in {
+      (for {
+        pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 1)
+        conn <- pool.borrow(key)
+        _ <- pool.release(conn.connection)
+        fiber <- pool.borrow(otherKey).start
+        _ <- fiber.join
+      } yield ()).unsafeRunTimed(2.seconds) must_== Some(())
+    }
+
+    "wake up a waiting connection for a different request key on release" in {
+      (for {
+        pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 1)
+        conn <- pool.borrow(key)
+        fiber <- pool.borrow(otherKey).start
+        _ <- pool.release(conn.connection)
         _ <- fiber.join
       } yield ()).unsafeRunTimed(2.seconds) must_== Some(())
     }

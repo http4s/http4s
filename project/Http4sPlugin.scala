@@ -309,7 +309,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.6.0"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.1.0"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.3.0"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
@@ -319,7 +319,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.2"
-  lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.5"
+  lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   def discipline(sv: String)                = "org.typelevel"          %% "discipline"                % disciplineVersion(sv)
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.4"
