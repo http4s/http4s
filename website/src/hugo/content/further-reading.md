@@ -11,8 +11,11 @@ dated, but is considered interesting enough to share as a supplement
 to the official documentation.
 
 * [Live Coding a Chat Server with WebSockets and http4s](https://www.youtube.com/watch?v=py_V_7gD5WU) ([code](https://github.com/MartinSnyder/phase-http4s)) <small class="text-muted">(2019-04-30)</small>
-* [Lightweight, functional microservices with http4s and doobie](https://www.youtube.com/watch?v=fQfMiUDsLv4) ([slides](https://kubukoz.github.io/talks/http4s-doobie-micro/slides/)) <small class="text-muted">(2019-01-25)</small> 
-* [HTTP applications are just a Kleisli function from a streaming request to a polymorphic effect of a streaming response. So what's the problem?](https://www.youtube.com/watch?v=urdtmx4h5LE) ([slides](https://rossabaker.github.io/boston-http4s/#2)) <small class="text-muted">(2018-03-20)</small> 
+* [Lightweight, functional microservices with http4s and doobie](https://www.youtube.com/watch?v=fQfMiUDsLv4) ([slides](https://kubukoz.github.io/talks/http4s-doobie-micro/slides/)) <small class="text-muted">(2019-01-25)</small>
+* [Error handling in Http4s with classy optics (Part 2)](https://typelevel.org/blog/2018/11/28/http4s-error-handling-mtl-2.html) <small class="text-muted">(2018-11-28)</small>
+* [Error handling in Http4s with classy optics (Talk)](https://www.youtube.com/watch?v=UUX5KvPgejM) <small class="text-muted">(2018-11-16)</small>
+* [Error handling in Http4s with classy optics (Part 1)](https://typelevel.org/blog/2018/08/25/http4s-error-handling-mtl.html) <small class="text-muted">(2018-08-25)</small>
+* [HTTP applications are just a Kleisli function from a streaming request to a polymorphic effect of a streaming response. So what's the problem?](https://www.youtube.com/watch?v=urdtmx4h5LE) ([slides](https://rossabaker.github.io/boston-http4s/#2)) <small class="text-muted">(2018-03-20)</small>
 * [Testing and Error Handling in http4s](https://medium.com/@albamus/testing-and-error-handling-in-http4s-2a05572e535d) <small class="text-muted">(2017-08-26)</small>
 * [Combining data from a database and a web service with Fetch](https://www.47deg.com/blog/fetch-doobie-http4s/) <small class="text-muted">(2017-01-19)</small>
 * [CRUD and error handling with Http4s](https://partialflow.wordpress.com/2016/10/18/crud-and-error-handling-with-http4s/) <small class="text-muted">(2016-10-18)</small>
