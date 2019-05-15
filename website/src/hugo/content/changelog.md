@@ -8,6 +8,37 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.1 (2019-05-15)
+
+Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and passes new tests, but we still lack 100% confidence in it.  The async-http-client backend has proven stable for a large number of users.
+
+## Bug fixes
+* [#2562](https://github.com/http4s/http4s/pull/2562): Fix issue in `PoolManager` that causes hung requests in blaze-client.
+
+## Enhancements
+* [#2532](https://github.com/http4s/http4s/pull/2532): Add queue limit to log message when client wait queue is full
+* [#2535](https://github.com/http4s/http4s/pull/2535): Add `translate` to `HttpRoutes` and `HttpApp`
+
+## Documentation
+* [#2533](https://github.com/http4s/http4s/pull/2533): Fix link to Metrics middleware
+* [#2538](https://github.com/http4s/http4s/pull/2538): Add @MartinSnyder's presentation, update giter8 instructions
+* [#2559](https://github.com/http4s/http4s/pull/2559): Add @gvolpe's presentation and http4s-tracer
+
+## Internals
+* [#2525](https://github.com/http4s/http4s/pull/2525): Pointful implementation of `AuthMiddleware.noSpider`
+* [#2534](https://github.com/http4s/http4s/pull/2534): Build with xenial and openjdk8 on Travis CI
+* [#2530](https://github.com/http4s/http4s/pull/2530): Refactoring of `authentication.challenged`
+* [#2531](https://github.com/http4s/http4s/pull/2531): Refactoring of `PushSupport`
+* [#2543](https://github.com/http4s/http4s/pull/2543): Rename maintenance branches to `series/x.y`
+* [#2549](https://github.com/http4s/http4s/pull/2549): Remove workarounds in `BlazeClient` for [typelevel/cats-effect#487](https://github.com/typelevel/cats-effect/issues/487)
+
+## Dependency updates
+* cats-effect-1.3.0
+* jetty-server-9.4.18.v20190429
+* metrics-core-4.1.0
+* sbt-native-packager-1.3.21 (examples only)
+* tomcat-9.0.20
+
 # v0.20.0 (2019-04-22)
 
 ## Announcements
