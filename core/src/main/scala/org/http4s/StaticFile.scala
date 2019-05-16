@@ -1,8 +1,5 @@
 package org.http4s
 
-import java.io._
-import java.net.URL
-
 import cats.Semigroup
 import cats.data._
 import cats.effect._
@@ -11,10 +8,11 @@ import fs2.Stream._
 import fs2.io._
 import fs2.io.file.readRange
 import io.chrisdavenport.vault._
+import java.io._
+import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 
 object StaticFile {
