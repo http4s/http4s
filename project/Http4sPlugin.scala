@@ -20,9 +20,7 @@ object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isTravisBuild = settingKey[Boolean]("true if this build is running as either a PR or a release build within Travis CI")
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
-    val http4sPrimary = settingKey[Boolean]("Is this the primary build?")
     val http4sPublish = settingKey[Boolean]("Is this a publishing build?")
-    val http4sMasterBranch = settingKey[Boolean]("Is this the master branch?")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
     val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
@@ -37,7 +35,6 @@ object Http4sPlugin extends AutoPlugin {
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
     isTravisBuild := sys.env.get("TRAVIS").isDefined,
-    http4sPrimary := sys.env.get("TRAVIS_JOB_NUMBER").fold(true)(_.endsWith(".1")),
     
     // Publishing to gh-pages and sonatype only done from select branches and
     // never from pull requests.
@@ -45,14 +42,8 @@ object Http4sPlugin extends AutoPlugin {
       sys.env.get("TRAVIS").contains("true") &&
         sys.env.get("TRAVIS_PULL_REQUEST").contains("false") &&
         sys.env.get("TRAVIS_REPO_SLUG").contains("http4s/http4s") &&
-        sys.env.get("TRAVIS_JDK_VERSION").contains("oraclejdk8") &&
-        (sys.env.get("TRAVIS_BRANCH") match {
-           case Some("master") => true
-           case Some(branch) if branch.startsWith("series/") => true
-           case _ => false
-         })
+        sys.env.get("TEST").contains("publish")
     },
-    http4sMasterBranch := sys.env.get("TRAVIS_BRANCH").contains("master"),
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
@@ -184,28 +175,19 @@ object Http4sPlugin extends AutoPlugin {
 
       val release = !isSnapshot.value
       val publishable = http4sPublish.value
-      val primary = http4sPrimary.value
-      val master = http4sMasterBranch.value
 
       Seq(
         checkSnapshotDependencies.when(release),
         inquireVersions.when(release),
         setReleaseVersion.when(release),
-        tagRelease.when(primary && release),
+        tagRelease.when(publishable && release),
         runClean,
-        // runTest,
         releaseStepCommandAndRemaining("+mimaReportBinaryIssues"),
-        // releaseStepCommand("unusedCompileDependenciesTest"),
-        // releaseStepCommand("test:scalafmt::test").when(primary),
-        // releaseStepCommand("docs/makeSite").when(primary),
-        // releaseStepCommand("website/makeSite").when(primary),
         releaseStepCommandAndRemaining("+publishSigned").when(publishable),
         releaseStepCommand("sonatypeReleaseAll").when(publishable && release),
-        // releaseStepCommand("docs/ghpagesPushSite").when(publishable && primary),
-        // releaseStepCommand("website/ghpagesPushSite").when(publishable && primary && master),
-        setNextVersion.when(publishable && primary && release),
-        commitNextVersion.when(publishable && primary && release),
-        pushChanges.when(publishable && primary && release),
+        setNextVersion.when(publishable && release),
+        commitNextVersion.when(publishable && release),
+        pushChanges.when(publishable && release),
         // We need a superfluous final step to ensure exit code
         // propagation from failed steps above.
         //
