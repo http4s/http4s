@@ -6,7 +6,7 @@ import java.net.URL
 import cats.Semigroup
 import cats.data._
 import cats.effect._
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.Stream._
 import fs2.io._
 import fs2.io.file.readRange
