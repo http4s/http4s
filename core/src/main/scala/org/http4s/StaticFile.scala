@@ -163,8 +163,9 @@ object StaticFile {
       etagCalc: ETag,
       lastModified: Option[HttpDate]): Option[Response[F]] = {
 
-    implicit val conjunction: Semigroup[Boolean] =
-      (x: Boolean, y: Boolean) => x && y
+    implicit val conjunction = new Semigroup[Boolean] {
+      def combine(x: Boolean, y: Boolean): Boolean = x && y
+    }
 
     List(etagMatch(req, etagCalc), notModifiedSince(req, lastModified)).combineAll
       .filter(identity)
