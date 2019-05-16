@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.1 (2019-05-15)
+# v0.20.1 (2019-05-16)
 
 Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and passes new tests, but we still lack 100% confidence in it.  The async-http-client backend has proven stable for a large number of users.
 
@@ -33,6 +33,7 @@ Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and
 * [#2549](https://github.com/http4s/http4s/pull/2549): Remove workarounds in `BlazeClient` for [typelevel/cats-effect#487](https://github.com/typelevel/cats-effect/issues/487)
 
 ## Dependency updates
+* blaze-0.14.1
 * cats-effect-1.3.0
 * jetty-server-9.4.18.v20190429
 * metrics-core-4.1.0
