@@ -14,6 +14,7 @@ Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and
 
 ## Bug fixes
 * [#2562](https://github.com/http4s/http4s/pull/2562): Fix issue in `PoolManager` that causes hung requests in blaze-client.
+* [#2571](https://github.com/http4s/http4s/pull/2571): Honor `If-None-Match` request header in `StaticFile`
 
 ## Enhancements
 * [#2532](https://github.com/http4s/http4s/pull/2532): Add queue limit to log message when client wait queue is full
