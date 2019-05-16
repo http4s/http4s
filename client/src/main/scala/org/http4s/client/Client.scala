@@ -194,10 +194,13 @@ trait Client[F[_]] {
   /**
     * Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(
-      implicit b: Bracket[F, Throwable]): Client[G] =
+  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(implicit b: Bracket[F, Throwable]): Client[G] =
     Client(
-      (req: Request[G]) => run(req.mapK(gK)).mapK(fk).map(_.mapK(fk))
+      (req: Request[G]) =>
+        run(
+          req.mapK(gK)
+        ).mapK(fk)
+          .map(_.mapK(fk))
     )
 }
 
