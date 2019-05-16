@@ -23,7 +23,7 @@ object Http {
     *
     * @tparam F the effect of the [[Response]] returned by the [[Http]]
     * @tparam G the effect of the bodies of the [[Request]] and [[Response]]
-    * @paraK fr the effectful [[Response]] to lift
+    * @param fr the effectful [[Response]] to lift
     * @return an [[Http]] that always returns `fr`
     */
   def liftF[F[_], G[_]](fr: F[Response[G]]): Http[F, G] =
