@@ -168,8 +168,7 @@ object StaticFile {
     implicit val conjunction: Semigroup[Boolean] =
       (x: Boolean, y: Boolean) => x && y
 
-    List(etagMatch(req, etagCalc), notModifiedSince(req, lastModified))
-      .combineAll
+    List(etagMatch(req, etagCalc), notModifiedSince(req, lastModified)).combineAll
       .filter(identity)
       .map(_ => Response[F](NotModified))
   }
@@ -189,7 +188,8 @@ object StaticFile {
       h <- r.headers.get(`If-Modified-Since`)
       lm <- lastModified
       notModified = h.date >= lm
-      _ = logger.trace(s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm")
+      _ = logger.trace(
+        s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm")
     } yield notModified
 
   private def fileToBody[F[_]: Sync: ContextShift](

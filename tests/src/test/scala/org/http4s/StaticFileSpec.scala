@@ -58,8 +58,8 @@ class StaticFileSpec extends Http4sSpec {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
       val request =
-        Request[IO]().putHeaders(
-          `If-None-Match`(EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
+        Request[IO]().putHeaders(`If-None-Match`(
+          EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
         .value
@@ -74,7 +74,9 @@ class StaticFileSpec extends Http4sSpec {
       val request =
         Request[IO]().putHeaders(
           `If-Modified-Since`(HttpDate.MaxValue),
-          `If-None-Match`(EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
+          `If-None-Match`(
+            EntityTag(
+              s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
 
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
@@ -88,9 +90,8 @@ class StaticFileSpec extends Http4sSpec {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
       val request =
-        Request[IO]().putHeaders(
-          `If-Modified-Since`(HttpDate.MaxValue),
-          `If-None-Match`(EntityTag(s"12345")))
+        Request[IO]()
+          .putHeaders(`If-Modified-Since`(HttpDate.MaxValue), `If-None-Match`(EntityTag(s"12345")))
 
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
