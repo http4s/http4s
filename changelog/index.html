@@ -88,7 +88,7 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v0-20-1-2019-05-15">v0.20.1 (2019-05-15)</h1>
+<h1 id="v0-20-1-2019-05-16">v0.20.1 (2019-05-16)</h1>
 
 <p>Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and passes new tests, but we still lack 100% confidence in it.  The async-http-client backend has proven stable for a large number of users.</p>
 
@@ -96,6 +96,7 @@ it.</p>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2562">#2562</a>: Fix issue in <code>PoolManager</code> that causes hung requests in blaze-client.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2571">#2571</a>: Honor <code>If-None-Match</code> request header in <code>StaticFile</code></li>
 </ul>
 
 <h2 id="enhancements">Enhancements</h2>
@@ -122,11 +123,13 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2531">#2531</a>: Refactoring of <code>PushSupport</code></li>
 <li><a href="https://github.com/http4s/http4s/pull/2543">#2543</a>: Rename maintenance branches to <code>series/x.y</code></li>
 <li><a href="https://github.com/http4s/http4s/pull/2549">#2549</a>: Remove workarounds in <code>BlazeClient</code> for <a href="https://github.com/typelevel/cats-effect/issues/487">typelevel/cats-effect#487</a></li>
+<li><a href="https://github.com/http4s/http4s/pull/2575">#2575</a>: Fix the Travis CI release pipeline</li>
 </ul>
 
 <h2 id="dependency-updates">Dependency updates</h2>
 
 <ul>
+<li>blaze-0.14.2</li>
 <li>cats-effect-1.3.0</li>
 <li>jetty-server-9.4.18.v20190429</li>
 <li>metrics-core-4.1.0</li>
