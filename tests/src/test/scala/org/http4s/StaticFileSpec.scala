@@ -3,7 +3,9 @@ package org.http4s
 import cats.effect.IO
 import java.io.File
 import java.nio.file.Files
-import org.http4s.Status.NotModified
+
+import org.http4s.Status.{NotModified, Ok}
+import org.http4s.headers.ETag.EntityTag
 import org.http4s.headers._
 import org.specs2.matcher.MatchResult
 
@@ -56,14 +58,66 @@ class StaticFileSpec extends Http4sSpec {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
       val request =
-        Request[IO]().putHeaders(
-          ETag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}"))
+        Request[IO]().putHeaders(`If-None-Match`(
+          EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
         .value
         .unsafeRunSync
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
+    }
+
+    "Don't send unmodified files when both ETag and last modified date match" in {
+      val emptyFile = File.createTempFile("empty", ".tmp")
+
+      val request =
+        Request[IO]().putHeaders(
+          `If-Modified-Since`(HttpDate.MaxValue),
+          `If-None-Match`(
+            EntityTag(
+              s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
+
+      val response = StaticFile
+        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .value
+        .unsafeRunSync
+      response must beSome[Response[IO]]
+      response.map(_.status) must beSome(NotModified)
+    }
+
+    "Send file when last modified date matches but etag does not match" in {
+      val emptyFile = File.createTempFile("empty", ".tmp")
+
+      val request =
+        Request[IO]()
+          .putHeaders(`If-Modified-Since`(HttpDate.MaxValue), `If-None-Match`(EntityTag(s"12345")))
+
+      val response = StaticFile
+        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .value
+        .unsafeRunSync
+      response must beSome[Response[IO]]
+      response.map(_.status) must beSome(Ok)
+    }
+
+    "Send file when etag matches, but last modified does not match" in {
+      val emptyFile = File.createTempFile("empty", ".tmp")
+
+      val request =
+        Request[IO]()
+          .putHeaders(
+            `If-Modified-Since`(HttpDate.MinValue),
+            `If-None-Match`(
+              EntityTag(
+                s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
+
+      val response = StaticFile
+        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .value
+        .unsafeRunSync
+      response must beSome[Response[IO]]
+      response.map(_.status) must beSome(Ok)
     }
 
     "Send partial file" in {
