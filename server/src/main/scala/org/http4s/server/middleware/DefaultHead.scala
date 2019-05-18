@@ -17,12 +17,8 @@ object DefaultHead {
   def apply[F[_]: Functor, G[_]](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
-        case Method.HEAD => {
-          (http <+> headAsTruncatedGet(http))(req)
-        }
-        case _ => {
-          http(req)
-        }
+        case Method.HEAD => (http <+> headAsTruncatedGet(http))(req)
+        case _ => http(req)
       }
     }
 

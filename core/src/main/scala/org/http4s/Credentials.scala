@@ -83,10 +83,9 @@ object BasicCredentials {
 
   def unapply(creds: Credentials): Option[(String, String)] =
     creds match {
-      case Credentials.Token(AuthScheme.Basic, token) => {
+      case Credentials.Token(AuthScheme.Basic, token) =>
         val basicCredentials = BasicCredentials(token)
         Some((basicCredentials.username, basicCredentials.password))
-      }
       case _ =>
         None
     }
