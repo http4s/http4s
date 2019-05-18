@@ -59,35 +59,19 @@ object RequestLogger {
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
             )
+            def logRequest: F[Unit] =
+              Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                logHeaders,
+                logBody,
+                redactHeadersWhen
+              )(log)
             val response: G[Response[F]] =
               http(changedRequest)
                 .guaranteeCase {
-                  case ExitCase.Canceled =>
-                    fk(
-                      Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                        logHeaders,
-                        logBody,
-                        redactHeadersWhen
-                      )(log))
-                  case ExitCase.Error(_) =>
-                    fk(
-                      Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                        logHeaders,
-                        logBody,
-                        redactHeadersWhen
-                      )(log))
                   case ExitCase.Completed => G.unit
+                  case _ => fk(logRequest)
                 }
-                .map { resp =>
-                  resp.withBodyStream(
-                    resp.body.onFinalize(
-                      Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                        logHeaders,
-                        logBody,
-                        redactHeadersWhen)(log)
-                    )
-                  )
-                }
+                .map(resp => resp.withBodyStream(resp.body.onFinalize(logRequest)))
             response
           }
       }
