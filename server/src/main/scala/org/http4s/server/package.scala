@@ -2,7 +2,7 @@ package org.http4s
 
 import cats._
 import cats.arrow.Choice
-import cats.data.{Kleisli, OptionT}
+import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits._
 import cats.effect._
 import org.http4s.headers.{Connection, `Content-Length`}
@@ -94,6 +94,20 @@ package object server {
           case Some(authReq) =>
             service(AuthedRequest(authReq, r)).getOrElse(Response[F](Status.NotFound))
           case None => onAuthFailure(r)
+        }
+        OptionT.liftF(resp)
+      }
+    }
+
+    def noSpiderWithEither[F[_]: Monad, E, T](
+                                  authUserWithError: Kleisli[EitherT[F, E, ?], Request[F], T],
+                                  onAuthFailure: (Request[F], E) => F[Response[F]]
+                                ): AuthMiddleware[F, T] = { service =>
+      Kleisli { r: Request[F] =>
+        val resp = authUserWithError(r).value.flatMap {
+          case Right(authReq) =>
+            service(AuthedRequest(authReq, r)).getOrElse(Response[F](Status.NotFound))
+          case Left(error) => onAuthFailure(r, error)
         }
         OptionT.liftF(resp)
       }
