@@ -220,7 +220,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
     }
 
-    "return 'error' response for EitherT.left for noSpiderWithEither" in {
+    "behave as expected for noSpiderWithEither" in {
 
       import org.http4s.util.CaseInsensitiveString
 
