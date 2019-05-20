@@ -2,6 +2,8 @@ language: scala
 dist: xenial
 sudo: required
 
+if: tag IS blank
+
 stages:
   - name: test
   - name: publish

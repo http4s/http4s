@@ -82,13 +82,12 @@ private[authentication] class NonceKeeper(
       checkStale()
       nonces.get(data) match {
         case null => NonceKeeper.StaleReply
-        case n: Nonce => {
+        case n: Nonce =>
           if (nc > n.nc) {
             n.nc = n.nc + 1
             NonceKeeper.OKReply
           } else
             NonceKeeper.BadNCReply
-        }
       }
     }
 }

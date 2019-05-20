@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 /**
   * CORS middleware config options.
   * You can give an instance of this class to the CORS middleware,
-  * to specify its behavoir
+  * to specify its behavior
   */
 final case class CORSConfig(
     anyOrigin: Boolean,
