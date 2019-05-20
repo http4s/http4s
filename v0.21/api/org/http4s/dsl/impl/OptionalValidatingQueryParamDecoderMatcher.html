@@ -300,14 +300,13 @@
 <span class="kw">object</span> BarMatcher <span class="kw">extends</span> OptionalValidatingQueryParamDecoderMatcher[Bar](<span class="lit">"bar"</span>)
 
 <span class="kw">val</span> routes = HttpRoutes.of {
-  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(fooValue) +&amp; BarMatcher(barValue) <span class="kw">=&gt;</span> {
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(fooValue) +&amp; BarMatcher(barValue) <span class="kw">=&gt;</span>
     ^(fooValue, barValue getOrElse <span class="num">42.</span>right) { (foo, bar) <span class="kw">=&gt;</span>
       ...
     }.fold(
       nelE <span class="kw">=&gt;</span> BadRequest(nelE.toList.map(_.sanitized).mkString(<span class="lit">"\n"</span>)),
       baz  <span class="kw">=&gt;</span> { ... }
-    )
-  }</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
+    )</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>

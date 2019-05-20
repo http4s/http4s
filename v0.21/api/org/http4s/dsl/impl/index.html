@@ -573,14 +573,13 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
 <span class="kw">object</span> BarMatcher <span class="kw">extends</span> OptionalValidatingQueryParamDecoderMatcher[Bar](<span class="lit">"bar"</span>)
 
 <span class="kw">val</span> routes = HttpRoutes.of {
-  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(fooValue) +&amp; BarMatcher(barValue) <span class="kw">=&gt;</span> {
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(fooValue) +&amp; BarMatcher(barValue) <span class="kw">=&gt;</span>
     ^(fooValue, barValue getOrElse <span class="num">42.</span>right) { (foo, bar) <span class="kw">=&gt;</span>
       ...
     }.fold(
       nelE <span class="kw">=&gt;</span> BadRequest(nelE.toList.map(_.sanitized).mkString(<span class="lit">"\n"</span>)),
       baz  <span class="kw">=&gt;</span> { ... }
-    )
-  }</pre></div></div>
+    )</pre></div></div>
     </li><li name="org.http4s.dsl.impl.Path" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="PathextendsAnyRef"></a><a id="Path:Path"></a>
       <span class="permalink">
@@ -745,12 +744,11 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
 
 <span class="kw">object</span> FooMatcher <span class="kw">extends</span> ValidatingQueryParamDecoderMatcher[Foo](<span class="lit">"foo"</span>)
 <span class="kw">val</span> routes: HttpRoutes.of = {
-  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(fooValue) <span class="kw">=&gt;</span> {
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(fooValue) <span class="kw">=&gt;</span>
     fooValue.fold(
       nelE <span class="kw">=&gt;</span> BadRequest(nelE.toList.map(_.sanitized).mkString(<span class="lit">"\n"</span>)),
       foo  <span class="kw">=&gt;</span> { ... }
-    )
-  }</pre></div></div>
+    )</pre></div></div>
     </li><li name="org.http4s.dsl.impl.WwwAuthenticateResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="WwwAuthenticateResponseGenerator[F[_],G[_]]extendsAnywithResponseGenerator"></a><a id="WwwAuthenticateResponseGenerator[F[_],G[_]]:WwwAuthenticateResponseGenerator[F,G]"></a>
       <span class="permalink">
