@@ -230,7 +230,9 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
       val authUserWithError: Kleisli[EitherT[IO, Error, ?], Request[IO], User] = Kleisli {
         case r @ GET -> Root / "hello" =>
-          if (r.headers.toList.map(_.name).contains[CaseInsensitiveString](CaseInsensitiveString("authorization")))
+          if (r.headers.toList
+              .map(_.name)
+              .contains[CaseInsensitiveString](CaseInsensitiveString("authorization")))
             EitherT.right[Error](IO.pure(42))
           else
             EitherT.left[User](IO.pure(NoAuth))
@@ -254,11 +256,18 @@ class AuthMiddlewareSpec extends Http4sSpec {
       val service = middleware(authedService)
 
       //Unauthenticated but path matches
-      service.orNotFound(Request[IO](method = Method.GET, uri = Uri.unsafeFromString("hello"))) must returnStatus(Unauthorized)
+      service.orNotFound(Request[IO](method = Method.GET, uri = Uri.unsafeFromString("hello"))) must returnStatus(
+        Unauthorized)
       //Matched normally
-      service.orNotFound(Request[IO](method = Method.GET, uri = Uri.unsafeFromString("hello"), headers = Headers.of((Header("Authorization", "..."))))) must returnStatus(Ok)
+      service.orNotFound(
+        Request[IO](
+          method = Method.GET,
+          uri = Uri.unsafeFromString("hello"),
+          headers = Headers.of((Header("Authorization", "..."))))) must returnStatus(Ok)
       //Unauthenticated and path does not match
-      service.orNotFound(Request[IO](method = Method.GET, uri = Uri.unsafeFromString("not-matched"))) must returnStatus(ServiceUnavailable)
+      service.orNotFound(Request[IO](
+        method = Method.GET,
+        uri = Uri.unsafeFromString("not-matched"))) must returnStatus(ServiceUnavailable)
 
     }
 

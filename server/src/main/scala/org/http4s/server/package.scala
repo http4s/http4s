@@ -100,9 +100,9 @@ package object server {
     }
 
     def noSpiderWithEither[F[_]: Monad, E, T](
-                                  authUserWithError: Kleisli[EitherT[F, E, ?], Request[F], T],
-                                  onAuthFailure: (Request[F], E) => F[Response[F]]
-                                ): AuthMiddleware[F, T] = { service =>
+        authUserWithError: Kleisli[EitherT[F, E, ?], Request[F], T],
+        onAuthFailure: (Request[F], E) => F[Response[F]]
+    ): AuthMiddleware[F, T] = { service =>
       Kleisli { r: Request[F] =>
         val resp = authUserWithError(r).value.flatMap {
           case Right(authReq) =>
