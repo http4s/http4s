@@ -1,7 +1,7 @@
 package org.http4s
 
-import cats._
-import cats.data._
+import cats.{Eq, Monoid}
+import cats.data.Chain
 import cats.effect.Sync
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s.headers._

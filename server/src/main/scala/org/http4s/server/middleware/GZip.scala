@@ -2,11 +2,11 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import cats.Functor
 import cats.data.Kleisli
-import fs2._
-import fs2.Stream._
-import fs2.compress._
+import fs2.{Chunk, Pipe, Pull, Pure, Stream}
+import fs2.Stream.chunk
+import fs2.compress.deflate
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.zip.{CRC32, Deflater}
 import org.http4s.headers._

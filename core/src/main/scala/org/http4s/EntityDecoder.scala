@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Applicative, Functor, Monad, SemigroupK}
 import cats.effect.{ContextShift, Sync}
 import cats.implicits._
 import fs2._

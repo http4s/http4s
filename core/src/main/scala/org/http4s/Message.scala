@@ -1,11 +1,11 @@
 package org.http4s
 
-import cats._
+import cats.{Applicative, Functor, Monad, MonadError, ~>}
 import cats.data.NonEmptyList
 import cats.implicits._
-import cats.effect._
-import fs2._
-import fs2.text._
+import cats.effect.IO
+import fs2.{Pure, Stream}
+import fs2.text.{utf8Decode, utf8Encode}
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
@@ -516,8 +516,8 @@ object Response {
   private[this] val pureNotFound: Response[Pure] =
     Response(
       Status.NotFound,
-      body = Stream("Not found").through(text.utf8Encode),
-      headers = Headers(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).pure[List]))
+      body = Stream("Not found").through(utf8Encode),
+      headers = Headers(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`) :: Nil))
 
   def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
 

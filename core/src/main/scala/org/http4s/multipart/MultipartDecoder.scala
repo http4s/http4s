@@ -1,7 +1,7 @@
 package org.http4s
 package multipart
 
-import cats.effect._
+import cats.effect.{ContextShift, Sync}
 import cats.implicits._
 import scala.concurrent.ExecutionContext
 

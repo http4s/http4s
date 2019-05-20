@@ -1,8 +1,9 @@
 package org.http4s
 
-import cats._
-import cats.data._
+import cats.{Contravariant, Functor, MonoidK, Show}
+import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
+
 final case class QueryParameterKey(value: String) extends AnyVal
 
 final case class QueryParameterValue(value: String) extends AnyVal

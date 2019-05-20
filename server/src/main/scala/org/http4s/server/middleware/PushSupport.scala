@@ -2,9 +2,9 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import cats.{Functor, Monad}
 import cats.data.Kleisli
-import cats.effect._
+import cats.effect.IO
 import cats.implicits._
 import org.log4s.getLogger
 import io.chrisdavenport.vault._
