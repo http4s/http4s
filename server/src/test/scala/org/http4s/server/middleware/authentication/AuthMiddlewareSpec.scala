@@ -1,6 +1,6 @@
 package org.http4s.server.middleware.authentication
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.{EitherT, Kleisli, OptionT}
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -217,6 +217,48 @@ class AuthMiddlewareSpec extends Http4sSpec {
       //Unmatched
       (service <+> regularRoutes).orNotFound(Request[IO](method = Method.PUT)) must returnStatus(
         NotFound)
+
+    }
+
+    "return 'error' response for EitherT.left for noSpiderWithEither" in {
+
+      import org.http4s.util.CaseInsensitiveString
+
+      sealed trait Error
+      case object NoAuth extends Error
+      case object NoPathMatch extends Error
+
+      val authUserWithError: Kleisli[EitherT[IO, Error, ?], Request[IO], User] = Kleisli {
+        case r @ GET -> Root / "hello" =>
+          if (r.headers.toList.map(_.name).contains[CaseInsensitiveString](CaseInsensitiveString("authorization")))
+            EitherT.right[Error](IO.pure(42))
+          else
+            EitherT.left[User](IO.pure(NoAuth))
+        case _ =>
+          EitherT.left[User](IO.pure(NoPathMatch))
+      }
+
+      val authedService: AuthedService[User, IO] =
+        AuthedService {
+          case GET -> Root / "hello" as _ => Ok()
+        }
+
+      def onError(request: Request[IO], error: Error): IO[Response[IO]] =
+        error match {
+          case NoAuth => IO.pure(Response(status = Unauthorized))
+          case NoPathMatch => IO.pure(Response(status = ServiceUnavailable))
+        }
+
+      val middleware = AuthMiddleware.noSpiderWithEither(authUserWithError, onError)
+
+      val service = middleware(authedService)
+
+      //Unauthenticated but path matches
+      service.orNotFound(Request[IO](method = Method.GET, uri = Uri.unsafeFromString("hello"))) must returnStatus(Unauthorized)
+      //Matched normally
+      service.orNotFound(Request[IO](method = Method.GET, uri = Uri.unsafeFromString("hello"), headers = Headers.of((Header("Authorization", "..."))))) must returnStatus(Ok)
+      //Unauthenticated and path does not match
+      service.orNotFound(Request[IO](method = Method.GET, uri = Uri.unsafeFromString("not-matched"))) must returnStatus(ServiceUnavailable)
 
     }
 
