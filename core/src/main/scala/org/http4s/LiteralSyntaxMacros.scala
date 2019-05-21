@@ -12,21 +12,21 @@ object LiteralSyntaxMacros {
       args,
       "Uri",
       Uri.fromString(_).isRight,
-      s => c.universe.reify(Uri.fromString(s.splice).right.get))
+      s => c.universe.reify(Uri.unsafeFromString(s.splice)))
 
   def mediaTypeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[MediaType] =
     singlePartInterpolator(c)(
       args,
       "MediaType",
       MediaType.parse(_).isRight,
-      s => c.universe.reify(MediaType.parse(s.splice).right.get))
+      s => c.universe.reify(MediaType.unsafeParse(s.splice)))
 
   def qValueInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[QValue] =
     singlePartInterpolator(c)(
       args,
       "QValue",
       QValue.fromString(_).isRight,
-      s => c.universe.reify(QValue.fromString(s.splice).right.get))
+      s => c.universe.reify(QValue.unsafeFromString(s.splice)))
 
   private def singlePartInterpolator[A](c: blackbox.Context)(
       args: Seq[c.Expr[Any]],
