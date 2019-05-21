@@ -1,7 +1,6 @@
 package org.http4s
 
 import cats._
-import cats.arrow.Choice
 import cats.data.{EitherT, Kleisli, OptionT}
 import cats.implicits._
 import cats.effect._
