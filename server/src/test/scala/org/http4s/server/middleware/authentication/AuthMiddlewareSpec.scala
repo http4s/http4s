@@ -235,9 +235,9 @@ class AuthMiddlewareSpec extends Http4sSpec {
               .contains[CaseInsensitiveString](CaseInsensitiveString("authorization")))
             EitherT.right[Error](IO.pure(42))
           else
-            EitherT.left[User](IO.pure(NoAuth))
+            EitherT.left[User](IO.pure[Error](NoAuth))
         case _ =>
-          EitherT.left[User](IO.pure(NoPathMatch))
+          EitherT.left[User](IO.pure[Error](NoPathMatch))
       }
 
       val authedService: AuthedService[User, IO] =
