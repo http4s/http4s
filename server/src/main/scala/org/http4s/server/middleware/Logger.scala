@@ -2,13 +2,13 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import cats.~>
 import cats.arrow.FunctionK
 import cats.implicits._
-import cats.data._
-import cats.effect._
+import cats.data.OptionT
+import cats.effect.{Bracket, Concurrent, Sync}
 import cats.effect.Sync._
-import fs2._
+import fs2.Stream
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 

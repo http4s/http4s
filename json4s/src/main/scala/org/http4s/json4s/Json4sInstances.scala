@@ -1,9 +1,9 @@
 package org.http4s
 package json4s
 
-import cats._
-import cats.effect._
-import cats.syntax.all._
+import cats.Applicative
+import cats.effect.Sync
+import cats.implicits._
 import org.http4s.headers.`Content-Type`
 import org.json4s._
 import org.json4s.JsonAST.JValue

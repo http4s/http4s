@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Applicative, Eq, MonadError}
 import cats.implicits._
 import scala.util.control.{NoStackTrace, NonFatal}
 
@@ -52,15 +52,15 @@ object ParseFailure {
 
 object ParseResult {
   def fail(sanitized: String, details: String): ParseResult[Nothing] =
-    Either.left(ParseFailure(sanitized, details))
+    Left(ParseFailure(sanitized, details))
 
   def success[A](a: A): ParseResult[A] =
-    Either.right(a)
+    Right(a)
 
   def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
     try ParseResult.success(f)
     catch {
-      case NonFatal(e) => Either.left(ParseFailure(sanitized, e.getMessage))
+      case NonFatal(e) => Left(ParseFailure(sanitized, e.getMessage))
     }
 
   implicit val parseResultMonad: MonadError[ParseResult, ParseFailure] =

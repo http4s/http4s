@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import cats.{Functor, MonoidK}
 import cats.data.Kleisli
 import cats.implicits._
 

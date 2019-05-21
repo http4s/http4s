@@ -3,9 +3,9 @@ package server
 package middleware
 package authentication
 
-import cats._
+import cats.Applicative
 import cats.data.Kleisli
-import cats.effect._
+import cats.effect.Sync
 import cats.implicits._
 import org.http4s.headers.Authorization
 

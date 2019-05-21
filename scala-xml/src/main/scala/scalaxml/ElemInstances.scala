@@ -1,8 +1,8 @@
 package org.http4s
 package scalaxml
 
-import cats._
-import cats.effect._
+import cats.Applicative
+import cats.effect.Sync
 import cats.implicits._
 import java.io.StringReader
 import javax.xml.parsers.SAXParserFactory
@@ -11,7 +11,7 @@ import cats.data.EitherT
 import org.http4s.headers.`Content-Type`
 
 import scala.util.control.NonFatal
-import scala.xml._
+import scala.xml.{Elem, InputSource, SAXParseException, XML}
 
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory

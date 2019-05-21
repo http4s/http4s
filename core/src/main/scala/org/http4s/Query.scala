@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Eval, Foldable}
 import cats.implicits._
 import org.http4s.Query._
 import org.http4s.internal.CollectionCompat
@@ -142,7 +142,7 @@ object Query {
   def fromPairs(xs: (String, String)*): Query =
     new Query(
       xs.toList.foldLeft(Vector.empty[KeyValue]) {
-        case (m, (k, s)) => m :+ (k -> s.some)
+        case (m, (k, s)) => m :+ (k -> Some(s))
       }
     )
 
@@ -162,6 +162,6 @@ object Query {
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
     new Query(map.foldLeft(Vector.empty[KeyValue]) {
       case (m, (k, Seq())) => m :+ (k -> None)
-      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> v.some) }
+      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
     })
 }

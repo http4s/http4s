@@ -1,7 +1,7 @@
 package org.http4s
 
-import cats._
-import cats.data._
+import cats.Functor
+import cats.data.Kleisli
 import cats.implicits._
 
 final case class AuthedRequest[F[_], A](authInfo: A, req: Request[F])

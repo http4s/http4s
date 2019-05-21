@@ -3,8 +3,8 @@ package server
 package middleware
 package authentication
 
-import cats._
-import cats.data._
+import cats.Applicative
+import cats.data.{Kleisli, NonEmptyList}
 import cats.effect.Sync
 import cats.implicits._
 import java.math.BigInteger

@@ -1,7 +1,7 @@
 package org.http4s.server.middleware
 
-import cats.data._
-import cats.effect._
+import cats.data.{Kleisli, OptionT}
+import cats.effect.{Clock, ExitCase, Sync}
 import cats.effect.implicits._
 import cats.implicits._
 import fs2.Stream

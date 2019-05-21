@@ -3,9 +3,9 @@ package circe
 
 import java.nio.ByteBuffer
 
-import cats._
+import cats.Applicative
 import cats.data.NonEmptyList
-import cats.effect._
+import cats.effect.Sync
 import cats.implicits._
 import fs2.Chunk
 import io.circe._

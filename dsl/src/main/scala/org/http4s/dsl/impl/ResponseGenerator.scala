@@ -2,7 +2,7 @@ package org.http4s
 package dsl
 package impl
 
-import cats._
+import cats.{Applicative, Monad}
 import org.http4s.headers._
 
 trait ResponseGenerator extends Any {

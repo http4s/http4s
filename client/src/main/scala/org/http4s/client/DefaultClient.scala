@@ -1,11 +1,11 @@
 package org.http4s
 package client
 
-import cats._
+import cats.Applicative
 import cats.data.{Kleisli, OptionT}
-import cats.effect._
+import cats.effect.{Bracket, Resource}
 import cats.implicits._
-import fs2._
+import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 

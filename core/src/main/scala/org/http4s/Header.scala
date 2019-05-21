@@ -18,7 +18,7 @@
  */
 package org.http4s
 
-import cats._
+import cats.{Eq, Show}
 import cats.data.NonEmptyList
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s.syntax.string._

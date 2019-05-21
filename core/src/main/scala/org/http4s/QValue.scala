@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Order, Show}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser.{AdditionalRules, Http4sParser}
 import org.http4s.util.Writer

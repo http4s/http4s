@@ -1,10 +1,9 @@
 package org.http4s
 
-import cats._
+import cats.{Contravariant, Show}
 import cats.effect.{ContextShift, Effect, Sync}
 import cats.implicits._
-import fs2.Stream._
-import fs2._
+import fs2.{Chunk, Stream}
 import fs2.io.file.readAll
 import fs2.io.readInputStream
 import java.io._
@@ -75,7 +74,7 @@ object EntityEncoder {
   def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
-      Entity[F](chunk(c).covary[F], Some(c.size.toLong))
+      Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */

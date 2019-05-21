@@ -1,7 +1,6 @@
 package org.http4s
 package parser
 
-import cats.implicits._
 import java.io.UnsupportedEncodingException
 import java.nio.CharBuffer
 import org.http4s.util.UrlCodingUtils
@@ -108,7 +107,7 @@ private[http4s] object QueryParser {
   private val InitialBufferCapactiy = 32
 
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] =
-    if (queryString.isEmpty) Either.right(Query.empty)
+    if (queryString.isEmpty) Right(Query.empty)
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
 
   private sealed trait State

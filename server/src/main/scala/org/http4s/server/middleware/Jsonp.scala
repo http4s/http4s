@@ -2,10 +2,10 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import cats.{Applicative, Functor}
 import cats.data.Kleisli
 import fs2.Stream._
-import fs2._
+import fs2.Chunk
 import java.nio.charset.StandardCharsets
 import cats.implicits._
 import org.http4s.headers._

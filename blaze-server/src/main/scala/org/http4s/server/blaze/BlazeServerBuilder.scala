@@ -2,10 +2,10 @@ package org.http4s
 package server
 package blaze
 
-import cats._
+import cats.{Alternative, Applicative}
 import cats.data.Kleisli
 import cats.implicits._
-import cats.effect._
+import cats.effect.{ConcurrentEffect, Resource, Timer}
 import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer

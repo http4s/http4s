@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Eq, Eval, Foldable, Monoid, Show}
 import cats.implicits._
 import org.http4s.headers.`Set-Cookie`
 import org.http4s.syntax.string._
