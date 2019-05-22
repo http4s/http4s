@@ -4,6 +4,7 @@ package middleware
 
 import cats.Functor
 import cats.data.Kleisli
+import cats.implicits._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.Stream.chunk
 import fs2.compress.deflate
@@ -21,11 +22,12 @@ object GZip {
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION,
-      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])): Http[F, G] =
+      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
+  ): Http[F, G] =
     Kleisli { req: Request[G] =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
-          http.map(zipOrPass(_, bufferSize, level, isZippable)).apply(req)
+          http(req).map(zipOrPass(_, bufferSize, level, isZippable))
         case _ => http(req)
       }
     }
