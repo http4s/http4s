@@ -80,6 +80,9 @@ object QValue {
       case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number")
     }
 
+  def unsafeFromString(s: String): QValue =
+    fromString(s).valueOr(throw _)
+
   def parse(s: String): ParseResult[QValue] =
     new Http4sParser[QValue](s, "Invalid q-value") with QValueParser {
       def main = QualityValue
