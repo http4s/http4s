@@ -15,7 +15,7 @@ addSbtPlugin("com.lucidchart"             %  "sbt-scalafmt-coursier"     % "1.15
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.4.0")
 addSbtPlugin("com.typesafe"               %  "sbt-mima-plugin"           % "0.3.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-ghpages"               % "0.6.3")
-addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.3.3")
+addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-twirl"                 % "1.4.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-native-packager"       % "1.3.21")
 addSbtPlugin("io.get-coursier"            %  "sbt-coursier"              % "1.0.3")
