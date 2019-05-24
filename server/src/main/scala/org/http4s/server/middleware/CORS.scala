@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import cats.Applicative
 import cats.data.Kleisli
 import cats.implicits._
 import org.http4s.Method.OPTIONS

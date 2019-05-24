@@ -1,11 +1,11 @@
 package org.http4s
 package multipart
 
-import cats.effect._
+import cats.effect.{ContextShift, Sync}
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2._
+import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.{readAll, writeAll}
-import java.nio.file._
+import java.nio.file.{Files, Path, StandardOpenOption}
 import scala.concurrent.ExecutionContext
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
@@ -789,8 +789,8 @@ object MultipartParser {
       } else if (limitCTR >= maxBeforeWrite) {
         Pull.eval(
           lacc
-            .through(io.file
-              .writeAll[F](fileRef, blockingExecutionContext, List(StandardOpenOption.APPEND)))
+            .through(
+              writeAll[F](fileRef, blockingExecutionContext, List(StandardOpenOption.APPEND)))
             .compile
             .drain) >> streamAndWrite(s, state, Stream.empty, racc, 0, fileRef)
       } else {

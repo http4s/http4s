@@ -1,7 +1,6 @@
 package org.http4s
 package parser
 
-import cats.implicits._
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import org.http4s.{Query => Q}
@@ -39,7 +38,7 @@ private[parser] trait Rfc3986Parser
   def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
     "//" ~ Authority ~ PathAbempty ~> {
       (auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) =>
-        auth.some :: path :: HNil
+        Some(auth) :: path :: HNil
     } |
       PathAbsolute ~> (None :: _ :: HNil) |
       PathRootless ~> (None :: _ :: HNil) |
@@ -51,7 +50,7 @@ private[parser] trait Rfc3986Parser
   def RelativePart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
     "//" ~ Authority ~ PathAbempty ~> {
       (auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) =>
-        auth.some :: path :: HNil
+        Some(auth) :: path :: HNil
     } |
       PathAbsolute ~> (None :: _ :: HNil) |
       PathNoscheme ~> (None :: _ :: HNil) |

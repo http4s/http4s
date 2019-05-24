@@ -2,7 +2,8 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import org.http4s.Method.{GET, HEAD}
+import cats.{Functor, MonoidK}
 import cats.data.Kleisli
 import cats.implicits._
 
@@ -17,14 +18,12 @@ object DefaultHead {
   def apply[F[_]: Functor, G[_]](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
-        case Method.HEAD => (http <+> headAsTruncatedGet(http))(req)
+        case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody)
         case _ => http(req)
       }
     }
 
-  private def headAsTruncatedGet[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] =
-    Kleisli { req =>
-      val getReq = req.withMethod(Method.GET)
-      http(getReq).map(response => response.copy(body = response.body.drain))
-    }
+  private[this] def drainBody[G[_]](response: Response[G]): Response[G] =
+    response.copy(body = response.body.drain)
+
 }

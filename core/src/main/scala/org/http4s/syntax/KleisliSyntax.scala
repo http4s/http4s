@@ -1,7 +1,7 @@
 package org.http4s
 package syntax
 
-import cats._
+import cats.{Functor, ~>}
 import cats.syntax.functor._
 import cats.effect.Sync
 import cats.data.{Kleisli, OptionT}

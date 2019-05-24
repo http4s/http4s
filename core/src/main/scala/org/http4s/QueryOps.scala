@@ -1,6 +1,5 @@
 package org.http4s
 
-import cats.implicits._
 trait QueryOps {
 
   protected type Self <: QueryOps
@@ -99,7 +98,7 @@ trait QueryOps {
     val vec = params.foldLeft(query.toVector) {
       case (m, (k, Seq())) => m :+ (penc.getKey(k).value -> None)
       case (m, (k, vs)) =>
-        vs.foldLeft(m) { case (m, v) => m :+ (penc.getKey(k).value -> venc.encode(v).value.some) }
+        vs.foldLeft(m) { case (m, v) => m :+ (penc.getKey(k).value -> Some(venc.encode(v).value)) }
     }
     replaceQuery(Query.fromVector(vec))
   }
@@ -147,7 +146,7 @@ trait QueryOps {
       if (values.isEmpty) baseQuery :+ (name.value -> None)
       else {
         values.toList.foldLeft(baseQuery) {
-          case (vec, v) => vec :+ (name.value -> v.value.some)
+          case (vec, v) => vec :+ (name.value -> Some(v.value))
         }
       }
 

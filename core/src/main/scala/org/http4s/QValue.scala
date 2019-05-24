@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.{Order, Show}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser.{AdditionalRules, Http4sParser}
 import org.http4s.util.Writer
@@ -79,6 +79,9 @@ object QValue {
     catch {
       case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number")
     }
+
+  def unsafeFromString(s: String): QValue =
+    fromString(s).valueOr(throw _)
 
   def parse(s: String): ParseResult[QValue] =
     new Http4sParser[QValue](s, "Invalid q-value") with QValueParser {

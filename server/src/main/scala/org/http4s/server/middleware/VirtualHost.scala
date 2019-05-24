@@ -2,9 +2,8 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import cats.Applicative
 import cats.data.Kleisli
-import cats.syntax.applicative._
 import org.http4s.Status.{BadRequest, NotFound}
 import org.http4s.headers.Host
 
@@ -63,7 +62,7 @@ object VirtualHost {
     Kleisli { req =>
       req.headers
         .get(Host)
-        .fold(Response[G](BadRequest).withEntity("Host header required.").pure[F]) { h =>
+        .fold(F.pure(Response[G](BadRequest).withEntity("Host header required."))) { h =>
           // Fill in the host port if possible
           val host: Host = h.port match {
             case Some(_) => h
@@ -72,7 +71,7 @@ object VirtualHost {
           }
           (first +: rest).toVector
             .collectFirst { case HostService(s, p) if p(host) => s(req) }
-            .getOrElse(Response[G](NotFound).withEntity(s"Host '$host' not found.").pure[F])
+            .getOrElse(F.pure(Response[G](NotFound).withEntity(s"Host '$host' not found.")))
         }
     }
 }

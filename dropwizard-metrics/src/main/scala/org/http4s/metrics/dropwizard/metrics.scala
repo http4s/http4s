@@ -1,7 +1,7 @@
 package org.http4s
 package metrics
 
-import cats._
+import cats.Applicative
 import cats.effect.Sync
 import cats.syntax.applicative._
 import com.codahale.metrics.MetricRegistry

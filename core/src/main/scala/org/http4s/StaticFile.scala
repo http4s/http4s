@@ -1,10 +1,10 @@
 package org.http4s
 
 import cats.Semigroup
-import cats.data._
-import cats.effect._
+import cats.data.OptionT
+import cats.effect.{ContextShift, IO, Sync}
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2.Stream._
+import fs2.Stream
 import fs2.io._
 import fs2.io.file.readRange
 import io.chrisdavenport.vault._
@@ -135,7 +135,7 @@ object StaticFile {
 
           notModified(req, etagCalc, lastModified).orElse {
             val (body, contentLength) =
-              if (f.length() < end) (empty.covary[F], 0L)
+              if (f.length() < end) (Stream.empty.covary[F], 0L)
               else (fileToBody[F](f, start, end, blockingExecutionContext), end - start)
 
             val contentType = nameToContentType(f.getName)

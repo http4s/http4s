@@ -1,6 +1,6 @@
 package org.http4s.client.impl
 
-import cats._
+import cats.Applicative
 import org.http4s._
 import org.http4s.headers.`Content-Length`
 

@@ -1,7 +1,7 @@
 package org.http4s
 package client
 
-import cats._
+import cats.MonadError
 import cats.data.NonEmptyList
 import cats.implicits._
 import java.nio.charset.StandardCharsets
