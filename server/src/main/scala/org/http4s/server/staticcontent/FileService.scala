@@ -2,8 +2,8 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.data._
-import cats.effect._
+import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.effect.{ContextShift, Effect, Sync}
 import java.io.File
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._

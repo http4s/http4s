@@ -1,7 +1,7 @@
 package org.http4s
 
-import cats._
-import cats.data._
+import cats.{Applicative, Monoid, Semigroup}
+import cats.data.Kleisli
 import cats.effect.Sync
 import cats.implicits._
 

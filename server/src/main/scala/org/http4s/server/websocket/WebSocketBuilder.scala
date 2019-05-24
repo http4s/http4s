@@ -1,8 +1,8 @@
 package org.http4s.server.websocket
 
-import cats._
+import cats.Applicative
 import cats.implicits._
-import fs2._
+import fs2.{Pipe, Stream}
 import org.http4s.websocket.{WebSocket, WebSocketContext, WebSocketFrame}
 import org.http4s.{Headers, Response, Status}
 

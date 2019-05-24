@@ -1,7 +1,7 @@
 package org
 
-import cats.data._
-import fs2._
+import cats.data.{EitherT, Kleisli, OptionT}
+import fs2.Stream
 
 package object http4s { // scalastyle:ignore
 

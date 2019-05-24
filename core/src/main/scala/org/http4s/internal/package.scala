@@ -3,7 +3,7 @@ package org.http4s
 import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException}
 import java.util.function.BiFunction
 
-import cats.effect._
+import cats.effect.{Async, Concurrent, ConcurrentEffect, Effect, IO}
 import cats.implicits._
 import org.http4s.util.execution.direct
 import org.log4s.Logger
