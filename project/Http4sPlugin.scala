@@ -292,7 +292,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
-  lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.7.0"
+  lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.8.0"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.27.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.14.1"
