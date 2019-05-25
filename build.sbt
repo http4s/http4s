@@ -626,7 +626,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     catsLaws,
     catsKernelLaws,
-    discipline,
+    disciplineSpecs2,
     logbackClassic,
     scalacheck,
     specs2Core,
