@@ -50,16 +50,19 @@ package object internal {
     val l = data.length
     val out = new Array[Char](l << 1)
     // two characters form the hex value.
-    var i = 0
-    var j = 0
-    while (i < l) {
-      out(j) = Digits((0xF0 & data(i)) >>> 4)
-      j += 1
-      out(j) = Digits(0x0F & data(i))
-      j += 1
-      i += 1
+    def iterateData(out: Array[Char], l: Int): Array[Char] = {
+      def innerEncode(out: Array[Char], l: Int, i: Int, j: Int): Array[Char] = {
+        i match {
+          case k if k < l =>
+            out(j) = Digits((0xF0 & data(k)) >>> 4)
+            out(j + 1) = Digits(0x0F & data(k))
+            innerEncode(out, l, k + 1, j + 2)
+          case _ => out
+        }
+      }
+      innerEncode(out, l, 0, 0)
     }
-    out
+    iterateData(out, l)
   }
 
   private[http4s] final def decodeHexString(data: String): Option[Array[Byte]] =
@@ -76,30 +79,33 @@ package object internal {
   private[http4s] final def decodeHex(data: Array[Char]): Option[Array[Byte]] = {
     def toDigit(ch: Char): Int = {
       val digit = Character.digit(ch, 16)
-      if (digit == -1)
+      if (digit == -1) {
         throw HexDecodeException
-      else
+      }
+      else {
         digit
+      }
+    }
+
+    def iterateData(out: Array[Byte], len: Int): Option[Array[Byte]] = {
+      def innerDecode(out: Array[Byte], len: Int, f: Int, i: Int, j: Int): Option[Array[Byte]] = {
+        j match {
+          case k if k < len =>
+            val ff = (toDigit(data(k)) << 4) | toDigit(data(k + 1))
+            out(i) = (f & 0xFF).toByte
+            innerDecode(out, len, ff, i + 1, k + 2)
+          case _ => Some(out)
+        }
+      }
+      innerDecode(out, len, -1, 0, 0)
     }
 
     val len = data.length
     if ((len & 0x01) != 0) None
     val out = new Array[Byte](len >> 1)
-    var f: Int = -1
     // two characters form the hex value.
     try {
-      var i = 0
-      var j = 0
-      while (j < len) {
-        f = toDigit(data(j)) << 4
-        j += 1
-        f = f | toDigit(data(j))
-        j += 1
-        out(i) = (f & 0xFF).toByte
-
-        i += 1
-      }
-      Some(out)
+      iterateData(out, len)
     } catch {
       case HexDecodeException => None
     }
