@@ -20,9 +20,9 @@ trait KleisliSyntaxBinCompat0 {
   implicit def http4sKleisliHttpAppSyntax[F[_]: Sync](app: HttpApp[F]): KleisliHttpAppOps[F] =
     new KleisliHttpAppOps[F](app)
 
-  implicit def http4sKleisliAuthedServiceSyntax[F[_]: Sync, A](
-      authedService: AuthedService[A, F]): KleisliAuthedServiceOps[F, A] =
-    new KleisliAuthedServiceOps[F, A](authedService)
+  implicit def http4sKleisliAuthedRoutesSyntax[F[_]: Sync, A](
+      authedRoutes: AuthedRoutes[A, F]): KleisliAuthedRoutesOps[F, A] =
+    new KleisliAuthedRoutesOps[F, A](authedRoutes)
 }
 
 final class KleisliResponseOps[F[_]: Functor, A](self: Kleisli[OptionT[F, ?], A, Response[F]]) {
@@ -40,7 +40,7 @@ final class KleisliHttpAppOps[F[_]: Sync](self: HttpApp[F]) {
     HttpApp(request => fk(self.run(request.mapK(gK)).map(_.mapK(fk))))
 }
 
-final class KleisliAuthedServiceOps[F[_]: Sync, A](self: AuthedService[A, F]) {
-  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F): AuthedService[A, G] =
-    AuthedService.apply_(authedReq => self.run(authedReq.mapK(gK)).mapK(fk).map(_.mapK(fk)))
+final class KleisliAuthedRoutesOps[F[_]: Sync, A](self: AuthedRoutes[A, F]) {
+  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F): AuthedRoutes[A, G] =
+    AuthedRoutes(authedReq => self.run(authedReq.mapK(gK)).mapK(fk).map(_.mapK(fk)))
 }
