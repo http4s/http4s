@@ -47,6 +47,9 @@ title: Adopters
 [http4s-timer](https://github.com/fiadliel/http4s-timer)
 : Adds timing capability to http4s, with a possible concrete implementation for New Relic
 
+[http4s-tracer](https://github.com/profunktor/http4s-tracer)
+: An end-to-end tracing system for http4s
+
 [kamon-http4s](https://github.com/kamon-io/kamon-http4s)
 : Kamon support for http4s
 
@@ -54,7 +57,7 @@ title: Adopters
 : Adds support for http4s' `Uri` class to PureConfig.
 
 [rho](https://github.com/http4s/rho)
-: A self-documenting DSL built on http4s 
+: A self-documenting DSL built on http4s
 
 [tsec](https://github.com/jmcardon/tsec)
 : A type-safe, functional, general purpose security and cryptography library
@@ -98,7 +101,7 @@ title: Adopters
 : todo-backend implementation using the Typelevel stack
 
 [twitterstorm](https://github.com/ChristopherDavenport/twitterstorm)
-: Twitter Streaming API Processing Example Project 
+: Twitter Streaming API Processing Example Project
 
 [http4s-index](https://github.com/stephennancekivell/http4s-index)
 : lists the files and folders becoming a simple light weight web server

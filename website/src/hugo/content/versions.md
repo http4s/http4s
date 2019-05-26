@@ -34,12 +34,23 @@ title: Versions
 	  <th class="text-center">Scala 2.11</th>
 	  <th class="text-center">Scala 2.12</th>
 	  <th class="text-center">Scala 2.13</th>
-	  <th>FP</th>
-	  <th>Streaming</th>
+	  <th>Cats</th>
+	  <th>FS2</th>
 	  <th>JDK</th>
 	</tr>
   </thead>
   <tbody>
+	<tr>
+	  <td><a href="/v0.21">0.21.0-SNAPSHOT</a></td>
+	  <td class="text-center"><span class="badge badge-danger">Snapshots</span></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center">M5</td>
+	  <td>1.x</td>
+	  <td>1.x</td>
+	  <td>1.8+</td>
+	</tr>
 	<tr>
 	  <td><a href="/v0.20">{{% latestInSeries "0.20" %}}</a></td>
 	  <td class="text-center"><span class="badge badge-success">Stable</span></td>
@@ -47,8 +58,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center">M5</td>
-	  <td>cats&#8209;1</td>
-	  <td>fs2&#8209;1</td>
+	  <td>1.x</td>
+	  <td>1.x</td>
 	  <td>1.8+</td>
 	</tr>
 	<tr>
@@ -58,8 +69,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>cats&#8209;1</td>
-	  <td>fs2&#8209;1</td>
+	  <td>1.x</td>
+	  <td>1.x</td>
 	  <td>1.8+</td>
 	</tr>
 	<tr>
@@ -69,8 +80,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>cats&#8209;1</td>
-	  <td>fs2&#8209;0.10</td>
+	  <td>1.x</td>
+	  <td>0.10.x</td>
 	  <td>1.8+</td>
 	</tr>
 	<tr>
@@ -80,8 +91,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>cats&#8209;0.9</td>
-	  <td>fs2&#8209;0.9</td>
+	  <td>0.9.x</td>
+	  <td>0.9.x</td>
 	  <td>1.8+</td>
 	</tr>
 	<tr>
@@ -91,8 +102,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.2</td>
-	  <td>scalaz&#8209;stream&#8209;0.8a</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
 	<tr>
@@ -102,8 +113,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.8</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
 	<tr>
@@ -113,8 +124,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.2</td>
-	  <td>scalaz&#8209;stream&#8209;0.8a</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
 	<tr>
@@ -124,8 +135,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.8</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -137,8 +148,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.2</td>
-	  <td>scalaz&#8209;stream&#8209;0.8a</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -150,8 +161,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.8</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -163,8 +174,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.2</td>
-	  <td>scalaz&#8209;stream&#8209;0.8a</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -176,8 +187,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.8</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -189,8 +200,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.8</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -202,8 +213,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.8</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -215,8 +226,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.7a</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -228,8 +239,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.7a</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.8+</td>
 	</tr>
   </tbody>
@@ -241,8 +252,8 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
-	  <td>scalaz&#8209;7.1</td>
-	  <td>scalaz&#8209;stream&#8209;0.7a</td>
+	  <td></td>
+	  <td></td>
 	  <td>1.7+</td>
 	</tr>
   </tbody>

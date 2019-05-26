@@ -20,6 +20,7 @@ class BlazeClientSpec extends Http4sSpec {
 
   def mkClient(
       maxConnectionsPerRequestKey: Int,
+      maxTotalConnections: Int = 5,
       responseHeaderTimeout: Duration = 1.minute,
       requestTimeout: Duration = 1.minute,
       chunkBufferMaxSize: Int = 1024
@@ -29,6 +30,7 @@ class BlazeClientSpec extends Http4sSpec {
       .withCheckEndpointAuthentication(false)
       .withResponseHeaderTimeout(responseHeaderTimeout)
       .withRequestTimeout(requestTimeout)
+      .withMaxTotalConnections(maxTotalConnections)
       .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
       .withChunkBufferMaxSize(chunkBufferMaxSize)
       .resource
@@ -63,25 +65,12 @@ class BlazeClientSpec extends Http4sSpec {
   }
 
   "Blaze Http1Client" should {
-    // This incident is going on my permanent record.
     withResource(
       (
-        mkClient(0),
-        mkClient(1),
-        mkClient(3),
-        mkClient(3),
-        mkClient(3),
-        mkClient(1, 20.seconds),
         JettyScaffold[IO](5, false, testServlet),
         JettyScaffold[IO](1, true, testServlet)
       ).tupled) {
       case (
-          failClient,
-          successClient,
-          client,
-          seqClient,
-          parClient,
-          successTimeClient,
           jettyServer,
           jettySslServer
           ) => {
@@ -92,7 +81,7 @@ class BlazeClientSpec extends Http4sSpec {
           val name = sslAddress.getHostName
           val port = sslAddress.getPort
           val u = Uri.fromString(s"https://$name:$port/simple").yolo
-          val resp = failClient.expect[String](u).attempt.unsafeRunTimed(timeout)
+          val resp = mkClient(0).use(_.expect[String](u).attempt).unsafeRunTimed(timeout)
           resp must_== Some(
             Left(NoConnectionAllowedException(RequestKey(u.scheme.get, u.authority.get))))
         }
@@ -101,7 +90,7 @@ class BlazeClientSpec extends Http4sSpec {
           val name = sslAddress.getHostName
           val port = sslAddress.getPort
           val u = Uri.fromString(s"https://$name:$port/simple").yolo
-          val resp = successClient.expect[String](u).unsafeRunTimed(timeout)
+          val resp = mkClient(1).use(_.expect[String](u)).unsafeRunTimed(timeout)
           resp.map(_.length > 0) must beSome(true)
         }
 
@@ -112,80 +101,92 @@ class BlazeClientSpec extends Http4sSpec {
             Uri.fromString(s"http://$name:$port/simple").yolo
           }
 
-          (1 to Runtime.getRuntime.availableProcessors * 5).toList
-            .parTraverse { _ =>
-              val h = hosts(Random.nextInt(hosts.length))
-              client.expect[String](h).map(_.nonEmpty)
+          mkClient(3)
+            .use { client =>
+              (1 to Runtime.getRuntime.availableProcessors * 5).toList
+                .parTraverse { _ =>
+                  val h = hosts(Random.nextInt(hosts.length))
+                  client.expect[String](h).map(_.nonEmpty)
+                }
+                .map(_.forall(identity))
             }
-            .map(_.forall(identity))
             .unsafeRunTimed(timeout) must beSome(true)
         }
 
         "behave and not deadlock on failures with parTraverse" in {
-          val failedHosts = addresses.map { address =>
-            val name = address.getHostName
-            val port = address.getPort
-            Uri.fromString(s"http://$name:$port/internal-server-error").yolo
-          }
+          mkClient(3)
+            .use { client =>
+              val failedHosts = addresses.map { address =>
+                val name = address.getHostName
+                val port = address.getPort
+                Uri.fromString(s"http://$name:$port/internal-server-error").yolo
+              }
 
-          val successHosts = addresses.map { address =>
-            val name = address.getHostName
-            val port = address.getPort
-            Uri.fromString(s"http://$name:$port/simple").yolo
-          }
+              val successHosts = addresses.map { address =>
+                val name = address.getHostName
+                val port = address.getPort
+                Uri.fromString(s"http://$name:$port/simple").yolo
+              }
 
-          val failedRequests =
-            (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
-              val h = failedHosts(Random.nextInt(failedHosts.length))
-              parClient.expect[String](h)
+              val failedRequests =
+                (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
+                  val h = failedHosts(Random.nextInt(failedHosts.length))
+                  client.expect[String](h)
+                }
+
+              val sucessRequests =
+                (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
+                  val h = successHosts(Random.nextInt(successHosts.length))
+                  client.expect[String](h).map(_.nonEmpty)
+                }
+
+              val allRequests = for {
+                _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
+                r <- sucessRequests
+              } yield r
+
+              allRequests
+                .map(_.forall(identity))
+
             }
-
-          val sucessRequests =
-            (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
-              val h = successHosts(Random.nextInt(successHosts.length))
-              parClient.expect[String](h).map(_.nonEmpty)
-            }
-
-          val allRequests = for {
-            _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
-            r <- sucessRequests
-          } yield r
-
-          allRequests
-            .map(_.forall(identity))
             .unsafeRunTimed(timeout) must beSome(true)
         }
 
         "behave and not deadlock on failures with parSequence" in {
-          val failedHosts = addresses.map { address =>
-            val name = address.getHostName
-            val port = address.getPort
-            Uri.fromString(s"http://$name:$port/internal-server-error").yolo
-          }
+          mkClient(3)
+            .use { client =>
+              val failedHosts = addresses.map { address =>
+                val name = address.getHostName
+                val port = address.getPort
+                Uri.fromString(s"http://$name:$port/internal-server-error").yolo
+              }
 
-          val successHosts = addresses.map { address =>
-            val name = address.getHostName
-            val port = address.getPort
-            Uri.fromString(s"http://$name:$port/simple").yolo
-          }
+              val successHosts = addresses.map { address =>
+                val name = address.getHostName
+                val port = address.getPort
+                Uri.fromString(s"http://$name:$port/simple").yolo
+              }
 
-          val failedRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
-            val h = failedHosts(Random.nextInt(failedHosts.length))
-            seqClient.expect[String](h)
-          }.parSequence
+              val failedRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map {
+                _ =>
+                  val h = failedHosts(Random.nextInt(failedHosts.length))
+                  client.expect[String](h)
+              }.parSequence
 
-          val sucessRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
-            val h = successHosts(Random.nextInt(successHosts.length))
-            seqClient.expect[String](h).map(_.nonEmpty)
-          }.parSequence
+              val sucessRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map {
+                _ =>
+                  val h = successHosts(Random.nextInt(successHosts.length))
+                  client.expect[String](h).map(_.nonEmpty)
+              }.parSequence
 
-          val allRequests = for {
-            _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
-            r <- sucessRequests
-          } yield r
+              val allRequests = for {
+                _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
+                r <- sucessRequests
+              } yield r
 
-          allRequests
-            .map(_.forall(identity))
+              allRequests
+                .map(_.forall(identity))
+            }
             .unsafeRunTimed(timeout) must beSome(true)
         }
 
@@ -205,10 +206,9 @@ class BlazeClientSpec extends Http4sSpec {
           val address = addresses(0)
           val name = address.getHostName
           val port = address.getPort
-          mkClient(1)
-            .use { _ =>
-              val submit = successTimeClient
-                .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+          mkClient(1, responseHeaderTimeout = 20.seconds)
+            .use { client =>
+              val submit = client.expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
               for {
                 _ <- submit.start
                 r <- submit.attempt
@@ -236,7 +236,7 @@ class BlazeClientSpec extends Http4sSpec {
           val name = address.getHostName
           val port = address.getPort
 
-          val resp = mkClient(1, 20.seconds)
+          val resp = mkClient(1, responseHeaderTimeout = 20.seconds)
             .use { drainTestClient =>
               drainTestClient
                 .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
@@ -294,6 +294,26 @@ class BlazeClientSpec extends Http4sSpec {
             }
             .unsafeRunTimed(5.seconds)
             .attempt must_== Some(Right(Status.Ok))
+        }
+
+        "call a second host after reusing connections on a first" in {
+          // https://github.com/http4s/http4s/pull/2546
+          mkClient(maxConnectionsPerRequestKey = Int.MaxValue, maxTotalConnections = 5)
+            .use { client =>
+              val uris = addresses.take(2).map { address =>
+                val name = address.getHostName
+                val port = address.getPort
+                Uri.fromString(s"http://$name:$port/simple").yolo
+              }
+              val s = Stream(
+                Stream.eval(
+                  client.expect[String](Request[IO](uri = uris(0)))
+                )).repeat.take(10).parJoinUnbounded ++ Stream.eval(
+                client.expect[String](Request[IO](uri = uris(1))))
+              s.compile.lastOrError
+            }
+            .unsafeRunTimed(5.seconds)
+            .attempt must_== Some(Right("simple path"))
         }
       }
     }
