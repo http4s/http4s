@@ -3,7 +3,7 @@ package org.http4s
 import cats.{Applicative, Functor}
 import cats.data.{Kleisli, OptionT}
 
-@deprecated("Use AuthedRoutes instead", "0.20.1")
+@deprecated("Use AuthedRoutes instead", "0.20.2")
 object AuthedService {
 
   /**
@@ -19,7 +19,7 @@ object AuthedService {
     * [[org.http4s.Response.notFoundFor]], which generates a 404, for any request
     * where `pf` is not defined.
     */
-  @deprecated("Use AuthedRoutes.of instead", "0.20.1")
+  @deprecated("Use AuthedRoutes.of instead", "0.20.2")
   def apply[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
       implicit F: Applicative[F]): AuthedService[T, F] =
     Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
@@ -30,7 +30,7 @@ object AuthedService {
     * @tparam T - ignored.
     * @return
     */
-  @deprecated("Use AuthedRoutes.empty instead", "0.20.1")
+  @deprecated("Use AuthedRoutes.empty instead", "0.20.2")
   def empty[T, F[_]: Applicative]: AuthedService[T, F] =
     Kleisli.liftF(OptionT.none)
 
