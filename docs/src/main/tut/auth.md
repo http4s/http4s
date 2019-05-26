@@ -88,7 +88,7 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request[F
 error handling, we recommend an error [ADT] instead of a `String`.
 
 ```tut:silent
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli.pure(_ => IO(???))
+val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
 val onFailure: AuthedRoutes[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 val middleware = AuthMiddleware(authUser, onFailure)
