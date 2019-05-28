@@ -57,12 +57,12 @@ object WebjarService {
   def apply[F[_]: Effect: ContextShift](config: Config[F]): HttpRoutes[F] = Kleisli {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
-      OptionT
-        .pure[F](request.pathInfo)
-        .map(Uri.removeDotSegments)
-        .subflatMap(toWebjarAsset)
-        .filter(config.filter)
-        .flatMap(serveWebjarAsset(config, request)(_))
+      val uri = Uri.removeDotSegments(request.pathInfo)
+      toWebjarAsset(uri) match {
+        case Some(asset) if config.filter(asset) =>
+          serveWebjarAsset(config, request)(asset)
+        case _ => OptionT.none
+      }
     case _ => OptionT.none
   }
 
