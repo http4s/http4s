@@ -45,7 +45,7 @@ object FileService {
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Effect[F]): HttpRoutes[F] =
     Kleisli {
       case request if request.pathInfo.startsWith(config.pathPrefix) =>
-        getFile(s"${config.systemPath}/${getSubPath(request.pathInfo, config.pathPrefix)}")
+        OptionT(getFile(s"${config.systemPath}/${getSubPath(request.pathInfo, config.pathPrefix)}"))
           .flatMap(f => config.pathCollector(f, config, request))
           .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
       case _ => OptionT.none
@@ -61,7 +61,7 @@ object FileService {
           .value
       else if (!file.isFile) F.pure(None)
       else
-        getPartialContentFile(file, config, req)
+        OptionT(getPartialContentFile(file, config, req))
           .orElse(
             StaticFile
               .fromFile(
@@ -84,11 +84,11 @@ object FileService {
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(
       implicit F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] =
-    OptionT.fromOption[F](req.headers.get(Range)).flatMap {
-      case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))
+      cs: ContextShift[F]): F[Option[Response[F]]] =
+    req.headers.get(Range) match {
+      case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil)))
           if validRange(s, e, file.length) =>
-        OptionT(F.suspend {
+        F.suspend {
           val size = file.length()
           val start = if (s >= 0) s else math.max(0, size + s)
           val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
@@ -108,16 +108,15 @@ object FileService {
               resp.copy(status = Status.PartialContent, headers = hs)
             }
             .value
-        })
-
-      case _ => OptionT.none
+        }
+      case _ => F.pure(None)
     }
 
   // Attempts to sanitize the file location and retrieve the file. Returns None if the file doesn't exist.
-  private def getFile[F[_]](unsafePath: String)(implicit F: Sync[F]): OptionT[F, File] =
-    OptionT(F.delay {
+  private def getFile[F[_]](unsafePath: String)(implicit F: Sync[F]): F[Option[File]] =
+    F.delay {
       val f = new File(Uri.removeDotSegments(unsafePath))
       if (f.exists()) Some(f)
       else None
-    })
+    }
 }
