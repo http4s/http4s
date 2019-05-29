@@ -66,7 +66,7 @@ need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
 
 ```tut
-val getRoot = Request[IO](Method.GET, uri("/"))
+val getRoot = Request[IO](Method.GET, uri"/")
 
 val io = service.orNotFound.run(getRoot)
 ```
@@ -402,7 +402,7 @@ val dailyWeatherService = HttpRoutes.of[IO] {
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync)
+println(GET(uri"/weather/temperature/2016-11-05").flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync)
 ```
 
 ### Handling query parameters

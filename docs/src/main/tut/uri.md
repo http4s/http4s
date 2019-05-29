@@ -15,7 +15,7 @@ import org.http4s._
 ```
 
 ```tut:book
-val uri = uri("http://http4s.org")
+val uri = uri"http://http4s.org"
 ```
 
 ## Building URIs

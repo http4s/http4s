@@ -72,7 +72,7 @@ val success: UserRepo[IO] = new UserRepo[IO] {
 }
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
-  Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
+  Request(method = Method.GET, uri = uri"/user/not-used" )
 )
 
 val expectedJson = Json.obj(
@@ -91,7 +91,7 @@ val foundNone: UserRepo[IO] = new UserRepo[IO] {
 } 
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
-  Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
+  Request(method = Method.GET, uri = uri"/user/not-used" )
 )
 
 check[Json](response, Status.NotFound, None)
@@ -105,7 +105,7 @@ val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
 } 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
-  Request(method = Method.GET, uri = uri("/not-a-matching-path") )
+  Request(method = Method.GET, uri = uri"/not-a-matching-path" )
 )
 
 check[String](response, Status.NotFound, Some("Not found"))
