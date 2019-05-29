@@ -105,7 +105,7 @@ val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
 } 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
-  Request(method = Method.GET, uri = Uri.uri("/not-a-matching-path") )
+  Request(method = Method.GET, uri = uri("/not-a-matching-path") )
 )
 
 check[String](response, Status.NotFound, Some("Not found"))

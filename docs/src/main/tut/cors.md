@@ -33,7 +33,7 @@ val service = HttpRoutes.of[IO] {
     Ok()
 }
 
-val request = Request[IO](Method.GET, Uri.uri("/"))
+val request = Request[IO](Method.GET, uri("/"))
 
 service.orNotFound(request).unsafeRunSync
 ```
@@ -73,9 +73,9 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```tut:book
-val googleGet = Request[IO](Method.GET, Uri.uri("/"), headers = Headers.of(Header("Origin", "https://google.com")))
-val yahooPut = Request[IO](Method.PUT, Uri.uri("/"), headers = Headers.of(Header("Origin", "https://yahoo.com")))
-val duckPost = Request[IO](Method.POST, Uri.uri("/"), headers = Headers.of(Header("Origin", "https://duckduckgo.com")))
+val googleGet = Request[IO](Method.GET, uri("/"), headers = Headers.of(Header("Origin", "https://google.com")))
+val yahooPut = Request[IO](Method.PUT, uri("/"), headers = Headers.of(Header("Origin", "https://yahoo.com")))
+val duckPost = Request[IO](Method.POST, uri("/"), headers = Headers.of(Header("Origin", "https://duckduckgo.com")))
 ```
 
 Now, we'll create a configuration that limits the allowed methods to `GET`

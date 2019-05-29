@@ -131,7 +131,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 ```tut:book
 def hello(name: String): IO[String] = {
-  val target = Uri.uri("http://localhost:8080/hello/") / name
+  val target = uri("http://localhost:8080/hello/") / name
   httpClient.expect[String](target)
 }
 
@@ -165,10 +165,10 @@ want to access.
 
 There are a number of ways to construct a `Uri`.
 
-If you have a literal string, you can use `Uri.uri(...)`:
+If you have a literal string, you can use `uri(...)`:
 
 ```tut:book
-Uri.uri("https://my-awesome-service.com/foo/bar?wow=yeah")
+uri("https://my-awesome-service.com/foo/bar?wow=yeah")
 ```
 
 This only works with literal strings because it uses a macro to validate the URI
@@ -189,7 +189,7 @@ val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
 You can also build up a URI incrementally, e.g.:
 
 ```tut:book
-val baseUri = Uri.uri("http://foo.com")
+val baseUri = uri("http://foo.com")
 val withPath = baseUri.withPath("/bar/baz")
 val withQuery = withPath.withQueryParam("hello", "world")
 ```
@@ -287,7 +287,7 @@ to add a label to every metric based on the `Request`
 You can send a GET by calling the `expect` method on the client, passing a `Uri`:
 
 ```tut:book
-httpClient.expect[String](Uri.uri("https://google.com/"))
+httpClient.expect[String](uri("https://google.com/"))
 ```
 
 If you need to do something more complicated like setting request headers, you
@@ -301,7 +301,7 @@ import org.http4s.MediaType
 
 ```tut:book
 val request = GET(
-  Uri.uri("https://my-lovely-api.com/"),
+  uri("https://my-lovely-api.com/"),
   Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
   Accept(MediaType.application.json)
 )
@@ -323,7 +323,7 @@ val postRequest = POST(
     "client_id" -> "my-awesome-client",
     "client_secret" -> "s3cr3t"
   ),
-  Uri.uri("https://my-lovely-api.com/oauth2/token")
+  uri("https://my-lovely-api.com/oauth2/token")
 )
 
 httpClient.expect[AuthResponse](postRequest)
