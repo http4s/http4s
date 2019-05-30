@@ -51,7 +51,7 @@ object StaticFile {
           _.removeHeader(`Content-Type`).putHeaders(headers: _*))
       }
       .orElse(OptionT
-        .fromOption[F](Option(getClass.getResource(name)))
+        .liftF(Sync[F].delay(getClass.getResource(name)))
         .flatMap(fromURL(_, blockingExecutionContext, req)))
   }
 
