@@ -50,16 +50,18 @@ package object internal {
     val l = data.length
     val out = new Array[Char](l << 1)
     // two characters form the hex value.
-    var i = 0
-    var j = 0
-    while (i < l) {
-      out(j) = Digits((0xF0 & data(i)) >>> 4)
-      j += 1
-      out(j) = Digits(0x0F & data(i))
-      j += 1
-      i += 1
+    def iterateData(out: Array[Char], l: Int): Array[Char] = {
+      def innerEncode(l: Int, i: Int, j: Int): Array[Char] =
+        i match {
+          case k if k < l =>
+            out(j) = Digits((0xF0 & data(k)) >>> 4)
+            out(j + 1) = Digits(0x0F & data(k))
+            innerEncode(l, k + 1, j + 2)
+          case _ => out
+        }
+      innerEncode(l, 0, 0)
     }
-    out
+    iterateData(out, l)
   }
 
   private[http4s] final def decodeHexString(data: String): Option[Array[Byte]] =
