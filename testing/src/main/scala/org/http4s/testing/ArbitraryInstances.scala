@@ -474,6 +474,9 @@ trait ArbitraryInstances {
       } yield headers.Accept(NonEmptyList.of(values.head, values.tail: _*))
     }
 
+  implicit val http4sTestingArbitraryForReferrerHeader: Arbitrary[headers.Referer] =
+    Arbitrary(arbitrary[Uri].map(Referer(_)))
+
   implicit val http4sTestingArbitraryForRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
     Arbitrary {
       for {
