@@ -10,7 +10,8 @@ import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
-import org.http4s.headers.{AgentProduct, `User-Agent`}
+import org.http4s.headers.`User-Agent`
+import org.http4s.ProductId
 import org.http4s.internal.BackendBuilder
 import org.log4s.getLogger
 
@@ -283,7 +284,7 @@ object BlazeClientBuilder {
       idleTimeout = 1.minute,
       requestTimeout = defaults.RequestTimeout,
       connectTimeout = defaults.ConnectTimeout,
-      userAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version)))),
+      userAgent = Some(`User-Agent`(ProductId("http4s-blaze", Some(BuildInfo.version)))),
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,
       maxConnectionsPerRequestKey = Function.const(256),

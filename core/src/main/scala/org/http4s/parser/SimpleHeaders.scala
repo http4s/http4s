@@ -188,24 +188,35 @@ private[parser] trait SimpleHeaders {
     TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
-    new Http4sHeaderParser[`User-Agent`](value) {
+    AGENT_SERVER(value, `User-Agent`.apply)
+
+  def SERVER(value: String): ParseResult[Server] =
+    AGENT_SERVER(value, Server.apply)
+
+  private def AGENT_SERVER[A <: Header](
+      value: String,
+      builder: (ProductId, List[ProductIdOrComment]) => A): ParseResult[A] =
+    new Http4sHeaderParser[A](value) {
       def entry = rule {
-        product ~ zeroOrMore(RWS ~ (product | comment)) ~> {
-          (product: AgentProduct, tokens: collection.Seq[AgentToken]) =>
-            (`User-Agent`(product, tokens.toList))
+        (productId ~ zeroOrMore(RWS ~ (product | comment))) ~> {
+          (product: ProductId, tokens: collection.Seq[ProductIdOrComment]) =>
+            builder(product, tokens.toList)
         }
       }
 
-      def product: Rule1[AgentProduct] = rule {
-        Token ~ optional("/" ~ Token) ~> (AgentProduct(_, _))
+      def productId: Rule1[ProductId] = rule {
+        (Token ~ optional("/" ~ Token)) ~> { (a: String, b: Option[String]) =>
+          ProductId(a, b)
+        }
       }
 
-      def comment: Rule1[AgentComment] = rule {
+      def product: Rule1[ProductIdOrComment] = productId
+
+      def comment: Rule1[ProductIdOrComment] = rule {
         capture(Comment) ~> { s: String =>
-          AgentComment(s.substring(1, s.length - 1))
+          ProductComment(s.substring(1, s.length - 1))
         }
       }
-
       def RWS = rule { oneOrMore(anyOf(" \t")) }
     }.parse
 

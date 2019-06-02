@@ -145,6 +145,7 @@ object HttpHeaderParser
     addParser_("RANGE".ci, `RANGE`)
     addParser_("REFERER".ci, `REFERER`)
     addParser_("RETRY-AFTER".ci, `RETRY_AFTER`)
+    addParser_("SERVER".ci, `SERVER`)
     addParser_("SET-COOKIE".ci, `SET_COOKIE`)
     addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
     addParser_("TRANSFER-ENCODING".ci, `TRANSFER_ENCODING`)
