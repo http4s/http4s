@@ -66,7 +66,7 @@ lazy val thirteen = project
     }: _*
   )
 
-val scala_213 = "2.13.0-RC2"
+val scala_213 = "2.13.0-RC3"
 val scala_212 = "2.12.8"
 val scala_211 = "2.11.12"
 
