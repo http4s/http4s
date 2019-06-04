@@ -10,6 +10,7 @@ import org.http4s.headers._
 import org.http4s.Uri._
 import org.http4s.EntityEncoder._
 import org.specs2.mutable.Specification
+import java.nio.file.Paths
 
 class MultipartSpec extends Specification {
 
@@ -187,6 +188,22 @@ I am a big moose
         val multipart = Multipart(Vector())
         val request = Request(method = Method.POST, uri = url, headers = multipart.headers)
         request.isChunked must beTrue
+      }
+
+      "optionally include a content-length header" in {
+        val path = Paths.get(getClass().getResource("/test.csv").toURI())
+        val multipart = Part
+          .fileDataKnownContentLength[IO](path.toString, path, Http4sSpec.TestBlockingExecutionContext, `Content-Type`(MediaType.text.csv))
+          .map(fileData => Multipart[IO](Vector(fileData)))
+
+        val result = multipart.unsafeRunSync().contentLength
+
+        val expectedContentLength = 305L
+
+        result must beSome.like {
+          case len =>
+            len === expectedContentLength
+        }
       }
     }
   }

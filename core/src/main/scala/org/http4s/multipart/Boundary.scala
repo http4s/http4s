@@ -10,6 +10,9 @@ import scala.util.Random
 final case class Boundary(value: String) extends AnyVal {
   def toChunk: Chunk[Byte] =
     Chunk.bytes(value.getBytes(StandardCharsets.UTF_8))
+
+  def length: Int =
+    value.getBytes(StandardCharsets.UTF_8).length
 }
 
 object Boundary {
