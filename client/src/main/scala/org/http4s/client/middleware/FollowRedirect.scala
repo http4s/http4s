@@ -66,7 +66,9 @@ object FollowRedirect {
             req
 
         def propagateCookies(req: Request[F]): Request[F] =
-          resp.cookies.foldLeft(req) { case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content) }
+          resp.cookies.foldLeft(req) {
+            case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
+          }
 
         def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[Stream[F, Byte]])
           : Request[F] =
