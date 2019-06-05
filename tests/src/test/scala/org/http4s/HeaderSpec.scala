@@ -1,9 +1,10 @@
 package org.http4s
 
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.headers._
-import org.specs2.mutable.Specification
+import org.http4s.util.StringWriter
 
-class HeaderSpec extends Specification {
+class HeaderSpec extends Http4sSpec {
   "Headers" should {
     "Equate same headers" in {
       val h1 = `Content-Length`.unsafeFromLong(4)
@@ -60,4 +61,12 @@ class HeaderSpec extends Specification {
     }
   }
 
+  "rendered length" should {
+    "is rendered length including \\r\\n" in prop { h: Header =>
+      h.render(new StringWriter << "\r\n")
+        .result
+        .getBytes(ISO_8859_1)
+        .length must_== h.renderedLength
+    }
+  }
 }
