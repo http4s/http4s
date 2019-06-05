@@ -17,13 +17,13 @@ final case class Multipart[F[_]](parts: Vector[Part[F]], boundary: Boundary = Bo
 
   def contentLength: Option[Long] = {
     val newlineLength = 2L
-    parts.traverse(_.contentLength).map { lengths =>
-      val bodiesLength = lengths.combineAll
+    parts.traverse(part => part.fullLength).map { lengths =>
+      val partsLength = lengths.combineAll
       val numberOfParts = lengths.size
-      val boundariesLength = (numberOfParts + 1) * boundary.length
+      val boundariesLength = (numberOfParts + 1) * Boundary.lengthInBytes
       val boundariesNewLinesLength = numberOfParts * newlineLength
 
-      bodiesLength + boundariesLength + boundariesNewLinesLength
+      partsLength + boundariesLength + boundariesNewLinesLength
     }
   }
 }

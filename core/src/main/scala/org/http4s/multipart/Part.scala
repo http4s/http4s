@@ -2,6 +2,7 @@ package org.http4s
 package multipart
 
 import cats.Functor
+import cats.instances.long._
 import cats.effect.{ContextShift, Sync}
 import fs2.Stream
 import fs2.io.readInputStream
@@ -11,7 +12,7 @@ import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import scala.concurrent.ExecutionContext
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 
 final case class Part[F[_]](
     headers: Headers,
@@ -20,6 +21,8 @@ final case class Part[F[_]](
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
   def filename: Option[String] =
     headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
+
+  def fullLength: Option[Long] = contentLength.map(_ + headers.foldMap(_.renderedLength))
 }
 
 object Part {
@@ -34,27 +37,63 @@ object Part {
   def empty[F[_]]: Part[F] =
     Part(Headers.empty, EmptyBody)
 
-  def formData[F[_]: Sync](name: String, value: String, headers: Header*): Part[F] = {
+  def formData[F[_]: Sync](name: String, value: String, headers: Header*): Part[F] =
+    Part(
+      Headers(`Content-Disposition`("form-data", Map("name" -> name)) :: headers.toList),
+      Stream.emit(value).through(utf8Encode))
+
+  def formDataKnownContentLength[F[_]: Sync](
+      name: String,
+      value: String,
+      headers: Header*): Part[F] = {
     val body = Stream.emit(value).through(utf8Encode)
-    val bodyLength = body.as(1).compile.fold(0L)(_ + _)
+    val bodyLength = body.as(1L).compile.foldMonoid
     Part(
       Headers(`Content-Disposition`("form-data", Map("name" -> name)) :: headers.toList),
       Stream.emit(value).through(utf8Encode),
       Some(bodyLength))
   }
 
+  /**
+    * Caution, this function will read in the size of the body according to `java.nio.Files.size`, which may differ from the actual size.
+    * Furthermore, this function will place no lock on the file and it could be modified between being sized and being read.
+    */
   def fileDataKnownContentLength[F[_]: Sync: ContextShift](
       name: String,
       path: Path,
       blockingEC: ExecutionContext,
+      headers: Header*): F[Part[F]] = Functor[F].map(Sync[F].delay(Files.size(path))) { size =>
+    Part(
+      Headers(
+        `Content-Disposition`("form-data", Map("name" -> name, "filename" -> path.toFile.getName)) ::
+          Header("Content-Transfer-Encoding", "binary") ::
+          headers.toList
+      ),
+      readAll[F](path, blockingEC, ChunkSize),
+      Some(size.toLong)
+    )
+  }
+
+  /**
+    * This function will read in the full file in order to calculate the Content-Length header.
+    * Be aware that this can lead to OutOfMemory exceptions if the file is too large to fit in memory.
+    */
+  def fileDataBuffered[F[_]: Sync: ContextShift](
+      name: String,
+      path: Path,
+      blockingEC: ExecutionContext,
       headers: Header*): F[Part[F]] =
-    fileDataKnownContentLength(
+    fileDataBuffered(
       name,
       path.toFile.getName,
       readAll[F](path, blockingEC, ChunkSize),
       headers: _*)
 
-  def fileDataKnownContentLength[F[_]: Sync](
+  /**
+    * This function will read in the full entity body in order to calculate the Content-Length header.
+    * Be aware that this can lead to OutOfMemory exceptions if it is too large to fit in memory.
+    */
+  def fileDataBuffered[F[_]: Sync](
       name: String,
       filename: String,
       entityBody: EntityBody[F],

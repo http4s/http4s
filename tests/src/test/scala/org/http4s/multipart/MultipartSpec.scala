@@ -194,11 +194,12 @@ I am a big moose
         val path = Paths.get(getClass().getResource("/test.csv").toURI())
         val multipart = Part
           .fileDataKnownContentLength[IO](path.toString, path, Http4sSpec.TestBlockingExecutionContext, `Content-Type`(MediaType.text.csv))
-          .map(fileData => Multipart[IO](Vector(fileData)))
+          .map(fileData => Multipart[IO](Vector(fileData))
+          ).unsafeRunSync()
 
-        val result = multipart.unsafeRunSync().contentLength
+        val result = multipart.contentLength
 
-        val expectedContentLength = 305L
+        val expectedContentLength = 377L
 
         result must beSome.like {
           case len =>
