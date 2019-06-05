@@ -12,6 +12,10 @@ import org.http4s.internal.BackendBuilder
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+/**
+  * @param sslContext Some custom `SSLContext`, or `None` if the
+  * default SSL context is to be lazily instantiated.
+  */
 sealed abstract class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
     val idleTimeout: Duration,
@@ -106,12 +110,25 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       maxConnectionsPerRequestKey: RequestKey => Int): BlazeClientBuilder[F] =
     copy(maxConnectionsPerRequestKey = maxConnectionsPerRequestKey)
 
+  /** Use the provided `SSLContext` when making secure calls */
+  def withSslContext(sslContext: SSLContext): BlazeClientBuilder[F] =
+    copy(sslContext = Some(sslContext))
+
+  /** Use an `SSLContext` obtained by `SSLContext.getDefault()` when making secure calls.
+    *
+    * The creation of the context is lazy, as `SSLContext.getDefault()` throws on some
+    * platforms.  The context creation is deferred until the first secure client call.
+    */
+  def withDefaultSslContext: BlazeClientBuilder[F] =
+    copy(sslContext = None)
+
+  @deprecated("Use `withSslContext` or `withDefaultSslContext`", "0.20.2")
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext = sslContext)
-  def withSslContext(sslContext: SSLContext): BlazeClientBuilder[F] =
-    withSslContextOption(Some(sslContext))
+
+  @deprecated("Use `withDefaultSslContext`", "0.20.2")
   def withoutSslContext: BlazeClientBuilder[F] =
-    withSslContextOption(None)
+    withDefaultSslContext
 
   def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): BlazeClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
@@ -192,7 +209,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 object BlazeClientBuilder {
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
-      sslContext: Option[SSLContext] = Some(SSLContext.getDefault)): BlazeClientBuilder[F] =
+      sslContext: Option[SSLContext] = None): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = 10.seconds,
       idleTimeout = 1.minute,
