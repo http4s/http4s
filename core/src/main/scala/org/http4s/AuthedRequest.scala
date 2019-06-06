@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats.{~>, Functor}
+import cats.{Functor, ~>}
 import cats.data.Kleisli
 import cats.implicits._
 
