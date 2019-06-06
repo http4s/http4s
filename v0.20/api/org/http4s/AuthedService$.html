@@ -470,6 +470,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="AuthedRequest.html" title="">AuthedRequest</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="object" href="AuthedRoutes$.html" title=""></a>
+                        <a href="AuthedRoutes$.html" title="">AuthedRoutes</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
                         <a class="object" href="" title=""></a>
                         <a href="" title="">AuthedService</a>
                       </li><li class="current-entities indented2">
@@ -783,12 +787,15 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthedService</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.2) Use AuthedRoutes instead">AuthedService</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/1ec0a6be6ebd06d2dd8605fa64e92fb23a93d854/core/src/main/scala/org/http4s/AuthedService.scala" target="_blank">AuthedService.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.2)</i> Use AuthedRoutes instead</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/6bd07320612290353a20f6c8fd951c75d3648040/core/src/main/scala/org/http4s/AuthedService.scala" target="_blank">AuthedService.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -893,25 +900,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.AuthedService#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[T,F[_]](pf:PartialFunction[org.http4s.AuthedRequest[F,T],F[org.http4s.Response[F]]])(implicitF:cats.Applicative[F]):org.http4s.AuthedService[T,F]"></a><a id="apply[T,F[_]](PartialFunction[AuthedRequest[F,T],F[Response[F]]])(Applicative[F]):AuthedService[T,F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/AuthedService$.html#apply[T,F[_]](pf:PartialFunction[org.http4s.AuthedRequest[F,T],F[org.http4s.Response[F]]])(implicitF:cats.Applicative[F]):org.http4s.AuthedService[T,F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="pf">pf: <a href="http://www.scala-lang.org/api/2.12.8/scala/PartialFunction.html#scala.PartialFunction" class="extype" name="scala.PartialFunction">PartialFunction</a>[<a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.apply.F">F</span>, <span class="extype" name="org.http4s.AuthedService.apply.T">T</span>], <span class="extype" name="org.http4s.AuthedService.apply.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.apply.F">F</span>]]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.AuthedService.apply.F">F</span>]</span>)</span><span class="result">: <a href="index.html#AuthedService[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" class="extmbr" name="org.http4s.AuthedService">AuthedService</a>[<span class="extype" name="org.http4s.AuthedService.apply.T">T</span>, <span class="extype" name="org.http4s.AuthedService.apply.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Lifts a partial function to an <code>AuthedService</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts a partial function to an <code>AuthedService</code>.  Responds with
-<a href="Response$.html#notFoundFor[F[_]](request:org.http4s.Request[F])(implicitevidence$1:cats.Applicative[F],implicitencoder:org.http4s.EntityEncoder[F,String]):F[org.http4s.Response[F]]" class="extmbr" name="org.http4s.Response#notFoundFor">org.http4s.Response.notFoundFor</a>, which generates a 404, for any request
-where <code>pf</code> is not defined.
-</p></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -952,23 +940,6 @@ where <code>pf</code> is not defined.
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.AuthedService#empty" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="empty[T,F[_]](implicitevidence$2:cats.Applicative[F]):org.http4s.AuthedService[T,F]"></a><a id="empty[T,F[_]](Applicative[F]):AuthedService[T,F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/AuthedService$.html#empty[T,F[_]](implicitevidence$2:cats.Applicative[F]):org.http4s.AuthedService[T,F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">empty</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.AuthedService.empty.F">F</span>]</span>)</span><span class="result">: <a href="index.html#AuthedService[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" class="extmbr" name="org.http4s.AuthedService">AuthedService</a>[<span class="extype" name="org.http4s.AuthedService.empty.T">T</span>, <span class="extype" name="org.http4s.AuthedService.empty.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">The empty service (all requests fallthrough).</p><div class="fullcomment"><div class="comment cmt"><p>The empty service (all requests fallthrough).
-</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>- ignored.</p></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -1239,7 +1210,49 @@ where <code>pf</code> is not defined.
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.AuthedService#lift" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.AuthedService#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply[T,F[_]](pf:PartialFunction[org.http4s.AuthedRequest[F,T],F[org.http4s.Response[F]]])(implicitF:cats.Applicative[F]):org.http4s.AuthedService[T,F]"></a><a id="apply[T,F[_]](PartialFunction[AuthedRequest[F,T],F[Response[F]]])(Applicative[F]):AuthedService[T,F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/AuthedService$.html#apply[T,F[_]](pf:PartialFunction[org.http4s.AuthedRequest[F,T],F[org.http4s.Response[F]]])(implicitF:cats.Applicative[F]):org.http4s.AuthedService[T,F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.2) Use AuthedRoutes.of instead">apply</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="pf">pf: <a href="http://www.scala-lang.org/api/2.12.8/scala/PartialFunction.html#scala.PartialFunction" class="extype" name="scala.PartialFunction">PartialFunction</a>[<a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.apply.F">F</span>, <span class="extype" name="org.http4s.AuthedService.apply.T">T</span>], <span class="extype" name="org.http4s.AuthedService.apply.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.apply.F">F</span>]]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.AuthedService.apply.F">F</span>]</span>)</span><span class="result">: <a href="index.html#AuthedService[T,F[_]]=org.http4s.package.AuthedRoutes[T,F]" class="extmbr" name="org.http4s.AuthedService">AuthedService</a>[<span class="extype" name="org.http4s.AuthedService.apply.T">T</span>, <span class="extype" name="org.http4s.AuthedService.apply.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Lifts a partial function to an <code>AuthedService</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts a partial function to an <code>AuthedService</code>.  Responds with
+<a href="Response$.html#notFoundFor[F[_]](request:org.http4s.Request[F])(implicitevidence$1:cats.Applicative[F],implicitencoder:org.http4s.EntityEncoder[F,String]):F[org.http4s.Response[F]]" class="extmbr" name="org.http4s.Response#notFoundFor">org.http4s.Response.notFoundFor</a>, which generates a 404, for any request
+where <code>pf</code> is not defined.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.2)</i> Use AuthedRoutes.of instead</p></dd></dl></div>
+    </li><li name="org.http4s.AuthedService#empty" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="empty[T,F[_]](implicitevidence$2:cats.Applicative[F]):org.http4s.AuthedService[T,F]"></a><a id="empty[T,F[_]](Applicative[F]):AuthedService[T,F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/AuthedService$.html#empty[T,F[_]](implicitevidence$2:cats.Applicative[F]):org.http4s.AuthedService[T,F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.2) Use AuthedRoutes.empty instead">empty</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.AuthedService.empty.F">F</span>]</span>)</span><span class="result">: <a href="index.html#AuthedService[T,F[_]]=org.http4s.package.AuthedRoutes[T,F]" class="extmbr" name="org.http4s.AuthedService">AuthedService</a>[<span class="extype" name="org.http4s.AuthedService.empty.T">T</span>, <span class="extype" name="org.http4s.AuthedService.empty.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">The empty service (all requests fallthrough).</p><div class="fullcomment"><div class="comment cmt"><p>The empty service (all requests fallthrough).
+</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>- ignored.</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.2)</i> Use AuthedRoutes.empty instead</p></dd></dl></div>
+    </li><li name="org.http4s.AuthedService#lift" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="lift[F[_],T](f:org.http4s.AuthedRequest[F,T]=&gt;F[org.http4s.Response[F]])(implicitevidence$1:cats.Functor[F]):org.http4s.AuthedService[T,F]"></a><a id="lift[F[_],T]((AuthedRequest[F,T])⇒F[Response[F]])(Functor[F]):AuthedService[T,F]"></a>
       <span class="permalink">
       <a href="../../org/http4s/AuthedService$.html#lift[F[_],T](f:org.http4s.AuthedRequest[F,T]=&gt;F[org.http4s.Response[F]])(implicitevidence$1:cats.Functor[F]):org.http4s.AuthedService[T,F]" title="Permalink">
@@ -1251,7 +1264,7 @@ where <code>pf</code> is not defined.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.18) Use liftF with an OptionT[F, Response[F]] instead">lift</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="T">T</span>]</span><span class="params">(<span name="f">f: (<a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.lift.F">F</span>, <span class="extype" name="org.http4s.AuthedService.lift.T">T</span>]) ⇒ <span class="extype" name="org.http4s.AuthedService.lift.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.lift.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.AuthedService.lift.F">F</span>]</span>)</span><span class="result">: <a href="index.html#AuthedService[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" class="extmbr" name="org.http4s.AuthedService">AuthedService</a>[<span class="extype" name="org.http4s.AuthedService.lift.T">T</span>, <span class="extype" name="org.http4s.AuthedService.lift.F">F</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.18) Use liftF with an OptionT[F, Response[F]] instead">lift</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="T">T</span>]</span><span class="params">(<span name="f">f: (<a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.lift.F">F</span>, <span class="extype" name="org.http4s.AuthedService.lift.T">T</span>]) ⇒ <span class="extype" name="org.http4s.AuthedService.lift.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.lift.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.AuthedService.lift.F">F</span>]</span>)</span><span class="result">: <a href="index.html#AuthedService[T,F[_]]=org.http4s.package.AuthedRoutes[T,F]" class="extmbr" name="org.http4s.AuthedService">AuthedService</a>[<span class="extype" name="org.http4s.AuthedService.lift.T">T</span>, <span class="extype" name="org.http4s.AuthedService.lift.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Lifts a total function to an <code>AuthedService</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts a total function to an <code>AuthedService</code>. The function is expected to
