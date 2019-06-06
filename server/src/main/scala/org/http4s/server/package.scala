@@ -104,10 +104,10 @@ package object server {
 
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],
-        onFailure: AuthedService[Err, F]
+        onFailure: AuthedRoutes[Err, F]
     )(implicit F: Monad[F], C: Choice[Kleisli[OptionT[F, ?], ?, ?]]): AuthMiddleware[F, T] = {
-      service: AuthedService[T, F] =>
-        C.choice(onFailure, service)
+      routes: AuthedRoutes[T, F] =>
+        C.choice(onFailure, routes)
           .local { authed: AuthedRequest[F, Either[Err, T]] =>
             authed.authInfo.bimap(
               err => AuthedRequest(err, authed.req),
