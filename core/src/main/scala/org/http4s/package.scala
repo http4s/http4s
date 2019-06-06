@@ -56,10 +56,13 @@ package object http4s { // scalastyle:ignore
   type HttpService[F[_]] = HttpRoutes[F]
 
   /**
-    * We need to change the order of type parameters to make partial unification
+    * The type parameters need to be in this order to make partial unification
     * trigger. See https://github.com/http4s/http4s/issues/1506
     */
-  type AuthedService[T, F[_]] = Kleisli[OptionT[F, ?], AuthedRequest[F, T], Response[F]]
+  type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, ?], AuthedRequest[F, T], Response[F]]
+
+  @deprecated("Deprecated in favor of AuthedRoutes", "0.20.1")
+  type AuthedService[T, F[_]] = AuthedRoutes[T, F]
 
   type Callback[A] = Either[Throwable, A] => Unit
 
