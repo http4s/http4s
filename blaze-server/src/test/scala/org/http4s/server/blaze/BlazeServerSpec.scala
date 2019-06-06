@@ -2,6 +2,7 @@ package org.http4s
 package server
 package blaze
 
+import cats.implicits._
 import cats.effect.IO
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
@@ -9,6 +10,8 @@ import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.dsl.io._
 import scala.concurrent.duration._
 import scala.io.Source
+import org.specs2.execute.Result
+import org.http4s.multipart.Multipart
 
 class BlazeServerSpec extends Http4sSpec {
 
@@ -30,6 +33,11 @@ class BlazeServerSpec extends Http4sSpec {
 
     case _ -> Root / "never" =>
       IO.never
+
+    case req @ POST -> Root / "issue2610" =>
+      req.decode[Multipart[IO]] { mp =>
+        Ok(mp.parts.foldMap(_.body))
+      }
 
     case _ => NotFound()
   }
@@ -70,6 +78,19 @@ class BlazeServerSpec extends Http4sSpec {
       Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
     }
 
+    // This too
+    def postChunkedMultipart(path: String, boundary: String, body: String): IO[String] = IO {
+      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+      val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+      val bytes = body.getBytes(StandardCharsets.UTF_8)
+      conn.setRequestMethod("POST")
+      conn.setChunkedStreamingMode(-1)
+      conn.setRequestProperty("Content-Type", s"""multipart/form-data; boundary="$boundary"""")
+      conn.setDoOutput(true)
+      conn.getOutputStream.write(bytes)
+      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+    }
+
     "A server" should {
       "route requests on the service executor" in {
         get("/thread/routing") must startWith("http4s-spec-")
@@ -86,6 +107,25 @@ class BlazeServerSpec extends Http4sSpec {
 
       "return a 503 if the server doesn't respond" in {
         getStatus("/never") must returnValue(Status.ServiceUnavailable)
+      }
+
+      "reliably handle multipart requests" in {
+        val body =
+          """|--aa
+             |Content-Disposition: form-data; name="a"
+             |Content-Length: 1
+             |
+             |a
+             |--aa--""".stripMargin.replace("\n", "\r\n")
+
+        // This is flaky due to Blaze threading and Java connection pooling.
+        Result.foreach(1 to 100) { _ =>
+          postChunkedMultipart(
+            "/issue2610",
+            "aa",
+            body
+          ) must returnValue("a")
+        }
       }
     }
   }
