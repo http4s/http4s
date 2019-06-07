@@ -38,7 +38,7 @@ package object http4s { // scalastyle:ignore
     */
   type HttpApp[F[_]] = Http[F, F]
 
-  /** A kleisl with a [[Request]] input and a [[Response]] output, such
+  /** A kleisli with a [[Request]] input and a [[Response]] output, such
     * that the response effect is an optional inside the effect of the
     * request and response bodies.  HTTP routes can conveniently be
     * constructed from a partial function and combined as a
