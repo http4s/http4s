@@ -439,7 +439,7 @@ val averageTemperatureService = HttpRoutes.of[IO] {
 
 #### Optional query parameters
 
-To accept a optional query parameter a `OptionalQueryParamDecoderMatcher` can be used.
+To accept an optional query parameter a `OptionalQueryParamDecoderMatcher` can be used.
 
 ```tut:silent
 import java.time.Year
