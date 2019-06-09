@@ -183,7 +183,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-client/src/main/scala/org/http4s/client/blaze/BlazeClientBuilder.scala" target="_blank">BlazeClientBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-client/src/main/scala/org/http4s/client/blaze/BlazeClientBuilder.scala" target="_blank">BlazeClientBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1414,6 +1414,24 @@ The backend is shut down when the stream is finalized.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BlazeBackendBuilder</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#withDefaultSslContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withDefaultSslContext:org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withDefaultSslContext:BlazeClientBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#withDefaultSslContext:org.http4s.client.blaze.BlazeClientBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withDefaultSslContext</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Use an <code>SSLContext</code> obtained by <code>SSLContext.getDefault()</code> when making secure calls.</p><div class="fullcomment"><div class="comment cmt"><p>Use an <code>SSLContext</code> obtained by <code>SSLContext.getDefault()</code> when making secure calls.</p><p>The creation of the context is lazy, as <code>SSLContext.getDefault()</code> throws on some
+platforms.  The context creation is deferred until the first secure client call.
+</p></div></div>
     </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withDefaultTcpNoDelay" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withDefaultTcpNoDelay:BlazeBackendBuilder.this.Self"></a><a id="withDefaultTcpNoDelay:Self"></a>
       <span class="permalink">
@@ -1685,23 +1703,7 @@ The backend is shut down when the stream is finalized.
         <span class="name">withSslContext</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
       </span>
       
-      
-    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#withSslContextOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withSslContextOption(sslContext:Option[javax.net.ssl.SSLContext]):org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withSslContextOption(Option[SSLContext]):BlazeClientBuilder[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#withSslContextOption(sslContext:Option[javax.net.ssl.SSLContext]):org.http4s.client.blaze.BlazeClientBuilder[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withSslContextOption</span><span class="params">(<span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
-      </span>
-      
-      
+      <p class="shortcomment cmt">Use the provided <code>SSLContext</code> when making secure calls</p>
     </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withTcpNoDelay" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withTcpNoDelay(tcpNoDelay:Boolean):BlazeBackendBuilder.this.Self"></a><a id="withTcpNoDelay(Boolean):Self"></a>
       <span class="permalink">
@@ -1766,22 +1768,6 @@ The backend is shut down when the stream is finalized.
       </span>
       
       
-    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#withoutSslContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withoutSslContext:org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withoutSslContext:BlazeClientBuilder[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#withoutSslContext:org.http4s.client.blaze.BlazeClientBuilder[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withoutSslContext</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.client.blaze.BlazeClientBuilder#withoutUserAgent" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withoutUserAgent:org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withoutUserAgent:BlazeClientBuilder[F]"></a>
       <span class="permalink">
@@ -1824,7 +1810,48 @@ The backend is shut down when the stream is finalized.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.client.blaze.BlazeClientBuilder#withSslContextOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withSslContextOption(sslContext:Option[javax.net.ssl.SSLContext]):org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withSslContextOption(Option[SSLContext]):BlazeClientBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#withSslContextOption(sslContext:Option[javax.net.ssl.SSLContext]):org.http4s.client.blaze.BlazeClientBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.2) Use withSslContext or withDefaultSslContext">withSslContextOption</span><span class="params">(<span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.2)</i> Use <code>withSslContext</code> or <code>withDefaultSslContext</code></p></dd></dl></div>
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#withoutSslContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withoutSslContext:org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withoutSslContext:BlazeClientBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#withoutSslContext:org.http4s.client.blaze.BlazeClientBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.2) Use withDefaultSslContext">withoutSslContext</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.2)</i> Use <code>withDefaultSslContext</code></p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

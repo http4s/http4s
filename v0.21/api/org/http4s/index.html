@@ -470,6 +470,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="AuthedRequest.html" title="">AuthedRequest</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
+                        <a class="object" href="AuthedRoutes$.html" title=""></a>
+                        <a href="AuthedRoutes$.html" title="">AuthedRoutes</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
                         <a class="object" href="AuthedService$.html" title=""></a>
                         <a href="AuthedService$.html" title="">AuthedService</a>
                       </li><li class="current-entities indented2">
@@ -888,10 +892,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
-    </li><li name="org.http4s.AuthedService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="AuthedService[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]"></a><a id="AuthedService[T,F[_]]:AuthedService[T,F]"></a>
+    </li><li name="org.http4s.AuthedRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AuthedRoutes[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]"></a><a id="AuthedRoutes[T,F[_]]:AuthedRoutes[T,F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#AuthedService[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/index.html#AuthedRoutes[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -900,11 +904,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthedService</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>]]</span>
+        <span class="name">AuthedRoutes</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>, <span class="extype" name="org.http4s.AuthedRoutes.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">We need to change the order of type parameters to make partial unification
-trigger.</p><div class="fullcomment"><div class="comment cmt"><p>We need to change the order of type parameters to make partial unification
+      <p class="shortcomment cmt">The type parameters need to be in this order to make partial unification
+trigger.</p><div class="fullcomment"><div class="comment cmt"><p>The type parameters need to be in this order to make partial unification
 trigger. See https://github.com/http4s/http4s/issues/1506
 </p></div></div>
     </li><li name="org.http4s.BasicCredentials" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
@@ -2029,6 +2033,25 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
       </span>
       
       
+    </li><li name="org.http4s.AuthedService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AuthedService[T,F[_]]=org.http4s.package.AuthedRoutes[T,F]"></a><a id="AuthedService[T,F[_]]:AuthedService[T,F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#AuthedService[T,F[_]]=org.http4s.package.AuthedRoutes[T,F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.1) Deprecated in favor of AuthedRoutes">AuthedService</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.1)</i> Deprecated in favor of AuthedRoutes</p></dd></dl></div>
     </li><li name="org.http4s.Http4s" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="Http4sextendsHttp4sInstanceswithHttp4sFunctionswithAllSyntax"></a><a id="Http4s:Http4s"></a>
       <span class="permalink">
@@ -2231,10 +2254,10 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
       </span>
       
       
-    </li><li name="org.http4s.AuthedService" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AuthedService"></a><a id="AuthedService:AuthedService"></a>
+    </li><li name="org.http4s.AuthedRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthedRoutes"></a><a id="AuthedRoutes:AuthedRoutes"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#AuthedService" title="Permalink">
+      <a href="../../org/http4s/index.html#AuthedRoutes" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2243,7 +2266,7 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="AuthedService$.html"><span class="name">AuthedService</span></a>
+        <a title="" href="AuthedRoutes$.html"><span class="name">AuthedRoutes</span></a>
       </span>
       
       
@@ -3048,6 +3071,25 @@ https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/sh
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Moved to org.http4s.syntax.all</p></dd></dl></div>
+    </li><li name="org.http4s.AuthedService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AuthedService"></a><a id="AuthedService:AuthedService"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#AuthedService" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="AuthedService$.html"><span class="name deprecated" title="Deprecated: (Since version 0.20.2) Use AuthedRoutes instead">AuthedService</span></a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.2)</i> Use AuthedRoutes instead</p></dd></dl></div>
     </li><li name="org.http4s.Http4s" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Http4s"></a><a id="Http4s:Http4s"></a>
       <span class="permalink">
