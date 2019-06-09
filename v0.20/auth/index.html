@@ -108,7 +108,7 @@ use the following definition:</p>
 <pre><code class="language-scala">case class User(id: Long, name: String)
 </code></pre>
 
-<p>With the request representation defined, we can move on to the <code>AuthedRoutes[User, F]</code>, an alias for
+<p>With the request representation defined, we can move on to the <code>AuthedService[User, F]</code>, a shortcut to
 <code>AuthedRequest[F, User] =&gt; OptionT[F, Response[F]]</code>. Notice the similarity to a &ldquo;normal&rdquo; service, which
 would be the equivalent to <code>Request[F] =&gt; OptionT[F, Response[F]]</code> - in other words, we are lifting the
 <code>Request</code> into an <code>AuthedRequest</code>, and adding authentication information in the mix.</p>
@@ -125,7 +125,7 @@ with the following signature: <code>Request[F] =&gt; OptionT[F, User]</code>. He
 discovering the user might require reading from a database or calling some other service - i.e. performing
 IO operations.</p>
 
-<p>Now we need a middleware that can bridge a &ldquo;normal&rdquo; service into an <code>AuthedRoutes</code>, which is quite easy to
+<p>Now we need a middleware that can bridge a &ldquo;normal&rdquo; service into an <code>AuthedService</code>, which is quite easy to
 get using our function defined above. We use <code>AuthMiddleware</code> for that:</p>
 
 <pre><code class="language-scala">val middleware: AuthMiddleware[IO, User] =
@@ -139,15 +139,15 @@ your api for possible unprotected points. To allow fallthrough,
 use <code>AuthMiddleware.withFallThrough</code>. Alternatively, to customize the behavior on not authenticated if you do not
 wish to always return 401, use <code>AuthMiddleware.noSpider</code> and specify the <code>onAuthFailure</code> handler.</p>
 
-<p>Finally, we can create our <code>AuthedRoutes</code>, and wrap it with our authentication middleware, getting the
+<p>Finally, we can create our <code>AuthedService</code>, and wrap it with our authentication middleware, getting the
 final <code>HttpRoutes</code> to be exposed. Notice that we now have access to the user object in the service implementation:</p>
 
-<pre><code class="language-scala">val authedRoutes: AuthedRoutes[User, IO] =
-  AuthedRoutes.of {
+<pre><code class="language-scala">val authedService: AuthedService[User, IO] =
+  AuthedService {
     case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
   }
 
-val service: HttpRoutes[IO] = middleware(authedRoutes)
+val service: HttpRoutes[IO] = middleware(authedService)
 </code></pre>
 
 <h2 id="returning-an-error-response">Returning an Error Response</h2>
@@ -165,10 +165,10 @@ error handling, we recommend an error <a href="https://typelevel.org/blog/2014/1
 
 <pre><code class="language-scala">val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ =&gt; IO(???))
 
-val onFailure: AuthedRoutes[String, IO] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.authInfo)))
+val onFailure: AuthedService[String, IO] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.authInfo)))
 val middleware = AuthMiddleware(authUser, onFailure)
 
-val service: HttpRoutes[IO] = middleware(authedRoutes)
+val service: HttpRoutes[IO] = middleware(authedService)
 </code></pre>
 
 <h2 id="implementing-authuser">Implementing authUser</h2>
