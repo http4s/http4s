@@ -7,9 +7,9 @@ import cats.effect.Sync
 import cats.data.{Kleisli, OptionT}
 
 trait KleisliSyntax {
-  implicit def http4sKleisliResponseSyntax[F[_]: Functor, A](
-      service: Kleisli[OptionT[F, ?], A, Response[F]]): KleisliResponseOps[F, A] =
-    new KleisliResponseOps[F, A](service)
+  implicit def http4sKleisliResponseSyntaxOptionT[F[_]: Functor, A](
+      kleisli: Kleisli[OptionT[F, ?], A, Response[F]]): KleisliResponseOps[F, A] =
+    new KleisliResponseOps[F, A](kleisli)
 }
 
 trait KleisliSyntaxBinCompat0 {
