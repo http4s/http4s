@@ -221,9 +221,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.syntax.ServiceOps#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(service:cats.data.Kleisli[F,A,B])(implicitB:cats.Semigroup[F[B]]):org.http4s.server.syntax.package.ServiceOps[F,A,B]"></a><a id="&lt;init&gt;:ServiceOps[F,A,B]"></a>
+      <a id="&lt;init&gt;(kleisli:cats.data.Kleisli[F,A,B])(implicitB:cats.Semigroup[F[B]]):org.http4s.server.syntax.package.ServiceOps[F,A,B]"></a><a id="&lt;init&gt;:ServiceOps[F,A,B]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/syntax/package$$ServiceOps.html#&lt;init&gt;(service:cats.data.Kleisli[F,A,B])(implicitB:cats.Semigroup[F[B]]):org.http4s.server.syntax.package.ServiceOps[F,A,B]" title="Permalink">
+      <a href="../../../../org/http4s/server/syntax/package$$ServiceOps.html#&lt;init&gt;(kleisli:cats.data.Kleisli[F,A,B])(implicitB:cats.Semigroup[F[B]]):org.http4s.server.syntax.package.ServiceOps[F,A,B]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -232,7 +232,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceOps</span><span class="params">(<span name="service">service: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.B">B</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="B">B: <span class="extype" name="cats.Semigroup">Semigroup</span>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.F">F</span>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.B">B</span>]]</span>)</span>
+        <span class="name">ServiceOps</span><span class="params">(<span name="kleisli">kleisli: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.B">B</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="B">B: <span class="extype" name="cats.Semigroup">Semigroup</span>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.F">F</span>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.B">B</span>]]</span>)</span>
       </span>
       
       
@@ -588,6 +588,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.server.syntax.ServiceOps#kleisli" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="kleisli:cats.data.Kleisli[F,A,B]"></a><a id="kleisli:Kleisli[F,A,B]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/syntax/package$$ServiceOps.html#kleisli:cats.data.Kleisli[F,A,B]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">kleisli</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.B">B</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -655,22 +671,6 @@
       </span>
       <span class="symbol">
         <span class="name">orElse</span><span class="params">(<span name="fallback">fallback: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.B">B</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.B">B</span>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.server.syntax.ServiceOps#service" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="service:cats.data.Kleisli[F,A,B]"></a><a id="service:Kleisli[F,A,B]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/syntax/package$$ServiceOps.html#service:cats.data.Kleisli[F,A,B]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">service</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.server.syntax.ServiceOps.B">B</span>]</span>
       </span>
       
       
