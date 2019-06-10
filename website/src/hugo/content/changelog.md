@@ -8,6 +8,25 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.2 (2019-06-10)
+
+## Bug fixes
+* [#2604](https://github.com/http4s/http4s/pull/2604): Defer creation of `SSLContext.getDefault()` in blaze-client
+* [#2611](https://github.com/http4s/http4s/pull/2611): Raise errors with `getResource()` into effect in `StaticFile`
+
+## Enhancements
+* [#2567](https://github.com/http4s/http4s/pull/2567): Add `mapK` to `AuthedRequest`.  Deprecate `AuthedService` in favor of `AuthedRoutes`.
+
+## Internals
+* [#2579](https://github.com/http4s/http4s/pull/2579): Skip Travis CI on tags
+
+## Dependency updates
+* blaze-0.14.3
+* cats-core-1.6.1
+* cats-effect-1.3.1
+* okhttp-3.14.2
+* tomcat-9.0.21
+
 # v0.20.1 (2019-05-16)
 
 Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and passes new tests, but we still lack 100% confidence in it.  The async-http-client backend has proven stable for a large number of users.
