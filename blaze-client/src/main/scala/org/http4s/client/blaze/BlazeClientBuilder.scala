@@ -128,7 +128,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   /** Disable secure calls */
   def withoutSslContext: BlazeClientBuilder[F] =
-    withDefaultSslContext
+    copy(sslContext = None)
 
   def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): BlazeClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
