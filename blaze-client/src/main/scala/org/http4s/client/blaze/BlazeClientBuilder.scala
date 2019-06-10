@@ -11,6 +11,7 @@ import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.internal.BackendBuilder
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 /**
   * @param sslContext Some custom `SSLContext`, or `None` if the
@@ -112,23 +113,22 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   /** Use the provided `SSLContext` when making secure calls */
   def withSslContext(sslContext: SSLContext): BlazeClientBuilder[F] =
-    copy(sslContext = Some(sslContext))
+    withSslContextOption(Some(sslContext))
 
   /** Use an `SSLContext` obtained by `SSLContext.getDefault()` when making secure calls.
     *
-    * The creation of the context is lazy, as `SSLContext.getDefault()` throws on some
-    * platforms.  The context creation is deferred until the first secure client call.
+    * Since 0.21, the creation is not deferred.
     */
   def withDefaultSslContext: BlazeClientBuilder[F] =
-    copy(sslContext = None)
+    withSslContext(SSLContext.getDefault())
 
-  @deprecated("Use `withSslContext` or `withDefaultSslContext`", "0.20.2")
+  /** Use some provided `SSLContext` when making secure calls, or disable secure calls with `None` */
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext = sslContext)
 
-  @deprecated("Use `withDefaultSslContext`", "0.20.2")
+  /** Disable secure calls */
   def withoutSslContext: BlazeClientBuilder[F] =
-    withDefaultSslContext
+    copy(sslContext = None)
 
   def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): BlazeClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
@@ -207,9 +207,15 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 }
 
 object BlazeClientBuilder {
+
+  /** Creates a BlazeClientBuilder
+    *
+    * @param executionContext the ExecutionContext for blaze's internal Futures
+    * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
+    */
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
-      sslContext: Option[SSLContext] = None): BlazeClientBuilder[F] =
+      sslContext: Option[SSLContext] = tryDefaultSslContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = 10.seconds,
       idleTimeout = 1.minute,
@@ -230,4 +236,10 @@ object BlazeClientBuilder {
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty)
     ) {}
+
+  private def tryDefaultSslContext: Option[SSLContext] =
+    try Some(SSLContext.getDefault())
+    catch {
+      case NonFatal(_) => None
+    }
 }

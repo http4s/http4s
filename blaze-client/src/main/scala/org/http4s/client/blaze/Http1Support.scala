@@ -34,8 +34,6 @@ final private class Http1Support[F[_]](
     channelOptions: ChannelOptions
 )(implicit F: ConcurrentEffect[F]) {
 
-  // SSLContext.getDefault is effectful and can fail - don't force it until we have to.
-  private lazy val sslContext = sslContextOption.getOrElse(SSLContext.getDefault)
   private val connectionManager =
     new ClientChannelFactory(bufferSize, asynchronousChannelGroup, channelOptions)
 
@@ -52,14 +50,21 @@ final private class Http1Support[F[_]](
       addr: InetSocketAddress): Future[BlazeConnection[F]] =
     connectionManager
       .connect(addr, bufferSize)
-      .map { head =>
-        val (builder, t) = buildStages(requestKey)
-        builder.base(head)
-        head.inboundCommand(Command.Connected)
-        t
+      .flatMap { head =>
+        buildStages(requestKey) match {
+          case Right((builder, t)) =>
+            Future.successful {
+              builder.base(head)
+              head.inboundCommand(Command.Connected)
+              t
+            }
+          case Left(e) =>
+            Future.failed(e)
+        }
       }(executionContext)
 
-  private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection[F]) = {
+  private def buildStages(requestKey: RequestKey)
+    : Either[IllegalStateException, (LeafBuilder[ByteBuffer], BlazeConnection[F])] = {
     val t = new Http1Connection(
       requestKey = requestKey,
       executionContext = executionContext,
@@ -73,18 +78,26 @@ final private class Http1Support[F[_]](
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Uri.Scheme.https, auth) =>
-        val eng = sslContext.createSSLEngine(auth.host.value, auth.port.getOrElse(443))
-        eng.setUseClientMode(true)
+        sslContextOption match {
+          case Some(sslContext) =>
+            val eng = sslContext.createSSLEngine(auth.host.value, auth.port.getOrElse(443))
+            eng.setUseClientMode(true)
 
-        if (checkEndpointIdentification) {
-          val sslParams = eng.getSSLParameters
-          sslParams.setEndpointIdentificationAlgorithm("HTTPS")
-          eng.setSSLParameters(sslParams)
+            if (checkEndpointIdentification) {
+              val sslParams = eng.getSSLParameters
+              sslParams.setEndpointIdentificationAlgorithm("HTTPS")
+              eng.setSSLParameters(sslParams)
+            }
+
+            Right((builder.prepend(new SSLStage(eng)), t))
+
+          case None =>
+            Left(new IllegalStateException(
+              "No SSLContext configured for this client. Try `withSslContext` on the `BlazeClientBuilder`, or do not make https calls."))
         }
 
-        (builder.prepend(new SSLStage(eng)), t)
-
-      case _ => (builder, t)
+      case _ =>
+        Right((builder, t))
     }
   }
 
