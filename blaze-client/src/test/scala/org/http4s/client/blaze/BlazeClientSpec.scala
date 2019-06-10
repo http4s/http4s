@@ -103,8 +103,8 @@ class BlazeClientSpec extends Http4sSpec {
           val resp = mkClient(1, sslContextOption = None)
             .use(_.expect[String](u))
             .attempt
-            .unsafeRunTimed(timeout)
-          resp must beSome(beLeft(beAnInstanceOf[IllegalStateException]))
+            .unsafeRunTimed(1.second)
+          resp must beSome(beLeft[Throwable](beAnInstanceOf[IllegalStateException]))
         }
 
         "behave and not deadlock" in {
