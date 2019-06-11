@@ -264,8 +264,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.9.0"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.2"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
-  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-M3"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-M3"
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-M4"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-M4"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
@@ -277,7 +277,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.2"
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
-  lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "0.12.0-M2"
+  lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "0.12.0-M3"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.4"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
