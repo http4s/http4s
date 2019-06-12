@@ -1,7 +1,7 @@
 package org.http4s
 package multipart
 
-import cats.effect.{ContextShift, Sync}
+import cats.effect.{Blocker, ContextShift, Sync}
 import fs2.Stream
 import fs2.io.readInputStream
 import fs2.io.file.readAll
@@ -9,7 +9,6 @@ import fs2.text.utf8Encode
 import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
-import scala.concurrent.ExecutionContext
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
@@ -37,24 +36,24 @@ object Part {
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       file: File,
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
       headers: Header*): Part[F] =
     fileData(
       name,
       file.getName,
-      readAll[F](file.toPath, blockingExecutionContext, ChunkSize),
+      readAll[F](file.toPath, blocker, ChunkSize),
       headers: _*)
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       resource: URL,
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
       headers: Header*): Part[F] =
     fileData(
       name,
       resource.getPath.split("/").last,
       resource.openStream(),
-      blockingExecutionContext,
+      blocker,
       headers: _*)
 
   def fileData[F[_]: Sync](
@@ -79,11 +78,11 @@ object Part {
       name: String,
       filename: String,
       in: => InputStream,
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
       headers: Header*)(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
     fileData(
       name,
       filename,
-      readInputStream(F.delay(in), ChunkSize, blockingExecutionContext),
+      readInputStream(F.delay(in), ChunkSize, blocker),
       headers: _*)
 }

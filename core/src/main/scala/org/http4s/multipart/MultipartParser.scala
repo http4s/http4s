@@ -1,12 +1,11 @@
 package org.http4s
 package multipart
 
-import cats.effect.{ContextShift, Sync}
+import cats.effect.{Blocker, ContextShift, Sync}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.{readAll, writeAll}
 import java.nio.file.{Files, Path, StandardOpenOption}
-import scala.concurrent.ExecutionContext
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -562,7 +561,7 @@ object MultipartParser {
     */
   def parseStreamedFile[F[_]: Sync: ContextShift](
       boundary: Boundary,
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
@@ -574,14 +573,14 @@ object MultipartParser {
       maxSizeBeforeWrite,
       maxParts,
       failOnLimit,
-      blockingExecutionContext)
+      blocker)
       .fold(Vector.empty[Part[F]])(_ :+ _)
       .map(Multipart(_, boundary))
   }
 
   def parseToPartsStreamedFile[F[_]: Sync: ContextShift](
       boundary: Boundary,
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
@@ -593,7 +592,7 @@ object MultipartParser {
       maxSizeBeforeWrite,
       maxParts,
       failOnLimit,
-      blockingExecutionContext)
+      blocker)
   }
 
   /** The first part of our streaming stages:
@@ -608,7 +607,7 @@ object MultipartParser {
       maxSizeBeforeWrite: Int,
       maxParts: Int,
       failOnLimit: Boolean,
-      blockingExecutionContext: ExecutionContext): Stream[F, Part[F]] = {
+      blocker: Blocker): Stream[F, Part[F]] = {
     val values = StartLineBytesN(b)
 
     def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
@@ -620,7 +619,7 @@ object MultipartParser {
           maxSizeBeforeWrite,
           maxParts,
           failOnLimit,
-          blockingExecutionContext)
+          blocker)
       } else {
         s.pull.uncons.flatMap {
           case Some((chnk, rest)) =>
@@ -655,7 +654,7 @@ object MultipartParser {
       maxBeforeWrite: Int,
       maxParts: Int,
       failOnLimit: Boolean,
-      blockingExecutionContext: ExecutionContext
+      blocker: Blocker
   ): Pull[F, Part[F], Unit] = {
     val values = DoubleCRLFBytesN
     val expectedBytes = ExpectedBytesN(boundary)
@@ -679,7 +678,7 @@ object MultipartParser {
             1,
             maxParts,
             failOnLimit,
-            blockingExecutionContext
+            blocker
           )
         }
     }
@@ -713,11 +712,11 @@ object MultipartParser {
       partsCounter: Int,
       partsLimit: Int,
       failOnLimit: Boolean,
-      blockingExecutionContext: ExecutionContext): Pull[F, Part[F], Unit] =
+      blocker: Blocker): Pull[F, Part[F], Unit] =
     Pull
       .eval(parseHeaders(headerStream))
       .flatMap { hdrs =>
-        splitWithFileStream(expectedBytes, rest, maxBeforeWrite, blockingExecutionContext).flatMap {
+        splitWithFileStream(expectedBytes, rest, maxBeforeWrite, blocker).flatMap {
           case (partBody, rest, fileRef) =>
             //We hit a boundary, but the rest of the stream is empty
             //and thus it's not a properly capped multipart body
@@ -750,7 +749,7 @@ object MultipartParser {
                         partsCounter + 1,
                         partsLimit,
                         failOnLimit,
-                        blockingExecutionContext)
+                        blocker)
                         .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError[F](e))
                     }
                 }
@@ -771,7 +770,7 @@ object MultipartParser {
       values: Array[Byte],
       stream: Stream[F, Byte],
       maxBeforeWrite: Int,
-      blockingExecutionContext: ExecutionContext)(
+      blocker: Blocker)(
       implicit F: Sync[F],
       cs: ContextShift[F]): SplitFileStream[F] = {
 
@@ -786,15 +785,15 @@ object MultipartParser {
         Pull.eval(
           lacc
             .through(
-              writeAll[F](fileRef, blockingExecutionContext, List(StandardOpenOption.APPEND)))
+              writeAll[F](fileRef, blocker, List(StandardOpenOption.APPEND)))
             .compile
             .drain) >> Pull.pure(
-          (readAll[F](fileRef, blockingExecutionContext, maxBeforeWrite), racc ++ s, Some(fileRef)))
+          (readAll[F](fileRef, blocker, maxBeforeWrite), racc ++ s, Some(fileRef)))
       } else if (limitCTR >= maxBeforeWrite) {
         Pull.eval(
           lacc
             .through(
-              writeAll[F](fileRef, blockingExecutionContext, List(StandardOpenOption.APPEND)))
+              writeAll[F](fileRef, blocker, List(StandardOpenOption.APPEND)))
             .compile
             .drain) >> streamAndWrite(s, state, Stream.empty, racc, 0, fileRef)
       } else {
@@ -820,7 +819,7 @@ object MultipartParser {
           .flatMap { path =>
             (for {
               _ <- Pull.eval(
-                lacc.through(writeAll[F](path, blockingExecutionContext)).compile.drain)
+                lacc.through(writeAll[F](path, blocker)).compile.drain)
               split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
             } yield split)
               .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError[F](e))
