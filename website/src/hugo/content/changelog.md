@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.2 (2019-06-10)
+# v0.20.2 (2019-06-12)
 
 ## Bug fixes
 * [#2604](https://github.com/http4s/http4s/pull/2604): Defer creation of `SSLContext.getDefault()` in blaze-client
@@ -21,9 +21,10 @@ it.
 * [#2579](https://github.com/http4s/http4s/pull/2579): Skip Travis CI on tags
 
 ## Dependency updates
-* blaze-0.14.3
+* blaze-0.14.4
 * cats-core-1.6.1
 * cats-effect-1.3.1
+* fs2-1.0.5 (except Scala 2.13.0-M5)
 * okhttp-3.14.2
 * tomcat-9.0.21
 
