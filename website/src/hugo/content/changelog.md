@@ -8,6 +8,11 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.3 (2019-06-12)
+
+## Bug fixes
+* [#2638](https://github.com/http4s/http4s/pull/2638): Pass `redactHeadersWith` from server `RequestLogger`.
+
 # v0.20.2 (2019-06-12)
 
 ## Bug fixes
