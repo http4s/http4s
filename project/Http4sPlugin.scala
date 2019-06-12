@@ -285,11 +285,14 @@ object Http4sPlugin extends AutoPlugin {
   def specs2Version(scalaVersion: String): String =
     if (priorTo2_13(scalaVersion)) "4.1.0" else "4.4.1"
 
+  def fs2Version(scalaVersion: String): String =
+    if (priorTo2_13(scalaVersion)) "1.0.5" else "1.0.4"
+
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.0"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.2"
-  lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.4"
+  lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.6.1"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.3.1"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
@@ -304,8 +307,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   def discipline(sv: String)                = "org.typelevel"          %% "discipline"                % disciplineVersion(sv)
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.4"
-  lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
+  def fs2Io(sv: String)                     = "co.fs2"                 %% "fs2-io"                    % fs2Version(sv)
+  def fs2ReactiveStreams(sv: String)        = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Version(sv)
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.14.2"
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.1"

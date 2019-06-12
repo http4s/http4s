@@ -96,7 +96,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= Seq(
       cats,
       catsEffect,
-      fs2Io,
+      fs2Io(scalaVersion.value),
       log4s,
       parboiled,
       vault,
@@ -215,7 +215,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
     description := "async http client implementation for http4s clients",
     libraryDependencies ++= Seq(
       Http4sPlugin.asyncHttpClient,
-      fs2ReactiveStreams
+      fs2ReactiveStreams(scalaVersion.value),
     )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
