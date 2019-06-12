@@ -17,7 +17,7 @@ package object headers {
       case Some(idLsb) =>
         if (idMostSigBits == 0L && idLsb == 0L) {
           writer.append(XB3IdFormatZeroPad.take(XB3Id128BitCharLength))
-        } else if (idMostSigBits == 0l) {
+        } else if (idMostSigBits == 0L) {
           val leadingLsbHexZeroCount = JLong.numberOfLeadingZeros(idLsb) / BitsToNibbleRatio
           writer
             .append(XB3IdFormatZeroPad.take(XB3Id64BitCharLength))
