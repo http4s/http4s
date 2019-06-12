@@ -38,7 +38,7 @@ object StaticFile {
     }
 
     val gzUrl: OptionT[F, URL] =
-      if (tryGzipped) OptionT.fromOption(Option(getClass.getResource(name + ".gz")))
+      if (tryGzipped) OptionT(Sync[F].delay(Option(getClass.getResource(name + ".gz"))))
       else OptionT.none
 
     gzUrl
@@ -50,8 +50,7 @@ object StaticFile {
         fromURL(url, blockingExecutionContext, req).map(
           _.removeHeader(`Content-Type`).putHeaders(headers: _*))
       }
-      .orElse(OptionT
-        .fromOption[F](Option(getClass.getResource(name)))
+      .orElse(OptionT(Sync[F].delay(Option(getClass.getResource(name))))
         .flatMap(fromURL(_, blockingExecutionContext, req)))
   }
 
