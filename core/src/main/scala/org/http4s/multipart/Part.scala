@@ -38,23 +38,14 @@ object Part {
       file: File,
       blocker: Blocker,
       headers: Header*): Part[F] =
-    fileData(
-      name,
-      file.getName,
-      readAll[F](file.toPath, blocker, ChunkSize),
-      headers: _*)
+    fileData(name, file.getName, readAll[F](file.toPath, blocker, ChunkSize), headers: _*)
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       resource: URL,
       blocker: Blocker,
       headers: Header*): Part[F] =
-    fileData(
-      name,
-      resource.getPath.split("/").last,
-      resource.openStream(),
-      blocker,
-      headers: _*)
+    fileData(name, resource.getPath.split("/").last, resource.openStream(), blocker, headers: _*)
 
   def fileData[F[_]: Sync](
       name: String,
@@ -80,9 +71,5 @@ object Part {
       in: => InputStream,
       blocker: Blocker,
       headers: Header*)(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
-    fileData(
-      name,
-      filename,
-      readInputStream(F.delay(in), ChunkSize, blocker),
-      headers: _*)
+    fileData(name, filename, readInputStream(F.delay(in), ChunkSize, blocker), headers: _*)
 }

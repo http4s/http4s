@@ -141,7 +141,9 @@ object EntityEncoder {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def fileEncoder[F[_]](blocker: Blocker)( implicit F: Effect[F], cs: ContextShift[F]): EntityEncoder[F, File] = filePathEncoder[F](blocker).contramap(_.toPath)
+  def fileEncoder[F[_]](
+      blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F]): EntityEncoder[F, File] =
+    filePathEncoder[F](blocker).contramap(_.toPath)
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
@@ -151,7 +153,8 @@ object EntityEncoder {
     }
 
   // TODO parameterize chunk size
-  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](blocker: Blocker): EntityEncoder[F, F[IS]] =
+  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
+      blocker: Blocker): EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { in: F[IS] =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize, blocker)
     }

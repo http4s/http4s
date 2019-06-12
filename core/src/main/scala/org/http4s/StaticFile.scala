@@ -46,17 +46,13 @@ object StaticFile {
         val contentType = nameToContentType(name)
         val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
 
-        fromURL(url, blocker, req).map(
-          _.removeHeader(`Content-Type`).putHeaders(headers: _*))
+        fromURL(url, blocker, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
       }
       .orElse(OptionT(Sync[F].delay(Option(getClass.getResource(name))))
         .flatMap(fromURL(_, blocker, req)))
   }
 
-  def fromURL[F[_]](
-      url: URL,
-      blocker: Blocker,
-      req: Option[Request[F]] = None)(
+  def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(
       implicit F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT.liftF(F.delay {
