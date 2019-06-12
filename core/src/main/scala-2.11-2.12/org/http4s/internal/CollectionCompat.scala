@@ -22,4 +22,6 @@ private[http4s] object CollectionCompat {
 
   def mapValues[K, A, B](map: collection.Map[K, A])(f: A => B): Map[K, B] =
     map.mapValues(f).toMap
+
+    val CollectionConverters = scala.collection.JavaConverters
 }

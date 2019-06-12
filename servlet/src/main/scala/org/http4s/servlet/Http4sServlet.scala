@@ -1,20 +1,18 @@
 package org.http4s.servlet
 
+import _root_.io.chrisdavenport.vault._
+import cats.effect._
+import cats.implicits.{catsSyntaxEither => _, _}
 import java.net.InetSocketAddress
 import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
-
-import cats.effect._
-import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s._
 import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
-
-import scala.collection.JavaConverters._
-import _root_.io.chrisdavenport.vault._
 
 abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[F])(
     implicit F: Effect[F])

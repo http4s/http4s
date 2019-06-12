@@ -21,8 +21,8 @@ import okio.BufferedSink
 import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.Client
 import org.http4s.internal.{BackendBuilder, invokeCallback}
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
