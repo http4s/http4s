@@ -262,7 +262,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.0"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.2"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.4"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-M4"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-M4"
@@ -278,7 +278,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "0.12.0-M3"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.4"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.5"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.14.2"
