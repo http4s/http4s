@@ -24,8 +24,8 @@ object RequestLogger {
       implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
     Kleisli { req =>
       if (!logBody)
-        OptionT(
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(logger) *> service(req).value)
+        OptionT(Logger.logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(
+          logger) *> service(req).value)
       else
         OptionT
           .liftF(async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
