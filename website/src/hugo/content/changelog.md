@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.24 (2019-06-12)
+
+## Bug fixes
+* [#2639](https://github.com/http4s/http4s/pull/2639): Fix leaking sensitive headers in server RequestLogger
+
+## Dependency updates
+- cats-1.6.1
+- jetty-9.4.19.v20190610
+- tomcat-9.0.21
+
 # v0.18.23 (2019-03-19)
 
 ## Bug fixes
