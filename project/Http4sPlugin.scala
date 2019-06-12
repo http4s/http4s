@@ -304,7 +304,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.14.0"
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.7.0"
-  lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.1"
+  lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.2.0"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.5.1"
   lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
