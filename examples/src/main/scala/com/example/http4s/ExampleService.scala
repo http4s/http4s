@@ -20,6 +20,8 @@ import scala.concurrent.duration._
 
 class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends Http4sDsl[F] {
 
+  private val blocker = Blocker.liftExecutionContext(global)
+
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
   def routes(implicit timer: Timer[F]): HttpRoutes[F] =
@@ -63,7 +65,7 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
         // captures everything after "/static" into `path`
         // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
         // See also org.http4s.server.staticcontent to create a mountable service for static content
-        StaticFile.fromResource(path.toString, global, Some(req)).getOrElseF(NotFound())
+        StaticFile.fromResource(path.toString, blocker, Some(req)).getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////
       //////////////// Dealing with the message body ////////////////
@@ -147,7 +149,7 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
 
       case req @ GET -> Root / "image.jpg" =>
         StaticFile
-          .fromResource("/nasa_blackhole_image.jpg", global, Some(req))
+          .fromResource("/nasa_blackhole_image.jpg", blocker, Some(req))
           .getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////
