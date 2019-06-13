@@ -3,7 +3,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{ContextShift, Effect}
+import cats.effect.{Blocker, ContextShift, Effect}
 import scala.concurrent.ExecutionContext
 
 /**
@@ -18,7 +18,7 @@ object WebjarService {
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
       filter: WebjarAssetFilter = _ => true,
       cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
 
@@ -92,6 +92,6 @@ object WebjarService {
   private def serveWebjarAsset[F[_]: Effect: ContextShift](config: Config[F], request: Request[F])(
       webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
-      .fromResource(webjarAsset.pathInJar, config.blockingExecutionContext, Some(request))
+      .fromResource(webjarAsset.pathInJar, config.blocker, Some(request))
       .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
 }

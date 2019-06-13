@@ -10,7 +10,7 @@ import org.http4s.Uri.uri
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
   val config =
-    ResourceService.Config[IO]("", blockingExecutionContext = testBlockingExecutionContext)
+    ResourceService.Config[IO]("", blocker = testBlocker)
   val routes = resourceService(config)
 
   "ResourceService" should {

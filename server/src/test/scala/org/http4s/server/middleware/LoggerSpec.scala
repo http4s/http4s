@@ -25,7 +25,7 @@ class LoggerSpec extends Http4sSpec {
   def testResource = getClass.getResourceAsStream("/testresource.txt")
 
   def body: EntityBody[IO] =
-    readInputStream[IO](IO.pure(testResource), 4096, testBlockingExecutionContext)
+    readInputStream[IO](IO.pure(testResource), 4096, testBlocker)
 
   val expectedBody: String = Source.fromInputStream(testResource).mkString
 

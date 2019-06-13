@@ -160,7 +160,7 @@ object EntityEncoder {
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](blockingExecutionContext: ExecutionContext)(
+  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(
       implicit F: Sync[F],
       cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
@@ -170,7 +170,7 @@ object EntityEncoder {
       def readToBytes(r: Reader): F[Option[Chunk[Byte]]] =
         for {
           // Read into the buffer
-          readChars <- cs.evalOn(blockingExecutionContext)(F.delay(blocking(r.read(charBuffer))))
+          readChars <- blocker.delay(r.read(charBuffer))
         } yield {
           // Flip to read
           charBuffer.flip()

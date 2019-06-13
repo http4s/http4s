@@ -110,10 +110,10 @@ class CSRFSpec extends Http4sSpec {
 
       val hn = headerName.value
 
-      val fromHeader = check((ts, r) ⇒ r.putHeaders(Header(hn, ts)))
-      val fromForm = check((ts, r) ⇒ r.withEntity(UrlForm(hn -> ts)))
+      val fromHeader = check((ts, r) => r.putHeaders(Header(hn, ts)))
+      val fromForm = check((ts, r) => r.withEntity(UrlForm(hn -> ts)))
       val preferHeader =
-        check((ts, r) ⇒ r.withEntity(UrlForm(hn -> "bogus")).putHeaders(Header(hn, ts)))
+        check((ts, r) => r.withEntity(UrlForm(hn -> "bogus")).putHeaders(Header(hn, ts)))
 
       fromHeader.unsafeRunSync().status must_== Status.Ok
       fromForm.unsafeRunSync().status must_== Status.Ok

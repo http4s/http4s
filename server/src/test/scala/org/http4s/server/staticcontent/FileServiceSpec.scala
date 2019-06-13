@@ -9,8 +9,7 @@ import org.http4s.Uri.uri
 import org.http4s.server.middleware.TranslateUri
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
-  val routes = fileService(
-    FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath))
+  val routes = fileService(FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath, testBlocker))
 
   "FileService" should {
 

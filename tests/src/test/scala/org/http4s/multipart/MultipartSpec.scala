@@ -85,7 +85,7 @@ class MultipartSpec extends Specification {
         val field2 = Part.fileData[IO](
           "image",
           file,
-          Http4sSpec.TestBlockingExecutionContext,
+          Http4sSpec.TestBlocker,
           `Content-Type`(MediaType.image.png))
 
         val multipart = Multipart[IO](Vector(field1, field2))
@@ -193,6 +193,6 @@ I am a big moose
 
   multipartSpec("with default decoder")(implicitly)
   multipartSpec("with mixed decoder")(
-    MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlockingExecutionContext))
+    MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlocker))
 
 }

@@ -51,15 +51,10 @@ class TomcatServerSpec(implicit ee: ExecutionEnv) extends {
 
   withResource(serverR) { server =>
     def get(path: String): IO[String] =
-      contextShift.evalOn(testBlockingExecutionContext)(
-        IO(
-          Source
-            .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-            .getLines
-            .mkString))
+      testBlocker.blockOn( IO( Source .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path")) .getLines .mkString))
 
     def post(path: String, body: String): IO[String] =
-      contextShift.evalOn(testBlockingExecutionContext)(IO {
+      testBlocker.blockOn(IO {
         val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
         val conn = url.openConnection().asInstanceOf[HttpURLConnection]
         val bytes = body.getBytes(StandardCharsets.UTF_8)

@@ -589,9 +589,9 @@ object MultipartParserSpec extends Specification {
 
   multipartParserTests(
     "mixed file parser",
-    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext),
-    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext, _),
-    MultipartParser.parseToPartsStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext)
+    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlocker),
+    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlocker, _),
+    MultipartParser.parseToPartsStreamedFile[IO](_, Http4sSpec.TestBlocker)
   )
 
   "Multipart mixed file parser" should {
@@ -617,7 +617,7 @@ object MultipartParserSpec extends Specification {
         unspool(input).through(
           MultipartParser.parseStreamedFile[IO](
             boundaryTest,
-            Http4sSpec.TestBlockingExecutionContext,
+            Http4sSpec.TestBlocker,
             maxParts = 1))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
@@ -651,7 +651,7 @@ object MultipartParserSpec extends Specification {
       val results = unspool(input).through(
         MultipartParser.parseStreamedFile[IO](
           boundaryTest,
-          Http4sSpec.TestBlockingExecutionContext,
+          Http4sSpec.TestBlocker,
           maxParts = 1,
           failOnLimit = true))
 
