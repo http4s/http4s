@@ -11,7 +11,17 @@ it.
 # v0.20.3 (2019-06-12)
 
 ## Bug fixes
-* [#2638](https://github.com/http4s/http4s/pull/2638): Pass `redactHeadersWith` from server `RequestLogger`.
+* [#2638](https://github.com/http4s/http4s/pull/2638): Fix leaking sensitive headers in server RequestLogger
+
+# v0.18.24 (2019-06-12)
+
+## Bug fixes
+* [#2639](https://github.com/http4s/http4s/pull/2639): Fix leaking sensitive headers in server RequestLogger
+
+## Dependency updates
+- cats-1.6.1
+- jetty-9.4.19.v20190610
+- tomcat-9.0.21
 
 # v0.20.2 (2019-06-12)
 
