@@ -9,7 +9,7 @@ addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.9.
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.2")
 addSbtPlugin("com.github.cb372"           %  "sbt-explicit-dependencies" % "0.2.9")
 addSbtPlugin("com.github.gseitz"          %  "sbt-release"               % "1.0.11")
-addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.7.2")
+addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.5")
 addSbtPlugin("com.jsuereth"               %  "sbt-pgp"                   % "1.1.2")
 addSbtPlugin("com.lucidchart"             %  "sbt-scalafmt-coursier"     % "1.15")
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.4.0")

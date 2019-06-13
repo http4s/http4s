@@ -70,11 +70,10 @@ val scala_213 = "2.13.0"
 val scala_212 = "2.12.8"
 val scala_211 = "2.11.12"
 
-
-
 lazy val crossScalaAll = Seq(
   crossScalaVersions := Seq(scala_213, scala_212, scala_211)
 )
+
 lazy val crossScalaNo213 = Seq(
   crossScalaVersions := Seq(scala_212, scala_211)
 )

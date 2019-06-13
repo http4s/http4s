@@ -10,7 +10,7 @@ http4s to try our service.
 A recap of the dependencies for this example, in case you skipped the [service] example. Ensure you have the following dependencies in your build.sbt:
 
 ```scala
-scalaVersion := "2.11.8" // Also supports 2.10.x and 2.12.x
+scalaVersion := "2.12.8" // Also supports 2.10.x and 2.11.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
