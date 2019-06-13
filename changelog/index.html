@@ -88,9 +88,33 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v0-20-2-2019-06-12">v0.20.2 (2019-06-12)</h1>
+<h1 id="v0-20-3-2019-06-12">v0.20.3 (2019-06-12)</h1>
 
 <h2 id="bug-fixes">Bug fixes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2638">#2638</a>: Fix leaking sensitive headers in server RequestLogger</li>
+</ul>
+
+<h1 id="v0-18-24-2019-06-12">v0.18.24 (2019-06-12)</h1>
+
+<h2 id="bug-fixes-1">Bug fixes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2639">#2639</a>: Fix leaking sensitive headers in server RequestLogger</li>
+</ul>
+
+<h2 id="dependency-updates">Dependency updates</h2>
+
+<ul>
+<li>cats-1.6.1</li>
+<li>jetty-9.4.19.v20190610</li>
+<li>tomcat-9.0.21</li>
+</ul>
+
+<h1 id="v0-20-2-2019-06-12">v0.20.2 (2019-06-12)</h1>
+
+<h2 id="bug-fixes-2">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2604">#2604</a>: Defer creation of <code>SSLContext.getDefault()</code> in blaze-client</li>
@@ -109,7 +133,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2579">#2579</a>: Skip Travis CI on tags</li>
 </ul>
 
-<h2 id="dependency-updates">Dependency updates</h2>
+<h2 id="dependency-updates-1">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.4</li>
@@ -124,7 +148,7 @@ it.</p>
 
 <p>Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and passes new tests, but we still lack 100% confidence in it.  The async-http-client backend has proven stable for a large number of users.</p>
 
-<h2 id="bug-fixes-1">Bug fixes</h2>
+<h2 id="bug-fixes-3">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2562">#2562</a>: Fix issue in <code>PoolManager</code> that causes hung requests in blaze-client.</li>
@@ -158,7 +182,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2575">#2575</a>: Fix the Travis CI release pipeline</li>
 </ul>
 
-<h2 id="dependency-updates-1">Dependency updates</h2>
+<h2 id="dependency-updates-2">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.2</li>
@@ -223,7 +247,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2521">#2521</a>: Add utility conversion for <code>java.util.concurrent.CompletableFuture</code> to <code>F[_]: Concurrent</code></li>
 </ul>
 
-<h2 id="dependency-updates-2">Dependency updates</h2>
+<h2 id="dependency-updates-3">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.0</li>
@@ -355,7 +379,7 @@ it.</p>
 
 <h1 id="v0-18-23-2019-03-19">v0.18.23 (2019-03-19)</h1>
 
-<h2 id="bug-fixes-2">Bug fixes</h2>
+<h2 id="bug-fixes-4">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2453">#2453</a>: Fix bug in blaze-client that unnecessarily recycled connections.</li>
@@ -602,7 +626,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-20-0-m2-2018-11-05">v0.20.0-M2 (2018-11-05)</h1>
 
-<h2 id="bug-fixes-3">Bug fixes</h2>
+<h2 id="bug-fixes-5">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
@@ -658,7 +682,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="bug-fixes-4">Bug fixes</h2>
+<h2 id="bug-fixes-6">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
@@ -726,7 +750,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2190">#2190</a>: Add <code>channelOptions</code> to blaze-client to customize socket options.</li>
 </ul>
 
-<h2 id="bug-fixes-5">Bug fixes</h2>
+<h2 id="bug-fixes-7">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2166">#2166</a>: Fix request timeout calculation in blaze-client to resolve &ldquo;Client response header timeout after 0 millseconds&rdquo; error.</li>
@@ -751,7 +775,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-21-2018-11-05">v0.18.21 (2018-11-05)</h1>
 
-<h2 id="bug-fixes-6">Bug fixes</h2>
+<h2 id="bug-fixes-8">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2231">#2231</a>: Fix off-by-one error that lets blaze-client wait queue grow one past its limit</li>
@@ -759,7 +783,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-20-2018-10-18">v0.18.20 (2018-10-18)</h1>
 
-<h2 id="bug-fixes-7">Bug fixes</h2>
+<h2 id="bug-fixes-9">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2181">#2181</a>: Honor <code>redactHeadersWhen</code> in client <code>RequestLogger</code> middleware</li>
@@ -933,7 +957,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-19-2018-09-27">v0.18.19 (2018-09-27)</h1>
 
-<h2 id="bug-fixes-8">Bug fixes</h2>
+<h2 id="bug-fixes-10">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2101">#2101</a>: <code>haveHeaders</code> checks by equality, not reference</li>
@@ -948,7 +972,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-18-2018-09-18">v0.18.18 (2018-09-18)</h1>
 
-<h2 id="bug-fixes-9">Bug fixes</h2>
+<h2 id="bug-fixes-11">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2048">#2048</a>: Correct misleading logging in <code>Retry</code> middleware</li>
