@@ -16,7 +16,8 @@ import org.typelevel.jawn.ParseException
 
 trait CirceInstances extends JawnInstances {
 
-  private val circeSupportParser = new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
+  private val circeSupportParser =
+    new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
   import circeSupportParser.facade
 
   protected def defaultPrinter: Printer = Printer.noSpaces
