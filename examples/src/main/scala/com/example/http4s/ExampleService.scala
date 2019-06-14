@@ -18,9 +18,7 @@ import org.http4s._
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
-class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends Http4sDsl[F] {
-
-  private val blocker = Blocker.liftExecutionContext(global)
+class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F]) extends Http4sDsl[F] {
 
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
@@ -199,6 +197,7 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
 
 object ExampleService {
 
-  def apply[F[_]: Effect: ContextShift]: ExampleService[F] = new ExampleService[F]
+  def apply[F[_]: Effect: ContextShift](blocker: Blocker): ExampleService[F] =
+    new ExampleService[F](blocker)
 
 }

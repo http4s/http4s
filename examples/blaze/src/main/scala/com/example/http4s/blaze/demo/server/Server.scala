@@ -29,8 +29,9 @@ object HttpServer {
 
   def stream[F[_]: ConcurrentEffect: ContextShift: Timer]: Stream[F, ExitCode] =
     for {
+      blocker <- Stream.resource(Blocker[F])
       client <- BlazeClientBuilder[F](global).stream
-      ctx <- Stream(new Module[F](client))
+      ctx <- Stream(new Module[F](client, blocker))
       exitCode <- BlazeServerBuilder[F]
         .bindHttp(8080)
         .withHttpApp(httpApp(ctx))
