@@ -44,7 +44,7 @@ lazy val modules: List[ProjectReference] = List(
 )
 
 lazy val root = project.in(file("."))
-  .enablePlugins(MimeLoaderPlugin, PrivateProjectPlugin)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     // Root project
     name := "http4s",
@@ -77,7 +77,10 @@ lazy val crossScalaNo213 = Seq(
 )
 
 lazy val core = libraryProject("core")
-  .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(
+    BuildInfoPlugin,
+    MimeLoaderPlugin
+  )
   .settings(crossScalaAll)
   .settings(
     description := "Core http4s library for servers and clients",

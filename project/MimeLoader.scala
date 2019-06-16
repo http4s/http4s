@@ -10,6 +10,7 @@ import org.http4s.Uri
 import org.http4s.circe._
 import org.http4s.client.blaze._
 import sbt._
+import sbt.Keys.scalaSource
 import scala.concurrent.ExecutionContext.global
 import treehugger.forest._
 import treehugger.forest.definitions._
@@ -27,7 +28,7 @@ object MimeLoaderPlugin extends AutoPlugin {
     generateMimeDb := {
       implicit val cs = IO.contextShift(global)
       MimeLoader.toFile(
-        new File("./core/src/main/scala/org/http4s", "MimeDB.scala"),
+        new File((Compile / scalaSource).value / "org" / "http4s", "MimeDB.scala"),
         "org.http4s",
         "MimeDB",
         "MediaType")
