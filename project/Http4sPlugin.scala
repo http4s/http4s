@@ -1,7 +1,5 @@
 package org.http4s.build
 
-import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin
-import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
@@ -10,6 +8,8 @@ import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import java.lang.{Runtime => JRuntime}
+import org.scalafmt.sbt.ScalafmtPlugin
+import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 import sbtrelease.ReleasePlugin.autoImport._
@@ -29,7 +29,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  override def requires = MimaPlugin && ScalafmtCorePlugin
+  override def requires = MimaPlugin && ScalafmtPlugin
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -101,18 +101,6 @@ object Http4sPlugin extends AutoPlugin {
       }
     ),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
-
-    scalafmtVersion := "1.5.1",
-    Test / scalafmt := {
-      (Compile / scalafmt).value
-      (Test / scalafmt).value
-      ()
-    },
-    Test / scalafmt / test := {
-      (Compile / scalafmt / test).value
-      (Test / scalafmt / test).value
-      ()
-    },
 
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"

@@ -72,7 +72,7 @@ jobs:
       scala: *scala_version_212
       jdk: *java_8
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION test:scalafmt::test
+        - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll
     - stage: publish
       env: TEST="publish"
       scala: *scala_version_212

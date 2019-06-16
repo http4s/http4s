@@ -8,7 +8,7 @@ private[http4s] object CollectionCompat {
   type LazyList[A] = Stream[A]
   val LazyList = Stream
 
-  def pairsToMultiParams[K, V](map: collection.Seq[(K, Option[V])]): Map[K, immutable.Seq[V]] = {
+  def pairsToMultiParams[K, V](map: collection.Seq[(K, Option[V])]): Map[K, immutable.Seq[V]] =
     if (map.isEmpty) Map.empty
     else {
       val m = mutable.Map.empty[K, ListBuffer[V]]
@@ -18,7 +18,6 @@ private[http4s] object CollectionCompat {
       }
       m.toMap.mapValues(_.toList)
     }
-  }
 
   def mapValues[K, A, B](map: collection.Map[K, A])(f: A => B): Map[K, B] =
     map.mapValues(f).toMap
