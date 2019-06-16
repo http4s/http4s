@@ -12,7 +12,6 @@ import java.nio.file.Path
 import org.http4s.headers._
 import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scala.annotation.implicitNotFound
-import scala.concurrent.{ExecutionContext, blocking}
 
 @implicitNotFound(
   "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
