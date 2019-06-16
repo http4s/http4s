@@ -210,16 +210,20 @@ use standard library `Future`s.  Some relevant imports:
 
 ```tut:silent
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.global
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 You can respond with a `Future` of any type that has an
-`EntityEncoder` by lifting it into `IO` or any `F[_]` that suspends future. 
+`EntityEncoder` by lifting it into `IO` or any `F[_]` that suspends future.
 Note: unlike `IO`, wrapping a side effect in `Future` does not
-suspend it, and the resulting expression would still be side 
+suspend it, and the resulting expression would still be side
 effectful, unless we wrap it in `IO`:
 
+TODO: include bit about context shift
+
 ```tut
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
 val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"

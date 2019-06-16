@@ -93,11 +93,12 @@ It uses blocking IO and is less suited for production, but it is
 highly useful in a REPL:
 
 ```tut:silent
-import scala.concurrent.ExecutionContext
+import cats.effect.Blocker
 import java.util.concurrent._
+import scala.concurrent.ExecutionContext.global
 
-val blockingEC = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(5))
-val httpClient: Client[IO] = JavaNetClientBuilder[IO](blockingEC).create
+val blocker = Blocker.liftExecutionContext(global)
+val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
 ```
 
 ### Describing a call
@@ -366,10 +367,6 @@ Passing it to a `EntityDecoder` is safe.
 
 ```
 client.get[T]("some-url")(response => jsonOf(response.body))
-```
-
-```tut:invisible
-blockingEC.shutdown()
 ```
 
 [service]: ../service
