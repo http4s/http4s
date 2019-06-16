@@ -130,13 +130,10 @@ object SimpleHttpServer extends IOApp {
 <pre><code class="language-scala">val httpApp: HttpApp[IO] =
     Router(
       &quot;api&quot;    -&gt; anotherService
-      &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets))
+      &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets&quot;))
 // &lt;console&gt;:5: error: ')' expected but string literal found.
-//              &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets))
+//              &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets&quot;))
 //              ^
-// &lt;console&gt;:5: error: unclosed string literal
-//              &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets))
-//                                                         ^
 
     ).orNotFound
 // &lt;console&gt;:2: error: illegal start of definition
@@ -191,7 +188,7 @@ val routes = HttpRoutes.of[IO] {
 deliver them from there. For example, for all resources in the classpath under <code>assets</code>:</p>
 
 <pre><code class="language-scala">val routes = resourceService[IO](ResourceService.Config(&quot;/assets&quot;, ExecutionContext.global))
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.ResourceService$$$Lambda$34307/955021705@38b97f3f)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.ResourceService$$$Lambda$34466/1353428183@3cec5a0)
 </code></pre>
 
 <p>For custom behaviour, <code>StaticFile.fromResource</code> can be used. In this example,
@@ -205,7 +202,7 @@ val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, blockingEc, request)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$34306/43964649@377c2311)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$34465/957162233@4f8b1da8)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -241,7 +238,7 @@ val webjars: HttpRoutes[IO] = webjarService(
     blockingExecutionContext = blockingEc
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$34352/1945143955@5f7bd525)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$34511/1138173620@70255ed9)
 </code></pre>
 
 <pre><code class="language-scala">blockingEc.shutdown()
