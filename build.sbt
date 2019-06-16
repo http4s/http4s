@@ -34,7 +34,6 @@ lazy val modules: List[ProjectReference] = List(
   scalaXml,
   twirl,
   scalatags,
-  mimedbGenerator,
   bench,
   examples,
   examplesBlaze,
@@ -62,7 +61,6 @@ lazy val thirteen = project
   .aggregate(
     modules.filterNot {
       case LocalProject("boopickle") => true
-      case LocalProject("mimedb-generator") => true
       case _ => false
     }: _*
   )
@@ -70,8 +68,6 @@ lazy val thirteen = project
 val scala_213 = "2.13.0-M5"
 val scala_212 = "2.12.8"
 val scala_211 = "2.11.12"
-
-
 
 lazy val crossScalaAll = Seq(
   crossScalaVersions := Seq(scala_213, scala_212, scala_211)
@@ -81,7 +77,10 @@ lazy val crossScalaNo213 = Seq(
 )
 
 lazy val core = libraryProject("core")
-  .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(
+    BuildInfoPlugin,
+    MimeLoaderPlugin
+  )
   .settings(crossScalaAll)
   .settings(
     description := "Core http4s library for servers and clients",
@@ -389,18 +388,6 @@ lazy val scalatags = http4sProject("scalatags")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val mimedbGenerator = http4sProject("mimedb-generator")
-  .enablePlugins(PrivateProjectPlugin)
-  .settings(crossScalaNo213)
-  .settings(
-    description := "MimeDB source code generator",
-    libraryDependencies ++= Seq(
-      Http4sPlugin.treeHugger,
-      Http4sPlugin.circeGeneric
-    )
-  )
-  .dependsOn(blazeClient, circe)
-
 lazy val bench = http4sProject("bench")
   .settings(crossScalaAll)
   .enablePlugins(JmhPlugin)
@@ -437,7 +424,6 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
-        mimedbGenerator
       ),
     Tut / scalacOptions ~= {
       val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
