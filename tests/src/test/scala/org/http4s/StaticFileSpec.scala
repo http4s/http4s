@@ -37,8 +37,7 @@ class StaticFileSpec extends Http4sSpec {
     "handle an empty file" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
-      StaticFile.fromFile[IO](emptyFile, testBlocker).value must returnValue(
-        beSome[Response[IO]])
+      StaticFile.fromFile[IO](emptyFile, testBlocker).value must returnValue(beSome[Response[IO]])
     }
 
     "Don't send unmodified files" in {

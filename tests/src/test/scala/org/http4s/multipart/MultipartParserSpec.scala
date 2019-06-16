@@ -615,10 +615,7 @@ object MultipartParserSpec extends Specification {
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results =
         unspool(input).through(
-          MultipartParser.parseStreamedFile[IO](
-            boundaryTest,
-            Http4sSpec.TestBlocker,
-            maxParts = 1))
+          MultipartParser.parseStreamedFile[IO](boundaryTest, Http4sSpec.TestBlocker, maxParts = 1))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers =

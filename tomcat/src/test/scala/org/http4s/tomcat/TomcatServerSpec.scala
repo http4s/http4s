@@ -51,7 +51,12 @@ class TomcatServerSpec(implicit ee: ExecutionEnv) extends {
 
   withResource(serverR) { server =>
     def get(path: String): IO[String] =
-      testBlocker.blockOn( IO( Source .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path")) .getLines .mkString))
+      testBlocker.blockOn(
+        IO(
+          Source
+            .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+            .getLines
+            .mkString))
 
     def post(path: String, body: String): IO[String] =
       testBlocker.blockOn(IO {

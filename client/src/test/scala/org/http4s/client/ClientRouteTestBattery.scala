@@ -127,10 +127,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
     }
     resp.body
       .through(
-        writeOutputStream[IO](
-          IO.pure(srv.getOutputStream),
-          testBlocker,
-          closeAfterUse = false))
+        writeOutputStream[IO](IO.pure(srv.getOutputStream), testBlocker, closeAfterUse = false))
       .compile
       .drain
       .unsafeRunSync()
