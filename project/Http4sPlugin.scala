@@ -39,7 +39,7 @@ object Http4sPlugin extends AutoPlugin {
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
     isTravisBuild := sys.env.get("TRAVIS").isDefined,
-    
+
     // Publishing to gh-pages and sonatype only done from select branches and
     // never from pull requests.
     http4sPublish := {
@@ -301,7 +301,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "2.0.1"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.14.0"
-  lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.7.0"
+  def scalatagsApi(sv: String)              = "com.lihaoyi"            %% "scalatags"                 % CrossVersion.partialVersion(sv).filter(_._2 > 11).fold("0.6.8")(_ => "0.7.0")
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.2.0"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.5.1"
   lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision

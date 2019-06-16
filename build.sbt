@@ -330,10 +330,9 @@ lazy val twirl = http4sProject("twirl")
   .dependsOn(core, testing % "test->test")
 
 lazy val scalatags = http4sProject("scalatags")
-  .settings(crossScalaVersions := Seq(scala_213, scala_212))
   .settings(
     description := "Scalatags template support for http4s",
-    libraryDependencies += scalatagsApi,
+    libraryDependencies += scalatagsApi(scalaVersion.value),
   )
   .dependsOn(core, testing % "test->test")
 
