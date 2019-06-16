@@ -4,7 +4,6 @@ package staticcontent
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.{Blocker, ContextShift, Effect}
-import scala.concurrent.ExecutionContext
 
 /**
   * Constructs new services to serve assets from Webjars

@@ -6,7 +6,6 @@ import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.server._
-import scala.concurrent.ExecutionContext
 
 class BlockingHttp4sServlet[F[_]](
     service: HttpRoutes[F],

@@ -4,7 +4,6 @@ package staticcontent
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect._
-import scala.concurrent.ExecutionContext
 
 object ResourceService {
 

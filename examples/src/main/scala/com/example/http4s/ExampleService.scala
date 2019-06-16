@@ -15,7 +15,6 @@ import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
 import org.http4s.twirl._
 import org.http4s._
-import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
 class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F]) extends Http4sDsl[F] {

@@ -6,7 +6,6 @@ import cats.effect.{Blocker, ContextShift, Effect}
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import org.http4s.multipart.Part
-import scala.concurrent.ExecutionContext.global
 
 class FileService[F[_]: ContextShift](blocker: Blocker)(implicit F: Effect[F], S: StreamUtils[F]) {
 

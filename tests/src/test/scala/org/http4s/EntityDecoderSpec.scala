@@ -1,14 +1,8 @@
 package org.http4s
 
-import cats.Eq
 import cats.effect._
-import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
-import cats.effect.laws.util.TestInstances._
 import cats.implicits._
-import cats.laws.discipline.SemigroupKTests
-import cats.laws.discipline.arbitrary._
-import cats.laws.discipline.eq._
 import fs2._
 import fs2.Stream._
 import java.io.{File, FileInputStream, InputStreamReader}
@@ -19,7 +13,6 @@ import org.http4s.testing._
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
-import org.specs2.scalacheck.Parameters
 import scala.concurrent.ExecutionContext
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
