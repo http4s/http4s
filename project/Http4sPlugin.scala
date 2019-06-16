@@ -31,6 +31,10 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = MimaPlugin && ScalafmtCorePlugin
 
+  val scala_213 = "2.13.0"
+  val scala_212 = "2.12.8"
+  val scala_211 = "2.11.12"
+
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
@@ -51,7 +55,9 @@ object Http4sPlugin extends AutoPlugin {
   ) ++ signingSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    // Getting some spurious unreachable code warnings in 2.13.0-M5
+    scalaVersion := scala_213,
+    crossScalaVersions := Seq(scala_213, scala_212, scala_211),
+    // Getting some spurious unreachable code warnings in 2.13.0
     scalacOptions -= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 13)) =>
