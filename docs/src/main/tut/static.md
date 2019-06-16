@@ -40,7 +40,7 @@ Static content services can be composed into a larger application by using a `Ro
 val httpApp: HttpApp[IO] =
     Router(
       "api"    -> anotherService
-      "assets" -> fileService(FileService.Config("./assets))
+      "assets" -> fileService(FileService.Config("./assets"))
     ).orNotFound
 ```
 
