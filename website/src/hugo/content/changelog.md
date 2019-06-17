@@ -8,6 +8,51 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-M1 (unreleased)
+
+## Breaking changes
+* [#2565](https://github.com/http4s/http4s/pull/2565): Change constraint on server `Metrics` from `Effect` to `Sync`
+* [#2551](https://github.com/http4s/http4s/pull/2551): Refactor `AuthMiddleware` to not require `Choice` constraint
+* [#2614](https://github.com/http4s/http4s/pull/2614): Relax various `ResponseGenerator` constraints from `Monad` to `Applicative` in http4s-dsl.
+* [#2613](https://github.com/http4s/http4s/pull/2613): Rename implicit `http4sKleisliResponseSyntax` and its parameter name.
+* [#2624](https://github.com/http4s/http4s/pull/2624): In `BlazeServerBuilder`, don't depend on laziness of `SSLContext`. `None` now disables the secure context. The default argument tries to load `Some(SSLContext.getDefault())`, but falls back to `None` in case of failure.
+
+## Enhancements
+* [#2591](https://github.com/http4s/http4s/pull/2590): Add `MediaType.unsafeParse` and `QValue.unsafeFromString`. 
+* [#2548](https://github.com/http4s/http4s/pull/2548): Add `Client#translate`
+* [#2622](https://github.com/http4s/http4s/pull/2622): Add `Header#renderedLength`
+
+## Docs
+* [#2569](https://github.com/http4s/http4s/pull/2569): Fix typo in CORS scaladoc
+* [#2608](https://github.com/http4s/http4s/pull/2608): Replace `Uri.uri` with `uri` in tuts
+* [#2626](https://github.com/http4s/http4s/pull/2626): Fix typos in root package and DSL docs
+* [#2635](https://github.com/http4s/http4s/pull/2635): Remove obsolete scaladoc from client
+* [#2645](https://github.com/http4s/http4s/pull/2645): Fix string literal in router example in static file docs
+
+## Internal
+* [#2563](https://github.com/http4s/http4s/pull/2563): Refactor `EntityDecoder#decode`
+* [#2553](https://github.com/http4s/http4s/pull/2553): Refactor `Timeout`
+* [#2564](https://github.com/http4s/http4s/pull/2564): Refactor boopickle and circe decoders
+* [#2580](https://github.com/http4s/http4s/pull/2580): Refactor server `RequestLogger`
+* [#2581](https://github.com/http4s/http4s/pull/2581): Remove redundant braces in various types
+* [#2539](https://github.com/http4s/http4s/pull/2539): Narrow cats imports
+* [#2582](https://github.com/http4s/http4s/pull/2582): Refactor `DefaultHead`
+* [#2590](https://github.com/http4s/http4s/pull/2590): Refactor `GZip`
+* [#2591](https://github.com/http4s/http4s/pull/2590): Refactor literal macros to not use `.get`
+* [#2596](https://github.com/http4s/http4s/pull/2596): Refactor `MimeLoader`
+* [#2542](https://github.com/http4s/http4s/pull/2542): Refactor `WebjarService`
+* [#2555](https://github.com/http4s/http4s/pull/2555): Refactor `FileService`
+* [#2597](https://github.com/http4s/http4s/pull/2597): Optimize internal hex encoding
+* [#2599](https://github.com/http4s/http4s/pull/2599): Refactor `ChunkAggregator`
+* [#2574](https://github.com/http4s/http4s/pull/2574): Refactor `FollowRedirect`
+* [#2648](https://github.com/http4s/http4s/pull/2648): Move `mimedb-generator` from a project to an internal SBT plugin. Run with `core/generateMimeDb`.
+
+## Depedency updates
+* sbt-native-packager-1.3.22 (examples only)
+* sbt-site-1.4.0 (docs only)
+* mockito-core-2.28.2 (tests only)
+* tut-0.6.12 (docs only)
+
 # v0.20.3 (2019-06-12)
 
 ## Bug fixes
