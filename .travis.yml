@@ -31,9 +31,10 @@ jobs:
     - &tests
       env: TEST="test"
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION test
-        - sbt ++$TRAVIS_SCALA_VERSION mimaReportBinaryIssues
-        - sbt ++$TRAVIS_SCALA_VERSION unusedCompileDependenciesTest
+        - /bin/true
+        #- sbt ++$TRAVIS_SCALA_VERSION +update
+        #- sbt ++$TRAVIS_SCALA_VERSION mimaReportBinaryIssues
+        #- sbt ++$TRAVIS_SCALA_VERSION unusedCompileDependenciesTest
       scala: *scala_version_211
       jdk: *java_8
     - <<: *tests
@@ -56,19 +57,21 @@ jobs:
         - PATH="$HOME/bin:$PATH"
         - export PATH=${PATH}:./vendor/bundle
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite
-        - sbt ++$TRAVIS_SCALA_VERSION website/makeSite
+        - /bin/true
+        # - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite
+        # - sbt ++$TRAVIS_SCALA_VERSION website/makeSite
     - env: TEST="scalafix"
       scala: *scala_version_212
       jdk: *java_8
       script:
         - cd scalafix
-        - sbt ++$TRAVIS_SCALA_VERSION ci
+        # - sbt ++$TRAVIS_SCALA_VERSION ci
     - env: TEST="scalafmt"
       scala: *scala_version_212
       jdk: *java_8
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll
+        - /bin/true
+        # - sbt ++$TRAVIS_SCALA_VERSION scalafmtCheckAll
     - stage: publish
       env: TEST="publish"
       scala: *scala_version_212
@@ -81,7 +84,8 @@ jobs:
         - decrypt_pgp_secrets
         - configure_git
       script:
-        - sbt ci
+        - sbt +update
+        # - sbt ci
     - env: TEST="publish docs"
       scala: *scala_version_212
       jdk: *java_8
@@ -96,8 +100,9 @@ jobs:
         - PATH="$HOME/bin:$PATH"
         - export PATH=${PATH}:./vendor/bundle
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite docs/ghpagesPushSite
-        - sbt ++$TRAVIS_SCALA_VERSION website/makeSite website/ghpagesPushSite
+        - /bin/true
+        # - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite docs/ghpagesPushSite
+        # - sbt ++$TRAVIS_SCALA_VERSION website/makeSite website/ghpagesPushSite
   allow_failures:
     jdk: *java_11
     scala: *scala_version_212
