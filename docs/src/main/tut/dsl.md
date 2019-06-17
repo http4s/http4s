@@ -220,10 +220,12 @@ Note: unlike `IO`, wrapping a side effect in `Future` does not
 suspend it, and the resulting expression would still be side
 effectful, unless we wrap it in `IO`:
 
-TODO: include bit about context shift
+`IO.fromFuture` requires an implicit `ContextShift`, to ensure that the
+suspended future is shifted to the corred thread pool.
 
 ```tut
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
+
 val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"

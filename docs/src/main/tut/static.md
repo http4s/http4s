@@ -59,25 +59,34 @@ data over the wire again.
 
 ### Execution Context
 
-TODO: Rewrite this to include the Blocker API
-
 Static file support uses a blocking API, so we'll need a blocking execution
-context. The helpers in `org.http4s.server.staticcontent._` will use the global execution context, but
-for best results this should overriden according to the desired characteristics of your server.
+context. For this reason, the helpers in `org.http4s.server.staticcontent._` takes
+an argument of type `cats.effect.Blocker`.
+You can create a `Resource[F, Blocker]` by calling `Blocker[F]`, which will handle
+creating and disposing of an underlying thread pool. You can also create your
+own by lifting an execution context or an executor service.
+
+For now, we will lift an executor service, since using `Resource` in a `tut` 
+example is not feasible.
 
 ```tut:silent
 import java.util.concurrent._
-import scala.concurrent.ExecutionContext
 
-val blocker = Blocker.liftExecutionContext(ExecutionContext.global)
+val blockingPool = Executors.newFixedThreadPool(4)
+val blocker = Blocker.liftExecutorService(blockingPool)
 ```
 
 It also needs a main thread pool to shift back to.  This is provided when
 we're in IOApp, but you'll need one if you're following along in a REPL:
 
 ```tut:silent
+import scala.concurrent.ExecutionContext
+
 implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 ```
+
+In a production application, `ContextShift[IO]` will be supplied by `IOApp`
+and the blocker would be created at app startup, using the `Resource` approach.
 
 ```tut:silent
 val routes = fileService[IO](FileService.Config(".", blocker))
@@ -147,6 +156,10 @@ val webjars: HttpRoutes[IO] = webjarService(
     blocker = blocker
   )
 )
+```
+
+```tut:silent
+blockingPool.shutdown()
 ```
 
 Assuming that the service is mounted as root on port `8080`, and you included the webjar `swagger-ui-3.20.9.jar` on your classpath, you would reach the assets with the path: `http://localhost:8080/swagger-ui/3.20.9/index.html`

@@ -71,7 +71,7 @@ A good default choice is the `BlazeClientBuilder`.  The
 ```tut:silent
 import org.http4s.client.blaze._
 import org.http4s.client._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.global
 ```
 
 ```tut:book
@@ -95,9 +95,9 @@ highly useful in a REPL:
 ```tut:silent
 import cats.effect.Blocker
 import java.util.concurrent._
-import scala.concurrent.ExecutionContext.global
 
-val blocker = Blocker.liftExecutionContext(global)
+val blockingPool = Executors.newFixedThreadPool(5)
+val blocker = Blocker.liftExecutorService(blockingPool)
 val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
 ```
 
@@ -367,6 +367,10 @@ Passing it to a `EntityDecoder` is safe.
 
 ```
 client.get[T]("some-url")(response => jsonOf(response.body))
+```
+
+```tut:invisible
+blockingPool.shutdown()
 ```
 
 [service]: ../service
