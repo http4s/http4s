@@ -196,7 +196,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">BlockingServletIo</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$2">evidence$2: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>, <span name="evidence$3">evidence$3: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">BlockingServletIo</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="blocker">blocker: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$2">evidence$2: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>, <span name="evidence$3">evidence$3: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -259,9 +259,9 @@ require a larger request thread pool for the same load.
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.servlet.BlockingServletIo#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(chunkSize:Int,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitevidence$2:cats.effect.Effect[F],implicitevidence$3:cats.effect.ContextShift[F]):org.http4s.servlet.BlockingServletIo[F]"></a><a id="&lt;init&gt;:BlockingServletIo[F]"></a>
+      <a id="&lt;init&gt;(chunkSize:Int,blocker:cats.effect.Blocker)(implicitevidence$2:cats.effect.Effect[F],implicitevidence$3:cats.effect.ContextShift[F]):org.http4s.servlet.BlockingServletIo[F]"></a><a id="&lt;init&gt;:BlockingServletIo[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/BlockingServletIo.html#&lt;init&gt;(chunkSize:Int,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitevidence$2:cats.effect.Effect[F],implicitevidence$3:cats.effect.ContextShift[F]):org.http4s.servlet.BlockingServletIo[F]" title="Permalink">
+      <a href="../../../org/http4s/servlet/BlockingServletIo.html#&lt;init&gt;(chunkSize:Int,blocker:cats.effect.Blocker)(implicitevidence$2:cats.effect.Effect[F],implicitevidence$3:cats.effect.ContextShift[F]):org.http4s.servlet.BlockingServletIo[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -270,7 +270,7 @@ require a larger request thread pool for the same load.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BlockingServletIo</span><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>)</span>
+        <span class="name">BlockingServletIo</span><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="blocker">blocker: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>)</span>
       </span>
       
       
@@ -407,10 +407,10 @@ require a larger request thread pool for the same load.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.servlet.BlockingServletIo#blockingExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="blockingExecutionContext:scala.concurrent.ExecutionContext"></a><a id="blockingExecutionContext:ExecutionContext"></a>
+    </li><li name="org.http4s.servlet.BlockingServletIo#blocker" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="blocker:cats.effect.Blocker"></a><a id="blocker:Blocker"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/BlockingServletIo.html#blockingExecutionContext:scala.concurrent.ExecutionContext" title="Permalink">
+      <a href="../../../org/http4s/servlet/BlockingServletIo.html#blocker:cats.effect.Blocker" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -419,7 +419,7 @@ require a larger request thread pool for the same load.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">blockingExecutionContext</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>
+        <span class="name">blocker</span><span class="result">: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>
       </span>
       
       

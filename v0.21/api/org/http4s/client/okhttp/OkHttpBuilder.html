@@ -377,10 +377,10 @@ sessions, tests, and other situations where composing a
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.client.okhttp.OkHttpBuilder#blockingExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="blockingExecutionContext:scala.concurrent.ExecutionContext"></a><a id="blockingExecutionContext:ExecutionContext"></a>
+    </li><li name="org.http4s.client.okhttp.OkHttpBuilder#blocker" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="blocker:cats.effect.Blocker"></a><a id="blocker:Blocker"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#blockingExecutionContext:scala.concurrent.ExecutionContext" title="Permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#blocker:cats.effect.Blocker" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -389,7 +389,7 @@ sessions, tests, and other situations where composing a
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">blockingExecutionContext</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>
+        <span class="name">blocker</span><span class="result">: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>
       </span>
       
       
@@ -854,10 +854,10 @@ The backend is shut down when the stream is finalized.
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.okhttp.OkHttpBuilder#withBlockingExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withBlockingExecutionContext(blockingExecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.okhttp.OkHttpBuilder[F]"></a><a id="withBlockingExecutionContext(ExecutionContext):OkHttpBuilder[F]"></a>
+    </li><li name="org.http4s.client.okhttp.OkHttpBuilder#withBlock" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withBlock(blocker:cats.effect.Blocker):org.http4s.client.okhttp.OkHttpBuilder[F]"></a><a id="withBlock(Blocker):OkHttpBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#withBlockingExecutionContext(blockingExecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.okhttp.OkHttpBuilder[F]" title="Permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#withBlock(blocker:cats.effect.Blocker):org.http4s.client.okhttp.OkHttpBuilder[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -866,7 +866,7 @@ The backend is shut down when the stream is finalized.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withBlockingExecutionContext</span><span class="params">(<span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.okhttp.OkHttpBuilder">OkHttpBuilder</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
+        <span class="name">withBlock</span><span class="params">(<span name="blocker">blocker: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.okhttp.OkHttpBuilder">OkHttpBuilder</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
       </span>
       
       
@@ -912,7 +912,29 @@ The backend is shut down when the stream is finalized.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.client.okhttp.OkHttpBuilder#withBlockingExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withBlockingExecutionContext(blockingExecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.okhttp.OkHttpBuilder[F]"></a><a id="withBlockingExecutionContext(ExecutionContext):OkHttpBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttpBuilder.html#withBlockingExecutionContext(blockingExecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.okhttp.OkHttpBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.0) Use withBlocker instead">withBlockingExecutionContext</span><span class="params">(<span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.okhttp.OkHttpBuilder">OkHttpBuilder</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0)</i> Use withBlocker instead</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

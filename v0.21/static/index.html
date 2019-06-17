@@ -108,6 +108,9 @@ import cats.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 // import org.http4s.server.blaze.BlazeServerBuilder
 
+import org.http4s.server.Server
+// import org.http4s.server.Server
+
 import org.http4s.server.staticcontent._
 // import org.http4s.server.staticcontent._
 
@@ -116,11 +119,16 @@ import org.http4s.syntax.kleisli._
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO]
-      .bindHttp(8080)
-      .withHttpApp(fileService[IO](FileService.Config(&quot;.&quot;)).orNotFound)
-      .serve
-      .compile.drain.as(ExitCode.Success)
+    app.use(_ =&gt; IO.never).as(ExitCode.Success)
+
+  val app: Resource[IO, Server[IO]] =
+    for {
+      blocker &lt;- Blocker[IO]
+      server &lt;- BlazeServerBuilder[IO]
+        .bindHttp(8080)
+        .withHttpApp(fileService[IO](FileService.Config(&quot;.&quot;, blocker)).orNotFound)
+        .resource
+    } yield server
 }
 // defined object SimpleHttpServer
 </code></pre>
@@ -130,9 +138,9 @@ object SimpleHttpServer extends IOApp {
 <pre><code class="language-scala">val httpApp: HttpApp[IO] =
     Router(
       &quot;api&quot;    -&gt; anotherService
-      &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets&quot;))
+      &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets&quot;, blocker))
 // &lt;console&gt;:5: error: ')' expected but string literal found.
-//              &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets&quot;))
+//              &quot;assets&quot; -&gt; fileService(FileService.Config(&quot;./assets&quot;, blocker))
 //              ^
 
     ).orNotFound
@@ -151,22 +159,33 @@ data over the wire again.</p>
 <h3 id="execution-context">Execution Context</h3>
 
 <p>Static file support uses a blocking API, so we&rsquo;ll need a blocking execution
-context. The helpers in <code>org.http4s.server.staticcontent._</code> will use the global execution context, but
-for best results this should overriden according to the desired characteristics of your server.</p>
+context. For this reason, the helpers in <code>org.http4s.server.staticcontent._</code> takes
+an argument of type <code>cats.effect.Blocker</code>.
+You can create a <code>Resource[F, Blocker]</code> by calling <code>Blocker[F]</code>, which will handle
+creating and disposing of an underlying thread pool. You can also create your
+own by lifting an execution context or an executor service.</p>
+
+<p>For now, we will lift an executor service, since using <code>Resource</code> in a <code>tut</code>
+example is not feasible.</p>
 
 <pre><code class="language-scala">import java.util.concurrent._
-import scala.concurrent.ExecutionContext
 
-val blockingEc = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+val blockingPool = Executors.newFixedThreadPool(4)
+val blocker = Blocker.liftExecutorService(blockingPool)
 </code></pre>
 
 <p>It also needs a main thread pool to shift back to.  This is provided when
 we&rsquo;re in IOApp, but you&rsquo;ll need one if you&rsquo;re following along in a REPL:</p>
 
-<pre><code class="language-scala">implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+<pre><code class="language-scala">import scala.concurrent.ExecutionContext
+
+implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 </code></pre>
 
-<pre><code class="language-scala">val routes = fileService[IO](FileService.Config(&quot;.&quot;, executionContext = blockingEc))
+<p>In a production application, <code>ContextShift[IO]</code> will be supplied by <code>IOApp</code>
+and the blocker would be created at app startup, using the <code>Resource</code> approach.</p>
+
+<pre><code class="language-scala">val routes = fileService[IO](FileService.Config(&quot;.&quot;, blocker))
 </code></pre>
 
 <p>For custom behaviour, <code>StaticFile.fromFile</code> can also be used directly in a route, to respond with a file:</p>
@@ -177,7 +196,7 @@ import java.io.File
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / &quot;index.html&quot; =&gt;
-    StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), blockingEc, Some(request))
+    StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), blocker, Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
 </code></pre>
@@ -187,22 +206,22 @@ val routes = HttpRoutes.of[IO] {
 <p>For simple file serving, it&rsquo;s possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under <code>assets</code>:</p>
 
-<pre><code class="language-scala">val routes = resourceService[IO](ResourceService.Config(&quot;/assets&quot;, ExecutionContext.global))
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.ResourceService$$$Lambda$34493/1047127549@be42a11)
+<pre><code class="language-scala">val routes = resourceService[IO](ResourceService.Config(&quot;/assets&quot;, blocker))
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.ResourceService$$$Lambda$34827/51867925@217b73b2)
 </code></pre>
 
 <p>For custom behaviour, <code>StaticFile.fromResource</code> can be used. In this example,
 only files matching a list of extensions are served. Append to the <code>List</code> as needed.</p>
 
-<pre><code class="language-scala">def static(file: String, blockingEc: ExecutionContext, request: Request[IO]) =
-  StaticFile.fromResource(&quot;/&quot; + file, blockingEc, Some(request)).getOrElseF(NotFound())
-// static: (file: String, blockingEc: scala.concurrent.ExecutionContext, request: org.http4s.Request[cats.effect.IO])cats.effect.IO[org.http4s.Response[cats.effect.IO]]
+<pre><code class="language-scala">def static(file: String, blocker: Blocker, request: Request[IO]) =
+  StaticFile.fromResource(&quot;/&quot; + file, blocker, Some(request)).getOrElseF(NotFound())
+// static: (file: String, blocker: cats.effect.Blocker, request: org.http4s.Request[cats.effect.IO])cats.effect.IO[org.http4s.Response[cats.effect.IO]]
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
-    static(path, blockingEc, request)
+    static(path, blocker, request)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$34492/2065541467@2af0928f)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$34826/1772133426@46379269)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -213,10 +232,10 @@ class path, as you usually would:</p>
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.webjars&quot; % &quot;jquery&quot; % &quot;3.1.1-1&quot;
 )
-// &lt;console&gt;:38: error: not found: value libraryDependencies
+// &lt;console&gt;:39: error: not found: value libraryDependencies
 //        libraryDependencies ++= Seq(
 //        ^
-// &lt;console&gt;:39: error: value % is not a member of String
+// &lt;console&gt;:40: error: value % is not a member of String
 //          &quot;org.webjars&quot; % &quot;jquery&quot; % &quot;3.1.1-1&quot;
 //                        ^
 </code></pre>
@@ -235,13 +254,13 @@ def isJsAsset(asset: WebjarAsset): Boolean =
 val webjars: HttpRoutes[IO] = webjarService(
   Config(
     filter = isJsAsset,
-    blockingExecutionContext = blockingEc
+    blocker = blocker
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$34538/691346886@7e99ebe8)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$34872/1969770969@5b743e0b)
 </code></pre>
 
-<pre><code class="language-scala">blockingEc.shutdown()
+<pre><code class="language-scala">blockingPool.shutdown()
 </code></pre>
 
 <p>Assuming that the service is mounted as root on port <code>8080</code>, and you included the webjar <code>swagger-ui-3.20.9.jar</code> on your classpath, you would reach the assets with the path: <code>http://localhost:8080/swagger-ui/3.20.9/index.html</code></p>

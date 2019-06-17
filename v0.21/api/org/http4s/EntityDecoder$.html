@@ -935,9 +935,9 @@ with some commonly used instances which can be resolved implicitly.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.EntityDecoder#binFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="binFile[F[_]](file:java.io.File,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="binFile[F[_]](File,ExecutionContext)(Sync[F],ContextShift[F]):EntityDecoder[F,File]"></a>
+      <a id="binFile[F[_]](file:java.io.File,blocker:cats.effect.Blocker)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="binFile[F[_]](File,Blocker)(Sync[F],ContextShift[F]):EntityDecoder[F,File]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#binFile[F[_]](file:java.io.File,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#binFile[F[_]](file:java.io.File,blocker:cats.effect.Blocker)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -946,7 +946,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">binFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>, <span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">binFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>, <span name="blocker">blocker: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.binFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
       </span>
       
       
@@ -1317,9 +1317,9 @@ that recoverable errors are returned as a
       
       
     </li><li name="org.http4s.EntityDecoder#textFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="textFile[F[_]](file:java.io.File,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="textFile[F[_]](File,ExecutionContext)(Sync[F],ContextShift[F]):EntityDecoder[F,File]"></a>
+      <a id="textFile[F[_]](file:java.io.File,blocker:cats.effect.Blocker)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="textFile[F[_]](File,Blocker)(Sync[F],ContextShift[F]):EntityDecoder[F,File]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityDecoder$.html#textFile[F[_]](file:java.io.File,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
+      <a href="../../org/http4s/EntityDecoder$.html#textFile[F[_]](file:java.io.File,blocker:cats.effect.Blocker)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1328,7 +1328,7 @@ that recoverable errors are returned as a
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">textFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>, <span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">textFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>, <span name="blocker">blocker: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.textFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
       </span>
       
       

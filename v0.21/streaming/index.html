@@ -106,6 +106,7 @@ import org.http4s.dsl.io._
 
 // Provided by `cats.effect.IOApp`, needed elsewhere:
 implicit val timer: Timer[IO] = IO.timer(global)
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
 
 // An infinite stream of the periodic elapsed time
 val seconds = Stream.awakeEvery[IO](1.second)
@@ -140,7 +141,7 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.21.0-SNAPSHOT&quot;,
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.11.1&quot;
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.12.0-M3&quot;
 )
 </code></pre>
 
@@ -171,9 +172,9 @@ import java.util.concurrent.{Executors, ExecutorService}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.global
 
-class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
+class TWStream[F[_]: ConcurrentEffect : ContextShift] {
   // jawn-fs2 needs to know what JSON AST you want
-  implicit val f = io.circe.jawn.CirceSupportParser.facade
+  implicit val f = new io.circe.jawn.CirceSupportParser(None, false).facade
 
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
@@ -202,26 +203,16 @@ class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
    * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
-  def stream(blockingEC: ExecutionContext): Stream[F, Unit] = {
+  def stream(blocker: Blocker): Stream[F, Unit] = {
     val req = Request[F](Method.GET, uri&quot;https://stream.twitter.com/1.1/statuses/sample.json&quot;)
     val s   = jsonStream(&quot;&lt;consumerKey&gt;&quot;, &quot;&lt;consumerSecret&gt;&quot;, &quot;&lt;accessToken&gt;&quot;, &quot;&lt;accessSecret&gt;&quot;)(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blockingEC))
+    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blocker))
   }
-
-  /**
-   * We're going to be writing to stdout, which is a blocking API.  We don't
-   * want to block our main threads, so we create a separate pool.  We'll use
-   * `fs2.Stream` to manage the shutdown for us.
-   */
-  def blockingEcStream: Stream[F, ExecutionContext] =
-    Stream.bracket(F.delay(Executors.newFixedThreadPool(4)))(pool =&gt;
-        F.delay(pool.shutdown()))
-      .map(ExecutionContext.fromExecutorService)
 
   /** Compile our stream down to an effect to make it runnable */
   def run: F[Unit] =
-    blockingEcStream.flatMap { blockingEc =&gt;
-      stream(blockingEc)
+    Stream.resource(Blocker[F]).flatMap { blocker =&gt;
+      stream(blocker)
     }.compile.drain
 }
 </code></pre>
