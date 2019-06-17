@@ -5,10 +5,12 @@ import cats.syntax.show._
 import org.http4s.MediaRange._
 import org.http4s.MediaType._
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
-import org.http4s.testing._
 import org.specs2.mutable.Specification
 
 class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
+  val `audio/mod`: MediaType =
+    new MediaType("audio", "mod", MediaType.Uncompressible, MediaType.Binary, List("mod"))
+
   def hparse(value: String): ParseResult[Accept] = HttpHeaderParser.ACCEPT(value)
 
   def ext = Map("foo" -> "bar", "baz" -> "whatever")

@@ -3,10 +3,19 @@ package parser
 
 import org.http4s.MediaRange._
 import org.http4s.MediaType
-import org.http4s.testing._
 import org.specs2.mutable.Specification
 
 class MediaRangeSpec extends Specification {
+  val `text/asp`: MediaType =
+    new MediaType("text", "asp", MediaType.Compressible, MediaType.NotBinary, List("asp"))
+  val `audio/aiff`: MediaType =
+    new MediaType(
+      "audio",
+      "aiff",
+      MediaType.Compressible,
+      MediaType.Binary,
+      List("aif", "aiff", "aifc"))
+
   def ext = Map("foo" -> "bar")
 
   "MediaRanges" should {

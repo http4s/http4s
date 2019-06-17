@@ -15,7 +15,6 @@ import scala.concurrent.duration._
 
 class EntityEncoderSpec extends Http4sSpec {
   "EntityEncoder" should {
-
     "render streams" in {
       val helloWorld: Stream[IO, String] = Stream("hello", "world")
       writeToString(helloWorld) must_== "helloworld"

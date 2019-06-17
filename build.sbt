@@ -8,6 +8,7 @@ Global / cancelable := true
 
 lazy val modules: List[ProjectReference] = List(
   core,
+  laws,
   testing,
   tests,
   server,
@@ -88,6 +89,16 @@ lazy val core = libraryProject("core")
     },
   )
 
+lazy val laws = libraryProject("laws")
+  .settings(
+    description := "Instances and laws for testing http4s code",
+    libraryDependencies ++= Seq(
+      catsEffectLaws,
+      scalacheck,
+    ),
+  )
+  .dependsOn(core)
+
 lazy val testing = libraryProject("testing")
   .settings(
     description := "Instances and laws for testing http4s code",
@@ -97,7 +108,7 @@ lazy val testing = libraryProject("testing")
       specs2Matcher
     ),
   )
-  .dependsOn(core)
+  .dependsOn(laws)
 
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
