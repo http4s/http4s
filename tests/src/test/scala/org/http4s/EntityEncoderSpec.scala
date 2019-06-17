@@ -3,14 +3,14 @@ package org.http4s
 import cats.Eq
 import cats.effect.IO
 import cats.implicits._
-import cats.laws.discipline.ContravariantTests
+import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
 import cats.laws.discipline.eq._
+import cats.laws.discipline.arbitrary._
 import fs2._
 import java.io._
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 import org.http4s.headers._
-import org.scalacheck.Arbitrary
 import scala.concurrent.duration._
 
 class EntityEncoderSpec extends Http4sSpec {
@@ -58,7 +58,7 @@ class EntityEncoderSpec extends Http4sSpec {
         val w = new FileWriter(tmpFile)
         try w.write("render files test")
         finally w.close()
-        writeToString(tmpFile)(EntityEncoder.fileEncoder(testBlockingExecutionContext)) must_== "render files test"
+        writeToString(tmpFile)(EntityEncoder.fileEncoder(testBlocker)) must_== "render files test"
       } finally {
         tmpFile.delete()
         ()
@@ -67,12 +67,12 @@ class EntityEncoderSpec extends Http4sSpec {
 
     "render input streams" in {
       val inputStream = new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8))
-      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder(testBlockingExecutionContext)) must_== "input stream"
+      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder(testBlocker)) must_== "input stream"
     }
 
     "render readers" in {
       val reader = new StringReader("string reader")
-      writeToString(IO(reader))(EntityEncoder.readerEncoder(testBlockingExecutionContext)) must_== "string reader"
+      writeToString(IO(reader))(EntityEncoder.readerEncoder(testBlocker)) must_== "string reader"
     }
 
     "render very long readers" in {
@@ -81,15 +81,13 @@ class EntityEncoderSpec extends Http4sSpec {
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString[IO[Reader]](IO(reader))(
-        EntityEncoder.readerEncoder(testBlockingExecutionContext)) must_== longString
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder(testBlocker)) must_== longString
     }
 
     "render readers with UTF chars" in {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString[IO[Reader]](IO(reader))(
-        EntityEncoder.readerEncoder(testBlockingExecutionContext)) must_== utfString
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder(testBlocker)) must_== utfString
     }
 
     "give the content type" in {
@@ -117,22 +115,22 @@ class EntityEncoderSpec extends Http4sSpec {
     implicit val throwableEq: Eq[Throwable] =
       Eq.fromUniversalEquals
 
-    implicit def entityEq: Eq[IO[Entity[IO]]] =
-      Eq.by[IO[Entity[IO]], Either[Throwable, (Option[Long], Vector[Byte])]](
-        _.flatMap {
-          case Entity(body, length) =>
-            body.compile.toVector.map { bytes =>
-              (length, bytes)
-            }
-        }.attempt.unsafeRunTimed(1.second).getOrElse(throw new TimeoutException)
-      )
+    implicit def entityEq: Eq[Entity[IO]] =
+      Eq.by[Entity[IO], Either[Throwable, (Option[Long], Vector[Byte])]] { entity =>
+        entity.body.compile.toVector
+          .map(bytes => (entity.length, bytes))
+          .attempt
+          .unsafeRunTimed(1.second)
+          .getOrElse(throw new TimeoutException)
+      }
 
-    implicit def entityEncoderEq[A: Arbitrary]: Eq[EntityEncoder[IO, A]] =
-      Eq.by[EntityEncoder[IO, A], (Headers, A => IO[Entity[IO]])](enc =>
-        (enc.headers, a => IO.pure(enc.toEntity(a))))
+    implicit def entityEncoderEq[A: ExhaustiveCheck]: Eq[EntityEncoder[IO, A]] =
+      Eq.by[EntityEncoder[IO, A], (Headers, A => Entity[IO])] { enc =>
+        (enc.headers, enc.toEntity)
+      }
 
     checkAll(
       "Contravariant[EntityEncoder[F, ?]]",
-      ContravariantTests[EntityEncoder[IO, ?]].contravariant[Int, Int, Int])
+      ContravariantTests[EntityEncoder[IO, ?]].contravariant[MiniInt, MiniInt, MiniInt])
   }
 }

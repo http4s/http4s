@@ -13,10 +13,10 @@ import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.log4s.getLogger
-import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.concurrent.duration._
 

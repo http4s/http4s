@@ -11,7 +11,7 @@ object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
     Config(
       filter = (webjar) =>
         webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt",
-      blockingExecutionContext = testBlockingExecutionContext
+      blocker = testBlocker
     )
   )
 

@@ -1,9 +1,8 @@
 package org.http4s
 package multipart
 
-import cats.effect.{ContextShift, Sync}
+import cats.effect.{Blocker, ContextShift, Sync}
 import cats.implicits._
-import scala.concurrent.ExecutionContext
 
 private[http4s] object MultipartDecoder {
 
@@ -56,7 +55,7 @@ private[http4s] object MultipartDecoder {
     *         temporary files.
     */
   def mixedMultipart[F[_]: Sync: ContextShift](
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
@@ -69,7 +68,7 @@ private[http4s] object MultipartDecoder {
               .through(
                 MultipartParser.parseToPartsStreamedFile[F](
                   Boundary(boundary),
-                  blockingExecutionContext,
+                  blocker,
                   headerLimit,
                   maxSizeBeforeWrite,
                   maxParts,

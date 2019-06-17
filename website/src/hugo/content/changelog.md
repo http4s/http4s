@@ -16,6 +16,10 @@ it.
 * [#2614](https://github.com/http4s/http4s/pull/2614): Relax various `ResponseGenerator` constraints from `Monad` to `Applicative` in http4s-dsl.
 * [#2613](https://github.com/http4s/http4s/pull/2613): Rename implicit `http4sKleisliResponseSyntax` and its parameter name.
 * [#2624](https://github.com/http4s/http4s/pull/2624): In `BlazeServerBuilder`, don't depend on laziness of `SSLContext`. `None` now disables the secure context. The default argument tries to load `Some(SSLContext.getDefault())`, but falls back to `None` in case of failure.
+* [#2493](https://github.com/http4s/http4s/pull/2493): Scala 2.13 support and related upgrades
+  * Scala 2.13.0-M5 is dropped.
+  * All modules are supported on 2.11, 2.12, and 2.13 again.
+  * Use cats-effect-2.0's new `Blocker` in place of `ExecutionContext` where appropriate
 
 ## Enhancements
 * [#2591](https://github.com/http4s/http4s/pull/2590): Add `MediaType.unsafeParse` and `QValue.unsafeFromString`. 
@@ -48,10 +52,29 @@ it.
 * [#2648](https://github.com/http4s/http4s/pull/2648): Move `mimedb-generator` from a project to an internal SBT plugin. Run with `core/generateMimeDb`.
 
 ## Depedency updates
+* cats-2.0.0-M4
+* cats-effect-2.0.0-M4
+* circe-0.12.0-M3
+* discipline-0.12.0-M3
+* fs2-1.1.0-M1
+* jawn-0.14.2
+* jawn-fs2-0.15.0-M1
+* json4s-3.6.6
+* log4s-1.8.2
+* parboiled-2.0.1 (internal fork)
+* play-json-2.7.4
+* sbt-doctest-0.9.5 (tests only)
 * sbt-native-packager-1.3.22 (examples only)
 * sbt-site-1.4.0 (docs only)
+* sbt-tpolecat-0.1.6 (compile time only)
+* scalacheck-1.14.0
+* scalatags-0.7.0 (2.12 and 2.13 only)
+* scalaxml-1.2.0
+* specs2-4.5.1 
 * mockito-core-2.28.2 (tests only)
 * tut-0.6.12 (docs only)
+* twirl-1.4.2
+* vault-2.0.0-M2
 
 # v0.20.3 (2019-06-12)
 

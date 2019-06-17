@@ -64,11 +64,11 @@ final class QueueTestHead(queue: Queue[IO, Option[ByteBuffer]]) extends TestHead
 
   override def readRequest(size: Int): Future[ByteBuffer] = {
     val p = Promise[ByteBuffer]
-    p.tryCompleteWith(queue.dequeue1.flatMap {
+    p.completeWith(queue.dequeue1.flatMap {
       case Some(bb) => IO.pure(bb)
       case None => IO.raiseError(EOF)
     }.unsafeToFuture)
-    p.tryCompleteWith(closedP.future)
+    p.completeWith(closedP.future)
     p.future
   }
 

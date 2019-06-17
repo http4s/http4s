@@ -43,7 +43,7 @@ class JettyServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec {
 
   withResource(serverR) { server =>
     def get(path: String): IO[String] =
-      contextShift.evalOn(testBlockingExecutionContext)(
+      testBlocker.blockOn(
         IO(
           Source
             .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
@@ -51,7 +51,7 @@ class JettyServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec {
             .mkString))
 
     def post(path: String, body: String): IO[String] =
-      contextShift.evalOn(testBlockingExecutionContext)(IO {
+      testBlocker.blockOn(IO {
         val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
         val conn = url.openConnection().asInstanceOf[HttpURLConnection]
         val bytes = body.getBytes(StandardCharsets.UTF_8)

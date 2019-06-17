@@ -10,7 +10,7 @@ http4s to try our service.
 A recap of the dependencies for this example, in case you skipped the [service] example. Ensure you have the following dependencies in your build.sbt:
 
 ```scala
-scalaVersion := "2.11.8" // Also supports 2.10.x and 2.12.x
+scalaVersion := "2.13.0" // Also supports 2.11.x and 2.12.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
@@ -71,7 +71,7 @@ A good default choice is the `BlazeClientBuilder`.  The
 ```tut:silent
 import org.http4s.client.blaze._
 import org.http4s.client._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.global
 ```
 
 ```tut:book
@@ -93,11 +93,12 @@ It uses blocking IO and is less suited for production, but it is
 highly useful in a REPL:
 
 ```tut:silent
-import scala.concurrent.ExecutionContext
+import cats.effect.Blocker
 import java.util.concurrent._
 
-val blockingEC = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(5))
-val httpClient: Client[IO] = JavaNetClientBuilder[IO](blockingEC).create
+val blockingPool = Executors.newFixedThreadPool(5)
+val blocker = Blocker.liftExecutorService(blockingPool)
+val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
 ```
 
 ### Describing a call
@@ -369,7 +370,7 @@ client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
 ```tut:invisible
-blockingEC.shutdown()
+blockingPool.shutdown()
 ```
 
 [service]: ../service

@@ -3,11 +3,10 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.{ContextShift, Effect, Sync}
+import cats.effect.{Blocker, ContextShift, Effect, Sync}
 import java.io.File
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
-import scala.concurrent.ExecutionContext
 
 object FileService {
   type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
@@ -23,21 +22,21 @@ object FileService {
     */
   final case class Config[F[_]](
       systemPath: String,
+      blocker: Blocker,
       pathCollector: PathCollector[F],
       pathPrefix: String,
       bufferSize: Int,
-      blockingExecutionContext: ExecutionContext,
       cacheStrategy: CacheStrategy[F])
 
   object Config {
     def apply[F[_]: Sync: ContextShift](
         systemPath: String,
+        blocker: Blocker,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
-        executionContext: ExecutionContext = ExecutionContext.global,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
       val pathCollector: PathCollector[F] = filesOnly
-      Config(systemPath, pathCollector, pathPrefix, bufferSize, executionContext, cacheStrategy)
+      Config(systemPath, blocker, pathCollector, pathPrefix, bufferSize, cacheStrategy)
     }
   }
 
@@ -57,19 +56,14 @@ object FileService {
     OptionT(F.suspend {
       if (file.isDirectory)
         StaticFile
-          .fromFile(new File(file, "index.html"), config.blockingExecutionContext, Some(req))
+          .fromFile(new File(file, "index.html"), config.blocker, Some(req))
           .value
       else if (!file.isFile) F.pure(None)
       else
         OptionT(getPartialContentFile(file, config, req))
           .orElse(
             StaticFile
-              .fromFile(
-                file,
-                config.bufferSize,
-                config.blockingExecutionContext,
-                Some(req),
-                StaticFile.calcETag)
+              .fromFile(file, config.bufferSize, config.blocker, Some(req), StaticFile.calcETag)
               .map(_.putHeaders(AcceptRangeHeader))
           )
           .value
@@ -99,7 +93,7 @@ object FileService {
               start,
               end + 1,
               config.bufferSize,
-              config.blockingExecutionContext,
+              config.blocker,
               Some(req),
               StaticFile.calcETag)
             .map { resp =>

@@ -110,7 +110,7 @@ object Status {
     def lookup(code: Int, reason: String): ParseResult[Status] = {
       val lookupResult = lookup(code)
       lookupResult match {
-        case Right(r) if r == reason => lookupResult
+        case Right(r) if r.reason == reason => lookupResult
         case _ => ParseResult.fail("Reason did not match", s"Nonstandard reason: $reason")
       }
     }
