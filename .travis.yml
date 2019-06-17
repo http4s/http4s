@@ -81,7 +81,7 @@ jobs:
         - decrypt_pgp_secrets
         - configure_git
       script:
-        - sbt ci
+        - sbt test #ci
     - env: TEST="publish docs"
       scala: *scala_version_212
       jdk: *java_8
