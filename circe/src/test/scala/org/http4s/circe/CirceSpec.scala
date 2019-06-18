@@ -3,8 +3,8 @@ package circe.test // Get out of circe package so we can import custom instances
 
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
-import cats.syntax.applicative._
-import cats.syntax.foldable._
+import cats.effect.laws.util.TestInstances._
+import cats.implicits._
 import io.circe._
 import io.circe.syntax._
 import io.circe.testing.instances._
@@ -14,7 +14,7 @@ import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
-import org.http4s.testing.EntityCodecTests
+import org.http4s.laws.discipline.EntityCodecTests
 import org.specs2.specification.core.Fragment
 
 // Originally based on ArgonautSpec

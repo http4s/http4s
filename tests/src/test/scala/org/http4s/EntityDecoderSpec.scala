@@ -9,7 +9,6 @@ import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 import cats.data.Chain
 import org.http4s.Status.Ok
-import org.http4s.testing._
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
@@ -18,6 +17,14 @@ import scala.concurrent.ExecutionContext
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = trampoline
   implicit val testContext: TestContext = TestContext()
+
+  val `application/excel`: MediaType =
+    new MediaType("application", "excel", true, false, List("xls"))
+  val `application/gnutar`: MediaType =
+    new MediaType("application", "gnutar", true, false, List("tar"))
+  val `application/soap+xml`: MediaType =
+    new MediaType("application", "soap+xml", MediaType.Compressible, MediaType.NotBinary)
+  val `text/x-h` = new MediaType("text", "x-h")
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
     body.compile.toVector.map(_.toArray)

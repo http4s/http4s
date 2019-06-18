@@ -3,7 +3,7 @@ package org.http4s
 import cats.data.NonEmptyList
 import cats.implicits._
 import cats.kernel.laws.discipline.OrderTests
-import org.http4s.testing.HttpCodecTests
+import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer
 
 class TransferCodingSpec extends Http4sSpec {

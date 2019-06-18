@@ -4,7 +4,7 @@ import cats.implicits._
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.Uri.Scheme
 import org.http4s.internal.parboiled2.CharPredicate
-import org.http4s.testing.HttpCodecTests
+import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer
 
 class SchemeSpec extends Http4sSpec {
