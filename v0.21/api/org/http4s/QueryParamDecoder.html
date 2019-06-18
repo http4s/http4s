@@ -1022,6 +1022,38 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.QueryParamDecoder#emap" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="emap[U](f:T=&gt;Either[org.http4s.ParseFailure,U]):org.http4s.QueryParamDecoder[U]"></a><a id="emap[U]((T)⇒Either[ParseFailure,U]):QueryParamDecoder[U]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder.html#emap[U](f:T=&gt;Either[org.http4s.ParseFailure,U]):org.http4s.QueryParamDecoder[U]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">emap</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.QueryParamDecoder.T">T</span>) ⇒ <span class="extype" name="scala.Either">Either</span>[<a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a>, <span class="extype" name="org.http4s.QueryParamDecoder.emap.U">U</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.emap.U">U</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Validate the currently parsed value a function to Either[ParseFailure, ?].</p>
+    </li><li name="org.http4s.QueryParamDecoder#emapValidatedNel" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="emapValidatedNel[U](f:T=&gt;cats.data.ValidatedNel[org.http4s.ParseFailure,U]):org.http4s.QueryParamDecoder[U]"></a><a id="emapValidatedNel[U]((T)⇒ValidatedNel[ParseFailure,U]):QueryParamDecoder[U]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder.html#emapValidatedNel[U](f:T=&gt;cats.data.ValidatedNel[org.http4s.ParseFailure,U]):org.http4s.QueryParamDecoder[U]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">emapValidatedNel</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.QueryParamDecoder.T">T</span>) ⇒ <span class="extype" name="cats.data.ValidatedNel">ValidatedNel</span>[<a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a>, <span class="extype" name="org.http4s.QueryParamDecoder.emapValidatedNel.U">U</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.emapValidatedNel.U">U</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Validate the currently parsed value using a function to ValidatedNel[ParseFailure, ?].</p>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((QueryParamDecoder[T])⇒Boolean,⇒Any):QueryParamDecoder[T]"></a>
       <span class="permalink">
