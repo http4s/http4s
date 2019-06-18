@@ -118,6 +118,17 @@ trait QueryParamDecoder[T] { outer =>
         outer.decode(value).orElse(qpd.decode(value))
     }
 
+  /** Validate the currently parsed value a function to Either[ParseFailure, ?]. */
+  def emap[U](f: T => Either[ParseFailure, U]): QueryParamDecoder[U] =
+    emapValidatedNel(f.andThen(_.toValidatedNel))
+
+  /** Validate the currently parsed value using a function to ValidatedNel[ParseFailure, ?]. */
+  def emapValidatedNel[U](f: T => ValidatedNel[ParseFailure, U]): QueryParamDecoder[U] =
+    new QueryParamDecoder[U] {
+      override def decode(value: QueryParameterValue) =
+        outer.decode(value).andThen(f)
+    }
+
 }
 
 object QueryParamDecoder {

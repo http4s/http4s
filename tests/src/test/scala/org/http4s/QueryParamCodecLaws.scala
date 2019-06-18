@@ -11,12 +11,34 @@ import org.scalacheck.Prop._
   */
 object QueryParamCodecLaws {
 
+  val parseFailure = ParseFailure("For Test", "Let's assume we didn't like this value")
+
   def apply[T: Arbitrary: Eq: QueryParamDecoder: QueryParamEncoder] =
     new Properties("QueryParamCodec") {
 
       property("decode . encode == successNel") = forAll { value: T =>
         (QueryParamDecoder[T].decode _)
           .compose(QueryParamEncoder[T].encode)(value) === value.validNel
+      }
+
+      property("decode . emap(Right) . encode == successNel") = forAll { value: T =>
+        (QueryParamDecoder[T].emap((t: T) => t.asRight[ParseFailure]).decode _)
+          .compose(QueryParamEncoder[T].encode)(value) === value.validNel
+      }
+
+      property("decode . emap(Left) . encode == failedNel") = forAll { value: T =>
+        (QueryParamDecoder[T].emap(_ => parseFailure.asLeft[T]).decode _)
+          .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
+      }
+
+      property("decode . emapValidatedNel(ValidNel) . encode == successNel") = forAll { value: T =>
+        (QueryParamDecoder[T].emapValidatedNel((t: T) => t.validNel[ParseFailure]).decode _)
+          .compose(QueryParamEncoder[T].encode)(value) === value.validNel
+      }
+
+      property("decode . emapValidatedNel(InvalidNel) . encode == failedNel") = forAll { value: T =>
+        (QueryParamDecoder[T].emapValidatedNel(_ => parseFailure.invalidNel[T]).decode _)
+          .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
       }
 
     }
