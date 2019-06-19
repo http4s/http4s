@@ -48,6 +48,7 @@
           <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
             <a class="dropdown-item" href="/">http4s</a>
             <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
             <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
           </div>
         </li>
@@ -224,7 +225,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$3@67bf6563
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$3@74d90ce0
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -302,7 +303,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@24996226
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@529614da
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res11: User = User(Alice)
