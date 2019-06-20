@@ -12,6 +12,7 @@ literal URI with
 
 ```tut:silent
 import org.http4s._
+import org.http4s.implicits._
 ```
 
 ```tut:book

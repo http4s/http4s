@@ -14,6 +14,13 @@ object LiteralSyntaxMacros {
       Uri.fromString(_).isRight,
       s => c.universe.reify(Uri.unsafeFromString(s.splice)))
 
+  def schemeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Scheme] =
+    singlePartInterpolator(c)(
+      args,
+      "Scheme",
+      Uri.Scheme.fromString(_).isRight,
+      s => c.universe.reify(Uri.Scheme.unsafeFromString(s.splice)))
+
   def mediaTypeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[MediaType] =
     singlePartInterpolator(c)(
       args,
