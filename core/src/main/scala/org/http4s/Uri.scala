@@ -3,6 +3,7 @@ package org.http4s
 import cats.{Eq, Order, Show}
 import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.StandardCharsets
+
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
@@ -12,6 +13,7 @@ import org.http4s.util._
 import scala.collection.immutable
 import scala.math.Ordered
 import scala.reflect.macros.whitebox
+import scala.util.{Try, Success, Failure}
 
 /** Representation of the [[Request]] URI
   *
@@ -141,10 +143,22 @@ object Uri {
   }
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
-  def fromString(s: String): ParseResult[Uri] =
-    new RequestUriParser(s, StandardCharsets.UTF_8).Uri
-      .run()(PbParser.DeliveryScheme.Either)
-      .leftMap(e => ParseFailure("Invalid URI", e.format(s)))
+  def fromString(s: String): ParseResult[Uri] = {
+
+    val result: Try[ParseResult[Uri]] =
+      Try {
+        new RequestUriParser(s, StandardCharsets.UTF_8).Uri
+          .run()(PbParser.DeliveryScheme.Either)
+          .leftMap(e => ParseFailure("Invalid URI", e.format(s)))
+      }
+
+    result match {
+      case Success(r) => r
+      case Failure(t) => Left(ParseFailure("Invalid URI", t.getMessage))
+    }
+
+  }
+
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
     *  fails, throws a [[ParseFailure]].
