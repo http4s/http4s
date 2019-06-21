@@ -99,7 +99,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers with ScalaCheck {
               case unexpected => ko(unexpected.toString)
             }
           }
-        }.setGen(Gen.alphaNumStr.suchThat(str => str.trim.nonEmpty && Try(str.toInt).isFailure))
+        }.setGen(Gen.alphaNumStr.suchThat(str => str.nonEmpty && Try(str.toInt).isFailure))
 
       }
 
