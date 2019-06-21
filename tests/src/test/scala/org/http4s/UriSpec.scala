@@ -70,6 +70,37 @@ class UriSpec extends Http4sSpec with MustThrownMatchers with ScalaCheck {
         }
       }
 
+      "fail to parse port" >> {
+        "if it's negative" >> prop {
+          negative: Int => {
+            val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$negative/")
+            uri match {
+              case Left(ParseFailure("Invalid URI", _)) => ok
+              case unexpected => ko(unexpected.toString)
+           }
+          }
+        }.setGen(Gen.choose[Int](Int.MinValue, -1))
+        "if it's larger than Int.MaxValue" >> prop {
+          tooBig: Long => {
+            val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$tooBig/")
+            uri match {
+              case Left(ParseFailure("Invalid URI", _)) => ok
+              case unexpected => ko(unexpected.toString)
+            }
+          }
+        }.setGen(Gen.choose[Long](Int.MaxValue : Long, Long.MaxValue))
+        "if it's not a number" >> prop {
+          notNumber: String => {
+            val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
+            uri match {
+              case Left(ParseFailure("Invalid URI", _)) => ok
+              case unexpected => ko(unexpected.toString)
+            }
+          }
+        }.setGen(Gen.alphaNumStr.suchThat(str => str.trim.nonEmpty && Try(str.toInt).isFailure))
+
+      }
+
       "both authority and port" in {
         val auth = getUri("http://localhost:8080/").authority.get
         auth.host must_=== RegName("localhost")
