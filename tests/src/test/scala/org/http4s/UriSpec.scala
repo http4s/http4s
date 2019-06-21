@@ -8,7 +8,6 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.specs2.ScalaCheck
 import org.specs2.matcher.MustThrownMatchers
-
 import scala.util.Try
 
 // TODO: this needs some more filling out
