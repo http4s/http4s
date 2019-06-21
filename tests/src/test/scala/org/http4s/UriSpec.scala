@@ -6,12 +6,11 @@ import java.nio.file.Paths
 import org.http4s.Uri._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
-import org.specs2.ScalaCheck
 import org.specs2.matcher.MustThrownMatchers
 import scala.util.Try
 
 // TODO: this needs some more filling out
-class UriSpec extends Http4sSpec with MustThrownMatchers with ScalaCheck {
+class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   sealed case class Ttl(seconds: Int)
   object Ttl {
