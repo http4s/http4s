@@ -15,10 +15,10 @@ import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
 import org.http4s.twirl._
 import org.http4s._
-import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
-class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends Http4sDsl[F] {
+class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F])
+    extends Http4sDsl[F] {
 
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
@@ -63,7 +63,7 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
         // captures everything after "/static" into `path`
         // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
         // See also org.http4s.server.staticcontent to create a mountable service for static content
-        StaticFile.fromResource(path.toString, global, Some(req)).getOrElseF(NotFound())
+        StaticFile.fromResource(path.toString, blocker, Some(req)).getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////
       //////////////// Dealing with the message body ////////////////
@@ -147,7 +147,7 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
 
       case req @ GET -> Root / "image.jpg" =>
         StaticFile
-          .fromResource("/nasa_blackhole_image.jpg", global, Some(req))
+          .fromResource("/nasa_blackhole_image.jpg", blocker, Some(req))
           .getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////
@@ -182,14 +182,14 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
     if (creds.username == "username" && creds.password == "password") F.pure(Some(creds.username))
     else F.pure(None)
 
-  // An AuthedService[A, F] is a Service[F, (A, Request[F]), Response[F]] for some
+  // An AuthedRoutes[A, F] is a Service[F, (A, Request[F]), Response[F]] for some
   // user type A.  `BasicAuth` is an auth middleware, which binds an
-  // AuthedService to an authentication store.
+  // AuthedRoutes to an authentication store.
   val basicAuth: AuthMiddleware[F, String] = BasicAuth(realm, authStore)
 
   def authRoutes: HttpRoutes[F] =
-    basicAuth(AuthedService[String, F] {
-      // AuthedServices look like Services, but the user is extracted with `as`.
+    basicAuth(AuthedRoutes.of[String, F] {
+      // AuthedRoutes look like HttpRoutes, but the user is extracted with `as`.
       case GET -> Root / "protected" as user =>
         Ok(s"This page is protected using HTTP authentication; logged in as $user")
     })
@@ -197,6 +197,7 @@ class ExampleService[F[_]](implicit F: Effect[F], cs: ContextShift[F]) extends H
 
 object ExampleService {
 
-  def apply[F[_]: Effect: ContextShift]: ExampleService[F] = new ExampleService[F]
+  def apply[F[_]: Effect: ContextShift](blocker: Blocker): ExampleService[F] =
+    new ExampleService[F](blocker)
 
 }

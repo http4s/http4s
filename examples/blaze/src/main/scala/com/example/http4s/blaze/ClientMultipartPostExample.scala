@@ -1,6 +1,6 @@
 package com.example.http4s.blaze
 
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import cats.implicits._
 import java.net.URL
 import org.http4s._
@@ -14,6 +14,8 @@ import scala.concurrent.ExecutionContext.global
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
 
+  val blocker = Blocker.liftExecutionContext(global)
+
   val bottle: URL = getClass.getResource("/beerbottle.png")
 
   def go(client: Client[IO]): IO[String] = {
@@ -26,7 +28,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
     val multipart = Multipart[IO](
       Vector(
         Part.formData("text", "This is text."),
-        Part.fileData("BALL", bottle, global, `Content-Type`(MediaType.image.png))
+        Part.fileData("BALL", bottle, blocker, `Content-Type`(MediaType.image.png))
       ))
 
     val request: IO[Request[IO]] =

@@ -3,15 +3,19 @@ package booPickle
 
 import boopickle.Default._
 import cats.effect.IO
+import cats.implicits._
 import cats.Eq
 import cats.effect.laws.util.TestContext
+import cats.effect.laws.util.TestInstances._
 import org.http4s.headers.`Content-Type`
-import org.http4s.testing.EntityCodecTests
+import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.MediaType
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
 class BoopickleSpec extends Http4sSpec with BooPickleInstances {
+  implicit val testContext = TestContext()
+
   trait Fruit {
     val weight: Double
     def color: String
@@ -43,8 +47,6 @@ class BoopickleSpec extends Http4sSpec with BooPickleInstances {
   }
 
   implicit val fruitEq: Eq[Fruit] = Eq.fromUniversalEquals
-
-  implicit val testContext = TestContext()
 
   "boopickle encoder" should {
     "have octet-stream content type" in {

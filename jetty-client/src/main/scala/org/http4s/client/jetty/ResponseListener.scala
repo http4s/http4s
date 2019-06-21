@@ -13,8 +13,8 @@ import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
 import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
 import org.http4s.internal.{invokeCallback, loggingAsyncCallback}
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
-import scala.collection.JavaConverters._
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[ByteBuffer]],

@@ -185,3 +185,13 @@ class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
 object StringWriter {
   private val InitialCapacity = 64
 }
+
+private[http4s] class HeaderLengthCountingWriter extends Writer {
+  var length: Long = 0L
+
+  def append(s: String): this.type = {
+    // Assumption: 1 byte per character. Only US-ASCII is supported.
+    length = length + s.length
+    this
+  }
+}

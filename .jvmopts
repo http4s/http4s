@@ -1,3 +1,6 @@
--Xms1536M
--Xmx1536M
--Xss6M
+-Dfile.encoding=UTF8
+-Xms1G
+-Xmx4G
+-XX:ReservedCodeCacheSize=250M
+-XX:+TieredCompilation
+-XX:+UseParallelGC

@@ -8,6 +8,109 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-M1 (2019-06-17)
+
+## Breaking changes
+* [#2565](https://github.com/http4s/http4s/pull/2565): Change constraint on server `Metrics` from `Effect` to `Sync`
+* [#2551](https://github.com/http4s/http4s/pull/2551): Refactor `AuthMiddleware` to not require `Choice` constraint
+* [#2614](https://github.com/http4s/http4s/pull/2614): Relax various `ResponseGenerator` constraints from `Monad` to `Applicative` in http4s-dsl.
+* [#2613](https://github.com/http4s/http4s/pull/2613): Rename implicit `http4sKleisliResponseSyntax` and its parameter name.
+* [#2624](https://github.com/http4s/http4s/pull/2624): In `BlazeServerBuilder`, don't depend on laziness of `SSLContext`. `None` now disables the secure context. The default argument tries to load `Some(SSLContext.getDefault())`, but falls back to `None` in case of failure.
+* [#2493](https://github.com/http4s/http4s/pull/2493): Scala 2.13 support and related upgrades
+  * Scala 2.13.0-M5 is dropped.
+  * All modules are supported on 2.11, 2.12, and 2.13 again.
+  * Use cats-effect-2.0's new `Blocker` in place of `ExecutionContext` where appropriate
+
+## Enhancements
+* [#2591](https://github.com/http4s/http4s/pull/2590): Add `MediaType.unsafeParse` and `QValue.unsafeFromString`. 
+* [#2548](https://github.com/http4s/http4s/pull/2548): Add `Client#translate`
+* [#2622](https://github.com/http4s/http4s/pull/2622): Add `Header#renderedLength`
+
+## Docs
+* [#2569](https://github.com/http4s/http4s/pull/2569): Fix typo in CORS scaladoc
+* [#2608](https://github.com/http4s/http4s/pull/2608): Replace `Uri.uri` with `uri` in tuts
+* [#2626](https://github.com/http4s/http4s/pull/2626): Fix typos in root package and DSL docs
+* [#2635](https://github.com/http4s/http4s/pull/2635): Remove obsolete scaladoc from client
+* [#2645](https://github.com/http4s/http4s/pull/2645): Fix string literal in router example in static file docs
+
+## Internal
+* [#2563](https://github.com/http4s/http4s/pull/2563): Refactor `EntityDecoder#decode`
+* [#2553](https://github.com/http4s/http4s/pull/2553): Refactor `Timeout`
+* [#2564](https://github.com/http4s/http4s/pull/2564): Refactor boopickle and circe decoders
+* [#2580](https://github.com/http4s/http4s/pull/2580): Refactor server `RequestLogger`
+* [#2581](https://github.com/http4s/http4s/pull/2581): Remove redundant braces in various types
+* [#2539](https://github.com/http4s/http4s/pull/2539): Narrow cats imports
+* [#2582](https://github.com/http4s/http4s/pull/2582): Refactor `DefaultHead`
+* [#2590](https://github.com/http4s/http4s/pull/2590): Refactor `GZip`
+* [#2591](https://github.com/http4s/http4s/pull/2590): Refactor literal macros to not use `.get`
+* [#2596](https://github.com/http4s/http4s/pull/2596): Refactor `MimeLoader`
+* [#2542](https://github.com/http4s/http4s/pull/2542): Refactor `WebjarService`
+* [#2555](https://github.com/http4s/http4s/pull/2555): Refactor `FileService`
+* [#2597](https://github.com/http4s/http4s/pull/2597): Optimize internal hex encoding
+* [#2599](https://github.com/http4s/http4s/pull/2599): Refactor `ChunkAggregator`
+* [#2574](https://github.com/http4s/http4s/pull/2574): Refactor `FollowRedirect`
+* [#2648](https://github.com/http4s/http4s/pull/2648): Move `mimedb-generator` from a project to an internal SBT plugin. Run with `core/generateMimeDb`.
+
+## Depedency updates
+* cats-2.0.0-M4
+* cats-effect-2.0.0-M4
+* circe-0.12.0-M3
+* discipline-0.12.0-M3
+* fs2-1.1.0-M1
+* jawn-0.14.2
+* jawn-fs2-0.15.0-M1
+* json4s-3.6.6
+* log4s-1.8.2
+* parboiled-2.0.1 (internal fork)
+* play-json-2.7.4
+* sbt-doctest-0.9.5 (tests only)
+* sbt-native-packager-1.3.22 (examples only)
+* sbt-site-1.4.0 (docs only)
+* sbt-tpolecat-0.1.6 (compile time only)
+* scalacheck-1.14.0
+* scalatags-0.7.0 (2.12 and 2.13 only)
+* scalaxml-1.2.0
+* specs2-4.5.1 
+* mockito-core-2.28.2 (tests only)
+* tut-0.6.12 (docs only)
+* twirl-1.4.2
+* vault-2.0.0-M2
+
+# v0.20.3 (2019-06-12)
+
+## Bug fixes
+* [#2638](https://github.com/http4s/http4s/pull/2638): Fix leaking sensitive headers in server RequestLogger
+
+# v0.18.24 (2019-06-12)
+
+## Bug fixes
+* [#2639](https://github.com/http4s/http4s/pull/2639): Fix leaking sensitive headers in server RequestLogger
+
+## Dependency updates
+- cats-1.6.1
+- jetty-9.4.19.v20190610
+- tomcat-9.0.21
+
+# v0.20.2 (2019-06-12)
+
+## Bug fixes
+* [#2604](https://github.com/http4s/http4s/pull/2604): Defer creation of `SSLContext.getDefault()` in blaze-client
+* [#2611](https://github.com/http4s/http4s/pull/2611): Raise errors with `getResource()` into effect in `StaticFile`
+
+## Enhancements
+* [#2567](https://github.com/http4s/http4s/pull/2567): Add `mapK` to `AuthedRequest`.  Deprecate `AuthedService` in favor of `AuthedRoutes`.
+
+## Internals
+* [#2579](https://github.com/http4s/http4s/pull/2579): Skip Travis CI on tags
+
+## Dependency updates
+* blaze-0.14.4
+* cats-core-1.6.1
+* cats-effect-1.3.1
+* fs2-1.0.5 (except Scala 2.13.0-M5)
+* okhttp-3.14.2
+* tomcat-9.0.21
+
 # v0.20.1 (2019-05-16)
 
 Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and passes new tests, but we still lack 100% confidence in it.  The async-http-client backend has proven stable for a large number of users.

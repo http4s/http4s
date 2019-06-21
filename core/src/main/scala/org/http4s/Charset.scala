@@ -20,8 +20,8 @@ package org.http4s
 
 import java.nio.charset.{StandardCharsets, Charset => NioCharset}
 import java.util.{HashMap, Locale}
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.util._
-import scala.collection.JavaConverters._
 
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
   @deprecated("Use `Accept-Charset`.isSatisfiedBy(charset)", "0.16.1")

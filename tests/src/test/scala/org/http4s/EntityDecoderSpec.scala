@@ -1,33 +1,30 @@
 package org.http4s
 
-import cats.Eq
 import cats.effect._
-import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
-import cats.effect.laws.util.TestInstances._
 import cats.implicits._
-import cats.laws.discipline.SemigroupKTests
-import cats.laws.discipline.arbitrary._
-import cats.laws.discipline.eq._
 import fs2._
 import fs2.Stream._
 import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 import cats.data.Chain
 import org.http4s.Status.Ok
-import org.http4s.testing._
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
-import org.specs2.scalacheck.Parameters
 import scala.concurrent.ExecutionContext
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = trampoline
   implicit val testContext: TestContext = TestContext()
 
-  implicit def entityDecoderEq[A: Eq]: Eq[EntityDecoder[IO, A]] =
-    Eq.by[EntityDecoder[IO, A], (Message[IO], Boolean) => DecodeResult[IO, A]](_.decode)
+  val `application/excel`: MediaType =
+    new MediaType("application", "excel", true, false, List("xls"))
+  val `application/gnutar`: MediaType =
+    new MediaType("application", "gnutar", true, false, List("tar"))
+  val `application/soap+xml`: MediaType =
+    new MediaType("application", "soap+xml", MediaType.Compressible, MediaType.NotBinary)
+  val `text/x-h` = new MediaType("text", "x-h")
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
     body.compile.toVector.map(_.toArray)
@@ -323,11 +320,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       req
         .decode[UrlForm](form => Response[IO](Ok).withEntity(form).pure[IO])
         .attempt
-        .map((e: Either[Throwable, Response[IO]]) =>
-          e match {
-            case Right(r) => r
-            case Left(_) => Response(Status.BadRequest)
-        })
+        .map {
+          case Right(r) => r
+          case Left(_) => Response(Status.BadRequest)
+        }
     }
 
     "Decode form encoded body" in {
@@ -377,9 +373,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mockServe(Request()) { req =>
-          req.decodeWith(
-            EntityDecoder.textFile(tmpFile, testBlockingExecutionContext),
-            strict = false) { _ =>
+          req.decodeWith(EntityDecoder.textFile(tmpFile, testBlocker), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync
@@ -398,9 +392,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) {
           case req =>
-            req.decodeWith(
-              EntityDecoder.binFile(tmpFile, testBlockingExecutionContext),
-              strict = false) { _ =>
+            req.decodeWith(EntityDecoder.binFile(tmpFile, testBlocker), strict = false) { _ =>
               Response[IO](Ok).withEntity("Hello").pure[IO]
             }
         }.unsafeRunSync
@@ -457,8 +449,14 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.application.json))(json =>
       Chunk.bytes(json.value.getBytes()))
 
-  checkAll(
-    "SemigroupK[EntityDecoder[IO, ?]]",
-    SemigroupKTests[EntityDecoder[IO, ?]]
-      .semigroupK[String])(Parameters(minTestsOk = 20, maxSize = 10))
+// TODO: These won't work without an Eq for (Message[IO], Boolean) => DecodeResult[IO, A]
+//  {
+//    implicit def entityDecoderEq[A: Eq]: Eq[EntityDecoder[IO, A]] =
+//      Eq.by[EntityDecoder[IO, A], (Message[IO], Boolean) => DecodeResult[IO, A]](_.decode)
+//
+//    checkAll(
+//      "SemigroupK[EntityDecoder[IO, ?]]",
+//      SemigroupKTests[EntityDecoder[IO, ?]]
+//        .semigroupK[String])(Parameters(minTestsOk = 20, maxSize = 10))
+//  }
 }

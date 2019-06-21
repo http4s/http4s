@@ -1,5 +1,6 @@
 package org.http4s
-package testing
+package laws
+package discipline
 
 import cats._
 import cats.data.{Chain, NonEmptyList}
@@ -13,25 +14,25 @@ import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
 import org.http4s.headers._
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.syntax.literals._
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
 import org.scalacheck._
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
 import org.scalacheck.Gen._
 import org.scalacheck.rng.Seed
-import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
 
-trait ArbitraryInstances {
+private[http4s] trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
 
   implicit val http4sTestingArbitraryForCaseInsensitiveString: Arbitrary[CaseInsensitiveString] =
-    Arbitrary(arbitrary[String].map(_.ci))
+    Arbitrary(getArbitrary[String].map(_.ci))
 
   implicit val http4sTestingCogenForCaseInsensitiveString: Cogen[CaseInsensitiveString] =
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
@@ -39,8 +40,8 @@ trait ArbitraryInstances {
   implicit def http4sTestingArbitraryForNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
     Arbitrary {
       for {
-        a <- arbitrary[A]
-        list <- arbitrary[List[A]]
+        a <- getArbitrary[A]
+        list <- getArbitrary[List[A]]
       } yield NonEmptyList(a, list)
     }
 
@@ -125,7 +126,7 @@ trait ArbitraryInstances {
 
   val genCustomStatus = for {
     code <- genValidStatusCode
-    reason <- arbitrary[String]
+    reason <- getArbitrary[String]
   } yield Status.fromIntAndReason(code, reason).yolo
 
   implicit val http4sTestingArbitraryForStatus: Arbitrary[Status] = Arbitrary(
@@ -141,8 +142,8 @@ trait ArbitraryInstances {
       frequency(
         5 -> {
           for {
-            k <- arbitrary[String]
-            v <- arbitrary[Option[String]]
+            k <- getArbitrary[String]
+            v <- getArbitrary[Option[String]]
           } yield (k, v)
         },
         2 -> const(("foo" -> Some("bar"))) // Want some repeats
@@ -177,7 +178,7 @@ trait ArbitraryInstances {
     Cogen[String].contramap(_.name)
 
   implicit val http4sTestingArbitraryForCharset: Arbitrary[Charset] =
-    Arbitrary { arbitrary[NioCharset].map(Charset.fromNioCharset) }
+    Arbitrary { getArbitrary[NioCharset].map(Charset.fromNioCharset) }
 
   implicit val http4sTestingCogenForCharset: Cogen[Charset] =
     Cogen[NioCharset].contramap(_.nioCharset)
@@ -194,7 +195,7 @@ trait ArbitraryInstances {
     Arbitrary {
       for {
         charsetRange <- genCharsetRangeNoQuality
-        q <- arbitrary[QValue]
+        q <- getArbitrary[QValue]
       } yield charsetRange.withQValue(q)
     }
 
@@ -209,17 +210,17 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForCharsetAtomRange: Arbitrary[CharsetRange.Atom] =
     Arbitrary {
       for {
-        charset <- arbitrary[Charset]
-        q <- arbitrary[QValue]
+        charset <- getArbitrary[Charset]
+        q <- getArbitrary[QValue]
       } yield charset.withQuality(q)
     }
 
   implicit val http4sTestingArbitraryForCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
-    Arbitrary { arbitrary[QValue].map(CharsetRange.`*`.withQValue(_)) }
+    Arbitrary { getArbitrary[QValue].map(CharsetRange.`*`.withQValue(_)) }
 
   def genCharsetRangeNoQuality: Gen[CharsetRange] =
     frequency(
-      3 -> arbitrary[Charset].map(CharsetRange.fromCharset),
+      3 -> getArbitrary[Charset].map(CharsetRange.fromCharset),
       1 -> const(CharsetRange.`*`)
     )
 
@@ -252,7 +253,7 @@ trait ArbitraryInstances {
     Arbitrary {
       for {
         cc <- genContentCodingNoQuality
-        q <- arbitrary[QValue]
+        q <- getArbitrary[QValue]
       } yield cc.withQValue(q)
     }
 
@@ -323,8 +324,8 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForContentType: Arbitrary[`Content-Type`] =
     Arbitrary {
       for {
-        mediaType <- arbitrary[MediaType]
-        charset <- arbitrary[Charset]
+        mediaType <- getArbitrary[MediaType]
+        charset <- getArbitrary[Charset]
       } yield `Content-Type`(mediaType, charset)
     }
 
@@ -341,7 +342,7 @@ trait ArbitraryInstances {
     Arbitrary {
       for {
         lt <- genLanguageTagNoQuality
-        q <- arbitrary[QValue]
+        q <- getArbitrary[QValue]
       } yield lt.copy(q = q)
     }
 
@@ -361,7 +362,7 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForUrlForm: Arbitrary[UrlForm] = Arbitrary {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
     // Ain't nobody got time for that.
-    arbitrary[Map[String, Chain[String]]]
+    getArbitrary[Map[String, Chain[String]]]
       .map(UrlForm.apply)
       .suchThat(!_.toString.contains('\ufffe'))
   }
@@ -369,7 +370,7 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForAllow: Arbitrary[Allow] =
     Arbitrary {
       for {
-        methods <- nonEmptyContainerOf[Set, Method](arbitrary[Method]).map(_.toList)
+        methods <- nonEmptyContainerOf[Set, Method](getArbitrary[Method]).map(_.toList)
       } yield Allow(methods.head, methods.tail: _*)
     }
 
@@ -383,22 +384,22 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForXB3TraceId: Arbitrary[`X-B3-TraceId`] =
     Arbitrary {
       for {
-        msb <- arbitrary[Long]
-        lsb <- Gen.option(arbitrary[Long])
+        msb <- getArbitrary[Long]
+        lsb <- Gen.option(getArbitrary[Long])
       } yield `X-B3-TraceId`(msb, lsb)
     }
 
   implicit val http4sTestingArbitraryForXB3SpanId: Arbitrary[`X-B3-SpanId`] =
     Arbitrary {
       for {
-        long <- arbitrary[Long]
+        long <- getArbitrary[Long]
       } yield `X-B3-SpanId`(long)
     }
 
   implicit val http4sTestingArbitraryForXB3ParentSpanId: Arbitrary[`X-B3-ParentSpanId`] =
     Arbitrary {
       for {
-        long <- arbitrary[Long]
+        long <- getArbitrary[Long]
       } yield `X-B3-ParentSpanId`(long)
     }
 
@@ -417,7 +418,7 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForXB3Sampled: Arbitrary[`X-B3-Sampled`] =
     Arbitrary {
       for {
-        boolean <- arbitrary[Boolean]
+        boolean <- getArbitrary[Boolean]
       } yield `X-B3-Sampled`(boolean)
     }
 
@@ -464,7 +465,7 @@ trait ArbitraryInstances {
   val http4sGenMediaRangeAndQValue: Gen[MediaRangeAndQValue] =
     for {
       mediaRange <- http4sGenMediaRange
-      qValue <- arbitrary[QValue]
+      qValue <- getArbitrary[QValue]
     } yield MediaRangeAndQValue(mediaRange, qValue)
 
   implicit val http4sTestingArbitraryForAcceptHeader: Arbitrary[headers.Accept] =
@@ -507,7 +508,7 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForTransferEncoding: Arbitrary[`Transfer-Encoding`] =
     Arbitrary {
       for {
-        codings <- arbitrary[NonEmptyList[TransferCoding]]
+        codings <- getArbitrary[NonEmptyList[TransferCoding]]
       } yield `Transfer-Encoding`(codings)
     }
 
@@ -522,21 +523,21 @@ trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForHeader: Arbitrary[Header] =
     Arbitrary {
       oneOf(
-        arbitrary[`Accept-Charset`],
-        arbitrary[Allow],
-        arbitrary[`Content-Length`],
-        arbitrary[Date],
-        arbitrary[Header.Raw]
+        getArbitrary[`Accept-Charset`],
+        getArbitrary[Allow],
+        getArbitrary[`Content-Length`],
+        getArbitrary[Date],
+        getArbitrary[Header.Raw]
       )
     }
 
   implicit val http4sTestingArbitraryForHeaders: Arbitrary[Headers] =
-    Arbitrary(listOf(arbitrary[Header]).map(Headers(_)))
+    Arbitrary(listOf(getArbitrary[Header]).map(Headers(_)))
 
   implicit val http4sTestingArbitraryForServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
     def singleLineString: Gen[String] =
-      arbitrary[String].suchThat { s =>
+      getArbitrary[String].suchThat { s =>
         !s.contains("\r") && !s.contains("\n")
       }
     Arbitrary(for {
@@ -716,7 +717,7 @@ trait ArbitraryInstances {
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
   implicit def http4sTestingGenForPureByteStream[F[_]]: Gen[Stream[Pure, Byte]] = Gen.sized {
     size =>
-      Gen.listOfN(size, arbitrary[Byte]).map(Stream.emits)
+      Gen.listOfN(size, getArbitrary[Byte]).map(Stream.emits)
   }
 
   // Borrowed from cats-effect tests for the time being
@@ -755,8 +756,8 @@ trait ArbitraryInstances {
   implicit def http4sTestingArbitraryForEntityEncoder[F[_], A](
       implicit CA: Cogen[A]): Arbitrary[EntityEncoder[F, A]] =
     Arbitrary(for {
-      f <- arbitrary[A => Entity[F]]
-      hs <- arbitrary[Headers]
+      f <- getArbitrary[A => Entity[F]]
+      hs <- getArbitrary[Headers]
     } yield EntityEncoder.encodeBy(hs)(f))
 
   implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](
@@ -765,8 +766,8 @@ trait ArbitraryInstances {
       g: Arbitrary[DecodeResult[F, A]]) =
     Arbitrary(
       for {
-        f <- arbitrary[(Message[F], Boolean) => DecodeResult[F, A]]
-        mrs <- arbitrary[Set[MediaRange]]
+        f <- getArbitrary[(Message[F], Boolean) => DecodeResult[F, A]]
+        mrs <- getArbitrary[Set[MediaRange]]
       } yield
         new EntityDecoder[F, A] {
           def decode(msg: Message[F], strict: Boolean): DecodeResult[F, A] = f(msg, strict)
@@ -793,23 +794,23 @@ trait ArbitraryInstances {
 
   implicit val http4sTestingGenForMalformedMessageBodyFailure: Gen[MalformedMessageBodyFailure] =
     for {
-      details <- arbitrary[String]
-      cause <- arbitrary[Option[Throwable]]
+      details <- getArbitrary[String]
+      cause <- getArbitrary[Option[Throwable]]
     } yield MalformedMessageBodyFailure(details, cause)
 
   implicit val http4sTestingGenForInvalidMessageBodyFailure: Gen[InvalidMessageBodyFailure] =
     for {
-      details <- arbitrary[String]
-      cause <- arbitrary[Option[Throwable]]
+      details <- getArbitrary[String]
+      cause <- getArbitrary[Option[Throwable]]
     } yield InvalidMessageBodyFailure(details, cause)
 
   implicit val http4sTestingGenForMediaTypeMissing: Gen[MediaTypeMissing] =
-    arbitrary[Set[MediaRange]].map(MediaTypeMissing(_))
+    getArbitrary[Set[MediaRange]].map(MediaTypeMissing(_))
 
   implicit val http4sTestingGenForMediaTypeMismatch: Gen[MediaTypeMismatch] =
     for {
-      messageType <- arbitrary[MediaType]
-      expected <- arbitrary[Set[MediaRange]]
+      messageType <- getArbitrary[MediaType]
+      expected <- getArbitrary[Set[MediaRange]]
     } yield MediaTypeMismatch(messageType, expected)
 
   // These instances are private because they're half-baked and I don't want to encourage external use yet.
@@ -828,7 +829,7 @@ trait ArbitraryInstances {
 
   private[http4s] implicit def http4sTestingArbitraryForMessage[F[_]]: Arbitrary[Message[F]] =
     // TODO this is bad because the underlying generators are bad
-    Arbitrary(Gen.oneOf(arbitrary[Request[F]], arbitrary[Response[F]]))
+    Arbitrary(Gen.oneOf(getArbitrary[Request[F]], getArbitrary[Response[F]]))
 
   private[http4s] implicit def http4sTestingArbitraryForRequest[F[_]]: Arbitrary[Request[F]] =
     Arbitrary {
@@ -837,10 +838,10 @@ trait ArbitraryInstances {
       // TODO some headers need to be reflective of the body
       // TODO some things are illegal per HTTP version
       for {
-        method <- arbitrary[Method]
-        uri <- arbitrary[Uri]
-        httpVersion <- arbitrary[HttpVersion]
-        headers <- arbitrary[Headers]
+        method <- getArbitrary[Method]
+        uri <- getArbitrary[Uri]
+        httpVersion <- getArbitrary[HttpVersion]
+        headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
       } yield
         try { Request(method, uri, httpVersion, headers, body) } catch {
@@ -855,9 +856,9 @@ trait ArbitraryInstances {
       // TODO some headers need to be reflective of the body
       // TODO some things are illegal per HTTP version
       for {
-        status <- arbitrary[Status]
-        httpVersion <- arbitrary[HttpVersion]
-        headers <- arbitrary[Headers]
+        status <- getArbitrary[Status]
+        httpVersion <- getArbitrary[HttpVersion]
+        headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
       } yield Response(status, httpVersion, headers, body)
     }

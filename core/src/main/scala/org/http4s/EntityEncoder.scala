@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.{Contravariant, Show}
-import cats.effect.{ContextShift, Effect, Sync}
+import cats.effect.{Blocker, ContextShift, Effect, Sync}
 import cats.implicits._
 import fs2.{Chunk, Stream}
 import fs2.io.file.readAll
@@ -12,7 +12,6 @@ import java.nio.file.Path
 import org.http4s.headers._
 import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scala.annotation.implicitNotFound
-import scala.concurrent.{ExecutionContext, blocking}
 
 @implicitNotFound(
   "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
@@ -141,28 +140,26 @@ object EntityEncoder {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def fileEncoder[F[_]](blockingExecutionContext: ExecutionContext)(
-      implicit F: Effect[F],
-      cs: ContextShift[F]): EntityEncoder[F, File] =
-    filePathEncoder[F](blockingExecutionContext).contramap(_.toPath)
+  def fileEncoder[F[_]](
+      blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F]): EntityEncoder[F, File] =
+    filePathEncoder[F](blocker).contramap(_.toPath)
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def filePathEncoder[F[_]: Sync: ContextShift](
-      blockingExecutionContext: ExecutionContext): EntityEncoder[F, Path] =
+  def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(readAll[F](p, blockingExecutionContext, 4096)) //2 KB :P
+      Entity(readAll[F](p, blocker, 4096)) //2 KB :P
     }
 
   // TODO parameterize chunk size
   def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
-      blockingExecutionContext: ExecutionContext): EntityEncoder[F, F[IS]] =
+      blocker: Blocker): EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { in: F[IS] =>
-      readInputStream[F](in.widen[InputStream], DefaultChunkSize, blockingExecutionContext)
+      readInputStream[F](in.widen[InputStream], DefaultChunkSize, blocker)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](blockingExecutionContext: ExecutionContext)(
+  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(
       implicit F: Sync[F],
       cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
@@ -172,7 +169,7 @@ object EntityEncoder {
       def readToBytes(r: Reader): F[Option[Chunk[Byte]]] =
         for {
           // Read into the buffer
-          readChars <- cs.evalOn(blockingExecutionContext)(F.delay(blocking(r.read(charBuffer))))
+          readChars <- blocker.delay(r.read(charBuffer))
         } yield {
           // Flip to read
           charBuffer.flip()

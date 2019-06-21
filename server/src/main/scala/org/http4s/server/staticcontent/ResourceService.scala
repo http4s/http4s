@@ -4,7 +4,6 @@ package staticcontent
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect._
-import scala.concurrent.ExecutionContext
 
 object ResourceService {
 
@@ -19,7 +18,7 @@ object ResourceService {
     */
   final case class Config[F[_]](
       basePath: String,
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
       pathPrefix: String = "",
       bufferSize: Int = 50 * 1024,
       cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
@@ -33,7 +32,7 @@ object ResourceService {
           .fromResource(
             Uri.removeDotSegments(
               s"${config.basePath}/${getSubPath(request.pathInfo, config.pathPrefix)}"),
-            config.blockingExecutionContext,
+            config.blocker,
             Some(request),
             preferGzipped = config.preferGzipped
           )

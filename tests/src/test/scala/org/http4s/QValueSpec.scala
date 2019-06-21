@@ -2,7 +2,7 @@ package org.http4s
 
 import cats.implicits._
 import cats.kernel.laws.discipline.OrderTests
-import org.http4s.testing.HttpCodecTests
+import org.http4s.laws.discipline.HttpCodecTests
 
 class QValueSpec extends Http4sSpec {
   import QValue._

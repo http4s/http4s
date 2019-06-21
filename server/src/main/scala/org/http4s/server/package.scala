@@ -103,14 +103,14 @@ package object server {
 
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],
-        onFailure: AuthedService[Err, F]
+        onFailure: AuthedRoutes[Err, F]
     )(implicit F: Monad[F]): AuthMiddleware[F, T] =
-      (service: AuthedService[T, F]) =>
+      (routes: AuthedRoutes[T, F]) =>
         Kleisli { req: Request[F] =>
           OptionT {
             authUser(req).flatMap {
               case Left(err) => onFailure(AuthedRequest(err, req)).value
-              case Right(suc) => service(AuthedRequest(suc, req)).value
+              case Right(suc) => routes(AuthedRequest(suc, req)).value
             }
           }
       }

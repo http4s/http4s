@@ -67,6 +67,10 @@ sealed trait Header extends Renderable with Product {
         (parsed.productIterator.sameElements(h.parsed.productIterator))
     case _ => false
   }
+
+  /** Length of the rendered header, including name and final '\r\n' */
+  def renderedLength: Long =
+    render(new HeaderLengthCountingWriter).length + 2
 }
 
 object Header {

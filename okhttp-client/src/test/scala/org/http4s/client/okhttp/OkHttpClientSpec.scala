@@ -6,5 +6,5 @@ import cats.effect.IO
 
 class OkHttpClientSpec extends ClientRouteTestBattery("OkHttp") {
   def clientResource =
-    OkHttpBuilder.withDefaultClient[IO](testBlockingExecutionContext).map(_.create)
+    OkHttpBuilder.withDefaultClient[IO](testBlocker).map(_.create)
 }

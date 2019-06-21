@@ -4,7 +4,6 @@ package middleware
 
 import cats.effect._
 import cats.implicits._
-import fs2._
 import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
@@ -42,76 +41,51 @@ object FollowRedirect {
       maxRedirects: Int,
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
       client: Client[F])(implicit F: Bracket[F, Throwable]): Client[F] = {
+
+    def nextRequest(req: Request[F], uri: Uri, method: Method, cookies: List[ResponseCookie]): Request[F] = {
+      // https://tools.ietf.org/html/rfc7231#section-7.1.
+      val nextUri = uri.copy(
+        scheme = uri.scheme.orElse(req.uri.scheme),
+        authority = uri.authority.orElse(req.uri.authority),
+        fragment = uri.fragment.orElse(req.uri.fragment)
+      )
+
+      def stripSensitiveHeaders(req: Request[F]): Request[F] =
+        if (req.uri.authority != nextUri.authority)
+          req.transformHeaders(_.filterNot(h => sensitiveHeaderFilter(h.name)))
+        else
+          req
+
+      def propagateCookies(req: Request[F]): Request[F] =
+        if (req.uri.authority == nextUri.authority)
+          cookies.foldLeft(req) {
+            case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
+          }
+        else
+          req
+
+      def clearBodyFromGetHead(req: Request[F]): Request[F] =
+        method match {
+          case GET | HEAD => req.withEmptyBody
+          case _ => req
+        }
+
+      clearBodyFromGetHead(propagateCookies(stripSensitiveHeaders(req)).withMethod(method).withUri(nextUri))
+    }
+
     def prepareLoop(req: Request[F], redirects: Int): Resource[F, Response[F]] =
       client.run(req).flatMap { resp =>
-        def redirectUri =
-          resp.headers.get(Location).map { loc =>
-            val uri = loc.uri
-            // https://tools.ietf.org/html/rfc7231#section-7.1.2
-            uri.copy(
-              scheme = uri.scheme.orElse(req.uri.scheme),
-              authority = uri.authority.orElse(req.uri.authority),
-              fragment = uri.fragment.orElse(req.uri.fragment)
-            )
-          }
-
-        def pureBody: Option[Stream[F, Byte]] = Some(req.body)
-
-        def dontRedirect: Resource[F, Response[F]] = resp.pure[Resource[F, ?]]
-
-        def stripSensitiveHeaders(nextUri: Uri): Request[F] =
-          if (req.uri.authority != nextUri.authority)
-            req.transformHeaders(_.filterNot(h => sensitiveHeaderFilter(h.name)))
-          else
-            req
-
-        def propagateCookies(req: Request[F], nextUri: Uri): Request[F] =
-          if (req.uri.authority == nextUri.authority)
-            resp.cookies.foldLeft(req) {
-              case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
+        (methodForRedirect(req, resp), resp.headers.get(Location)) match {
+          case (Some(method), Some(loc)) if redirects < maxRedirects =>
+            val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
+            prepareLoop(nextReq, redirects + 1).map { response =>
+              // prepend because `prepareLoop` is recursive
+              response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
             }
-          else
-            req
-
-        def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[Stream[F, Byte]]): Request[F] =
-          bodyOpt match {
-            case Some(body) =>
-              propagateCookies(stripSensitiveHeaders(nextUri), nextUri)
-                .withMethod(method)
-                .withUri(nextUri)
-                .withBodyStream(body)
-            case None =>
-              propagateCookies(stripSensitiveHeaders(nextUri), nextUri)
-                .withMethod(method)
-                .withUri(nextUri)
-                .withEmptyBody
-          }
-
-        def doRedirect(method: Method): Resource[F, Response[F]] =
-          if (redirects < maxRedirects) {
-            // If we get a redirect response without a location, then there is
-            // nothing to redirect.
-            redirectUri.fold(dontRedirect) { nextUri =>
-              // We can only redirect safely if there is no body or if we've
-              // verified that the body is pure.
-              val nextReq: Option[Request[F]] = method match {
-                case GET | HEAD =>
-                  Option(nextRequest(method, nextUri, None))
-                case _ =>
-                  pureBody.map(body => nextRequest(method, nextUri, Some(body)))
-              }
-              nextReq.fold(dontRedirect)(req =>
-                prepareLoop(req, redirects + 1)
-                  .map(response => {
-                    val redirectUris = getRedirectUris(response)
-                    response
-                    // prepend because `prepareLoop` is recursive
-                      .withAttribute(redirectUrisKey, req.uri +: redirectUris)
-                  }))
-            }
-          } else dontRedirect
-
-        methodForRedirect(req, resp).map(doRedirect).getOrElse(dontRedirect)
+          case _ => resp.pure[Resource[F, ?]]
+          // IF the response is missing the Location header, OR there is no method to redirect,
+          // OR we have exceeded max number of redirections, THEN we redirect no more
+        }
       }
 
     Client(prepareLoop(_, 0))

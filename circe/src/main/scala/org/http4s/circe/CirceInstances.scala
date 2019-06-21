@@ -9,13 +9,17 @@ import cats.effect.Sync
 import cats.implicits._
 import fs2.Chunk
 import io.circe._
-import io.circe.jawn.CirceSupportParser.facade
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
 
 trait CirceInstances extends JawnInstances {
+
+  private val circeSupportParser =
+    new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
+  import circeSupportParser.facade
+
   protected def defaultPrinter: Printer = Printer.noSpaces
 
   protected def circeParseExceptionMessage: ParsingFailure => DecodeFailure =
@@ -78,7 +82,7 @@ trait CirceInstances extends JawnInstances {
   def accumulatingJsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
-        .accumulating(json.hcursor)
+        .decodeAccumulating(json.hcursor)
         .fold(
           failures => DecodeResult.failure(jsonDecodeError(json, failures)),
           DecodeResult.success(_)

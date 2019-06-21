@@ -21,8 +21,8 @@ import okio.BufferedSink
 import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.Client
 import org.http4s.internal.{BackendBuilder, invokeCallback}
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
@@ -41,21 +41,25 @@ import scala.util.control.NonFatal
   */
 sealed abstract class OkHttpBuilder[F[_]] private (
     val okHttpClient: OkHttpClient,
-    val blockingExecutionContext: ExecutionContext
+    val blocker: Blocker
 )(implicit protected val F: ConcurrentEffect[F], cs: ContextShift[F])
     extends BackendBuilder[F, Client[F]] {
   private[this] val logger = getLogger
 
   private def copy(
       okHttpClient: OkHttpClient = okHttpClient,
-      blockingExecutionContext: ExecutionContext = blockingExecutionContext
-  ) = new OkHttpBuilder[F](okHttpClient, blockingExecutionContext) {}
+      blocker: Blocker = blocker
+  ) = new OkHttpBuilder[F](okHttpClient, blocker) {}
 
   def withOkHttpClient(okHttpClient: OkHttpClient): OkHttpBuilder[F] =
     copy(okHttpClient = okHttpClient)
 
+  def withBlocker(blocker: Blocker): OkHttpBuilder[F] =
+    copy(blocker = blocker)
+
+  @deprecated("Use withBlocker instead", "0.21.0")
   def withBlockingExecutionContext(blockingExecutionContext: ExecutionContext): OkHttpBuilder[F] =
-    copy(blockingExecutionContext = blockingExecutionContext)
+    copy(blocker = Blocker.liftExecutionContext(blockingExecutionContext))
 
   /** Creates the [[org.http4s.client.Client]]
     *
@@ -88,7 +92,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
         }
         val status = Status.fromInt(response.code())
         val bodyStream = response.body.byteStream()
-        val body = readInputStream(F.pure(bodyStream), 1024, blockingExecutionContext, false)
+        val body = readInputStream(F.pure(bodyStream), 1024, blocker, false)
         val dispose = F.delay {
           bodyStream.close()
           ()
@@ -166,7 +170,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
 /** Builder for a [[org.http4s.client.Client]] with an OkHttp backend
   *
-  * @define BLOCKINGEC an execution context onto which all blocking
+  * @define BLOCKER a [[cats.effect.Blocker]] onto which all blocking
   * I/O operations will be shifted.
   */
 object OkHttpBuilder {
@@ -175,23 +179,22 @@ object OkHttpBuilder {
   /** Creates a builder.
     *
     * @param okHttpClient the underlying client.
-    * @param blockingExecutionContext $BLOCKINGEC
+    * @param blocker $BLOCKER
     */
-  def apply[F[_]](okHttpClient: OkHttpClient, blockingExecutionContext: ExecutionContext)(
-      implicit F: ConcurrentEffect[F],
-      cs: ContextShift[F]): OkHttpBuilder[F] =
-    new OkHttpBuilder[F](okHttpClient, blockingExecutionContext) {}
+  def apply[F[_]: ConcurrentEffect: ContextShift](
+      okHttpClient: OkHttpClient,
+      blocker: Blocker): OkHttpBuilder[F] =
+    new OkHttpBuilder[F](okHttpClient, blocker) {}
 
   /** Create a builder with a default OkHttp client.  The builder is
     * returned as a `Resource` so we shut down the OkHttp client that
     * we create.
     *
-    * @param blockingExecutionContext $BLOCKINGEC
+    * @param blocker $BLOCKER
     */
-  def withDefaultClient[F[_]](blockingExecutionContext: ExecutionContext)(
-      implicit F: ConcurrentEffect[F],
-      cs: ContextShift[F]): Resource[F, OkHttpBuilder[F]] =
-    defaultOkHttpClient.map(apply(_, blockingExecutionContext))
+  def withDefaultClient[F[_]: ConcurrentEffect: ContextShift](
+      blocker: Blocker): Resource[F, OkHttpBuilder[F]] =
+    defaultOkHttpClient.map(apply(_, blocker))
 
   private def defaultOkHttpClient[F[_]](
       implicit F: ConcurrentEffect[F]): Resource[F, OkHttpClient] =

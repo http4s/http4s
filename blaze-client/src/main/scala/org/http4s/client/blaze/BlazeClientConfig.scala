@@ -49,7 +49,7 @@ final case class BlazeClientConfig( // HTTP properties
     maxConnectionsPerRequestKey: RequestKey => Int,
     // security options
     sslContext: Option[SSLContext],
-    @deprecatedName('endpointAuthentication) checkEndpointIdentification: Boolean,
+    @deprecatedName(Symbol("endpointAuthentication")) checkEndpointIdentification: Boolean,
     // parser options
     maxResponseLineSize: Int,
     maxHeaderLength: Int,

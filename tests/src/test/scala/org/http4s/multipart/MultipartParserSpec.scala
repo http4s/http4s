@@ -4,6 +4,7 @@ package multipart
 import java.nio.charset.StandardCharsets
 
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.instances.string._
 import fs2._
 import org.http4s.headers._
@@ -533,6 +534,33 @@ object MultipartParserSpec extends Specification {
         confirmedError must beAnInstanceOf[Left[MalformedMessageBodyFailure, _]]
       }
 
+      Fragments.foreach(List(1, 2, 3, 5, 8, 13, 21, 987)) { chunkSize =>
+        s"drain the epilogue with chunk size $chunkSize" in {
+          val unprocessedInput =
+            """
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+            |Content-Disposition: form-data; name="foo"
+            |
+            |bar
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--
+            |This should be ignored, but still drained!""".stripMargin
+
+          val input = ruinDelims(unprocessedInput)
+
+          val checkReachedTheEnd: IO[Boolean] = for {
+            // This should be false until we drain the whole input.
+            ref <- Ref[IO].of(false)
+            trackedInput = unspool(input, chunkSize) ++ Stream.eval_(ref.set(true))
+
+            _ <- trackedInput.through(multipartPipe(boundary)).compile.drain
+
+            reachedTheEnd <- ref.get
+          } yield reachedTheEnd
+
+          checkReachedTheEnd.unsafeRunSync() must_=== true
+        }
+      }
+
       "fail with an MalformedMessageBodyFailure without an end line" in {
         val unprocessedInput =
           """
@@ -561,9 +589,9 @@ object MultipartParserSpec extends Specification {
 
   multipartParserTests(
     "mixed file parser",
-    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext),
-    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext, _),
-    MultipartParser.parseToPartsStreamedFile[IO](_, Http4sSpec.TestBlockingExecutionContext)
+    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlocker),
+    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlocker, _),
+    MultipartParser.parseToPartsStreamedFile[IO](_, Http4sSpec.TestBlocker)
   )
 
   "Multipart mixed file parser" should {
@@ -587,10 +615,7 @@ object MultipartParserSpec extends Specification {
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results =
         unspool(input).through(
-          MultipartParser.parseStreamedFile[IO](
-            boundaryTest,
-            Http4sSpec.TestBlockingExecutionContext,
-            maxParts = 1))
+          MultipartParser.parseStreamedFile[IO](boundaryTest, Http4sSpec.TestBlocker, maxParts = 1))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers =
@@ -623,7 +648,7 @@ object MultipartParserSpec extends Specification {
       val results = unspool(input).through(
         MultipartParser.parseStreamedFile[IO](
           boundaryTest,
-          Http4sSpec.TestBlockingExecutionContext,
+          Http4sSpec.TestBlocker,
           maxParts = 1,
           failOnLimit = true))
 

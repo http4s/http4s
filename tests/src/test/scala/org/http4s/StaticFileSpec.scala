@@ -15,7 +15,7 @@ class StaticFileSpec extends Http4sSpec {
     "Determine the media-type based on the files extension" in {
 
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
-        val r = StaticFile.fromFile[IO](f, testBlockingExecutionContext).value.unsafeRunSync
+        val r = StaticFile.fromFile[IO](f, testBlocker).value.unsafeRunSync
 
         r must beSome[Response[IO]]
         r.flatMap(_.headers.get(`Content-Type`)) must_== tpe.map(t => `Content-Type`(t))
@@ -37,8 +37,7 @@ class StaticFileSpec extends Http4sSpec {
     "handle an empty file" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
-      StaticFile.fromFile[IO](emptyFile, testBlockingExecutionContext).value must returnValue(
-        beSome[Response[IO]])
+      StaticFile.fromFile[IO](emptyFile, testBlocker).value must returnValue(beSome[Response[IO]])
     }
 
     "Don't send unmodified files" in {
@@ -47,7 +46,7 @@ class StaticFileSpec extends Http4sSpec {
       val request =
         Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
       val response = StaticFile
-        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
         .unsafeRunSync
       response must beSome[Response[IO]]
@@ -61,7 +60,7 @@ class StaticFileSpec extends Http4sSpec {
         Request[IO]().putHeaders(`If-None-Match`(
           EntityTag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
       val response = StaticFile
-        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
         .unsafeRunSync
       response must beSome[Response[IO]]
@@ -79,7 +78,7 @@ class StaticFileSpec extends Http4sSpec {
               s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
 
       val response = StaticFile
-        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
         .unsafeRunSync
       response must beSome[Response[IO]]
@@ -94,7 +93,7 @@ class StaticFileSpec extends Http4sSpec {
           .putHeaders(`If-Modified-Since`(HttpDate.MaxValue), `If-None-Match`(EntityTag(s"12345")))
 
       val response = StaticFile
-        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
         .unsafeRunSync
       response must beSome[Response[IO]]
@@ -113,7 +112,7 @@ class StaticFileSpec extends Http4sSpec {
                 s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}")))
 
       val response = StaticFile
-        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
         .unsafeRunSync
       response must beSome[Response[IO]]
@@ -130,7 +129,7 @@ class StaticFileSpec extends Http4sSpec {
               0,
               1,
               StaticFile.DefaultBufferSize,
-              testBlockingExecutionContext,
+              testBlocker,
               None,
               StaticFile.calcETag[IO])
             .value
@@ -169,7 +168,7 @@ class StaticFileSpec extends Http4sSpec {
             0,
             fileSize.toLong - 1,
             StaticFile.DefaultBufferSize,
-            testBlockingExecutionContext,
+            testBlocker,
             None,
             StaticFile.calcETag[IO])
           .value
@@ -196,7 +195,7 @@ class StaticFileSpec extends Http4sSpec {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val expected = scala.io.Source.fromURL(url, "utf-8").mkString
       val s = StaticFile
-        .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"), testBlockingExecutionContext)
+        .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"), testBlocker)
         .value
         .unsafeRunSync
         .fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body)
@@ -211,7 +210,7 @@ class StaticFileSpec extends Http4sSpec {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val len =
         StaticFile
-          .fromURL[IO](url, testBlockingExecutionContext)
+          .fromURL[IO](url, testBlocker)
           .value
           .map(_.flatMap(_.contentLength))
       len must returnValue(Some(24005L))

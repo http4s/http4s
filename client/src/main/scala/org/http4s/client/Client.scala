@@ -12,16 +12,7 @@ import org.http4s.headers.Host
 import org.http4s.syntax.kleisli._
 import scala.util.control.NoStackTrace
 
-/**
-  * A [[Client]] submits [[Request]]s to a server and processes the [[Response]].
-  *
-  * @param open a service to asynchronously return a [[DisposableResponse]] from
-  *             a [[Request]].  This is a low-level operation intended for client
-  *             implementations and middleware.
-  *
-  * @param shutdown an effect to shut down this client, closing any
-  *                 open connections and freeing resources
-  */
+/** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
 trait Client[F[_]] {
   def run(req: Request[F]): Resource[F, Response[F]]
 

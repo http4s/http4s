@@ -6,6 +6,7 @@ import cats.effect.concurrent.{Deferred, Ref}
 import cats.implicits._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
+import javax.net.ssl.SSLContext
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
@@ -23,10 +24,11 @@ class BlazeClientSpec extends Http4sSpec {
       maxTotalConnections: Int = 5,
       responseHeaderTimeout: Duration = 1.minute,
       requestTimeout: Duration = 1.minute,
-      chunkBufferMaxSize: Int = 1024
+      chunkBufferMaxSize: Int = 1024,
+      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
   ) =
     BlazeClientBuilder[IO](testExecutionContext)
-      .withSslContext(bits.TrustingSslContext)
+      .withSslContextOption(sslContextOption)
       .withCheckEndpointAuthentication(false)
       .withResponseHeaderTimeout(responseHeaderTimeout)
       .withRequestTimeout(requestTimeout)
@@ -92,6 +94,17 @@ class BlazeClientSpec extends Http4sSpec {
           val u = Uri.fromString(s"https://$name:$port/simple").yolo
           val resp = mkClient(1).use(_.expect[String](u)).unsafeRunTimed(timeout)
           resp.map(_.length > 0) must beSome(true)
+        }
+
+        "reject https requests when no SSLContext is configured" in {
+          val name = sslAddress.getHostName
+          val port = sslAddress.getPort
+          val u = Uri.fromString(s"https://$name:$port/simple").yolo
+          val resp = mkClient(1, sslContextOption = None)
+            .use(_.expect[String](u))
+            .attempt
+            .unsafeRunTimed(1.second)
+          resp must beSome(beLeft[Throwable](beAnInstanceOf[IllegalStateException]))
         }
 
         "behave and not deadlock" in {
