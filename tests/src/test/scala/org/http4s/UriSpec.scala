@@ -91,7 +91,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers with ScalaCheck {
             }
           }
         }.setGen(Gen.choose[Long]((Int.MaxValue: Long) + 1, Long.MaxValue))
-        "if it's not a number" >> prop { notNumber: String =>
+        "if it's not a number, but not an empty String" >> prop { notNumber: String =>
           {
             val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
             uri match {
