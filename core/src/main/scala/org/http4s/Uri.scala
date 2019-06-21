@@ -13,7 +13,7 @@ import org.http4s.util._
 import scala.collection.immutable
 import scala.math.Ordered
 import scala.reflect.macros.whitebox
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 /** Representation of the [[Request]] URI
   *
@@ -158,7 +158,6 @@ object Uri {
     }
 
   }
-
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
     *  fails, throws a [[ParseFailure]].
