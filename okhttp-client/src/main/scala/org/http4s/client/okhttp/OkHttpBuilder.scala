@@ -54,7 +54,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
   def withOkHttpClient(okHttpClient: OkHttpClient): OkHttpBuilder[F] =
     copy(okHttpClient = okHttpClient)
 
-  def withBlock(blocker: Blocker): OkHttpBuilder[F] =
+  def withBlocker(blocker: Blocker): OkHttpBuilder[F] =
     copy(blocker = blocker)
 
   @deprecated("Use withBlocker instead", "0.21.0")
