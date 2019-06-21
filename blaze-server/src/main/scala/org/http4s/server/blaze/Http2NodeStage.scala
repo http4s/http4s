@@ -2,7 +2,8 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.{ConcurrentEffect, IO, Timer}
+import cats.effect.implicits._
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -28,15 +29,15 @@ private class Http2NodeStage[F[_]](
     timeout: Duration,
     implicit private val executionContext: ExecutionContext,
     attributes: () => Vault,
-    httpApp: HttpApp[F],
+    httpResource: HttpResource[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F], timer: Timer[F])
     extends TailStage[StreamFrame] {
 
-  // micro-optimization: unwrap the service and call its .run directly
-  private[this] val runApp = httpApp.run
+  // micro-optimization: unwrap the HTTP resource and call its .run directly
+  private[this] val run = httpResource.run
 
   override def name = "Http2NodeStage"
 
@@ -207,10 +208,12 @@ private class Http2NodeStage[F[_]](
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {
-          val action = Sync[F]
-            .suspend(raceTimeout(req))
-            .recoverWith(serviceErrorHandler(req))
-            .flatMap(renderResponse)
+          val action = raceTimeout(req).continual {
+            case Right((resp, release)) =>
+              renderResponse(resp).guarantee(release)
+            case Left(t) =>
+              serviceErrorHandler(req)(t).flatMap(renderResponse)
+          }
 
           F.runAsync(action) {
             case Right(()) => IO.unit
@@ -243,13 +246,12 @@ private class Http2NodeStage[F[_]](
     }
   }
 
-  private[this] val raceTimeout: Request[F] => F[Response[F]] =
+  private[this] def raceTimeout(req: Request[F]): F[(Response[F], F[Unit])] =
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
-        val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
-        req =>
-          F.race(runApp(req), timeoutResponse).map(_.merge)
+        val timeoutResponse = timer.sleep(finite).as((Response.timeout[F], F.unit))
+        F.race(run(req).allocated, timeoutResponse).map(_.merge)
       case _ =>
-        runApp
+        run(req).allocated
     }
 }

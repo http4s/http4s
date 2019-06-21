@@ -2,7 +2,8 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.{CancelToken, ConcurrentEffect, IO, Timer}
+import cats.effect.implicits._
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
@@ -26,7 +27,7 @@ import io.chrisdavenport.vault._
 private[blaze] object Http1ServerStage {
 
   def apply[F[_]](
-      routes: HttpApp[F],
+      routes: HttpResource[F],
       attributes: () => Vault,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
@@ -66,7 +67,7 @@ private[blaze] object Http1ServerStage {
 }
 
 private[blaze] class Http1ServerStage[F[_]](
-    httpApp: HttpApp[F],
+    httpResource: HttpResource[F],
     requestAttrs: () => Vault,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
@@ -79,8 +80,8 @@ private[blaze] class Http1ServerStage[F[_]](
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
-  // micro-optimization: unwrap the routes and call its .run directly
-  private[this] val runApp = httpApp.run
+  // micro-optimization: unwrap the HTTP resource and call its .run directly
+  private[this] val run = httpResource.run
 
   // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
@@ -178,10 +179,13 @@ private[blaze] class Http1ServerStage[F[_]](
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {
-            val action = Sync[F]
-              .suspend(raceTimeout(req))
-              .recoverWith(serviceErrorHandler(req))
-              .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
+            val action = raceTimeout(req).continual {
+              case Right((resp, release)) =>
+                F.delay(renderResponse(req, resp, cleanup)).guarantee(release)
+              case Left(t) =>
+                serviceErrorHandler(req)(t).flatMap(resp =>
+                  F.delay(renderResponse(req, resp, cleanup)))
+            }
 
             parser.synchronized {
               cancelToken = Some(
@@ -332,13 +336,12 @@ private[blaze] class Http1ServerStage[F[_]](
     renderResponse(req, resp, bodyCleanup) // will terminate the connection due to connection: close header
   }
 
-  private[this] val raceTimeout: Request[F] => F[Response[F]] =
+  private[this] def raceTimeout(req: Request[F]): F[(Response[F], F[Unit])] =
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
-        val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
-        req =>
-          F.race(runApp(req), timeoutResponse).map(_.merge)
+        val timeoutResponse = timer.sleep(finite).as((Response.timeout[F], F.unit))
+        F.race(run(req).allocated, timeoutResponse).map(_.merge)
       case _ =>
-        runApp
+        run(req).allocated
     }
 }
