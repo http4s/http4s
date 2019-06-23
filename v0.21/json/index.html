@@ -147,6 +147,7 @@ import io.circe._
 import io.circe.literal._
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 </code></pre>
 
 <p>Then the actual code:</p>
@@ -165,7 +166,7 @@ val greeting = hello(&quot;world&quot;)
 <p>We now have a JSON value, but we don&rsquo;t have enough to render it:</p>
 
 <pre><code class="language-scala">scala&gt; Ok(greeting).unsafeRunSync
-&lt;console&gt;:29: error: Cannot convert from io.circe.Json to an Entity, because no EntityEncoder[cats.effect.IO, io.circe.Json] instance could be found.
+&lt;console&gt;:32: error: Cannot convert from io.circe.Json to an Entity, because no EntityEncoder[cats.effect.IO, io.circe.Json] instance could be found.
        Ok(greeting).unsafeRunSync
          ^
 </code></pre>
@@ -213,7 +214,7 @@ to JSON as long as an implicit <code>Encoder</code> is in scope:</p>
 </code></pre>
 
 <pre><code class="language-scala">scala&gt; Hello(&quot;Alice&quot;).asJson
-&lt;console&gt;:42: error: could not find implicit value for parameter encoder: io.circe.Encoder[Hello]
+&lt;console&gt;:45: error: could not find implicit value for parameter encoder: io.circe.Encoder[Hello]
        Hello(&quot;Alice&quot;).asJson
                       ^
 </code></pre>
@@ -225,7 +226,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$3@3c960f09
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$3@26561d32
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -303,7 +304,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@fcb610c
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@3307ff65
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res11: User = User(Alice)

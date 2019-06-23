@@ -374,6 +374,22 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.Uri.Scheme#fromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fromString(s:String):org.http4s.ParseResult[org.http4s.Uri.Scheme]"></a><a id="fromString(String):ParseResult[Scheme]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$$Scheme$.html#fromString(s:String):org.http4s.ParseResult[org.http4s.Uri.Scheme]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fromString</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="Uri$$Scheme.html" class="extype" name="org.http4s.Uri.Scheme">Scheme</a>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -562,22 +578,6 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.Uri.Scheme#parse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parse(s:String):org.http4s.ParseResult[org.http4s.Uri.Scheme]"></a><a id="parse(String):ParseResult[Scheme]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Uri$$Scheme$.html#parse(s:String):org.http4s.ParseResult[org.http4s.Uri.Scheme]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">parse</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="Uri$$Scheme.html" class="extype" name="org.http4s.Uri.Scheme">Scheme</a>]</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -610,6 +610,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Uri.Scheme#unsafeFromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="unsafeFromString(s:String):org.http4s.Uri.Scheme"></a><a id="unsafeFromString(String):Scheme"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$$Scheme$.html#unsafeFromString(s:String):org.http4s.Uri.Scheme" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unsafeFromString</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Uri$$Scheme.html" class="extype" name="org.http4s.Uri.Scheme">Scheme</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Like <code>fromString</code>, but throws on invalid input</p>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -684,7 +700,29 @@
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.Uri.Scheme#parse" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parse(s:String):org.http4s.ParseResult[org.http4s.Uri.Scheme]"></a><a id="parse(String):ParseResult[Scheme]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$$Scheme$.html#parse(s:String):org.http4s.ParseResult[org.http4s.Uri.Scheme]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.0-M2) Renamed to fromString">parse</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="Uri$$Scheme.html" class="extype" name="org.http4s.Uri.Scheme">Scheme</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-M2)</i> Renamed to fromString</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
