@@ -190,10 +190,17 @@ object Uri {
     val http: Scheme = new Scheme("http")
     val https: Scheme = new Scheme("https")
 
-    def parse(s: String): ParseResult[Scheme] =
+    @deprecated("Renamed to fromString", "0.21.0-M2")
+    def parse(s: String): ParseResult[Scheme] = fromString(s)
+
+    def fromString(s: String): ParseResult[Scheme] =
       new Http4sParser[Scheme](s, "Invalid scheme") with Parser {
         def main = scheme
       }.parse
+
+    /** Like `fromString`, but throws on invalid input */
+    def unsafeFromString(s: String): Scheme =
+      fromString(s).fold(throw _, identity)
 
     private[http4s] trait Parser { self: PbParser =>
       def scheme = rule {
@@ -210,7 +217,7 @@ object Uri {
     implicit val http4sInstancesForScheme: HttpCodec[Scheme] =
       new HttpCodec[Scheme] {
         def parse(s: String): ParseResult[Scheme] =
-          Scheme.parse(s)
+          Scheme.fromString(s)
 
         def render(writer: Writer, scheme: Scheme): writer.type =
           writer << scheme.value

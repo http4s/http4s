@@ -103,11 +103,4 @@ package object http4s { // scalastyle:ignore
       case Left(l) => f(l)
     }
   }
-
-  final implicit class Http4sLiteralSyntax(val sc: StringContext) extends AnyVal {
-    def uri(args: Any*): Uri = macro LiteralSyntaxMacros.uriInterpolator
-    def mediaType(args: Any*): MediaType = macro LiteralSyntaxMacros.mediaTypeInterpolator
-    def qValue(args: Any*): QValue = macro LiteralSyntaxMacros.qValueInterpolator
-  }
-
 }

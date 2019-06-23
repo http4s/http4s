@@ -6,10 +6,11 @@ import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import java.net.URL
 import org.http4s._
+import org.http4s.Method._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.`Content-Type`
-import org.http4s.Method._
+import org.http4s.implicits._
 import org.http4s.client.Client
 import org.http4s.multipart.{Multipart, Part}
 import scala.concurrent.ExecutionContext.global
