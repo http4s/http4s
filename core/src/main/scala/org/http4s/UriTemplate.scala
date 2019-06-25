@@ -207,12 +207,15 @@ object UriTemplate {
   }
 
   protected def renderAuthority(a: Authority): String = a match {
-    case Authority(Some(u), h, None) => u + "@" + renderHost(h)
-    case Authority(Some(u), h, Some(p)) => u + "@" + renderHost(h) + ":" + p
+    case Authority(Some(u), h, None) => s"${renderUserInfo(u)}@${renderHost(h)}"
+    case Authority(Some(u), h, Some(p)) => s"${renderUserInfo(u)}@${renderHost(h)}:${p}"
     case Authority(None, h, Some(p)) => renderHost(h) + ":" + p
     case Authority(_, h, _) => renderHost(h)
     case _ => ""
   }
+
+  protected def renderUserInfo(u: UserInfo): String =
+    (new StringWriter << u << ":").result
 
   protected def renderHost(h: Host): String = h match {
     case RegName(n) => n.toString

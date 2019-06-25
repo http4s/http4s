@@ -9,9 +9,10 @@ import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.internal.parboiled2.support.HNil
 import org.http4s.syntax.string._
 
-private[parser] trait Rfc3986Parser
+private[http4s] trait Rfc3986Parser
     extends Parser
     with Uri.Scheme.Parser
+    with Uri.UserInfo.Parser
     with IpParser
     with StringBuilding {
   // scalastyle:off public.methods.have.type
@@ -60,11 +61,7 @@ private[parser] trait Rfc3986Parser
   }
 
   def Authority: Rule1[org.http4s.Uri.Authority] = rule {
-    optional(UserInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _)
-  }
-
-  def UserInfo = rule {
-    capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _)
+    optional(userInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _)
   }
 
   def Host: Rule1[org.http4s.Uri.Host] = rule {
@@ -144,6 +141,6 @@ private[parser] trait Rfc3986Parser
 
   def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 
-  private[this] def decode(s: String) = URLDecoder.decode(s, charset.name)
+  protected def decode(s: String) = URLDecoder.decode(s, charset.name)
   // scalastyle:on public.methods.have.type
 }
