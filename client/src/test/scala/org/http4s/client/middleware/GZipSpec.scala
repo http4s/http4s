@@ -15,7 +15,7 @@ class GZipSpec extends Http4sSpec {
 
   "Client Gzip" should {
 
-    val gzipClient = GZip()(Client.fromHttpApp(server.middleware.GZip(service)))
+    val gzipClient = GZip()(Client.fromHttpApp(service))
 
     "return data correctly" in {
 
