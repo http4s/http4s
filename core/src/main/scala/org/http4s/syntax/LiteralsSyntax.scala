@@ -9,6 +9,7 @@ trait LiteralsSyntax {
 class LiteralsOps(val sc: StringContext) extends AnyVal {
   def uri(args: Any*): Uri = macro LiteralSyntaxMacros.uriInterpolator
   def scheme(args: Any*): Uri.Scheme = macro LiteralSyntaxMacros.schemeInterpolator
+  def ipV4(args: Any*): Uri.IpV4Address = macro LiteralSyntaxMacros.ipV4AddressInterpolator
   def mediaType(args: Any*): MediaType = macro LiteralSyntaxMacros.mediaTypeInterpolator
   def qValue(args: Any*): QValue = macro LiteralSyntaxMacros.qValueInterpolator
 }

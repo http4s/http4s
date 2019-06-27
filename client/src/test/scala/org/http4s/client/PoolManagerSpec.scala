@@ -7,8 +7,8 @@ import scala.concurrent.duration._
 
 class PoolManagerSpec(name: String) extends Http4sSpec {
   val _ = name
-  val key = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.IPv4("127.0.0.1")))
-  val otherKey = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.IPv4("localhost")))
+  val key = RequestKey(Uri.Scheme.http, Uri.Authority(host = ipV4"127.0.0.1"))
+  val otherKey = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.RegName("localhost")))
 
   class TestConnection extends Connection[IO] {
     def isClosed = false

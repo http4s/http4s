@@ -188,17 +188,17 @@ http://example.org/a file
     "render IPv4 URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
+        Some(Authority(host = ipV4"192.168.1.1", port = Some(80))),
         "/c",
         Query.fromPairs("GB" -> "object", "Class" -> "one")).toString must_== ("http://192.168.1.1:80/c?GB=object&Class=one")
     }
 
     "render IPv4 URL with port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(8080)))).toString must_== ("http://192.168.1.1:8080")
+      Uri(Some(Scheme.http), Some(Authority(host = ipV4"192.168.1.1", port = Some(8080)))).toString must_== ("http://192.168.1.1:8080")
     }
 
     "render IPv4 URL without port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci)))).toString must_== ("http://192.168.1.1")
+      Uri(Some(Scheme.http), Some(Authority(host = ipV4"192.168.1.1"))).toString must_== ("http://192.168.1.1")
     }
 
     "render IPv6 URL with parameters" in {

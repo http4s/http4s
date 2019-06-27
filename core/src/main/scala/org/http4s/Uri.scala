@@ -1,11 +1,12 @@
 package org.http4s
 
-import cats.{Eq, Order, Show}
+import cats.{Eq, Hash, Order, Show}
 import cats.implicits.{catsSyntaxEither => _, _}
+import java.net.{Inet4Address, InetAddress}
 import java.nio.charset.StandardCharsets
 import org.http4s.Uri._
+import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
-import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
@@ -247,24 +248,117 @@ object Uri {
   sealed trait Host extends Renderable {
     final def value: String = this match {
       case RegName(h) => h.toString
-      case IPv4(a) => a.toString
+      case addr: IpV4Address =>
+        new StringBuffer()
+          .append(addr.a & 0xff)
+          .append(".")
+          .append(addr.b & 0xff)
+          .append(".")
+          .append(addr.c & 0xff)
+          .append(".")
+          .append(addr.d & 0xff)
+          .toString
       case IPv6(a) => a.toString
     }
 
     override def render(writer: Writer): writer.type = this match {
       case RegName(n) => writer << n
-      case IPv4(a) => writer << a
+      case a: IpV4Address => writer << a.value
       case IPv6(a) => writer << '[' << a << ']'
       case _ => writer
     }
   }
 
   final case class RegName(host: CaseInsensitiveString) extends Host
-  final case class IPv4(address: CaseInsensitiveString) extends Host
+
+  @deprecated("Renamed to IpV4Address, modeled as case class of bytes", "0.21.0-M2")
+  type IPv4 = IpV4Address
+
+  @deprecated("Renamed to IpV4Address, modeled as case class of bytes", "0.21.0-M2")
+  object IPv4 {
+    @deprecated("Use IpV4Address.fromString(ciString.value)", "0.21.0-M2")
+    def apply(ciString: CaseInsensitiveString): ParseResult[IpV4Address] =
+      IpV4Address.fromString(ciString.value)
+  }
+
+  case class IpV4Address(a: Byte, b: Byte, c: Byte, d: Byte)
+      extends Host
+      with Ordered[IpV4Address]
+      with Serializable {
+    override def toString: String = s"IpV4Address($value)"
+
+    override def compare(that: IpV4Address): Int = {
+      var cmp = a.compareTo(that.a)
+      if (cmp == 0) cmp = b.compareTo(that.b)
+      if (cmp == 0) cmp = c.compareTo(that.c)
+      if (cmp == 0) cmp = d.compareTo(that.d)
+      cmp
+    }
+
+    def toByteArray: Array[Byte] =
+      Array(a, b, c, d)
+
+    def toInet4Address: Inet4Address =
+      InetAddress.getByAddress(toByteArray).asInstanceOf[Inet4Address]
+  }
+
+  object IpV4Address {
+    def fromString(s: String): ParseResult[IpV4Address] =
+      new Http4sParser[IpV4Address](s, "Invalid scheme") with Parser with IpParser {
+        def main = ipV4Address
+      }.parse
+
+    /** Like `fromString`, but throws on invalid input */
+    def unsafeFromString(s: String): IpV4Address =
+      fromString(s).fold(throw _, identity)
+
+    def fromByteArray(bytes: Array[Byte]): ParseResult[IpV4Address] =
+      bytes match {
+        case Array(a, b, c, d) =>
+          Right(IpV4Address(a, b, c, d))
+        case _ =>
+          Left(ParseFailure("Invalid IpV4Address", s"Byte array not exactly four bytes: ${bytes}"))
+      }
+
+    def fromInet4Address(address: Inet4Address): IpV4Address =
+      address.getAddress match {
+        case Array(a, b, c, d) =>
+          IpV4Address(a, b, c, d)
+        case array =>
+          throw bug(s"Inet4Address.getAddress not exactly four bytes: ${array}")
+      }
+
+    private[http4s] trait Parser { self: PbParser with IpParser =>
+      def ipV4Address: Rule1[IpV4Address] = rule {
+        // format: off
+        decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~>
+        { (a: Byte, b: Byte, c: Byte, d: Byte) => new IpV4Address(a, b, c, d) }
+        // format:on
+      }
+
+      private def decOctet = rule { capture(DecOctet) ~> (_.toInt.toByte) }
+    }
+
+    implicit val http4sInstancesForIpV4Address
+      : HttpCodec[IpV4Address] with Order[IpV4Address] with Hash[IpV4Address] with Show[IpV4Address] =
+      new HttpCodec[IpV4Address] with Order[IpV4Address] with Hash[IpV4Address] with Show[IpV4Address] {
+        def parse(s: String): ParseResult[IpV4Address] =
+          IpV4Address.fromString(s)
+        def render(writer: Writer, ipV4: IpV4Address): writer.type =
+          writer << ipV4.value
+
+        def compare(x: IpV4Address, y: IpV4Address): Int = x.compareTo(y)
+
+        def hash(x: IpV4Address): Int = x.hashCode
+
+        def show(x: IpV4Address): String = x.toString
+      }
+  }
+
+
   final case class IPv6(address: CaseInsensitiveString) extends Host
 
   object RegName { def apply(name: String): RegName = new RegName(name.ci) }
-  object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
   object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
 
   /**

@@ -21,6 +21,13 @@ object LiteralSyntaxMacros {
       Uri.Scheme.fromString(_).isRight,
       s => c.universe.reify(Uri.Scheme.unsafeFromString(s.splice)))
 
+  def ipV4AddressInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.IpV4Address] =
+    singlePartInterpolator(c)(
+      args,
+      "IpV4Address",
+      Uri.IpV4Address.fromString(_).isRight,
+      s => c.universe.reify(Uri.IpV4Address.unsafeFromString(s.splice)))
+
   def mediaTypeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[MediaType] =
     singlePartInterpolator(c)(
       args,
