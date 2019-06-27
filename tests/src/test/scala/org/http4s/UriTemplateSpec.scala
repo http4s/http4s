@@ -3,7 +3,7 @@ package org.http4s
 import org.http4s.Uri.{Authority, IPv6, RegName, Scheme}
 import org.http4s.UriTemplate._
 
-object UriTemplateSpec extends Http4sSpec {
+class UriTemplateSpec extends Http4sSpec {
 
   "UriTemplate" should {
     "render /" in {
