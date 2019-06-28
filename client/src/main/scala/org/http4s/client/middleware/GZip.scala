@@ -3,7 +3,7 @@ package client
 package middleware
 
 import cats.effect.Bracket
-import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
+import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
 
 /**
   * Client middleware for enabling gzip.
@@ -20,7 +20,7 @@ object GZip {
       val responseResource = client.run(reqWithEncoding)
 
       responseResource.map { actualResponse =>
-        actualResponse.withBodyStream(decompress(bufferSize, actualResponse))
+        decompress(bufferSize, actualResponse)
       }
     }
 
@@ -34,16 +34,23 @@ object GZip {
     }
 
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(
-      implicit F: Bracket[F, Throwable]): EntityBody[F] =
+      implicit F: Bracket[F, Throwable]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
-        response.body.through(fs2.compress.gunzip(bufferSize))
+        response
+          .filterHeaders(nonCompressionHeader)
+          .withBodyStream(response.body.through(fs2.compress.gunzip(bufferSize)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
-        response.body.through(fs2.compress.deflate(bufferSize = bufferSize))
+        response
+          .filterHeaders(nonCompressionHeader)
+          .withBodyStream(response.body.through(fs2.compress.deflate(bufferSize = bufferSize)))
 
       case _ =>
-        response.body
+        response
     }
+
+  private def nonCompressionHeader(header: Header): Boolean =
+    header.isNot(`Content-Encoding`) && header.isNot(`Content-Length`)
 }

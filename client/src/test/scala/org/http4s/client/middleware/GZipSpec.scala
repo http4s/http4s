@@ -21,10 +21,7 @@ class GZipSpec extends Http4sSpec {
 
       val body = gzipClient.get(Uri.unsafeFromString("/gziptest")) { response =>
         response.status must_== Status.Ok
-        response.headers
-          .get(`Content-Encoding`)
-          .map(_.contentCoding.coding)
-          .getOrElse("") must_== "gzip"
+        response.headers.get(`Content-Encoding`) must beNone
 
         response.as[String]
       }
