@@ -182,7 +182,7 @@ import org.http4s.implicits._
 import org.http4s.server.blaze._
 ```
 
-```tut:book
+```tut:silent
 object Main extends IOApp {
 
   val helloWorldService = HttpRoutes.of[IO] {
@@ -203,7 +203,7 @@ object Main extends IOApp {
 
 You may also create the server within an `IOApp` using resource:
 
-```tut:book
+```tut:silent
 object MainWithResource extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
