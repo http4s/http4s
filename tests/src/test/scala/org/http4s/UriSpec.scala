@@ -57,10 +57,12 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "parse port correctly" >> {
-        "if there is one" in {
-          val uri = getUri("http://localhost:8080/")
-          uri.port must_=== Some(8080)
-        }
+        "if there is a valid (non-negative) one" >> prop {
+          nonNegative: Int => {
+            val uri = getUri(s"http://localhost:$nonNegative/")
+            uri.port must_=== Some(nonNegative)
+          }
+        }.setGen(Gen.choose[Int](0, Int.MaxValue))
         "if there is none" in {
           val uri = getUri("http://localhost/")
           uri.port must_=== None
