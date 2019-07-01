@@ -57,8 +57,8 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "parse port correctly" >> {
-        "if there is a valid (non-negative) one" >> prop {
-          nonNegative: Int => {
+        "if there is a valid (non-negative) one" >> prop { nonNegative: Int =>
+          {
             val uri = getUri(s"http://localhost:$nonNegative/")
             uri.port must_=== Some(nonNegative)
           }
@@ -88,32 +88,33 @@ http://example.org/a file
 
     "fail to parse port" >> {
       "if it's negative" >> prop { negative: Int =>
-      {
-        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$negative/")
-        uri match {
-          case Left(ParseFailure("Invalid URI", _)) => ok
-          case unexpected => ko(unexpected.toString)
+        {
+          val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$negative/")
+          uri match {
+            case Left(ParseFailure("Invalid URI", _)) => ok
+            case unexpected => ko(unexpected.toString)
+          }
         }
-      }
       }.setGen(Gen.choose[Int](Int.MinValue, -1))
       "if it's larger than Int.MaxValue" >> prop { tooBig: Long =>
-      {
-        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$tooBig/")
-        uri match {
-          case Left(ParseFailure("Invalid URI", _)) => ok
-          case unexpected => ko(unexpected.toString)
+        {
+          val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$tooBig/")
+          uri match {
+            case Left(ParseFailure("Invalid URI", _)) => ok
+            case unexpected => ko(unexpected.toString)
+          }
         }
-      }
       }.setGen(Gen.choose[Long]((Int.MaxValue: Long) + 1, Long.MaxValue))
       "if it's not a number or an empty String" >> prop { notNumber: String =>
-      {
-        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
-        uri match {
-          case Left(ParseFailure("Invalid URI", _)) => ok
-          case unexpected => ko(unexpected.toString)
+        {
+          val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
+          uri match {
+            case Left(ParseFailure("Invalid URI", _)) => ok
+            case unexpected => ko(unexpected.toString)
+          }
         }
-      }
-      }.setGen(Gen.alphaNumStr.suchThat(str => str.nonEmpty && Either.catchOnly[NumberFormatException](str.toInt).isLeft))
+      }.setGen(Gen.alphaNumStr.suchThat(str =>
+        str.nonEmpty && Either.catchOnly[NumberFormatException](str.toInt).isLeft))
       "for an empty String" in {
         val uri: ParseResult[Uri] = Uri.fromString("http://localhost:/")
         uri match {

@@ -82,7 +82,6 @@ private[parser] trait Rfc3986Parser
 
   def Port = rule {
     ":" ~ (capture(oneOrMore(Digit)) ~> { s: String =>
-
       val int: Option[Int] = Either.catchOnly[NumberFormatException](s.toInt).toOption
 
       test(int.nonEmpty) ~ push(int)
