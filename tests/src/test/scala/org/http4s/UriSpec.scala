@@ -86,6 +86,43 @@ http://example.org/a file
       }
     }
 
+    "fail to parse port" >> {
+      "if it's negative" >> prop { negative: Int =>
+      {
+        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$negative/")
+        uri match {
+          case Left(ParseFailure("Invalid URI", _)) => ok
+          case unexpected => ko(unexpected.toString)
+        }
+      }
+      }.setGen(Gen.choose[Int](Int.MinValue, -1))
+      "if it's larger than Int.MaxValue" >> prop { tooBig: Long =>
+      {
+        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$tooBig/")
+        uri match {
+          case Left(ParseFailure("Invalid URI", _)) => ok
+          case unexpected => ko(unexpected.toString)
+        }
+      }
+      }.setGen(Gen.choose[Long]((Int.MaxValue: Long) + 1, Long.MaxValue))
+      "if it's not a number or an empty String" >> prop { notNumber: String =>
+      {
+        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
+        uri match {
+          case Left(ParseFailure("Invalid URI", _)) => ok
+          case unexpected => ko(unexpected.toString)
+        }
+      }
+      }.setGen(Gen.alphaNumStr.suchThat(str => str.nonEmpty && Either.catchOnly[NumberFormatException](str.toInt).isLeft))
+      "for an empty String" in {
+        val uri: ParseResult[Uri] = Uri.fromString("http://localhost:/")
+        uri match {
+          case Left(ParseFailure("Invalid URI", _)) => ok
+          case unexpected => ko(unexpected.toString)
+        }
+      }
+    }
+
     "support a '/' operator when original uri has trailing slash" in {
       val uri = getUri("http://localhost:8080/")
       val newUri = uri / "echo"
