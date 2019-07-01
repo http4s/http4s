@@ -67,6 +67,13 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
           val uri = getUri("http://localhost/")
           uri.port must_=== None
         }
+        // See RFC 3986, section 6.2.3
+        "for an empty String" in {
+          val uri: Uri = getUri("http://foobar:/")
+          uri.port must_=== None
+          uri.scheme must_=== Some(Scheme.http)
+          uri.authority.get.host must_=== RegName("foobar")
+        }
       }
 
       "both authority and port" in {
@@ -115,13 +122,6 @@ http://example.org/a file
         }
       }.setGen(Gen.alphaNumStr.suchThat(str =>
         str.nonEmpty && Either.catchOnly[NumberFormatException](str.toInt).isLeft))
-      "for an empty String" in {
-        val uri: ParseResult[Uri] = Uri.fromString("http://localhost:/")
-        uri match {
-          case Left(ParseFailure("Invalid URI", _)) => ok
-          case unexpected => ko(unexpected.toString)
-        }
-      }
     }
 
     "support a '/' operator when original uri has trailing slash" in {
