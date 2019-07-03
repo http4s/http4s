@@ -161,8 +161,11 @@ object Uri {
       .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
 
-  /** Each [[org.http4s.Uri]] begins with a scheme name that refers to a
+  /** A [[org.http4s.Uri]] may begin with a scheme name that refers to a
     * specification for assigning identifiers within that scheme.
+    *
+    * If the scheme is defined, the URI is absolute.  If the scheme is
+    * not defined, the URI is a relative reference.
     *
     * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.1
     */
