@@ -2,7 +2,7 @@ package org.http4s
 package parser
 
 import cats.syntax.option._
-import cats.syntax.either.catsSyntaxEitherObject 
+import cats.syntax.either.catsSyntaxEitherObject
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import org.http4s.{Query => Q}
