@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.4-SNAPSHOT
+
+## Bug fixes
+* [#2687](https://github.com/http4s/http4s/pull/2687): Don't throw in `Uri.fromString` on invalid ports
+
+## Documentation
+* [#2668](https://github.com/http4s/http4s/pull/2668): Clarifications in `Uri.Scheme` scaladoc
+
+## Dependency upgrades
+- blaze-0.14.5
+- jetty-9.14.19.v20190610 (for client)
+
 # v0.20.3 (2019-06-12)
 
 ## Bug fixes
