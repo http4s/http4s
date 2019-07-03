@@ -214,8 +214,11 @@ object UriTemplate {
     case _ => ""
   }
 
-  protected def renderUserInfo(u: UserInfo): String =
-    (new StringWriter << u << ":").result
+  protected def renderUserInfo(u: UserInfo): String = u match {
+    case UserInfo(username, Some(password)) =>
+      (new StringWriter << username << ":" << password).result
+    case UserInfo(username, None) => username
+  }
 
   protected def renderHost(h: Host): String = h match {
     case RegName(n) => n.toString
