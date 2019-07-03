@@ -126,13 +126,17 @@
                         <a class="trait" href="Uri$$Host.html" title=""></a>
                         <a href="Uri$$Host.html" title="">Host</a>
                       </li><li class="current-entities indented3">
+                        <span class="separator"></span>
                         <a class="object" href="" title=""></a>
-                        <a class="class" href="Uri$$IPv4.html" title=""></a>
-                        <a href="Uri$$IPv4.html" title="">IPv4</a>
+                        <a href="" title="">IPv4</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="Uri$$IPv6$.html" title=""></a>
                         <a class="class" href="Uri$$IPv6.html" title=""></a>
                         <a href="Uri$$IPv6.html" title="">IPv6</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="Uri$$IpV4Address$.html" title=""></a>
+                        <a class="class" href="Uri$$IpV4Address.html" title=""></a>
+                        <a href="Uri$$IpV4Address.html" title="">IpV4Address</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="class" href="Uri$$Macros.html" title=""></a>
@@ -143,8 +147,8 @@
                         <a href="Uri$$RegName.html" title="">RegName</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="Uri$$Scheme$.html" title=""></a>
-                        <a class="class" href="Uri$$Scheme.html" title="A org.http4s.Uri may begin with a scheme name that refers to a specification for assigning identifiers within that scheme."></a>
-                        <a href="Uri$$Scheme.html" title="A org.http4s.Uri may begin with a scheme name that refers to a specification for assigning identifiers within that scheme.">Scheme</a>
+                        <a class="class" href="Uri$$Scheme.html" title="Each org.http4s.Uri begins with a scheme name that refers to a specification for assigning identifiers within that scheme."></a>
+                        <a href="Uri$$Scheme.html" title="Each org.http4s.Uri begins with a scheme name that refers to a specification for assigning identifiers within that scheme.">Scheme</a>
                       </li>
               </ul>
             </div>
@@ -152,16 +156,14 @@
           <div id="content">
             <body class="object value">
       <div id="definition">
-        <a href="Uri$$IPv4.html" title="See companion class"><div class="big-circle object-companion-class">o</div></a>
+        <div class="big-circle object">o</div>
         <p id="owner"><a href="../index.html" class="extype" name="org">org</a>.<a href="index.html" class="extype" name="org.http4s">http4s</a>.<a href="Uri$.html" class="extype" name="org.http4s.Uri">Uri</a></p>
-        <h1><a href="Uri$$IPv4.html" title="See companion class">IPv4</a><span class="permalink">
+        <h1>IPv4<span class="permalink">
       <a href="../../org/http4s/Uri$$IPv4$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"><div>
-            Companion <a href="Uri$$IPv4.html" title="See companion class">class IPv4</a>
-          </div></span></h3>
+        <h3><span class="morelinks"></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
@@ -170,16 +172,19 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">IPv4</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.0-M2) Renamed to IpV4Address, modeled as case class of bytes">IPv4</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-M2)</i> Renamed to IpV4Address, modeled as case class of bytes</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/ef87fc3d50ef9550fb8399c9d753ee79a2fec683/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.8/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.8/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -205,7 +210,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.Uri.IPv4"><span>IPv4</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.Uri.IPv4"><span>IPv4</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -280,22 +285,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Uri.IPv4#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(address:String):org.http4s.Uri.IPv4"></a><a id="apply(String):IPv4"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Uri$$IPv4$.html#apply(address:String):org.http4s.Uri.IPv4" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="address">address: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="Uri$$IPv4.html" class="extype" name="org.http4s.Uri.IPv4">IPv4</a></span>
-      </span>
-      
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -604,15 +593,33 @@
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.Uri.IPv4#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(ciString:org.http4s.util.CaseInsensitiveString):org.http4s.ParseResult[org.http4s.Uri.IpV4Address]"></a><a id="apply(CaseInsensitiveString):ParseResult[IpV4Address]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$$IPv4$.html#apply(ciString:org.http4s.util.CaseInsensitiveString):org.http4s.ParseResult[org.http4s.Uri.IpV4Address]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.0-M2) Use IpV4Address.fromString(ciString.value)">apply</span><span class="params">(<span name="ciString">ciString: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="index.html#ParseResult[+A]=Either[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<a href="Uri$$IpV4Address.html" class="extype" name="org.http4s.Uri.IpV4Address">IpV4Address</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-M2)</i> Use IpV4Address.fromString(ciString.value)</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.8/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.8/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
