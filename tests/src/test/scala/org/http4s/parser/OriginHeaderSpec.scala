@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 
 class OriginHeaderSpec extends Specification with Http4sSpec {
   val host1 = Origin.Host(Uri.Scheme.http, Uri.RegName("www.foo.com"), Some(12345))
-  val host2 = Origin.Host(Uri.Scheme.https, ipV4"127.0.0.1", None)
+  val host2 = Origin.Host(Uri.Scheme.https, ipv4"127.0.0.1", None)
 
   val hostString1 = "http://www.foo.com:12345"
   val hostString2 = "https://127.0.0.1"

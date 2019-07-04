@@ -583,22 +583,22 @@ private[http4s] trait ArbitraryInstances {
     oneOf(g, const(ev.empty))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIpV4Address: Arbitrary[Uri.IpV4Address] = Arbitrary {
+  implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] = Arbitrary {
     for {
       a <- getArbitrary[Byte]
       b <- getArbitrary[Byte]
       c <- getArbitrary[Byte]
       d <- getArbitrary[Byte]
-    } yield Uri.IpV4Address(a, b, c, d)
+    } yield Uri.Ipv4Address(a, b, c, d)
   }
 
-  implicit val http4sTestingCogenForIpV4Address: Cogen[Uri.IpV4Address] =
+  implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
     Cogen[(Byte, Byte, Byte, Byte)].contramap(ipv4 => (ipv4.a, ipv4.b, ipv4.c, ipv4.d))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
   implicit val http4sTestingArbitraryForIPv6: Arbitrary[Uri.IPv6] = Arbitrary {
     val h16 = timesBetween(min = 1, max = 4, genHexDigit.map(_.toString))
-    val ls32 = oneOf(h16 |+| const(":") |+| h16, getArbitrary[Uri.IpV4Address].map(_.value))
+    val ls32 = oneOf(h16 |+| const(":") |+| h16, getArbitrary[Uri.Ipv4Address].map(_.value))
     val h16colon = h16 |+| const(":")
     val :: = const("::")
 
@@ -618,7 +618,7 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = Arbitrary {
     val genRegName =
       listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
-    oneOf(getArbitrary[Uri.IpV4Address], http4sTestingArbitraryForIPv6.arbitrary, genRegName)
+    oneOf(getArbitrary[Uri.Ipv4Address], http4sTestingArbitraryForIPv6.arbitrary, genRegName)
   }
 
   implicit val http4sTestingArbitraryForAuthority: Arbitrary[Uri.Authority] = Arbitrary {
