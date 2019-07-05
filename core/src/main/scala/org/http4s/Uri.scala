@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats.{Eq, Order, Show}
+import cats.{Eq, Hash, Order, Show}
 import cats.implicits._
 import java.net.{Inet4Address, InetAddress}
 import java.nio.charset.StandardCharsets
