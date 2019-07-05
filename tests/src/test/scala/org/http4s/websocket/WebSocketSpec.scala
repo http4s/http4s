@@ -1,5 +1,6 @@
 package org.http4s.websocket
 
+import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.UTF_8
 import org.http4s.websocket.WebSocketFrame._

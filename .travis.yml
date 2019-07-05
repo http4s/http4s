@@ -19,7 +19,6 @@ env:
   - LOGBACK_ROOT_LEVEL=WARN
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
 
-scala_version_211: &scala_version_211 2.11.12
 scala_version_212: &scala_version_212 2.12.8
 scala_version_213: &scala_version_213 2.13.0
 
@@ -34,9 +33,6 @@ jobs:
         - sbt ++$TRAVIS_SCALA_VERSION test
         - sbt ++$TRAVIS_SCALA_VERSION mimaReportBinaryIssues
         - sbt ++$TRAVIS_SCALA_VERSION unusedCompileDependenciesTest
-      scala: *scala_version_211
-      jdk: *java_8
-    - <<: *tests
       scala: *scala_version_212
       jdk: *java_8
     - <<: *tests

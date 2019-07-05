@@ -2,7 +2,7 @@ package org.http4s
 package server.blaze
 
 import cats.effect._
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import java.nio.ByteBuffer
 import org.log4s.Logger
 import scala.collection.mutable.ListBuffer

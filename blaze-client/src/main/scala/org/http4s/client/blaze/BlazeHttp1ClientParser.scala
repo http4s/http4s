@@ -1,5 +1,6 @@
 package org.http4s.client.blaze
 
+import cats.implicits._
 import java.nio.ByteBuffer
 import org.http4s._
 import org.http4s.blaze.http.parser.Http1ClientParser
