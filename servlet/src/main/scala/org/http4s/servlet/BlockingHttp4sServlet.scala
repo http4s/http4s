@@ -3,7 +3,7 @@ package servlet
 
 import cats.data.OptionT
 import cats.effect._
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.server._
 

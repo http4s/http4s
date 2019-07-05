@@ -3,7 +3,7 @@ package org.http4s
 import cats.{Eq, Monoid}
 import cats.data.Chain
 import cats.effect.Sync
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._

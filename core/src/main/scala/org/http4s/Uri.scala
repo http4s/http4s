@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.{Eq, Order, Show}
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import java.nio.charset.StandardCharsets
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}

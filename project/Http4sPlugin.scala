@@ -33,7 +33,6 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.0"
   val scala_212 = "2.12.8"
-  val scala_211 = "2.11.12"
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -56,7 +55,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
-    crossScalaVersions := Seq(scala_213, scala_212, scala_211),
+    crossScalaVersions := Seq(scala_213, scala_212),
     // Getting some spurious unreachable code warnings in 2.13.0
     scalacOptions -= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -256,7 +255,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
-  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.12.0-M3"
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.12.0-M4"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
