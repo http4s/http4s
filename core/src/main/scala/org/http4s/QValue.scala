@@ -1,7 +1,6 @@
 package org.http4s
 
 import cats.{Order, Show}
-import cats.implicits._
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser.{AdditionalRules, Http4sParser}
 import org.http4s.util.Writer
@@ -82,7 +81,7 @@ object QValue {
     }
 
   def unsafeFromString(s: String): QValue =
-    fromString(s).valueOr(throw _)
+    fromString(s).fold(throw _, identity)
 
   def parse(s: String): ParseResult[QValue] =
     new Http4sParser[QValue](s, "Invalid q-value") with QValueParser {
@@ -129,7 +128,7 @@ object QValue {
   @deprecated("""use qValue"" string interpolation instead""", "0.20")
   def q(d: Double): QValue = macro Macros.qValueLiteral
 
-  implicit lazy val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
+  implicit val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
   implicit val http4sShowForQValue: Show[QValue] = Show.fromToString[QValue]
   implicit val http4sHttpCodecForQValue: HttpCodec[QValue] = new HttpCodec[QValue] {
     def parse(s: String): ParseResult[QValue] = QValue.parse(s)
