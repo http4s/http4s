@@ -11,19 +11,18 @@ import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 
-
 final class EmberClient[F[_]: Bracket[?[_], Throwable]] private[client] (
-  private val client: Client[F],
-  private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])]
-) extends Client[F]{
+    private val client: Client[F],
+    private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])]
+) extends Client[F] {
 
   /**
-   * The reason for this extra class. This allows you to see the present state
-   * of the underlying Pool, without having access to the pool itself.
-   * 
-   * The first element represents total connections in the pool, the second
-   * is a mapping between the number of connections in the pool for each requestKey.
-   */
+    * The reason for this extra class. This allows you to see the present state
+    * of the underlying Pool, without having access to the pool itself.
+    *
+    * The first element represents total connections in the pool, the second
+    * is a mapping between the number of connections in the pool for each requestKey.
+    */
   def state: F[(Int, Map[RequestKey, Int])] = pool.state
 
   def run(req: Request[F]): Resource[F, Response[F]] = client.run(req)
@@ -146,7 +145,9 @@ final class EmberClient[F[_]: Bracket[?[_], Throwable]] private[client] (
 
   def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A] =
-    Uri.fromString(s).fold(ApplicativeError[F, Throwable].raiseError, uri => expectOr[A](uri)(onError))
+    Uri
+      .fromString(s)
+      .fold(ApplicativeError[F, Throwable].raiseError, uri => expectOr[A](uri)(onError))
 
   /**
     * Submits a GET request to the URI specified by the String and decodes the

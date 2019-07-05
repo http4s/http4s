@@ -13,20 +13,18 @@ import java.net.InetSocketAddress
 import javax.net.ssl.SSLContext
 import org.http4s._
 import org.http4s.client.RequestKey
-import _root_.org.http4s.ember.core.{Encoder,Parser}
+import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
 import spinoco.fs2.crypto.io.tcp.TLSSocket
 import scala.concurrent.ExecutionContext
 import _root_.fs2.io.tcp.SocketGroup
 
-
-
 private[client] object ClientHelpers {
 
   def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
-    request: Request[F],
-    sslContext: Option[(ExecutionContext, SSLContext)],
-    sg: SocketGroup
+      request: Request[F],
+      sslContext: Option[(ExecutionContext, SSLContext)],
+      sg: SocketGroup
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -37,68 +35,74 @@ private[client] object ClientHelpers {
   }
 
   def requestKeyToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
-    requestKey: RequestKey,
-    sslContext: Option[(ExecutionContext, SSLContext)],
-    sg: SocketGroup
-  ): Resource[F, RequestKeySocket[F]] = {
+      requestKey: RequestKey,
+      sslContext: Option[(ExecutionContext, SSLContext)],
+      sg: SocketGroup
+  ): Resource[F, RequestKeySocket[F]] =
     for {
       address <- Resource.liftF(getAddress(requestKey))
       initSocket <- sg.client[F](address)
-      socket <- Resource.liftF{
+      socket <- Resource.liftF {
         if (requestKey.scheme === Uri.Scheme.https)
           sslContext.fold[F[Socket[F]]](
-            ApplicativeError[F, Throwable].raiseError(new Throwable("EmberClient Not Configured for Https"))
-          ){case (sslExecutionContext, sslContext) => 
-          liftToSecure[F](
-            sslExecutionContext, sslContext
-          )(
-            initSocket, true
-          )(
-            requestKey.authority.host.value,
-            requestKey.authority.port.getOrElse(443)
-          )
-          }
-        else Applicative[F].pure(initSocket)
+            ApplicativeError[F, Throwable].raiseError(
+              new Throwable("EmberClient Not Configured for Https"))
+          ) {
+            case (sslExecutionContext, sslContext) =>
+              liftToSecure[F](
+                sslExecutionContext,
+                sslContext
+              )(
+                initSocket,
+                true
+              )(
+                requestKey.authority.host.value,
+                requestKey.authority.port.getOrElse(443)
+              )
+          } else Applicative[F].pure(initSocket)
       }
     } yield RequestKeySocket(socket, requestKey)
-  }
-
 
   def request[F[_]: Concurrent: ContextShift](
-    request: Request[F]
-    , requestKeySocket: RequestKeySocket[F]
-    , chunkSize: Int
-    , maxResponseHeaderSize: Int
-    , timeout: Duration
+      request: Request[F],
+      requestKeySocket: RequestKeySocket[F],
+      chunkSize: Int,
+      maxResponseHeaderSize: Int,
+      timeout: Duration
   )(implicit T: Timer[F]): F[Response[F]] = {
 
     def onNoTimeout(socket: Socket[F]): F[Response[F]] =
       Parser.Response.parser(maxResponseHeaderSize)(
-        socket.reads(chunkSize, None)
+        socket
+          .reads(chunkSize, None)
           .concurrently(
-            Encoder.reqToBytes(request)
+            Encoder
+              .reqToBytes(request)
               .through(socket.writes(None))
               .drain
           )
       )
 
-    def onTimeout(socket: Socket[F], fin: FiniteDuration): F[Response[F]] = for {
-      start <- T.clock.realTime(MILLISECONDS)
+    def onTimeout(socket: Socket[F], fin: FiniteDuration): F[Response[F]] =
+      for {
+        start <- T.clock.realTime(MILLISECONDS)
 
-      _ <- (
-        Encoder.reqToBytes(request)
-        .through(socket.writes(Some(fin)))
-        .compile
-        .drain
-      ).start
-      timeoutSignal <- SignallingRef[F, Boolean](true)
-      sent <- T.clock.realTime(MILLISECONDS)
-      remains = fin - (sent - start).millis
-      resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
+        _ <- (
+          Encoder
+            .reqToBytes(request)
+            .through(socket.writes(Some(fin)))
+            .compile
+            .drain
+          )
+          .start
+        timeoutSignal <- SignallingRef[F, Boolean](true)
+        sent <- T.clock.realTime(MILLISECONDS)
+        remains = fin - (sent - start).millis
+        resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
           readWithTimeout(socket, start, remains, timeoutSignal.get, chunkSize)
-      )
-      _ <- timeoutSignal.set(false).void
-    } yield resp
+        )
+        _ <- timeoutSignal.set(false).void
+      } yield resp
 
     timeout match {
       case t: FiniteDuration => onTimeout(requestKeySocket.socket, t)
@@ -106,11 +110,10 @@ private[client] object ClientHelpers {
     }
   }
 
-
-
   /** function that lifts supplied socket to secure socket **/
-  def liftToSecure[F[_] : Concurrent : ContextShift](
-    sslES: ExecutionContext, sslContext: SSLContext
+  def liftToSecure[F[_]: Concurrent: ContextShift](
+      sslES: ExecutionContext,
+      sslContext: SSLContext
   )(socket: Socket[F], clientMode: Boolean)(host: String, port: Int): F[Socket[F]] = {
     for {
       sslEngine <- Concurrent[F].delay(sslContext.createSSLEngine(host, port))
