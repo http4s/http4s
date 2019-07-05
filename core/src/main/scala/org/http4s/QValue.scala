@@ -129,7 +129,7 @@ object QValue {
   @deprecated("""use qValue"" string interpolation instead""", "0.20")
   def q(d: Double): QValue = macro Macros.qValueLiteral
 
-  implicit val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
+  implicit lazy val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
   implicit val http4sShowForQValue: Show[QValue] = Show.fromToString[QValue]
   implicit val http4sHttpCodecForQValue: HttpCodec[QValue] = new HttpCodec[QValue] {
     def parse(s: String): ParseResult[QValue] = QValue.parse(s)

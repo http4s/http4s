@@ -1,6 +1,7 @@
 package org.http4s
 package parser
 
+import cats.implicits._
 import org.http4s.internal.parboiled2._
 import org.scalacheck.Prop
 
