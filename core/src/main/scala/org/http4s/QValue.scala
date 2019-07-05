@@ -81,7 +81,7 @@ object QValue {
     }
 
   def unsafeFromString(s: String): QValue =
-    fromString(s).valueOr(throw _)
+    fromString(s).fold(throw _, identity)
 
   def parse(s: String): ParseResult[QValue] =
     new Http4sParser[QValue](s, "Invalid q-value") with QValueParser {

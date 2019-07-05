@@ -1,7 +1,7 @@
 package org.http4s.servlet
 
 import cats.effect._
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import io.chrisdavenport.vault._
 import java.net.InetSocketAddress
 import java.security.cert.X509Certificate

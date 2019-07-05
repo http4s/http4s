@@ -8,7 +8,7 @@ import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
 import cats.effect.{Effect, IO}
 import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._

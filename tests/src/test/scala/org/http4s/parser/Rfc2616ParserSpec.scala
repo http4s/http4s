@@ -1,8 +1,8 @@
 package org.http4s
 package parser
 
+import cats.implicits._
 import org.http4s.internal.parboiled2._
-import cats.syntax.either.catsSyntaxEitherObject
 import org.scalacheck.Prop
 
 final case class BasicRulesParser(input: ParserInput) extends Parser with Rfc2616BasicRules

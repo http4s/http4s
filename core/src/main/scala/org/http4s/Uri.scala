@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.{Eq, Hash, Order, Show}
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import java.net.{Inet4Address, InetAddress}
 import java.nio.charset.StandardCharsets
 import org.http4s.Uri._

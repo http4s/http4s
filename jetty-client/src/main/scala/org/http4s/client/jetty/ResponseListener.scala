@@ -4,7 +4,7 @@ package jetty
 
 import cats.effect._
 import cats.effect.implicits._
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import fs2._
 import fs2.Stream._
 import fs2.concurrent.Queue
