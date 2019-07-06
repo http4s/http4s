@@ -10,6 +10,8 @@ it.
 
 # v0.21.0-M2
 
+This release drops support for Scala 2.11.
+
 ## Bugfixes
 * [#2691](https://github.com/http4s/http4s/pull/2691): Fix deadlock in client by releasing current connection before retrying in `Retry` client middleware.  The constraint is upgraded to `Concurrent`.
 * [#2693](https://github.com/http4s/http4s/pull/2693): Fix deadlock in client by releasing current connection before retrying in `FollowRedirect` client middleware.  The constraint is upgraded to `Concurrent`.
@@ -20,6 +22,7 @@ it.
 * [#2665](https://github.com/http4s/http4s/pull/2665): Change `withBlock` to `withBlocker` in `OkHttpBuilder`
 * [#2661](https://github.com/http4s/http4s/pull/2661): Move string contexts macros for literals from `org.http4s` to `org.http4s.implicits`
 * [#2679](https://github.com/http4s/http4s/pull/2679): Replace `Uri.IPv4` with `Uri.Ipv4Address`, including an `ipv4` interpolator and interop with `Inet4Address`.
+* [#2694](https://github.com/http4s/http4s/pull/2694): Drop Scala 2.11 support 
 
 ## Enhancements
 * [#2656](https://github.com/http4s/http4s/pull/2656): Add `emap` and `emapValidatedNel` to `QueryParamDecoder`
@@ -33,6 +36,7 @@ it.
 
 ## Dependency updates
 * async-http-client-2.10.1
+* circe-0.12.0-M4
 * json4s-3.6.7
 * okhttp-4.0.0
 * specs2-core-4.6.0
