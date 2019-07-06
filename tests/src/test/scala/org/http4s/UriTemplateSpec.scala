@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.Uri.{Authority, IPv6, RegName, Scheme}
+import org.http4s.Uri.{Authority, IPv6, RegName, Scheme, UserInfo}
 import org.http4s.UriTemplate._
 
 class UriTemplateSpec extends Http4sSpec {
@@ -277,7 +277,7 @@ class UriTemplateSpec extends Http4sSpec {
     "render http://username:password@some.example.com" in {
       val scheme = Some(Scheme.http)
       val host = RegName("some.example.com")
-      val authority = Some(Authority(Some("username:password"), host, None))
+      val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
       UriTemplate(scheme, authority).toString must
         equalTo("http://username:password@some.example.com")
       UriTemplate(scheme, authority, Nil).toString must
@@ -286,7 +286,7 @@ class UriTemplateSpec extends Http4sSpec {
     "render http://username:password@some.example.com/some/path?param1=5&param-without-value" in {
       val scheme = Some(Scheme.http)
       val host = RegName("some.example.com")
-      val authority = Some(Authority(Some("username:password"), host, None))
+      val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
       val path = List(PathElm("some"), PathElm("path"))
       val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       UriTemplate(scheme, authority, path, query).toString must
@@ -519,14 +519,14 @@ class UriTemplateSpec extends Http4sSpec {
     "convert https://username:password@some.example.com to Uri" in {
       val scheme = Some(Scheme.https)
       val host = RegName("some.example.com")
-      val authority = Some(Authority(Some("username:password"), host, None))
+      val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
       UriTemplate(scheme, authority, Nil, Nil, Nil).toUriIfPossible.get must
         equalTo(Uri(scheme, authority))
     }
     "convert http://username:password@some.example.com/some/path?param1=5&param-without-value to Uri" in {
       val scheme = Some(Scheme.http)
       val host = RegName("some.example.com")
-      val authority = Some(Authority(Some("username:password"), host, None))
+      val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
       val path = List(PathElm("some"), PathElm("path"))
       val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
@@ -536,7 +536,7 @@ class UriTemplateSpec extends Http4sSpec {
     "convert http://username:password@some.example.com/some/path?param1=5&param-without-value#sec-1.2 to Uri" in {
       val scheme = Some(Scheme.http)
       val host = RegName("some.example.com")
-      val authority = Some(Authority(Some("username:password"), host, None))
+      val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
       val path = List(PathElm("some"), PathElm("path"))
       val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       val fragment = List(FragmentElm("sec-1.2"))
