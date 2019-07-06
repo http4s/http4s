@@ -3,7 +3,7 @@ package org.http4s
 import cats.{Eq, Hash, Order, Show}
 import cats.implicits._
 import java.net.{Inet4Address, InetAddress}
-import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset => NioCharset, StandardCharsets}
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
@@ -228,8 +228,6 @@ object Uri {
       }
   }
 
-  type UserInfo = String
-
   type Path = String
   type Fragment = String
 
@@ -246,6 +244,88 @@ object Uri {
       case Authority(_, h, _) => writer << h
       case _ => writer
     }
+  }
+
+  /** The userinfo subcomponent may consist of a user name and,
+    * optionally, scheme-specific information about how to gain
+    * authorization to access the resource.  The user information, if
+    * present, is followed by a commercial at-sign ("@") that delimits
+    * it from the host.
+    *
+    * @param username The username component, decoded.
+    *
+    * @param password The password, decoded.  Passing a password in
+    * clear text in a URI is a security risk and deprecated by RFC
+    * 3986, but preserved in this model for losslessness.
+    *
+    * @see https://www.ietf.org/rfc/rfc3986.txt#section-3.21.
+    */
+  final case class UserInfo private (username: String, password: Option[String])
+      extends Ordered[UserInfo] {
+    override def compare(that: UserInfo): Int =
+      username.compareTo(that.username) match {
+        case 0 => Ordering.Option[String].compare(password, that.password)
+        case cmp => cmp
+      }
+  }
+
+  object UserInfo {
+
+    /** Parses a userInfo from a percent-encoded string. */
+    def fromString(s: String): ParseResult[UserInfo] =
+      fromStringWithCharset(s, StandardCharsets.UTF_8)
+
+    /** Parses a userInfo from a string percent-encoded in a specific charset. */
+    def fromStringWithCharset(s: String, cs: NioCharset): ParseResult[UserInfo] =
+      new Http4sParser[UserInfo](s, "Invalid user info") with Rfc3986Parser {
+        def main = userInfo
+        def charset = cs
+      }.parse
+
+    private[http4s] trait Parser { self: Rfc3986Parser =>
+      def userInfo: Rule1[UserInfo] = rule {
+        capture(zeroOrMore(Unreserved | PctEncoded | SubDelims)) ~
+          (":" ~ capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":"))).? ~>
+          (
+              (
+                  username: String,
+                  password: Option[String]) => UserInfo(decode(username), password.map(decode)))
+      }
+    }
+
+    implicit val http4sInstancesForUserInfo
+      : HttpCodec[UserInfo] with Order[UserInfo] with Hash[UserInfo] with Show[UserInfo] =
+      new HttpCodec[UserInfo] with Order[UserInfo] with Hash[UserInfo] with Show[UserInfo] {
+        def parse(s: String): ParseResult[UserInfo] =
+          UserInfo.fromString(s)
+        def render(writer: Writer, userInfo: UserInfo): writer.type = {
+          writer << encodeUsername(userInfo.username)
+          userInfo.password.foreach(writer << ":" << encodePassword(_))
+          writer
+        }
+
+        private val SkipEncodeInUsername =
+          UrlCodingUtils.Unreserved ++ "!$&'()*+,;="
+
+        private def encodeUsername(
+            s: String,
+            charset: NioCharset = StandardCharsets.UTF_8): String =
+          UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInUsername)
+
+        private val SkipEncodeInPassword =
+          SkipEncodeInUsername ++ ":"
+
+        private def encodePassword(
+            s: String,
+            charset: NioCharset = StandardCharsets.UTF_8): String =
+          UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInPassword)
+
+        def compare(x: UserInfo, y: UserInfo): Int = x.compareTo(y)
+
+        def hash(x: UserInfo): Int = x.hashCode
+
+        def show(x: UserInfo): String = x.toString
+      }
   }
 
   sealed trait Host extends Renderable {
