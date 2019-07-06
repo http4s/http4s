@@ -83,14 +83,12 @@ class UriParserSpec extends Http4sSpec {
             Some(Authority(host = RegName("www.foo.com".ci))),
             "/foo",
             Query.fromPairs("bar" -> "baz"))),
-        (
-          "http://192.168.1.1",
-          Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci))))),
+        ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
         (
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
+            Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
@@ -224,14 +222,12 @@ class UriParserSpec extends Http4sSpec {
             Some(Authority(host = RegName("www.foo.com".ci))),
             "/foo",
             Query.fromPairs("bar" -> "baz"))),
-        (
-          "http://192.168.1.1",
-          Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci))))),
+        ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
         (
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
+            Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (

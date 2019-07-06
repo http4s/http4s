@@ -83,7 +83,7 @@ lazy val core = libraryProject("core")
         val sv = scalaVersion.value
         CrossVersion.partialVersion(sv) match {
           case Some((2, 13)) => file(dir.getPath ++ "-2.13")
-          case _             => file(dir.getPath ++ "-2.11-2.12")
+          case _             => file(dir.getPath ++ "-2.12")
         }
       }
     },

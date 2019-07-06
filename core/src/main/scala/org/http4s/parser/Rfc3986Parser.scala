@@ -13,6 +13,7 @@ private[http4s] trait Rfc3986Parser
     extends Parser
     with Uri.Scheme.Parser
     with Uri.UserInfo.Parser
+    with Uri.Ipv4Address.Parser
     with IpParser
     with StringBuilding {
   // scalastyle:off public.methods.have.type
@@ -65,15 +66,15 @@ private[http4s] trait Rfc3986Parser
   }
 
   def Host: Rule1[org.http4s.Uri.Host] = rule {
-    capture(IpV4Address) ~> { s: String =>
-      org.http4s.Uri.IPv4(s.ci)
+    // format: off
+    ipv4Address |
+    (IpLiteral | capture(IpV6Address)) ~> { s: String =>
+      org.http4s.Uri.IPv6(s.ci)
     } |
-      (IpLiteral | capture(IpV6Address)) ~> { s: String =>
-        org.http4s.Uri.IPv6(s.ci)
-      } |
-      capture(RegName) ~> { s: String =>
-        org.http4s.Uri.RegName(decode(s).ci)
-      }
+    capture(RegName) ~> { s: String =>
+      org.http4s.Uri.RegName(decode(s).ci)
+    }
+    // format:on
   }
 
   def Port = rule {

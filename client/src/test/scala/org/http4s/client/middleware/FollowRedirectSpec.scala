@@ -3,6 +3,7 @@ package client
 package middleware
 
 import cats.effect._
+import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import fs2._
 import java.util.concurrent.atomic._
@@ -165,6 +166,18 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
       val client = FollowRedirect(3)(Client(disposingService))
       client.expect[String](uri("http://localhost/301")).unsafeRunSync()
       disposed must_== 2 // one for the original, one for the redirect
+    }
+
+    "Not hang when redirecting" in {
+      Semaphore[IO](2).flatMap { semaphore =>
+        def f(req: Request[IO]) =
+          Resource.make(semaphore.tryAcquire.flatMap {
+            case true => app.run(req)
+            case false => IO.raiseError(new IllegalStateException("Exhausted all connections"))
+          })(_ => semaphore.release)
+        val client = FollowRedirect(3)(Client(f))
+        client.status(Request[IO](uri = uri("http://localhost/loop/3")))
+      } must returnValue(Status.Ok)
     }
 
     "Not send sensitive headers when redirecting to a different authority" in {

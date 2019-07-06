@@ -222,7 +222,7 @@ object UriTemplate {
 
   protected def renderHost(h: Host): String = h match {
     case RegName(n) => n.toString
-    case IPv4(a) => a.toString
+    case a: Ipv4Address => a.value
     case IPv6(a) => "[" + a.toString + "]"
     case _ => ""
   }
