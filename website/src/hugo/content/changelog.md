@@ -8,6 +8,51 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-M2
+
+## Bugfixes
+* [#2691](https://github.com/http4s/http4s/pull/2691): Fix deadlock in client by releasing current connection before retrying in `Retry` client middleware.  The constraint is upgraded to `Concurrent`.
+* [#2693](https://github.com/http4s/http4s/pull/2693): Fix deadlock in client by releasing current connection before retrying in `FollowRedirect` client middleware.  The constraint is upgraded to `Concurrent`.
+* [#2671](https://github.com/http4s/http4s/pull/2671): Upgrade `Uri.UserInfo` to a case class with username and password, fixing encoding issues. This is for RFC 3986 compliance, where it's deprecated for security reasons. Please don't use this.
+
+## Breaking changes
+* [#2654](https://github.com/http4s/http4s/pull/2654): Extract an http4s-laws module from http4s-testing, with no dependency on Specs2.  The arbitraries, laws, and tests are now laid out in a similar structure to cats and cats-effect.
+* [#2665](https://github.com/http4s/http4s/pull/2665): Change `withBlock` to `withBlocker` in `OkHttpBuilder`
+* [#2661](https://github.com/http4s/http4s/pull/2661): Move string contexts macros for literals from `org.http4s` to `org.http4s.implicits`
+* [#2679](https://github.com/http4s/http4s/pull/2679): Replace `Uri.IPv4` with `Uri.Ipv4Address`, including an `ipv4` interpolator and interop with `Inet4Address`.
+
+## Enhancements
+* [#2656](https://github.com/http4s/http4s/pull/2656): Add `emap` and `emapValidatedNel` to `QueryParamDecoder`
+
+## Documentation
+* [#2658](https://github.com/http4s/http4s/pull/2658): Link to http4s-jdk-http-client
+* [#2668](https://github.com/http4s/http4s/pull/2668): Clarify scaladoc for `Uri.Scheme`
+
+## Internal
+* [#2655](https://github.com/http4s/http4s/pull/2655): Tune JVM options for throughput
+
+## Dependency updates
+* async-http-client-2.10.1
+* json4s-3.6.7
+* okhttp-4.0.0
+* specs2-core-4.6.0
+
+# v0.20.4 (2019-07-06)
+
+## Bug fixes
+* [#2687](https://github.com/http4s/http4s/pull/2687): Don't throw in `Uri.fromString` on invalid ports
+* [#2695](https://github.com/http4s/http4s/pull/2695): Handle EOF in blaze-server web socket by shutting down stage
+
+## Enhancements
+* [#2673](https://github.com/http4s/http4s/pull/2673): Add `GZip` middleware for client
+
+## Documentation
+* [#2668](https://github.com/http4s/http4s/pull/2668): Clarifications in `Uri.Scheme` scaladoc
+
+## Dependency upgrades
+- blaze-0.14.5
+- jetty-9.14.19.v20190610 (for client)
+
 # v0.21.0-M1 (2019-06-17)
 
 ## Breaking changes
