@@ -149,6 +149,10 @@
                         <a class="object" href="Uri$$Scheme$.html" title=""></a>
                         <a class="class" href="Uri$$Scheme.html" title="A org.http4s.Uri may begin with a scheme name that refers to a specification for assigning identifiers within that scheme."></a>
                         <a href="Uri$$Scheme.html" title="A org.http4s.Uri may begin with a scheme name that refers to a specification for assigning identifiers within that scheme.">Scheme</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="Uri$$UserInfo$.html" title=""></a>
+                        <a class="class" href="Uri$$UserInfo.html" title="The userinfo subcomponent may consist of a user name and, optionally, scheme-specific information about how to gain authorization to access the resource."></a>
+                        <a href="Uri$$UserInfo.html" title="The userinfo subcomponent may consist of a user name and, optionally, scheme-specific information about how to gain authorization to access the resource.">UserInfo</a>
                       </li>
               </ul>
             </div>
@@ -172,7 +176,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Authority</span><span class="params">(<span name="userInfo">userInfo: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$.html#UserInfo=String" class="extmbr" name="org.http4s.Uri.UserInfo">UserInfo</a>] = <span class="symbol">None</span></span>, <span name="host">host: <a href="Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a> = <span class="symbol"><span class="name"><a href="Uri$$RegName$.html">RegName(&quot;localhost&quot;)</a></span></span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Authority</span><span class="params">(<span name="userInfo">userInfo: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$$UserInfo.html" class="extype" name="org.http4s.Uri.UserInfo">UserInfo</a>] = <span class="symbol">None</span></span>, <span name="host">host: <a href="Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a> = <span class="symbol"><span class="name"><a href="Uri$$RegName$.html">RegName(&quot;localhost&quot;)</a></span></span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -244,7 +248,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Authority</span><span class="params">(<span name="userInfo">userInfo: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$.html#UserInfo=String" class="extmbr" name="org.http4s.Uri.UserInfo">UserInfo</a>] = <span class="symbol">None</span></span>, <span name="host">host: <a href="Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a> = <span class="symbol"><span class="name"><a href="Uri$$RegName$.html">RegName(&quot;localhost&quot;)</a></span></span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span>
+        <span class="name">Authority</span><span class="params">(<span name="userInfo">userInfo: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$$UserInfo.html" class="extype" name="org.http4s.Uri.UserInfo">UserInfo</a>] = <span class="symbol">None</span></span>, <span name="host">host: <a href="Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a> = <span class="symbol"><span class="name"><a href="Uri$$RegName$.html">RegName(&quot;localhost&quot;)</a></span></span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span>
       </span>
       
       
@@ -727,7 +731,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">userInfo</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$.html#UserInfo=String" class="extmbr" name="org.http4s.Uri.UserInfo">UserInfo</a>]</span>
+        <span class="name">userInfo</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$$UserInfo.html" class="extype" name="org.http4s.Uri.UserInfo">UserInfo</a>]</span>
       </span>
       
       

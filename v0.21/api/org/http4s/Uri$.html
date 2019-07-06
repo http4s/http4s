@@ -870,7 +870,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="Uri$$Authority.html"><span class="name">Authority</span></a><span class="params">(<span name="userInfo">userInfo: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#UserInfo=String" class="extmbr" name="org.http4s.Uri.UserInfo">UserInfo</a>] = <span class="symbol">None</span></span>, <span name="host">host: <a href="Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a> = <span class="symbol"><span class="name"><a href="Uri$$RegName$.html">RegName(&quot;localhost&quot;)</a></span></span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Uri$$Authority.html"><span class="name">Authority</span></a><span class="params">(<span name="userInfo">userInfo: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$$UserInfo.html" class="extype" name="org.http4s.Uri.UserInfo">UserInfo</a>] = <span class="symbol">None</span></span>, <span name="host">host: <a href="Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a> = <span class="symbol"><span class="name"><a href="Uri$$RegName$.html">RegName(&quot;localhost&quot;)</a></span></span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.8/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -1006,22 +1006,29 @@ specification for assigning identifiers within that scheme.</p><div class="fullc
 specification for assigning identifiers within that scheme.</p><p>If the scheme is defined, the URI is absolute.  If the scheme is
 not defined, the URI is a relative reference.
 </p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>https://www.ietf.org/rfc/rfc3986.txt, Section 3.1</p></span></dd></dl></div>
-    </li><li name="org.http4s.Uri.UserInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="UserInfo=String"></a><a id="UserInfo:UserInfo"></a>
+    </li><li name="org.http4s.Uri.UserInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="UserInfoextendsOrdered[org.http4s.Uri.UserInfo]withProductwithSerializable"></a><a id="UserInfo:UserInfo"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Uri$.html#UserInfo=String" title="Permalink">
+      <a href="../../org/http4s/Uri$.html#UserInfoextendsOrdered[org.http4s.Uri.UserInfo]withProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">UserInfo</span><span class="result alias"> = <span class="extype" name="java.lang.String">String</span></span>
+        <a title="The userinfo subcomponent may consist of a user name and, optionally, scheme-specific information about how to gain authorization to access the resource." href="Uri$$UserInfo.html"><span class="name">UserInfo</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.8/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="Uri$$UserInfo.html" class="extype" name="org.http4s.Uri.UserInfo">UserInfo</a>] with <a href="http://www.scala-lang.org/api/2.12.8/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
-      
+      <p class="shortcomment cmt">The userinfo subcomponent may consist of a user name and,
+optionally, scheme-specific information about how to gain
+authorization to access the resource.</p><div class="fullcomment"><div class="comment cmt"><p>The userinfo subcomponent may consist of a user name and,
+optionally, scheme-specific information about how to gain
+authorization to access the resource.  The user information, if
+present, is followed by a commercial at-sign (&quot;@&quot;) that delimits
+it from the host.
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>https://www.ietf.org/rfc/rfc3986.txt#section-3.21.</p></span></dd></dl></div>
     </li><li name="org.http4s.Uri.IPv4" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="IPv4=org.http4s.Uri.Ipv4Address"></a><a id="IPv4:IPv4"></a>
       <span class="permalink">
@@ -1563,6 +1570,22 @@ https://github.com/Norconex/commons-lang/blob/c83fdeac7a60ac99c8602e0b47056ad77b
       </span>
       <span class="symbol">
         <a title="" href="Uri$$Scheme$.html"><span class="name">Scheme</span></a>
+      </span>
+      
+      
+    </li><li name="org.http4s.Uri.UserInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UserInfo"></a><a id="UserInfo:UserInfo"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$.html#UserInfo" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="Uri$$UserInfo$.html"><span class="name">UserInfo</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.8/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
