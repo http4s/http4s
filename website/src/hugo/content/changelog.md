@@ -8,10 +8,14 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.4-SNAPSHOT
+# v0.20.4 (2019-07-06)
 
 ## Bug fixes
 * [#2687](https://github.com/http4s/http4s/pull/2687): Don't throw in `Uri.fromString` on invalid ports
+* [#2695](https://github.com/http4s/http4s/pull/2695): Handle EOF in blaze-server web socket by shutting down stage
+
+## Enhancements
+* [#2673](https://github.com/http4s/http4s/pull/2673): Add `GZip` middleware for client
 
 ## Documentation
 * [#2668](https://github.com/http4s/http4s/pull/2668): Clarifications in `Uri.Scheme` scaladoc
