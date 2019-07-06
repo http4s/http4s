@@ -3,7 +3,7 @@ package client
 package middleware
 
 import cats.effect.{IO, Resource}
-import cats.effect.concurrent.Ref
+import cats.effect.concurrent.{Ref, Semaphore}
 import cats.implicits._
 import fs2.Stream
 import org.http4s.dsl.io._
@@ -109,6 +109,22 @@ class RetrySpec extends Http4sSpec with Tables {
     "not retry a TimeoutException" in {
       val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(WaitQueueTimeoutException)))
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 1
+    }
+
+    "not exhaust the connection pool on retry" in {
+      Semaphore[IO](2).flatMap { semaphore =>
+        val client = Retry[IO](
+          RetryPolicy(
+            (att =>
+              if (att < 3) Some(Duration.Zero)
+              else None),
+            RetryPolicy.defaultRetriable[IO]))(Client[IO](_ =>
+          Resource.make(semaphore.tryAcquire.flatMap {
+            case true => Response[IO](Status.InternalServerError).pure[IO]
+            case false => IO.raiseError(new IllegalStateException("Exhausted all connections"))
+          })(_ => semaphore.release)))
+        client.status(Request[IO]())
+      } must returnValue(Status.InternalServerError)
     }
   }
 }
