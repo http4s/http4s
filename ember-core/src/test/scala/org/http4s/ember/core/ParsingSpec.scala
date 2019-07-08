@@ -4,6 +4,7 @@ import org.specs2.mutable.Specification
 import cats.effect.{IO, Sync}
 import org.http4s._
 import fs2.Stream
+import io.chrisdavenport.log4cats.testing.TestingLogger
 
 class ParsingSpec extends Specification {
   private object Helpers {
@@ -13,23 +14,25 @@ class ParsingSpec extends Specification {
 
     // Only for Use with Text Requests
     def parseRequestRig[F[_]: Sync](s: String): F[Request[F]] = {
+      val logger = TestingLogger.impl[F]()
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Request.parser[F](Int.MaxValue)(byteStream)
+      Parser.Request.parser[F](Int.MaxValue)(byteStream)(logger)
     }
 
     def parseResponseRig[F[_]: Sync](s: String): F[Response[F]] = {
+      val logger = TestingLogger.impl[F]()
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Response.parser[F](Int.MaxValue)(byteStream)
+      Parser.Response.parser[F](Int.MaxValue)(byteStream)(logger)
     }
   }
   "Parser.Request.parser" should {

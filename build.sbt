@@ -172,7 +172,8 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
 
 lazy val emberCore = libraryProject("ember-core")
   .settings(
-    description := "Base library for ember http4s clients and servers"
+    description := "Base library for ember http4s clients and servers",
+    libraryDependencies ++= Seq(log4cats, log4catsTesting % Test)
   )
   .dependsOn(core, testing % "test->test")
 
@@ -185,7 +186,7 @@ lazy val emberServer = libraryProject("ember-server")
 lazy val emberClient = libraryProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
-    libraryDependencies ++= Seq(fs2Crypto, keypool, log4cats)
+    libraryDependencies ++= Seq(fs2Crypto, keypool)
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 

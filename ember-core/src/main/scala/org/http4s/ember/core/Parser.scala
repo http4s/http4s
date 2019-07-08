@@ -7,7 +7,7 @@ import scodec.bits.ByteVector
 import org.http4s._
 import cats.effect._
 import Shared._
-import scala.annotation.tailrec
+import _root_.io.chrisdavenport.log4cats.Logger
 
 private[ember] object Parser {
 
@@ -47,9 +47,7 @@ private[ember] object Parser {
       go(ByteVector.empty, src).stream
   }
 
-  @tailrec
-  def generateHeaders(byteVector: ByteVector)(acc: Headers): Headers = {
-    val headerO = splitHeader(byteVector)
+  def generateHeaders[F[_]: Monad](byteVector: ByteVector)(acc: Headers)(logger: Logger[F]): F[Headers] = {
     // println(headerO)
 
     def generateHeaderForLine(bv: ByteVector): Option[Header] =
@@ -62,35 +60,37 @@ private[ember] object Parser {
         // _ = println(s"generateHeaders - header: ${header}")
       } yield header
 
-    headerO match {
+      splitHeader(byteVector)(logger).flatMap {
       case Right((lineBV, rest)) =>
         val headerO = generateHeaderForLine(lineBV)
         val newHeaders = acc ++ headerO.map(Headers.of(_)).foldMap(identity)
-        // println(s"Generate Headers Header0 = $headerO")
-        generateHeaders(rest)(newHeaders)
+
+        logger.trace(s"Generate Headers Header0 = $headerO") >>
+          generateHeaders(rest)(newHeaders)(logger)
       case Left(bv) =>
         val headerO = generateHeaderForLine(bv)
-        headerO.map(Headers.of(_)).foldMap(identity) ++ acc
+        val out = headerO.map(Headers.of(_)).foldMap(identity) ++ acc
+        out.pure[F]
     }
 
   }
 
-  def splitHeader(byteVector: ByteVector): Either[ByteVector, (ByteVector, ByteVector)] = {
+  def splitHeader[F[_]: Applicative](byteVector: ByteVector)(logger: Logger[F]): F[Either[ByteVector, (ByteVector, ByteVector)]] = {
     val index = byteVector.indexOfSlice(`\r\n`)
     if (index >= 0L) {
       val (line, rest) = byteVector.splitAt(index)
-      // println(s"splitHeader - Slice: ${line.decodeAscii}- Rest: ${rest.decodeAscii}")
-      Either.right((line, rest.drop(`\r\n`.length)))
+      logger.trace(s"splitHeader - Slice: ${line.decodeAscii}- Rest: ${rest.decodeAscii}")
+        .as(Either.right[ByteVector, (ByteVector, ByteVector)]((line, rest.drop(`\r\n`.length))))
     } else {
-      Either.left(byteVector)
+      Either.left[ByteVector, (ByteVector, ByteVector)](byteVector).pure[F]
     }
   }
 
   object Request {
 
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte]): F[Request[F]] =
+    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(l: Logger[F]): F[Request[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
-        .evalMap { case (bv, body) => headerBlobByteVectorToRequest[F](bv, body, maxHeaderLength) }
+        .evalMap { case (bv, body) => headerBlobByteVectorToRequest[F](bv, body, maxHeaderLength)(l) }
         .take(1)
         .compile
         .lastOrError
@@ -98,20 +98,20 @@ private[ember] object Parser {
     private def headerBlobByteVectorToRequest[F[_]: MonadError[?[_], Throwable]](
         b: ByteVector,
         s: Stream[F, Byte],
-        maxHeaderLength: Int): F[Request[F]] =
+        maxHeaderLength: Int)(logger: Logger[F]): F[Request[F]] =
       for {
-
-        (methodHttpUri, headersBV) <- splitHeader(b).fold(
+        shE <- splitHeader(b)(logger)
+        (methodHttpUri, headersBV) <- shE.fold(
           _ =>
             ApplicativeError[F, Throwable].raiseError[(ByteVector, ByteVector)](
               EmberException.ParseError("Invalid Empty Init Line")),
           Applicative[F].pure(_)
         )
         // Raw Header Logging
-        // _ = println(s"HeadersSection - ${headersBV.decodeAscii}")
+        _ <- logger.trace(s"HeadersSection - ${headersBV.decodeAscii}")
 
-        headers = generateHeaders(headersBV)(Headers.empty)
-        // _ = println(headers)
+        headers <- generateHeaders(headersBV)(Headers.empty)(logger)
+        _ <- logger.trace(show"Headers: $headers")
 
         (method, uri, http) <- bvToRequestTopLine[F](methodHttpUri)
 
@@ -183,9 +183,9 @@ private[ember] object Parser {
 
   object Response {
 
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte]): F[Response[F]] =
+    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(logger: Logger[F]): F[Response[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
-        .evalMap { case (bv, body) => headerBlobByteVectorToResponse[F](bv, body, maxHeaderLength) }
+        .evalMap { case (bv, body) => headerBlobByteVectorToResponse[F](bv, body, maxHeaderLength)(logger) }
         .take(1)
         .compile
         .lastOrError
@@ -193,16 +193,17 @@ private[ember] object Parser {
     private def headerBlobByteVectorToResponse[F[_]: MonadError[?[_], Throwable]](
         b: ByteVector,
         s: Stream[F, Byte],
-        maxHeaderLength: Int): F[Response[F]] =
+        maxHeaderLength: Int)(logger: Logger[F]): F[Response[F]] =
       for {
 
-        (methodHttpUri, headersBV) <- splitHeader(b).fold(
+        hE <- splitHeader(b)(logger)
+        (methodHttpUri, headersBV) <- hE.fold(
           _ =>
             ApplicativeError[F, Throwable].raiseError[(ByteVector, ByteVector)](
               EmberException.ParseError("Invalid Empty Init Line")),
           Applicative[F].pure(_)
         )
-        headers = generateHeaders(headersBV)(Headers.empty)
+        headers <- generateHeaders(headersBV)(Headers.empty)(logger)
         (httpV, status) <- bvToResponseTopLine[F](methodHttpUri)
 
         contentLength = headers.get(org.http4s.headers.`Content-Length`).map(_.length).getOrElse(0L)

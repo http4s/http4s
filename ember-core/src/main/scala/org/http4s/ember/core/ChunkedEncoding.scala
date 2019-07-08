@@ -81,7 +81,7 @@ private[ember] object ChunkedEncoding {
 
   /** yields to size of header in case the chunked header was succesfully parsed, else yields to None **/
   private def readChunkedHeader(hdr: ByteVector): Option[Long] =
-    hdr.decodeUtf8.right.toOption.flatMap { s =>
+    hdr.decodeUtf8.toOption.flatMap { s =>
       val parts = s.split(';') // lets ignore any extensions
       if (parts.isEmpty) None
       else {

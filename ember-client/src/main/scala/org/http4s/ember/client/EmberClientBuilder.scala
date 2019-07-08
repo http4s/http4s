@@ -109,7 +109,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 chunkSize,
                 maxResponseHeaderSize,
                 timeout
-              )
+              )(logger)
               .map(response =>
                 response.copy(body = response.body.onFinalizeCase {
                   case ExitCase.Completed =>

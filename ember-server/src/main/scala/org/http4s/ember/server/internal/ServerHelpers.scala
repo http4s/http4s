@@ -10,6 +10,7 @@ import java.net.InetSocketAddress
 import org.http4s._
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
+import _root_.io.chrisdavenport.log4cats.Logger
 
 private[server] object ServerHelpers {
 
@@ -26,7 +27,8 @@ private[server] object ServerHelpers {
       maxConcurrency: Int = Int.MaxValue,
       receiveBufferSize: Int = 256 * 1024,
       maxHeaderSize: Int = 10 * 1024,
-      requestHeaderReceiveTimeout: Duration = 5.seconds
+      requestHeaderReceiveTimeout: Duration = 5.seconds,
+      logger: Logger[F]
   )(implicit C: Clock[F]): Stream[F, Nothing] = {
 
     // Termination Signal, if not present then does not terminate.
@@ -47,7 +49,7 @@ private[server] object ServerHelpers {
             Parser.Request
               .parser(maxHeaderSize)(
                 readWithTimeout[F](socket, now, readDuration, timeoutSignal.get, receiveBufferSize)
-              )
+              )(logger)
               .flatMap { req =>
                 // Sync[F].delay(logger.debug(s"Request Processed $req")) *>
                 timeoutSignal.set(false).as(req)

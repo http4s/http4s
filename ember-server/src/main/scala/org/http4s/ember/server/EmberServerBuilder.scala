@@ -9,6 +9,7 @@ import org.http4s._
 import org.http4s.server.Server
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
+import _root_.io.chrisdavenport.log4cats.Logger
 
 final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val host: String,
@@ -20,7 +21,8 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val maxConcurrency: Int,
     val receiveBufferSize: Int,
     val maxHeaderSize: Int,
-    val requestHeaderReceiveTimeout: Duration
+    val requestHeaderReceiveTimeout: Duration,
+    private val logger: Logger[F]
 ) { self =>
 
   private def copy(
@@ -33,7 +35,8 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       maxConcurrency: Int = self.maxConcurrency,
       receiveBufferSize: Int = self.receiveBufferSize,
       maxHeaderSize: Int = self.maxHeaderSize,
-      requestHeaderReceiveTimeout: Duration = self.requestHeaderReceiveTimeout
+      requestHeaderReceiveTimeout: Duration = self.requestHeaderReceiveTimeout,
+      logger: Logger[F] = self.logger
   ): EmberServerBuilder[F] = new EmberServerBuilder[F](
     host = host,
     port = port,
@@ -44,7 +47,8 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     maxConcurrency = maxConcurrency,
     receiveBufferSize = receiveBufferSize,
     maxHeaderSize = maxHeaderSize,
-    requestHeaderReceiveTimeout = requestHeaderReceiveTimeout
+    requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
+    logger = logger
   )
 
   def withHost(host: String) = copy(host = host)
@@ -60,6 +64,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withMaxHeaderSize(maxHeaderSize: Int) = copy(maxHeaderSize = maxHeaderSize)
   def withRequestHeaderReceiveTimeout(requestHeaderReceiveTimeout: Duration) =
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
+  def withLogger(l: Logger[F]) = copy(logger = l)
 
   def build: Resource[F, Server[F]] =
     for {
@@ -80,7 +85,8 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 maxConcurrency,
                 receiveBufferSize,
                 maxHeaderSize,
-                requestHeaderReceiveTimeout
+                requestHeaderReceiveTimeout,
+                logger
               )
               .compile
               .drain
@@ -94,6 +100,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       )(_ => shutdownSignal.set(true))
     } yield out
 }
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 object EmberServerBuilder {
 
@@ -108,7 +115,8 @@ object EmberServerBuilder {
       maxConcurrency = Defaults.maxConcurrency,
       receiveBufferSize = Defaults.receiveBufferSize,
       maxHeaderSize = Defaults.maxHeaderSize,
-      requestHeaderReceiveTimeout = Defaults.requestHeaderReceiveTimeout
+      requestHeaderReceiveTimeout = Defaults.requestHeaderReceiveTimeout,
+      logger = Slf4jLogger.getLogger[F]
     )
 
   private object Defaults {

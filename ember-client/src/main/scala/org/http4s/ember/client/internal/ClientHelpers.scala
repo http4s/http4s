@@ -18,6 +18,7 @@ import _root_.org.http4s.ember.core.Util.readWithTimeout
 import spinoco.fs2.crypto.io.tcp.TLSSocket
 import scala.concurrent.ExecutionContext
 import _root_.fs2.io.tcp.SocketGroup
+import _root_.io.chrisdavenport.log4cats.Logger
 
 private[client] object ClientHelpers {
 
@@ -69,7 +70,7 @@ private[client] object ClientHelpers {
       chunkSize: Int,
       maxResponseHeaderSize: Int,
       timeout: Duration
-  )(implicit T: Timer[F]): F[Response[F]] = {
+  )(logger: Logger[F])(implicit T: Timer[F]): F[Response[F]] = {
 
     def onNoTimeout(socket: Socket[F]): F[Response[F]] =
       Parser.Response.parser(maxResponseHeaderSize)(
@@ -81,7 +82,7 @@ private[client] object ClientHelpers {
               .through(socket.writes(None))
               .drain
           )
-      )
+      )(logger)
 
     def onTimeout(socket: Socket[F], fin: FiniteDuration): F[Response[F]] =
       for {
@@ -100,7 +101,7 @@ private[client] object ClientHelpers {
         remains = fin - (sent - start).millis
         resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
           readWithTimeout(socket, start, remains, timeoutSignal.get, chunkSize)
-        )
+        )(logger)
         _ <- timeoutSignal.set(false).void
       } yield resp
 

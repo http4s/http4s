@@ -281,6 +281,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
   lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % "0.2.0-M2"
   lazy val log4cats                         = "io.chrisdavenport"      %% "log4cats-slf4j"            % "0.4.0-M1"
+  lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % log4cats.revision
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.8.2"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.28.2"
