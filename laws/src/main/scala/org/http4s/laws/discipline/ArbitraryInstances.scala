@@ -567,18 +567,6 @@ private[http4s] trait ArbitraryInstances {
       def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for { t1 <- g1; t2 <- g2 } yield t1 |+| t2
     }
 
-  private def timesBetween[T: Monoid](min: Int, max: Int, g: Gen[T]): Gen[T] =
-    for {
-      n <- choose(min, max)
-      l <- listOfN(n, g).suchThat(_.length == n)
-    } yield l.foldLeft(Monoid[T].empty)(_ |+| _)
-
-  private def times[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
-    listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))
-
-  private def atMost[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
-    timesBetween(min = 0, max = n, g)
-
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] =
     oneOf(g, const(ev.empty))
 
