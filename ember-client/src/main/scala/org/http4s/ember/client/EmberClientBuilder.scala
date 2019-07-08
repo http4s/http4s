@@ -49,7 +49,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     timeout = timeout
   )
 
-  def withSSlContext(sslExecutionContext: ExecutionContext, sslContext: SSLContext) =
+  def withSslContext(sslExecutionContext: ExecutionContext, sslContext: SSLContext) =
     copy(sslContextOpt = (sslExecutionContext, sslContext).some)
   def withoutSSLContext = copy(sslContextOpt = Option.empty[(ExecutionContext, SSLContext)])
 
