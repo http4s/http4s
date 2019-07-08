@@ -121,11 +121,7 @@ private[ember] object Parser {
           .get(org.http4s.headers.`Transfer-Encoding`)
           .exists(_.value.toList.contains(TransferCoding.chunked))
 
-        body = Alternative[Option]
-          .guard(isChunked)
-          .fold(
-            s.take(contentLength)
-          )(_ => s.through(ChunkedEncoding.decode(maxHeaderLength)))
+        body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength)) else s.take(contentLength)
 
         // enriched with host
         // seems presumptious
@@ -211,11 +207,7 @@ private[ember] object Parser {
           .get(org.http4s.headers.`Transfer-Encoding`)
           .exists(_.value.toList.contains(TransferCoding.chunked))
 
-        body = Alternative[Option]
-          .guard(isChunked)
-          .fold(
-            s.take(contentLength)
-          )(_ => s.through(ChunkedEncoding.decode(maxHeaderLength)))
+        body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength)) else s.take(contentLength)
 
       } yield
         org.http4s.Response[F](
