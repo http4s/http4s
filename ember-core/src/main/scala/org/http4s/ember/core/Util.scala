@@ -7,6 +7,7 @@ import fs2._
 import fs2.io.tcp.Socket
 import scala.concurrent.duration._
 import scala.concurrent.duration.MILLISECONDS
+import java.time.Instant
 
 private[ember] object Util {
 
@@ -36,7 +37,11 @@ private[ember] object Util {
       if (remains <= 0.millis)
         Stream
           .eval(C.realTime(MILLISECONDS))
-          .flatMap(now => Stream.raiseError[F](EmberException.Timeout(started, now)))
+          .flatMap(
+            now =>
+              Stream.raiseError[F](
+                EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
+            ))
       else
         for {
           start <- Stream.eval(C.realTime(MILLISECONDS))
