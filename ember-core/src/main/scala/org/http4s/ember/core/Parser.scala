@@ -47,7 +47,8 @@ private[ember] object Parser {
       go(ByteVector.empty, src).stream
   }
 
-  def generateHeaders[F[_]: Monad](byteVector: ByteVector)(acc: Headers)(logger: Logger[F]): F[Headers] = {
+  def generateHeaders[F[_]: Monad](byteVector: ByteVector)(acc: Headers)(
+      logger: Logger[F]): F[Headers] = {
     // println(headerO)
 
     def generateHeaderForLine(bv: ByteVector): Option[Header] =
@@ -60,7 +61,7 @@ private[ember] object Parser {
         // _ = println(s"generateHeaders - header: ${header}")
       } yield header
 
-      splitHeader(byteVector)(logger).flatMap {
+    splitHeader(byteVector)(logger).flatMap {
       case Right((lineBV, rest)) =>
         val headerO = generateHeaderForLine(lineBV)
         val newHeaders = acc ++ headerO.map(Headers.of(_)).foldMap(identity)
@@ -75,11 +76,13 @@ private[ember] object Parser {
 
   }
 
-  def splitHeader[F[_]: Applicative](byteVector: ByteVector)(logger: Logger[F]): F[Either[ByteVector, (ByteVector, ByteVector)]] = {
+  def splitHeader[F[_]: Applicative](byteVector: ByteVector)(
+      logger: Logger[F]): F[Either[ByteVector, (ByteVector, ByteVector)]] = {
     val index = byteVector.indexOfSlice(`\r\n`)
     if (index >= 0L) {
       val (line, rest) = byteVector.splitAt(index)
-      logger.trace(s"splitHeader - Slice: ${line.decodeAscii}- Rest: ${rest.decodeAscii}")
+      logger
+        .trace(s"splitHeader - Slice: ${line.decodeAscii}- Rest: ${rest.decodeAscii}")
         .as(Either.right[ByteVector, (ByteVector, ByteVector)]((line, rest.drop(`\r\n`.length))))
     } else {
       Either.left[ByteVector, (ByteVector, ByteVector)](byteVector).pure[F]
@@ -90,7 +93,9 @@ private[ember] object Parser {
 
     def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(l: Logger[F]): F[Request[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
-        .evalMap { case (bv, body) => headerBlobByteVectorToRequest[F](bv, body, maxHeaderLength)(l) }
+        .evalMap {
+          case (bv, body) => headerBlobByteVectorToRequest[F](bv, body, maxHeaderLength)(l)
+        }
         .take(1)
         .compile
         .lastOrError
@@ -121,7 +126,8 @@ private[ember] object Parser {
           .get(org.http4s.headers.`Transfer-Encoding`)
           .exists(_.value.toList.contains(TransferCoding.chunked))
 
-        body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength)) else s.take(contentLength)
+        body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
+        else s.take(contentLength)
 
         // enriched with host
         // seems presumptious
@@ -179,9 +185,12 @@ private[ember] object Parser {
 
   object Response {
 
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(logger: Logger[F]): F[Response[F]] =
+    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(
+        logger: Logger[F]): F[Response[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
-        .evalMap { case (bv, body) => headerBlobByteVectorToResponse[F](bv, body, maxHeaderLength)(logger) }
+        .evalMap {
+          case (bv, body) => headerBlobByteVectorToResponse[F](bv, body, maxHeaderLength)(logger)
+        }
         .take(1)
         .compile
         .lastOrError
@@ -207,7 +216,8 @@ private[ember] object Parser {
           .get(org.http4s.headers.`Transfer-Encoding`)
           .exists(_.value.toList.contains(TransferCoding.chunked))
 
-        body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength)) else s.take(contentLength)
+        body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
+        else s.take(contentLength)
 
       } yield
         org.http4s.Response[F](

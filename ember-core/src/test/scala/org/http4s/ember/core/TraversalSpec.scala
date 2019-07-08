@@ -26,7 +26,6 @@ class TraversalSpec extends Specification with ScalaCheck {
       val newReq = req
         .withUri(Uri.unsafeFromString("http://www.google.com"))
 
-
       val end = Parser.Request
         .parser[IO](Int.MaxValue)(
           Encoder.reqToBytes[IO](newReq)
