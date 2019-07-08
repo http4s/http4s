@@ -12,8 +12,8 @@ private[ember] object Encoder {
     val headerStrings: List[String] =
       resp.headers.toList.map(h => h.name.show + ": " + h.value).toList
 
-    val initSection = Stream(show"${resp.httpVersion} ${resp.status}") ++ Stream.emits(
-      headerStrings)
+    val initSection = Stream(show"${resp.httpVersion.renderString} ${resp.status.renderString}") ++ 
+      Stream.emits(headerStrings)
 
     val body = if (resp.isChunked) resp.body.through(ChunkedEncoding.encode[F]) else resp.body
 
@@ -24,7 +24,7 @@ private[ember] object Encoder {
 
   def reqToBytes[F[_]: Sync](req: Request[F]): Stream[F, Byte] = {
     // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
-    val requestLine = show"${req.method} ${req.uri.renderString} ${req.httpVersion}"
+    val requestLine = show"${req.method.renderString} ${req.uri.renderString} ${req.httpVersion.renderString}"
 
     val finalHeaders =
       req.uri.authority
