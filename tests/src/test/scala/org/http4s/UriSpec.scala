@@ -192,17 +192,17 @@ http://example.org/a file
     }
 
     "render a IPv6 address, should be wrapped in brackets" in {
-      val variants = "01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab" +: (for {
-        h <- 0 to 7
-        l <- 0 to 7 - h
-        f = List.fill(h)("01ab").mkString(":")
+      val variants = "1ab:1ab:1ab:1ab:1ab:1ab:1ab:1ab" +: (for {
+        h <- 0 to 6
+        l <- 0 to 6 - h
+        f = List.fill(h)("1ab").mkString(":")
         b = List.fill(l)("32ba").mkString(":")
       } yield (f + "::" + b))
 
       foreach(variants) { s =>
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = IPv6(s.ci))),
+          Some(Authority(host = Ipv6Address.unsafeFromString(s))),
           "/foo",
           Query.fromPairs("bar" -> "baz")).toString must_==
           (s"http://[$s]/foo?bar=baz")
@@ -244,7 +244,7 @@ http://example.org/a file
     "render IPv6 URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = IPv6("2001:db8::7".ci))),
+        Some(Authority(host = ipv6"2001:db8::7")),
         "/c",
         Query.fromPairs("GB" -> "object", "Class" -> "one")).toString must_== ("http://[2001:db8::7]/c?GB=object&Class=one")
     }
@@ -252,15 +252,11 @@ http://example.org/a file
     "render IPv6 URL with port" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(
-          host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci),
-          port = Some(8080)))).toString must_== ("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080")
+        Some(Authority(host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344", port = Some(8080)))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")
     }
 
     "render IPv6 URL without port" in {
-      Uri(
-        Some(Scheme.http),
-        Some(Authority(host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)))).toString must_== ("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]")
+      Uri(Some(Scheme.http), Some(Authority(host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
     }
 
     "not append a '/' unless it's in the path" in {

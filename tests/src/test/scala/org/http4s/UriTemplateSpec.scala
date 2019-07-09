@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.Uri.{Authority, IPv6, RegName, Scheme, UserInfo}
+import org.http4s.Uri.{Authority, RegName, Scheme, UserInfo}
 import org.http4s.UriTemplate._
 
 class UriTemplateSpec extends Http4sSpec {
@@ -188,14 +188,14 @@ class UriTemplateSpec extends Http4sSpec {
       val fragment = List(FragmentElm(""))
       UriTemplate(query = Nil, fragment = fragment).toString must equalTo("/#")
     }
-    "render http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/foo?bar=baz" in {
+    "render http://[1ab:1ab:1ab:1ab:1ab:1ab:1ab:1ab]/foo?bar=baz" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
+      val host = ipv6"1ab:1ab:1ab:1ab:1ab:1ab:1ab:1ab"
       val authority = Some(Authority(host = host))
       val path = List(PathElm("foo"))
       val query = List(ParamElm("bar", "baz"))
       UriTemplate(scheme, authority, path, query).toString must
-        equalTo("http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/foo?bar=baz")
+        equalTo("http://[1ab:1ab:1ab:1ab:1ab:1ab:1ab:1ab]/foo?bar=baz")
     }
     "render http://www.foo.com/foo?bar=baz" in {
       val scheme = Some(Scheme.http)
@@ -240,34 +240,34 @@ class UriTemplateSpec extends Http4sSpec {
       UriTemplate(scheme, authority, path, query).toString must
         equalTo("http://192.168.1.1:80/c?GB=object&Class=one")
     }
-    "render http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080" in {
+    "render http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)
+      val host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"
       val authority = Some(Authority(host = host, port = Some(8080)))
       UriTemplate(scheme, authority).toString must
-        equalTo("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080")
+        equalTo("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")
     }
     "render http://[2001:db8::7]" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("2001:db8::7".ci)
+      val host = ipv6"2001:db8::7"
       val authority = Some(Authority(host = host))
       UriTemplate(scheme, authority).toString must
         equalTo("http://[2001:db8::7]")
     }
     "render http://[2001:db8::7]/c?GB=object&Class=one" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("2001:db8::7".ci)
+      val host = ipv6"2001:db8::7"
       val authority = Some(Authority(host = host))
       val path = List(PathElm("c"))
       val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       UriTemplate(scheme, authority, path, query).toString must
         equalTo("http://[2001:db8::7]/c?GB=object&Class=one")
     }
-    "render http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]" in {
+    "render http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]" in {
       UriTemplate(
         Some(Scheme.http),
-        Some(Authority(host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)))).toString must
-        equalTo("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]")
+        Some(Authority(host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))).toString must
+        equalTo("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
     }
     "render email address (not supported at the moment)" in {
       UriTemplate(Some(scheme"mailto"), path = List(PathElm("John.Doe@example.com"))).toString must
@@ -416,7 +416,7 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/{rel}/search{?term}{#section} to UriTemplate" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
+      val host = ipv6"01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab"
       val authority = Some(Authority(host = host))
       val path = List(VarExp("rel"), PathElm("search"))
       val query = List(ParamExp("term"))
@@ -426,7 +426,7 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]:8080/{rel}/search{?term}{#section} to UriTemplate" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
+      val host = ipv6"01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab"
       val authority = Some(Authority(host = host, port = Some(8080)))
       val path = List(VarExp("rel"), PathElm("search"))
       val query = List(ParamExp("term"))
@@ -436,7 +436,7 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/foo?bar=baz Uri" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
+      val host = ipv6"01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab"
       val authority = Some(Authority(host = host))
       val path = List(PathElm("foo"))
       val query = List(ParamElm("bar", List("baz")))
@@ -495,7 +495,7 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "convert http://[2001:db8::7]/c?GB=object&Class=one to Uri" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("2001:db8::7".ci)
+      val host = ipv6"2001:db8::7"
       val authority = Some(Authority(host = host))
       val path = List(PathElm("c"))
       val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
@@ -504,14 +504,14 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344] to Uri" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)
+      val host = ipv6"2001:0db8:85a3:08d3:1319:8a2e:0370:7344"
       val authority = Some(Authority(None, host, None))
       UriTemplate(scheme, authority).toUriIfPossible.get must
         equalTo(Uri(scheme, authority))
     }
     "convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080 to Uri" in {
       val scheme = Some(Scheme.http)
-      val host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)
+      val host = ipv6"2001:0db8:85a3:08d3:1319:8a2e:0370:7344"
       val authority = Some(Authority(None, host, Some(8080)))
       UriTemplate(scheme, authority).toUriIfPossible.get must
         equalTo(Uri(scheme, authority))
