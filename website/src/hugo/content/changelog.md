@@ -24,6 +24,7 @@ This release drops support for Scala 2.11 and adds the `http4s-ember-server` and
 * [#2661](https://github.com/http4s/http4s/pull/2661): Move string contexts macros for literals from `org.http4s` to `org.http4s.implicits`
 * [#2679](https://github.com/http4s/http4s/pull/2679): Replace `Uri.IPv4` with `Uri.Ipv4Address`, including an `ipv4` interpolator and interop with `Inet4Address`.
 * [#2694](https://github.com/http4s/http4s/pull/2694): Drop Scala 2.11 support 
+* [#2700](https://github.com/http4s/http4s/pull/2700): Replace `Uri.IPv6` with `Uri.Ipv6Address`, including an `ipv6` interpolator and interop with `Inet6Address`.
 
 ## Enhancements
 * [#2656](https://github.com/http4s/http4s/pull/2656): Add `emap` and `emapValidatedNel` to `QueryParamDecoder`
