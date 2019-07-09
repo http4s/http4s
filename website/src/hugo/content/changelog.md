@@ -8,6 +8,11 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.5-SNAPSHOT
+
+## Dependency upgrades
+- blaze-0.14.6
+
 # v0.20.4 (2019-07-06)
 
 ## Bug fixes
