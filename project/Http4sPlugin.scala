@@ -183,6 +183,7 @@ object Http4sPlugin extends AutoPlugin {
         tagRelease.when(publishable && release),
         runClean,
         releaseStepCommandAndRemaining("+mimaReportBinaryIssues"),
+        releaseStepCommandAndRemaining("""sonatypeOpen "Release via Travis""""),
         releaseStepCommandAndRemaining("+publishSigned").when(publishable),
         releaseStepCommand("sonatypeReleaseAll").when(publishable && release),
         setNextVersion.when(publishable && release),
