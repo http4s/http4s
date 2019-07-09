@@ -8,7 +8,10 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.5-SNAPSHOT
+# v0.20.5 (2019-07-09)
+
+## Bug fixes
+* [#2705](https://github.com/http4s/http4s/pull/2705): Upgrades blaze to close `SSLEngine` when an `SSLStage` shuts down. This is useful in certain `SSLContext` implementations.  See [blaze#305](https://github.com/http4s/blaze/pull/305) for more.
 
 ## Dependency upgrades
 - blaze-0.14.6
