@@ -8,12 +8,15 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.0-M2
+# v0.21.0-M2 (2019-07-09)
+
+This release drops support for Scala 2.11 and adds the `http4s-ember-server` and `http4s-ember-client` backends.  Ember is new and experimental, but we intend for it to become the reference implementation.  Notably, it only requires a `Concurrent` constraint.
 
 ## Bugfixes
 * [#2691](https://github.com/http4s/http4s/pull/2691): Fix deadlock in client by releasing current connection before retrying in `Retry` client middleware.  The constraint is upgraded to `Concurrent`.
 * [#2693](https://github.com/http4s/http4s/pull/2693): Fix deadlock in client by releasing current connection before retrying in `FollowRedirect` client middleware.  The constraint is upgraded to `Concurrent`.
 * [#2671](https://github.com/http4s/http4s/pull/2671): Upgrade `Uri.UserInfo` to a case class with username and password, fixing encoding issues. This is for RFC 3986 compliance, where it's deprecated for security reasons. Please don't use this.
+* [#2704](https://github.com/http4s/http4s/pull/2704): Remove unused `Sync` constraint on `Part.formData`.
 
 ## Breaking changes
 * [#2654](https://github.com/http4s/http4s/pull/2654): Extract an http4s-laws module from http4s-testing, with no dependency on Specs2.  The arbitraries, laws, and tests are now laid out in a similar structure to cats and cats-effect.
@@ -24,6 +27,7 @@ it.
 
 ## Enhancements
 * [#2656](https://github.com/http4s/http4s/pull/2656): Add `emap` and `emapValidatedNel` to `QueryParamDecoder`
+* [#2696](https://github.com/http4s/http4s/pull/2696): Introduce `http4s-ember-server` and `http4s-ember-client`
 
 ## Documentation
 * [#2658](https://github.com/http4s/http4s/pull/2658): Link to http4s-jdk-http-client
