@@ -10,8 +10,6 @@ it.
 
 # v0.21.0-M2
 
-This release drops support for Scala 2.11.
-
 ## Bugfixes
 * [#2691](https://github.com/http4s/http4s/pull/2691): Fix deadlock in client by releasing current connection before retrying in `Retry` client middleware.  The constraint is upgraded to `Concurrent`.
 * [#2693](https://github.com/http4s/http4s/pull/2693): Fix deadlock in client by releasing current connection before retrying in `FollowRedirect` client middleware.  The constraint is upgraded to `Concurrent`.
@@ -40,6 +38,15 @@ This release drops support for Scala 2.11.
 * json4s-3.6.7
 * okhttp-4.0.0
 * specs2-core-4.6.0
+
+# v0.20.5 (2019-07-09)
+
+## Bug fixes
+* [#2705](https://github.com/http4s/http4s/pull/2705): Upgrades blaze to close `SSLEngine` when an `SSLStage` shuts down. This is useful in certain `SSLContext` implementations.  See [blaze#305](https://github.com/http4s/blaze/pull/305) for more.
+
+## Dependency upgrades
+- blaze-0.14.6
+>>>>>>> 0.20.5
 
 # v0.20.4 (2019-07-06)
 
