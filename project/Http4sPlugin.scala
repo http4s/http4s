@@ -90,7 +90,10 @@ object Http4sPlugin extends AutoPlugin {
       }
     },
     mimaFailOnProblem := http4sMimaVersion.value.isDefined,
-    mimaPreviousArtifacts := (http4sMimaVersion.value map {
+    mimaPreviousArtifacts := (http4sMimaVersion.value.map {
+      case "0.20.5" => "0.20.4" // cursed release
+      case v => v
+    }.map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
 
@@ -183,6 +186,7 @@ object Http4sPlugin extends AutoPlugin {
         tagRelease.when(publishable && release),
         runClean,
         releaseStepCommandAndRemaining("+mimaReportBinaryIssues"),
+        releaseStepCommandAndRemaining("""sonatypeOpen "Release via Travis""""),
         releaseStepCommandAndRemaining("+publishSigned").when(publishable),
         releaseStepCommand("sonatypeReleaseAll").when(publishable && release),
         setNextVersion.when(publishable && release),
