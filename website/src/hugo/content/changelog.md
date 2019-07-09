@@ -51,7 +51,6 @@ This release drops support for Scala 2.11 and adds the `http4s-ember-server` and
 
 ## Dependency upgrades
 - blaze-0.14.6
->>>>>>> 0.20.5
 
 # v0.20.4 (2019-07-06)
 
