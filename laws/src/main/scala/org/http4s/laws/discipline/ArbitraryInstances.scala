@@ -567,18 +567,6 @@ private[http4s] trait ArbitraryInstances {
       def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for { t1 <- g1; t2 <- g2 } yield t1 |+| t2
     }
 
-  private def timesBetween[T: Monoid](min: Int, max: Int, g: Gen[T]): Gen[T] =
-    for {
-      n <- choose(min, max)
-      l <- listOfN(n, g).suchThat(_.length == n)
-    } yield l.foldLeft(Monoid[T].empty)(_ |+| _)
-
-  private def times[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
-    listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))
-
-  private def atMost[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
-    timesBetween(min = 0, max = n, g)
-
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] =
     oneOf(g, const(ev.empty))
 
@@ -596,29 +584,27 @@ private[http4s] trait ArbitraryInstances {
     Cogen[(Byte, Byte, Byte, Byte)].contramap(ipv4 => (ipv4.a, ipv4.b, ipv4.c, ipv4.d))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIPv6: Arbitrary[Uri.IPv6] = Arbitrary {
-    val h16 = timesBetween(min = 1, max = 4, genHexDigit.map(_.toString))
-    val ls32 = oneOf(h16 |+| const(":") |+| h16, getArbitrary[Uri.Ipv4Address].map(_.value))
-    val h16colon = h16 |+| const(":")
-    val :: = const("::")
-
-    oneOf(
-      times(6, h16colon) |+| ls32,
-      :: |+| times(5, h16colon) |+| ls32,
-      opt(h16) |+| :: |+| times(4, h16colon) |+| ls32,
-      opt(atMost(1, h16colon) |+| h16) |+| :: |+| times(3, h16colon) |+| ls32,
-      opt(atMost(2, h16colon) |+| h16) |+| :: |+| times(2, h16colon) |+| ls32,
-      opt(atMost(3, h16colon) |+| h16) |+| :: |+| opt(h16colon) |+| ls32,
-      opt(atMost(4, h16colon) |+| h16) |+| :: |+| ls32,
-      opt(atMost(5, h16colon) |+| h16) |+| :: |+| h16,
-      opt(atMost(6, h16colon) |+| h16) |+| ::
-    ).map(Uri.IPv6.apply)
+  implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] = Arbitrary {
+    for {
+      a <- getArbitrary[Short]
+      b <- getArbitrary[Short]
+      c <- getArbitrary[Short]
+      d <- getArbitrary[Short]
+      e <- getArbitrary[Short]
+      f <- getArbitrary[Short]
+      g <- getArbitrary[Short]
+      h <- getArbitrary[Short]
+    } yield Uri.Ipv6Address(a, b, c, d, e, f, g, h)
   }
+
+  implicit val http4sTestingCogenForIpv6Address: Cogen[Uri.Ipv6Address] =
+    Cogen[(Short, Short, Short, Short, Short, Short, Short, Short)]
+      .contramap(ipv6 => (ipv6.a, ipv6.b, ipv6.c, ipv6.d, ipv6.e, ipv6.f, ipv6.g, ipv6.h))
 
   implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = Arbitrary {
     val genRegName =
       listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
-    oneOf(getArbitrary[Uri.Ipv4Address], http4sTestingArbitraryForIPv6.arbitrary, genRegName)
+    oneOf(getArbitrary[Uri.Ipv4Address], getArbitrary[Uri.Ipv6Address], genRegName)
   }
 
   implicit val http4sTestingArbitraryForUserInfo: Arbitrary[Uri.UserInfo] =
