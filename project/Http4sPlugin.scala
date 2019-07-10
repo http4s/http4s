@@ -87,6 +87,7 @@ object Http4sPlugin extends AutoPlugin {
       }
     },
     mimaFailOnProblem := http4sMimaVersion.value.isDefined,
+    mimaFailOnNoPrevious := false,
     mimaPreviousArtifacts := (http4sMimaVersion.value map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
