@@ -87,7 +87,10 @@ object Http4sPlugin extends AutoPlugin {
       }
     },
     mimaFailOnProblem := http4sMimaVersion.value.isDefined,
-    mimaPreviousArtifacts := (http4sMimaVersion.value map {
+    mimaPreviousArtifacts := (http4sMimaVersion.value.map {
+      case "0.20.5" => "0.20.4" // cursed release
+      case v => v
+    }.map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
 
@@ -158,6 +161,7 @@ object Http4sPlugin extends AutoPlugin {
         tagRelease.when(publishable && release),
         runClean,
         releaseStepCommandAndRemaining("+mimaReportBinaryIssues"),
+        releaseStepCommandAndRemaining("""sonatypeOpen "Release via Travis""""),
         releaseStepCommandAndRemaining("+publishSigned").when(publishable),
         releaseStepCommand("sonatypeReleaseAll").when(publishable && release),
         setNextVersion.when(publishable && release),
@@ -247,7 +251,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.1"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.5"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.6"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-M4"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-M4"
