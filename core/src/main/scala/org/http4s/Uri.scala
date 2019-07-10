@@ -1,11 +1,13 @@
 package org.http4s
 
-import cats.{Eq, Order, Show}
-import cats.implicits.{catsSyntaxEither => _, _}
-import java.nio.charset.StandardCharsets
+import cats.{Eq, Hash, Order, Show}
+import cats.implicits._
+import java.net.{Inet4Address, Inet6Address, InetAddress}
+import java.nio.ByteBuffer
+import java.nio.charset.{Charset => NioCharset, StandardCharsets}
 import org.http4s.Uri._
-import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
-import org.http4s.internal.parboiled2.{Parser => PbParser}
+import org.http4s.internal.parboiled2.{Parser => PbParser, _}
+import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
@@ -161,8 +163,11 @@ object Uri {
       .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
 
-  /** Each [[org.http4s.Uri]] begins with a scheme name that refers to a
+  /** A [[org.http4s.Uri]] may begin with a scheme name that refers to a
     * specification for assigning identifiers within that scheme.
+    *
+    * If the scheme is defined, the URI is absolute.  If the scheme is
+    * not defined, the URI is a relative reference.
     *
     * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.1
     */
@@ -190,10 +195,17 @@ object Uri {
     val http: Scheme = new Scheme("http")
     val https: Scheme = new Scheme("https")
 
-    def parse(s: String): ParseResult[Scheme] =
+    @deprecated("Renamed to fromString", "0.21.0-M2")
+    def parse(s: String): ParseResult[Scheme] = fromString(s)
+
+    def fromString(s: String): ParseResult[Scheme] =
       new Http4sParser[Scheme](s, "Invalid scheme") with Parser {
         def main = scheme
       }.parse
+
+    /** Like `fromString`, but throws on invalid input */
+    def unsafeFromString(s: String): Scheme =
+      fromString(s).fold(throw _, identity)
 
     private[http4s] trait Parser { self: PbParser =>
       def scheme = rule {
@@ -210,14 +222,12 @@ object Uri {
     implicit val http4sInstancesForScheme: HttpCodec[Scheme] =
       new HttpCodec[Scheme] {
         def parse(s: String): ParseResult[Scheme] =
-          Scheme.parse(s)
+          Scheme.fromString(s)
 
         def render(writer: Writer, scheme: Scheme): writer.type =
           writer << scheme.value
       }
   }
-
-  type UserInfo = String
 
   type Path = String
   type Fragment = String
@@ -237,28 +247,376 @@ object Uri {
     }
   }
 
-  sealed trait Host extends Renderable {
-    final def value: String = this match {
-      case RegName(h) => h.toString
-      case IPv4(a) => a.toString
-      case IPv6(a) => a.toString
+  /** The userinfo subcomponent may consist of a user name and,
+    * optionally, scheme-specific information about how to gain
+    * authorization to access the resource.  The user information, if
+    * present, is followed by a commercial at-sign ("@") that delimits
+    * it from the host.
+    *
+    * @param username The username component, decoded.
+    *
+    * @param password The password, decoded.  Passing a password in
+    * clear text in a URI is a security risk and deprecated by RFC
+    * 3986, but preserved in this model for losslessness.
+    *
+    * @see https://www.ietf.org/rfc/rfc3986.txt#section-3.21.
+    */
+  final case class UserInfo private (username: String, password: Option[String])
+      extends Ordered[UserInfo] {
+    override def compare(that: UserInfo): Int =
+      username.compareTo(that.username) match {
+        case 0 => Ordering.Option[String].compare(password, that.password)
+        case cmp => cmp
+      }
+  }
+
+  object UserInfo {
+
+    /** Parses a userInfo from a percent-encoded string. */
+    def fromString(s: String): ParseResult[UserInfo] =
+      fromStringWithCharset(s, StandardCharsets.UTF_8)
+
+    /** Parses a userInfo from a string percent-encoded in a specific charset. */
+    def fromStringWithCharset(s: String, cs: NioCharset): ParseResult[UserInfo] =
+      new Http4sParser[UserInfo](s, "Invalid user info") with Rfc3986Parser {
+        def main = userInfo
+        def charset = cs
+      }.parse
+
+    private[http4s] trait Parser { self: Rfc3986Parser =>
+      def userInfo: Rule1[UserInfo] = rule {
+        capture(zeroOrMore(Unreserved | PctEncoded | SubDelims)) ~
+          (":" ~ capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":"))).? ~>
+          (
+              (
+                  username: String,
+                  password: Option[String]) => UserInfo(decode(username), password.map(decode)))
+      }
     }
+
+    implicit val http4sInstancesForUserInfo
+      : HttpCodec[UserInfo] with Order[UserInfo] with Hash[UserInfo] with Show[UserInfo] =
+      new HttpCodec[UserInfo] with Order[UserInfo] with Hash[UserInfo] with Show[UserInfo] {
+        def parse(s: String): ParseResult[UserInfo] =
+          UserInfo.fromString(s)
+        def render(writer: Writer, userInfo: UserInfo): writer.type = {
+          writer << encodeUsername(userInfo.username)
+          userInfo.password.foreach(writer << ":" << encodePassword(_))
+          writer
+        }
+
+        private val SkipEncodeInUsername =
+          UrlCodingUtils.Unreserved ++ "!$&'()*+,;="
+
+        private def encodeUsername(
+            s: String,
+            charset: NioCharset = StandardCharsets.UTF_8): String =
+          UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInUsername)
+
+        private val SkipEncodeInPassword =
+          SkipEncodeInUsername ++ ":"
+
+        private def encodePassword(
+            s: String,
+            charset: NioCharset = StandardCharsets.UTF_8): String =
+          UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInPassword)
+
+        def compare(x: UserInfo, y: UserInfo): Int = x.compareTo(y)
+
+        def hash(x: UserInfo): Int = x.hashCode
+
+        def show(x: UserInfo): String = x.toString
+      }
+  }
+
+  sealed trait Host extends Renderable {
+    def value: String
 
     override def render(writer: Writer): writer.type = this match {
       case RegName(n) => writer << n
-      case IPv4(a) => writer << a
-      case IPv6(a) => writer << '[' << a << ']'
+      case a: Ipv4Address => writer << a.value
+      case a: Ipv6Address => writer << '[' << a << ']'
       case _ => writer
     }
   }
 
-  final case class RegName(host: CaseInsensitiveString) extends Host
-  final case class IPv4(address: CaseInsensitiveString) extends Host
-  final case class IPv6(address: CaseInsensitiveString) extends Host
+  @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
+  type IPv4 = Ipv4Address
+
+  @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
+  object IPv4 {
+    @deprecated("Use Ipv4Address.fromString(ciString.value)", "0.21.0-M2")
+    def apply(ciString: CaseInsensitiveString): ParseResult[Ipv4Address] =
+      Ipv4Address.fromString(ciString.value)
+  }
+
+  final case class Ipv4Address(a: Byte, b: Byte, c: Byte, d: Byte)
+      extends Host
+      with Ordered[Ipv4Address]
+      with Serializable {
+    override def toString: String = s"Ipv4Address($value)"
+
+    override def compare(that: Ipv4Address): Int = {
+      var cmp = a.compareTo(that.a)
+      if (cmp == 0) cmp = b.compareTo(that.b)
+      if (cmp == 0) cmp = c.compareTo(that.c)
+      if (cmp == 0) cmp = d.compareTo(that.d)
+      cmp
+    }
+
+    def toByteArray: Array[Byte] =
+      Array(a, b, c, d)
+
+    def toInet4Address: Inet4Address =
+      InetAddress.getByAddress(toByteArray).asInstanceOf[Inet4Address]
+
+    def value: String =
+      new StringBuilder()
+        .append(a & 0xff)
+        .append(".")
+        .append(b & 0xff)
+        .append(".")
+        .append(c & 0xff)
+        .append(".")
+        .append(d & 0xff)
+        .toString
+  }
+
+  object Ipv4Address {
+    def fromString(s: String): ParseResult[Ipv4Address] =
+      new Http4sParser[Ipv4Address](s, "Invalid scheme") with Parser with IpParser {
+        def main = ipv4Address
+      }.parse
+
+    /** Like `fromString`, but throws on invalid input */
+    def unsafeFromString(s: String): Ipv4Address =
+      fromString(s).fold(throw _, identity)
+
+    def fromByteArray(bytes: Array[Byte]): ParseResult[Ipv4Address] =
+      bytes match {
+        case Array(a, b, c, d) =>
+          Right(Ipv4Address(a, b, c, d))
+        case _ =>
+          Left(ParseFailure("Invalid Ipv4Address", s"Byte array not exactly four bytes: ${bytes}"))
+      }
+
+    def fromInet4Address(address: Inet4Address): Ipv4Address =
+      address.getAddress match {
+        case Array(a, b, c, d) =>
+          Ipv4Address(a, b, c, d)
+        case array =>
+          throw bug(s"Inet4Address.getAddress not exactly four bytes: ${array}")
+      }
+
+    private[http4s] trait Parser { self: PbParser with IpParser =>
+      def ipv4Address: Rule1[Ipv4Address] = rule {
+        // format: off
+        decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~>
+        { (a: Byte, b: Byte, c: Byte, d: Byte) => new Ipv4Address(a, b, c, d) }
+        // format:on
+      }
+
+      private def decOctet = rule { capture(DecOctet) ~> (_.toInt.toByte) }
+    }
+
+    implicit val http4sInstancesForIpv4Address
+      : HttpCodec[Ipv4Address] with Order[Ipv4Address] with Hash[Ipv4Address] with Show[Ipv4Address] =
+      new HttpCodec[Ipv4Address] with Order[Ipv4Address] with Hash[Ipv4Address] with Show[Ipv4Address] {
+        def parse(s: String): ParseResult[Ipv4Address] =
+          Ipv4Address.fromString(s)
+        def render(writer: Writer, ipv4: Ipv4Address): writer.type =
+          writer << ipv4.value
+
+        def compare(x: Ipv4Address, y: Ipv4Address): Int = x.compareTo(y)
+
+        def hash(x: Ipv4Address): Int = x.hashCode
+
+        def show(x: Ipv4Address): String = x.toString
+      }
+  }
+
+  @deprecated("Renamed to Ipv6Address, modeled as case class of bytes", "0.21.0-M2")
+  type IPv6 = Ipv6Address
+
+  @deprecated("Renamed to Ipv6Address, modeled as case class of bytes", "0.21.0-M2")
+  object IPv6 {
+    @deprecated("Use Ipv6Address.fromString(ciString.value)", "0.21.0-M2")
+    def apply(ciString: CaseInsensitiveString): ParseResult[Ipv6Address] =
+      Ipv6Address.fromString(ciString.value)
+  }
+
+  final case class Ipv6Address(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
+      extends Host
+      with Ordered[Ipv6Address]
+      with Serializable {
+    override def toString: String = s"Ipv6Address($a,$b,$c,$d,$e,$f,$g,$h)"
+
+    override def compare(that: Ipv6Address): Int = {
+      var cmp = a.compareTo(that.a)
+      if (cmp == 0) cmp = b.compareTo(that.b)
+      if (cmp == 0) cmp = c.compareTo(that.c)
+      if (cmp == 0) cmp = d.compareTo(that.d)
+      if (cmp == 0) cmp = e.compareTo(that.e)
+      if (cmp == 0) cmp = f.compareTo(that.f)
+      if (cmp == 0) cmp = g.compareTo(that.g)
+      if (cmp == 0) cmp = h.compareTo(that.h)
+      cmp
+    }
+
+    def toByteArray: Array[Byte] = {
+      val bb = ByteBuffer.allocate(16)
+      bb.putShort(a)
+      bb.putShort(b)
+      bb.putShort(c)
+      bb.putShort(d)
+      bb.putShort(e)
+      bb.putShort(f)
+      bb.putShort(g)
+      bb.putShort(h)
+      bb.array
+    }
+
+    def toInet6Address: Inet6Address =
+      InetAddress.getByAddress(toByteArray).asInstanceOf[Inet6Address]
+
+    def value: String = {
+      val hextets = Array(a, b, c, d, e, f, g, h)
+      var zeroesStart = -1
+      var maxZeroesStart = -1
+      var maxZeroesLen = 0
+      var lastWasZero = false
+      for (i <- 0 until 8) {
+        if (hextets(i) == 0) {
+          if (!lastWasZero) {
+            lastWasZero = true
+            zeroesStart = i
+          }
+          else {
+            val zeroesLen = i - zeroesStart
+            if (zeroesLen > maxZeroesLen) {
+              maxZeroesStart = zeroesStart
+              maxZeroesLen = zeroesLen
+            }
+          }
+        }
+        else {
+          lastWasZero = false
+        }
+      }
+      val sb = new StringBuilder
+      var i = 0
+      while (i < 8) {
+        if (i == maxZeroesStart) {
+          sb.append("::")
+          i += maxZeroesLen
+          i += 1
+        }
+        else {
+          sb.append(Integer.toString(hextets(i) & 0xffff, 16))
+          i += 1
+          if (i < 8 && i != maxZeroesStart) {
+            sb.append(":")
+          }
+        }
+      }
+      sb.toString
+    }
+  }
+
+  object Ipv6Address {
+    def fromString(s: String): ParseResult[Ipv6Address] =
+      new Http4sParser[Ipv6Address](s, "Invalid scheme") with Parser with IpParser {
+        def main = ipv6Address
+      }.parse
+
+    /** Like `fromString`, but throws on invalid input */
+    def unsafeFromString(s: String): Ipv6Address =
+      fromString(s).fold(throw _, identity)
+
+    def fromByteArray(bytes: Array[Byte]): ParseResult[Ipv6Address] =
+      if (bytes.length == 16) {
+        val bb = ByteBuffer.wrap(bytes)
+        Right(Ipv6Address(bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort()))
+      } else {
+        Left(ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}"))
+      }
+
+    def fromInet6Address(address: Inet6Address): Ipv6Address = {
+      val bytes = address.getAddress
+      if (bytes.length == 16) {
+        val bb = ByteBuffer.wrap(bytes)
+        Ipv6Address(bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort(), bb.getShort())
+      } else {
+        throw bug(s"Inet4Address.getAddress not exactly 16 bytes: ${bytes.toSeq}")
+      }
+    }
+
+    private[http4s] trait Parser { self: PbParser with IpParser =>
+      // format: off
+      def ipv6Address: Rule1[Ipv6Address] = rule {
+        6.times(h16 ~ ":") ~ ls32 ~>
+          { (ls: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(ls, Seq(r0, r1)) } |
+        "::" ~ 5.times(h16 ~ ":") ~ ls32 ~>
+          { (ls: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(ls, Seq(r0, r1)) } |
+        optional(h16) ~ "::" ~ 4.times(h16 ~ ":") ~ ls32 ~>
+          { (l: Option[Short], rs: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(l.toSeq, rs :+ r0 :+ r1) } |
+        optional((1 to 2).times(h16).separatedBy(":")) ~ "::" ~ 3.times(h16 ~ ":") ~ ls32 ~>
+          { (ls: Option[collection.Seq[Short]], rs: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(ls.getOrElse(Seq.empty), rs :+ r0 :+ r1) } |
+        optional((1 to 3).times(h16).separatedBy(":")) ~ "::" ~ 2.times(h16 ~ ":") ~ ls32 ~>
+          { (ls: Option[collection.Seq[Short]], rs: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(ls.getOrElse(Seq.empty), rs :+ r0 :+ r1) } |
+        optional((1 to 4).times(h16).separatedBy(":")) ~ "::" ~ h16 ~ ":" ~ ls32 ~>
+          { (ls: Option[collection.Seq[Short]], r0: Short, r1: Short, r2: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1, r2)) } |
+        optional((1 to 5).times(h16).separatedBy(":")) ~ "::" ~ ls32 ~>
+          { (ls: Option[collection.Seq[Short]], r0: Short, r1: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1)) } |
+        optional((1 to 6).times(h16).separatedBy(":")) ~ "::" ~ h16 ~>
+          { (ls: Option[collection.Seq[Short]], r0: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0)) } |
+        optional((1 to 7).times(h16).separatedBy(":")) ~ "::" ~>
+          { (ls: Option[collection.Seq[Short]]) => toIpv6(ls.getOrElse(Seq.empty), Seq.empty) }
+      }
+      // format:on
+
+      def ls32: Rule2[Short, Short] = rule {
+        (h16 ~ ":" ~ h16) |
+        (decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet) ~> { (a: Byte, b: Byte, c: Byte, d: Byte) =>
+          push(((a << 8) | b).toShort) ~ push(((c << 8) | d).toShort)
+        }
+      }
+
+      def h16: Rule1[Short] = rule {
+        capture((1 to 4).times(HexDigit)) ~> { s: String => java.lang.Integer.parseInt(s, 16).toShort }
+      }
+      // format:on
+
+      private def toIpv6(lefts: collection.Seq[Short], rights: collection.Seq[Short]): Ipv6Address =
+        (lefts ++ collection.Seq.fill(8 - lefts.size - rights.size)(0.toShort) ++ rights) match {
+          case collection.Seq(a, b, c, d, e, f, g, h) =>
+            Ipv6Address(a, b, c, d, e, f, g, h)
+        }
+
+      private def decOctet = rule { capture(DecOctet) ~> (_.toInt.toByte) }
+    }
+
+    implicit val http4sInstancesForIpv6Address
+      : HttpCodec[Ipv6Address] with Order[Ipv6Address] with Hash[Ipv6Address] with Show[Ipv6Address] =
+      new HttpCodec[Ipv6Address] with Order[Ipv6Address] with Hash[Ipv6Address] with Show[Ipv6Address] {
+        def parse(s: String): ParseResult[Ipv6Address] =
+          Ipv6Address.fromString(s)
+        def render(writer: Writer, ipv6: Ipv6Address): writer.type =
+          writer << ipv6.value
+
+        def compare(x: Ipv6Address, y: Ipv6Address): Int = x.compareTo(y)
+
+        def hash(x: Ipv6Address): Int = x.hashCode
+
+        def show(x: Ipv6Address): String = x.toString
+      }
+  }
+
+  final case class RegName(host: CaseInsensitiveString) extends Host {
+    def value: String = host.toString
+  }
 
   object RegName { def apply(name: String): RegName = new RegName(name.ci) }
-  object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
-  object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
 
   /**
     * Resolve a relative Uri reference, per RFC 3986 sec 5.2

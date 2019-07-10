@@ -1,5 +1,6 @@
 package org.http4s
 
+import cats.implicits._
 import org.http4s.util.Renderer
 
 trait HttpCodec[A] extends Renderer[A] {

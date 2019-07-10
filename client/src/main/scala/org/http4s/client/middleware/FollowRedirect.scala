@@ -40,7 +40,7 @@ object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
-      client: Client[F])(implicit F: Bracket[F, Throwable]): Client[F] = {
+      client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
 
     def nextRequest(req: Request[F], uri: Uri, method: Method, cookies: List[ResponseCookie]): Request[F] = {
       // https://tools.ietf.org/html/rfc7231#section-7.1.
@@ -73,22 +73,27 @@ object FollowRedirect {
       clearBodyFromGetHead(propagateCookies(stripSensitiveHeaders(req)).withMethod(method).withUri(nextUri))
     }
 
-    def prepareLoop(req: Request[F], redirects: Int): Resource[F, Response[F]] =
-      client.run(req).flatMap { resp =>
-        (methodForRedirect(req, resp), resp.headers.get(Location)) match {
-          case (Some(method), Some(loc)) if redirects < maxRedirects =>
-            val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
-            prepareLoop(nextReq, redirects + 1).map { response =>
-              // prepend because `prepareLoop` is recursive
-              response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
-            }
-          case _ => resp.pure[Resource[F, ?]]
-          // IF the response is missing the Location header, OR there is no method to redirect,
-          // OR we have exceeded max number of redirections, THEN we redirect no more
-        }
+    def prepareLoop(req: Request[F], redirects: Int): F[Resource[F, Response[F]]] =
+      F.continual(client.run(req).allocated) {
+        case Right((resp, dispose)) =>
+          (methodForRedirect(req, resp), resp.headers.get(Location)) match {
+            case (Some(method), Some(loc)) if redirects < maxRedirects =>
+              val nextReq = nextRequest(req, loc.uri, method)
+              dispose >> prepareLoop(nextReq, redirects + 1).map(_.map { response =>
+                // prepend because `prepareLoop` is recursive
+                response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
+              })
+            case _ =>
+              // IF the response is missing the Location header, OR there is no method to redirect,
+              // OR we have exceeded max number of redirections, THEN we redirect no more
+              Resource.make(resp.pure[F])(_ => dispose).pure[F]
+          }
+
+        case Left(e) =>
+          F.raiseError(e)
       }
 
-    Client(prepareLoop(_, 0))
+    Client(req => Resource.suspend(prepareLoop(req, 0)))
   }
 
   private def methodForRedirect[F[_]](req: Request[F], resp: Response[F]): Option[Method] =

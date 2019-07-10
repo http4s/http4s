@@ -9,7 +9,7 @@ import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 
-private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
+private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
     extends Client[F] {
   def run(req: Request[F]): Resource[F, Response[F]]
 

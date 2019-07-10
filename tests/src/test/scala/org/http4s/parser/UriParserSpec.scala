@@ -50,9 +50,10 @@ class UriParserSpec extends Http4sSpec {
       }
     }
 
-    "parse a short IPv6 address" in {
-      val s = "01ab::32ba:32ba"
-      Uri.requestTarget(s) must beRight(Uri(authority = Some(Authority(host = IPv6(s)))))
+    "parse a short IPv6 address in brackets" in {
+      val s = "[01ab::32ba:32ba]"
+      Uri.requestTarget(s) must beRight(
+        Uri(authority = Some(Authority(host = ipv6"01ab::32ba:32ba"))))
     }
 
     "handle port configurations" in {
@@ -83,21 +84,19 @@ class UriParserSpec extends Http4sSpec {
             Some(Authority(host = RegName("www.foo.com".ci))),
             "/foo",
             Query.fromPairs("bar" -> "baz"))),
-        (
-          "http://192.168.1.1",
-          Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci))))),
+        ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
         (
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
+            Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = IPv6("2001:db8::7".ci))),
+            Some(Authority(host = ipv6"2001:db8::7")),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         ("mailto:John.Doe@example.com", Uri(Some(scheme"mailto"), path = "John.Doe@example.com"))
@@ -224,21 +223,19 @@ class UriParserSpec extends Http4sSpec {
             Some(Authority(host = RegName("www.foo.com".ci))),
             "/foo",
             Query.fromPairs("bar" -> "baz"))),
-        (
-          "http://192.168.1.1",
-          Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci))))),
+        ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
         (
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
+            Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = IPv6("2001:db8::7".ci))),
+            Some(Authority(host = ipv6"2001:db8::7")),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         ("mailto:John.Doe@example.com", Uri(Some(scheme"mailto"), path = "John.Doe@example.com"))

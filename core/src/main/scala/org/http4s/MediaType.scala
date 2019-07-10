@@ -18,7 +18,7 @@
  */
 package org.http4s
 
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}

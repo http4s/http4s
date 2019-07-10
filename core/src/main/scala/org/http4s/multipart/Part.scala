@@ -28,7 +28,7 @@ object Part {
   def empty[F[_]]: Part[F] =
     Part(Headers.empty, EmptyBody)
 
-  def formData[F[_]: Sync](name: String, value: String, headers: Header*): Part[F] =
+  def formData[F[_]](name: String, value: String, headers: Header*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map("name" -> name)) :: headers.toList),
       Stream.emit(value).through(utf8Encode))

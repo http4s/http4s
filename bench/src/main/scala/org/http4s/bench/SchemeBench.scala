@@ -10,13 +10,13 @@ import org.openjdk.jmh.annotations._
 class SchemeBench {
   @Benchmark
   def parseHttp =
-    Uri.Scheme.parse("http")
+    Uri.Scheme.fromString("http")
 
   @Benchmark
   def parseHttps =
-    Uri.Scheme.parse("https")
+    Uri.Scheme.fromString("https")
 
   @Benchmark
   def parseMailto =
-    Uri.Scheme.parse("mailto")
+    Uri.Scheme.fromString("mailto")
 }

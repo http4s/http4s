@@ -8,7 +8,7 @@ import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
 import cats.effect.{Effect, IO}
 import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits._
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -567,70 +567,60 @@ private[http4s] trait ArbitraryInstances {
       def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for { t1 <- g1; t2 <- g2 } yield t1 |+| t2
     }
 
-  private def timesBetween[T: Monoid](min: Int, max: Int, g: Gen[T]): Gen[T] =
-    for {
-      n <- choose(min, max)
-      l <- listOfN(n, g).suchThat(_.length == n)
-    } yield l.foldLeft(Monoid[T].empty)(_ |+| _)
-
-  private def times[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
-    listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))
-
-  private def atMost[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
-    timesBetween(min = 0, max = n, g)
-
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] =
     oneOf(g, const(ev.empty))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIPv4: Arbitrary[Uri.IPv4] = Arbitrary {
-    val num = numChar.map(_.toString)
-    def range(min: Int, max: Int) = choose(min.toChar, max.toChar).map(_.toString)
-    val genDecOctet = oneOf(
-      num,
-      range(49, 57) |+| num,
-      const("1") |+| num |+| num,
-      const("2") |+| range(48, 52) |+| num,
-      const("25") |+| range(48, 51)
-    )
-    listOfN(4, genDecOctet).map(_.mkString(".")).map(Uri.IPv4.apply)
+  implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] = Arbitrary {
+    for {
+      a <- getArbitrary[Byte]
+      b <- getArbitrary[Byte]
+      c <- getArbitrary[Byte]
+      d <- getArbitrary[Byte]
+    } yield Uri.Ipv4Address(a, b, c, d)
   }
+
+  implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
+    Cogen[(Byte, Byte, Byte, Byte)].contramap(ipv4 => (ipv4.a, ipv4.b, ipv4.c, ipv4.d))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIPv6: Arbitrary[Uri.IPv6] = Arbitrary {
-    val h16 = timesBetween(min = 1, max = 4, genHexDigit.map(_.toString))
-    val ls32 = oneOf(
-      h16 |+| const(":") |+| h16,
-      http4sTestingArbitraryForIPv4.arbitrary.map(_.address.value))
-    val h16colon = h16 |+| const(":")
-    val :: = const("::")
-
-    oneOf(
-      times(6, h16colon) |+| ls32,
-      :: |+| times(5, h16colon) |+| ls32,
-      opt(h16) |+| :: |+| times(4, h16colon) |+| ls32,
-      opt(atMost(1, h16colon) |+| h16) |+| :: |+| times(3, h16colon) |+| ls32,
-      opt(atMost(2, h16colon) |+| h16) |+| :: |+| times(2, h16colon) |+| ls32,
-      opt(atMost(3, h16colon) |+| h16) |+| :: |+| opt(h16colon) |+| ls32,
-      opt(atMost(4, h16colon) |+| h16) |+| :: |+| ls32,
-      opt(atMost(5, h16colon) |+| h16) |+| :: |+| h16,
-      opt(atMost(6, h16colon) |+| h16) |+| ::
-    ).map(Uri.IPv6.apply)
+  implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] = Arbitrary {
+    for {
+      a <- getArbitrary[Short]
+      b <- getArbitrary[Short]
+      c <- getArbitrary[Short]
+      d <- getArbitrary[Short]
+      e <- getArbitrary[Short]
+      f <- getArbitrary[Short]
+      g <- getArbitrary[Short]
+      h <- getArbitrary[Short]
+    } yield Uri.Ipv6Address(a, b, c, d, e, f, g, h)
   }
+
+  implicit val http4sTestingCogenForIpv6Address: Cogen[Uri.Ipv6Address] =
+    Cogen[(Short, Short, Short, Short, Short, Short, Short, Short)]
+      .contramap(ipv6 => (ipv6.a, ipv6.b, ipv6.c, ipv6.d, ipv6.e, ipv6.f, ipv6.g, ipv6.h))
 
   implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = Arbitrary {
     val genRegName =
       listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
-    oneOf(
-      http4sTestingArbitraryForIPv4.arbitrary,
-      http4sTestingArbitraryForIPv6.arbitrary,
-      genRegName)
+    oneOf(getArbitrary[Uri.Ipv4Address], getArbitrary[Uri.Ipv6Address], genRegName)
   }
+
+  implicit val http4sTestingArbitraryForUserInfo: Arbitrary[Uri.UserInfo] =
+    Arbitrary(
+      for {
+        username <- getArbitrary[String]
+        password <- getArbitrary[Option[String]]
+      } yield Uri.UserInfo(username, password)
+    )
+
+  implicit val http4sTestingCogenForUserInfo: Cogen[Uri.UserInfo] =
+    Cogen.tuple2[String, Option[String]].contramap(u => (u.username, u.password))
 
   implicit val http4sTestingArbitraryForAuthority: Arbitrary[Uri.Authority] = Arbitrary {
     for {
-      userInfo <- identifier
-      maybeUserInfo <- Gen.option(userInfo)
+      maybeUserInfo <- getArbitrary[Option[Uri.UserInfo]]
       host <- http4sTestingArbitraryForUriHost.arbitrary
       maybePort <- Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
     } yield Uri.Authority(maybeUserInfo, host, maybePort)

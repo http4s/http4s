@@ -8,6 +8,7 @@ import fs2._
 import fs2.concurrent.SignallingRef
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
+import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.{WebSocket, WebSocketFrame}
@@ -124,6 +125,8 @@ private[http4s] class Http4sWSStage[F[_]](
       .drain
 
     unsafeRunAsync(wsStream) {
+      case Left(EOF) =>
+        IO(stageShutdown())
       case Left(t) =>
         IO(logger.error(t)("Error closing Web Socket"))
       case Right(_) =>
