@@ -44,13 +44,17 @@ This release drops support for Scala 2.11 and adds the `http4s-ember-server` and
 * okhttp-4.0.0
 * specs2-core-4.6.0
 
-# v0.20.5 (2019-07-09)
+# v0.20.6 (2019-07-09)
 
 ## Bug fixes
 * [#2705](https://github.com/http4s/http4s/pull/2705): Upgrades blaze to close `SSLEngine` when an `SSLStage` shuts down. This is useful in certain `SSLContext` implementations.  See [blaze#305](https://github.com/http4s/blaze/pull/305) for more.
 
 ## Dependency upgrades
 - blaze-0.14.6
+
+~~# v0.20.5 (2019-07-09)~~
+
+Cursed release.  Sonatype staging repo closed in flight.
 
 # v0.20.4 (2019-07-06)
 
