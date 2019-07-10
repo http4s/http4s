@@ -4,16 +4,16 @@ menu: main
 weight: 1
 ---
 
-**Note**: To run examples, please make sure that the flag `-Ypartial-unification`  
+**Note**: To run with 2.12 please make sure that the flag `-Ypartial-unification`  
 is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt).
-This is enabled by default in the giter8 template.
+This feature is enabled by default starting in Scala 2.13.
 
 
 Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
 
 ```sbt
-$ sbt -sbt-version 1.2.8 new http4s/http4s.g8 -b 0.20
+$ sbt -sbt-version 1.2.8 new http4s/http4s.g8 -b 0.21
 ```
 
 Follow the prompts.  For every step along the way, a default value is
