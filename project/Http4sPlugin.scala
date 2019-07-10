@@ -344,7 +344,7 @@ object Http4sPlugin extends AutoPlugin {
   def specs2Matcher(sv: String)             = "org.specs2"             %% "specs2-matcher"            % specs2Version(sv)
   def specs2MatcherExtra(sv: String)        = "org.specs2"             %% "specs2-matcher-extra"      % specs2Version(sv)
   def specs2Scalacheck(sv: String)          = "org.specs2"             %% "specs2-scalacheck"         % specs2Version(sv)
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"            % "9.0.21"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.22"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.0"
