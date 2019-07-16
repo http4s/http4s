@@ -26,12 +26,12 @@ class UserInfoSpec extends Http4sSpec {
       renderString(UserInfo("hi", Some(":/?#[]@"))) must_== "hi::%2F%3F%23%5B%5D%40"
     }
 
-    "skip encoding subdelims except '+' in username" in {
-      renderString(UserInfo("!$&'()*+,;=", None)) must_== "!$&'()*%2B,;="
+    "skip encoding subdelims in username" in {
+      renderString(UserInfo("!$&'()*+,;=", None)) must_== "!$&'()*+,;="
     }
 
-    "skip encoding subdelims except '+' in password" in {
-      renderString(UserInfo("hi", Some("!$&'()*+,;="))) must_== "hi:!$&'()*%2B,;="
+    "skip encoding subdelims in password" in {
+      renderString(UserInfo("hi", Some("!$&'()*+,;="))) must_== "hi:!$&'()*+,;="
     }
 
     "use a colon for empty passwords " in {
@@ -62,6 +62,14 @@ class UserInfoSpec extends Http4sSpec {
 
     "parse empty username" in {
       UserInfo.fromString(":123") must_== Right(UserInfo("", Some("123")))
+    }
+
+    "parse username with containing a '+'" in {
+      UserInfo.fromString("+:abc") must_== Right(UserInfo("+", Some("abc")))
+    }
+
+    "parse password with containing a '+'" in {
+      UserInfo.fromString("abc:+") must_== Right(UserInfo("abc", Some("+")))
     }
 
     "reject userinfos with invalid characters" in prop { s: String =>

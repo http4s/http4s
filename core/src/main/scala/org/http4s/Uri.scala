@@ -304,11 +304,9 @@ object Uri {
           userInfo.password.foreach(writer << ":" << encodePassword(_))
           writer
         }
-
-        // The '+' in the subdelims was causing a bug
-        // see https://github.com/http4s/http4s/issues/2713
+        
         private val SkipEncodeInUsername =
-          UrlCodingUtils.Unreserved ++ "!$&'()*,;="
+          UrlCodingUtils.Unreserved ++ "!$&'()*+,;="
 
         private def encodeUsername(
             s: String,
