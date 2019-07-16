@@ -3,6 +3,9 @@ package org.http4s
 import cats._
 import cats.data._
 import cats.implicits._
+import java.time.Instant
+import java.time.format.{DateTimeFormatter, DateTimeParseException}
+
 final case class QueryParameterKey(value: String) extends AnyVal
 
 final case class QueryParameterValue(value: String) extends AnyVal
@@ -194,6 +197,16 @@ object QueryParamDecoder {
     new QueryParamDecoder[String] {
       def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, String] =
         value.value.validNel
+    }
+
+  def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
+    new QueryParamDecoder[Instant] {
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
+        Either.catchOnly[DateTimeParseException]{
+          val x = formatter.parse(value.value)
+          Instant.from(x)
+        }.leftMap { e => ParseFailure("Failed to read Instant", e.getMessage)}
+         .toValidatedNel
     }
 
   implicit val uriQueryParamDecoder: QueryParamDecoder[Uri] =
