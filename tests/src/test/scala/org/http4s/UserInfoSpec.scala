@@ -26,6 +26,14 @@ class UserInfoSpec extends Http4sSpec {
       renderString(UserInfo("hi", Some(":/?#[]@"))) must_== "hi::%2F%3F%23%5B%5D%40"
     }
 
+    "skip encoding subdelims except '+' in username" in {
+      renderString(UserInfo("!$&'()*+,;=", None)) must_== "!$&'()*%2B,;="
+    }
+
+    "skip encoding subdelims except '+' in password" in {
+      renderString(UserInfo("hi", Some("!$&'()*+,;="))) must_== "hi:!$&'()*%2B,;="
+    }
+
     "use a colon for empty passwords " in {
       renderString(UserInfo("hi", Some(""))) must_== "hi:"
     }
@@ -70,6 +78,13 @@ class UserInfoSpec extends Http4sSpec {
 
     "be consistent with Ordered" in prop { (a: UserInfo, b: UserInfo) =>
       math.signum(a.compareTo(b)) must_== math.signum(a.compare(b))
+    }
+  }
+
+  "bug2713" should {
+    "roundTrip userinfo with plus sign" in {
+      val userInfo = UserInfo("username+", Some("password+"))
+      HttpCodec[UserInfo].parse(renderString(userInfo)) must_== Right(userInfo)
     }
   }
 }
