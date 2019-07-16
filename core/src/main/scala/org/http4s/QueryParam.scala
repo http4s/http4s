@@ -91,7 +91,9 @@ object QueryParamEncoder {
   implicit lazy val longQueryParamEncoder: QueryParamEncoder[Long] = fromShow[Long]
 
   def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
-    QueryParamEncoder[String].contramap[Instant]{i: Instant => formatter.format(i)}
+    QueryParamEncoder[String].contramap[Instant] { i: Instant =>
+      formatter.format(i)
+    }
 
   implicit lazy val stringQueryParamEncoder: QueryParamEncoder[String] =
     new QueryParamEncoder[String] {
@@ -205,11 +207,15 @@ object QueryParamDecoder {
   def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
     new QueryParamDecoder[Instant] {
       override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
-        Either.catchOnly[DateTimeParseException]{
-          val x = formatter.parse(value.value)
-          Instant.from(x)
-        }.leftMap { e => ParseFailure("Failed to read Instant", e.getMessage)}
-         .toValidatedNel
+        Either
+          .catchOnly[DateTimeParseException] {
+            val x = formatter.parse(value.value)
+            Instant.from(x)
+          }
+          .leftMap { e =>
+            ParseFailure("Failed to read Instant", e.getMessage)
+          }
+          .toValidatedNel
     }
 
   implicit val uriQueryParamDecoder: QueryParamDecoder[Uri] =
