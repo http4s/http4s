@@ -4,7 +4,9 @@ import cats._
 import cats.data._
 import cats.implicits._
 import cats.laws.discipline.{arbitrary => _, _}
-import org.scalacheck.{Arbitrary, Cogen}
+import java.time.format.DateTimeFormatter
+import java.time.Instant
+import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
 
@@ -16,6 +18,7 @@ class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   checkAll("Int QueryParamCodec", QueryParamCodecLaws[Int])
   checkAll("Long QueryParamCodec", QueryParamCodecLaws[Long])
   checkAll("String QueryParamCodec", QueryParamCodecLaws[String])
+  checkAll("Instant QueryParamCodec", QueryParamCodecLaws[Instant])
 
   // Law checks for instances.
   checkAll(
@@ -53,6 +56,8 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
       as.forall(a => x.encode(a) === y.encode(a))
     }
 
+  implicit val eqInstant: Eq[Instant] = Eq.fromUniversalEquals[Instant]
+
   implicit def ArbQueryParamDecoder[A: Arbitrary]: Arbitrary[QueryParamDecoder[A]] =
     Arbitrary(arbitrary[String => A].map(QueryParamDecoder[String].map))
 
@@ -61,4 +66,13 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
 
   implicit val ArbQueryParameterValue: Arbitrary[QueryParameterValue] =
     Arbitrary(arbitrary[String].map(QueryParameterValue))
+
+  implicit val instantQueryParamDecoder: QueryParamDecoder[Instant] =
+    QueryParamDecoder.instantQueryParamDecoder(DateTimeFormatter.ISO_INSTANT)
+
+  implicit val instantQueryParamEncoder: QueryParamEncoder[Instant] =
+    QueryParamEncoder.instantQueryParamEncoder(DateTimeFormatter.ISO_INSTANT)
+
+  implicit val ArbitraryInstant: Arbitrary[Instant] =
+    Arbitrary(Gen.choose[Long](0, Long.MaxValue).map { long => Instant.ofEpochMilli(long)})
 }
