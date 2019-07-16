@@ -90,6 +90,9 @@ object QueryParamEncoder {
   implicit lazy val intQueryParamEncoder: QueryParamEncoder[Int] = fromShow[Int]
   implicit lazy val longQueryParamEncoder: QueryParamEncoder[Long] = fromShow[Long]
 
+  def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
+    QueryParamEncoder[String].contramap[Instant]{i: Instant => formatter.format(i)}
+
   implicit lazy val stringQueryParamEncoder: QueryParamEncoder[String] =
     new QueryParamEncoder[String] {
       override def encode(value: String) =
