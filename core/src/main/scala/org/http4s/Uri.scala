@@ -304,7 +304,7 @@ object Uri {
           userInfo.password.foreach(writer << ":" << encodePassword(_))
           writer
         }
-        
+
         private val SkipEncodeInUsername =
           UrlCodingUtils.Unreserved ++ "!$&'()*+,;="
 
