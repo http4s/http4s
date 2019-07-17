@@ -294,13 +294,19 @@ sealed abstract case class Request[F[_]](
       attributes = attributes
     )
 
-  lazy val (scriptName, pathInfo) = {
-    val caret = attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+  lazy val (scriptName, pathInfo) =
     uri.path.splitAt(caret)
-  }
 
-  def withPathInfo(pi: String): Self =
-    withUri(uri.withPath(scriptName + pi))
+  private def caret =
+    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+
+  private def withCaret(caret: Int) =
+    withAttribute(Request.Keys.PathInfoCaret, caret)
+
+  def withPathInfo(pi: String): Self = {
+    val oldCaret = caret
+    withUri(uri.withPath(scriptName + pi)).withCaret(oldCaret)
+  }
 
   def pathTranslated: Option[File] = attributes.lookup(Keys.PathTranslated)
 
