@@ -93,7 +93,7 @@ object Http4sPlugin extends AutoPlugin {
     }).toSet,
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0"),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
