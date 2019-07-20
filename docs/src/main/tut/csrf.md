@@ -69,8 +69,4 @@ that? And, as described in [Middleware], services and middleware can be
 composed such that only some of your endpoints are CSRF enabled. By default, 
 safe methods will update the CSRF token, while unsafe methods will validate them.
 
-
-As described in [Middleware], services and middleware can be composed such
-that only some of your endpoints are CSRF enabled.
-
 [Middleware]: ../middleware
