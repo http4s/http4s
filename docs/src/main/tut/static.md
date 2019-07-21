@@ -45,7 +45,7 @@ Static content services can be composed into a larger application by using a `Ro
 ```tut:book:nofail
 val httpApp: HttpApp[IO] =
     Router(
-      "api"    -> anotherService
+      "api"    -> anotherService,
       "assets" -> fileService(FileService.Config("./assets", blocker))
     ).orNotFound
 ```
