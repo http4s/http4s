@@ -300,10 +300,9 @@ sealed abstract case class Request[F[_]](
   private def caret =
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
 
-  def withPathInfo(pi: String): Self = {
+  def withPathInfo(pi: String): Self =
     // Don't use withUri, which clears the caret
     copy(uri = uri.withPath(scriptName + pi))
-  }
 
   def pathTranslated: Option[File] = attributes.lookup(Keys.PathTranslated)
 
