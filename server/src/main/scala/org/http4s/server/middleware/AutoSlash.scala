@@ -15,22 +15,18 @@ import cats.implicits._
 object AutoSlash {
   def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(
       implicit F: MonoidK[F],
-      G: Functor[G]): Kleisli[F, Request[G], B] =
+      G: Functor[G]): Kleisli[F, Request[G], B] = {
+    val _ = G // for binary compatibility in 0.20, remove on master
     Kleisli { req =>
       http(req) <+> {
         val pathInfo = req.pathInfo
-        val scriptName = req.scriptName
 
         if (pathInfo.isEmpty || pathInfo.charAt(pathInfo.length - 1) != '/') {
           F.empty
-        } else if (scriptName.isEmpty) {
-          // Request has not been translated already
-          http.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
         } else {
-          // Request has been translated at least once, redo the translation
-          val translated = TranslateUri(scriptName)(http)
-          translated.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
+          http.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
         }
       }
     }
+  }
 }
