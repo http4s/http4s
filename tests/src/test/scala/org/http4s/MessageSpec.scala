@@ -96,6 +96,16 @@ class MessageSpec extends Http4sSpec {
         originalReq.pathInfo mustEqual updatedReq.pathInfo
         originalReq.scriptName mustEqual updatedReq.scriptName
       }
+
+      "preserve caret in withPathInfo" in {
+        val originalReq = Request(
+          uri = Uri(path = "/foo/bar"),
+          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 4))
+        val updatedReq = originalReq.withPathInfo("/quux")
+
+        updatedReq.scriptName mustEqual "/foo"
+        updatedReq.pathInfo mustEqual "/quux"
+      }
     }
 
     "toString" should {
