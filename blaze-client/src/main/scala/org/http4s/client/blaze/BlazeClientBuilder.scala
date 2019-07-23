@@ -2,6 +2,7 @@ package org.http4s
 package client
 package blaze
 
+import cats.implicits._
 import cats.effect._
 import java.nio.channels.AsynchronousChannelGroup
 
@@ -37,7 +38,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val parserMode: ParserMode,
     val bufferSize: Int,
     val executionContext: ExecutionContext,
-    val scheduler: Option[TickWheelExecutor],
+    val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions
 )(implicit protected val F: ConcurrentEffect[F])
@@ -63,7 +64,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode: ParserMode = parserMode,
       bufferSize: Int = bufferSize,
       executionContext: ExecutionContext = executionContext,
-      scheduler: Option[TickWheelExecutor] = scheduler,
+      scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
       channelOptions: ChannelOptions = channelOptions
   ): BlazeClientBuilder[F] =
@@ -163,8 +164,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withExecutionContext(executionContext: ExecutionContext): BlazeClientBuilder[F] =
     copy(executionContext = executionContext)
 
-  def withScheduler(scheduler: Option[TickWheelExecutor]): BlazeClientBuilder[F] =
-    copy(scheduler = scheduler)
+  def withScheduler(scheduler: TickWheelExecutor): BlazeClientBuilder[F] =
+    copy(scheduler = scheduler.pure[Resource[F, ?]])
 
   def withAsynchronousChannelGroupOption(
       asynchronousChannelGroup: Option[AsynchronousChannelGroup]): BlazeClientBuilder[F] =
@@ -179,7 +180,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     copy(channelOptions = channelOptions)
 
   def resource: Resource[F, Client[F]] =
-    schedulerResource.flatMap { scheduler =>
+    scheduler.flatMap { scheduler =>
       connectionManager(scheduler).map { manager =>
         BlazeClient.makeClient(
           manager = manager,
@@ -190,12 +191,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
           ec = executionContext
         )
       }
-    }
-
-  private def schedulerResource: Resource[F, TickWheelExecutor] =
-    scheduler match {
-      case Some(s) => Resource.pure[F, TickWheelExecutor](s)
-      case None => tickWheelResource
     }
 
   private def connectionManager(scheduler: TickWheelExecutor)(
@@ -251,7 +246,7 @@ object BlazeClientBuilder {
       parserMode = ParserMode.Strict,
       bufferSize = 8192,
       executionContext = executionContext,
-      scheduler = None,
+      scheduler = tickWheelResource,
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty)
     ) {}
