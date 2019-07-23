@@ -32,7 +32,7 @@ object Http1Client {
       parserMode = if (config.lenientParser) ParserMode.Lenient else ParserMode.Strict,
       userAgent = config.userAgent,
       channelOptions = ChannelOptions(Vector.empty),
-      connectingTimeout = Duration.Inf
+      connectTimeout = Duration.Inf
     ).makeClient
 
     Resource

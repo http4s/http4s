@@ -23,7 +23,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
     val idleTimeout: Duration,
     val requestTimeout: Duration,
-    val connectingTimeout: Duration,
+    val connectTimeout: Duration,
     val userAgent: Option[`User-Agent`],
     val maxTotalConnections: Int,
     val maxWaitQueueLimit: Int,
@@ -49,7 +49,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       responseHeaderTimeout: Duration = responseHeaderTimeout,
       idleTimeout: Duration = idleTimeout,
       requestTimeout: Duration = requestTimeout,
-      connectingTimeout: Duration = connectingTimeout,
+      connectTimeout: Duration = connectTimeout,
       userAgent: Option[`User-Agent`] = userAgent,
       maxTotalConnections: Int = maxTotalConnections,
       maxWaitQueueLimit: Int = maxWaitQueueLimit,
@@ -71,7 +71,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       responseHeaderTimeout = responseHeaderTimeout,
       idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
-      connectingTimeout = connectingTimeout,
+      connectTimeout = connectTimeout,
       userAgent = userAgent,
       maxTotalConnections = maxTotalConnections,
       maxWaitQueueLimit = maxWaitQueueLimit,
@@ -102,8 +102,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withRequestTimeout(requestTimeout: Duration): BlazeClientBuilder[F] =
     copy(requestTimeout = requestTimeout)
 
-  def withConnectingTimeout(connectingTimeout: Duration): BlazeClientBuilder[F] =
-    copy(connectingTimeout = connectingTimeout)
+  def withConnectTimeout(connectTimeout: Duration): BlazeClientBuilder[F] =
+    copy(connectTimeout = connectTimeout)
 
   def withUserAgentOption(userAgent: Option[`User-Agent`]): BlazeClientBuilder[F] =
     copy(userAgent = userAgent)
@@ -214,7 +214,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       userAgent = userAgent,
       channelOptions = channelOptions,
-      connectingTimeout = connectingTimeout
+      connectTimeout = connectTimeout
     ).makeClient
     Resource.make(
       ConnectionManager.pool(
@@ -237,7 +237,7 @@ object BlazeClientBuilder {
       responseHeaderTimeout = 10.seconds,
       idleTimeout = 1.minute,
       requestTimeout = 1.minute,
-      connectingTimeout = 10.seconds,
+      connectTimeout = 10.seconds,
       userAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version)))),
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,
