@@ -12,6 +12,7 @@ import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.internal.BackendBuilder
+import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -45,6 +46,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
+
+  final protected val logger = getLogger(this.getClass)
 
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
@@ -181,6 +184,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   def resource: Resource[F, Client[F]] =
     scheduler.flatMap { scheduler =>
+      verifyAllTimeoutsAccuracy(scheduler)
       connectionManager(scheduler).map { manager =>
         BlazeClient.makeClient(
           manager = manager,
@@ -192,6 +196,26 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         )
       }
     }
+
+  private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): Unit = {
+    verifyTimeoutAccuracy(scheduler.tick, responseHeaderTimeout, "responseHeaderTimeout")
+    verifyTimeoutAccuracy(scheduler.tick, idleTimeout, "idleTimeout")
+    verifyTimeoutAccuracy(scheduler.tick, requestTimeout, "requestTimeout")
+    verifyTimeoutAccuracy(scheduler.tick, connectTimeout, "connectTimeout")
+  }
+
+  private def verifyTimeoutAccuracy(
+      tick: Duration,
+      timeout: Duration,
+      timeoutName: String): Unit = {
+    val warningThreshold = 0.1 // 10%
+    val inaccuracy = tick / timeout
+    if (inaccuracy > warningThreshold) {
+      logger.warn(
+        s"With current configuration $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
+          s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick).")
+    }
+  }
 
   private def connectionManager(scheduler: TickWheelExecutor)(
       implicit F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
