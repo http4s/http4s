@@ -4,8 +4,8 @@ title: CSRF
 weight: 123
 ---
 
-Http4s provides [Middleware], named `CSRF`, to avoid Cross-site request forgery attacks.This middleware 
-is modeled after the [double submit cookie pattern](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie)
+Http4s provides [Middleware], named `CSRF`, to avoid Cross-site request forgery attacks. This middleware 
+is modeled after the [double submit cookie pattern](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie).
 
 Examples in this document have the following dependencies.
 
@@ -72,9 +72,9 @@ that? And, as described in [Middleware], services and middleware can be
 composed such that only some of your endpoints are CSRF enabled. By default, 
 safe methods will update the CSRF token, while unsafe methods will validate them.
 
-Without getting too deep into it, safe methods are OPTIONS,GET,and HEAD. While unsafe methods are 
+Without getting too deep into it, safe methods are OPTIONS, GET, and HEAD. While unsafe methods are 
 POST, PUT, PATCH, DELETE and TRACE. To put it simply, state changing methods are unsafe. For more information,
-check out this cheat sheet on [CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+check out this cheat sheet on [CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie).
 
 
 [Middleware]: ../middleware
