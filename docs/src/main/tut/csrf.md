@@ -50,7 +50,7 @@ val defaultOriginCheck: Request[IO] => Boolean =
 val csrfBuilder = CSRF[IO,IO](key, defaultOriginCheck)
 ```
 
-More info on what is possible [here](https://http4s.org/v0.21/api/org/http4s/server/middleware/csrf$$csrfbuilder),
+More info on what is possible in the [CSRFBuilder] Docs,
 but we will create for a fairly simple CSRF Middleware in our example.
 
 ```tut:book
@@ -73,8 +73,9 @@ composed such that only some of your endpoints are CSRF enabled. By default,
 safe methods will update the CSRF token, while unsafe methods will validate them.
 
 Without getting too deep into it, safe methods are OPTIONS, GET, and HEAD. While unsafe methods are 
-POST, PUT, PATCH, DELETE and TRACE. To put it simply, state changing methods are unsafe. For more information,
+POST, PUT, PATCH, DELETE, and TRACE. To put it simply, state changing methods are unsafe. For more information,
 check out this cheat sheet on [CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie).
 
 
 [Middleware]: ../middleware
+[CSRFBuilder]: ../api/org/http4s/server/middleware/csrf$$csrfbuilder
