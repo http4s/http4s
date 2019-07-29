@@ -309,7 +309,7 @@ HttpRoutes.of[IO] {
 }
 ```
 
-Methods such as `GET` are typically found in `org.http4s.Methods`, but are imported automatically as part of the DSL. 
+Methods such as `GET` are typically found in `org.http4s.Method`, but are imported automatically as part of the DSL. 
 
 ### Path info
 

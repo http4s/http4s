@@ -286,7 +286,7 @@ Now let's make a client for the service above:
 import org.http4s.client._
 import org.http4s.client.dsl.io._
 import org.http4s.client.blaze._
-import org.http4s.Methods._
+import org.http4s.Method._
 import cats.effect.IO
 import io.circe.generic.auto._
 import fs2.Stream
