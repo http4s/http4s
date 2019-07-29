@@ -36,7 +36,7 @@ final private class Http1Support[F[_]](
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions,
-    connectTimeout: Duration,
+    connectTimeout: Duration
 )(implicit F: ConcurrentEffect[F]) {
 
   // SSLContext.getDefault is effectful and can fail - don't force it until we have to.
