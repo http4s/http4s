@@ -7,6 +7,7 @@ import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import java.lang.{Runtime => JRuntime}
@@ -96,6 +97,10 @@ object Http4sPlugin extends AutoPlugin {
     }.map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeClientBuilder.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Support.this")
+    ),
 
     libraryDependencies += compilerPlugin(
       CrossVersion.binaryScalaVersion(scalaVersion.value) match {
