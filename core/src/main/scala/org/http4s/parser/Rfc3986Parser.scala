@@ -2,12 +2,12 @@ package org.http4s
 package parser
 
 import cats.implicits._
-import java.net.URLDecoder
 import java.nio.charset.Charset
 import org.http4s.{Query => Q}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.internal.parboiled2.support.HNil
+import org.http4s.util.UrlCodingUtils
 import org.http4s.syntax.string._
 
 private[http4s] trait Rfc3986Parser
@@ -144,6 +144,6 @@ private[http4s] trait Rfc3986Parser
 
   def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 
-  protected def decode(s: String) = URLDecoder.decode(s, charset.name)
+  protected def decode(s: String) = UrlCodingUtils.urlDecode(s, charset)
   // scalastyle:on public.methods.have.type
 }

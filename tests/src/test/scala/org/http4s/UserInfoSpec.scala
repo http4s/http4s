@@ -26,6 +26,14 @@ class UserInfoSpec extends Http4sSpec {
       renderString(UserInfo("hi", Some(":/?#[]@"))) must_== "hi::%2F%3F%23%5B%5D%40"
     }
 
+    "skip encoding subdelims in username" in {
+      renderString(UserInfo("!$&'()*+,;=", None)) must_== "!$&'()*+,;="
+    }
+
+    "skip encoding subdelims in password" in {
+      renderString(UserInfo("hi", Some("!$&'()*+,;="))) must_== "hi:!$&'()*+,;="
+    }
+
     "use a colon for empty passwords " in {
       renderString(UserInfo("hi", Some(""))) must_== "hi:"
     }
@@ -56,6 +64,14 @@ class UserInfoSpec extends Http4sSpec {
       UserInfo.fromString(":123") must_== Right(UserInfo("", Some("123")))
     }
 
+    "parse username with containing a '+'" in {
+      UserInfo.fromString("+:abc") must_== Right(UserInfo("+", Some("abc")))
+    }
+
+    "parse password with containing a '+'" in {
+      UserInfo.fromString("abc:+") must_== Right(UserInfo("abc", Some("+")))
+    }
+
     "reject userinfos with invalid characters" in prop { s: String =>
       !s.forall(CharPredicate.Alpha ++ UrlCodingUtils.Unreserved ++ ":") ==>
         (Uri.fromString(s) must beLeft)
@@ -70,6 +86,13 @@ class UserInfoSpec extends Http4sSpec {
 
     "be consistent with Ordered" in prop { (a: UserInfo, b: UserInfo) =>
       math.signum(a.compareTo(b)) must_== math.signum(a.compare(b))
+    }
+  }
+
+  "bug2713" should {
+    "roundTrip userinfo with plus sign" in {
+      val userInfo = UserInfo("username+", Some("password+"))
+      HttpCodec[UserInfo].parse(renderString(userInfo)) must_== Right(userInfo)
     }
   }
 }

@@ -93,7 +93,7 @@ object Http4sPlugin extends AutoPlugin {
     }).toSet,
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0"),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
@@ -249,7 +249,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.1"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.6"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.7"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-M4"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-M4"
@@ -281,13 +281,13 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
   lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % "0.2.0-M2"
-  lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % "0.4.0-M1"
+  lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % "0.4.0-M2"
   lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % log4catsCore.revision
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % log4catsCore.revision
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.8.2"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "3.0.0"
-  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "4.0.0"
+  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "4.0.1"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.7.4"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.6.0"
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
