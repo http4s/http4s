@@ -78,7 +78,7 @@ object FollowRedirect {
         case Right((resp, dispose)) =>
           (methodForRedirect(req, resp), resp.headers.get(Location)) match {
             case (Some(method), Some(loc)) if redirects < maxRedirects =>
-              val nextReq = nextRequest(req, loc.uri, method)
+              val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
               dispose >> prepareLoop(nextReq, redirects + 1).map(_.map { response =>
                 // prepend because `prepareLoop` is recursive
                 response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
