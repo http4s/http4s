@@ -2,20 +2,23 @@ package org.http4s
 package client
 package blaze
 
-import cats.effect._
-import cats.implicits._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
+
+import cats.effect._
+import cats.implicits._
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
-import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blaze.pipeline.{Command, LeafBuilder}
+import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.fromFuture
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
 
 /** Provides basic HTTP1 pipeline building
   */
@@ -24,6 +27,7 @@ final private class Http1Support[F[_]](
     bufferSize: Int,
     asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     executionContext: ExecutionContext,
+    scheduler: TickWheelExecutor,
     checkEndpointIdentification: Boolean,
     maxResponseLineSize: Int,
     maxHeaderLength: Int,
@@ -31,11 +35,17 @@ final private class Http1Support[F[_]](
     chunkBufferMaxSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
-    channelOptions: ChannelOptions
+    channelOptions: ChannelOptions,
+    connectTimeout: Duration
 )(implicit F: ConcurrentEffect[F]) {
 
-  private val connectionManager =
-    new ClientChannelFactory(bufferSize, asynchronousChannelGroup, channelOptions)
+  private val connectionManager = new ClientChannelFactory(
+    bufferSize,
+    asynchronousChannelGroup,
+    channelOptions,
+    scheduler,
+    connectTimeout
+  )
 
 ////////////////////////////////////////////////////
 
@@ -49,7 +59,7 @@ final private class Http1Support[F[_]](
       requestKey: RequestKey,
       addr: InetSocketAddress): Future[BlazeConnection[F]] =
     connectionManager
-      .connect(addr, bufferSize)
+      .connect(addr)
       .flatMap { head =>
         buildStages(requestKey) match {
           case Right((builder, t)) =>
