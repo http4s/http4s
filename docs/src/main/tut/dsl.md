@@ -309,6 +309,8 @@ HttpRoutes.of[IO] {
 }
 ```
 
+Methods such as `GET` are typically found in `org.http4s.Method`, but are imported automatically as part of the DSL. 
+
 ### Path info
 
 Path matching is done on the request's `pathInfo`.  Path info is the

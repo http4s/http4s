@@ -298,6 +298,7 @@ can build up a request object and pass that to `expect`:
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
 import org.http4s.MediaType
+import org.http4s.Method._
 ```
 
 ```tut:book
