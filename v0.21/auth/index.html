@@ -133,13 +133,6 @@ get using our function defined above. We use <code>AuthMiddleware</code> for tha
   AuthMiddleware(authUser)
 </code></pre>
 
-<p>Note: In the above, the default apply method of <code>AuthMiddleware</code> will consume all requests either unmatched, or
-not authenticated by returning an empty response with status code 401 (Unauthorized). This mitigates
-a kind of reconnaissance called &ldquo;spidering&rdquo;, useful for white and black hat hackers to enumerate
-your api for possible unprotected points. To allow fallthrough,
-use <code>AuthMiddleware.withFallThrough</code>. Alternatively, to customize the behavior on not authenticated if you do not
-wish to always return 401, use <code>AuthMiddleware.noSpider</code> and specify the <code>onAuthFailure</code> handler.</p>
-
 <p>Finally, we can create our <code>AuthedRoutes</code>, and wrap it with our authentication middleware, getting the
 final <code>HttpRoutes</code> to be exposed. Notice that we now have access to the user object in the service implementation:</p>
 
@@ -150,6 +143,53 @@ final <code>HttpRoutes</code> to be exposed. Notice that we now have access to t
 
 val service: HttpRoutes[IO] = middleware(authedRoutes)
 </code></pre>
+
+<h2 id="composing-authenticated-routes">Composing Authenticated Routes</h2>
+
+<p>The default apply method of <code>AuthMiddleware</code> will consume all requests either unmatched, or
+not authenticated by returning an empty response with status code 401 (Unauthorized). This mitigates
+a kind of reconnaissance called &ldquo;spidering&rdquo;, useful for white and black hat hackers to enumerate
+your api for possible unprotected points.</p>
+
+<pre><code class="language-scala">val spanishRoutes: AuthedRoutes[User, IO] =
+    AuthedRoutes.of {
+        case GET -&gt; Root / &quot;hola&quot; as user =&gt; Ok(s&quot;Hola, ${user.name}&quot;)
+    }
+
+val frenchRoutes: HttpRoutes[IO] =
+    HttpRoutes.of {
+        case GET -&gt; Root / &quot;bonjour&quot; =&gt; Ok(s&quot;Bonjour&quot;)
+    }
+
+val service: HttpRoutes[IO] = middleware(spanishRoutes) &lt;+&gt; frenchRoutes
+</code></pre>
+
+<p>Call to the french routes will always return 401 (Unauthorized) as they are caught by the spanish routes. To allow access to other routes you can:</p>
+
+<ul>
+<li><p>Use a Router with unique route prefixes</p>
+
+<pre><code class="language-scala">val service = Router {
+&quot;/spanish&quot; -&gt; middleware(spanishRoutes)
+&quot;/french&quot; -&gt; frenchRoutes
+}
+</code></pre></li>
+
+<li><p>Allow fallthrough, using <code>AuthMiddleware.withFallThrough</code>.</p>
+
+<pre><code class="language-scala">val middlewareWithFallThrough: AuthMiddleware[IO, User] =
+AuthMiddleware.withFallThrough(authUser)
+val service: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) &lt;+&gt; frenchRoutes
+</code></pre></li>
+
+<li><p>Reorder the routes so that authed routes compose last</p>
+
+<pre><code class="language-scala">val service: HttpRoutes[IO] = frenchRoutes &lt;+&gt; middleware(spanishRoutes)
+</code></pre></li>
+</ul>
+
+<p>Alternatively, to customize the behavior on not authenticated if you do not
+wish to always return 401, use <code>AuthMiddleware.noSpider</code> and specify the <code>onAuthFailure</code> handler.</p>
 
 <h2 id="returning-an-error-response">Returning an Error Response</h2>
 
