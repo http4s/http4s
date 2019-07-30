@@ -396,7 +396,7 @@ class BlazeServerBuilder[F[_]](
   }
 
   def verifyTimeoutRelations(): Unit =
-    if (responseHeaderTimeout.isFinite() && responseHeaderTimeout >= idleTimeout) {
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
       logger.warn(
         s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
           s"It is recommended to configure responseHeaderTimeout < idleTimeout, " +

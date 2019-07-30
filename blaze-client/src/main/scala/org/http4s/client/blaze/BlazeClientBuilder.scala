@@ -222,17 +222,17 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val advice = s"It is recommended to configure responseHeaderTimeout < requestTimeout < idleTimeout " +
       s"or disable some of them explicitly by setting them to Duration.Inf."
 
-    if (responseHeaderTimeout.isFinite() && responseHeaderTimeout >= requestTimeout) {
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= requestTimeout) {
       logger.warn(
         s"responseHeaderTimeout ($responseHeaderTimeout) is >= requestTimeout ($requestTimeout). $advice")
     }
 
-    if (responseHeaderTimeout.isFinite() && responseHeaderTimeout >= idleTimeout) {
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
       logger.warn(
         s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
 
-    if (requestTimeout.isFinite() && requestTimeout >= idleTimeout) {
+    if (requestTimeout.isFinite && requestTimeout >= idleTimeout) {
       logger.warn(
         s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
