@@ -185,6 +185,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def resource: Resource[F, Client[F]] =
     scheduler.flatMap { scheduler =>
       verifyAllTimeoutsAccuracy(scheduler)
+      verifyTimeoutRelations()
       connectionManager(scheduler).map { manager =>
         BlazeClient.makeClient(
           manager = manager,
@@ -214,6 +215,26 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       logger.warn(
         s"With current configuration $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
           s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick).")
+    }
+  }
+
+  private def verifyTimeoutRelations(): Unit = {
+    val advice = s"It is recommended to configure responseHeaderTimeout < requestTimeout < idleTimeout " +
+      s"or disable some of them explicitly by setting them to Duration.Inf."
+
+    if (responseHeaderTimeout.isFinite() && responseHeaderTimeout >= requestTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= requestTimeout ($requestTimeout). $advice")
+    }
+
+    if (responseHeaderTimeout.isFinite() && responseHeaderTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
+    }
+
+    if (requestTimeout.isFinite() && requestTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
   }
 
@@ -253,10 +274,10 @@ object BlazeClientBuilder {
       executionContext: ExecutionContext,
       sslContext: Option[SSLContext] = None): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
-      responseHeaderTimeout = 10.seconds,
+      responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
-      requestTimeout = 1.minute,
-      connectTimeout = 10.seconds,
+      requestTimeout = defaults.RequestTimeout,
+      connectTimeout = defaults.ConnectTimeout,
       userAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version)))),
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,

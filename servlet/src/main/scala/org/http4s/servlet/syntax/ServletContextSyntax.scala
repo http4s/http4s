@@ -24,7 +24,7 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
       mapping: String = "/*"): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,
-      asyncTimeout = defaults.AsyncTimeout,
+      asyncTimeout = defaults.ResponseTimeout,
       servletIo = NonBlockingServletIo(DefaultChunkSize),
       serviceErrorHandler = DefaultServiceErrorHandler[F]
     )

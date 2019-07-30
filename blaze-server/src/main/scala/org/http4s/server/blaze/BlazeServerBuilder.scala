@@ -342,6 +342,8 @@ class BlazeServerBuilder[F[_]](
           s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
       })
 
+    verifyTimeoutRelations()
+
     mkFactory
       .flatMap(mkServerChannel)
       .map[Server[F]] { serverChannel =>
@@ -392,6 +394,14 @@ class BlazeServerBuilder[F[_]](
     case SSLContextBits(context, clientAuth) =>
       (context, clientAuth)
   }
+
+  def verifyTimeoutRelations(): Unit =
+    if (responseHeaderTimeout.isFinite() && responseHeaderTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
+          s"It is recommended to configure responseHeaderTimeout < idleTimeout, " +
+          s"otherwise timeout responses won't be delivered to clients.")
+    }
 }
 
 object BlazeServerBuilder {
@@ -399,7 +409,7 @@ object BlazeServerBuilder {
     new BlazeServerBuilder(
       socketAddress = defaults.SocketAddress,
       executionContext = ExecutionContext.global,
-      responseHeaderTimeout = 1.minute,
+      responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,
       isNio2 = false,
       connectorPoolSize = DefaultPoolSize,
