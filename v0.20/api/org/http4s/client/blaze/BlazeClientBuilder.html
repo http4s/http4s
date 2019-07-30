@@ -183,7 +183,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/ed2d33115127053e5e1c30e97f181d4aead7fae5/blaze-client/src/main/scala/org/http4s/client/blaze/BlazeClientBuilder.scala" target="_blank">BlazeClientBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d7d275d4b2d7c7e5e002364d0fbd7c53ac5614e9/blaze-client/src/main/scala/org/http4s/client/blaze/BlazeClientBuilder.scala" target="_blank">BlazeClientBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -532,6 +532,22 @@ sessions, tests, and other situations where composing a
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#connectTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="connectTimeout:scala.concurrent.duration.Duration"></a><a id="connectTimeout:Duration"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#connectTimeout:scala.concurrent.duration.Duration" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>
+      </span>
+      
+      
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((BlazeClientBuilder[F])⇒Boolean,⇒Any):BlazeClientBuilder[F]"></a>
       <span class="permalink">
@@ -775,6 +791,22 @@ sessions, tests, and other situations where composing a
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#logger" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="logger:org.log4s.Logger"></a><a id="logger:Logger"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#logger:org.log4s.Logger" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">logger</span><span class="result">: <span class="extype" name="org.log4s.Logger">Logger</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.client.blaze.BlazeClientBuilder#maxChunkSize" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="maxChunkSize:Int"></a>
       <span class="permalink">
@@ -988,6 +1020,22 @@ until the backend is ready to process requests.
       </span>
       <span class="symbol">
         <span class="name">responseHeaderTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#scheduler" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="scheduler:cats.effect.Resource[F,org.http4s.blaze.util.TickWheelExecutor]"></a><a id="scheduler:Resource[F,TickWheelExecutor]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#scheduler:cats.effect.Resource[F,org.http4s.blaze.util.TickWheelExecutor]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">scheduler</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>, <span class="extype" name="org.http4s.blaze.util.TickWheelExecutor">TickWheelExecutor</span>]</span>
       </span>
       
       
@@ -1334,6 +1382,22 @@ The backend is shut down when the stream is finalized.
       </span>
       
       
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#withConnectTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withConnectTimeout(connectTimeout:scala.concurrent.duration.Duration):org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withConnectTimeout(Duration):BlazeClientBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#withConnectTimeout(connectTimeout:scala.concurrent.duration.Duration):org.http4s.client.blaze.BlazeClientBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withConnectTimeout</span><span class="params">(<span name="connectTimeout">connectTimeout: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.blazecore.BlazeBackendBuilder#withDefaultChannelOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withDefaultChannelOption[A](key:java.net.SocketOption[A]):BlazeBackendBuilder.this.Self"></a><a id="withDefaultChannelOption[A](SocketOption[A]):Self"></a>
       <span class="permalink">
@@ -1621,6 +1685,22 @@ platforms.  The context creation is deferred until the first secure client call.
       </span>
       <span class="symbol">
         <span class="name">withResponseHeaderTimeout</span><span class="params">(<span name="responseHeaderTimeout">responseHeaderTimeout: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.blaze.BlazeClientBuilder#withScheduler" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withScheduler(scheduler:org.http4s.blaze.util.TickWheelExecutor):org.http4s.client.blaze.BlazeClientBuilder[F]"></a><a id="withScheduler(TickWheelExecutor):BlazeClientBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClientBuilder.html#withScheduler(scheduler:org.http4s.blaze.util.TickWheelExecutor):org.http4s.client.blaze.BlazeClientBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withScheduler</span><span class="params">(<span name="scheduler">scheduler: <span class="extype" name="org.http4s.blaze.util.TickWheelExecutor">TickWheelExecutor</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientBuilder">BlazeClientBuilder</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClientBuilder.F">F</span>]</span>
       </span>
       
       
