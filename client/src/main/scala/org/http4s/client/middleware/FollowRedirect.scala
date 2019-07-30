@@ -42,7 +42,11 @@ object FollowRedirect {
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
       client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
 
-    def nextRequest(req: Request[F], uri: Uri, method: Method): Request[F] = {
+    def nextRequest(
+        req: Request[F],
+        uri: Uri,
+        method: Method,
+        cookies: List[ResponseCookie]): Request[F] = {
       // https://tools.ietf.org/html/rfc7231#section-7.1.
       val nextUri = uri.copy(
         scheme = uri.scheme.orElse(req.uri.scheme),
@@ -56,13 +60,24 @@ object FollowRedirect {
         else
           req
 
+      def propagateCookies(req: Request[F]): Request[F] =
+        if (req.uri.authority == nextUri.authority) {
+          cookies.foldLeft(req) {
+            case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
+          }
+        } else {
+          req
+        }
+
       def clearBodyFromGetHead(req: Request[F]): Request[F] =
         method match {
           case GET | HEAD => req.withEmptyBody
           case _ => req
         }
 
-      clearBodyFromGetHead(stripSensitiveHeaders(req).withMethod(method).withUri(nextUri))
+      clearBodyFromGetHead(
+        propagateCookies(stripSensitiveHeaders(req)).withMethod(method).withUri(nextUri)
+      )
     }
 
     def prepareLoop(req: Request[F], redirects: Int): F[Resource[F, Response[F]]] =
@@ -70,7 +85,7 @@ object FollowRedirect {
         case Right((resp, dispose)) =>
           (methodForRedirect(req, resp), resp.headers.get(Location)) match {
             case (Some(method), Some(loc)) if redirects < maxRedirects =>
-              val nextReq = nextRequest(req, loc.uri, method)
+              val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
               dispose >> prepareLoop(nextReq, redirects + 1).map(_.map { response =>
                 // prepend because `prepareLoop` is recursive
                 response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
