@@ -42,7 +42,11 @@ object FollowRedirect {
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
       client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
 
-    def nextRequest(req: Request[F], uri: Uri, method: Method, cookies: List[ResponseCookie]): Request[F] = {
+    def nextRequest(
+        req: Request[F],
+        uri: Uri,
+        method: Method,
+        cookies: List[ResponseCookie]): Request[F] = {
       // https://tools.ietf.org/html/rfc7231#section-7.1.
       val nextUri = uri.copy(
         scheme = uri.scheme.orElse(req.uri.scheme),
@@ -57,12 +61,13 @@ object FollowRedirect {
           req
 
       def propagateCookies(req: Request[F]): Request[F] =
-        if (req.uri.authority == nextUri.authority)
+        if (req.uri.authority == nextUri.authority) {
           cookies.foldLeft(req) {
             case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
           }
-        else
+        } else {
           req
+        }
 
       def clearBodyFromGetHead(req: Request[F]): Request[F] =
         method match {
@@ -70,7 +75,9 @@ object FollowRedirect {
           case _ => req
         }
 
-      clearBodyFromGetHead(propagateCookies(stripSensitiveHeaders(req)).withMethod(method).withUri(nextUri))
+      clearBodyFromGetHead(
+        propagateCookies(stripSensitiveHeaders(req)).withMethod(method).withUri(nextUri)
+      )
     }
 
     def prepareLoop(req: Request[F], redirects: Int): F[Resource[F, Response[F]]] =
