@@ -7,6 +7,7 @@ import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import java.lang.{Runtime => JRuntime}
@@ -96,6 +97,10 @@ object Http4sPlugin extends AutoPlugin {
     }.map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeClientBuilder.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Support.this")
+    ),
 
     libraryDependencies += compilerPlugin(
       CrossVersion.binaryScalaVersion(scalaVersion.value) match {
@@ -295,7 +300,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.8.1"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.6"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.7"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.6.1"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.3.1"
