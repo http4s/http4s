@@ -394,7 +394,7 @@ class BlazeServerBuilder[F[_]](
       (context, clientAuth)
   }
 
-  private def verifyTimeoutRelations(): F[Unit] = Sync[F].delay {
+  private def verifyTimeoutRelations(): F[Unit] = F.delay {
     if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
       logger.warn(
         s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
