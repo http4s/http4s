@@ -183,32 +183,33 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     copy(channelOptions = channelOptions)
 
   def resource: Resource[F, Client[F]] =
-    scheduler.flatMap { scheduler =>
-      verifyAllTimeoutsAccuracy(scheduler)
-      verifyTimeoutRelations()
-      connectionManager(scheduler).map { manager =>
-        BlazeClient.makeClient(
-          manager = manager,
-          responseHeaderTimeout = responseHeaderTimeout,
-          idleTimeout = idleTimeout,
-          requestTimeout = requestTimeout,
-          scheduler = scheduler,
-          ec = executionContext
-        )
-      }
-    }
+    for {
+      scheduler <- scheduler
+      _ <- Resource.liftF(verifyAllTimeoutsAccuracy(scheduler))
+      _ <- Resource.liftF(verifyTimeoutRelations())
+      manager <- connectionManager(scheduler)
+    } yield
+      BlazeClient.makeClient(
+        manager = manager,
+        responseHeaderTimeout = responseHeaderTimeout,
+        idleTimeout = idleTimeout,
+        requestTimeout = requestTimeout,
+        scheduler = scheduler,
+        ec = executionContext
+      )
 
-  private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): Unit = {
-    verifyTimeoutAccuracy(scheduler.tick, responseHeaderTimeout, "responseHeaderTimeout")
-    verifyTimeoutAccuracy(scheduler.tick, idleTimeout, "idleTimeout")
-    verifyTimeoutAccuracy(scheduler.tick, requestTimeout, "requestTimeout")
-    verifyTimeoutAccuracy(scheduler.tick, connectTimeout, "connectTimeout")
-  }
+  private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): F[Unit] =
+    for {
+      _ <- verifyTimeoutAccuracy(scheduler.tick, responseHeaderTimeout, "responseHeaderTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, idleTimeout, "idleTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, requestTimeout, "requestTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, connectTimeout, "connectTimeout")
+    } yield ()
 
   private def verifyTimeoutAccuracy(
       tick: Duration,
       timeout: Duration,
-      timeoutName: String): Unit = {
+      timeoutName: String): F[Unit] = F.delay {
     val warningThreshold = 0.1 // 10%
     val inaccuracy = tick / timeout
     if (inaccuracy > warningThreshold) {
@@ -218,7 +219,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     }
   }
 
-  private def verifyTimeoutRelations(): Unit = {
+  private def verifyTimeoutRelations(): F[Unit] = F.delay {
     val advice = s"It is recommended to configure responseHeaderTimeout < requestTimeout < idleTimeout " +
       s"or disable some of them explicitly by setting them to Duration.Inf."
 

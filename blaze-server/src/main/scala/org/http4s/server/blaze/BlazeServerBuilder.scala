@@ -342,22 +342,21 @@ class BlazeServerBuilder[F[_]](
           s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
       })
 
-    verifyTimeoutRelations()
+    Resource.liftF(verifyTimeoutRelations()) >>
+      mkFactory
+        .flatMap(mkServerChannel)
+        .map[Server[F]] { serverChannel =>
+          new Server[F] {
+            val address: InetSocketAddress =
+              serverChannel.socketAddress
 
-    mkFactory
-      .flatMap(mkServerChannel)
-      .map[Server[F]] { serverChannel =>
-        new Server[F] {
-          val address: InetSocketAddress =
-            serverChannel.socketAddress
+            val isSecure = sslBits.isDefined
 
-          val isSecure = sslBits.isDefined
-
-          override def toString: String =
-            s"BlazeServer($address)"
+            override def toString: String =
+              s"BlazeServer($address)"
+          }
         }
-      }
-      .flatTap(logStart)
+        .flatTap(logStart)
   }
 
   private def getContext(): Option[(SSLContext, SSLClientAuthMode)] = sslBits.map {
@@ -395,13 +394,14 @@ class BlazeServerBuilder[F[_]](
       (context, clientAuth)
   }
 
-  def verifyTimeoutRelations(): Unit =
+  private def verifyTimeoutRelations(): F[Unit] = Sync[F].delay {
     if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
       logger.warn(
         s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
           s"It is recommended to configure responseHeaderTimeout < idleTimeout, " +
           s"otherwise timeout responses won't be delivered to clients.")
     }
+  }
 }
 
 object BlazeServerBuilder {
