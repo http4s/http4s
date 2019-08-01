@@ -8,6 +8,22 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.7 (2019-07-30)
+
+## Bug fixes
+* [#2728](https://github.com/http4s/http4s/pull/2728): Preserve division of `request.uri.path` into `scriptName` and `pathInfo` when calling `withPathInfo`.
+* [#2737](https://github.com/http4s/http4s/pull/2737): Fix deadlock in blaze-server web socket shutdown.
+
+## Enhancements
+* [#2736](https://github.com/http4s/http4s/pull/2736): Implement a `connectTimeout` in blaze-client, defaulted to 10 seconds.  Prevents indefinite hangs on non-responsive hosts.
+
+## Documentation
+* [#2741](https://github.com/http4s/http4s/pull/2741): Improve docs surrounding auth middleware and fall through.
+
+## Dependency upgrades
+- blaze-0.14.7
+- tomcat-9.0.22
+
 # v0.21.0-M2 (2019-07-09)
 
 This release drops support for Scala 2.11 and adds the `http4s-ember-server` and `http4s-ember-client` backends.  Ember is new and experimental, but we intend for it to become the reference implementation.  Notably, it only requires a `Concurrent` constraint.
