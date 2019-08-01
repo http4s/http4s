@@ -8,6 +8,32 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-M3
+
+## Bug fixes
+
+* [#2727](https://github.com/http4s/http4s/pull/2727): Fix `UserInfo` with `+` sign
+
+## Enhancements
+
+* [#2623](https://github.com/http4s/http4s/pull/2623): Propagate cookies in `FollowRedirect` client middleware
+
+## Documentation
+
+* [#2717](https://github.com/http4s/http4s/pull/2717): Update quickstart for v0.21
+* [#2734](https://github.com/http4s/http4s/pull/2734): Add missing comma in code sample
+* [#2740](https://github.com/http4s/http4s/pull/2740): Clarify `Method` imports for client DSL
+
+## Internals
+
+* [#2747](https://github.com/http4s/http4s/pull/2717): Create .mergify.yml
+
+## Dependency upgrades
+
+* better-monadic-fore-0.3.1
+* log4cats-0.4.0-M2
+* okhttp-4.0.1
+
 # v0.20.7 (2019-07-30)
 
 ## Bug fixes
