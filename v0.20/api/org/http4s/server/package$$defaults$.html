@@ -319,7 +319,7 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/12d42695ed5a72b52405b766e40391cd05da20c6/server/src/main/scala/org/http4s/server/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/45cbee605c465507a75bdfc3b4314cc616cc5b26/server/src/main/scala/org/http4s/server/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -424,22 +424,6 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.defaults#AsyncTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AsyncTimeout:scala.concurrent.duration.Duration"></a><a id="AsyncTimeout:Duration"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/package$$defaults$.html#AsyncTimeout:scala.concurrent.duration.Duration" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">AsyncTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.server.defaults#Banner" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Banner:List[String]"></a>
       <span class="permalink">
@@ -501,6 +485,22 @@ for serious static content serving.
       </span>
       <span class="symbol">
         <span class="name">IdleTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.defaults#ResponseTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ResponseTimeout:scala.concurrent.duration.Duration"></a><a id="ResponseTimeout:Duration"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/package$$defaults$.html#ResponseTimeout:scala.concurrent.duration.Duration" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ResponseTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>
       </span>
       
       
@@ -844,7 +844,29 @@ for serious static content serving.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.defaults#AsyncTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AsyncTimeout:scala.concurrent.duration.Duration"></a><a id="AsyncTimeout:Duration"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/package$$defaults$.html#AsyncTimeout:scala.concurrent.duration.Duration" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.0-M3) Renamed to ResponseTimeout">AsyncTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-M3)</i> Renamed to ResponseTimeout</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
