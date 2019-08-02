@@ -27,6 +27,8 @@ package object server {
     val HttpPort = 8080
     val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
 
+    @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
+    def AsyncTimeout: Duration = ResponseTimeout
     val ResponseTimeout: Duration = 30.seconds
     val IdleTimeout: Duration = 60.seconds
 
