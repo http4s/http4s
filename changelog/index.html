@@ -91,6 +91,12 @@ it.</p>
 
 <h1 id="v0-21-0-m3">v0.21.0-M3</h1>
 
+<h2 id="breaking-changes">Breaking changes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2572">#2572</a>: Make <code>Http1Stage</code> private to <code>org.http4s</code>, which we highly doubt anybody extended directly anyway.</li>
+</ul>
+
 <h2 id="bug-fixes">Bug fixes</h2>
 
 <ul>
@@ -120,7 +126,8 @@ it.</p>
 <h2 id="dependency-upgrades">Dependency upgrades</h2>
 
 <ul>
-<li>better-monadic-fore-0.3.1</li>
+<li>better-monadic-for-0.3.1</li>
+<li>cats-effect-2.0.0-M5</li>
 <li>log4cats-0.4.0-M2</li>
 <li>okhttp-4.0.1</li>
 </ul>
@@ -181,7 +188,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2704">#2704</a>: Remove unused <code>Sync</code> constraint on <code>Part.formData</code>.</li>
 </ul>
 
-<h2 id="breaking-changes">Breaking changes</h2>
+<h2 id="breaking-changes-1">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2654">#2654</a>: Extract an http4s-laws module from http4s-testing, with no dependency on Specs2.  The arbitraries, laws, and tests are now laid out in a similar structure to cats and cats-effect.</li>
@@ -270,7 +277,7 @@ it.</p>
 
 <h1 id="v0-21-0-m1-2019-06-17">v0.21.0-M1 (2019-06-17)</h1>
 
-<h2 id="breaking-changes-1">Breaking changes</h2>
+<h2 id="breaking-changes-2">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2565">#2565</a>: Change constraint on server <code>Metrics</code> from <code>Effect</code> to <code>Sync</code></li>
@@ -479,7 +486,7 @@ it.</p>
 
 <p>This marks the end of active support for the 0.18 series.  Further releases in that series will require a pull request and an accompanying tale of woe.</p>
 
-<h2 id="breaking-changes-2">Breaking changes</h2>
+<h2 id="breaking-changes-3">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2506">#2506</a>: Raise <code>DecodeFailure</code> with <code>MonadError</code> in <code>Message#as</code> rather than relying on effect to catch in <code>fold</code>. Requires a new <code>MonadError</code> constraint.</li>
@@ -528,7 +535,7 @@ it.</p>
 
 <h1 id="v0-20-0-rc1-2019-04-03">v0.20.0-RC1 (2019-04-03)</h1>
 
-<h2 id="breaking-changes-3">Breaking changes</h2>
+<h2 id="breaking-changes-4">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2471">#2471</a>: <code>Headers</code> is no longer an <code>Iterable[Header]</code></li>
@@ -664,7 +671,7 @@ it.</p>
 
 <h1 id="v0-20-0-m6-2019-02-16">v0.20.0-M6 (2019-02-16)</h1>
 
-<h2 id="breaking-changes-4">Breaking changes</h2>
+<h2 id="breaking-changes-5">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2369">#2369</a>: Make <code>log</code> operation on logging middlewares return an <code>F[Unit]</code> to support pure logging.</li>
@@ -747,7 +754,7 @@ it.</p>
 <p>Consider the blaze beta and all other modules RC quality. Don&rsquo;t forget
 there is a scalafix to assist migration from 0.18!</p>
 
-<h2 id="breaking-changes-5">Breaking changes</h2>
+<h2 id="breaking-changes-6">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2308">#2308</a>: Change <code>allocate</code> to <code>allocated</code> on backend builders for consistency with <code>cats.effect.Resource#allocated</code>.</li>
@@ -843,7 +850,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-20-0-m3-2018-11-13">v0.20.0-M3 (2018-11-13)</h1>
 
-<h2 id="breaking-changes-6">Breaking changes</h2>
+<h2 id="breaking-changes-7">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2228">#2228</a>: Support more attributes for the response cookie in <code>CSRF</code> middleware. Configuration is now done through a builder, similar to backends.</li>
@@ -898,7 +905,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
 </ul>
 
-<h2 id="breaking-changes-7">Breaking changes</h2>
+<h2 id="breaking-changes-8">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2207">#2207</a>: Remove <code>PathNormalizer</code>. The functionality is now on <code>Uri.removeDotSegments</code>.</li>
@@ -985,7 +992,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <p>Due to the inadvertent release of 0.19.0, we have opened a new minor version.  The stable release with MiMa enforcement will be v0.20.0.</p>
 
-<h2 id="breaking-changes-8">Breaking changes</h2>
+<h2 id="breaking-changes-9">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2159">#2159</a>: Add a <code>responseHeaderTimeout</code> property to <code>BlazeServerBuilder</code>. Responses that timeout are completed with <code>Response.timeout</code>, which defaults to 503 Service Unavailable.  <code>BlazeServerBuilder</code> now requires a <code>Timer[F]</code>.</li>
@@ -1079,7 +1086,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m4-2018-10-05">v0.19.0-M4 (2018-10-05)</h1>
 
-<h2 id="breaking-changes-9">Breaking changes</h2>
+<h2 id="breaking-changes-10">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2137">#2137</a>: Remove <code>ExecutionContext</code> argument to jetty-client in favor of the <code>ContextShift[F]</code>.</li>
@@ -1141,7 +1148,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m3-2018-09-27">v0.19.0-M3 (2018-09-27)</h1>
 
-<h2 id="breaking-changes-10">Breaking changes</h2>
+<h2 id="breaking-changes-11">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2081">#2081</a>: Remove <code>OkHttp</code> code redundant with <code>OkHttpBuilder</code>.</li>
@@ -1263,7 +1270,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m2-2018-09-07">v0.19.0-M2 (2018-09-07)</h1>
 
-<h2 id="breaking-changes-11">Breaking changes</h2>
+<h2 id="breaking-changes-12">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/1802">#1802</a>: Race servlet requests against the <code>AsyncContext.timeout</code>. <code>JettyBuilder</code> and <code>TomcatBuilder</code> now require a <code>ConcurrentEffect</code> instance.</li>
