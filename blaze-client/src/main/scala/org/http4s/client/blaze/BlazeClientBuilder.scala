@@ -183,37 +183,59 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     copy(channelOptions = channelOptions)
 
   def resource: Resource[F, Client[F]] =
-    scheduler.flatMap { scheduler =>
-      verifyAllTimeoutsAccuracy(scheduler)
-      connectionManager(scheduler).map { manager =>
-        BlazeClient.makeClient(
-          manager = manager,
-          responseHeaderTimeout = responseHeaderTimeout,
-          idleTimeout = idleTimeout,
-          requestTimeout = requestTimeout,
-          scheduler = scheduler,
-          ec = executionContext
-        )
-      }
-    }
+    for {
+      scheduler <- scheduler
+      _ <- Resource.liftF(verifyAllTimeoutsAccuracy(scheduler))
+      _ <- Resource.liftF(verifyTimeoutRelations())
+      manager <- connectionManager(scheduler)
+    } yield
+      BlazeClient.makeClient(
+        manager = manager,
+        responseHeaderTimeout = responseHeaderTimeout,
+        idleTimeout = idleTimeout,
+        requestTimeout = requestTimeout,
+        scheduler = scheduler,
+        ec = executionContext
+      )
 
-  private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): Unit = {
-    verifyTimeoutAccuracy(scheduler.tick, responseHeaderTimeout, "responseHeaderTimeout")
-    verifyTimeoutAccuracy(scheduler.tick, idleTimeout, "idleTimeout")
-    verifyTimeoutAccuracy(scheduler.tick, requestTimeout, "requestTimeout")
-    verifyTimeoutAccuracy(scheduler.tick, connectTimeout, "connectTimeout")
-  }
+  private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): F[Unit] =
+    for {
+      _ <- verifyTimeoutAccuracy(scheduler.tick, responseHeaderTimeout, "responseHeaderTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, idleTimeout, "idleTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, requestTimeout, "requestTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, connectTimeout, "connectTimeout")
+    } yield ()
 
   private def verifyTimeoutAccuracy(
       tick: Duration,
       timeout: Duration,
-      timeoutName: String): Unit = {
+      timeoutName: String): F[Unit] = F.delay {
     val warningThreshold = 0.1 // 10%
     val inaccuracy = tick / timeout
     if (inaccuracy > warningThreshold) {
       logger.warn(
         s"With current configuration $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
           s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick).")
+    }
+  }
+
+  private def verifyTimeoutRelations(): F[Unit] = F.delay {
+    val advice = s"It is recommended to configure responseHeaderTimeout < requestTimeout < idleTimeout " +
+      s"or disable some of them explicitly by setting them to Duration.Inf."
+
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= requestTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= requestTimeout ($requestTimeout). $advice")
+    }
+
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
+    }
+
+    if (requestTimeout.isFinite && requestTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
   }
 
@@ -259,10 +281,10 @@ object BlazeClientBuilder {
       executionContext: ExecutionContext,
       sslContext: Option[SSLContext] = tryDefaultSslContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
-      responseHeaderTimeout = 10.seconds,
+      responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
-      requestTimeout = 1.minute,
-      connectTimeout = 10.seconds,
+      requestTimeout = defaults.RequestTimeout,
+      connectTimeout = defaults.ConnectTimeout,
       userAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version)))),
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,

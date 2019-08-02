@@ -15,20 +15,24 @@ import java.net.{InetAddress, InetSocketAddress}
 package object server {
 
   object defaults {
-    val AsyncTimeout: Duration = 30.seconds
     val Banner =
       """|  _   _   _        _ _
          | | |_| |_| |_ _ __| | | ___
          | | ' \  _|  _| '_ \_  _(_-<
          | |_||_\__|\__| .__/ |_|/__/
          |             |_|""".stripMargin.split("\n").toList
+
     val Host = InetAddress.getLoopbackAddress.getHostAddress
     val HttpPort = 8080
-    val IdleTimeout: Duration = 30.seconds
+    val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
+
+    @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
+    def AsyncTimeout: Duration = ResponseTimeout
+    val ResponseTimeout: Duration = 30.seconds
+    val IdleTimeout: Duration = 60.seconds
 
     /** The time to wait for a graceful shutdown */
     val ShutdownTimeout: Duration = 30.seconds
-    val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
   }
 
   object ServerRequestKeys {

@@ -34,6 +34,17 @@ it.
 * log4cats-0.4.0-M2
 * okhttp-4.0.1
 
+# v0.20.8 (2019-08-02)
+
+## Enhancements
+
+* [#2550](https://github.com/http4s/http4s/pull/2550): Adjust default timeouts and add warnings about misconfiguration
+
+## Dependency updates
+
+* blaze-0.14.8
+* cats-effect-1.4.0
+
 # v0.20.7 (2019-07-30)
 
 ## Bug fixes
