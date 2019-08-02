@@ -236,7 +236,7 @@ object TomcatBuilder {
       socketAddress = defaults.SocketAddress,
       externalExecutor = None,
       idleTimeout = defaults.IdleTimeout,
-      asyncTimeout = defaults.AsyncTimeout,
+      asyncTimeout = defaults.ResponseTimeout,
       servletIo = ServletContainer.DefaultServletIo[F],
       sslBits = None,
       mounts = Vector.empty,

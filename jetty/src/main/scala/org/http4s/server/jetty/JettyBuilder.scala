@@ -255,7 +255,7 @@ object JettyBuilder {
     socketAddress = defaults.SocketAddress,
     threadPool = new QueuedThreadPool(),
     idleTimeout = defaults.IdleTimeout,
-    asyncTimeout = defaults.AsyncTimeout,
+    asyncTimeout = defaults.ResponseTimeout,
     shutdownTimeout = defaults.ShutdownTimeout,
     servletIo = ServletContainer.DefaultServletIo,
     sslBits = None,

@@ -204,8 +204,8 @@ object JavaNetClientBuilder {
       implicit F: Async[F],
       cs: ContextShift[F]): JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
-      connectTimeout = 1.minute,
-      readTimeout = 1.minute,
+      connectTimeout = defaults.ConnectTimeout,
+      readTimeout = defaults.RequestTimeout,
       proxy = None,
       hostnameVerifier = None,
       sslSocketFactory = None,
