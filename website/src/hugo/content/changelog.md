@@ -10,6 +10,10 @@ it.
 
 # v0.21.0-M3
 
+## Breaking changes
+
+* [#2572](https://github.com/http4s/http4s/pull/2572): Make `Http1Stage` private to `org.http4s`, which we highly doubt anybody extended directly anyway.
+
 ## Bug fixes
 
 * [#2727](https://github.com/http4s/http4s/pull/2727): Fix `UserInfo` with `+` sign
@@ -30,7 +34,8 @@ it.
 
 ## Dependency upgrades
 
-* better-monadic-fore-0.3.1
+* better-monadic-for-0.3.1
+* cats-effect-2.0.0-M5
 * log4cats-0.4.0-M2
 * okhttp-4.0.1
 
