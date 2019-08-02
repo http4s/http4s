@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 /** Utility bits for dealing with the HTTP 1.x protocol */
-trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
+private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
