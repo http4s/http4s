@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.0-M3
+# v0.21.0-M3 (2019-08-02)
 
 ## Breaking changes
 
