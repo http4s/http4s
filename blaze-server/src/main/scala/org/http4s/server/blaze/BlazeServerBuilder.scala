@@ -244,8 +244,7 @@ class BlazeServerBuilder[F[_]](
                   }
               )
         case _ =>
-          () =>
-            Vault.empty
+          () => Vault.empty
       }
 
     def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =

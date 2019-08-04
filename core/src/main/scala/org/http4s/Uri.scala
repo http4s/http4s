@@ -295,7 +295,7 @@ object Uri {
     }
 
     implicit val http4sInstancesForUserInfo
-      : HttpCodec[UserInfo] with Order[UserInfo] with Hash[UserInfo] with Show[UserInfo] =
+        : HttpCodec[UserInfo] with Order[UserInfo] with Hash[UserInfo] with Show[UserInfo] =
       new HttpCodec[UserInfo] with Order[UserInfo] with Hash[UserInfo] with Show[UserInfo] {
         def parse(s: String): ParseResult[UserInfo] =
           UserInfo.fromString(s)

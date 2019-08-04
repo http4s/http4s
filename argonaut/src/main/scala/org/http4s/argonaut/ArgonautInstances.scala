@@ -114,7 +114,7 @@ object ArgonautInstances {
   val builder: ArgonautInstancesBuilder = new ArgonautInstancesBuilder() {}
 
   private[argonaut] def defaultJsonDecodeError
-    : (Json, DecodeFailureMessage, CursorHistory) => DecodeFailure =
+      : (Json, DecodeFailureMessage, CursorHistory) => DecodeFailure =
     (json, message, history) =>
       InvalidMessageBodyFailure(s"Could not decode JSON: $json, error: $message, cursor: $history")
 }

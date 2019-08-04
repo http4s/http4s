@@ -237,7 +237,7 @@ object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
   */
 object +& {
   def unapply(params: Map[String, collection.Seq[String]])
-    : Some[(Map[String, collection.Seq[String]], Map[String, collection.Seq[String]])] =
+      : Some[(Map[String, collection.Seq[String]], Map[String, collection.Seq[String]])] =
     Some((params, params))
 }
 

@@ -46,7 +46,7 @@ private[http4s] object WebSocketHandshake {
 
   /** Checks the headers received from the client and if they are valid, generates response headers */
   def serverHandshake(headers: Iterable[(String, String)])
-    : Either[(Int, String), collection.Seq[(String, String)]] =
+      : Either[(Int, String), collection.Seq[(String, String)]] =
     if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") }) {
       Left((-1, "Missing Host Header"))
     } else if (!headers.exists {
@@ -106,7 +106,7 @@ private[http4s] object WebSocketHandshake {
         s.startsWith("\"") &&
         s.endsWith("\"") &&
         s.substring(1, s.length - 1).equalsIgnoreCase(key)
-    })
+      })
   }
 
   private val magicString =

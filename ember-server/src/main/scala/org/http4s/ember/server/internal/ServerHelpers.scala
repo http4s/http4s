@@ -53,7 +53,7 @@ private[server] object ServerHelpers {
               .flatMap { req =>
                 // Sync[F].delay(logger.debug(s"Request Processed $req")) *>
                 timeoutSignal.set(false).as(req)
-            })
+              })
       }
     }
 
@@ -89,7 +89,7 @@ private[server] object ServerHelpers {
                     case Left(err) => send(None, onError(err))
                   }
                 }
-            ))
+              ))
             .parJoin(maxConcurrency)
             .interruptWhen(terminationSignal)
             .drain)

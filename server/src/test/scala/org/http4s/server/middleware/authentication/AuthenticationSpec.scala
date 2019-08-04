@@ -208,7 +208,7 @@ class AuthenticationSpec extends Http4sSpec {
             // be due to the low nonce stale timer.  Instead, we check
             // that it's found.
             res.status mustNotEqual NotFound
-        })
+          })
         .toList
       results.parSequence.unsafeRunSync
 
@@ -224,7 +224,7 @@ class AuthenticationSpec extends Http4sSpec {
           IO {
             val res = doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)._1
             res.status
-        })
+          })
         .toList
 
       val res = results.parSequence.unsafeRunSync

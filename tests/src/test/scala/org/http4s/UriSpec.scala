@@ -715,7 +715,7 @@ http://example.org/a file
       Uri() =? ps must be_==(Uri(query = Query.fromString("param=1.2&param=2.1")))
     }
     "set a parameter with a float values" in {
-      val ps = Map("param" -> List(1.2F, 2.1F))
+      val ps = Map("param" -> List(1.2f, 2.1f))
       Uri() =? ps must be_==(Uri(query = Query.fromString("param=1.2&param=2.1")))
     }
     "set a parameter with a integer values" in {

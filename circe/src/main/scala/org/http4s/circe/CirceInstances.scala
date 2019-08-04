@@ -183,7 +183,7 @@ object CirceInstances {
     pe => MalformedMessageBodyFailure("Invalid JSON", Some(pe))
 
   private[circe] lazy val defaultJsonDecodeError
-    : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
+      : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
     InvalidMessageBodyFailure(
       s"Could not decode JSON: $json",
       if (failures.tail.isEmpty) Some(failures.head) else Some(DecodingFailures(failures)))

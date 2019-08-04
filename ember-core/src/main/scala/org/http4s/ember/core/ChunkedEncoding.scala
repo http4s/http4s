@@ -85,7 +85,9 @@ private[ember] object ChunkedEncoding {
       val parts = s.split(';') // lets ignore any extensions
       if (parts.isEmpty) None
       else {
-        try { Some(java.lang.Long.parseLong(parts(0).trim, 16)) } catch { case NonFatal(_) => None }
+        try {
+          Some(java.lang.Long.parseLong(parts(0).trim, 16))
+        } catch { case NonFatal(_) => None }
       }
     }
 

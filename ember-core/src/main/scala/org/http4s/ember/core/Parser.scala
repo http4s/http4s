@@ -43,8 +43,7 @@ private[ember] object Parser {
 
           }
       }
-    src =>
-      go(ByteVector.empty, src).stream
+    src => go(ByteVector.empty, src).stream
   }
 
   def generateHeaders[F[_]: Monad](byteVector: ByteVector)(acc: Headers)(
@@ -135,14 +134,13 @@ private[ember] object Parser {
           authority = host.map(h => Uri.Authority(host = Uri.RegName(h.host), port = h.port)))
         newHeaders = headers.filterNot(_.is(org.http4s.headers.Host))
 
-      } yield
-        org.http4s.Request[F](
-          method = method,
-          uri = newUri,
-          httpVersion = http,
-          headers = newHeaders,
-          body = body
-        )
+      } yield org.http4s.Request[F](
+        method = method,
+        uri = newUri,
+        httpVersion = http,
+        headers = newHeaders,
+        body = body
+      )
 
     private def bvToRequestTopLine[F[_]: MonadError[?[_], Throwable]](
         b: ByteVector): F[(Method, Uri, HttpVersion)] =
@@ -219,13 +217,12 @@ private[ember] object Parser {
         body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
         else s.take(contentLength)
 
-      } yield
-        org.http4s.Response[F](
-          status = status,
-          httpVersion = httpV,
-          headers = headers,
-          body = body
-        )
+      } yield org.http4s.Response[F](
+        status = status,
+        httpVersion = httpV,
+        headers = headers,
+        body = body
+      )
 
     private def bvToResponseTopLine[F[_]: MonadError[?[_], Throwable]](
         b: ByteVector

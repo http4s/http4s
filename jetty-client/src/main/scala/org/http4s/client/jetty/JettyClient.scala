@@ -33,7 +33,7 @@ object JettyClient {
               F.delay(dcp.close())
             }
           })
-      })
+        })
     val dispose = F
       .delay(client.stop())
       .handleErrorWith(t => F.delay(logger.error(t)("Unable to shut down Jetty client")))

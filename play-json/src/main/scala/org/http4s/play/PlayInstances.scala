@@ -34,7 +34,7 @@ trait PlayInstances {
     jawn.jawnDecoder[F, JsValue]
 
   def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A: Writes]
-    : EntityEncoder[F, A] =
+      : EntityEncoder[F, A] =
     jsonEncoder[F].contramap[A](Json.toJson(_))
 
   implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, JsValue] =
@@ -56,7 +56,7 @@ trait PlayInstances {
           _ =>
             new Reads[Uri] {
               def reads(json: JsValue): JsResult[Uri] = JsError("Invalid uri")
-          },
+            },
           Reads.pure(_)
         )
     }

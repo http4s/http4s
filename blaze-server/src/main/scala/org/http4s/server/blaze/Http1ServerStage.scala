@@ -336,8 +336,7 @@ private[blaze] class Http1ServerStage[F[_]](
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
         val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
-        req =>
-          F.race(runApp(req), timeoutResponse).map(_.merge)
+        req => F.race(runApp(req), timeoutResponse).map(_.merge)
       case _ =>
         runApp
     }

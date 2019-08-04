@@ -23,7 +23,7 @@ private[parser] trait StrictTransportSecurityHeader {
     }
 
     def stsAttributes
-      : Rule[`Strict-Transport-Security` :: HNil, `Strict-Transport-Security` :: HNil] = rule {
+        : Rule[`Strict-Transport-Security` :: HNil, `Strict-Transport-Security` :: HNil] = rule {
       "includeSubDomains" ~ MATCH ~> { (sts: `Strict-Transport-Security`) =>
         sts.withIncludeSubDomains(true)
       } |

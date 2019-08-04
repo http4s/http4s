@@ -126,7 +126,7 @@ object BlazeClient {
                     .bracket(stage =>
                       F.asyncF[TimeoutException] { cb =>
                         F.delay(stage.init(cb)) >> gate.complete(())
-                    })(stage => F.delay(stage.removeStage()))
+                      })(stage => F.delay(stage.removeStage()))
 
                 F.racePair(gate.get *> res, responseHeaderTimeoutF)
                   .flatMap[Resource[F, Response[F]]] {
