@@ -29,7 +29,7 @@ use the following definition:
 case class User(id: Long, name: String)
 ```
 
-With the request representation defined, we can move on to the `AuthedService[User, F]`, a shortcut to
+With the request representation defined, we can move on to the `AuthedRoutes[User, F]`, an alias for
 `AuthedRequest[F, User] => OptionT[F, Response[F]]`. Notice the similarity to a "normal" service, which
 would be the equivalent to `Request[F] => OptionT[F, Response[F]]` - in other words, we are lifting the
 `Request` into an `AuthedRequest`, and adding authentication information in the mix.
@@ -47,7 +47,7 @@ It is worth noting that we are still wrapping the user fetch in `F` (`IO` in thi
 discovering the user might require reading from a database or calling some other service - i.e. performing
 IO operations.
 
-Now we need a middleware that can bridge a "normal" service into an `AuthedService`, which is quite easy to
+Now we need a middleware that can bridge a "normal" service into an `AuthedRoutes`, which is quite easy to
 get using our function defined above. We use `AuthMiddleware` for that:
 
 ```tut:silent
@@ -55,24 +55,63 @@ val middleware: AuthMiddleware[IO, User] =
   AuthMiddleware(authUser)
 ```
 
-Note: In the above, the default apply method of `AuthMiddleware` will consume all requests either unmatched, or
-not authenticated by returning an empty response with status code 401 (Unauthorized). This mitigates
-a kind of reconnaissance called "spidering", useful for white and black hat hackers to enumerate
-your api for possible unprotected points. To allow fallthrough,
-use `AuthMiddleware.withFallThrough`. Alternatively, to customize the behavior on not authenticated if you do not
-wish to always return 401, use `AuthMiddleware.noSpider` and specify the `onAuthFailure` handler.
-
-Finally, we can create our `AuthedService`, and wrap it with our authentication middleware, getting the
+Finally, we can create our `AuthedRoutes`, and wrap it with our authentication middleware, getting the
 final `HttpRoutes` to be exposed. Notice that we now have access to the user object in the service implementation:
 
 ```tut:silent
-val authedService: AuthedService[User, IO] =
-  AuthedService {
+val authedRoutes: AuthedRoutes[User, IO] =
+  AuthedRoutes.of {
     case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
 
-val service: HttpRoutes[IO] = middleware(authedService)
+val service: HttpRoutes[IO] = middleware(authedRoutes)
 ```
+
+## Composing Authenticated Routes
+
+The default apply method of `AuthMiddleware` will consume all requests either unmatched, or
+not authenticated by returning an empty response with status code 401 (Unauthorized). This mitigates
+a kind of reconnaissance called "spidering", useful for white and black hat hackers to enumerate
+your api for possible unprotected points.
+
+```tut:silent
+val spanishRoutes: AuthedRoutes[User, IO] =
+    AuthedRoutes.of {
+        case GET -> Root / "hola" as user => Ok(s"Hola, ${user.name}")
+    }
+
+val frenchRoutes: HttpRoutes[IO] =
+    HttpRoutes.of {
+        case GET -> Root / "bonjour" => Ok(s"Bonjour")
+    }
+
+val service: HttpRoutes[IO] = middleware(spanishRoutes) <+> frenchRoutes
+```
+
+Call to the french routes will always return 401 (Unauthorized) as they are caught by the spanish routes. To allow access to other routes you can:
+
+* Use a Router with unique route prefixes
+```tut:silent
+val service = Router {
+    "/spanish" -> middleware(spanishRoutes)
+    "/french" -> frenchRoutes
+}
+```
+
+* Allow fallthrough, using `AuthMiddleware.withFallThrough`.
+```tut:silent
+val middlewareWithFallThrough: AuthMiddleware[IO, User] =
+  AuthMiddleware.withFallThrough(authUser)
+val service: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
+```
+
+* Reorder the routes so that authed routes compose last
+```tut:silent
+val service: HttpRoutes[IO] = frenchRoutes <+> middleware(spanishRoutes)
+```
+
+Alternatively, to customize the behavior on not authenticated if you do not
+wish to always return 401, use `AuthMiddleware.noSpider` and specify the `onAuthFailure` handler.
 
 ## Returning an Error Response
 
@@ -90,10 +129,10 @@ error handling, we recommend an error [ADT] instead of a `String`.
 ```tut:silent
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
-val onFailure: AuthedService[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
+val onFailure: AuthedRoutes[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 val middleware = AuthMiddleware(authUser, onFailure)
 
-val service: HttpRoutes[IO] = middleware(authedService)
+val service: HttpRoutes[IO] = middleware(authedRoutes)
 ```
 
 ## Implementing authUser

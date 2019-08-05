@@ -4,6 +4,7 @@ package multipart
 import java.nio.charset.StandardCharsets
 
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.instances.string._
 import fs2._
 import org.http4s.headers._
@@ -531,6 +532,33 @@ object MultipartParserSpec extends Specification {
           .foldMonoid
           .unsafeRunSync() must_== "Text_Field_1"
         confirmedError must beAnInstanceOf[Left[MalformedMessageBodyFailure, _]]
+      }
+
+      Fragments.foreach(List(1, 2, 3, 5, 8, 13, 21, 987)) { chunkSize =>
+        s"drain the epilogue with chunk size $chunkSize" in {
+          val unprocessedInput =
+            """
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+            |Content-Disposition: form-data; name="foo"
+            |
+            |bar
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--
+            |This should be ignored, but still drained!""".stripMargin
+
+          val input = ruinDelims(unprocessedInput)
+
+          val checkReachedTheEnd: IO[Boolean] = for {
+            // This should be false until we drain the whole input.
+            ref <- Ref[IO].of(false)
+            trackedInput = unspool(input, chunkSize) ++ Stream.eval_(ref.set(true))
+
+            _ <- trackedInput.through(multipartPipe(boundary)).compile.drain
+
+            reachedTheEnd <- ref.get
+          } yield reachedTheEnd
+
+          checkReachedTheEnd.unsafeRunSync() must_=== true
+        }
       }
 
       "fail with an MalformedMessageBodyFailure without an end line" in {

@@ -342,20 +342,21 @@ class BlazeServerBuilder[F[_]](
           s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
       })
 
-    mkFactory
-      .flatMap(mkServerChannel)
-      .map[Server[F]] { serverChannel =>
-        new Server[F] {
-          val address: InetSocketAddress =
-            serverChannel.socketAddress
+    Resource.liftF(verifyTimeoutRelations()) >>
+      mkFactory
+        .flatMap(mkServerChannel)
+        .map[Server[F]] { serverChannel =>
+          new Server[F] {
+            val address: InetSocketAddress =
+              serverChannel.socketAddress
 
-          val isSecure = sslBits.isDefined
+            val isSecure = sslBits.isDefined
 
-          override def toString: String =
-            s"BlazeServer($address)"
+            override def toString: String =
+              s"BlazeServer($address)"
+          }
         }
-      }
-      .flatTap(logStart)
+        .flatTap(logStart)
   }
 
   private def getContext(): Option[(SSLContext, SSLClientAuthMode)] = sslBits.map {
@@ -392,6 +393,15 @@ class BlazeServerBuilder[F[_]](
     case SSLContextBits(context, clientAuth) =>
       (context, clientAuth)
   }
+
+  private def verifyTimeoutRelations(): F[Unit] = F.delay {
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
+          s"It is recommended to configure responseHeaderTimeout < idleTimeout, " +
+          s"otherwise timeout responses won't be delivered to clients.")
+    }
+  }
 }
 
 object BlazeServerBuilder {
@@ -399,7 +409,7 @@ object BlazeServerBuilder {
     new BlazeServerBuilder(
       socketAddress = defaults.SocketAddress,
       executionContext = ExecutionContext.global,
-      responseHeaderTimeout = 1.minute,
+      responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,
       isNio2 = false,
       connectorPoolSize = DefaultPoolSize,

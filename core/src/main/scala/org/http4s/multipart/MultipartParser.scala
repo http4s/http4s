@@ -272,8 +272,8 @@ object MultipartParser {
     * but check if it is either double dash terminated (end of multipart).
     * SplitOrFinish also tracks a header limit size
     *
-    * If it is, return the empty stream. if it is not, split on the `values`
-    * and raise an error if we lack a match
+    * If it is, drain the epilogue and return the empty stream. if it is not,
+    * split on the `values` and raise an error if we lack a match
     */
   //noinspection ScalaStyle
   private def splitOrFinish[F[_]: Sync](
@@ -303,7 +303,9 @@ object MultipartParser {
           c2: Chunk[Byte],
           remaining: Stream[F, Byte]): SplitStream[F] =
         if (c1(0) == dashByte && c2(0) == dashByte) {
-          Pull.pure((streamEmpty, streamEmpty))
+          // Drain the multipart epilogue.
+          Pull.eval(rest.compile.drain) *>
+            Pull.pure((streamEmpty, streamEmpty))
         } else {
           val (ix, l, r, add) =
             splitOnChunkLimited[F](
@@ -334,7 +336,9 @@ object MultipartParser {
             Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
         }
       } else if (c(0) == dashByte && c(1) == dashByte) {
-        Pull.pure((streamEmpty, streamEmpty))
+        // Drain the multipart epilogue.
+        Pull.eval(rest.compile.drain) *>
+          Pull.pure((streamEmpty, streamEmpty))
       } else {
         val (ix, l, r, add) =
           splitOnChunkLimited[F](values, 0, c, Stream.empty, Stream.empty)

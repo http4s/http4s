@@ -86,7 +86,7 @@ object IdleTimeoutSupport {
 
 object AsyncTimeoutSupport {
   @deprecated("Moved to org.http4s.server.defaults.AsyncTimeout", "0.20.0-M2")
-  val DefaultAsyncTimeout = defaults.AsyncTimeout
+  val DefaultAsyncTimeout = defaults.ResponseTimeout
 }
 
 sealed trait SSLConfig

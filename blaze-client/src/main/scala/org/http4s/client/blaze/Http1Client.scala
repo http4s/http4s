@@ -6,6 +6,8 @@ import cats.effect._
 import fs2.Stream
 import org.http4s.blaze.channel.ChannelOptions
 
+import scala.concurrent.duration.Duration
+
 /** Create a HTTP1 client which will attempt to recycle connections */
 @deprecated("Use BlazeClientBuilder", "0.19.0-M2")
 object Http1Client {
@@ -21,6 +23,7 @@ object Http1Client {
       bufferSize = config.bufferSize,
       asynchronousChannelGroup = config.group,
       executionContext = config.executionContext,
+      scheduler = bits.ClientTickWheel,
       checkEndpointIdentification = config.checkEndpointIdentification,
       maxResponseLineSize = config.maxResponseLineSize,
       maxHeaderLength = config.maxHeaderLength,
@@ -28,7 +31,8 @@ object Http1Client {
       chunkBufferMaxSize = config.chunkBufferMaxSize,
       parserMode = if (config.lenientParser) ParserMode.Lenient else ParserMode.Strict,
       userAgent = config.userAgent,
-      channelOptions = ChannelOptions(Vector.empty)
+      channelOptions = ChannelOptions(Vector.empty),
+      connectTimeout = Duration.Inf
     ).makeClient
 
     Resource

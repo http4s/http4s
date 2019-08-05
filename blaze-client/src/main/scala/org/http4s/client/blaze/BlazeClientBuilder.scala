@@ -2,20 +2,30 @@ package org.http4s
 package client
 package blaze
 
+import cats.implicits._
 import cats.effect._
 import java.nio.channels.AsynchronousChannelGroup
+
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.internal.BackendBuilder
+import org.log4s.getLogger
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+/**
+  * @param sslContext Some custom `SSLContext`, or `None` if the
+  * default SSL context is to be lazily instantiated.
+  */
 sealed abstract class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
     val idleTimeout: Duration,
     val requestTimeout: Duration,
+    val connectTimeout: Duration,
     val userAgent: Option[`User-Agent`],
     val maxTotalConnections: Int,
     val maxWaitQueueLimit: Int,
@@ -29,6 +39,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val parserMode: ParserMode,
     val bufferSize: Int,
     val executionContext: ExecutionContext,
+    val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions
 )(implicit protected val F: ConcurrentEffect[F])
@@ -36,10 +47,13 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
 
+  final protected val logger = getLogger(this.getClass)
+
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
       idleTimeout: Duration = idleTimeout,
       requestTimeout: Duration = requestTimeout,
+      connectTimeout: Duration = connectTimeout,
       userAgent: Option[`User-Agent`] = userAgent,
       maxTotalConnections: Int = maxTotalConnections,
       maxWaitQueueLimit: Int = maxWaitQueueLimit,
@@ -53,6 +67,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode: ParserMode = parserMode,
       bufferSize: Int = bufferSize,
       executionContext: ExecutionContext = executionContext,
+      scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
       channelOptions: ChannelOptions = channelOptions
   ): BlazeClientBuilder[F] =
@@ -60,6 +75,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       responseHeaderTimeout = responseHeaderTimeout,
       idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
+      connectTimeout = connectTimeout,
       userAgent = userAgent,
       maxTotalConnections = maxTotalConnections,
       maxWaitQueueLimit = maxWaitQueueLimit,
@@ -73,6 +89,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       bufferSize = bufferSize,
       executionContext = executionContext,
+      scheduler = scheduler,
       asynchronousChannelGroup = asynchronousChannelGroup,
       channelOptions = channelOptions
     ) {}
@@ -88,6 +105,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   def withRequestTimeout(requestTimeout: Duration): BlazeClientBuilder[F] =
     copy(requestTimeout = requestTimeout)
+
+  def withConnectTimeout(connectTimeout: Duration): BlazeClientBuilder[F] =
+    copy(connectTimeout = connectTimeout)
 
   def withUserAgentOption(userAgent: Option[`User-Agent`]): BlazeClientBuilder[F] =
     copy(userAgent = userAgent)
@@ -106,12 +126,25 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       maxConnectionsPerRequestKey: RequestKey => Int): BlazeClientBuilder[F] =
     copy(maxConnectionsPerRequestKey = maxConnectionsPerRequestKey)
 
+  /** Use the provided `SSLContext` when making secure calls */
+  def withSslContext(sslContext: SSLContext): BlazeClientBuilder[F] =
+    copy(sslContext = Some(sslContext))
+
+  /** Use an `SSLContext` obtained by `SSLContext.getDefault()` when making secure calls.
+    *
+    * The creation of the context is lazy, as `SSLContext.getDefault()` throws on some
+    * platforms.  The context creation is deferred until the first secure client call.
+    */
+  def withDefaultSslContext: BlazeClientBuilder[F] =
+    copy(sslContext = None)
+
+  @deprecated("Use `withSslContext` or `withDefaultSslContext`", "0.20.2")
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext = sslContext)
-  def withSslContext(sslContext: SSLContext): BlazeClientBuilder[F] =
-    withSslContextOption(Some(sslContext))
+
+  @deprecated("Use `withDefaultSslContext`", "0.20.2")
   def withoutSslContext: BlazeClientBuilder[F] =
-    withSslContextOption(None)
+    withDefaultSslContext
 
   def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): BlazeClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
@@ -134,6 +167,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withExecutionContext(executionContext: ExecutionContext): BlazeClientBuilder[F] =
     copy(executionContext = executionContext)
 
+  def withScheduler(scheduler: TickWheelExecutor): BlazeClientBuilder[F] =
+    copy(scheduler = scheduler.pure[Resource[F, ?]])
+
   def withAsynchronousChannelGroupOption(
       asynchronousChannelGroup: Option[AsynchronousChannelGroup]): BlazeClientBuilder[F] =
     copy(asynchronousChannelGroup = asynchronousChannelGroup)
@@ -147,26 +183,70 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     copy(channelOptions = channelOptions)
 
   def resource: Resource[F, Client[F]] =
-    tickWheelResource.flatMap { scheduler =>
-      connectionManager.map { manager =>
-        BlazeClient.makeClient(
-          manager = manager,
-          responseHeaderTimeout = responseHeaderTimeout,
-          idleTimeout = idleTimeout,
-          requestTimeout = requestTimeout,
-          scheduler = scheduler,
-          ec = executionContext
-        )
-      }
+    for {
+      scheduler <- scheduler
+      _ <- Resource.liftF(verifyAllTimeoutsAccuracy(scheduler))
+      _ <- Resource.liftF(verifyTimeoutRelations())
+      manager <- connectionManager(scheduler)
+    } yield
+      BlazeClient.makeClient(
+        manager = manager,
+        responseHeaderTimeout = responseHeaderTimeout,
+        idleTimeout = idleTimeout,
+        requestTimeout = requestTimeout,
+        scheduler = scheduler,
+        ec = executionContext
+      )
+
+  private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): F[Unit] =
+    for {
+      _ <- verifyTimeoutAccuracy(scheduler.tick, responseHeaderTimeout, "responseHeaderTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, idleTimeout, "idleTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, requestTimeout, "requestTimeout")
+      _ <- verifyTimeoutAccuracy(scheduler.tick, connectTimeout, "connectTimeout")
+    } yield ()
+
+  private def verifyTimeoutAccuracy(
+      tick: Duration,
+      timeout: Duration,
+      timeoutName: String): F[Unit] = F.delay {
+    val warningThreshold = 0.1 // 10%
+    val inaccuracy = tick / timeout
+    if (inaccuracy > warningThreshold) {
+      logger.warn(
+        s"With current configuration $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
+          s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick).")
+    }
+  }
+
+  private def verifyTimeoutRelations(): F[Unit] = F.delay {
+    val advice = s"It is recommended to configure responseHeaderTimeout < requestTimeout < idleTimeout " +
+      s"or disable some of them explicitly by setting them to Duration.Inf."
+
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= requestTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= requestTimeout ($requestTimeout). $advice")
     }
 
-  private def connectionManager(
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
+    }
+
+    if (requestTimeout.isFinite && requestTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
+    }
+  }
+
+  private def connectionManager(scheduler: TickWheelExecutor)(
       implicit F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,
       asynchronousChannelGroup = asynchronousChannelGroup,
       executionContext = executionContext,
+      scheduler = scheduler,
       checkEndpointIdentification = checkEndpointIdentification,
       maxResponseLineSize = maxResponseLineSize,
       maxHeaderLength = maxHeaderLength,
@@ -174,7 +254,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
       userAgent = userAgent,
-      channelOptions = channelOptions
+      channelOptions = channelOptions,
+      connectTimeout = connectTimeout
     ).makeClient
     Resource.make(
       ConnectionManager.pool(
@@ -192,11 +273,12 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 object BlazeClientBuilder {
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
-      sslContext: Option[SSLContext] = Some(SSLContext.getDefault)): BlazeClientBuilder[F] =
+      sslContext: Option[SSLContext] = None): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
-      responseHeaderTimeout = 10.seconds,
+      responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
-      requestTimeout = 1.minute,
+      requestTimeout = defaults.RequestTimeout,
+      connectTimeout = defaults.ConnectTimeout,
       userAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version)))),
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,
@@ -210,6 +292,7 @@ object BlazeClientBuilder {
       parserMode = ParserMode.Strict,
       bufferSize = 8192,
       executionContext = executionContext,
+      scheduler = tickWheelResource,
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty)
     ) {}

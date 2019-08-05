@@ -1,7 +1,8 @@
 package org.http4s
 package parser
 
-import cats.implicits._
+import cats.syntax.option._
+import cats.syntax.either.catsSyntaxEitherObject
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import org.http4s.{Query => Q}
@@ -82,7 +83,9 @@ private[parser] trait Rfc3986Parser
 
   def Port = rule {
     ":" ~ (capture(oneOrMore(Digit)) ~> { s: String =>
-      (Some(s.toInt))
+      val int: Option[Int] = Either.catchOnly[NumberFormatException](s.toInt).toOption
+
+      test(int.nonEmpty) ~ push(int)
     } | push(None)) | push(None)
   }
 

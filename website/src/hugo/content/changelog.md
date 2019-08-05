@@ -8,6 +8,96 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.8 (2019-08-02)
+
+## Enhancements
+
+* [#2550](https://github.com/http4s/http4s/pull/2550): Adjust default timeouts and add warnings about misconfiguration
+
+## Dependency updates
+
+* blaze-0.14.8
+* cats-effect-1.4.0
+
+# v0.20.7 (2019-07-30)
+
+## Bug fixes
+* [#2728](https://github.com/http4s/http4s/pull/2728): Preserve division of `request.uri.path` into `scriptName` and `pathInfo` when calling `withPathInfo`.
+* [#2737](https://github.com/http4s/http4s/pull/2737): Fix deadlock in blaze-server web socket shutdown.
+
+## Enhancements
+* [#2736](https://github.com/http4s/http4s/pull/2736): Implement a `connectTimeout` in blaze-client, defaulted to 10 seconds.  Prevents indefinite hangs on non-responsive hosts.
+
+## Documentation
+* [#2741](https://github.com/http4s/http4s/pull/2741): Improve docs surrounding auth middleware and fall through.
+
+## Dependency upgrades
+- blaze-0.14.7
+- tomcat-9.0.22
+
+# v0.20.6 (2019-07-09)
+
+## Bug fixes
+* [#2705](https://github.com/http4s/http4s/pull/2705): Upgrades blaze to close `SSLEngine` when an `SSLStage` shuts down. This is useful in certain `SSLContext` implementations.  See [blaze#305](https://github.com/http4s/blaze/pull/305) for more.
+
+## Dependency upgrades
+- blaze-0.14.6
+
+~~# v0.20.5 (2019-07-09)~~
+
+Cursed release.  Sonatype staging repo closed in flight.
+
+# v0.20.4 (2019-07-06)
+
+## Bug fixes
+* [#2687](https://github.com/http4s/http4s/pull/2687): Don't throw in `Uri.fromString` on invalid ports
+* [#2695](https://github.com/http4s/http4s/pull/2695): Handle EOF in blaze-server web socket by shutting down stage
+
+## Enhancements
+* [#2673](https://github.com/http4s/http4s/pull/2673): Add `GZip` middleware for client
+
+## Documentation
+* [#2668](https://github.com/http4s/http4s/pull/2668): Clarifications in `Uri.Scheme` scaladoc
+
+## Dependency upgrades
+- blaze-0.14.5
+- jetty-9.14.19.v20190610 (for client)
+
+# v0.20.3 (2019-06-12)
+
+## Bug fixes
+* [#2638](https://github.com/http4s/http4s/pull/2638): Fix leaking sensitive headers in server RequestLogger
+
+# v0.18.24 (2019-06-12)
+
+## Bug fixes
+* [#2639](https://github.com/http4s/http4s/pull/2639): Fix leaking sensitive headers in server RequestLogger
+
+## Dependency updates
+- cats-1.6.1
+- jetty-9.4.19.v20190610
+- tomcat-9.0.21
+
+# v0.20.2 (2019-06-12)
+
+## Bug fixes
+* [#2604](https://github.com/http4s/http4s/pull/2604): Defer creation of `SSLContext.getDefault()` in blaze-client
+* [#2611](https://github.com/http4s/http4s/pull/2611): Raise errors with `getResource()` into effect in `StaticFile`
+
+## Enhancements
+* [#2567](https://github.com/http4s/http4s/pull/2567): Add `mapK` to `AuthedRequest`.  Deprecate `AuthedService` in favor of `AuthedRoutes`.
+
+## Internals
+* [#2579](https://github.com/http4s/http4s/pull/2579): Skip Travis CI on tags
+
+## Dependency updates
+* blaze-0.14.4
+* cats-core-1.6.1
+* cats-effect-1.3.1
+* fs2-1.0.5 (except Scala 2.13.0-M5)
+* okhttp-3.14.2
+* tomcat-9.0.21
+
 # v0.20.1 (2019-05-16)
 
 Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and passes new tests, but we still lack 100% confidence in it.  The async-http-client backend has proven stable for a large number of users.

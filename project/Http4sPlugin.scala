@@ -7,6 +7,7 @@ import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import java.lang.{Runtime => JRuntime}
@@ -90,9 +91,16 @@ object Http4sPlugin extends AutoPlugin {
       }
     },
     mimaFailOnProblem := http4sMimaVersion.value.isDefined,
-    mimaPreviousArtifacts := (http4sMimaVersion.value map {
+    mimaPreviousArtifacts := (http4sMimaVersion.value.map {
+      case "0.20.5" => "0.20.4" // cursed release
+      case v => v
+    }.map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeClientBuilder.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Support.this")
+    ),
 
     libraryDependencies += compilerPlugin(
       CrossVersion.binaryScalaVersion(scalaVersion.value) match {
@@ -145,8 +153,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline"), // discipline-0.10 is incompatible with scalacheck-1.13
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect-laws"),
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
@@ -183,6 +189,7 @@ object Http4sPlugin extends AutoPlugin {
         tagRelease.when(publishable && release),
         runClean,
         releaseStepCommandAndRemaining("+mimaReportBinaryIssues"),
+        releaseStepCommandAndRemaining("""sonatypeOpen "Release via Travis""""),
         releaseStepCommandAndRemaining("+publishSigned").when(publishable),
         releaseStepCommand("sonatypeReleaseAll").when(publishable && release),
         setNextVersion.when(publishable && release),
@@ -285,13 +292,16 @@ object Http4sPlugin extends AutoPlugin {
   def specs2Version(scalaVersion: String): String =
     if (priorTo2_13(scalaVersion)) "4.1.0" else "4.4.1"
 
+  def fs2Version(scalaVersion: String): String =
+    if (priorTo2_13(scalaVersion)) "1.0.5" else "1.0.4"
+
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.8.1"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.2"
-  lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
-  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.6.0"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.3.0"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.8"
+  lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.6.1"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.4.0"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
@@ -304,15 +314,15 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   def discipline(sv: String)                = "org.typelevel"          %% "discipline"                % disciplineVersion(sv)
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.4"
-  lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
+  def fs2Io(sv: String)                     = "co.fs2"                 %% "fs2-io"                    % fs2Version(sv)
+  def fs2ReactiveStreams(sv: String)        = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Version(sv)
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.14.2"
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.1"
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.1"
-  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.18.v20190429"
+  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.19.v20190610"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
-  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.18.v20190429"
+  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.19.v20190610"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.6.5"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
@@ -321,7 +331,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.7.0"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.27.0"
-  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.14.1"
+  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.14.2"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.7.2"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.6.0"
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
@@ -337,9 +347,9 @@ object Http4sPlugin extends AutoPlugin {
   def specs2Matcher(sv: String)             = "org.specs2"             %% "specs2-matcher"            % specs2Version(sv)
   def specs2MatcherExtra(sv: String)        = "org.specs2"             %% "specs2-matcher-extra"      % specs2Version(sv)
   def specs2Scalacheck(sv: String)          = "org.specs2"             %% "specs2-scalacheck"         % specs2Version(sv)
-  lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.20"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.22"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
+  lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.0"
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "1.0.0"
 }

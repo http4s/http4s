@@ -17,7 +17,7 @@ import scala.concurrent.duration.Duration
   */
 trait ConnectionManager[F[_], A <: Connection[F]] {
 
-  /** Bundle of the connection and wheither its new or not */
+  /** Bundle of the connection and whether its new or not */
   // Sealed, rather than final, because SI-4440.
   sealed case class NextConnection(connection: A, fresh: Boolean)
 
