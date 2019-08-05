@@ -207,7 +207,7 @@ object QueryParamDecoder {
   def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
     new QueryParamDecoder[Instant] {
       override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
-        Either
+        Validated
           .catchOnly[DateTimeParseException] {
             val x = formatter.parse(value.value)
             Instant.from(x)
