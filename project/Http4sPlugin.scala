@@ -269,7 +269,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.2"
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
-  lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "0.12.0-M3"
+  lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.0.0-RC1"
   lazy val fs2Crypto                        = "com.spinoco"            %% "fs2-crypto"                % "0.5.0-M1"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.1.0-M1"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
