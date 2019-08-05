@@ -17,7 +17,7 @@ import io.chrisdavenport.vault._
 private[blaze] object ProtocolSelector {
   def apply[F[_]](
       engine: SSLEngine,
-      httpApp: HttpApp[F],
+      httpResource: HttpResource[F],
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
       chunkBufferMaxSize: Int,
@@ -38,7 +38,7 @@ private[blaze] object ProtocolSelector {
             Duration.Inf,
             executionContext,
             requestAttributes,
-            httpApp,
+            httpResource,
             serviceErrorHandler,
             responseHeaderTimeout,
             idleTimeout,
@@ -59,7 +59,7 @@ private[blaze] object ProtocolSelector {
 
     def http1Stage(): TailStage[ByteBuffer] =
       Http1ServerStage[F](
-        httpApp,
+        httpResource,
         requestAttributes,
         executionContext,
         enableWebSockets = false,

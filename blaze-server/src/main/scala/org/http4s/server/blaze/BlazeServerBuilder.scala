@@ -27,6 +27,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.internal.resourceLiftK
 import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.util.threads.threadFactory
@@ -85,7 +86,7 @@ class BlazeServerBuilder[F[_]](
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
     chunkBufferMaxSize: Int,
-    httpApp: HttpApp[F],
+    httpResource: HttpResource[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     val channelOptions: ChannelOptions
@@ -111,7 +112,7 @@ class BlazeServerBuilder[F[_]](
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
       chunkBufferMaxSize: Int = chunkBufferMaxSize,
-      httpApp: HttpApp[F] = httpApp,
+      httpResource: HttpResource[F] = httpResource,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
       channelOptions: ChannelOptions = channelOptions
@@ -131,7 +132,7 @@ class BlazeServerBuilder[F[_]](
       maxRequestLineLen,
       maxHeadersLen,
       chunkBufferMaxSize,
-      httpApp,
+      httpResource,
       serviceErrorHandler,
       banner,
       channelOptions
@@ -190,8 +191,11 @@ class BlazeServerBuilder[F[_]](
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
+  def withHttpResource(httpResource: HttpResource[F]): Self =
+    copy(httpResource = httpResource)
+
   def withHttpApp(httpApp: HttpApp[F]): Self =
-    copy(httpApp = httpApp)
+    withHttpResource(httpApp.mapK(resourceLiftK))
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
@@ -250,7 +254,7 @@ class BlazeServerBuilder[F[_]](
 
     def http1Stage(secure: Boolean, engine: Option[SSLEngine]) =
       Http1ServerStage(
-        httpApp,
+        httpResource,
         requestAttributes(secure = secure, engine),
         executionContext,
         enableWebSockets,
@@ -266,7 +270,7 @@ class BlazeServerBuilder[F[_]](
     def http2Stage(engine: SSLEngine): ALPNServerSelector =
       ProtocolSelector(
         engine,
-        httpApp,
+        httpResource,
         maxRequestLineLen,
         maxHeadersLen,
         chunkBufferMaxSize,
@@ -421,14 +425,14 @@ object BlazeServerBuilder {
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = 40 * 1024,
       chunkBufferMaxSize = 1024 * 1024,
-      httpApp = defaultApp[F],
+      httpResource = defaultHttpResource[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = defaults.Banner,
       channelOptions = ChannelOptions(Vector.empty)
     )
 
-  private def defaultApp[F[_]: Applicative]: HttpApp[F] =
-    Kleisli(_ => Response[F](Status.NotFound).pure[F])
+  private def defaultHttpResource[F[_]: Applicative]: HttpResource[F] =
+    Kleisli(_ => Resource.pure(Response[F](Status.NotFound)))
 
   private def defaultThreadSelectorFactory: ThreadFactory =
     threadFactory(name = n => s"blaze-selector-${n}", daemon = false)

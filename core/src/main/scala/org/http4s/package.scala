@@ -1,6 +1,7 @@
 package org
 
 import cats.data.{EitherT, Kleisli, OptionT}
+import cats.effect.Resource
 import fs2.Stream
 
 package object http4s { // scalastyle:ignore
@@ -48,6 +49,8 @@ package object http4s { // scalastyle:ignore
     * and the base monad of the `OptionT` in which the response is returned.
     */
   type HttpRoutes[F[_]] = Http[OptionT[F, ?], F]
+
+  type HttpResource[F[_]] = Http[Resource[F, ?], F]
 
   @deprecated("Deprecated in favor of just using Kleisli", "0.18")
   type Service[F[_], A, B] = Kleisli[F, A, B]

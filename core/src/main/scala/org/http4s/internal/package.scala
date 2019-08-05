@@ -3,7 +3,8 @@ package org.http4s
 import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException}
 import java.util.function.BiFunction
 
-import cats.effect.{Async, Concurrent, ConcurrentEffect, Effect, IO}
+import cats.{Applicative, ~>}
+import cats.effect.{Async, Concurrent, ConcurrentEffect, Effect, IO, Resource}
 import cats.implicits._
 import org.http4s.util.execution.direct
 import org.log4s.Logger
@@ -139,4 +140,7 @@ package object internal {
         F.delay { cf.cancel(true); () }
       })
     }
+
+  def resourceLiftK[F[_]](implicit F: Applicative[F]): F ~> Resource[F, ?] =
+    λ[F ~> Resource[F, ?]](Resource.liftF(_))
 }
