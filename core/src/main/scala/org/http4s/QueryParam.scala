@@ -40,6 +40,19 @@ object QueryParamKeyLike {
   }
 }
 
+trait QueryParamCodec[T] extends QueryParamEncoder[T] with QueryParamDecoder[T]
+object QueryParamCodec {
+
+  def apply[A](implicit instance: QueryParamCodec[A]): QueryParamCodec[A] = instance
+
+  def from[A](decodeA: QueryParamDecoder[A], encodeA: QueryParamEncoder[A]): QueryParamCodec[A] =
+    new QueryParamCodec[A] {
+      override def encode(value: A): QueryParameterValue = encodeA.encode(value)
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, A] =
+        decodeA.decode(value)
+    }
+}
+
 /**
   * Type class defining how to encode a `T` as a [[QueryParameterValue]]s
   * @see QueryParamCodecLaws
