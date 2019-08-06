@@ -8,10 +8,10 @@ import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
 import org.log4s.getLogger
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 final private[http4s] class ResponseHeaderTimeoutStage[A](
-    timeout: Duration,
+    timeout: FiniteDuration,
     exec: TickWheelExecutor,
     ec: ExecutionContext)
     extends MidStage[A, A] { stage =>
@@ -52,7 +52,7 @@ final private[http4s] class ResponseHeaderTimeoutStage[A](
 
   override def stageStartup(): Unit = {
     super.stageStartup()
-    logger.debug(s"Starting response header timeout stage with timeout of ${timeout.toMillis} ms")
+    logger.debug(s"Starting response header timeout stage with timeout of ${timeout}")
   }
 
   def init(cb: Callback[TimeoutException]): Unit = {
