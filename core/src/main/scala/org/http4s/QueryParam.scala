@@ -5,6 +5,7 @@ import cats.data._
 import cats.implicits._
 import java.time.Instant
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.time.temporal.TemporalAccessor
 
 final case class QueryParameterKey(value: String) extends AnyVal
 
@@ -57,7 +58,7 @@ object QueryParamCodec {
       override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
         Validated
           .catchOnly[DateTimeParseException] {
-            val x = formatter.parse(value.value)
+            val x: TemporalAccessor = formatter.parse(value.value)
             Instant.from(x)
           }
           .leftMap { e =>
