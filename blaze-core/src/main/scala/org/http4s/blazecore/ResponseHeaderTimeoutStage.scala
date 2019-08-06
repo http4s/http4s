@@ -52,7 +52,7 @@ final private[http4s] class ResponseHeaderTimeoutStage[A](
 
   override def stageStartup(): Unit = {
     super.stageStartup()
-    logger.debug(s"Starting response header timeout stage with timeout of ${timeout.toMillis} ms")
+    logger.debug(s"Starting response header timeout stage with timeout of ${timeout}")
   }
 
   def init(cb: Callback[TimeoutException]): Unit = {
