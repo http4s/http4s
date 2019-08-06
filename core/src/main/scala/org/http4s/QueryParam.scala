@@ -74,6 +74,8 @@ object QueryParamEncoder {
   /** summon an implicit [[QueryParamEncoder]] */
   def apply[T](implicit ev: QueryParamEncoder[T]): QueryParamEncoder[T] = ev
 
+  def fromCodec[T](implicit ev: QueryParamCodec[T]): QueryParamEncoder[T] = ev
+
   /** QueryParamEncoder is a contravariant functor. */
   implicit val ContravariantQueryParamEncoder: Contravariant[QueryParamEncoder] =
     new Contravariant[QueryParamEncoder] {
@@ -144,6 +146,8 @@ object QueryParamDecoder {
 
   /** summon an implicit [[QueryParamDecoder]] */
   def apply[T](implicit ev: QueryParamDecoder[T]): QueryParamDecoder[T] = ev
+
+  def fromCodec[T](implicit ev: QueryParamCodec[T]): QueryParamDecoder[T] = ev
 
   def fromUnsafeCast[T](cast: QueryParameterValue => T)(typeName: String): QueryParamDecoder[T] =
     new QueryParamDecoder[T] {
