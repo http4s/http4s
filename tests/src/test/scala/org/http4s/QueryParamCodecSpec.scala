@@ -71,7 +71,8 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
     QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
 
   implicit val ArbitraryInstant: Arbitrary[Instant] =
-    Arbitrary(Gen.choose[Long](0, Long.MaxValue).map { long =>
-      Instant.ofEpochMilli(long)
-    })
+    Arbitrary(
+      Gen
+        .choose[Long](Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond)
+        .map(Instant.ofEpochSecond))
 }
