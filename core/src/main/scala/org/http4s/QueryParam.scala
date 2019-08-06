@@ -51,6 +51,30 @@ object QueryParamCodec {
       override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, A] =
         decodeA.decode(value)
     }
+
+  private def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
+    new QueryParamDecoder[Instant] {
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
+        Validated
+          .catchOnly[DateTimeParseException] {
+            val x = formatter.parse(value.value)
+            Instant.from(x)
+          }
+          .leftMap { e =>
+            ParseFailure(s"Failed to decode value: ${value.value} as Instant", e.getMessage)
+          }
+          .toValidatedNel
+    }
+
+  private def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
+    QueryParamEncoder[String].contramap[Instant] { i: Instant =>
+      formatter.format(i)
+    }
+
+  def instantQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[Instant] =
+    QueryParamCodec
+      .from[Instant](instantQueryParamDecoder(formatter), instantQueryParamEncoder(formatter))
+
 }
 
 /**
@@ -104,11 +128,6 @@ object QueryParamEncoder {
   implicit lazy val shortQueryParamEncoder: QueryParamEncoder[Short] = fromShow[Short]
   implicit lazy val intQueryParamEncoder: QueryParamEncoder[Int] = fromShow[Int]
   implicit lazy val longQueryParamEncoder: QueryParamEncoder[Long] = fromShow[Long]
-
-  def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
-    QueryParamEncoder[String].contramap[Instant] { i: Instant =>
-      formatter.format(i)
-    }
 
   implicit lazy val stringQueryParamEncoder: QueryParamEncoder[String] =
     new QueryParamEncoder[String] {
@@ -219,20 +238,6 @@ object QueryParamDecoder {
     new QueryParamDecoder[String] {
       def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, String] =
         value.value.validNel
-    }
-
-  def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
-    new QueryParamDecoder[Instant] {
-      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
-        Validated
-          .catchOnly[DateTimeParseException] {
-            val x = formatter.parse(value.value)
-            Instant.from(x)
-          }
-          .leftMap { e =>
-            ParseFailure("Failed to read Instant", e.getMessage)
-          }
-          .toValidatedNel
     }
 
   implicit val uriQueryParamDecoder: QueryParamDecoder[Uri] =
