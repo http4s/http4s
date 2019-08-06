@@ -214,7 +214,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val inaccuracy = tick / timeout
     if (inaccuracy > warningThreshold) {
       logger.warn(
-        s"With current configuration $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
+        s"With current configuration, $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
           s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick).")
     }
   }
@@ -234,8 +234,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     }
 
     if (requestTimeout.isFinite && requestTimeout >= idleTimeout) {
-      logger.warn(
-        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
+      logger.warn(s"requestTimeout ($requestTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
   }
 
