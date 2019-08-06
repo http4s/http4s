@@ -67,11 +67,8 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
   implicit val ArbQueryParameterValue: Arbitrary[QueryParameterValue] =
     Arbitrary(arbitrary[String].map(QueryParameterValue))
 
-  implicit val instantQueryParamDecoder: QueryParamDecoder[Instant] =
-    QueryParamDecoder.instantQueryParamDecoder(DateTimeFormatter.ISO_INSTANT)
-
-  implicit val instantQueryParamEncoder: QueryParamEncoder[Instant] =
-    QueryParamEncoder.instantQueryParamEncoder(DateTimeFormatter.ISO_INSTANT)
+  implicit val instantQueryParamCodec: QueryParamCodec[Instant] =
+    QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
 
   implicit val ArbitraryInstant: Arbitrary[Instant] =
     Arbitrary(Gen.choose[Long](0, Long.MaxValue).map { long =>
