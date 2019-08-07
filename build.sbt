@@ -79,6 +79,7 @@ lazy val core = libraryProject("core")
       fs2Io,
       log4s,
       parboiled,
+      scalaReflect(scalaVersion.value),
       vault,
     ),
     unmanagedSourceDirectories in Compile ++= {
