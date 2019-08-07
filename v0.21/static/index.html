@@ -213,7 +213,7 @@ val routes = HttpRoutes.of[IO] {
 deliver them from there. For example, for all resources in the classpath under <code>assets</code>:</p>
 
 <pre><code class="language-scala">val routes = resourceService[IO](ResourceService.Config(&quot;/assets&quot;, blocker))
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.ResourceService$$$Lambda$34545/745381302@397f01a7)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.ResourceService$$$Lambda$34584/869786573@350a22f2)
 </code></pre>
 
 <p>For custom behaviour, <code>StaticFile.fromResource</code> can be used. In this example,
@@ -227,7 +227,7 @@ val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, blocker, request)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$34544/1062435421@4d2acd5)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$34583/1926250656@33de77c)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -263,7 +263,7 @@ val webjars: HttpRoutes[IO] = webjarService(
     blocker = blocker
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$34587/1373582865@3a524216)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$34626/2100475948@120165d5)
 </code></pre>
 
 <pre><code class="language-scala">blockingPool.shutdown()
