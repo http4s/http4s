@@ -19,7 +19,7 @@ import scala.concurrent.duration._
 
 class ClientTimeoutSpec extends Http4sSpec {
 
-  val tickWheel = new TickWheelExecutor
+  val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
   /** the map method allows to "post-process" the fragments after their creation */
   override def map(fs: => Fragments) = super.map(fs) ^ step(tickWheel.shutdown())

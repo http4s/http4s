@@ -8,6 +8,13 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.9 (2019-08-07)
+
+## Bug fixes
+
+* [#2761](https://github.com/http4s/http4s/pull/2761): In blaze-client, don't add `ResponseHeaderTimeoutStage` when `responseHeaderTimeout` is infinite. This prevents an `IllegalArgumentException` when debug logging is turned on.
+* [#2762](https://github.com/http4s/http4s/pull/2762): Fix text in warnings when blaze-client timeouts are questionably ordered.
+
 # v0.21.0-M3 (2019-08-02)
 
 ## Breaking changes

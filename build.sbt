@@ -1,3 +1,4 @@
+import com.typesafe.tools.mima.core._
 import org.http4s.build.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -196,6 +197,10 @@ lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze,
+    mimaBinaryIssueFilters ++= List(
+      // Private API
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blazecore.ResponseHeaderTimeoutStage.this")
+    ),
   )
   .dependsOn(core, testing % "test->test")
 

@@ -10,20 +10,27 @@ import javax.net.ssl.SSLContext
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
+import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.client.testroutes.GetRoutes
+import org.specs2.specification.core.Fragments
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Random
 
 class BlazeClientSpec extends Http4sSpec {
 
+  val tickWheel = new TickWheelExecutor(tick = 50.millis)
+
+  /** the map method allows to "post-process" the fragments after their creation */
+  override def map(fs: => Fragments) = super.map(fs) ^ step(tickWheel.shutdown())
+
   private val timeout = 30.seconds
 
   def mkClient(
       maxConnectionsPerRequestKey: Int,
       maxTotalConnections: Int = 5,
-      responseHeaderTimeout: Duration = 1.minute,
-      requestTimeout: Duration = 1.minute,
+      responseHeaderTimeout: Duration = 30.seconds,
+      requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
   ) =
@@ -35,6 +42,7 @@ class BlazeClientSpec extends Http4sSpec {
       .withMaxTotalConnections(maxTotalConnections)
       .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
       .withChunkBufferMaxSize(chunkBufferMaxSize)
+      .withScheduler(scheduler = tickWheel)
       .resource
 
   private def testServlet = new HttpServlet {
