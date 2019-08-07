@@ -9,7 +9,7 @@ import cats.data.Kleisli
 object URITranslation {
   def translateRoot[F[_], G[_]: Functor, B](prefix: String)(
       @deprecatedName(Symbol("service")) http: Kleisli[F, Request[G], B])
-    : Kleisli[F, Request[G], B] = {
+      : Kleisli[F, Request[G], B] = {
     val newCaret = prefix match {
       case "/" => 0
       case x if x.startsWith("/") => x.length

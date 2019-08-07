@@ -215,7 +215,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     *
     */
   def validate(predicate: Request[G] => Boolean = _.method.isSafe)
-    : Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
+      : Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
     Kleisli { r: Request[G] =>
       if (predicate(r)) validate(r, http(r)) else checkCSRF(r, http(r))
     }
@@ -434,7 +434,7 @@ object CSRF {
         Uri.fromString(o.value) match {
           case Right(uri) => Some(uri)
           case Left(_) => None
-      })
+        })
       .exists(u => u.host.exists(_.value == host) && u.scheme.contains(sc) && u.port == port) || r.headers
       .get(Referer)
       .exists(u =>

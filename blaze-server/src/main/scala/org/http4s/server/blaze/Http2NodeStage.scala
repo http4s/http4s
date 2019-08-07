@@ -183,7 +183,9 @@ private class Http2NodeStage[F[_]](
               if (sz != 0 && endStream) error += s"Nonzero content length ($sz) for end of stream."
               else if (sz < 0) error += s"Negative content length: $sz"
               else contentLength = sz
-            } catch { case _: NumberFormatException => error += s"Invalid content-length: $v. " } else
+            } catch {
+              case _: NumberFormatException => error += s"Invalid content-length: $v. "
+            } else
               error += "Received multiple content-length headers"
 
           case (HeaderNames.TE, v) =>
@@ -247,8 +249,7 @@ private class Http2NodeStage[F[_]](
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
         val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
-        req =>
-          F.race(runApp(req), timeoutResponse).map(_.merge)
+        req => F.race(runApp(req), timeoutResponse).map(_.merge)
       case _ =>
         runApp
     }

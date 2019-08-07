@@ -188,15 +188,14 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       _ <- Resource.liftF(verifyAllTimeoutsAccuracy(scheduler))
       _ <- Resource.liftF(verifyTimeoutRelations())
       manager <- connectionManager(scheduler)
-    } yield
-      BlazeClient.makeClient(
-        manager = manager,
-        responseHeaderTimeout = responseHeaderTimeout,
-        idleTimeout = idleTimeout,
-        requestTimeout = requestTimeout,
-        scheduler = scheduler,
-        ec = executionContext
-      )
+    } yield BlazeClient.makeClient(
+      manager = manager,
+      responseHeaderTimeout = responseHeaderTimeout,
+      idleTimeout = idleTimeout,
+      requestTimeout = requestTimeout,
+      scheduler = scheduler,
+      ec = executionContext
+    )
 
   private def verifyAllTimeoutsAccuracy(scheduler: TickWheelExecutor): F[Unit] =
     for {

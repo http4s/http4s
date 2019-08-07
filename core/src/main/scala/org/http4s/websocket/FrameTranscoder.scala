@@ -71,7 +71,9 @@ class FrameTranscoder(val isClient: Boolean) {
 
     if (isClient) size += 4 // for the mask
 
-    if (in.length < 126) { /* NOOP */ } else if (in.length <= 0xffff) size += 2
+    if (in.length < 126) {
+      /* NOOP */
+    } else if (in.length <= 0xffff) size += 2
     else size += 8
 
     val buff = ByteBuffer.allocate(if (isClient) size + in.length else size)

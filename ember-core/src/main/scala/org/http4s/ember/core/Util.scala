@@ -41,7 +41,7 @@ private[ember] object Util {
             now =>
               Stream.raiseError[F](
                 EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
-            ))
+              ))
       else
         for {
           start <- Stream.eval(C.realTime(MILLISECONDS))

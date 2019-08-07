@@ -145,8 +145,7 @@ object RetryPolicy {
 
   def exponentialBackoff(maxWait: Duration, maxRetry: Int): Int => Option[FiniteDuration] = {
     val maxInMillis = maxWait.toMillis
-    k =>
-      if (k > maxRetry) None else Some(expBackoff(k, maxInMillis))
+    k => if (k > maxRetry) None else Some(expBackoff(k, maxInMillis))
   }
 
   private def expBackoff(k: Int, maxInMillis: Long): FiniteDuration = {

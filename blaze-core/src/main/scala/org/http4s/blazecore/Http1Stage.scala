@@ -137,7 +137,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   final protected def collectBodyFromParser(
       buffer: ByteBuffer,
       eofCondition: () => Either[Throwable, Option[Chunk[Byte]]])
-    : (EntityBody[F], () => Future[ByteBuffer]) =
+      : (EntityBody[F], () => Future[ByteBuffer]) =
     if (contentComplete()) {
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
@@ -165,7 +165,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   private def streamingBody(
       buffer: ByteBuffer,
       eofCondition: () => Either[Throwable, Option[Chunk[Byte]]])
-    : (EntityBody[F], () => Future[ByteBuffer]) = {
+      : (EntityBody[F], () => Future[ByteBuffer]) = {
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
@@ -243,8 +243,7 @@ object Http1Stage {
 
   private val CachedEmptyBufferThunk = {
     val b = Future.successful(emptyBuffer)
-    () =>
-      b
+    () => b
   }
 
   private val CachedEmptyBody = EmptyBody -> CachedEmptyBufferThunk

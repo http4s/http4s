@@ -130,7 +130,7 @@ object EmberServerBuilder {
       Response[F](Status.InternalServerError)
     }
     def onWriteFailure[F[_]: Applicative]
-      : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
+        : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
       case _: (Option[Request[F]], Response[F], Throwable) => Applicative[F].unit
     }
     val maxConcurrency: Int = Int.MaxValue

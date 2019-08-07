@@ -140,7 +140,9 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
                     if (state.compareAndSet(Ready, blocked)) {
                       if (in.isReady && state.compareAndSet(blocked, Ready)) {
                         read(cb) // data became available while we were setting up the callbacks
-                      } else { /* NOOP: our callback is either still needed or has been handled */ }
+                      } else {
+                        /* NOOP: our callback is either still needed or has been handled */
+                      }
                     } else go() // Our state transitioned so try again.
 
                   case Complete => cb(rightNone)

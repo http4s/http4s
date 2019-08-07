@@ -3,7 +3,7 @@ package org.http4s
 
 private[http4s] trait MimeDB {
   lazy val allMediaTypes
-    : List[MediaType] = Nil ++ x_shader.all ++ x_conference.all ++ video.all ++ text.all ++ multipart.all ++ model.all ++ message.all ++ image.all ++ font.all ++ chemical.all ++ audio.all ++ application.all
+      : List[MediaType] = Nil ++ x_shader.all ++ x_conference.all ++ video.all ++ text.all ++ multipart.all ++ model.all ++ message.all ++ image.all ++ font.all ++ chemical.all ++ audio.all ++ application.all
   val Compressible: Boolean = true
   val Uncompressible: Boolean = false
   val Binary: Boolean = true
@@ -3795,7 +3795,7 @@ private[http4s] trait MimeDB {
           Compressible,
           NotBinary)
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.pivotcachedefinition+xml`
-        : MediaType = new MediaType(
+          : MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.spreadsheetml.pivotcachedefinition+xml",
         Compressible,
@@ -3892,7 +3892,7 @@ private[http4s] trait MimeDB {
           Compressible,
           NotBinary)
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.volatiledependencies+xml`
-        : MediaType = new MediaType(
+          : MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.spreadsheetml.volatiledependencies+xml",
         Compressible,
@@ -3932,7 +3932,7 @@ private[http4s] trait MimeDB {
           Binary,
           List("docx"))
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml`
-        : MediaType = new MediaType(
+          : MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml",
         Compressible,

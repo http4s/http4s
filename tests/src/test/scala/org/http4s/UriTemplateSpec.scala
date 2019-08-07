@@ -664,7 +664,7 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "expand /?={path} to /?=25.1&=56.9" in {
       val query = List(ParamVarExp("", "path"))
-      UriTemplate(query = query).expandQuery("path", List(25.1F, 56.9F)) must
+      UriTemplate(query = query).expandQuery("path", List(25.1f, 56.9f)) must
         equalTo(UriTemplate(query = List(ParamElm("", List("25.1", "56.9")))))
     }
     "expand /orders{?start} to /orders?start=123&start=456" in {

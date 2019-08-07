@@ -126,7 +126,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             managed.canBeReused.get.flatMap {
               case Reuse => resp.body.compile.drain.attempt.void
               case DontReuse => Sync[F].unit
-          })
+            })
         } yield response)
       new EmberClient[F](client, pool)
     }

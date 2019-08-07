@@ -479,11 +479,10 @@ private[http4s] trait ArbitraryInstances {
     Arbitrary {
       for {
         retry <- Gen.oneOf(genHttpExpireDate.map(Left(_)), Gen.posNum[Long].map(Right(_)))
-      } yield
-        retry.fold(
-          headers.`Retry-After`.apply,
-          headers.`Retry-After`.unsafeFromLong
-        )
+      } yield retry.fold(
+        headers.`Retry-After`.apply,
+        headers.`Retry-After`.unsafeFromLong
+      )
     }
 
   implicit val http4sTestingArbitraryForAgeHeader: Arbitrary[headers.Age] =
@@ -501,8 +500,10 @@ private[http4s] trait ArbitraryInstances {
         age <- genFiniteDuration
         includeSubDomains <- Gen.oneOf(true, false)
         preload <- Gen.oneOf(true, false)
-      } yield
-        headers.`Strict-Transport-Security`.unsafeFromDuration(age, includeSubDomains, preload)
+      } yield headers.`Strict-Transport-Security`.unsafeFromDuration(
+        age,
+        includeSubDomains,
+        preload)
     }
 
   implicit val http4sTestingArbitraryForTransferEncoding: Arbitrary[`Transfer-Encoding`] =
@@ -754,15 +755,13 @@ private[http4s] trait ArbitraryInstances {
       implicit
       F: Effect[F],
       g: Arbitrary[DecodeResult[F, A]]) =
-    Arbitrary(
-      for {
-        f <- getArbitrary[(Message[F], Boolean) => DecodeResult[F, A]]
-        mrs <- getArbitrary[Set[MediaRange]]
-      } yield
-        new EntityDecoder[F, A] {
-          def decode(msg: Message[F], strict: Boolean): DecodeResult[F, A] = f(msg, strict)
-          def consumes = mrs
-        })
+    Arbitrary(for {
+      f <- getArbitrary[(Message[F], Boolean) => DecodeResult[F, A]]
+      mrs <- getArbitrary[Set[MediaRange]]
+    } yield new EntityDecoder[F, A] {
+      def decode(msg: Message[F], strict: Boolean): DecodeResult[F, A] = f(msg, strict)
+      def consumes = mrs
+    })
 
   implicit def http4sTestingCogenForMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
@@ -833,10 +832,11 @@ private[http4s] trait ArbitraryInstances {
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield
-        try { Request(method, uri, httpVersion, headers, body) } catch {
-          case t: Throwable => t.printStackTrace(); throw t
-        }
+      } yield try {
+        Request(method, uri, httpVersion, headers, body)
+      } catch {
+        case t: Throwable => t.printStackTrace(); throw t
+      }
     }
 
   private[http4s] implicit def http4sTestingArbitraryForResponse[F[_]]: Arbitrary[Response[F]] =

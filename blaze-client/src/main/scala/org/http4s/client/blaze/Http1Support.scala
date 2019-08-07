@@ -74,7 +74,7 @@ final private class Http1Support[F[_]](
       }(executionContext)
 
   private def buildStages(requestKey: RequestKey)
-    : Either[IllegalStateException, (LeafBuilder[ByteBuffer], BlazeConnection[F])] = {
+      : Either[IllegalStateException, (LeafBuilder[ByteBuffer], BlazeConnection[F])] = {
     val t = new Http1Connection(
       requestKey = requestKey,
       executionContext = executionContext,

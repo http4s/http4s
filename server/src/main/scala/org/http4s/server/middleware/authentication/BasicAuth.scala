@@ -34,7 +34,7 @@ object BasicAuth {
     challenged(challenge(realm, validate))
 
   def challenge[F[_]: Applicative, A](realm: String, validate: BasicAuthenticator[F, A])
-    : Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+      : Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
       validatePassword(validate, req).map {
         case Some(authInfo) =>

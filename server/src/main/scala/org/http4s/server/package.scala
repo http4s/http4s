@@ -117,7 +117,7 @@ package object server {
               case Right(suc) => routes(AuthedRequest(suc, req)).value
             }
           }
-      }
+        }
   }
 
   private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
