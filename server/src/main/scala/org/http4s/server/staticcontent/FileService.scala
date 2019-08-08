@@ -80,28 +80,31 @@ object FileService {
       implicit F: Sync[F],
       cs: ContextShift[F]): F[Option[Response[F]]] =
     req.headers.get(Range) match {
-      case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil)))
-          if validRange(s, e, file.length) =>
-        F.suspend {
-          val size = file.length()
-          val start = if (s >= 0) s else math.max(0, size + s)
-          val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
+      case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
+        if (validRange(s, e, file.length)) {
+          F.suspend {
+            val size = file.length()
+            val start = if (s >= 0) s else math.max(0, size + s)
+            val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
 
-          StaticFile
-            .fromFile(
-              file,
-              start,
-              end + 1,
-              config.bufferSize,
-              config.blocker,
-              Some(req),
-              StaticFile.calcETag)
-            .map { resp =>
-              val hs: Headers = resp.headers
-                .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
-              resp.copy(status = Status.PartialContent, headers = hs)
-            }
-            .value
+            StaticFile
+              .fromFile(
+                file,
+                start,
+                end + 1,
+                config.bufferSize,
+                config.blocker,
+                Some(req),
+                StaticFile.calcETag)
+              .map { resp =>
+                val hs: Headers = resp.headers
+                  .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
+                resp.copy(status = Status.PartialContent, headers = hs)
+              }
+              .value
+          }
+        } else {
+          F.pure(Some(Response[F](status = Status.RangeNotSatisfiable)))
         }
       case _ => F.pure(None)
     }
