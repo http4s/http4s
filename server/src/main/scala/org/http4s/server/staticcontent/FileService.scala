@@ -104,7 +104,15 @@ object FileService {
               .value
           }
         } else {
-          F.pure(Some(Response[F](status = Status.RangeNotSatisfiable)))
+          F.suspend {
+            val size = file.length()
+            F.pure(
+              Some(
+                Response[F](
+                  status = Status.RangeNotSatisfiable,
+                  headers = Headers
+                    .of(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size))))))
+          }
         }
       case _ => F.pure(None)
     }

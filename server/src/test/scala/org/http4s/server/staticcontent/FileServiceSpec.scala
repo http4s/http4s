@@ -70,7 +70,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       routes.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.slice(2, 4 + 1))) // the end number is inclusive in the Range header
     }
 
-    "Return a 200 OK on invalid range" in {
+    "Return a 416 RangeNotSatisfiable on invalid range" in {
       val ranges = Seq(
         headers.Range(2, -1),
         headers.Range(2, 1),
@@ -80,8 +80,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       )
       val reqs = ranges.map(r => Request[IO](uri = uri("testresource.txt")).withHeaders(r))
       forall(reqs) { req =>
-        routes.orNotFound(req) must returnStatus(Status.Ok)
-        routes.orNotFound(req) must returnBody(testResource)
+        routes.orNotFound(req) must returnStatus(Status.RangeNotSatisfiable)
       }
     }
   }
