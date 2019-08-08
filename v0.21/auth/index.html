@@ -169,9 +169,11 @@ val service: HttpRoutes[IO] = middleware(spanishRoutes) &lt;+&gt; frenchRoutes
 <ul>
 <li><p>Use a Router with unique route prefixes</p>
 
-<pre><code class="language-scala">val service = Router {
-&quot;/spanish&quot; -&gt; middleware(spanishRoutes)
+<pre><code class="language-scala">val service = {
+Router (
+&quot;/spanish&quot; -&gt; middleware(spanishRoutes),
 &quot;/french&quot; -&gt; frenchRoutes
+)
 }
 </code></pre></li>
 
