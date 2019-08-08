@@ -4,6 +4,7 @@ package staticcontent
 
 import cats.data._
 import cats.effect._
+import cats.implicits._
 import java.io.File
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
@@ -86,29 +87,40 @@ object FileService {
       implicit F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT.fromOption[F](req.headers.get(Range)).flatMap {
-      case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))
-          if validRange(s, e, file.length) =>
-        OptionT(F.suspend {
-          val size = file.length()
-          val start = if (s >= 0) s else math.max(0, size + s)
-          val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
+      case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil)) =>
+        if (validRange(s, e, file.length)) {
+          OptionT(F.suspend {
+            val size = file.length()
+            val start = if (s >= 0) s else math.max(0, size + s)
+            val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
 
-          StaticFile
-            .fromFile(
-              file,
-              start,
-              end + 1,
-              config.bufferSize,
-              config.blockingExecutionContext,
-              Some(req),
-              StaticFile.calcETag)
-            .map { resp =>
-              val hs: Headers = resp.headers
-                .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
-              resp.copy(status = Status.PartialContent, headers = hs)
+            StaticFile
+              .fromFile(
+                file,
+                start,
+                end + 1,
+                config.bufferSize,
+                config.blockingExecutionContext,
+                Some(req),
+                StaticFile.calcETag)
+              .map { resp =>
+                val hs: Headers = resp.headers
+                  .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
+                resp.copy(status = Status.PartialContent, headers = hs)
+              }
+              .value
+          })
+        } else {
+          OptionT(
+            F.delay(file.length()).map { size =>
+              Some(
+                Response[F](
+                  status = Status.RangeNotSatisfiable,
+                  headers = Headers
+                    .of(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
             }
-            .value
-        })
+          )
+        }
 
       case _ => OptionT.none
     }
