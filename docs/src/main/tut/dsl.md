@@ -437,6 +437,21 @@ val averageTemperatureService = HttpRoutes.of[IO] {
 }
 ```
 
+To support a `QueryParamDecoderMatcher[Instant]`, consider `QueryParamCodec#instantQueryParamCodec`. That
+outputs a `QueryParamCodec[Instant]`, which offers both a `QueryParamEncoder[Instant]` and `QueryParamDecoder[Instant]`.
+
+```tut:silent
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+```
+
+```tut:book
+implicit val isoInstantCodec: QueryParamCodec[Instant] =
+  QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
+
+object IsoInstantParamMatcher extends QueryParamDecoderMatcher[Instant]("timestamp")
+```
+
 #### Optional query parameters
 
 To accept a optional query parameter a `OptionalQueryParamDecoderMatcher` can be used.
