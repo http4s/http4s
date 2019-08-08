@@ -92,9 +92,11 @@ Call to the french routes will always return 401 (Unauthorized) as they are caug
 
 * Use a Router with unique route prefixes
 ```tut:silent
-val service = Router {
-    "/spanish" -> middleware(spanishRoutes)
+val service = {
+  Router (
+    "/spanish" -> middleware(spanishRoutes),
     "/french" -> frenchRoutes
+  )
 }
 ```
 
