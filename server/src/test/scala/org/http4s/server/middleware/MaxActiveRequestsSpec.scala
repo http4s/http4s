@@ -76,9 +76,8 @@ class MaxActiveRequestsSpec extends Http4sSpec {
         httpApp = middle(routes(deferred)).orNotFound
         
         out1 <- httpApp.run(Request(Method.PUT))
-        out2F <- httpApp.run(req).start
         _ <- deferred.complete(())
-        out2 <- out2F.join
+        out2 <- httpApp.run(req)
       } yield (out1.status, out2.status) must_=== ((Status.NotFound, Status.Ok))
     }
   }
