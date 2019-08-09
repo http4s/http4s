@@ -14,14 +14,18 @@ class MaxActiveRequestsSpec extends Http4sSpec {
 
   protected val Timeout = 10.seconds
 
-  def routes(deferred: Deferred[IO, Unit]) = Kleisli{ req: Request[IO] => req match {
-    case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
-    case _ => OptionT.liftF(deferred.get >> Response[IO](Status.Ok).pure[IO])
-  }}
+  def routes(deferred: Deferred[IO, Unit]) = Kleisli { req: Request[IO] =>
+    req match {
+      case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
+      case _ => OptionT.liftF(deferred.get >> Response[IO](Status.Ok).pure[IO])
+    }
+  }
 
   implicit def ioAsResult[R](implicit R: AsResult[R]): AsResult[IO[R]] = new AsResult[IO[R]] {
     def asResult(t: => IO[R]): Result =
-      t.unsafeRunTimed(Timeout).map(R.asResult(_)).getOrElse(Failure(s"expectation timed out after $Timeout"))
+      t.unsafeRunTimed(Timeout)
+        .map(R.asResult(_))
+        .getOrElse(Failure(s"expectation timed out after $Timeout"))
   }
 
   "httpApp" should {
@@ -74,7 +78,7 @@ class MaxActiveRequestsSpec extends Http4sSpec {
         deferred <- Deferred[IO, Unit]
         middle <- MaxActiveRequests.httpRoutes[IO](1)
         httpApp = middle(routes(deferred)).orNotFound
-        
+
         out1 <- httpApp.run(Request(Method.PUT))
         _ <- deferred.complete(())
         out2 <- httpApp.run(req)
