@@ -69,24 +69,26 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def build: Resource[F, Client[F]] =
     for {
       sg <- sgR
-      builder = KeyPoolBuilder.apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
-        { requestKey: RequestKey =>
-          org.http4s.ember.client.internal.ClientHelpers
-            .requestKeyToSocketWithKey[F](
-              requestKey,
-              sslContextOpt,
-              sg
-            )
-            .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
-        }, {
-          case (RequestKeySocket(socket, r), shutdown) =>
-            logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
-              socket.endOfInput.attempt.void >>
-              socket.endOfOutput.attempt.void >>
-              socket.close.attempt.void >>
-              shutdown
-        }
-      ).withDefaultReuseState(Reusable.DontReuse)
+      builder = KeyPoolBuilder
+        .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
+          { requestKey: RequestKey =>
+            org.http4s.ember.client.internal.ClientHelpers
+              .requestKeyToSocketWithKey[F](
+                requestKey,
+                sslContextOpt,
+                sg
+              )
+              .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
+          }, {
+            case (RequestKeySocket(socket, r), shutdown) =>
+              logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
+                socket.endOfInput.attempt.void >>
+                socket.endOfOutput.attempt.void >>
+                socket.close.attempt.void >>
+                shutdown
+          }
+        )
+        .withDefaultReuseState(Reusable.DontReuse)
         .withIdleTimeAllowedInPool(idleTimeInPool)
         .withMaxPerKey(maxPerKey)
         .withMaxTotal(maxTotal)
@@ -104,7 +106,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             }
           )
           response <- Resource.make[F, Response[F]](
-            org.http4s.ember.client.internal.ClientHelpers.request[F](
+            org.http4s.ember.client.internal.ClientHelpers
+              .request[F](
                 request,
                 managed.value._1,
                 chunkSize,
@@ -123,16 +126,13 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                     else managed.canBeReused.set(Reusable.Reuse)
                   case ExitCase.Canceled => Sync[F].unit
                   case ExitCase.Error(_) => Sync[F].unit
-                })
-              )
+                }))
           )(resp =>
             managed.canBeReused.get.flatMap {
               case Reusable.Reuse => resp.body.compile.drain.attempt.void
               case Reusable.DontReuse => Sync[F].unit
-            }
-          )
-        } yield response
-      )
+            })
+        } yield response)
       new EmberClient[F](client, pool)
     }
 
