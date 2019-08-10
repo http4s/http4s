@@ -446,6 +446,7 @@ object CSRF {
   ///
 
   val SigningAlgo: String = "HmacSHA1"
+  @deprecated("Unused. Will be removed", "0.20.10")
   val SHA1ByteLen: Int = 20
   val CSRFTokenLength: Int = 32
 
@@ -499,13 +500,15 @@ object CSRF {
   /** Build a new HMACSHA1 Key for our CSRF Middleware
     * from key bytes. This operation is unsafe, in that
     * any amount less than 20 bytes will throw an exception when loaded
-    * into `Mac`, and any value above will be truncated (not good for entropy).
+    * into `Mac`. Any keys larger than 64 bytes are just hashed.
+    *
+    * For more information, refer to: https://tools.ietf.org/html/rfc2104#section-3
     *
     * Use for loading a key from a config file, after having generated
     * one safely
     *
     */
   def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[SecretKey] =
-    F.delay(new SecretKeySpec(array.slice(0, SHA1ByteLen), SigningAlgo))
+    F.delay(new SecretKeySpec(array, SigningAlgo))
 
 }
