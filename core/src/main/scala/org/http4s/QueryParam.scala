@@ -53,19 +53,6 @@ object QueryParamCodec {
         decodeA.decode(value)
     }
 
-  private def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
-    new QueryParamDecoder[Instant] {
-      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
-        Validated
-          .catchOnly[DateTimeParseException] {
-            val x: TemporalAccessor = formatter.parse(value.value)
-            Instant.from(x)
-          }
-          .leftMap { e =>
-            ParseFailure(s"Failed to decode value: ${value.value} as Instant", e.getMessage)
-          }
-          .toValidatedNel
-    }
 
   private def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
     QueryParamEncoder[String].contramap[Instant] { i: Instant =>
@@ -175,6 +162,20 @@ object QueryParamDecoder {
         Validated
           .catchNonFatal(cast(value))
           .leftMap(t => ParseFailure(s"Query decoding $typeName failed", t.getMessage))
+          .toValidatedNel
+    }
+
+  def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
+    new QueryParamDecoder[Instant] {
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
+        Validated
+          .catchOnly[DateTimeParseException] {
+          val x: TemporalAccessor = formatter.parse(value.value)
+          Instant.from(x)
+        }
+          .leftMap { e =>
+            ParseFailure(s"Failed to decode value: ${value.value} as Instant", e.getMessage)
+          }
           .toValidatedNel
     }
 
