@@ -174,9 +174,9 @@ object QueryParamDecoder {
       override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
         Validated
           .catchOnly[DateTimeParseException] {
-          val x: TemporalAccessor = formatter.parse(value.value)
-          Instant.from(x)
-        }
+            val x: TemporalAccessor = formatter.parse(value.value)
+            Instant.from(x)
+          }
           .leftMap { e =>
             ParseFailure(s"Failed to decode value: ${value.value} as Instant", e.getMessage)
           }
