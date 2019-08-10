@@ -500,7 +500,7 @@ object CSRF {
     * any amount less than 20 bytes will throw an exception when loaded
     * into `Mac`. Any keys larger than 64 bytes are just hashed.
     *
-    * For more information, refer refer to: https://tools.ietf.org/html/rfc2104#section-3
+    * For more information, refer to: https://tools.ietf.org/html/rfc2104#section-3
     *
     * Use for loading a key from a config file, after having generated
     * one safely
