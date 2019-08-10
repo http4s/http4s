@@ -54,10 +54,6 @@ object QueryParamCodec {
     }
 
 
-  private def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
-    QueryParamEncoder[String].contramap[Instant] { i: Instant =>
-      formatter.format(i)
-    }
 
   def instantQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[Instant] =
     QueryParamCodec
@@ -93,6 +89,11 @@ object QueryParamEncoder {
     new Contravariant[QueryParamEncoder] {
       override def contramap[A, B](fa: QueryParamEncoder[A])(f: B => A) =
         fa.contramap(f)
+    }
+
+  def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
+    QueryParamEncoder[String].contramap[Instant] { i: Instant =>
+      formatter.format(i)
     }
 
   @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
