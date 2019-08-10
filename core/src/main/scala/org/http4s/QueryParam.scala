@@ -53,11 +53,14 @@ object QueryParamCodec {
         decodeA.decode(value)
     }
 
+  def instantQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[Instant] = {
 
+    import QueryParamDecoder.instantQueryParamDecoder
+    import QueryParamEncoder.instantQueryParamEncoder
 
-  def instantQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[Instant] =
     QueryParamCodec
       .from[Instant](instantQueryParamDecoder(formatter), instantQueryParamEncoder(formatter))
+  }
 
 }
 
