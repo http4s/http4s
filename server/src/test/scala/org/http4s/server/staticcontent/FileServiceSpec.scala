@@ -7,6 +7,7 @@ import fs2._
 import java.io.File
 import org.http4s.Uri.uri
 import org.http4s.server.middleware.TranslateUri
+import org.http4s.headers.Range.SubRange
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
   val routes = fileService(
@@ -78,9 +79,13 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
         headers.Range(200, 201),
         headers.Range(-200)
       )
+      val size = new File(getClass.getResource("/testresource.txt").toURI).length
       val reqs = ranges.map(r => Request[IO](uri = uri("testresource.txt")).withHeaders(r))
+
       forall(reqs) { req =>
         routes.orNotFound(req) must returnStatus(Status.RangeNotSatisfiable)
+        routes.orNotFound(req) must returnValue(
+          containsHeader(headers.`Content-Range`(SubRange(0, size - 1), Some(size))))
       }
     }
   }

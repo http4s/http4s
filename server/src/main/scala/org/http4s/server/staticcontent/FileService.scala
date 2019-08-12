@@ -7,6 +7,7 @@ import cats.effect.{Blocker, ContextShift, Effect, Sync}
 import java.io.File
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
+import cats.implicits._
 
 object FileService {
   type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
@@ -104,14 +105,12 @@ object FileService {
               .value
           }
         } else {
-          F.suspend {
-            val size = file.length()
-            F.pure(
-              Some(
-                Response[F](
-                  status = Status.RangeNotSatisfiable,
-                  headers = Headers
-                    .of(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size))))))
+          F.delay(file.length()).map { size =>
+            Some(
+              Response[F](
+                status = Status.RangeNotSatisfiable,
+                headers = Headers
+                  .of(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
           }
         }
       case _ => F.pure(None)
