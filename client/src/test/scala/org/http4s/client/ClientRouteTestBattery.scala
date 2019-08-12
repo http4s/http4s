@@ -90,7 +90,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
 
         "POST bodies concurrently" in {
           // https://github.com/AsyncHttpClient/async-http-client/issues/1660
-          Stream(0 to 100)
+          Stream
+            .emits(0 to 100)
             .covary[IO]
             .parEvalMap(8) { _ =>
               val uri =
