@@ -10,6 +10,7 @@ import fs2._
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
 import _root_.io.netty.handler.codec.http.{DefaultHttpHeaders, HttpHeaders}
 import _root_.io.netty.buffer.Unpooled
+import _root_.io.netty.channel.Channel
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
@@ -118,6 +119,15 @@ object AsyncHttpClient {
       override def onCompleted(): Unit = {
         // Don't close here.  onStream may still be being called.
       }
+
+      override def onConnectionOffer(channel: Channel): Unit =
+        // Workaround https://github.com/AsyncHttpClient/async-http-client/issues/1660
+        try {
+          channel.pipeline.remove("request-body-streamer")
+          ()
+        } catch {
+          case _: NoSuchElementException => // this is just a cleanup of last resort
+        }
     }
 
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {

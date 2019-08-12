@@ -88,6 +88,21 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
           body must returnValue("This is normal.")
         }
 
+        "POST bodies concurrently" in {
+          // https://github.com/AsyncHttpClient/async-http-client/issues/1660
+          Stream(0 to 100)
+            .covary[IO]
+            .parEvalMap(8) { _ =>
+              val uri =
+                Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+              val req = POST("This is normal.", uri)
+              client.expect[String](req).void
+            }
+            .compile
+            .drain
+            .unsafeRunTimed(20.seconds) must beSome(())
+        }
+
         "POST a chunked body" in {
           val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
           val req = POST(Stream("This is chunked.").covary[IO], uri)
