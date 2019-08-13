@@ -15,11 +15,11 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecut
 
 class MaxActiveRequestsSpec extends Specification {
 
-  implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
-  val testBlockingExecutionContext: ExecutionContext = Http4sSpec.TestBlockingExecutionContext
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
-  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
-  def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
+  implicit def testExecutionContext: ExecutionContext = MaxActiveRequestsSpec.TestExecutionContext
+  val testBlockingExecutionContext: ExecutionContext = MaxActiveRequestsSpec.TestBlockingExecutionContext
+  implicit val contextShift: ContextShift[IO] = MaxActiveRequestsSpec.TestContextShift
+  implicit val timer: Timer[IO] = MaxActiveRequestsSpec.TestTimer
+  def scheduler: ScheduledExecutorService =MaxActiveRequestsSpec.TestScheduler
 
   val req = Request[IO]()
 
@@ -102,8 +102,8 @@ object MaxActiveRequestsSpec {
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
 
-  val TestBlocker: Blocker =
-    Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
+  val TestBlockingExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(newBlockingPool("http4s-spec-blocking"))
 
   val TestContextShift: ContextShift[IO] =
     IO.contextShift(TestExecutionContext)
