@@ -12,7 +12,7 @@ class MaxActiveRequestsSpec extends Http4sSpec {
 
   val req = Request[IO]()
 
-  protected val Timeout = 10.seconds
+  protected val Timeout = 20.seconds
 
   def routes(deferred: Deferred[IO, Unit]) = Kleisli { req: Request[IO] =>
     req match {
