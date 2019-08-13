@@ -1,18 +1,29 @@
 package org.http4s.server.middleware
 
 import cats.implicits._
-import cats.effect.IO
+import cats.effect._
 import cats.data._
 import cats.effect.concurrent._
 import org.http4s._
+import org.http4s.implicits._
+import org.http4s.util.threads.{newBlockingPool, newDaemonPool, threadFactory}
+import org.specs2.mutable.Specification
 import org.specs2.execute.{AsResult, Failure, Result}
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 
-class MaxActiveRequestsSpec extends Http4sSpec {
+class MaxActiveRequestsSpec extends Specification {
+
+  implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
+  val testBlockingExecutionContext: ExecutionContext = Http4sSpec.TestBlockingExecutionContext
+  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
+  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
+  def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
 
   val req = Request[IO]()
 
-  protected val Timeout = 20.seconds
+  protected val Timeout = 10.seconds
 
   def routes(deferred: Deferred[IO, Unit]) = Kleisli { req: Request[IO] =>
     req match {
@@ -85,4 +96,26 @@ class MaxActiveRequestsSpec extends Http4sSpec {
       } yield (out1.status, out2.status) must_=== ((Status.NotFound, Status.Ok))
     }
   }
+}
+
+object MaxActiveRequestsSpec {
+  val TestExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
+
+  val TestBlocker: Blocker =
+    Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
+
+  val TestContextShift: ContextShift[IO] =
+    IO.contextShift(TestExecutionContext)
+
+  val TestScheduler: ScheduledExecutorService = {
+    val s =
+      new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
+    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
+    s.allowCoreThreadTimeOut(true)
+    s
+  }
+
+  val TestTimer: Timer[IO] =
+    IO.timer(TestExecutionContext, TestScheduler)
 }
