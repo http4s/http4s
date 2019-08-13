@@ -44,9 +44,9 @@ class MaxActiveRequestsSpec extends Http4sSpec {
         deferred <- Deferred[IO, Unit]
         middle <- MaxActiveRequests.httpApp[IO](1)
         httpApp = middle(routes(deferred).orNotFound)
-        _ <- httpApp.run(req).start
+        f <- httpApp.run(req).start
         out <- httpApp.run(req)
-        _ <- deferred.complete(())
+        _ <- f.cancel
       } yield out.status must_=== Status.ServiceUnavailable
     }
   }
@@ -67,9 +67,9 @@ class MaxActiveRequestsSpec extends Http4sSpec {
         deferred <- Deferred[IO, Unit]
         middle <- MaxActiveRequests.httpRoutes[IO](1)
         httpApp = middle(routes(deferred)).orNotFound
-        _ <- httpApp.run(req).start
+        f <- httpApp.run(req).start
         out <- httpApp.run(req)
-        _ <- deferred.complete(())
+        _ <- f.cancel
       } yield out.status must_=== Status.ServiceUnavailable
     }
 
