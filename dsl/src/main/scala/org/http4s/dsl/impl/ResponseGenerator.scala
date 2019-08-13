@@ -38,19 +38,8 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status, headers = Headers(`Content-Length`.zero :: headers.toList)))
 
-  def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] = {
-    val entity = Entity(fs2.Stream.eval(body).flatMap(w.toEntity(_).body))
-    val headers = {
-      val h = w.headers
-      entity.length
-        .map { l =>
-          `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
-        }
-        .getOrElse(h)
-    }
-
-    F.pure(Response[G](status = status, headers = headers, body = entity.body))
-  }
+  def apply[A](body: F[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
+    F.flatMap(body)(apply[A](_))
 
   def apply[A](body: A, headers: Header*)(
       implicit F: Monad[F],
