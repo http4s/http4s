@@ -15,11 +15,14 @@ class MaxActiveRequestsSpec extends Http4sSpec {
 
   protected val Timeout = 10.seconds
 
-  def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) = Kleisli { req: Request[IO] =>
-    req match {
-      case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
-      case _ => OptionT.liftF(startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO])
-    }
+  def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) = Kleisli {
+    req: Request[IO] =>
+      req match {
+        case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
+        case _ =>
+          OptionT.liftF(
+            startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO])
+      }
   }
 
   implicit def ioAsResult[R](implicit R: AsResult[R]): AsResult[IO[R]] = new AsResult[IO[R]] {
