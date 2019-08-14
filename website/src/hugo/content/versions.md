@@ -57,7 +57,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
-	  <td class="text-center">M5</td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td>1.x</td>
 	  <td>1.x</td>
 	  <td>1.8+</td>

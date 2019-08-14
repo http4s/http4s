@@ -102,12 +102,7 @@ object Http4sPlugin extends AutoPlugin {
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Support.this")
     ),
 
-    libraryDependencies += compilerPlugin(
-      CrossVersion.binaryScalaVersion(scalaVersion.value) match {
-        case "2.13.0-M5" => "org.spire-math" %% "kind-projector" % "0.9.9" cross CrossVersion.binary
-        case _ => "org.typelevel" %% "kind-projector" % "0.10.0"
-      }
-    ),
+    libraryDependencies += compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
 
     scalafmtVersion := "1.5.1",
