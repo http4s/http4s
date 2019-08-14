@@ -2,7 +2,7 @@ package org.http4s
 package dsl
 package impl
 
-import cats.Applicative
+import cats.{Applicative, Monad}
 import org.http4s.headers._
 import ResponseGenerator.addEntityLength
 
@@ -47,11 +47,8 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status, headers = Headers(`Content-Length`.zero :: headers.toList)))
 
-  def apply[A](body: G[A])(implicit F: Applicative[F], w: EntityEncoder[G, A]): F[Response[G]] = {
-    val entity = Entity(fs2.Stream.eval(body).flatMap(w.toEntity(_).body))
-    val headers = addEntityLength(entity, w.headers)
-    F.pure(Response[G](status = status, headers = headers, body = entity.body))
-  }
+  def apply[A](body: F[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
+    F.flatMap(body)(apply[A](_))
 
   def apply[A](body: A, headers: Header*)(
       implicit F: Applicative[F],
