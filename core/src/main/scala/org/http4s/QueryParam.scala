@@ -3,6 +3,9 @@ package org.http4s
 import cats.{Contravariant, Functor, MonoidK, Show}
 import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
+import java.time.Instant
+import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.time.temporal.TemporalAccessor
 
 final case class QueryParameterKey(value: String) extends AnyVal
 
@@ -38,6 +41,29 @@ object QueryParamKeyLike {
   }
 }
 
+trait QueryParamCodec[T] extends QueryParamEncoder[T] with QueryParamDecoder[T]
+object QueryParamCodec {
+
+  def apply[A](implicit instance: QueryParamCodec[A]): QueryParamCodec[A] = instance
+
+  def from[A](decodeA: QueryParamDecoder[A], encodeA: QueryParamEncoder[A]): QueryParamCodec[A] =
+    new QueryParamCodec[A] {
+      override def encode(value: A): QueryParameterValue = encodeA.encode(value)
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, A] =
+        decodeA.decode(value)
+    }
+
+  def instantQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[Instant] = {
+
+    import QueryParamDecoder.instantQueryParamDecoder
+    import QueryParamEncoder.instantQueryParamEncoder
+
+    QueryParamCodec
+      .from[Instant](instantQueryParamDecoder(formatter), instantQueryParamEncoder(formatter))
+  }
+
+}
+
 /**
   * Type class defining how to encode a `T` as a [[QueryParameterValue]]s
   * @see QueryParamCodecLaws
@@ -59,11 +85,18 @@ object QueryParamEncoder {
   /** summon an implicit [[QueryParamEncoder]] */
   def apply[T](implicit ev: QueryParamEncoder[T]): QueryParamEncoder[T] = ev
 
+  def fromCodec[T](implicit ev: QueryParamCodec[T]): QueryParamEncoder[T] = ev
+
   /** QueryParamEncoder is a contravariant functor. */
   implicit val ContravariantQueryParamEncoder: Contravariant[QueryParamEncoder] =
     new Contravariant[QueryParamEncoder] {
       override def contramap[A, B](fa: QueryParamEncoder[A])(f: B => A) =
         fa.contramap(f)
+    }
+
+  def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
+    QueryParamEncoder[String].contramap[Instant] { i: Instant =>
+      formatter.format(i)
     }
 
   @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
@@ -136,12 +169,28 @@ object QueryParamDecoder {
   /** summon an implicit [[QueryParamDecoder]] */
   def apply[T](implicit ev: QueryParamDecoder[T]): QueryParamDecoder[T] = ev
 
+  def fromCodec[T](implicit ev: QueryParamCodec[T]): QueryParamDecoder[T] = ev
+
   def fromUnsafeCast[T](cast: QueryParameterValue => T)(typeName: String): QueryParamDecoder[T] =
     new QueryParamDecoder[T] {
       def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, T] =
         Validated
           .catchNonFatal(cast(value))
           .leftMap(t => ParseFailure(s"Query decoding $typeName failed", t.getMessage))
+          .toValidatedNel
+    }
+
+  def instantQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[Instant] =
+    new QueryParamDecoder[Instant] {
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Instant] =
+        Validated
+          .catchOnly[DateTimeParseException] {
+            val x: TemporalAccessor = formatter.parse(value.value)
+            Instant.from(x)
+          }
+          .leftMap { e =>
+            ParseFailure(s"Failed to decode value: ${value.value} as Instant", e.getMessage)
+          }
           .toValidatedNel
     }
 
