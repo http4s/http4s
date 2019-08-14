@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-M4 (2019-08-14)
+
+## Dependency updates
+
+* cats-core-2.0.0-RC1
+* cats-effect-2.0.0-RC1
+* circe-0.12.0-RC1
+* discipline-1.0.0
+* keypool-0.2.0-RC1
+* log4cats-1.0.0-RC1
+* vault-2.0.0-RC1
+
 # v0.20.10 (2019-08-14)
 
 ## Breaking changes
