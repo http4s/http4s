@@ -8,6 +8,22 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.10 (2019-08-14)
+
+## Breaking changes
+
+* [#2785](https://github.com/http4s/http4s/pull/2785): Use `F[A]` instead of `G[A]` in the DSL's `EntityResponseGenerator`. This change is binary compatible, but not source compatible for users of `Http4sDsl2` where `F` is not `G`. This is uncommon.
+
+## Bug fixes
+
+* [#2778](https://github.com/http4s/http4s/pull/2778): Don't truncate signing keys in CSRF middleware to 20 bytes, which causes a loss of entropy.
+
+## Enhancements
+
+* [#2776](https://github.com/http4s/http4s/pull/2776): Add `MaxActiveRequest` middleware
+* [#2724](https://github.com/http4s/http4s/pull/2724): Add `QueryParamEncoder[Instant]` and `QueryParamDecoder[Instant]`. Introduce `QueryParamCodec` for convenience.
+* [#2777](https://github.com/http4s/http4s/pull/2777): Handle invalid `Content-Range` requests with a 416 response and `Accept-Range` header.
+
 # v0.20.9 (2019-08-07)
 
 ## Bug fixes
