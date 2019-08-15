@@ -705,6 +705,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="QueryParam.html" title="type class defining the key of a query parameter Usually used in conjunction with QueryParamEncoder and QueryParamDecoder"></a>
                         <a href="QueryParam.html" title="type class defining the key of a query parameter Usually used in conjunction with QueryParamEncoder and QueryParamDecoder">QueryParam</a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="QueryParamCodec$.html" title=""></a>
+                        <a class="trait" href="QueryParamCodec.html" title=""></a>
+                        <a href="QueryParamCodec.html" title="">QueryParamCodec</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="QueryParamDecoder$.html" title=""></a>
                         <a class="trait" href="QueryParamDecoder.html" title="Type class defining how to decode a QueryParameterValue into a T"></a>
                         <a href="QueryParamDecoder.html" title="Type class defining how to decode a QueryParameterValue into a T">QueryParamDecoder</a>
@@ -1101,6 +1105,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
+    </li><li name="org.http4s.QueryParamEncoder#fromCodec" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fromCodec[T](implicitev:org.http4s.QueryParamCodec[T]):org.http4s.QueryParamEncoder[T]"></a><a id="fromCodec[T](QueryParamCodec[T]):QueryParamEncoder[T]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamEncoder$.html#fromCodec[T](implicitev:org.http4s.QueryParamCodec[T]):org.http4s.QueryParamEncoder[T]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fromCodec</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: <a href="QueryParamCodec.html" class="extype" name="org.http4s.QueryParamCodec">QueryParamCodec</a>[<span class="extype" name="org.http4s.QueryParamEncoder.fromCodec.T">T</span>]</span>)</span><span class="result">: <a href="QueryParamEncoder.html" class="extype" name="org.http4s.QueryParamEncoder">QueryParamEncoder</a>[<span class="extype" name="org.http4s.QueryParamEncoder.fromCodec.T">T</span>]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.QueryParamEncoder#fromShow" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="fromShow[T](implicitsh:cats.Show[T]):org.http4s.QueryParamEncoder[T]"></a><a id="fromShow[T](Show[T]):QueryParamEncoder[T]"></a>
       <span class="permalink">
@@ -1155,6 +1175,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.QueryParamEncoder#instantQueryParamEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="instantQueryParamEncoder(formatter:java.time.format.DateTimeFormatter):org.http4s.QueryParamEncoder[java.time.Instant]"></a><a id="instantQueryParamEncoder(DateTimeFormatter):QueryParamEncoder[Instant]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamEncoder$.html#instantQueryParamEncoder(formatter:java.time.format.DateTimeFormatter):org.http4s.QueryParamEncoder[java.time.Instant]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">instantQueryParamEncoder</span><span class="params">(<span name="formatter">formatter: <span class="extype" name="java.time.format.DateTimeFormatter">DateTimeFormatter</span></span>)</span><span class="result">: <a href="QueryParamEncoder.html" class="extype" name="org.http4s.QueryParamEncoder">QueryParamEncoder</a>[<span class="extype" name="java.time.Instant">Instant</span>]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.QueryParamEncoder#intQueryParamEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="intQueryParamEncoder:org.http4s.QueryParamEncoder[Int]"></a><a id="intQueryParamEncoder:QueryParamEncoder[Int]"></a>
       <span class="permalink">

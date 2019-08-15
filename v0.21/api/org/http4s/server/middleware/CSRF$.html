@@ -203,6 +203,10 @@
                         <a href="Logger$.html" title="Simple Middleware for Logging All Requests and Responses">Logger</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="MaxActiveRequests$.html" title=""></a>
+                        <a href="MaxActiveRequests$.html" title="">MaxActiveRequests</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="Metrics$.html" title="Server middleware to record metrics for the http4s server."></a>
                         <a href="Metrics$.html" title="Server middleware to record metrics for the http4s server.">Metrics</a>
                       </li><li class="current-entities indented4">
@@ -467,22 +471,6 @@
       </span>
       
       
-    </li><li name="org.http4s.server.middleware.CSRF#SHA1ByteLen" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="SHA1ByteLen:Int"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF$.html#SHA1ByteLen:Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">SHA1ByteLen</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.server.middleware.CSRF#SigningAlgo" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SigningAlgo:String"></a>
       <span class="permalink">
@@ -550,7 +538,7 @@
 from key bytes.</p><div class="fullcomment"><div class="comment cmt"><p>Build a new HMACSHA1 Key for our CSRF Middleware
 from key bytes. This operation is unsafe, in that
 any amount less than 20 bytes will throw an exception when loaded
-into <code>Mac</code>, and any value above will be truncated (not good for entropy).</p><p>Use for loading a key from a config file, after having generated
+into <code>Mac</code>. Any keys larger than 64 bytes are just hashed.</p><p>For more information, refer to: https://tools.ietf.org/html/rfc2104#section-3</p><p>Use for loading a key from a config file, after having generated
 one safely</p></div></div>
     </li><li name="org.http4s.server.middleware.CSRF#checkCSRFDefault" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="checkCSRFDefault[F[_],G[_]](implicitF:cats.effect.Sync[F]):org.http4s.server.middleware.CSRF[F,G]=&gt;org.http4s.server.middleware.CSRF.CSRFCheck[F,G]"></a><a id="checkCSRFDefault[F[_],G[_]](Sync[F]):(CSRF[F,G])⇒CSRFCheck[F,G]"></a>
@@ -1052,7 +1040,29 @@ one safely</p></div></div>
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.middleware.CSRF#SHA1ByteLen" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="SHA1ByteLen:Int"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#SHA1ByteLen:Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.10) Unused. Will be removed">SHA1ByteLen</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.8/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.20.10)</i> Unused. Will be removed</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
