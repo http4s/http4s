@@ -63,7 +63,7 @@ object HttpRoutes {
       implicit F: Sync[F]): HttpRoutes[F] =
     Kleisli(req => OptionT(F.suspend(pf.lift(req).sequence)))
 
-  /** An empty set of routes.  Always responds with `pOptionT.none`.
+  /** An empty set of routes.  Always responds with `OptionT.none`.
     *
     * @tparam F the base effect of the [[HttpRoutes]]
     */
