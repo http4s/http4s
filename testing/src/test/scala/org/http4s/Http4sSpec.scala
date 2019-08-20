@@ -20,7 +20,7 @@ import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.specs2.ScalaCheck
-import org.specs2.execute.{Result, Skipped}
+import org.specs2.execute.{AsResult, Failure, Result, Skipped}
 import org.specs2.matcher._
 import org.specs2.mutable.Specification
 import org.specs2.scalacheck.Parameters
@@ -29,6 +29,7 @@ import org.specs2.specification.create.{DefaultFragmentFactory => ff}
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 /**
   * Common stack for http4s' own specs.
@@ -53,6 +54,8 @@ trait Http4sSpec
   def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
 
   implicit val params = Parameters(maxSize = 20)
+
+  implicit val timeout = 10.seconds
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -141,6 +144,11 @@ trait Http4sSpec
   def skipOnCi(f: => Result): Result =
     if (sys.env.get("CI").isDefined) Skipped("Flakier than it's worth on CI")
     else f
+
+  implicit def http4sSpecIoAsResult[R](implicit R: AsResult[R]): AsResult[IO[R]] = new AsResult[IO[R]] {
+    def asResult(t: => IO[R]): Result =
+      t.unsafeRunTimed(timeout).map(R.asResult(_)).getOrElse(Failure(s"expectation timed out after $timeout"))
+  }
 }
 
 object Http4sSpec {
