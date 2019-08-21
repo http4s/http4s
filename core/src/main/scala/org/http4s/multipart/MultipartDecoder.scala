@@ -7,11 +7,11 @@ import cats.implicits._
 private[http4s] object MultipartDecoder {
 
   def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
+    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { e =>
+      e.mediaType.flatMap(_.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
-            msg.body
+            e.body
               .through(MultipartParser.parseToPartsStream[F](Boundary(boundary)))
               .compile
               .toVector
@@ -60,11 +60,11 @@ private[http4s] object MultipartDecoder {
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
+    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { e =>
+      e.mediaType.flatMap(_.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
-            msg.body
+            e.body
               .through(
                 MultipartParser.parseToPartsStreamedFile[F](
                   Boundary(boundary),

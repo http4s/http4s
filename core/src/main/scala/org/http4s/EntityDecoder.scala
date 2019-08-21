@@ -6,7 +6,6 @@ import cats.implicits._
 import fs2._
 import fs2.io.file.writeAll
 import java.io.File
-import org.http4s.headers.`Content-Type`
 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scala.annotation.implicitNotFound
 
@@ -22,8 +21,12 @@ import scala.annotation.implicitNotFound
   "Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.")
 trait EntityDecoder[F[_], T] { self =>
 
+  /** Attempt to decode [[Entity]] */
+  def decode(e: Entity[F], strict: Boolean): DecodeResult[F, T]
+
   /** Attempt to decode the body of the [[Message]] */
-  def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T]
+  final def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+    decode(Entity.fromMessage(msg), strict)
 
   /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]
@@ -32,14 +35,14 @@ trait EntityDecoder[F[_], T] { self =>
   def map[T2](f: T => T2)(implicit F: Functor[F]): EntityDecoder[F, T2] = new EntityDecoder[F, T2] {
     override def consumes: Set[MediaRange] = self.consumes
 
-    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
-      self.decode(msg, strict).map(f)
+    override def decode(e: Entity[F], strict: Boolean): DecodeResult[F, T2] =
+      self.decode(e, strict).map(f)
   }
 
   def flatMapR[T2](f: T => DecodeResult[F, T2])(implicit F: Monad[F]): EntityDecoder[F, T2] =
     new EntityDecoder[F, T2] {
-      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
-        self.decode(msg, strict).flatMap(f)
+      override def decode(e: Entity[F], strict: Boolean): DecodeResult[F, T2] =
+        self.decode(e, strict).flatMap(f)
 
       override def consumes: Set[MediaRange] = self.consumes
     }
@@ -67,8 +70,8 @@ trait EntityDecoder[F[_], T] { self =>
     new EntityDecoder[F, T2] {
       override def consumes: Set[MediaRange] = self.consumes
 
-      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
-        self.decode(msg, strict).transform(t)
+      override def decode(e: Entity[F], strict: Boolean): DecodeResult[F, T2] =
+        self.decode(e, strict).transform(t)
     }
 
   def biflatMap[T2](f: DecodeFailure => DecodeResult[F, T2], s: T => DecodeResult[F, T2])(
@@ -83,9 +86,9 @@ trait EntityDecoder[F[_], T] { self =>
     new EntityDecoder[F, T2] {
       override def consumes: Set[MediaRange] = self.consumes
 
-      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
+      override def decode(e: Entity[F], strict: Boolean): DecodeResult[F, T2] =
         DecodeResult(
-          F.flatMap(self.decode(msg, strict).value)(r => f(r).value)
+          F.flatMap(self.decode(e, strict).value)(r => f(r).value)
         )
     }
 
@@ -125,13 +128,13 @@ object EntityDecoder {
           a: EntityDecoder[F, T],
           b: EntityDecoder[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
 
-        override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] = {
-          val mediaType = msg.headers.get(`Content-Type`).fold(UndefinedMediaType)(_.mediaType)
+        override def decode(e: Entity[F], strict: Boolean): DecodeResult[F, T] = {
+          val mediaType = e.mediaType.getOrElse(UndefinedMediaType)
 
           if (a.matchesMediaType(mediaType))
-            a.decode(msg, strict)
+            a.decode(e, strict)
           else
-            b.decode(msg, strict).leftMap {
+            b.decode(e, strict).leftMap {
               case MediaTypeMismatch(actual, expected) =>
                 MediaTypeMismatch(actual, expected ++ a.consumes)
               case MediaTypeMissing(expected) =>
@@ -155,38 +158,44 @@ object EntityDecoder {
     * [[DecodeResult.failure]], or that system errors are raised in `F`.
     */
   def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
-      f: Message[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
-    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+      f: Entity[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
+    override def decode(e: Entity[F], strict: Boolean): DecodeResult[F, T] =
       if (strict) {
-        msg.headers.get(`Content-Type`) match {
-          case Some(c) if matchesMediaType(c.mediaType) => f(msg)
-          case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
-          case None if matchesMediaType(UndefinedMediaType) => f(msg)
+        e.mediaType match {
+          case Some(mt) if matchesMediaType(mt) => f(e)
+          case Some(mt) => DecodeResult.failure(MediaTypeMismatch(mt, consumes))
+          case None if matchesMediaType(UndefinedMediaType) => f(e)
           case None => DecodeResult.failure(MediaTypeMissing(consumes))
         }
       } else {
-        f(msg)
+        f(e)
       }
 
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
   }
 
   /** Helper method which simply gathers the body into a single Chunk */
-  def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(msg.body.chunks.compile.toVector.map(Chunk.concatBytes))
+  def collectBinary[F[_]: Sync](e: Entity[F]): DecodeResult[F, Chunk[Byte]] =
+    DecodeResult.success(e.body.chunks.compile.toVector.map(Chunk.concatBytes))
 
-  /** Decodes a message to a String */
-  def decodeString[F[_]: Sync](msg: Message[F])(
-      implicit defaultCharset: Charset = DefaultCharset): F[String] =
-    msg.bodyAsText.compile.foldMonoid
+  /** Decodes an [[Entity]] to a String */
+  def decodeString[F[_]: Sync](e: Entity[F])(
+      implicit defaultCharset: Charset = DefaultCharset): F[String] = {
+    val decoder = e.charset.getOrElse(defaultCharset) match {
+      case Charset.`UTF-8` => fs2.text.utf8Decode[F]
+      case cs => util.decode[F](cs)
+    }
+
+    e.body.through(decoder).compile.foldMonoid
+  }
 
   /////////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
   def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
-      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(msg.body.compile.drain *> F.raiseError(t))
+      override def decode(e: Entity[F], strict: Boolean): DecodeResult[F, T] =
+        DecodeResult(e.body.compile.drain *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 

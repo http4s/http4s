@@ -18,9 +18,9 @@ trait JawnInstances {
 
   // some decoders may reuse it and avoid extra content negotiation
   private[http4s] def jawnDecoderImpl[F[_]: Sync, J: RawFacade](
-      msg: Message[F]): DecodeResult[F, J] =
+      e: Entity[F]): DecodeResult[F, J] =
     DecodeResult {
-      msg.body.chunks
+      e.body.chunks
         .parseJson(AsyncParser.SingleValue)
         .map(Either.right)
         .handleErrorWith {

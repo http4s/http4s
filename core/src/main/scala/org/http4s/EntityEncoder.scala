@@ -33,12 +33,6 @@ trait EntityEncoder[F[_], A] { self =>
     override def headers: Headers = self.headers
   }
 
-  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
-
-  /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def charset: Option[Charset] = headers.get(`Content-Type`).flatMap(_.charset)
-
   /** Generate a new EntityEncoder that will contain the `Content-Type` header */
   def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] = new EntityEncoder[F, A] {
     override def toEntity(a: A): Entity[F] = self.toEntity(a)
@@ -70,19 +64,28 @@ object EntityEncoder {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
+  def simple[F[_], A](
+      hs: Header*
+  )(mediaType: MediaType, cs: Option[Charset], toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
-      Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
+      Entity[F](
+        body = Stream.chunk(c).covary[F],
+        mediaType = Some(mediaType),
+        charset = cs,
+        length = Some(c.size.toLong)
+      )
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
   def showEncoder[F[_], A](
       implicit charset: Charset = DefaultCharset,
-      show: Show[A]): EntityEncoder[F, A] = {
-    val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
-  }
+      show: Show[A]): EntityEncoder[F, A] =
+    simple[F, A]()(
+      MediaType.text.plain,
+      Some(charset),
+      a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset))
+    )
 
   def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
     new EntityEncoder[F, A] {
@@ -114,17 +117,15 @@ object EntityEncoder {
     emptyEncoder[F, Unit]
 
   implicit def stringEncoder[F[_]](
-      implicit charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
-    val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
-  }
+      implicit charset: Charset = DefaultCharset): EntityEncoder[F, String] =
+    simple()(MediaType.text.plain, Some(charset), s => Chunk.bytes(s.getBytes(charset.nioCharset)))
 
   implicit def charArrayEncoder[F[_]](
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
 
   implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
-    simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
+    simple()(MediaType.application.`octet-stream`, None, identity)
 
   implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
     chunkEncoder[F].contramap(Chunk.bytes)

@@ -1,18 +1,38 @@
 package org.http4s
 
-import cats.Monoid
-import cats.implicits._
+import org.http4s.headers.`Content-Type`
 
-final case class Entity[+F[_]](body: EntityBody[F], length: Option[Long] = None)
+final case class Entity[+F[_]](
+  body: EntityBody[F],
+  mediaType: Option[MediaType] = None,
+  charset: Option[Charset] = None,
+  length: Option[Long] = None
+) {
+  def headers: Headers = {
+    var hdrs: List[Header] = Nil
+    mediaType.foreach(mt => hdrs = `Content-Type`(mt, charset) :: hdrs)
+    length.foreach(l => hdrs = Header("Content-Length", l.toString) :: hdrs)
+    Headers(hdrs)
+  }
+}
 
 object Entity {
-  implicit def http4sMonoidForEntity[F[_]]: Monoid[Entity[F]] =
-    new Monoid[Entity[F]] {
-      def combine(a1: Entity[F], a2: Entity[F]): Entity[F] =
-        Entity(a1.body ++ a2.body, (a1.length, a2.length).mapN(_ + _))
-      val empty: Entity[F] =
-        Entity.empty
+  def fromMessage[F[_]](msg: Message[F]): Entity[F] = {
+    val (mediaType, charset) = headers.`Content-Type`.from(msg.headers) match {
+      case None => None -> None
+      case Some(ct) => Some(ct.mediaType) -> ct.charset
     }
 
-  val empty: Entity[Nothing] = Entity[Nothing](EmptyBody, Some(0L))
+    Entity(
+      body = msg.body,
+      mediaType = mediaType,
+      charset = charset,
+      length = headers.`Content-Length`.from(msg.headers).map(_.length)
+    )
+  }
+
+  val empty: Entity[Nothing] = Entity[Nothing](
+    body = EmptyBody,
+    length = Some(0L)
+  )
 }

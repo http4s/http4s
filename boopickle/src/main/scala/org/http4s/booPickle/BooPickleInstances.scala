@@ -18,9 +18,9 @@ import scala.util.{Failure, Success}
   */
 trait BooPickleInstances {
 
-  private def booDecoderByteBuffer[F[_]: Sync, A](msg: Message[F])(
+  private def booDecoderByteBuffer[F[_]: Sync, A](e: Entity[F])(
       implicit pickler: Pickler[A]): DecodeResult[F, A] =
-    EntityDecoder.collectBinary(msg).subflatMap { chunk =>
+    EntityDecoder.collectBinary(e).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining) {
         Unpickle[A](pickler).tryFromBytes(bb) match {
