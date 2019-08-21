@@ -14,7 +14,7 @@ object JettyClient {
 
   private val logger: Logger = getLogger
 
-  def allocate[F[_]](client: HttpClient = new HttpClient())(
+  def allocate[F[_]](client: HttpClient = defaultHttpClient())(
       implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] = {
     val acquire = F
       .pure(client)
@@ -47,6 +47,12 @@ object JettyClient {
   def stream[F[_]](client: HttpClient = new HttpClient())(
       implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(client))
+
+  def defaultHttpClient(): HttpClient = {
+    val c = new HttpClient()
+    c.setFollowRedirects(false)
+    c
+  }
 
   private def toJettyRequest[F[_]](
       client: HttpClient,
