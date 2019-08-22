@@ -9,15 +9,15 @@ final case class Entity[+F[_]](
     charset: Option[Charset] = None,
     length: Option[Long] = None
 ) {
-  length.foreach {
-    case l if l < 0 => Entity.logger.warn(s"Attempt to provide a negative content length of $l")
-    case _ => ()
-  }
-
   def headers: Headers = {
     var hdrs: List[Header] = Nil
     mediaType.foreach(mt => hdrs = `Content-Type`(mt, charset) :: hdrs)
-    length.foreach(l => hdrs = Header("Content-Length", l.toString) :: hdrs)
+    length.foreach {
+      case l if l < 0 =>
+        Entity.logger.warn(s"Attempt to provide a negative content length of $l")
+      case l =>
+        hdrs = Header("Content-Length", l.toString) :: hdrs
+    }
     Headers(hdrs)
   }
 }
