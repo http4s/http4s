@@ -4,12 +4,12 @@ import org.http4s.headers.`Content-Type`
 import org.log4s.getLogger
 
 final case class Entity[+F[_]](
-  body: EntityBody[F],
-  mediaType: Option[MediaType] = None,
-  charset: Option[Charset] = None,
-  length: Option[Long] = None
+    body: EntityBody[F],
+    mediaType: Option[MediaType] = None,
+    charset: Option[Charset] = None,
+    length: Option[Long] = None
 ) {
-  length foreach {
+  length.foreach {
     case l if l < 0 => Entity.logger.warn(s"Attempt to provide a negative content length of $l")
     case _ => ()
   }

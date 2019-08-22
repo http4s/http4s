@@ -755,15 +755,13 @@ private[http4s] trait ArbitraryInstances {
       implicit
       F: Effect[F],
       g: Arbitrary[DecodeResult[F, A]]) =
-    Arbitrary(
-      for {
-        f <- Arbitrary.arbitrary[(Entity[F], Boolean) => DecodeResult[F, A]]
-        mrs <-Arbitrary.arbitrary[Set[MediaRange]]
-      } yield
-        new EntityDecoder[F, A] {
-          def decode(e: Entity[F], strict: Boolean): DecodeResult[F, A] = f(e, strict)
-          def consumes = mrs
-        })
+    Arbitrary(for {
+      f <- Arbitrary.arbitrary[(Entity[F], Boolean) => DecodeResult[F, A]]
+      mrs <- Arbitrary.arbitrary[Set[MediaRange]]
+    } yield new EntityDecoder[F, A] {
+      def decode(e: Entity[F], strict: Boolean): DecodeResult[F, A] = f(e, strict)
+      def consumes = mrs
+    })
 
   implicit def http4sTestingCogenForMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
