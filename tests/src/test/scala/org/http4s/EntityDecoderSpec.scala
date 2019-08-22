@@ -282,8 +282,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           .decode(reqSomeOtherMediaType, strict = true) must returnLeft(
           MediaTypeMismatch(reqMediaType, expectedMediaRanges))
 
-        (decoder1 <+> decoder2 <+> failDecoder).decode(Request(), strict = true) must returnLeft(
-          MediaTypeMissing(expectedMediaRanges))
+        (decoder1 <+> decoder2 <+> failDecoder).decode(
+          Entity(body = fs2.Stream.empty),
+          strict = true
+        ) must returnLeft(MediaTypeMissing(expectedMediaRanges))
       }
     }
   }
@@ -432,22 +434,29 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val resp = Response[IO](Ok)
         .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.`UTF-8`)))
-      EntityDecoder.decodeString(resp)(implicitly, Charset.`US-ASCII`) must returnValue(str)
+      EntityDecoder.decodeString(Entity.fromMessage(resp))(implicitly, Charset.`US-ASCII`) must returnValue(
+        str
+      )
     }
 
     "Use the default if the Content-Type header does not define one" in {
       val resp = Response[IO](Ok)
         .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(`Content-Type`(MediaType.text.plain, None))
-      EntityDecoder.decodeString(resp)(implicitly, Charset.`UTF-8`) must returnValue(str)
+      EntityDecoder.decodeString(Entity.fromMessage(resp))(implicitly, Charset.`UTF-8`) must returnValue(
+        str
+      )
     }
   }
 
   // we want to return a specific kind of error when there is a MessageFailure
   sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[IO, ErrorJson] =
-    EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.application.json))(json =>
-      Chunk.bytes(json.value.getBytes()))
+    EntityEncoder.simple[IO, ErrorJson]()(
+      MediaType.application.json,
+      None,
+      json => Chunk.bytes(json.value.getBytes())
+    )
 
 // TODO: These won't work without an Eq for (Message[IO], Boolean) => DecodeResult[IO, A]
 //  {

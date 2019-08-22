@@ -90,9 +90,9 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "give the content type" in {
-      EntityEncoder[IO, String].contentType must beSome(
+      EntityEncoder[IO, String].toEntity("").mediaType must beSome(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`))
-      EntityEncoder[IO, Array[Byte]].contentType must beSome(
+      EntityEncoder[IO, Array[Byte]].toEntity(Array.empty).mediaType must beSome(
         `Content-Type`(MediaType.application.`octet-stream`))
     }
 
@@ -101,9 +101,17 @@ class EntityEncoderSpec extends Http4sSpec {
       sealed case class ModelB(name: String, id: Long)
 
       implicit val w1: EntityEncoder[IO, ModelA] =
-        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.bytes("A".getBytes))
+        EntityEncoder.simple[IO, ModelA]()(
+          MediaType.application.`octet-stream`,
+          None,
+          _ => Chunk.bytes("A".getBytes)
+        )
       implicit val w2: EntityEncoder[IO, ModelB] =
-        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.bytes("B".getBytes))
+        EntityEncoder.simple[IO, ModelB]()(
+          MediaType.application.`octet-stream`,
+          None,
+          _ => Chunk.bytes("B".getBytes)
+        )
 
       EntityEncoder[IO, ModelA] must_== w1
       EntityEncoder[IO, ModelB] must_== w2
