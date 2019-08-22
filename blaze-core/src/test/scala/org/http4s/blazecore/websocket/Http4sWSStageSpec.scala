@@ -4,6 +4,7 @@ package websocket
 import fs2.Stream
 import fs2.concurrent.{Queue, SignallingRef}
 import cats.effect.IO
+import cats.effect.concurrent.Deferred
 import cats.implicits._
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.Http4sSpec
@@ -12,6 +13,7 @@ import org.http4s.websocket.{WebSocket, WebSocketFrame}
 import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class Http4sWSStageSpec extends Http4sSpec {
   override implicit def testExecutionContext: ExecutionContext =
@@ -20,7 +22,8 @@ class Http4sWSStageSpec extends Http4sSpec {
   class TestWebsocketStage(
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
-      closeHook: AtomicBoolean) {
+      closeHook: AtomicBoolean
+  ) {
 
     def sendWSOutbound(w: WebSocketFrame*): IO[Unit] =
       Stream
@@ -41,6 +44,9 @@ class Http4sWSStageSpec extends Http4sSpec {
 
     def wasCloseHookCalled(): IO[Boolean] =
       IO(closeHook.get())
+
+    def headStageShutdown: Deferred[IO, Unit] =
+      head.isStageShutdown
   }
 
   object TestWebsocketStage {
@@ -92,6 +98,14 @@ class Http4sWSStageSpec extends Http4sSpec {
       _ <- socket.sendInbound(Pong())
       _ <- socket.pollOutbound().map(_ must_=== None)
       _ <- socket.sendInbound(Close())
+    } yield ok)
+
+    "awaits close handshake before shutting down" in (for {
+      socket <- TestWebsocketStage()
+      _ <- socket.sendWSOutbound(Close())
+      _ <- socket.headStageShutdown.get.timeout(2.seconds).attempt.map(_ must beLeft)
+      _ <- socket.sendInbound(Close())
+      _ <- socket.headStageShutdown.get.timeout(2.seconds)
     } yield ok)
   }
 }

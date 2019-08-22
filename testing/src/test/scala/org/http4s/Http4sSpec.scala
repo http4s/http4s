@@ -145,10 +145,13 @@ trait Http4sSpec
     if (sys.env.get("CI").isDefined) Skipped("Flakier than it's worth on CI")
     else f
 
-  implicit def http4sSpecIoAsResult[R](implicit R: AsResult[R]): AsResult[IO[R]] = new AsResult[IO[R]] {
-    def asResult(t: => IO[R]): Result =
-      t.unsafeRunTimed(timeout).map(R.asResult(_)).getOrElse(Failure(s"expectation timed out after $timeout"))
-  }
+  implicit def http4sSpecIoAsResult[R](implicit R: AsResult[R]): AsResult[IO[R]] =
+    new AsResult[IO[R]] {
+      def asResult(t: => IO[R]): Result =
+        t.unsafeRunTimed(timeout)
+          .map(R.asResult(_))
+          .getOrElse(Failure(s"expectation timed out after $timeout"))
+    }
 }
 
 object Http4sSpec {

@@ -1,7 +1,9 @@
 package org.http4s.blazecore.websocket
 
 import cats.effect.{ContextShift, IO, Timer}
-import fs2.concurrent.Queue
+import cats.effect.concurrent.Deferred
+import cats.implicits._
+import fs2.concurrent.{NoneTerminatedQueue, Queue}
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebSocketFrame
 import scala.concurrent.Future
@@ -23,7 +25,9 @@ import scala.concurrent.duration._
   */
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
-    outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
+    outQueue: NoneTerminatedQueue[IO, WebSocketFrame],
+    val isStageShutdown: Deferred[IO, Unit]
+)(implicit timer: Timer[IO], cs: ContextShift[IO])
     extends HeadStage[WebSocketFrame] {
 
   /** Block while we put elements into our queue
@@ -38,7 +42,7 @@ sealed abstract class WSTestHead(
     * pull from it later to inspect it
     */
   override def writeRequest(data: WebSocketFrame): Future[Unit] =
-    outQueue.enqueue1(data).unsafeToFuture()
+    outQueue.enqueue1(Some(data)).unsafeToFuture()
 
   /** Insert data into the read queue,
     * so it's read by the websocket stage
@@ -55,27 +59,31 @@ sealed abstract class WSTestHead(
     IO.race(timer.sleep(timeoutSeconds.seconds), outQueue.dequeue1)
       .map {
         case Left(_) => None
-        case Right(wsFrame) =>
-          Some(wsFrame)
+        case Right(opt) => opt
       }
 
   def pollBatch(batchSize: Int, timeoutSeconds: Long): IO[List[WebSocketFrame]] =
     outQueue
       .dequeueChunk1(batchSize)
-      .map(_.toList)
+      .map(_.fold(List.empty[WebSocketFrame])(_.toList))
       .timeoutTo(timeoutSeconds.seconds, IO.pure(Nil))
 
   override def name: String = "WS test stage"
 
   override protected def doClosePipeline(cause: Option[Throwable]): Unit = {}
+
+  override protected def stageShutdown() = {
+    super.stageShutdown()
+    (outQueue.enqueue1(None) >> isStageShutdown.complete(()))
+      .unsafeRunAsync(_ => ())
+  }
 }
 
 object WSTestHead {
-  def apply()(implicit t: Timer[IO], cs: ContextShift[IO]): WSTestHead = {
-    val inQueue =
-      Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
-    val outQueue =
-      Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
-    new WSTestHead(inQueue, outQueue) {}
-  }
+  def apply()(implicit t: Timer[IO], cs: ContextShift[IO]): WSTestHead =
+    (
+      Queue.unbounded[IO, WebSocketFrame],
+      Queue.synchronousNoneTerminated[IO, WebSocketFrame],
+      Deferred[IO, Unit]
+    ).mapN(new WSTestHead(_, _, _) {}).unsafeRunSync()
 }
