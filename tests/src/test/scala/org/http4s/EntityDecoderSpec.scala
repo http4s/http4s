@@ -434,7 +434,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val resp = Response[IO](Ok)
         .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.`UTF-8`)))
-      EntityDecoder.decodeString(Entity.fromMessage(resp))(implicitly, Charset.`US-ASCII`) must returnValue(
+      EntityDecoder.decodeString(resp.toEntity)(implicitly, Charset.`US-ASCII`) must returnValue(
         str
       )
     }
@@ -443,7 +443,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val resp = Response[IO](Ok)
         .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(`Content-Type`(MediaType.text.plain, None))
-      EntityDecoder.decodeString(Entity.fromMessage(resp))(implicitly, Charset.`UTF-8`) must returnValue(
+      EntityDecoder.decodeString(resp.toEntity)(implicitly, Charset.`UTF-8`) must returnValue(
         str
       )
     }

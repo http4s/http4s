@@ -26,7 +26,7 @@ trait EntityDecoder[F[_], T] { self =>
 
   /** Attempt to decode the body of the [[Message]] */
   final def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-    decode(Entity.fromMessage(msg), strict)
+    decode(msg.toEntity, strict)
 
   /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]

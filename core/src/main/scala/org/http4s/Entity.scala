@@ -25,20 +25,6 @@ final case class Entity[+F[_]](
 object Entity {
   private[http4s] val logger = getLogger
 
-  def fromMessage[F[_]](msg: Message[F]): Entity[F] = {
-    val (mediaType, charset) = headers.`Content-Type`.from(msg.headers) match {
-      case None => None -> None
-      case Some(ct) => Some(ct.mediaType) -> ct.charset
-    }
-
-    Entity(
-      body = msg.body,
-      mediaType = mediaType,
-      charset = charset,
-      length = headers.`Content-Length`.from(msg.headers).map(_.length)
-    )
-  }
-
   val empty: Entity[Nothing] = Entity[Nothing](
     body = EmptyBody,
     length = Some(0L)

@@ -204,6 +204,20 @@ sealed trait Message[F[_]] { self =>
   def as[A](implicit F: MonadError[F, Throwable], decoder: EntityDecoder[F, A]): F[A] =
     // n.b. this will be better with redeem in Cats-2.0
     attemptAs.leftWiden[Throwable].rethrowT
+
+  final def toEntity: Entity[F] = {
+    val (mediaType, charset) = contentType match {
+      case None => None -> None
+      case Some(ct) => Some(ct.mediaType) -> ct.charset
+    }
+
+    Entity(
+      body = body,
+      mediaType = mediaType,
+      charset = charset,
+      length = contentLength
+    )
+  }
 }
 
 object Message {
