@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.http4s.headers.`Content-Type`
+import org.log4s.getLogger
 
 final case class Entity[+F[_]](
   body: EntityBody[F],
@@ -8,6 +9,11 @@ final case class Entity[+F[_]](
   charset: Option[Charset] = None,
   length: Option[Long] = None
 ) {
+  length foreach {
+    case l if l < 0 => Entity.logger.warn(s"Attempt to provide a negative content length of $l")
+    case _ => ()
+  }
+
   def headers: Headers = {
     var hdrs: List[Header] = Nil
     mediaType.foreach(mt => hdrs = `Content-Type`(mt, charset) :: hdrs)
@@ -17,6 +23,8 @@ final case class Entity[+F[_]](
 }
 
 object Entity {
+  private[http4s] val logger = getLogger
+
   def fromMessage[F[_]](msg: Message[F]): Entity[F] = {
     val (mediaType, charset) = headers.`Content-Type`.from(msg.headers) match {
       case None => None -> None

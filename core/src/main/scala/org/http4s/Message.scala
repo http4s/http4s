@@ -60,17 +60,7 @@ sealed trait Message[F[_]] { self =>
     */
   def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
     val entity = w.toEntity(b)
-    val hs = entity.length match {
-      case Some(l) =>
-        `Content-Length`
-          .fromLong(l)
-          .fold[Headers](_ => {
-            Message.logger.warn(s"Attempt to provide a negative content length of $l")
-            w.headers
-          }, cl => Headers(cl :: w.headers.toList))
-      case None => w.headers
-    }
-    change(body = entity.body, headers = headers ++ hs)
+    change(body = entity.body, headers = headers ++ entity.headers)
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
