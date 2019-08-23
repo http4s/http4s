@@ -14,7 +14,10 @@ trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
   def entityCodecRoundTrip(a: A): IsEq[IO[Either[DecodeFailure, A]]] =
     (for {
       entity <- F.delay(encoder.toEntity(a))
-      message = Request(body = entity.body, headers = encoder.headers)
+      message = Request(
+        body = entity.body,
+        headers = encoder.headers ++ entity.headers
+      )
       a0 <- decoder.decode(message, strict = true).value
     } yield a0).toIO <-> IO.pure(Right(a))
 }

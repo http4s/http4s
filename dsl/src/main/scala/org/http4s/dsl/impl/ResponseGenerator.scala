@@ -55,7 +55,11 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(headers.toList)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(
+      Response[G](
+        status = status,
+        headers = entity.headers ++ addEntityLength(entity, h),
+        body = entity.body))
   }
 }
 
@@ -82,7 +86,11 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(location +: headers.toList)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(
+      Response[G](
+        status = status,
+        headers = entity.headers ++ addEntityLength(entity, h),
+        body = entity.body))
   }
 }
 
@@ -115,7 +123,11 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(authenticate +: headers.toList)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(
+      Response[G](
+        status = status,
+        headers = entity.headers ++ addEntityLength(entity, h),
+        body = entity.body))
   }
 }
 
@@ -135,7 +147,11 @@ trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(allow +: headers.toList)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(
+      Response[G](
+        status = status,
+        headers = entity.headers ++ addEntityLength(entity, h),
+        body = entity.body))
   }
 
 }
@@ -169,6 +185,10 @@ trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGe
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(authenticate +: headers.toList)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(
+      Response[G](
+        status = status,
+        headers = entity.headers ++ addEntityLength(entity, h),
+        body = entity.body))
   }
 }

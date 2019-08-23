@@ -5,7 +5,6 @@ import cats.effect.IO
 import org.http4s.Status.Ok
 import _root_.scalatags.Text
 import cats.data.NonEmptyList
-import org.http4s.headers.`Content-Type`
 
 class ScalatagsSpec extends Http4sSpec {
 
@@ -28,8 +27,9 @@ class ScalatagsSpec extends Http4sSpec {
 
     "return Content-Type text/html with proper charset" in {
       testCharsets.forall { implicit cs =>
-        val headers = EntityEncoder[IO, Text.TypedTag[String]].headers
-        headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.text.html, Some(cs)))
+        val e = EntityEncoder[IO, Text.TypedTag[String]].toEntity(testBody())
+        e.mediaType must_== Some(MediaType.text.html)
+        e.charset must_== Some(cs)
       }
     }
 

@@ -3,7 +3,6 @@ package twirl
 
 import cats.effect.IO
 import org.http4s.Status.Ok
-import org.http4s.headers.`Content-Type`
 import org.scalacheck.{Arbitrary, Gen}
 import play.twirl.api.{Html, JavaScript, Txt, Xml}
 
@@ -21,8 +20,9 @@ class TwirlSpec extends Http4sSpec {
 
   "HTML encoder" should {
     "return Content-Type text/html with proper charset" in prop { implicit cs: Charset =>
-      val headers = EntityEncoder[IO, Html].headers
-      headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.text.html, Some(cs)))
+      val e = EntityEncoder[IO, Html].toEntity(html.test())
+      e.mediaType must beSome(MediaType.text.html)
+      e.charset must beSome(cs)
     }
 
     "render the body" in prop { implicit cs: Charset =>
@@ -35,9 +35,9 @@ class TwirlSpec extends Http4sSpec {
   "JS encoder" should {
     "return Content-Type application/javascript with proper charset" in prop {
       implicit cs: Charset =>
-        val headers = EntityEncoder[IO, JavaScript].headers
-        headers.get(`Content-Type`) must beSome(
-          `Content-Type`(MediaType.application.javascript, Some(cs)))
+        val e = EntityEncoder[IO, JavaScript].toEntity(js.test())
+        e.mediaType must beSome(MediaType.application.javascript)
+        e.charset must beSome(cs)
     }
 
     "render the body" in prop { implicit cs: Charset =>
@@ -49,8 +49,9 @@ class TwirlSpec extends Http4sSpec {
 
   "Text encoder" should {
     "return Content-Type text/plain with proper charset" in prop { implicit cs: Charset =>
-      val headers = EntityEncoder[IO, Txt].headers
-      headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.text.plain, Some(cs)))
+      val e = EntityEncoder[IO, Txt].toEntity(txt.test())
+      e.mediaType must beSome(MediaType.text.plain)
+      e.charset must beSome(cs)
     }
 
     "render the body" in prop { implicit cs: Charset =>
@@ -62,8 +63,9 @@ class TwirlSpec extends Http4sSpec {
 
   "XML encoder" should {
     "return Content-Type application/xml with proper charset" in prop { implicit cs: Charset =>
-      val headers = EntityEncoder[IO, Xml].headers
-      headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.application.xml, Some(cs)))
+      val e = EntityEncoder[IO, Xml].toEntity(_root_.xml.test())
+      e.mediaType must beSome(MediaType.application.xml)
+      e.charset must beSome(cs)
     }
 
     "render the body" in prop { implicit cs: Charset =>

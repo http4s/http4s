@@ -35,8 +35,13 @@ trait EntityEncoder[F[_], A] { self =>
 
   /** Generate a new EntityEncoder that will contain the `Content-Type` header */
   def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] = new EntityEncoder[F, A] {
-    override def toEntity(a: A): Entity[F] = self.toEntity(a)
-    override val headers: Headers = self.headers.put(tpe)
+    override def toEntity(a: A): Entity[F] =
+      self
+        .toEntity(a)
+        .copy(
+          mediaType = Some(tpe.mediaType)
+        )
+    override val headers: Headers = self.headers
   }
 }
 

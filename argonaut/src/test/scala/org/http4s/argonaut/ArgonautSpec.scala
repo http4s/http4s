@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets
 
 import org.http4s.Status.Ok
 import org.http4s.argonaut._
-import org.http4s.headers.`Content-Type`
 import jawn.JawnDecodeSupportSpec
 import org.specs2.specification.core.Fragment
 
@@ -35,8 +34,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     val json = Json("test" -> jString("ArgonautSupport"))
 
     "have json content type" in {
-      jsonEncoder.headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.json))
+      jsonEncoder.toEntity(json).mediaType must_== Some(MediaType.application.json)
     }
 
     "write compact JSON" in {
@@ -60,8 +58,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
 
   "jsonEncoderOf" should {
     "have json content type" in {
-      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.json))
+      jsonEncoderOf[IO, Foo].toEntity(foo).mediaType must_== Some(MediaType.application.json)
     }
 
     "write compact JSON" in {

@@ -4,7 +4,6 @@ package play.test // Get out of play package so we can import custom instances
 import _root_.play.api.libs.json._
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
-import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.play._
 
@@ -22,8 +21,7 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] {
     val json: JsValue = Json.obj("test" -> JsString("PlaySupport"))
 
     "have json content type" in {
-      jsonEncoder.headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.json))
+      jsonEncoder.toEntity(json).mediaType must_== Some(MediaType.application.json)
     }
 
     "write JSON" in {
@@ -34,8 +32,7 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] {
 
   "jsonEncoderOf" should {
     "have json content type" in {
-      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.json))
+      jsonEncoderOf[IO, Foo].toEntity(foo).mediaType must_== Some(MediaType.application.json)
     }
 
     "write compact JSON" in {

@@ -19,8 +19,7 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     val json: JValue = JObject(JField("test", JString("json4s")))
 
     "have json content type" in {
-      jsonEncoder[IO, JValue].headers.get(`Content-Type`) must beSome(
-        `Content-Type`(MediaType.application.json))
+      jsonEncoder[IO, JValue].toEntity(JInt(0)).mediaType must beSome(MediaType.application.json)
     }
 
     "write compact JSON" in {
@@ -30,8 +29,8 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
 
   "jsonEncoderOf" should {
     "have json content type" in {
-      jsonEncoderOf[IO, Option[Int]].headers.get(`Content-Type`) must beSome(
-        `Content-Type`(MediaType.application.json))
+      jsonEncoderOf[IO, Option[Int]].toEntity(None).mediaType must beSome(
+        MediaType.application.json)
     }
 
     "write compact JSON with a json4s writer" in {

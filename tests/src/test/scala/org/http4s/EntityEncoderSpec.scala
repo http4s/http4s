@@ -90,10 +90,12 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "give the content type" in {
-      EntityEncoder[IO, String].toEntity("").mediaType must beSome(
-        `Content-Type`(MediaType.text.plain, Charset.`UTF-8`))
+      val s = EntityEncoder[IO, String].toEntity("")
+      s.mediaType must beSome(MediaType.text.plain)
+      s.charset must beSome(Charset.`UTF-8`)
       EntityEncoder[IO, Array[Byte]].toEntity(Array.empty).mediaType must beSome(
-        `Content-Type`(MediaType.application.`octet-stream`))
+        MediaType.application.`octet-stream`
+      )
     }
 
     "work with local defined EntityEncoders" in {

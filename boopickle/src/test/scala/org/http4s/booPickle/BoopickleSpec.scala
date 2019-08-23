@@ -7,7 +7,6 @@ import cats.implicits._
 import cats.Eq
 import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._
-import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.MediaType
 import org.scalacheck.Arbitrary
@@ -50,15 +49,14 @@ class BoopickleSpec extends Http4sSpec with BooPickleInstances {
 
   "boopickle encoder" should {
     "have octet-stream content type" in {
-      encoder.headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.`octet-stream`))
+      encoder.toEntity(Kiwi(1.0)).mediaType must_== Some(MediaType.application.`octet-stream`)
     }
   }
 
   "booEncoderOf" should {
-    "have octect-stream content type" in {
-      booEncoderOf[IO, Fruit].headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.`octet-stream`))
+    "have octet-stream content type" in {
+      booEncoderOf[IO, Fruit].toEntity(Kiwi(1.0)).mediaType must_== Some(
+        MediaType.application.`octet-stream`)
     }
   }
 
