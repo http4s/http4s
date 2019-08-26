@@ -256,8 +256,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.1"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.8"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
-  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-RC1"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-RC1"
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-RC2"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-RC2"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
