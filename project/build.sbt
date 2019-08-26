@@ -13,4 +13,4 @@ libraryDependencies ++= List(
 
 // Hack around a binary conflict in scalameta's dependency on
 // fastparse as specified by sbt-doctest-0.9.5.
-libraryDependencies += "org.scalameta" %% "scalameta" % "4.2.2"
+libraryDependencies += "org.scalameta" %% "scalameta" % "4.2.3"
