@@ -34,13 +34,13 @@ private[parser] trait SimpleHeaders {
   def ALLOW(value: String): ParseResult[Allow] =
     new Http4sHeaderParser[Allow](value) {
       def entry = rule {
-        oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { ts: Seq[String] =>
+        zeroOrMore(Token).separatedBy(ListSep) ~ EOL ~> { ts: Seq[String] =>
           val ms = ts.map(
             Method
               .fromString(_)
               .toOption
               .getOrElse(sys.error("Impossible. Please file a bug report.")))
-          Allow(NonEmptyList.of(ms.head, ms.tail: _*))
+          Allow(ms.toSet)
         }
       }
     }.parse

@@ -370,8 +370,8 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForAllow: Arbitrary[Allow] =
     Arbitrary {
       for {
-        methods <- nonEmptyContainerOf[Set, Method](getArbitrary[Method]).map(_.toList)
-      } yield Allow(methods.head, methods.tail: _*)
+        methods <- containerOf[Set, Method](getArbitrary[Method])
+      } yield Allow(methods)
     }
 
   implicit val http4sTestingArbitraryForContentLength: Arbitrary[`Content-Length`] =

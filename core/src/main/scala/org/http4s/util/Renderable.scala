@@ -141,15 +141,15 @@ trait Writer {
     append(end)
   }
 
-  def addSeq[T: Renderer](
-      s: collection.Seq[T],
+  def addSet[T: Renderer](
+      s: collection.Set[T],
       sep: String = "",
       start: String = "",
       end: String = ""): this.type = {
     append(start)
     if (s.nonEmpty) {
       append(s.head)
-      s.tail.foreach(s => append(s).append(sep))
+      s.tail.foreach(s => append(sep).append(s))
     }
     append(end)
   }
