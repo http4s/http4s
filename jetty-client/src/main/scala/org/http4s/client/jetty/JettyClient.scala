@@ -9,7 +9,6 @@ import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.client.api.{Request => JettyRequest}
 import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.log4s.{Logger, getLogger}
-import org.eclipse.jetty.util.ssl.SslContextFactory
 
 object JettyClient {
 
@@ -50,7 +49,7 @@ object JettyClient {
     Stream.resource(resource(client))
 
   def defaultHttpClient(): HttpClient = {
-    val c = new HttpClient(new SslContextFactory.Client)
+    val c = new HttpClient()
     c.setFollowRedirects(false)
     c.setDefaultRequestContentType(null)
     c
