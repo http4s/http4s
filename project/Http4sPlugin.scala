@@ -256,13 +256,13 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.1"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.8"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
-  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-RC1"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-RC1"
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-RC2"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-RC2"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
-  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.12.0-RC3"
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.12.0-RC4"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
@@ -285,8 +285,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
-  lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % "0.2.0-RC1"
-  lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % "1.0.0-RC1"
+  lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % "0.2.0-RC2"
+  lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % "1.0.0-RC2"
   lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % log4catsCore.revision
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % log4catsCore.revision
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.8.2"
@@ -310,5 +310,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.24"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.2"
-  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "2.0.0-RC1"
+  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "2.0.0-RC2"
 }
