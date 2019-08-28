@@ -34,8 +34,8 @@ trait CirceInstances extends JawnInstances {
   def jsonDecoderByteBuffer[F[_]: Sync]: EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
 
-  private def jsonDecoderByteBufferImpl[F[_]: Sync](msg: Message[F]): DecodeResult[F, Json] =
-    EntityDecoder.collectBinary(msg).subflatMap { chunk =>
+  private def jsonDecoderByteBufferImpl[F[_]: Sync](m: Media[F]): DecodeResult[F, Json] =
+    EntityDecoder.collectBinary(m).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining)
         parseByteBuffer(bb).leftMap(circeParseExceptionMessage)

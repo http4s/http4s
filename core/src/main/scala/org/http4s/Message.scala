@@ -5,18 +5,17 @@ import cats.data.NonEmptyList
 import cats.implicits._
 import cats.effect.IO
 import fs2.{Pure, Stream}
-import fs2.text.{utf8Decode, utf8Encode}
+import fs2.text.utf8Encode
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
-import org.http4s.util.decode
 import org.log4s.getLogger
 import _root_.io.chrisdavenport.vault._
 
 /**
   * Represents a HTTP Message. The interesting subclasses are Request and Response.
   */
-sealed trait Message[F[_]] { self =>
+sealed trait Message[F[_]] extends Media[F] { self =>
   type Self <: Message[F] { type Self = self.Self }
 
   def httpVersion: HttpVersion
@@ -86,15 +85,6 @@ sealed trait Message[F[_]] { self =>
   def withEmptyBody: Self =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
 
-  def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
-    charset.getOrElse(defaultCharset) match {
-      case Charset.`UTF-8` =>
-        // suspect this one is more efficient, though this is superstition
-        body.through(utf8Decode)
-      case cs =>
-        body.through(decode(cs))
-    }
-
   // General header methods
 
   def transformHeaders(f: Headers => Headers): Self =
@@ -154,19 +144,6 @@ sealed trait Message[F[_]] { self =>
 
   def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
     contentTypeO.fold(withoutContentType)(withContentType)
-
-  def contentType: Option[`Content-Type`] =
-    headers.get(`Content-Type`)
-
-  def contentLength: Option[Long] =
-    headers.get(`Content-Length`).map(_.length)
-
-  /** Returns the charset parameter of the `Content-Type` header, if present.
-    * Does not introspect the body for media types that define a charset
-    * internally.
-    */
-  def charset: Option[Charset] =
-    contentType.flatMap(_.charset)
 
   def isChunked: Boolean =
     headers.get(`Transfer-Encoding`).exists(_.values.contains_(TransferCoding.chunked))

@@ -17,10 +17,9 @@ trait JawnInstances {
     JawnInstances.defaultJawnEmptyBodyMessage
 
   // some decoders may reuse it and avoid extra content negotiation
-  private[http4s] def jawnDecoderImpl[F[_]: Sync, J: RawFacade](
-      msg: Message[F]): DecodeResult[F, J] =
+  private[http4s] def jawnDecoderImpl[F[_]: Sync, J: RawFacade](m: Media[F]): DecodeResult[F, J] =
     DecodeResult {
-      msg.body.chunks
+      m.body.chunks
         .parseJson(AsyncParser.SingleValue)
         .map(Either.right)
         .handleErrorWith {
