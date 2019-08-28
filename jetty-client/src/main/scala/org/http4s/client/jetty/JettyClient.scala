@@ -51,6 +51,7 @@ object JettyClient {
   def defaultHttpClient(): HttpClient = {
     val c = new HttpClient()
     c.setFollowRedirects(false)
+    c.setDefaultRequestContentType(null)
     c
   }
 
