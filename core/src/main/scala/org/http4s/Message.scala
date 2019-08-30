@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, MonadError, ~>}
+import cats.{Applicative, Functor, Monad, ~>}
 import cats.data.NonEmptyList
 import cats.implicits._
 import cats.effect.IO
@@ -168,29 +168,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     */
   def withoutAttribute(key: Key[_]): Self =
     change(attributes = attributes.delete(key))
-
-  // Decoding methods
-
-  /** Decode the [[Message]] to the specified type
-    *
-    * @param decoder [[EntityDecoder]] used to decode the [[Message]]
-    * @tparam T type of the result
-    * @return the effect which will generate the `DecodeResult[T]`
-    */
-  def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
-    decoder.decode(this, strict = false)
-
-  /** Decode the [[Message]] to the specified type
-    *
-    * If no valid [[Status]] has been described, allow Ok
-    *
-    * @param decoder [[EntityDecoder]] used to decode the [[Message]]
-    * @tparam A type of the result
-    * @return the effect which will generate the A
-    */
-  def as[A](implicit F: MonadError[F, Throwable], decoder: EntityDecoder[F, A]): F[A] =
-    // n.b. this will be better with redeem in Cats-2.0
-    attemptAs.leftWiden[Throwable].rethrowT
 }
 
 object Message {
