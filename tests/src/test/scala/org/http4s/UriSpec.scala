@@ -923,9 +923,9 @@ http://example.org/a file
   }
 
   /**
-  * Taken from https://github.com/scalatra/rl/blob/v0.4.10/core/src/test/scala/rl/UrlCodingSpec.scala
-  * Copyright (c) 2011 Mojolly Ltd.
-  */
+    * Taken from https://github.com/scalatra/rl/blob/v0.4.10/core/src/test/scala/rl/UrlCodingSpec.scala
+    * Copyright (c) 2011 Mojolly Ltd.
+    */
   "Encoding a URI" should {
     "not change any of the allowed chars" in {
       val encoded = urlEncode(
