@@ -5,6 +5,7 @@ package impl
 import cats.{Applicative, Monad}
 import org.http4s.headers._
 import ResponseGenerator.addEntityLength
+import cats.arrow.FunctionK
 
 trait ResponseGenerator extends Any {
   def status: Status
@@ -44,11 +45,13 @@ trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   * }}}
   */
 trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
+  def liftG: FunctionK[G, F]
+
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status, headers = Headers(`Content-Length`.zero :: headers.toList)))
 
-  def apply[A](body: F[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
-    F.flatMap(body)(apply[A](_))
+  def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
+    F.flatMap(liftG(body))(apply[A](_))
 
   def apply[A](body: A, headers: Header*)(
       implicit F: Applicative[F],
