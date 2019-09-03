@@ -928,8 +928,8 @@ http://example.org/a file
     */
   "Encoding a URI" should {
     "not change any of the allowed chars" in {
-      val encoded = encode(
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
+      val encoded =
+        encode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
       encoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~"
     }
     "not uppercase hex digits after percent chars that will be encoded" in {
