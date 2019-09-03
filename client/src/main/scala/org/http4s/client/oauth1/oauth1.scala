@@ -104,7 +104,7 @@ package object oauth1 {
   }
 
   private[oauth1] def encode(str: String): String =
-    Uri.urlEncode(str, spaceIsPlus = false, toSkip = Uri.Unreserved)
+    Uri.encode(str, spaceIsPlus = false, toSkip = Uri.Unreserved)
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(
       implicit F: MonadError[F, Throwable],

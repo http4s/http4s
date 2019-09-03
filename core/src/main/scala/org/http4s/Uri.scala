@@ -108,7 +108,7 @@ final case class Uri(
     writer << path
     if (query.nonEmpty) writer << '?' << query
     fragment.foreach { f =>
-      writer << '#' << urlEncode(f, spaceIsPlus = false)
+      writer << '#' << encode(f, spaceIsPlus = false)
     }
     writer
   }
@@ -406,7 +406,7 @@ object Uri {
     * use, this is composed of all Unreserved URI characters and sometimes a
     * subset of Reserved URI characters.
     */
-  def urlEncode(
+  def encode(
       toEncode: String,
       charset: JCharset = StandardCharsets.UTF_8,
       spaceIsPlus: Boolean = false,
@@ -433,7 +433,7 @@ object Uri {
     Unreserved ++ ":@!$&'()*+,;="
 
   def pathEncode(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-    urlEncode(s, charset, false, SkipEncodeInPath)
+    encode(s, charset, false, SkipEncodeInPath)
 
   /**
     * Percent-decodes a string.
@@ -444,7 +444,7 @@ object Uri {
     * @param toSkip a predicate of characters whose percent-encoded form
     * is left percent-encoded.  Almost certainly should be left empty.
     */
-  def urlDecode(
+  def decode(
       toDecode: String,
       charset: JCharset = StandardCharsets.UTF_8,
       plusIsSpace: Boolean = false,

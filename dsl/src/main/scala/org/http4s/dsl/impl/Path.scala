@@ -60,7 +60,7 @@ object Path {
       val segments = str.split("/", -1)
       // .head is safe because split always returns non-empty array
       val segments0 = if (segments.head == "") segments.drop(1) else segments
-      segments0.foldLeft(Root: Path)((path, seg) => path / Uri.urlDecode(seg))
+      segments0.foldLeft(Root: Path)((path, seg) => path / Uri.decode(seg))
     }
 
   def apply(first: String, rest: String*): Path =

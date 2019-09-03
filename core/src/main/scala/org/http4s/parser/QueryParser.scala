@@ -96,7 +96,7 @@ private[http4s] class QueryParser(
   }
 
   private def decodeParam(str: String): String =
-    try Uri.urlDecode(str, codec.charSet, plusIsSpace = true)
+    try Uri.decode(str, codec.charSet, plusIsSpace = true)
     catch {
       case _: IllegalArgumentException => ""
       case _: UnsupportedEncodingException => ""

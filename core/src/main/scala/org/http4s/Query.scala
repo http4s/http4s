@@ -70,7 +70,7 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
   override def render(writer: Writer): writer.type = {
     var first = true
     def encode(s: String) =
-      Uri.urlEncode(s, spaceIsPlus = false, toSkip = NoEncode)
+      Uri.encode(s, spaceIsPlus = false, toSkip = NoEncode)
     pairs.foreach {
       case (n, None) =>
         if (!first) writer.append('&')
