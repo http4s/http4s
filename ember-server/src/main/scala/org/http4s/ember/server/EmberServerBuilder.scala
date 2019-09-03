@@ -5,6 +5,7 @@ import cats.implicits._
 import cats.effect._
 import fs2.concurrent._
 import fs2.io.tcp.SocketGroup
+import fs2.io.tcp.SocketOptionMapping
 import org.http4s._
 import org.http4s.server.Server
 import scala.concurrent.duration._
@@ -22,6 +23,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val receiveBufferSize: Int,
     val maxHeaderSize: Int,
     val requestHeaderReceiveTimeout: Duration,
+    val additionalSocketOptions: List[SocketOptionMapping[_]],
     private val logger: Logger[F]
 ) { self =>
 
@@ -36,6 +38,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       receiveBufferSize: Int = self.receiveBufferSize,
       maxHeaderSize: Int = self.maxHeaderSize,
       requestHeaderReceiveTimeout: Duration = self.requestHeaderReceiveTimeout,
+      additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger
   ): EmberServerBuilder[F] = new EmberServerBuilder[F](
     host = host,
@@ -48,6 +51,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     receiveBufferSize = receiveBufferSize,
     maxHeaderSize = maxHeaderSize,
     requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
+    additionalSocketOptions = additionalSocketOptions,
     logger = logger
   )
 
@@ -86,6 +90,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 receiveBufferSize,
                 maxHeaderSize,
                 requestHeaderReceiveTimeout,
+                additionalSocketOptions,
                 logger
               )
               .compile
@@ -116,6 +121,7 @@ object EmberServerBuilder {
       receiveBufferSize = Defaults.receiveBufferSize,
       maxHeaderSize = Defaults.maxHeaderSize,
       requestHeaderReceiveTimeout = Defaults.requestHeaderReceiveTimeout,
+      additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = Slf4jLogger.getLogger[F]
     )
 
@@ -137,5 +143,6 @@ object EmberServerBuilder {
     val receiveBufferSize: Int = 256 * 1024
     val maxHeaderSize: Int = 10 * 1024
     val requestHeaderReceiveTimeout: Duration = 5.seconds
+    val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
   }
 }

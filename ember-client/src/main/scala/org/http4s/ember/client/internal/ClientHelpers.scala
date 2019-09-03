@@ -25,24 +25,27 @@ private[client] object ClientHelpers {
   def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       request: Request[F],
       sslContext: Option[(ExecutionContext, SSLContext)],
-      sg: SocketGroup
+      sg: SocketGroup,
+      additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
       requestKey,
       sslContext,
-      sg
+      sg,
+      additionalSocketOptions
     )
   }
 
   def requestKeyToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       requestKey: RequestKey,
       sslContext: Option[(ExecutionContext, SSLContext)],
-      sg: SocketGroup
+      sg: SocketGroup,
+      additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] =
     for {
       address <- Resource.liftF(getAddress(requestKey))
-      initSocket <- sg.client[F](address)
+      initSocket <- sg.client[F](address, additionalSocketOptions = additionalSocketOptions)
       socket <- Resource.liftF {
         if (requestKey.scheme === Uri.Scheme.https)
           sslContext.fold[F[Socket[F]]](
