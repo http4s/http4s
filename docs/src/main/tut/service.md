@@ -10,7 +10,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.12.8" // Also supports 2.11.x
+scalaVersion := "2.12.9" // Also supports 2.11.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
