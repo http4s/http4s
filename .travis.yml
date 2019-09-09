@@ -55,7 +55,7 @@ jobs:
         - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite
         - sbt ++$TRAVIS_SCALA_VERSION website/makeSite
     - env: TEST="scalafix"
-      scala: *scala_version_212
+      scala: "2.12.8"
       jdk: *java_8
       script:
         - cd scalafix
