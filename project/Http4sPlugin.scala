@@ -256,8 +256,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.2"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.8"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
-  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0-RC2"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0-RC2"
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
@@ -269,7 +269,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.3"
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
-  lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.0.0-RC1"
+  lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.0.0"
   lazy val fs2Crypto                        = "com.spinoco"            %% "fs2-crypto"                % "0.5.0-M1"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.1.0-M1"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
@@ -286,13 +286,13 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
   lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % "0.2.0-RC2"
-  lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % "1.0.0-RC3"
+  lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % "1.0.0"
   lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % log4catsCore.revision
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % log4catsCore.revision
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.8.2"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "3.0.0"
-  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "4.1.1"
+  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "4.2.0"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.7.4"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.6.0"
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
@@ -310,5 +310,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.24"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.2"
-  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "2.0.0-RC2"
+  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "2.0.0"
 }
