@@ -43,13 +43,7 @@ object CentralRequirementsPlugin extends AutoPlugin {
     Compile / packageBin / publishArtifact := true,
     Compile / packageSrc / publishArtifact := true,
     Test / publishArtifact := false,
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        sonatypePublishToBundle.value
-    },
+    publishTo := sonatypePublishToBundle.value,
     credentials ++= (for {
       username <- sys.env.get("SONATYPE_USERNAME")
       password <- sys.env.get("SONATYPE_PASSWORD")
