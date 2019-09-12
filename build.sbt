@@ -68,7 +68,7 @@ lazy val thirteen = project
     }: _*
   )
 
-val scala_212 = "2.12.9"
+val scala_212 = "2.12.10"
 val scala_211 = "2.11.12"
 
 lazy val crossScalaAll = Seq(
