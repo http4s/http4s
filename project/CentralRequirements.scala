@@ -3,7 +3,7 @@ package org.http4s.build
 import sbt._
 import sbt.Keys._
 import xerial.sbt.Sonatype
-import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
+import xerial.sbt.Sonatype.autoImport._
 
 object CentralRequirementsPlugin extends AutoPlugin {
   override def trigger = allRequirements
