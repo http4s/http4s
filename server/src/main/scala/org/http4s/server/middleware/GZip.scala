@@ -97,7 +97,7 @@ object GZip {
   private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
 
   private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Int): Pipe[Pure, Byte, Byte] =
-    _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).stream
+    _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).void.stream
 
   private def trailerStep(gen: TrailerGen, maxReadLimit: Int): (
       Option[(Chunk[Byte], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
