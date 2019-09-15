@@ -108,7 +108,7 @@ notifications:
 
 cache:
   directories:
-  - "$HOME/.coursier/cache"
+  - "$HOME/.cache"
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot"
 
