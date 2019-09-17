@@ -41,7 +41,7 @@ object RequestLogger {
               req.body
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s))))
-                .onFinalize(
+                .onFinalizeWeak(
                   Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,

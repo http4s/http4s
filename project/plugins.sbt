@@ -1,4 +1,3 @@
-resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 
 // https://github.com/coursier/coursier/issues/450

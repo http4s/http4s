@@ -83,7 +83,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         .through(q.enqueue)
         .compile
         .drain).start
-      req0 = req.withBodyStream(req.body.onFinalize(d.complete(())))
+      req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(())))
       response <- stage.runRequest(req0, IO.never)
       result <- response.as[String]
       _ <- IO(h.stageShutdown())
