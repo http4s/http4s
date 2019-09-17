@@ -212,7 +212,9 @@ class Http1WriterSpec extends Http4sSpec {
       clean must_== true
 
       clean = false
-      val p2 = eval(IO.raiseError(new RuntimeException("asdf"))).onFinalizeWeak(IO { clean = true; () })
+      val p2 = eval(IO.raiseError(new RuntimeException("asdf"))).onFinalizeWeak(IO {
+        clean = true; ()
+      })
       writeEntityBody(p2)(builder)
       clean must_== true
     }

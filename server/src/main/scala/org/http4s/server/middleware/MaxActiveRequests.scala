@@ -26,7 +26,8 @@ object MaxActiveRequests {
         { http: Kleisli[F, Request[F], Response[F]] =>
           Kleisli { a: Request[F] =>
             sem.tryAcquire.bracketCase { bool =>
-              if (bool) http.run(a).map(resp => resp.copy(body = resp.body.onFinalizeWeak(sem.release)))
+              if (bool)
+                http.run(a).map(resp => resp.copy(body = resp.body.onFinalizeWeak(sem.release)))
               else defaultResp.pure[F]
             } {
               case (bool, ExitCase.Canceled | ExitCase.Error(_)) =>
