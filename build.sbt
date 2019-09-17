@@ -58,7 +58,6 @@ lazy val root = project.in(file("."))
   )
   .aggregate(modules: _*)
 
-
 lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
