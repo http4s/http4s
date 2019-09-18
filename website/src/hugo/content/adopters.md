@@ -44,6 +44,9 @@ title: Adopters
 [http4s-directives](https://github.com/hamnis/http4s-directives)
 : Implementation of unfiltered-directives using http4s
 
+[http4s-spnego](https://github.com/novakov-alexey/http4s-spnego)
+: http4s middleware for HTTP SPNEGO Authentication (Kerberos)
+
 [http4s-timer](https://github.com/fiadliel/http4s-timer)
 : Adds timing capability to http4s, with a possible concrete implementation for New Relic
 
