@@ -83,58 +83,65 @@ object JsonDebugErrorHandler {
   private def encodeRequest[F[_]](
       req: Request[F],
       redactWhen: CaseInsensitiveString => Boolean): Json =
-    Json.obj(
-      "method" -> req.method.name.asJson,
-      "uri" -> Json.obj(
-        "scheme" -> req.uri.scheme.map(_.value).asJson,
-        "authority" -> req.uri.authority
-          .map(
-            auth =>
-              Json.obj(
-                "host" -> auth.host.toString().asJson,
-                "port" -> auth.port.asJson,
-                "user_info" -> auth.userInfo
-                  .map(_.toString())
-                  .asJson
-              ).dropNullValues)
-          .asJson,
-        "path" -> req.uri.path.asJson,
-        "query" -> req.uri.query.multiParams.asJson,
-        
-      ).dropNullValues,
-      "headers" -> req.headers
-        .redactSensitive(redactWhen)
-        .toList
-        .map(_.toRaw)
-        .map { h =>
-          Json.obj(
-            "name" -> h.name.toString.asJson,
-            "value" -> h.value.asJson
+    Json
+      .obj(
+        "method" -> req.method.name.asJson,
+        "uri" -> Json
+          .obj(
+            "scheme" -> req.uri.scheme.map(_.value).asJson,
+            "authority" -> req.uri.authority
+              .map(
+                auth =>
+                  Json
+                    .obj(
+                      "host" -> auth.host.toString().asJson,
+                      "port" -> auth.port.asJson,
+                      "user_info" -> auth.userInfo
+                        .map(_.toString())
+                        .asJson
+                    )
+                    .dropNullValues)
+              .asJson,
+            "path" -> req.uri.path.asJson,
+            "query" -> req.uri.query.multiParams.asJson
           )
-        }
-        .asJson,
-      "path_info" -> req.pathInfo.asJson,
-      "remote_address" -> req.remoteAddr.asJson,
-      "http_version" -> req.httpVersion.toString().asJson
-    ).dropNullValues
+          .dropNullValues,
+        "headers" -> req.headers
+          .redactSensitive(redactWhen)
+          .toList
+          .map(_.toRaw)
+          .map { h =>
+            Json.obj(
+              "name" -> h.name.toString.asJson,
+              "value" -> h.value.asJson
+            )
+          }
+          .asJson,
+        "path_info" -> req.pathInfo.asJson,
+        "remote_address" -> req.remoteAddr.asJson,
+        "http_version" -> req.httpVersion.toString().asJson
+      )
+      .dropNullValues
 
   private def encodeThrowable(a: Throwable): Json =
-    Json.obj(
-      "message" -> Option(a.getMessage).asJson,
-      "stack_trace" -> Option(a.getStackTrace())
-        .map(_.toList)
-        .map(_.map(stackTraceElem => stackTraceElem.toString))
-        .asJson,
-      "localized_message" ->
-        Option(a.getLocalizedMessage()).asJson,
-      "cause" -> Option(a.getCause())
-        .map(encodeThrowable(_))
-        .asJson,
-      "suppressed" -> Option(a.getSuppressed())
-        .map(_.toList.map(encodeThrowable(_)))
-        .asJson,
-      "class_name" -> Option(a.getClass())
-        .flatMap(c => Option(c.getCanonicalName()))
-        .asJson
-    ).dropNullValues
+    Json
+      .obj(
+        "message" -> Option(a.getMessage).asJson,
+        "stack_trace" -> Option(a.getStackTrace())
+          .map(_.toList)
+          .map(_.map(stackTraceElem => stackTraceElem.toString))
+          .asJson,
+        "localized_message" ->
+          Option(a.getLocalizedMessage()).asJson,
+        "cause" -> Option(a.getCause())
+          .map(encodeThrowable(_))
+          .asJson,
+        "suppressed" -> Option(a.getSuppressed())
+          .map(_.toList.map(encodeThrowable(_)))
+          .asJson,
+        "class_name" -> Option(a.getClass())
+          .flatMap(c => Option(c.getCanonicalName()))
+          .asJson
+      )
+      .dropNullValues
 }
