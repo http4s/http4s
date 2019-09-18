@@ -83,7 +83,7 @@ class ClientTimeoutSpec extends Http4sSpec {
           .awakeEvery[IO](2.seconds)
           .map(_ => "1".toByte)
           .take(4)
-          .onFinalize(d.complete(()))
+          .onFinalizeWeak(d.complete(()))
         req = Request(method = Method.POST, uri = www_foo_com, body = body)
         tail = mkConnection(RequestKey.fromRequest(req))
         q <- Queue.unbounded[IO, Option[ByteBuffer]]

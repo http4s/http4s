@@ -78,29 +78,6 @@ class CORSSpec extends Http4sSpec {
         .unsafeRunSync()
     }
 
-    "Respect Access-Control-Allow-Headers in preflight call" in {
-      val req = buildRequest("/foo", OPTIONS)
-      cors2
-        .orNotFound(req)
-        .map { resp =>
-          matchHeader(
-            resp.headers,
-            `Access-Control-Allow-Headers`,
-            "User-Agent, Keep-Alive, Content-Type")
-        }
-        .unsafeRunSync()
-    }
-
-    "Respect Access-Control-Expose-Headers in non-preflight call" in {
-      val req = buildRequest("/foo")
-      cors2
-        .orNotFound(req)
-        .map { resp =>
-          matchHeader(resp.headers, `Access-Control-Expose-Headers`, "x-header")
-        }
-        .unsafeRunSync()
-    }
-
     "Offer a successful reply to OPTIONS on fallthrough" in {
       val req = buildRequest("/unexistant", OPTIONS)
       cors1

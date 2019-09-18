@@ -1,4 +1,3 @@
-resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 
 // https://github.com/coursier/coursier/issues/450
@@ -20,7 +19,7 @@ addSbtPlugin("com.typesafe.sbt"           %  "sbt-native-packager"       % "1.4.
 addSbtPlugin("io.get-coursier"            %  "sbt-coursier"              % "1.0.3")
 addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.8")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
-addSbtPlugin("org.scalameta"              %  "sbt-scalafmt"              % "2.0.4")
+addSbtPlugin("org.scalameta"              %  "sbt-scalafmt"              % "2.0.5")
 addSbtPlugin("org.scalastyle"             %% "scalastyle-sbt-plugin"     % "1.0.0")
 addSbtPlugin("org.tpolecat"               %  "tut-plugin"                % "0.6.12")
 addSbtPlugin("org.xerial.sbt"             %  "sbt-sonatype"              % "3.6")

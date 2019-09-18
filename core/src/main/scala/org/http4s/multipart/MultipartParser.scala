@@ -759,7 +759,7 @@ object MultipartParser {
 
   private[this] def makePart[F[_]](hdrs: Headers, body: Stream[F, Byte], path: Option[Path])(
       implicit F: Sync[F]): Part[F] = path match {
-    case Some(p) => Part(hdrs, body.onFinalize(F.delay(Files.delete(p))))
+    case Some(p) => Part(hdrs, body.onFinalizeWeak(F.delay(Files.delete(p))))
     case None => Part(hdrs, body)
   }
 

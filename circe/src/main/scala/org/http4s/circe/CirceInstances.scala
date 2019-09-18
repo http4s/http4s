@@ -95,7 +95,7 @@ trait CirceInstances extends JawnInstances {
   def jsonEncoderWithPrinter[F[_]: Applicative](printer: Printer): EntityEncoder[F, Json] =
     EntityEncoder[F, Chunk[Byte]]
       .contramap[Json] { json =>
-        val bytes = printer.prettyByteBuffer(json)
+        val bytes = printer.printToByteBuffer(json)
         Chunk.byteBuffer(bytes)
       }
       .withContentType(`Content-Type`(MediaType.application.json))
