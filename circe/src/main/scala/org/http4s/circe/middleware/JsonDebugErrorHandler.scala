@@ -15,9 +15,9 @@ import org.http4s.circe._
 object JsonDebugErrorHandler {
 
   private[this] val messageFailureLogger =
-    org.log4s.getLogger("org.http4s.circe.jsondebugerrorhandler.message-failures")
+    org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.message-failures")
   private[this] val serviceErrorLogger =
-    org.log4s.getLogger("org.http4s.circe.jsondebugerrorhandler.service-errors")
+    org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.service-errors")
 
   // Can be parametric on my other PR is merged.
   def apply[F[_]](
