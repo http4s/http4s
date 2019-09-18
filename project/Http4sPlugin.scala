@@ -33,7 +33,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = MimaPlugin && ScalafmtPlugin
 
   val scala_213 = "2.13.0"
-  val scala_212 = "2.12.8"
+  val scala_212 = "2.12.9"
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -261,20 +261,20 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
-  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
-  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.12.0-RC4"
-  lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
-  lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
-  lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
+  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.12.1"
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % circeGeneric.revision
+  lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeGeneric.revision
+  lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeGeneric.revision
+  lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeGeneric.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.3"
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.0.0"
   lazy val fs2Crypto                        = "com.spinoco"            %% "fs2-crypto"                % "0.5.0-M1"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.1.0-M1"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.0.0"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.15.0-M1"
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.15.0"
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.2"
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.2"
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.20.v20190813"

@@ -285,7 +285,7 @@ class BlazeClientSpec extends Http4sSpec {
           Deferred[IO, Unit]
             .flatMap { reqClosed =>
               mkClient(1, requestTimeout = 10.seconds).use { client =>
-                val body = Stream(0.toByte).repeat.onFinalize(reqClosed.complete(()))
+                val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
                 val req = Request[IO](
                   method = Method.POST,
                   uri = Uri.fromString(s"http://$name:$port/").yolo

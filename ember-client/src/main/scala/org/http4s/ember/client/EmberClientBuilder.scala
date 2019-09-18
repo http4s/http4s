@@ -115,7 +115,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 timeout
               )(logger)
               .map(response =>
-                response.copy(body = response.body.onFinalizeCase {
+                response.copy(body = response.body.onFinalizeCaseWeak {
                   case ExitCase.Completed =>
                     val requestClose = request.headers.get(Connection).exists(_.hasClose)
                     val responseClose = response.isChunked || response.headers

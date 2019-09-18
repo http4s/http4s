@@ -71,7 +71,7 @@ class Http1WriterSpec extends Http4sSpec {
 
     "execute cleanup" in {
       var clean = false
-      val p = chunk(messageBuffer).covary[IO].onFinalize(IO { clean = true; () })
+      val p = chunk(messageBuffer).covary[IO].onFinalizeWeak(IO { clean = true; () })
       writeEntityBody(p)(builder) must_== "Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message
       clean must_== true
     }
@@ -199,7 +199,7 @@ class Http1WriterSpec extends Http4sSpec {
 
     "execute cleanup" in {
       var clean = false
-      val p = chunk(messageBuffer).onFinalize(IO { clean = true; () })
+      val p = chunk(messageBuffer).onFinalizeWeak(IO { clean = true; () })
       writeEntityBody(p)(builder) must_==
         """Content-Type: text/plain
           |Transfer-Encoding: chunked
@@ -212,7 +212,9 @@ class Http1WriterSpec extends Http4sSpec {
       clean must_== true
 
       clean = false
-      val p2 = eval(IO.raiseError(new RuntimeException("asdf"))).onFinalize(IO { clean = true; () })
+      val p2 = eval(IO.raiseError(new RuntimeException("asdf"))).onFinalizeWeak(IO {
+        clean = true; ()
+      })
       writeEntityBody(p2)(builder)
       clean must_== true
     }
@@ -254,7 +256,7 @@ class Http1WriterSpec extends Http4sSpec {
     "Execute cleanup on a failing Http1Writer" in {
       {
         var clean = false
-        val p = chunk(messageBuffer).onFinalize(IO { clean = true; () })
+        val p = chunk(messageBuffer).onFinalizeWeak(IO { clean = true; () })
 
         new FailingWriter().writeEntityBody(p).attempt.unsafeRunSync() must beLeft
         clean must_== true
@@ -262,7 +264,7 @@ class Http1WriterSpec extends Http4sSpec {
 
       {
         var clean = false
-        val p = eval(IO.raiseError(Failed)).onFinalize(IO { clean = true; () })
+        val p = eval(IO.raiseError(Failed)).onFinalizeWeak(IO { clean = true; () })
 
         new FailingWriter().writeEntityBody(p).attempt.unsafeRunSync must beLeft
         clean must_== true

@@ -119,8 +119,8 @@ private[http4s] class Http4sWSStage[F[_]](
       .through(ws.receive)
       .concurrently(ws.send.through(snk).drain) //We don't need to terminate if the send stream terminates.
       .interruptWhen(deadSignal)
-      .onFinalize(ws.onClose.attempt.void) //Doing it this way ensures `sendClose` is sent no matter what
-      .onFinalize(sendClose)
+      .onFinalizeWeak(ws.onClose.attempt.void) //Doing it this way ensures `sendClose` is sent no matter what
+      .onFinalizeWeak(sendClose)
       .compile
       .drain
 
