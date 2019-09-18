@@ -155,8 +155,8 @@
                         <a href="AutoSlash$.html" title="Removes a trailing slash from Request path">AutoSlash</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">CORS</a>
+                        <a class="object" href="CORS$.html" title=""></a>
+                        <a href="CORS$.html" title="">CORS</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
@@ -179,8 +179,8 @@
                         <a href="EntityLimiter$.html" title="">EntityLimiter</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="ErrorHandling$.html" title=""></a>
-                        <a href="ErrorHandling$.html" title="">ErrorHandling</a>
+                        <a class="object" href="" title=""></a>
+                        <a href="" title="">ErrorHandling</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="GZip$.html" title=""></a>
@@ -266,8 +266,8 @@
       <div id="definition">
         <div class="big-circle object">o</div>
         <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.server">server</a>.<a href="index.html" class="extype" name="org.http4s.server.middleware">middleware</a></p>
-        <h1>CORS<span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html" title="Permalink">
+        <h1>ErrorHandling<span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -280,12 +280,12 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">CORS</span>
+        <span class="name">ErrorHandling</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/CORS.scala" target="_blank">CORS.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/ErrorHandling.scala" target="_blank">ErrorHandling.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -315,7 +315,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.middleware.CORS"><span>CORS</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.middleware.ErrorHandling"><span>ErrorHandling</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -345,7 +345,7 @@
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -361,7 +361,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html###():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -377,7 +377,7 @@
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -390,10 +390,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CORS#DefaultCORSConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DefaultCORSConfig:org.http4s.server.middleware.CORSConfig"></a><a id="DefaultCORSConfig:CORSConfig"></a>
+    </li><li name="org.http4s.server.middleware.ErrorHandling#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[F[_],G[_],A](k:cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]])(implicitF:cats.MonadError[F,Throwable],implicitG:cats.Applicative[G]):cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]"></a><a id="apply[F[_],G[_],A](Kleisli[F,Request[G],Response[G]])(MonadError[F,Throwable],Applicative[G]):Kleisli[F,Request[G],Response[G]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#apply[F[_],G[_],A](k:cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]])(implicitF:cats.MonadError[F,Throwable],implicitG:cats.Applicative[G]):cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -402,36 +402,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">DefaultCORSConfig</span><span class="result">: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a></span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="k">k: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>], <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>, <span name="G">G: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>], <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.ErrorHandling.apply.G">G</span>]]</span>
       </span>
       
       
-    </li><li name="org.http4s.server.middleware.CORS#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.CORSConfig)(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](Http[F,G],CORSConfig)(Applicative[F]):Http[F,G]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#apply[F[_],G[_]](http:org.http4s.Http[F,G],config:org.http4s.server.middleware.CORSConfig)(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>, <span name="config">config: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a> = <span class="symbol"><span class="name"><a href="#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig">DefaultCORSConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.CORS.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CORS.apply.G">G</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">CORS middleware
-This middleware provides clients with CORS information
-based on information in CORS config.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware
-This middleware provides clients with CORS information
-based on information in CORS config.
-Currently, you cannot make permissions depend on request details
-</p></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -447,7 +425,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#clone():Object" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -468,26 +446,10 @@ Currently, you cannot make permissions depend on request details
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CORS#defaultVaryHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="defaultVaryHeader:org.http4s.Header.Raw"></a><a id="defaultVaryHeader:Raw"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#defaultVaryHeader:org.http4s.Header.Raw" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">defaultVaryHeader</span><span class="result">: <a href="../../Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -503,7 +465,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -519,7 +481,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#finalize():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -541,7 +503,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -560,7 +522,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#hashCode():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -579,7 +541,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -595,7 +557,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -611,7 +573,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#notify():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -630,7 +592,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -649,7 +611,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -665,7 +627,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#toString():String" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -681,7 +643,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#wait():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -703,7 +665,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -725,7 +687,7 @@ Currently, you cannot make permissions depend on request details
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORS$.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ErrorHandling$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>

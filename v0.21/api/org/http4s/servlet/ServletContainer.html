@@ -411,9 +411,9 @@ server is started and ready to accept requests.
       
       <p class="shortcomment cmt">Set the banner to display when the server starts up</p><div class="fullcomment"><div class="comment cmt"><p>Set the banner to display when the server starts up</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#withServiceErrorHandler" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F]):ServerBuilder.this.Self"></a><a id="withServiceErrorHandler(ServiceErrorHandler[F]):Self"></a>
+      <a id="withServiceErrorHandler(serviceErrorHandler:org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]):ServerBuilder.this.Self"></a><a id="withServiceErrorHandler((Request[F])⇒PartialFunction[Throwable,F[Response[F]]]):Self"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/ServletContainer.html#withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F]):ServerBuilder.this.Self" title="Permalink">
+      <a href="../../../org/http4s/servlet/ServletContainer.html#withServiceErrorHandler(serviceErrorHandler:org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]):ServerBuilder.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -422,7 +422,7 @@ server is started and ready to accept requests.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withServiceErrorHandler</span><span class="params">(<span name="serviceErrorHandler">serviceErrorHandler: <a href="../server/index.html#ServiceErrorHandler[F[_]]=org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer[F]" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
+        <span class="name">withServiceErrorHandler</span><span class="params">(<span name="serviceErrorHandler">serviceErrorHandler: (<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>]) ⇒ <a href="https://www.scala-lang.org/api/2.12.9/scala/PartialFunction.html#scala.PartialFunction" class="extype" name="scala.PartialFunction">PartialFunction</a>[<span class="extype" name="scala.Throwable">Throwable</span>, <span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>]]]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer[F]" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Sets the handler for errors thrown invoking the service.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the handler for errors thrown invoking the service.  Is not
