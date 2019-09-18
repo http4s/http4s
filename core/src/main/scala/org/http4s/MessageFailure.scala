@@ -18,7 +18,11 @@ trait MessageFailure extends RuntimeException {
   final override def getCause = cause.orNull
 
   /** Provides a default rendering of this failure as a [[Response]]. */
-  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]]
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+    inHttpResponse[F, F](httpVersion)
+
+  def inHttpResponse[F[_], G[_]](
+      httpVersion: HttpVersion)(implicit F: Applicative[F], G: Applicative[G]): F[Response[G]]
 
 }
 
@@ -40,9 +44,10 @@ final case class ParseFailure(sanitized: String, details: String)
 
   def cause: Option[Throwable] = None
 
-  def toHttpResponse[F[_]: Applicative](httpVersion: HttpVersion): F[Response[F]] =
+  def inHttpResponse[F[_]: Applicative, G[_]: Applicative](
+      httpVersion: HttpVersion): F[Response[G]] =
     Response(Status.BadRequest, httpVersion)
-      .withEntity(sanitized)(EntityEncoder.stringEncoder[F])
+      .withEntity(sanitized)(EntityEncoder.stringEncoder[G])
       .pure[F]
 }
 
@@ -84,9 +89,10 @@ final case class MalformedMessageBodyFailure(details: String, cause: Option[Thro
   def message: String =
     s"Malformed message body: $details"
 
-  def toHttpResponse[F[_]: Applicative](httpVersion: HttpVersion): F[Response[F]] =
+  def inHttpResponse[F[_]: Applicative, G[_]: Applicative](
+      httpVersion: HttpVersion): F[Response[G]] =
     Response(Status.BadRequest, httpVersion)
-      .withEntity(s"The request body was malformed.")(EntityEncoder.stringEncoder[F])
+      .withEntity(s"The request body was malformed.")(EntityEncoder.stringEncoder[G])
       .pure[F]
 }
 
@@ -96,9 +102,10 @@ final case class InvalidMessageBodyFailure(details: String, cause: Option[Throwa
   def message: String =
     s"Invalid message body: $details"
 
-  override def toHttpResponse[F[_]: Applicative](httpVersion: HttpVersion): F[Response[F]] =
-    Response[F](Status.UnprocessableEntity, httpVersion)
-      .withEntity(s"The request body was invalid.")(EntityEncoder.stringEncoder[F])
+  def inHttpResponse[F[_]: Applicative, G[_]: Applicative](
+      httpVersion: HttpVersion): F[Response[G]] =
+    Response(Status.UnprocessableEntity, httpVersion)
+      .withEntity(s"The request body was invalid.")(EntityEncoder.stringEncoder[G])
       .pure[F]
 }
 
@@ -112,9 +119,10 @@ sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoS
     s"Expected one of the following media ranges: ${expected.map(_.show).mkString(", ")}"
   protected def responseMsg: String = s"$sanitizedResponsePrefix. $expectedMsg"
 
-  def toHttpResponse[F[_]: Applicative](httpVersion: HttpVersion): F[Response[F]] =
-    Response[F](Status.UnsupportedMediaType, httpVersion)
-      .withEntity(responseMsg)(EntityEncoder.stringEncoder[F])
+  def inHttpResponse[F[_]: Applicative, G[_]: Applicative](
+      httpVersion: HttpVersion): F[Response[G]] =
+    Response(Status.UnsupportedMediaType, httpVersion)
+      .withEntity(responseMsg)(EntityEncoder.stringEncoder[G])
       .pure[F]
 }
 

@@ -30,7 +30,8 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server[F]] {
     * guaranteed to be invoked on errors on the server backend, such as
     * parsing a request or handling a context timeout.
     */
-  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self
+  def withServiceErrorHandler(
+      serviceErrorHandler: Request[F] => PartialFunction[Throwable, F[Response[F]]]): Self
 
   /** Returns a Server resource.  The resource is not acquired until the
     * server is started and ready to accept requests.
