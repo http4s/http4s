@@ -40,7 +40,7 @@ object JsonDebugErrorHandler {
               headers = firstResp.headers.redactSensitive(redactWhen)
             ).withEntity(JsonErrorHandlerResponse[G](req, mf))
           }
-        case scala.util.control.NonFatal(t) =>
+        case t =>
           serviceErrorLogger.error(t)(
             s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
               .getOrElse("<unknown>")}"""
