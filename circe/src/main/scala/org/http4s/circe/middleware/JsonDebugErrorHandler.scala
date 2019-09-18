@@ -7,7 +7,7 @@ import cats.data._
 import io.circe._
 import io.circe.syntax._
 import org.http4s._
-import org.http4s.headers.{Connection, `Content-Length`}
+import org.http4s.headers.Connection
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.implicits._
 import org.http4s.circe._
@@ -51,7 +51,6 @@ object JsonDebugErrorHandler {
             req.httpVersion,
             Headers(
               Connection("close".ci) ::
-                `Content-Length`.zero ::
                 Nil
             ))
             .withEntity(JsonErrorHandlerResponse(req, t))
@@ -88,6 +87,7 @@ object JsonDebugErrorHandler {
     Json.obj(
       "method" -> req.method.name.asJson,
       "uri" -> Json.obj(
+        "scheme" -> req.uri.scheme.map(_.value).asJson,
         "authority" -> req.uri.authority
           .map(
             auth =>
@@ -97,11 +97,12 @@ object JsonDebugErrorHandler {
                 "user_info" -> auth.userInfo
                   .map(_.toString())
                   .asJson
-              ))
+              ).dropNullValues)
           .asJson,
         "path" -> req.uri.path.asJson,
-        "params" -> req.uri.params.asJson
-      ),
+        "query" -> req.uri.query.multiParams.asJson,
+        
+      ).dropNullValues,
       "headers" -> req.headers
         .redactSensitive(redactWhen)
         .toList
@@ -116,7 +117,7 @@ object JsonDebugErrorHandler {
       "path_info" -> req.pathInfo.asJson,
       "remote_address" -> req.remoteAddr.asJson,
       "http_version" -> req.httpVersion.toString().asJson
-    )
+    ).dropNullValues
 
   private def encodeThrowable(a: Throwable): Json =
     Json.obj(
@@ -136,5 +137,5 @@ object JsonDebugErrorHandler {
       "class_name" -> Option(a.getClass())
         .flatMap(c => Option(c.getCanonicalName()))
         .asJson
-    )
+    ).dropNullValues
 }
