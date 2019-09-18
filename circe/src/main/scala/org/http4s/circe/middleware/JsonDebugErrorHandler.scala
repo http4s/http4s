@@ -1,7 +1,6 @@
 package org.http4s.circe.middleware
 
 import cats._
-
 import cats.effect._
 import cats.data._
 import io.circe._
@@ -20,10 +19,10 @@ object JsonDebugErrorHandler {
     org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.service-errors")
 
   // Can be parametric on my other PR is merged.
-  def apply[F[_]](
-      service: Kleisli[F, Request[F], Response[F]],
+  def apply[F[_]: Sync, G[_]: Applicative](
+      service: Kleisli[F, Request[G], Response[G]],
       redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(implicit F: Sync[F]): Kleisli[F, Request[F], Response[F]] = Kleisli { req =>
+  ): Kleisli[F, Request[G], Response[G]] = Kleisli { req =>
     import cats.implicits._
     implicit def entEnc[M[_]: Applicative, N[_]] = JsonErrorHandlerResponse.entEnc[M, N](redactWhen)
 
@@ -34,26 +33,26 @@ object JsonDebugErrorHandler {
           messageFailureLogger.debug(mf)(
             s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
               .getOrElse("<unknown>")}""")
-          mf.toHttpResponse[F](req.httpVersion).map { firstResp =>
-            Response[F](
+          mf.inHttpResponse[F, G](req.httpVersion).map { firstResp =>
+            Response[G](
               status = firstResp.status,
               httpVersion = firstResp.httpVersion,
               headers = firstResp.headers.redactSensitive(redactWhen)
-            ).withEntity(JsonErrorHandlerResponse[F](req, mf))
+            ).withEntity(JsonErrorHandlerResponse[G](req, mf))
           }
         case scala.util.control.NonFatal(t) =>
           serviceErrorLogger.error(t)(
             s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
               .getOrElse("<unknown>")}"""
           )
-          Response[F](
+          Response[G](
             Status.InternalServerError,
             req.httpVersion,
             Headers(
               Connection("close".ci) ::
                 Nil
             ))
-            .withEntity(JsonErrorHandlerResponse(req, t))
+            .withEntity(JsonErrorHandlerResponse[G](req, t))
             .pure[F]
       }
   }
