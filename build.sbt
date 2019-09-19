@@ -100,6 +100,10 @@ lazy val core = libraryProject("core")
       vault,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
     ),
+    mimaBinaryIssueFilters ++= Seq(
+      "org.http4s.util.UrlCodingUtils",
+      "org.http4s.util.UrlCodingUtils$"
+    ).map(ProblemFilters.exclude[MissingClassProblem]),
     unmanagedSourceDirectories in Compile ++= {
       (unmanagedSourceDirectories in Compile).value.map { dir =>
         val sv = scalaVersion.value
