@@ -19,6 +19,7 @@ it.
 
 * [#2836](https://github.com/http4s/http4s/pull/2836): Add `additionalSocketOptions` to ember configs
 * [#2869](https://github.com/http4s/http4s/pull/2869): Add JsonDebugErrorHandler middleware
+* [#2830](https://github.com/http4s/http4s/pull/2830): Add encoder and decoder helpers to `Uri` companion
 
 ## Documentation
 
