@@ -3,7 +3,7 @@ package org.http4s.build
 import sbt._
 import sbt.Keys._
 import xerial.sbt.Sonatype
-import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
+import xerial.sbt.Sonatype.autoImport._
 
 object CentralRequirementsPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -43,13 +43,7 @@ object CentralRequirementsPlugin extends AutoPlugin {
     Compile / packageBin / publishArtifact := true,
     Compile / packageSrc / publishArtifact := true,
     Test / publishArtifact := false,
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-    },
+    publishTo := sonatypePublishToBundle.value,
     credentials ++= (for {
       username <- sys.env.get("SONATYPE_USERNAME")
       password <- sys.env.get("SONATYPE_PASSWORD")
