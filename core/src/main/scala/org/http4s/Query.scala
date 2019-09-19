@@ -6,7 +6,7 @@ import org.http4s.Query._
 import org.http4s.internal.CollectionCompat
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.parser.QueryParser
-import org.http4s.util.{Renderable, UrlCodingUtils, Writer}
+import org.http4s.util.{Renderable, Writer}
 import scala.collection.immutable
 
 /** Collection representation of a query string
@@ -70,7 +70,7 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
   override def render(writer: Writer): writer.type = {
     var first = true
     def encode(s: String) =
-      UrlCodingUtils.urlEncode(s, spaceIsPlus = false, toSkip = NoEncode)
+      Uri.encode(s, spaceIsPlus = false, toSkip = NoEncode)
     pairs.foreach {
       case (n, None) =>
         if (!first) writer.append('&')
@@ -130,8 +130,7 @@ object Query {
    * avoid percent-encoding those characters."
    *   -- http://tools.ietf.org/html/rfc3986#section-3.4
    */
-  private val NoEncode: CharPredicate =
-    UrlCodingUtils.Unreserved ++ "?/"
+  private val NoEncode: CharPredicate = Uri.Unreserved ++ "?/"
 
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)

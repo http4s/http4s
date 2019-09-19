@@ -11,7 +11,6 @@ import cats.data._
 import cats.data.Validated._
 import cats.implicits._
 import org.http4s._
-import org.http4s.util.UrlCodingUtils
 import scala.util.Try
 
 /** Base class for path extractors. */
@@ -61,7 +60,7 @@ object Path {
       val segments = str.split("/", -1)
       // .head is safe because split always returns non-empty array
       val segments0 = if (segments.head == "") segments.drop(1) else segments
-      segments0.foldLeft(Root: Path)((path, seg) => path / UrlCodingUtils.urlDecode(seg))
+      segments0.foldLeft(Root: Path)((path, seg) => path / Uri.decode(seg))
     }
 
   def apply(first: String, rest: String*): Path =
@@ -118,7 +117,7 @@ final case class /(parent: Path, child: String) extends Path {
 
   def lastOption: Some[String] = Some(child)
 
-  lazy val asString: String = s"$parent/${UrlCodingUtils.pathEncode(child)}"
+  lazy val asString: String = s"$parent/${Uri.pathEncode(child)}"
 
   override def toString: String = asString
 
