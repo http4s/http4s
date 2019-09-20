@@ -798,7 +798,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d9bf89e24ce234681e0078e2ca332d3f3fca493e/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e75815a74f9ee5fa05391b685665eb3808149031/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1110,6 +1110,46 @@ not defined, the URI is a relative reference.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.Uri#decode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="decode(toDecode:String,charset:java.nio.charset.Charset,plusIsSpace:Boolean,toSkip:Char=&gt;Boolean):String"></a><a id="decode(String,java.nio.charset.Charset,Boolean,(Char)⇒Boolean):String"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$.html#decode(toDecode:String,charset:java.nio.charset.Charset,plusIsSpace:Boolean,toSkip:Char=&gt;Boolean):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">decode</span><span class="params">(<span name="toDecode">toDecode: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>, <span name="plusIsSpace">plusIsSpace: <a href="https://www.scala-lang.org/api/2.12.9/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="toSkip">toSkip: (<a href="https://www.scala-lang.org/api/2.12.9/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.9/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">Function.const(false)</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Percent-decodes a string.</p><div class="fullcomment"><div class="comment cmt"><p>Percent-decodes a string.
+</p></div><dl class="paramcmts block"><dt class="param">toDecode</dt><dd class="cmt"><p>the string to decode</p></dd><dt class="param">charset</dt><dd class="cmt"><p>the charset of percent-encoded characters</p></dd><dt class="param">plusIsSpace</dt><dd class="cmt"><p>true if <code>'+'</code> is to be interpreted as a <code>' '</code></p></dd><dt class="param">toSkip</dt><dd class="cmt"><p>a predicate of characters whose percent-encoded form
+is left percent-encoded.  Almost certainly should be left empty.</p></dd></dl></div>
+    </li><li name="org.http4s.Uri#encode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="encode(toEncode:String,charset:java.nio.charset.Charset,spaceIsPlus:Boolean,toSkip:Char=&gt;Boolean):String"></a><a id="encode(String,java.nio.charset.Charset,Boolean,(Char)⇒Boolean):String"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$.html#encode(toEncode:String,charset:java.nio.charset.Charset,spaceIsPlus:Boolean,toSkip:Char=&gt;Boolean):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">encode</span><span class="params">(<span name="toEncode">toEncode: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>, <span name="spaceIsPlus">spaceIsPlus: <a href="https://www.scala-lang.org/api/2.12.9/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="toSkip">toSkip: (<a href="https://www.scala-lang.org/api/2.12.9/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.9/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">toSkip</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Percent-encodes a string.</p><div class="fullcomment"><div class="comment cmt"><p>Percent-encodes a string.  Depending on the parameters, this method is
+appropriate for URI or URL form encoding.  Any resulting percent-encodings
+are normalized to uppercase.
+</p></div><dl class="paramcmts block"><dt class="param">toEncode</dt><dd class="cmt"><p>the string to encode</p></dd><dt class="param">charset</dt><dd class="cmt"><p>the charset to use for characters that are percent encoded</p></dd><dt class="param">spaceIsPlus</dt><dd class="cmt"><p>if space is not skipped, determines whether it will be
+rendreed as a <code>&quot;+&quot;</code> or a percent-encoding according to <code>charset</code>.</p></dd><dt class="param">toSkip</dt><dd class="cmt"><p>a predicate of characters exempt from encoding.  In typical
+use, this is composed of all Unreserved URI characters and sometimes a
+subset of Reserved URI characters.</p></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -1304,6 +1344,22 @@ not defined, the URI is a relative reference.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.Uri#pathEncode" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="pathEncode(s:String,charset:java.nio.charset.Charset):String"></a><a id="pathEncode(String,java.nio.charset.Charset):String"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Uri$.html#pathEncode(s:String,charset:java.nio.charset.Charset):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pathEncode</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
     </li><li name="org.http4s.Uri#removeDotSegments" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="removeDotSegments(path:String):String"></a><a id="removeDotSegments(String):String"></a>
       <span class="permalink">
