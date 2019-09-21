@@ -74,7 +74,7 @@ class UserInfoSpec extends Http4sSpec {
 
     "reject userinfos with invalid characters" in prop { s: String =>
       !s.forall(CharPredicate.Alpha ++ UrlCodingUtils.Unreserved ++ ":") ==>
-        (Uri.fromString(s) must beLeft)
+        (UserInfo.fromString(s) must beLeft)
     }
   }
 
