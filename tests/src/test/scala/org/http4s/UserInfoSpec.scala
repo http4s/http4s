@@ -74,7 +74,7 @@ class UserInfoSpec extends Http4sSpec {
 
     "reject userinfos with invalid characters" in prop { s: String =>
       !s.forall(CharPredicate.Alpha ++ UrlCodingUtils.Unreserved ++ ":") ==>
-        (Uri.fromString(s) must beLeft)
+        (UserInfo.fromString(s) must beLeft)
     }
   }
 
@@ -93,6 +93,13 @@ class UserInfoSpec extends Http4sSpec {
     "roundTrip userinfo with plus sign" in {
       val userInfo = UserInfo("username+", Some("password+"))
       HttpCodec[UserInfo].parse(renderString(userInfo)) must_== Right(userInfo)
+    }
+  }
+
+  "bug2767" should {
+    "reject userinfos with invalid characters" in {
+      val s = "@"
+      UserInfo.fromString(s) must beLeft
     }
   }
 }
