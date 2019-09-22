@@ -95,4 +95,11 @@ class UserInfoSpec extends Http4sSpec {
       HttpCodec[UserInfo].parse(renderString(userInfo)) must_== Right(userInfo)
     }
   }
+
+  "bug2767" should {
+    "reject userinfos with invalid characters" in {
+      val s = "@"
+      UserInfo.fromString(s) must beLeft
+    }
+  }
 }
