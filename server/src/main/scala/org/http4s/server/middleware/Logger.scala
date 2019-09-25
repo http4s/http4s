@@ -78,17 +78,20 @@ object Logger {
     val bodyStream = if (logBody && isText) {
       message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
     } else if (logBody) {
-      message.body
-        .fold(new StringBuilder)((sb, b) => sb.append(java.lang.Integer.toHexString(b & 0xff)))
-        .map(_.toString)
+      message
+        .body
+        .map(b => java.lang.Integer.toHexString(b & 0xff))
     } else {
       Stream.empty.covary[F]
     }
 
     val bodyText = if (logBody) {
-      bodyStream.fold("")(_ + _).map(text => s"""body="$text"""")
+      bodyStream
+        .compile
+        .string
+        .map(text => s"""body="$text"""")
     } else {
-      Stream("").covary[F]
+      F.pure("")
     }
 
     def msg(body: String) =
@@ -99,8 +102,7 @@ object Logger {
 
     bodyText
       .map(msg)
-      .evalMap(log)
-      .compile
-      .drain
+      .flatMap(log)
+      .void
   }
 }
