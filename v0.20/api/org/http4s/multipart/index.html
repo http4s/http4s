@@ -511,11 +511,11 @@ implementations.</p><p>- When decoding, chunks are kept in memory.  Large ones s
 buffered to a temp file.</p><p>- It's a bit handwavy around character sets.  Things probably go
 horribly wrong if you're not UTF-8.</p><p>- This module is lightly tested, and its API should be considered
 experimental.</p><p>Enter this package at your own risk, but we'd love the feedback.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e75815a74f9ee5fa05391b685665eb3808149031/core/src/main/scala/org/http4s/multipart/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/c4476a90b62ddcf4dc84ea20f2d7841c48188731/core/src/main/scala/org/http4s/multipart/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.9/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.9/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -575,7 +575,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="Boundary.html"><span class="name">Boundary</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Boundary.html"><span class="name">Boundary</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a> with <a href="https://www.scala-lang.org/api/2.12.10/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.10/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -591,7 +591,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="Multipart.html"><span class="name">Multipart</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="parts">parts: <span class="extype" name="scala.Vector">Vector</span>[<a href="Part.html" class="extype" name="org.http4s.multipart.Part">Part</a>[<span class="extype" name="org.http4s.multipart.Multipart.F">F</span>]]</span>, <span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a> = <span class="symbol"><span class="name"><a href="Boundary$.html">Boundary.create</a></span></span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Multipart.html"><span class="name">Multipart</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="parts">parts: <span class="extype" name="scala.Vector">Vector</span>[<a href="Part.html" class="extype" name="org.http4s.multipart.Part">Part</a>[<span class="extype" name="org.http4s.multipart.Multipart.F">F</span>]]</span>, <span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a> = <span class="symbol"><span class="name"><a href="Boundary$.html">Boundary.create</a></span></span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.10/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -607,7 +607,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="Part.html"><span class="name">Part</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headers">headers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="body">body: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.multipart.Part.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.9/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Part.html"><span class="name">Part</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headers">headers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="body">body: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.multipart.Part.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.10/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.10/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -631,7 +631,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="Boundary$.html"><span class="name">Boundary</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Boundary$.html"><span class="name">Boundary</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -663,7 +663,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="Part$.html"><span class="name">Part</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Part$.html"><span class="name">Part</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -678,9 +678,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.9/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.9/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>
