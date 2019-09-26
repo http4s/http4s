@@ -3,6 +3,14 @@ package org.http4s.client.oauth1
 import cats.effect.IO
 import org.http4s._
 import org.http4s.client.oauth1
+import org.http4s.client.oauth1.ProtocolParameter.{
+  Custom,
+  Nonce,
+  Realm,
+  SignatureMethod,
+  Timestamp,
+  Version
+}
 import org.http4s.util.CaseInsensitiveString
 import org.specs2.mutable.Specification
 
@@ -59,6 +67,28 @@ class OAuthTest extends Specification {
     "generate a Authorization header" in {
       val auth =
         oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
+      val creds = auth.credentials
+      creds.authScheme must_== CaseInsensitiveString("OAuth")
+    }
+
+    "generate a Authorization header with config" in {
+      val auth =
+        oauth1
+          .genAuthHeader[IO](
+            Method.GET,
+            uri,
+            oauth1.ProtocolParameter.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44"),
+            Some(oauth1.ProtocolParameter.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")),
+            realm = Some(Realm("Example")),
+            signatureMethod = SignatureMethod(),
+            timestampGenerator = IO.delay(Timestamp()),
+            version = Version(),
+            nonceGenerator = IO.delay(Nonce()),
+            callback = None,
+            verifier = None,
+            userParams.map { case (k, v) ⇒ Custom(k, v) }
+          )
+          .unsafeRunSync()
       val creds = auth.credentials
       creds.authScheme must_== CaseInsensitiveString("OAuth")
     }
