@@ -1,14 +1,17 @@
 package org.http4s
 package client
 
-import cats.MonadError
+import cats.{MonadError, Show}
 import cats.data.NonEmptyList
 import cats.implicits._
 import java.nio.charset.StandardCharsets
+
 import javax.crypto
+import org.http4s.client.oauth1.Header.Custom
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
+
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
@@ -39,6 +42,49 @@ package object oauth1 {
         val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
         req.putHeaders(auth)
     }
+
+  def signRequest[F[_]](req: Request[F], authConfig: OAuthConfig)(
+      implicit F: MonadError[F, Throwable],
+      W: EntityDecoder[F, UrlForm]): F[Request[F]] =
+    getUserParams(req).map {
+      case (req, params) =>
+        val auth =
+          genAuthHeader(req.method, req.uri, authConfig, params.map {
+            case (k, v) ⇒ Custom(k, v)
+          })
+        req.putHeaders(auth)
+    }
+
+  def takeSigHeaders(config: OAuthConfig): immutable.Seq[Header] = {
+    val headers = immutable.Seq(
+      config.consumer,
+      config.signatureMethod,
+      config.timestampGenerator(),
+      config.nonceGenerator(),
+      config.version)
+    config.token.fold(headers)(headers :+ _)
+  }
+
+  private[oauth1] def genAuthHeader(
+      method: Method,
+      uri: Uri,
+      config: OAuthConfig,
+      queryParams: Seq[Header]): Authorization = {
+    val headers = takeSigHeaders(config).toList
+    val baseStr = mkBaseString(
+      method,
+      uri,
+      (headers ++ queryParams).sorted.map(Show[Header].show).mkString("&"))
+    val sig = makeSHASig(baseStr, config.consumer.secret, config.token.map(_.secret))
+    val creds = Credentials.AuthParams(
+      "OAuth".ci,
+      NonEmptyList(
+        "oauth_signature" -> encode(sig),
+        config.realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)))
+    )
+
+    Authorization(creds)
+  }
 
   // Generate an authorization header with the provided user params and OAuth requirements.
   private[oauth1] def genAuthHeader(
@@ -80,9 +126,15 @@ package object oauth1 {
   private[oauth1] def makeSHASig(
       baseString: String,
       consumer: Consumer,
-      token: Option[Token]): String = {
+      token: Option[Token]): String =
+    makeSHASig(baseString, consumer.secret, token.map(_.secret))
+
+  private[oauth1] def makeSHASig(
+      baseString: String,
+      consumerSecret: String,
+      tokenSecret: Option[String]): String = {
     val sha1 = crypto.Mac.getInstance(SHA1)
-    val key = encode(consumer.secret) + "&" + token.map(t => encode(t.secret)).getOrElse("")
+    val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
     sha1.init(new crypto.spec.SecretKeySpec(bytes(key), SHA1))
 
     val sigBytes = sha1.doFinal(bytes(baseString))
@@ -95,14 +147,16 @@ package object oauth1 {
       uri: Uri,
       params: immutable.Seq[(String, String)]): String = {
     val paramsStr = params.map { case (k, v) => k + "=" + v }.sorted.mkString("&")
+    mkBaseString(method, uri, paramsStr)
+  }
 
+  def mkBaseString(method: Method, uri: Uri, paramsStr: String) =
     immutable
       .Seq(
         method.name,
         encode(uri.copy(query = Query.empty, fragment = None).renderString),
         encode(paramsStr))
       .mkString("&")
-  }
 
   private[oauth1] def encode(str: String): String =
     UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = UrlCodingUtils.Unreserved)
