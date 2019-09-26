@@ -52,17 +52,14 @@ object Logger {
     val bodyStream = if (logBody && isText) {
       message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
     } else if (logBody) {
-      message
-        .body
+      message.body
         .map(b => java.lang.Integer.toHexString(b & 0xff))
     } else {
       Stream.empty.covary[F]
     }
 
     val bodyText = if (logBody) {
-      bodyStream
-        .compile
-        .string
+      bodyStream.compile.string
         .map(text => s"""body="$text"""")
     } else {
       F.pure("")
