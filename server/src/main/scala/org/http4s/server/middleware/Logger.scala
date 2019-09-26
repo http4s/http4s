@@ -94,15 +94,10 @@ object Logger {
       F.pure("")
     }
 
-    def msg(body: String) =
-      (logHeaders, logBody) match {
-        case (false, false) => prelude
-        case _ => s"$prelude $headers $body"
-      }
+    def spaced(x: String): String = if (x.isEmpty) x else s" $x"
 
     bodyText
-      .map(msg)
+      .map(body => s"$prelude${spaced(headers)}${spaced(body)}")
       .flatMap(log)
-      .void
   }
 }

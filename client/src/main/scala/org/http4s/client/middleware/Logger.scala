@@ -68,12 +68,10 @@ object Logger {
       F.pure("")
     }
 
-    if (!logBody && !logHeaders) F.unit
-    else {
-      bodyText
-        .map(body => s"$prelude $headers $body")
-        .flatMap(log)
-        .void
-    }
+    def spaced(x: String): String = if (x.isEmpty) x else s" $x"
+
+    bodyText
+      .map(body => s"$prelude${spaced(headers)}${spaced(body)}")
+      .flatMap(log)
   }
 }
