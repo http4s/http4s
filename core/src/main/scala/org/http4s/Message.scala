@@ -6,12 +6,13 @@ import cats.implicits._
 import cats.effect.IO
 import fs2.{Pure, Stream}
 import fs2.text.{utf8Decode, utf8Encode}
-import java.io.File
+import java.io.{File, Serializable}
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.http4s.util.decode
 import org.log4s.getLogger
 import _root_.io.chrisdavenport.vault._
+import scala.util.hashing.MurmurHash3
 
 /**
   * Represents a HTTP Message. The interesting subclasses are Request and Response.
@@ -236,14 +237,14 @@ object Message {
   * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-sealed abstract case class Request[F[_]](
-    method: Method = Method.GET,
-    uri: Uri = Uri(path = "/"),
-    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    headers: Headers = Headers.empty,
-    body: EntityBody[F] = EmptyBody,
-    attributes: Vault = Vault.empty
-) extends Message[F] {
+final class Request[F[_]](
+    val method: Method = Method.GET,
+    val uri: Uri = Uri(path = "/"),
+    val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+    val headers: Headers = Headers.empty,
+    val body: EntityBody[F] = EmptyBody,
+    val attributes: Vault = Vault.empty
+) extends Message[F] with Product with Serializable {
   import Request._
 
   type Self = Request[F]
@@ -414,6 +415,34 @@ sealed abstract case class Request[F[_]](
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
 
+  override def hashCode(): Int = MurmurHash3.productHash(this)
+
+  override def equals(that: Any): Boolean = (this eq that.asInstanceOf[Object]) || (that match {
+    case that: Request[_] =>
+      (this.method == that.method) &&
+      (this.uri == that.uri) &&
+      (this.httpVersion == that.httpVersion) &&
+      (this.headers == that.headers) &&
+      (this.body == that.body) &&
+      (this.attributes == that.attributes)
+    case _ => false
+  })
+
+  def canEqual(that: Any) = that.isInstanceOf[Request[F]]
+
+  def productArity: Int = 6
+
+  def productElement(n: Int) = n match {
+    case 0 => method
+    case 1 => uri
+    case 2 => httpVersion
+    case 3 => headers
+    case 4 => body
+    case 5 => attributes
+    case _ => throw new IndexOutOfBoundsException()
+  }
+
+  override def productPrefix: String = "Request"
 }
 
 object Request {
@@ -433,7 +462,10 @@ object Request {
       headers = headers,
       body = body,
       attributes = attributes
-    ) {}
+    )
+
+  def unapply[F[_]](request: Request[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+    Some((request.method, request.uri, request.httpVersion, request.headers, request.body, request.attributes))
 
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
