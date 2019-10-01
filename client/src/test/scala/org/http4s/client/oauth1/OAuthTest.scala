@@ -66,18 +66,20 @@ class OAuthTest extends Specification {
 
     "generate a Authorization header with config" in {
       val auth =
-        oauth1.genAuthHeader(
-          Method.GET,
-          uri,
-          OAuthConfig(
-            consumer = oauth1.Header.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44"),
-            token = Some(oauth1.Header.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")),
-            realm = Some(Realm("Example")),
-            timestampGenerator = () ⇒ Timestamp(),
-            nonceGenerator = () ⇒ Nonce()
-          ),
-          userParams.map { case (k, v) ⇒ Custom(k, v) }
-        )
+        oauth1
+          .genAuthHeader[IO](
+            Method.GET,
+            uri,
+            OAuthConfig[IO](
+              consumer = oauth1.Header.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44"),
+              token = Some(oauth1.Header.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")),
+              realm = Some(Realm("Example")),
+              timestampGenerator = IO.delay(Timestamp()),
+              nonceGenerator = IO.delay(Nonce())
+            ),
+            userParams.map { case (k, v) ⇒ Custom(k, v) }
+          )
+          .unsafeRunSync()
       val creds = auth.credentials
       creds.authScheme must_== CaseInsensitiveString("OAuth")
     }
