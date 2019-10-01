@@ -50,7 +50,7 @@ package object oauth1 {
       case (req, params) =>
         val auth =
           genAuthHeader(req.method, req.uri, authConfig, params.map {
-            case (k, v) ⇒ Custom(k, v)
+            case (k, v) => Custom(k, v)
           })
         req.putHeaders(auth)
     }

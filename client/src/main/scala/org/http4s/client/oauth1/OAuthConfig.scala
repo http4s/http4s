@@ -8,8 +8,8 @@ case class OAuthConfig(
     token: Option[OAuthHeader.Token],
     realm: Option[OAuthHeader.Realm],
     signatureMethod: OAuthHeader.SignatureMethod = Header.SignatureMethod(),
-    timestampGenerator: () ⇒ OAuthHeader.Timestamp,
+    timestampGenerator: () => OAuthHeader.Timestamp,
     version: Header.Version = OAuthHeader.Version(),
-    nonceGenerator: () ⇒ OAuthHeader.Nonce,
+    nonceGenerator: () => OAuthHeader.Nonce,
     verifier: Option[Verifier] = None,
     callback: Option[Callback] = None)
