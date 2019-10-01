@@ -1,7 +1,7 @@
 package org.http4s
 package client
 
-import cats.{MonadError, Show}
+import cats.{Monad, MonadError, Show}
 import cats.data.NonEmptyList
 import cats.implicits._
 import java.nio.charset.StandardCharsets
@@ -14,6 +14,7 @@ import org.http4s.util.UrlCodingUtils
 
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
+import scala.language.postfixOps
 
 /** Basic OAuth1 message signing support
   *
@@ -43,48 +44,46 @@ package object oauth1 {
         req.putHeaders(auth)
     }
 
-  def signRequest[F[_]](req: Request[F], authConfig: OAuthConfig)(
+  def signRequest[F[_]](req: Request[F], authConfig: OAuthConfig[F])(
       implicit F: MonadError[F, Throwable],
       W: EntityDecoder[F, UrlForm]): F[Request[F]] =
-    getUserParams(req).map {
-      case (req, params) =>
-        val auth =
-          genAuthHeader(req.method, req.uri, authConfig, params.map {
-            case (k, v) => Custom(k, v)
-          })
-        req.putHeaders(auth)
+    for {
+      (req, params) <- getUserParams(req)
+      auth <- genAuthHeader(req.method, req.uri, authConfig, params.map {
+        case (k, v) => Custom(k, v)
+      })
+    } yield req.putHeaders(auth)
+
+  def takeSigHeaders[F[_]: Monad](config: OAuthConfig[F]): F[immutable.Seq[Header]] =
+    for {
+      timestamp <- config.timestampGenerator
+      nonce <- config.nonceGenerator
+    } yield {
+      val headers =
+        immutable.Seq(config.consumer, config.signatureMethod, timestamp, nonce, config.version)
+      config.token.fold(headers)(headers :+ _)
     }
 
-  def takeSigHeaders(config: OAuthConfig): immutable.Seq[Header] = {
-    val headers = immutable.Seq(
-      config.consumer,
-      config.signatureMethod,
-      config.timestampGenerator(),
-      config.nonceGenerator(),
-      config.version)
-    config.token.fold(headers)(headers :+ _)
-  }
-
-  private[oauth1] def genAuthHeader(
+  private[oauth1] def genAuthHeader[F[_]: Monad](
       method: Method,
       uri: Uri,
-      config: OAuthConfig,
-      queryParams: Seq[Header]): Authorization = {
-    val headers = takeSigHeaders(config).toList
-    val baseStr = mkBaseString(
-      method,
-      uri,
-      (headers ++ queryParams).sorted.map(Show[Header].show).mkString("&"))
-    val sig = makeSHASig(baseStr, config.consumer.secret, config.token.map(_.secret))
-    val creds = Credentials.AuthParams(
-      "OAuth".ci,
-      NonEmptyList(
-        "oauth_signature" -> encode(sig),
-        config.realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)))
-    )
+      config: OAuthConfig[F],
+      queryParams: Seq[Header]): F[Authorization] =
+    takeSigHeaders(config).map { headers =>
+      val baseStr = mkBaseString(
+        method,
+        uri,
+        (headers ++ queryParams).sorted.map(Show[Header].show).mkString("&"))
+      val sig = makeSHASig(baseStr, config.consumer.secret, config.token.map(_.secret))
+      val creds = Credentials.AuthParams(
+        "OAuth".ci,
+        NonEmptyList(
+          "oauth_signature" -> encode(sig),
+          config.realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)) toList)
+      )
 
-    Authorization(creds)
-  }
+      Authorization(creds)
+    }
 
   // Generate an authorization header with the provided user params and OAuth requirements.
   private[oauth1] def genAuthHeader(
