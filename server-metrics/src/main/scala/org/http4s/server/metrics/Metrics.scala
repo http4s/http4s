@@ -14,8 +14,10 @@ object Metrics {
   def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server")(
       implicit F: Effect[F]): HttpMiddleware[F] = withFiltering[F](m, Set.empty, prefix)
 
-  def withFiltering[F[_]](m: MetricRegistry, statusesToIgnore: Set[Status], prefix: String = "org.http4s.server")(
-    implicit F: Effect[F]): HttpMiddleware[F] = { service =>
+  def withFiltering[F[_]](
+      m: MetricRegistry,
+      statusesToIgnore: Set[Status],
+      prefix: String = "org.http4s.server")(implicit F: Effect[F]): HttpMiddleware[F] = { service =>
     val generalServiceMetrics = GeneralServiceMetrics(
       activeRequests = m.counter(s"${prefix}.active-requests"),
       abnormalTerminations = m.timer(s"${prefix}.abnormal-terminations"),
@@ -43,19 +45,21 @@ object Metrics {
       totalReq = m.timer(s"${prefix}.requests")
     )
 
-    val serviceMetrics = ServiceMetrics(generalServiceMetrics, requestTimers, responseTimers, statusesToIgnore)
+    val serviceMetrics = ServiceMetrics(generalServiceMetrics, requestTimers, responseTimers)
 
-    Kleisli(metricsService[F](serviceMetrics, service)(_))
+    Kleisli(metricsService[F](serviceMetrics, statusesToIgnore, service)(_))
 
   }
 
-  private def metricsService[F[_]: Sync](serviceMetrics: ServiceMetrics, service: HttpService[F])(
-      req: Request[F]): OptionT[F, Response[F]] = OptionT {
+  private def metricsService[F[_]: Sync](
+      serviceMetrics: ServiceMetrics,
+      statusesToIgnore: Set[Status],
+      service: HttpService[F])(req: Request[F]): OptionT[F, Response[F]] = OptionT {
     for {
       now <- Sync[F].delay(System.nanoTime())
       _ <- Sync[F].delay(serviceMetrics.generalMetrics.activeRequests.inc())
       e <- service(req).value.attempt
-      resp <- metricsServiceHandler(req.method, now, serviceMetrics, e)
+      resp <- metricsServiceHandler(req.method, now, serviceMetrics, statusesToIgnore, e)
     } yield resp
   }
 
@@ -63,13 +67,14 @@ object Metrics {
       method: Method,
       start: Long,
       serviceMetrics: ServiceMetrics,
+      statusesToIgnore: Set[Status],
       e: Either[Throwable, Option[Response[F]]]): F[Option[Response[F]]] = {
     for {
       elapsed <- EitherT.liftF[F, Throwable, Long](Sync[F].delay(System.nanoTime() - start))
       respOpt <- EitherT(
         e.bitraverse[F, Throwable, Option[Response[F]]](
           manageServiceErrors(method, elapsed, serviceMetrics).as(_),
-          _.map(manageResponse(method, start, elapsed, serviceMetrics)).pure[F]
+          _.map(manageResponse(method, start, elapsed, serviceMetrics, statusesToIgnore)).pure[F]
         ))
     } yield respOpt
   }.fold(
@@ -82,7 +87,8 @@ object Metrics {
       m: Method,
       start: Long,
       elapsedInit: Long,
-      serviceMetrics: ServiceMetrics
+      serviceMetrics: ServiceMetrics,
+      statusesToIgnore: Set[Status]
   )(response: Response[F]): Response[F] = {
     val newBody = response.body
       .onFinalize {
@@ -92,7 +98,11 @@ object Metrics {
           _ <- requestMetrics(
             serviceMetrics.requestTimers,
             serviceMetrics.generalMetrics.activeRequests)(m, elapsed)
-          _ <- responseMetrics(serviceMetrics.responseTimers, response.status, elapsed, serviceMetrics.statusesToIgnore)
+          _ <- responseMetrics(
+            serviceMetrics.responseTimers,
+            response.status,
+            elapsed,
+            statusesToIgnore)
         } yield ()
       }
       .handleErrorWith(
@@ -131,15 +141,12 @@ object Metrics {
       responseTimers: ResponseTimers,
       s: Status,
       elapsed: Long,
-      statusesToIgnore: Set[Status]): F[Unit] = {
-    if(statusesToIgnore.contains(s)) {
+      statusesToIgnore: Set[Status]): F[Unit] =
+    if (statusesToIgnore.contains(s)) {
       Sync[F].unit
     } else {
       incrementCounts(responseTimer(responseTimers, s), elapsed)
     }
-  }
-
-
 
   private def incrementCounts[F[_]: Sync](timer: Timer, elapsed: Long): F[Unit] =
     Sync[F].delay(timer.update(elapsed, TimeUnit.NANOSECONDS))
@@ -199,8 +206,7 @@ object Metrics {
   private case class ServiceMetrics(
       generalMetrics: GeneralServiceMetrics,
       requestTimers: RequestTimers,
-      responseTimers: ResponseTimers,
-      statusesToIgnore: Set[Status]
+      responseTimers: ResponseTimers
   )
 
 }
