@@ -62,7 +62,8 @@ object PrometheusMetrics {
       serviceMetrics: ServiceMetrics,
       service: HttpService[F],
       emptyResponseHandler: Option[Status],
-      errorResponseHandler: Throwable => Option[Status]
+      errorResponseHandler: Throwable => Option[Status],
+      statusesToIgnore: Set[Status]
   )(
       req: Request[F]
   ): OptionT[F, Response[F]] = OptionT {
@@ -78,13 +79,21 @@ object PrometheusMetrics {
             initialTime,
             headersElapsed,
             serviceMetrics,
-            errorResponseHandler(e)) *>
+            errorResponseHandler(e),
+            statusesToIgnore) *>
             Sync[F].raiseError[Option[Response[F]]](e),
         _.fold(
-          onEmpty[F](req.method, initialTime, headersElapsed, serviceMetrics, emptyResponseHandler)
+          onEmpty[F](
+            req.method,
+            initialTime,
+            headersElapsed,
+            serviceMetrics,
+            emptyResponseHandler,
+            statusesToIgnore)
             .as(Option.empty[Response[F]])
         )(
-          onResponse(req.method, initialTime, headersElapsed, serviceMetrics)(_).some.pure[F]
+          onResponse(req.method, initialTime, headersElapsed, serviceMetrics, statusesToIgnore)(_).some
+            .pure[F]
         )
       )
     } yield result
@@ -95,7 +104,8 @@ object PrometheusMetrics {
       start: Long,
       headerTime: Long,
       serviceMetrics: ServiceMetrics,
-      emptyResponseHandler: Option[Status]
+      emptyResponseHandler: Option[Status],
+      statusesToIgnore: Set[Status]
   ): F[Unit] =
     for {
       now <- Sync[F].delay(System.nanoTime)
@@ -109,9 +119,11 @@ object PrometheusMetrics {
             .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
-          serviceMetrics.requestCounter
-            .labels(reportMethod(m), reportStatus(status))
-            .inc()
+          if (!statusesToIgnore.contains(status)) {
+            serviceMetrics.requestCounter
+              .labels(reportMethod(m), reportStatus(status))
+              .inc()
+          }
       })
       _ <- Sync[F].delay(serviceMetrics.activeRequests.dec())
     } yield ()
@@ -120,7 +132,8 @@ object PrometheusMetrics {
       m: Method,
       start: Long,
       headerTime: Long,
-      serviceMetrics: ServiceMetrics
+      serviceMetrics: ServiceMetrics,
+      statusesToIgnore: Set[Status]
   )(
       r: Response[F]
   ): Response[F] = {
@@ -136,9 +149,12 @@ object PrometheusMetrics {
             .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
-          serviceMetrics.requestCounter
-            .labels(reportMethod(m), reportStatus(r.status))
-            .inc()
+          val responseStatus = r.status
+          if (!statusesToIgnore.contains(responseStatus)) {
+            serviceMetrics.requestCounter
+              .labels(reportMethod(m), reportStatus(responseStatus))
+              .inc()
+          }
 
           serviceMetrics.activeRequests.dec()
         }
@@ -156,7 +172,8 @@ object PrometheusMetrics {
       start: Long,
       headerTime: Long,
       serviceMetrics: ServiceMetrics,
-      errorResponseHandler: Option[Status]
+      errorResponseHandler: Option[Status],
+      statusesToIgnore: Set[Status]
   ): F[Unit] =
     for {
       now <- Sync[F].delay(System.nanoTime)
@@ -170,9 +187,11 @@ object PrometheusMetrics {
             .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
-          serviceMetrics.requestCounter
-            .labels(reportMethod(m), reportStatus(status))
-            .inc()
+          if (!statusesToIgnore.contains(status)) {
+            serviceMetrics.requestCounter
+              .labels(reportMethod(m), reportStatus(status))
+              .inc()
+          }
 
           serviceMetrics.abnormalTerminations
             .labels(AbnormalTermination.report(AbnormalTermination.ServerError))
@@ -215,6 +234,15 @@ object PrometheusMetrics {
       prefix: String = "org_http4s_server",
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some
+  ): Kleisli[F, HttpService[F], HttpService[F]] =
+    withFiltering(c, Set.empty, prefix, emptyResponseHandler, errorResponseHandler)
+
+  def withFiltering[F[_]: Sync](
+      c: CollectorRegistry,
+      statusesToIgnore: Set[Status],
+      prefix: String = "org_http4s_server",
+      emptyResponseHandler: Option[Status] = Status.NotFound.some,
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some
   ): Kleisli[F, HttpService[F], HttpService[F]] = Kleisli { service: HttpService[F] =>
     Sync[F].delay {
       val serviceMetrics =
@@ -244,7 +272,12 @@ object PrometheusMetrics {
             .register(c)
         )
       Kleisli(
-        metricsService[F](serviceMetrics, service, emptyResponseHandler, errorResponseHandler)(_)
+        metricsService[F](
+          serviceMetrics,
+          service,
+          emptyResponseHandler,
+          errorResponseHandler,
+          statusesToIgnore)(_)
       )
     }
   }
