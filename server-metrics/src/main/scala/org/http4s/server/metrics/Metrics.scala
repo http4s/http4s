@@ -12,7 +12,10 @@ import java.util.concurrent.TimeUnit
 object Metrics {
 
   def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server")(
-      implicit F: Effect[F]): HttpMiddleware[F] = { service =>
+      implicit F: Effect[F]): HttpMiddleware[F] = withFiltering[F](m, Set.empty, prefix)
+
+  def withFiltering[F[_]](m: MetricRegistry, statusesToIgnore: Set[Status], prefix: String = "org.http4s.server")(
+    implicit F: Effect[F]): HttpMiddleware[F] = { service =>
     val generalServiceMetrics = GeneralServiceMetrics(
       activeRequests = m.counter(s"${prefix}.active-requests"),
       abnormalTerminations = m.timer(s"${prefix}.abnormal-terminations"),
@@ -40,9 +43,10 @@ object Metrics {
       totalReq = m.timer(s"${prefix}.requests")
     )
 
-    val serviceMetrics = ServiceMetrics(generalServiceMetrics, requestTimers, responseTimers)
+    val serviceMetrics = ServiceMetrics(generalServiceMetrics, requestTimers, responseTimers, statusesToIgnore)
 
     Kleisli(metricsService[F](serviceMetrics, service)(_))
+
   }
 
   private def metricsService[F[_]: Sync](serviceMetrics: ServiceMetrics, service: HttpService[F])(
@@ -88,7 +92,7 @@ object Metrics {
           _ <- requestMetrics(
             serviceMetrics.requestTimers,
             serviceMetrics.generalMetrics.activeRequests)(m, elapsed)
-          _ <- responseMetrics(serviceMetrics.responseTimers, response.status, elapsed)
+          _ <- responseMetrics(serviceMetrics.responseTimers, response.status, elapsed, serviceMetrics.statusesToIgnore)
         } yield ()
       }
       .handleErrorWith(
@@ -126,8 +130,16 @@ object Metrics {
   private def responseMetrics[F[_]: Sync](
       responseTimers: ResponseTimers,
       s: Status,
-      elapsed: Long): F[Unit] =
-    incrementCounts(responseTimer(responseTimers, s), elapsed)
+      elapsed: Long,
+      statusesToIgnore: Set[Status]): F[Unit] = {
+    if(statusesToIgnore.contains(s)) {
+      Sync[F].unit
+    } else {
+      incrementCounts(responseTimer(responseTimers, s), elapsed)
+    }
+  }
+
+
 
   private def incrementCounts[F[_]: Sync](timer: Timer, elapsed: Long): F[Unit] =
     Sync[F].delay(timer.update(elapsed, TimeUnit.NANOSECONDS))
@@ -187,7 +199,8 @@ object Metrics {
   private case class ServiceMetrics(
       generalMetrics: GeneralServiceMetrics,
       requestTimers: RequestTimers,
-      responseTimers: ResponseTimers
+      responseTimers: ResponseTimers,
+      statusesToIgnore: Set[Status]
   )
 
 }
