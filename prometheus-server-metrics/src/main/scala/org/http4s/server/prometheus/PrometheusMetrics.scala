@@ -237,6 +237,11 @@ object PrometheusMetrics {
   ): Kleisli[F, HttpService[F], HttpService[F]] =
     withFiltering(c, Set.empty, prefix, emptyResponseHandler, errorResponseHandler)
 
+  /**
+    * Same behavior as apply except lets you filter out http status codes from the response metrics.
+    * For example keeping http status 503 from being included in the 5xx response metrics.
+    * Note that by filtering out response metrics by status codes the response metrics will no longer match the request metrics one to one.
+    */
   def withFiltering[F[_]: Sync](
       c: CollectorRegistry,
       statusesToIgnore: Set[Status],
