@@ -8,6 +8,56 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-M5 (2019-09-19)
+
+## Breaking changes
+
+* [#2815](https://github.com/http4s/http4s/pull/2815): Allow `Allow` header to specify an empty set of methods.
+* [#2832](https://github.com/http4s/http4s/pull/2836): Add natural transformation to `ResponseGenerator` to allow the `F` and `G` to work in unison. Relevant for http4s-directives.
+
+## Enhancements
+
+* [#2836](https://github.com/http4s/http4s/pull/2836): Add `additionalSocketOptions` to ember configs
+* [#2869](https://github.com/http4s/http4s/pull/2869): Add JsonDebugErrorHandler middleware
+* [#2830](https://github.com/http4s/http4s/pull/2830): Add encoder and decoder helpers to `Uri` companion
+
+## Documentation
+
+* [#2733](https://github.com/http4s/http4s/pull/2733): Add CSRF documentation
+
+## Dependency updates
+
+* async-http-client-2.10.2
+* cats-2.0.0
+* cats-effect-2.0.0
+* circe-0.12.1
+* fs2-2.0.0
+* keypool-2.0.0
+* log4cats-core-1.0.0
+* okhttp-4.2.0
+* jawn-fs2-0.15.0
+* tomcat-9.0.24
+* vault-2.0.0
+
+# v0.20.11 (2019-09-19)
+
+## Breaking changes
+
+* [#2792](https://github.com/http4s/http4s/pull/2792): Drop support for Scala 2.13.0-M5. Users of Scala 2.13 should be on a stable release of Scala on the http4s-0.21 release series.
+* [#2800](https://github.com/http4s/http4s/pull/2800): Revert [#2785](https://github.com/http4s/http4s/pull/2785), using `F[A]` instead of `G[A]` in `EntityResponseGenerator`, which broke directives.
+
+## Bug fixes
+
+* [#2807](https://github.com/http4s/http4s/pull/2807): In jetty-client, don't follow redirects with the internal client, which throws an exception in the http4s wrapper.
+
+## Enhancements
+
+* [#2817](https://github.com/http4s/http4s/pull/2817): In jetty-client, disable internal client's default `Content-Type` to prevent default `application/octet-stream` for empty bodies.
+
+## Dependency updates
+
+* jetty-9.4.20
+
 # v0.21.0-M4 (2019-08-14)
 
 ## Dependency updates

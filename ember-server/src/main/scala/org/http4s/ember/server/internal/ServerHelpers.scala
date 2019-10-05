@@ -28,6 +28,7 @@ private[server] object ServerHelpers {
       receiveBufferSize: Int = 256 * 1024,
       maxHeaderSize: Int = 10 * 1024,
       requestHeaderReceiveTimeout: Duration = 5.seconds,
+      additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
   )(implicit C: Clock[F]): Stream[F, Nothing] = {
 
@@ -38,7 +39,8 @@ private[server] object ServerHelpers {
     def socketReadRequest(
         socket: Socket[F],
         requestHeaderReceiveTimeout: Duration,
-        receiveBufferSize: Int): F[Request[F]] = {
+        receiveBufferSize: Int
+    ): F[Request[F]] = {
       val (initial, readDuration) = requestHeaderReceiveTimeout match {
         case fin: FiniteDuration => (true, fin)
         case _ => (false, 0.millis)
@@ -61,7 +63,7 @@ private[server] object ServerHelpers {
       .eval(termSignal)
       .flatMap(
         terminationSignal =>
-          sg.server[F](bindAddress)
+          sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
             .map(connect =>
               Stream.eval(
                 connect.use { socket =>

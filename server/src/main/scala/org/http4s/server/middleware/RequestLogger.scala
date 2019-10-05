@@ -72,7 +72,7 @@ object RequestLogger {
                   case ExitCase.Completed => G.unit
                   case _ => fk(logRequest)
                 }
-                .map(resp => resp.withBodyStream(resp.body.onFinalize(logRequest)))
+                .map(resp => resp.withBodyStream(resp.body.onFinalizeWeak(logRequest)))
             response
           }
       }

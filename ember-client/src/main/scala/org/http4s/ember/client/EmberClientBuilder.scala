@@ -14,6 +14,7 @@ import org.http4s.headers.Connection
 import org.http4s.Response
 import org.http4s.client._
 import fs2.io.tcp.SocketGroup
+import fs2.io.tcp.SocketOptionMapping
 import scala.concurrent.duration.Duration
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
@@ -25,7 +26,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val logger: Logger[F],
     val chunkSize: Int,
     val maxResponseHeaderSize: Int,
-    val timeout: Duration
+    val timeout: Duration,
+    val additionalSocketOptions: List[SocketOptionMapping[_]]
 ) { self =>
 
   private def copy(
@@ -37,7 +39,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       logger: Logger[F] = self.logger,
       chunkSize: Int = self.chunkSize,
       maxResponseHeaderSize: Int = self.maxResponseHeaderSize,
-      timeout: Duration = self.timeout
+      timeout: Duration = self.timeout,
+      additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions
   ): EmberClientBuilder[F] = new EmberClientBuilder[F](
     sslContextOpt = sslContextOpt,
     sgR = sgR,
@@ -47,7 +50,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     logger = logger,
     chunkSize = chunkSize,
     maxResponseHeaderSize = maxResponseHeaderSize,
-    timeout = timeout
+    timeout = timeout,
+    additionalSocketOptions = additionalSocketOptions
   )
 
   def withSslContext(sslExecutionContext: ExecutionContext, sslContext: SSLContext) =
@@ -65,6 +69,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withMaxResponseHeaderSize(maxResponseHeaderSize: Int) =
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
   def withTimeout(timeout: Duration) = copy(timeout = timeout)
+  def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOptionMapping[_]]) =
+    copy(additionalSocketOptions = additionalSocketOptions)
 
   def build: Resource[F, Client[F]] =
     for {
@@ -76,7 +82,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               .requestKeyToSocketWithKey[F](
                 requestKey,
                 sslContextOpt,
-                sg
+                sg,
+                additionalSocketOptions
               )
               .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
           }, {
@@ -115,7 +122,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 timeout
               )(logger)
               .map(response =>
-                response.copy(body = response.body.onFinalizeCase {
+                response.copy(body = response.body.onFinalizeCaseWeak {
                   case ExitCase.Completed =>
                     val requestClose = request.headers.get(Connection).exists(_.hasClose)
                     val responseClose = response.isChunked || response.headers
@@ -149,7 +156,8 @@ object EmberClientBuilder {
     Slf4jLogger.getLogger[F],
     Defaults.chunkSize,
     Defaults.maxResponseHeaderSize,
-    Defaults.timeout
+    Defaults.timeout,
+    Defaults.additionalSocketOptions
   )
 
   private object Defaults {
@@ -169,6 +177,7 @@ object EmberClientBuilder {
     }
     val maxTotal = 100
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
+    val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
   }
 
   private def tryDefaultSslContext: Option[SSLContext] =
