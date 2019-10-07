@@ -312,9 +312,9 @@ object PrometheusMetrics {
       prefix: String = "org_http4s_server",
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
-      requestFiltering: RequestFiltering[F] = Function.const[FilteringRule, Request[F]](Record)(_),
+      requestFiltering: RequestFiltering[F] = Function.const[FilteringRule, Request[F]](Record)(_:Request[F]),
       responseFiltering: ResponseFiltering[F] =
-        Function.const[FilteringRule, Response[F]](Record)(_)
+        Function.const[FilteringRule, Response[F]](Record)(_:Response[F])
   ): Kleisli[F, HttpService[F], HttpService[F]] = Kleisli { service: HttpService[F] =>
     Sync[F].delay {
       val serviceMetrics =
