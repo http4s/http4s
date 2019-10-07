@@ -1,5 +1,6 @@
 package org.http4s.server.prometheus
 
+import cats.Monoid
 import io.prometheus.client._
 import cats.data._
 import cats.effect._
@@ -58,41 +59,53 @@ object PrometheusMetrics {
       abnormalTerminations: Counter
   )
 
+  import FilteringRule._
   private def metricsService[F[_]: Sync](
       serviceMetrics: ServiceMetrics,
       service: HttpService[F],
       emptyResponseHandler: Option[Status],
       errorResponseHandler: Throwable => Option[Status],
-      statusesToIgnore: Set[Status]
+      requestFiltering: RequestFiltering[F],
+      responseFiltering: ResponseFiltering[F]
   )(
       req: Request[F]
   ): OptionT[F, Response[F]] = OptionT {
     for {
       initialTime <- Sync[F].delay(System.nanoTime())
-      _ <- Sync[F].delay(serviceMetrics.activeRequests.inc())
+      _ <- Sync[F].delay(
+        requestFiltering(req).fold(record = serviceMetrics.activeRequests.inc(), reject = ())
+      )
       responseAtt <- service(req).value.attempt
       headersElapsed <- Sync[F].delay(System.nanoTime())
       result <- responseAtt.fold(
         e =>
           onServiceError(
-            req.method,
+            req,
             initialTime,
             headersElapsed,
             serviceMetrics,
             errorResponseHandler(e),
-            statusesToIgnore) *>
+            requestFiltering,
+            responseFiltering) *>
             Sync[F].raiseError[Option[Response[F]]](e),
         _.fold(
           onEmpty[F](
-            req.method,
+            req,
             initialTime,
             headersElapsed,
             serviceMetrics,
             emptyResponseHandler,
-            statusesToIgnore)
+            requestFiltering,
+            responseFiltering)
             .as(Option.empty[Response[F]])
         )(
-          onResponse(req.method, initialTime, headersElapsed, serviceMetrics, statusesToIgnore)(_).some
+          onResponse(
+            req,
+            initialTime,
+            headersElapsed,
+            serviceMetrics,
+            requestFiltering,
+            responseFiltering)(_).some
             .pure[F]
         )
       )
@@ -100,63 +113,77 @@ object PrometheusMetrics {
   }
 
   private def onEmpty[F[_]: Sync](
-      m: Method,
+      request: Request[F],
       start: Long,
       headerTime: Long,
       serviceMetrics: ServiceMetrics,
       emptyResponseHandler: Option[Status],
-      statusesToIgnore: Set[Status]
+      requestFiltering: RequestFiltering[F],
+      responseFiltering: ResponseFiltering[F]
   ): F[Unit] =
     for {
       now <- Sync[F].delay(System.nanoTime)
+      m = request.method
       _ <- emptyResponseHandler.traverse_(status =>
         Sync[F].delay {
-          serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
-            .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
+          val response = Response[F](status = status)
+          (requestFiltering(request) |+|
+            responseFiltering(response)).fold(
+            record = {
+              serviceMetrics.requestDuration
+                .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
+                .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
 
-          serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
-            .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
+              serviceMetrics.requestDuration
+                .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
+                .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
-          if (!statusesToIgnore.contains(status)) {
-            serviceMetrics.requestCounter
-              .labels(reportMethod(m), reportStatus(status))
-              .inc()
-          }
+              serviceMetrics.requestCounter
+                .labels(reportMethod(m), reportStatus(status))
+                .inc()
+            },
+            reject = ()
+          )
       })
-      _ <- Sync[F].delay(serviceMetrics.activeRequests.dec())
+      _ <- Sync[F].delay(
+        requestFiltering(request).fold(record = serviceMetrics.activeRequests.dec(), reject = ())
+      )
     } yield ()
 
   private def onResponse[F[_]: Sync](
-      m: Method,
+      request: Request[F],
       start: Long,
       headerTime: Long,
       serviceMetrics: ServiceMetrics,
-      statusesToIgnore: Set[Status]
+      requestFiltering: RequestFiltering[F],
+      responseFiltering: ResponseFiltering[F]
   )(
-      r: Response[F]
+      response: Response[F]
   ): Response[F] = {
-    val newBody = r.body
+    val newBody = response.body
       .onFinalize {
         Sync[F].delay {
           val now = System.nanoTime
-          serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
-            .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
+          val m = request.method
+          (requestFiltering(request) |+| responseFiltering(response)).fold(
+            record = {
+              serviceMetrics.requestDuration
+                .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
+                .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
 
-          serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
-            .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
+              serviceMetrics.requestDuration
+                .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
+                .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
-          val responseStatus = r.status
-          if (!statusesToIgnore.contains(responseStatus)) {
-            serviceMetrics.requestCounter
-              .labels(reportMethod(m), reportStatus(responseStatus))
-              .inc()
-          }
+              val responseStatus = response.status
+              serviceMetrics.requestCounter
+                .labels(reportMethod(m), reportStatus(responseStatus))
+                .inc()
 
-          serviceMetrics.activeRequests.dec()
+              serviceMetrics.activeRequests.dec()
+            },
+            reject = ()
+          )
         }
       }
       .handleErrorWith(e =>
@@ -164,42 +191,53 @@ object PrometheusMetrics {
           serviceMetrics.abnormalTerminations.labels(
             AbnormalTermination.report(AbnormalTermination.Abnormal))
         }) *> Stream.raiseError[Byte](e).covary[F])
-    r.copy(body = newBody)
+    response.copy(body = newBody)
   }
 
   private def onServiceError[F[_]: Sync](
-      m: Method,
+      request: Request[F],
       start: Long,
       headerTime: Long,
       serviceMetrics: ServiceMetrics,
       errorResponseHandler: Option[Status],
-      statusesToIgnore: Set[Status]
+      requestFiltering: RequestFiltering[F],
+      responseFiltering: ResponseFiltering[F]
   ): F[Unit] =
     for {
       now <- Sync[F].delay(System.nanoTime)
+      m = request.method
       _ <- errorResponseHandler.traverse_(status =>
         Sync[F].delay {
-          serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
-            .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
 
-          serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
-            .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
+          val response = Response[F](status = status)
 
-          if (!statusesToIgnore.contains(status)) {
-            serviceMetrics.requestCounter
-              .labels(reportMethod(m), reportStatus(status))
-              .inc()
-          }
+          (requestFiltering(request) |+| responseFiltering(response)).fold(
+            record = {
+              serviceMetrics.requestDuration
+                .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
+                .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
 
-          serviceMetrics.abnormalTerminations
-            .labels(AbnormalTermination.report(AbnormalTermination.ServerError))
-            .inc()
+              serviceMetrics.requestDuration
+                .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
+                .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
+              serviceMetrics.requestCounter
+                .labels(reportMethod(m), reportStatus(status))
+                .inc()
+
+              serviceMetrics.abnormalTerminations
+                .labels(AbnormalTermination.report(AbnormalTermination.ServerError))
+                .inc()
+            },
+            reject = ()
+          )
       })
       _ <- Sync[F].delay {
-        serviceMetrics.activeRequests.dec()
+        requestFiltering(request).fold(
+          record = serviceMetrics.activeRequests.dec(),
+          reject = ()
+        )
+
       }
     } yield ()
 
@@ -235,7 +273,34 @@ object PrometheusMetrics {
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some
   ): Kleisli[F, HttpService[F], HttpService[F]] =
-    withFiltering(c, Set.empty, prefix, emptyResponseHandler, errorResponseHandler)
+    withFiltering(c, prefix, emptyResponseHandler, errorResponseHandler)
+
+  sealed trait FilteringRule
+  case object Record extends FilteringRule
+  case object Reject extends FilteringRule
+
+  object FilteringRule {
+    implicit class FilteringRulOps(f: FilteringRule) {
+      def fold[A](record: => A, reject: => A): A = f match {
+        case Record => record
+        case Reject => reject
+      }
+    }
+
+    implicit val filteringRuleMonoid: Monoid[FilteringRule] = new Monoid[FilteringRule] {
+      override def empty: FilteringRule = Record
+
+      override def combine(lhs: FilteringRule, rhs: FilteringRule): FilteringRule =
+        (lhs, rhs) match {
+          case (Reject, _) => Reject
+          case (_, Reject) => Reject
+          case (Record, Record) => Record
+        }
+    }
+  }
+
+  type RequestFiltering[F[_]] = Request[F] => FilteringRule
+  type ResponseFiltering[F[_]] = Response[F] => FilteringRule
 
   /**
     * Same behavior as apply except lets you filter out http status codes from the response metrics.
@@ -244,10 +309,12 @@ object PrometheusMetrics {
     */
   def withFiltering[F[_]: Sync](
       c: CollectorRegistry,
-      statusesToIgnore: Set[Status],
       prefix: String = "org_http4s_server",
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
-      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
+      requestFiltering: RequestFiltering[F] = Function.const[FilteringRule, Request[F]](Record)(_),
+      responseFiltering: ResponseFiltering[F] =
+        Function.const[FilteringRule, Response[F]](Record)(_)
   ): Kleisli[F, HttpService[F], HttpService[F]] = Kleisli { service: HttpService[F] =>
     Sync[F].delay {
       val serviceMetrics =
@@ -282,7 +349,8 @@ object PrometheusMetrics {
           service,
           emptyResponseHandler,
           errorResponseHandler,
-          statusesToIgnore)(_)
+          requestFiltering,
+          responseFiltering)(_)
       )
     }
   }
