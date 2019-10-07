@@ -303,9 +303,9 @@ object PrometheusMetrics {
   type ResponseFiltering[F[_]] = Response[F] => FilteringRule
 
   /**
-    * Same behavior as apply except lets you filter out http status codes from the response metrics.
+    * Same behavior as apply except lets you filter requests or responses out of metrics.
     * For example keeping http status 503 from being included in the 5xx response metrics.
-    * Note that by filtering out response metrics by status codes the response metrics will no longer match the request metrics one to one.
+    * Note that by filtering the response metrics will no longer match the request metrics one to one.
     */
   def withFiltering[F[_]: Sync](
       c: CollectorRegistry,
