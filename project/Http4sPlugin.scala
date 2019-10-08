@@ -2,9 +2,9 @@ package org.http4s.build
 
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
-import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
-import com.typesafe.sbt.pgp.PgpKeys.publishSigned
+import com.jsuereth.sbtpgp.PgpKeys.publishSigned
+import com.jsuereth.sbtpgp.SbtPgp.autoImport._
 import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
@@ -179,7 +179,6 @@ object Http4sPlugin extends AutoPlugin {
   )
 
   val signingSettings = Seq(
-    useGpg := false,
     usePgpKeyHex("42FAD8A85B13261D"),
     pgpPublicRing := baseDirectory.value / "project" / ".gnupg" / "pubring.gpg",
     pgpSecretRing := baseDirectory.value / "project" / ".gnupg" / "secring.gpg",

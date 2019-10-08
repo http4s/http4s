@@ -9,7 +9,7 @@ addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.
 addSbtPlugin("com.github.cb372"           %  "sbt-explicit-dependencies" % "0.2.11")
 addSbtPlugin("com.github.gseitz"          %  "sbt-release"               % "1.0.11")
 addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.5")
-addSbtPlugin("com.jsuereth"               %  "sbt-pgp"                   % "1.1.2")
+addSbtPlugin("com.jsuereth"               %  "sbt-pgp"                   % "2.0.0")
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.5.0")
 addSbtPlugin("com.typesafe"               %  "sbt-mima-plugin"           % "0.6.1")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-ghpages"               % "0.6.3")
