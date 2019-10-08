@@ -152,7 +152,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
   }
 
   private def writeBody(req: Request[F], conn: HttpURLConnection): F[Unit] =
-    if (req.isChunked) {
+    if (req.isChunked || req.contentLength.isEmpty) {
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
         req.body

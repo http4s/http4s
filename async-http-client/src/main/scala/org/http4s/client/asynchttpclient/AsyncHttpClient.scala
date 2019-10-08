@@ -136,10 +136,33 @@ object AsyncHttpClient {
       req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)))
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)
     else
-      req.contentLength match {
-        case Some(len) => new ReactiveStreamsBodyGenerator(publisher, len)
-        case None => EmptyBodyGenerator
-      }
+      // As far as I can tell there are three valid options when
+      // `req.contentLength.isEmpty`, none are particularly pleasant.
+      //
+      // 1. We can pass in -1 to the ReactiveStreamsBodyGenerator, this will
+      //    cause a 'Transfer-Encoding: chunked' header to be added to the
+      //    request headers. This is disadvantageous as this header will not
+      //    be reflected in the `req.headers` value, and thus may be
+      //    surprising to some users.
+      //
+      // 2. We can strictly resolve the body and compute the content length
+      //    here. The assumption here is that the request was intended to be
+      //    non-streaming because otherwise the user would have created the
+      //    request in such a way that `isChunked` would have been set to
+      //    `true`.
+      //
+      // 3. Make it impossible for
+      //    `_.isChunked == false && // _.contentLength.isEmpty`
+      //
+      // The final option is the most appealing to me, as this seems most
+      // inline with Request messages via the RFC
+      // [[https://tools.ietf.org/html/rfc7230#section-3.3.2]], but it may
+      // have more far reaching consequences to the existing code.
+      //
+      // For that reason, for now, we will force chunked encoding as it seems
+      // to be the most safe. Servers should already be able to handle chunked
+      // encoding and it doesn't risk exploding memory usage.
+      new ReactiveStreamsBodyGenerator(publisher, req.contentLength.getOrElse(-1))
   }
 
   private def getStatus(status: HttpResponseStatus): Status =

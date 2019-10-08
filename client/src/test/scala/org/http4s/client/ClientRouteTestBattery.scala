@@ -13,6 +13,7 @@ import org.http4s.dsl.io._
 import org.http4s.multipart.{Multipart, Part}
 import org.specs2.specification.core.Fragments
 import scala.concurrent.duration._
+import java.nio.charset.StandardCharsets.UTF_8
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http4sClientDsl[IO] {
   val timeout = 20.seconds
@@ -101,6 +102,18 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
           val req = POST(multipart, uri).map(_.withHeaders(multipart.headers))
           val body = client.expect[String](req)
           body must returnValue(containing("This is text."))
+        }
+
+        "Preserve send the body even if neither contentLength or isChunked are set." in {
+          val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+          val req: Request[IO] =
+            Request[IO](
+              method = POST,
+              uri = uri,
+              body = Stream.emits("This is normal.".getBytes(UTF_8))
+            )
+          val body = client.expect[String](req)
+          body must returnValue("This is normal.")
         }
       }
     }
