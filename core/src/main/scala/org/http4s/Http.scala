@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats.Applicative
+import cats._
 import cats.data.Kleisli
 import cats.effect.Sync
 
@@ -16,8 +16,8 @@ object Http {
     * @param run the function to lift
     * @return an [[Http]] that suspends `run`.
     */
-  def apply[F[_], G[_]](run: Request[G] => F[Response[G]])(implicit F: Sync[F]): Http[F, G] =
-    Kleisli(req => F.suspend(run(req)))
+  def apply[F[_], G[_]](run: Request[G] => F[Response[G]])(implicit F: Defer[F]): Http[F, G] =
+    Kleisli(req => F.defer(run(req)))
 
   /** Lifts an effectful [[Response]] into an [[Http]] kleisli.
     *
@@ -51,6 +51,6 @@ object Http {
     * being applied to `fa`
     */
   def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(
-      implicit F: Sync[F]): Http[F, G] =
-    Kleisli(req => F.suspend(fa.run(f(req))))
+      implicit F: Defer[F]): Http[F, G] =
+    Kleisli(req => F.defer(fa.run(f(req))))
 }
