@@ -2,7 +2,6 @@ package org.http4s
 
 import cats._
 import cats.data.Kleisli
-import cats.effect.Sync
 
 /** Functions for creating [[Http]] kleislis. */
 object Http {

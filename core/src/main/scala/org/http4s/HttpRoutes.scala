@@ -53,7 +53,8 @@ object HttpRoutes {
     * partial function is suspended in `F` to permit more efficient combination
     * of routes via `SemigroupK`.
     *
-    * @tparam F the base effect of the [[HttpRoutes]]
+    * @tparam F the base effect of the [[HttpRoutes]] - Defer suspends evaluation
+    * of routes, so only 1 section of routes is checked at a time.
     * @param pf the partial function to lift
     * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, ?]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
