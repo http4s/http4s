@@ -32,7 +32,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = MimaPlugin && ScalafmtPlugin
 
-  val scala_213 = "2.13.0"
+  val scala_213 = "2.13.1"
   val scala_212 = "2.12.9"
 
   override lazy val buildSettings = Seq(
@@ -57,7 +57,7 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-    // Getting some spurious unreachable code warnings in 2.13.0
+    // Getting some spurious unreachable code warnings in 2.13
     scalacOptions -= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 13)) =>
@@ -97,7 +97,7 @@ object Http4sPlugin extends AutoPlugin {
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Support.this")
     ),
 
-    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary),
+    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 
     http4sBuildData := {
