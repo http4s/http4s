@@ -115,6 +115,12 @@ trait CirceInstances extends JawnInstances {
       Uri.fromString(str).leftMap(_ => "Uri")
     }
 
+  implicit class JsonDecoderSyntax[F[_]: JsonDecoder](private val req: Message[F])(
+      implicit F: JsonDecoder[F]) {
+    def asJson: F[Json] = F.asJson(req)
+    def asJsonDecode[A: Decoder]: F[A] = F.asJsonDecode(req)
+  }
+
   implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
     def decodeJson[A](implicit decoder: Decoder[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
