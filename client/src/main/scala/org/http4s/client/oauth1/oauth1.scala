@@ -7,7 +7,16 @@ import cats.implicits._
 import java.nio.charset.StandardCharsets
 
 import javax.crypto
-import org.http4s.client.oauth1.Header.Custom
+import org.http4s.client.oauth1.ProtocolParameter.{
+  Callback,
+  Custom,
+  Nonce,
+  Realm,
+  SignatureMethod,
+  Timestamp,
+  Verifier,
+  Version
+}
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
@@ -44,42 +53,90 @@ package object oauth1 {
         req.putHeaders(auth)
     }
 
-  def signRequest[F[_]](req: Request[F], authConfig: OAuthConfig[F])(
-      implicit F: MonadError[F, Throwable],
-      W: EntityDecoder[F, UrlForm]): F[Request[F]] =
+  def signRequest[F[_]](
+      req: Request[F],
+      consumer: ProtocolParameter.Consumer,
+      token: Option[ProtocolParameter.Token],
+      realm: Option[Realm],
+      signatureMethod: SignatureMethod = ProtocolParameter.SignatureMethod(),
+      timestampGenerator: F[Timestamp],
+      version: ProtocolParameter.Version = Version(),
+      nonceGenerator: F[Nonce],
+      callback: Option[Callback] = None,
+      verifier: Option[Verifier] = None
+  )(implicit F: MonadError[F, Throwable], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     for {
       (req, params) <- getUserParams(req)
-      auth <- genAuthHeader(req.method, req.uri, authConfig, params.map {
-        case (k, v) => Custom(k, v)
-      })
+      auth <- genAuthHeader(
+        req.method,
+        req.uri,
+        consumer,
+        token,
+        realm,
+        signatureMethod,
+        timestampGenerator,
+        version,
+        nonceGenerator,
+        callback,
+        verifier,
+        params.map {
+          case (k, v) => Custom(k, v)
+        }
+      )
     } yield req.putHeaders(auth)
 
-  def takeSigHeaders[F[_]: Monad](config: OAuthConfig[F]): F[immutable.Seq[Header]] =
+  def takeSigHeaders[F[_]: Monad](
+      consumer: ProtocolParameter.Consumer,
+      token: Option[ProtocolParameter.Token],
+      signatureMethod: SignatureMethod,
+      timestampGenerator: F[Timestamp],
+      version: ProtocolParameter.Version,
+      nonceGenerator: F[Nonce],
+      callback: Option[Callback],
+      verifier: Option[Verifier]
+  ): F[immutable.Seq[ProtocolParameter]] =
     for {
-      timestamp <- config.timestampGenerator
-      nonce <- config.nonceGenerator
+      timestamp <- timestampGenerator
+      nonce <- nonceGenerator
     } yield {
       val headers =
-        immutable.Seq(config.consumer, config.signatureMethod, timestamp, nonce, config.version)
-      config.token.fold(headers)(headers :+ _)
+        List(consumer, signatureMethod, timestamp, nonce, version)
+      headers ++ List(token, callback, verifier).flatten
     }
 
   private[oauth1] def genAuthHeader[F[_]: Monad](
       method: Method,
       uri: Uri,
-      config: OAuthConfig[F],
-      queryParams: Seq[Header]): F[Authorization] =
-    takeSigHeaders(config).map { headers =>
+      consumer: ProtocolParameter.Consumer,
+      token: Option[ProtocolParameter.Token],
+      realm: Option[Realm],
+      signatureMethod: SignatureMethod,
+      timestampGenerator: F[Timestamp],
+      version: ProtocolParameter.Version,
+      nonceGenerator: F[Nonce],
+      callback: Option[Callback],
+      verifier: Option[Verifier],
+      queryParams: Seq[ProtocolParameter]): F[Authorization] =
+    takeSigHeaders(
+      consumer,
+      token,
+      signatureMethod,
+      timestampGenerator,
+      version,
+      nonceGenerator,
+      callback,
+      verifier
+    ).map { headers =>
       val baseStr = mkBaseString(
         method,
         uri,
-        (headers ++ queryParams).sorted.map(Show[Header].show).mkString("&"))
-      val sig = makeSHASig(baseStr, config.consumer.secret, config.token.map(_.secret))
+        (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
+      val sig = makeSHASig(baseStr, consumer.secret, token.map(_.secret))
       val creds = Credentials.AuthParams(
         "OAuth".ci,
         NonEmptyList(
           "oauth_signature" -> encode(sig),
-          config.realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)) toList)
+          realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)) toList)
       )
 
       Authorization(creds)
