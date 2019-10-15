@@ -32,7 +32,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = MimaPlugin && ScalafmtPlugin
 
-  val scala_213 = "2.13.0"
+  val scala_213 = "2.13.1"
   val scala_212 = "2.12.9"
 
   override lazy val buildSettings = Seq(
@@ -57,7 +57,7 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-    // Getting some spurious unreachable code warnings in 2.13.0
+    // Getting some spurious unreachable code warnings in 2.13
     scalacOptions -= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 13)) =>
@@ -97,7 +97,7 @@ object Http4sPlugin extends AutoPlugin {
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Support.this")
     ),
 
-    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.10.3" cross CrossVersion.binary),
+    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 
     http4sBuildData := {
@@ -252,7 +252,7 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.3"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.4"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.8"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0"
@@ -260,7 +260,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
-  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.12.1"
+  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.12.2"
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % circeGeneric.revision
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeGeneric.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeGeneric.revision
@@ -276,9 +276,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.15.0"
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.2"
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.2"
-  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.20.v20190813"
+  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.21.v20190926"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
-  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.20.v20190813"
+  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.21.v20190926"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.6.7"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
@@ -306,7 +306,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.26"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.27"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.2"
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "2.0.0"

@@ -79,28 +79,22 @@ object Logger {
       message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
     } else if (logBody) {
       message.body
-        .fold(new StringBuilder)((sb, b) => sb.append(java.lang.Integer.toHexString(b & 0xff)))
-        .map(_.toString)
+        .map(b => java.lang.Integer.toHexString(b & 0xff))
     } else {
       Stream.empty.covary[F]
     }
 
     val bodyText = if (logBody) {
-      bodyStream.fold("")(_ + _).map(text => s"""body="$text"""")
+      bodyStream.compile.string
+        .map(text => s"""body="$text"""")
     } else {
-      Stream("").covary[F]
+      F.pure("")
     }
 
-    def msg(body: String) =
-      (logHeaders, logBody) match {
-        case (false, false) => prelude
-        case _ => s"$prelude $headers $body"
-      }
+    def spaced(x: String): String = if (x.isEmpty) x else s" $x"
 
     bodyText
-      .map(msg)
-      .evalMap(log)
-      .compile
-      .drain
+      .map(body => s"$prelude${spaced(headers)}${spaced(body)}")
+      .flatMap(log)
   }
 }
