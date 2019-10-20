@@ -16,6 +16,9 @@ private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBu
   override def invalidate(connection: A): F[Unit] =
     F.delay(connection.shutdown())
 
+  override def currentWaitQueueSize: F[Option[Int]] =
+    F.pure(None)
+
   override def release(connection: A): F[Unit] =
     invalidate(connection)
 }
