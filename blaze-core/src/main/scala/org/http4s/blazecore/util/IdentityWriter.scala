@@ -11,7 +11,7 @@ import org.http4s.util.StringWriter
 import org.log4s.getLogger
 import scala.concurrent.{ExecutionContext, Future}
 
-private[http4s] class IdentityWriter[F[_]](size: Int, out: TailStage[ByteBuffer])(
+private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(
     implicit protected val F: Effect[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
@@ -19,11 +19,11 @@ private[http4s] class IdentityWriter[F[_]](size: Int, out: TailStage[ByteBuffer]
   private[this] val logger = getLogger
   private[this] var headers: ByteBuffer = null
 
-  private var bodyBytesWritten = 0
+  private var bodyBytesWritten = 0L
 
   private def willOverflow(count: Int) =
-    if (size < 0) false
-    else count + bodyBytesWritten > size
+    if (size < 0L) false
+    else count.toLong + bodyBytesWritten > size
 
   def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
     headers = Http1Writer.headersToByteBuffer(headerWriter.result)
@@ -38,7 +38,7 @@ private[http4s] class IdentityWriter[F[_]](size: Int, out: TailStage[ByteBuffer]
 
       logger.warn(msg)
 
-      val reducedChunk = chunk.take(size - bodyBytesWritten)
+      val reducedChunk = chunk.take((size - bodyBytesWritten).toInt)
       writeBodyChunk(reducedChunk, flush = true) *> Future.failed(new IllegalArgumentException(msg))
     } else {
       val b = chunk.toByteBuffer

@@ -93,8 +93,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
                "Connection: keep-alive\r\n\r\n"
              else "\r\n")
 
-      // FIXME: This cast to int is bad, but needs refactoring of IdentityWriter to change
-      new IdentityWriter[F](h.length.toInt, this)
+      new IdentityWriter[F](h.length, this)
 
     case _ => // No Length designated for body or Transfer-Encoding included for HTTP 1.1
       if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
