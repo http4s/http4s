@@ -21,9 +21,9 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
 
   private var bodyBytesWritten = 0L
 
-  private def willOverflow(count: Long) =
-    if (size < 0) false
-    else count + bodyBytesWritten > size
+  private def willOverflow(count: Int) =
+    if (size < 0L) false
+    else count.toLong + bodyBytesWritten > size
 
   def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
     headers = Http1Writer.headersToByteBuffer(headerWriter.result)
