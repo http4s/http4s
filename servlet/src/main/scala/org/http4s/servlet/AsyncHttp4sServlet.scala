@@ -15,7 +15,8 @@ class AsyncHttp4sServlet[F[_]](
     service: HttpRoutes[F],
     asyncTimeout: Duration = Duration.Inf,
     private[this] var servletIo: ServletIo[F],
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit F: ConcurrentEffect[F])
+    serviceErrorHandler: ServiceErrorHandler[F],
+    notFoundResponse: Option[Request[F] => Response[F]] = None)(implicit F: ConcurrentEffect[F])
     extends Http4sServlet[F](service, servletIo) {
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1 // -1 == Inf
 
@@ -68,7 +69,7 @@ class AsyncHttp4sServlet[F[_]](
       gate.get *>
         optionTSync
           .suspend(serviceFn(request))
-          .getOrElse(Response.notFound)
+          .getOrElse(notFoundResponse.fold(Response.notFound[F])(_(request)))
           .recoverWith(serviceErrorHandler(request))
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     F.race(timeout, response).flatMap(r => renderResponse(r.merge, servletResponse, bodyWriter))
@@ -105,11 +106,13 @@ class AsyncHttp4sServlet[F[_]](
 object AsyncHttp4sServlet {
   def apply[F[_]: ConcurrentEffect](
       service: HttpRoutes[F],
-      asyncTimeout: Duration = Duration.Inf): AsyncHttp4sServlet[F] =
+      asyncTimeout: Duration = Duration.Inf,
+      notFoundResponse: Option[Request[F] => Response[F]]): AsyncHttp4sServlet[F] =
     new AsyncHttp4sServlet[F](
       service,
       asyncTimeout,
       NonBlockingServletIo[F](DefaultChunkSize),
-      DefaultServiceErrorHandler
+      DefaultServiceErrorHandler,
+      notFoundResponse
     )
 }

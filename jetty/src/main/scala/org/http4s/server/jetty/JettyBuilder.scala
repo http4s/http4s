@@ -30,7 +30,8 @@ sealed class JettyBuilder[F[_]] private (
     sslBits: Option[SSLConfig],
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    private val notFoundResponse: Option[Request[F] => Response[F]]
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
@@ -49,7 +50,8 @@ sealed class JettyBuilder[F[_]] private (
       sslBits: Option[SSLConfig] = sslBits,
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
-      banner: immutable.Seq[String] = banner
+      banner: immutable.Seq[String] = banner,
+      notFoundResponse: Option[Request[F] => Response[F]] = notFoundResponse
   ): Self =
     new JettyBuilder(
       socketAddress,
@@ -61,7 +63,9 @@ sealed class JettyBuilder[F[_]] private (
       sslBits,
       mounts,
       serviceErrorHandler,
-      banner)
+      banner,
+      notFoundResponse
+    )
 
   def withSSL(
       keyStore: StoreInfo,
@@ -112,7 +116,8 @@ sealed class JettyBuilder[F[_]] private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        serviceErrorHandler = builder.serviceErrorHandler
+        serviceErrorHandler = builder.serviceErrorHandler,
+        notFoundResponse = builder.notFoundResponse
       )
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)
@@ -138,6 +143,9 @@ sealed class JettyBuilder[F[_]] private (
 
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
+
+  def withNotFoundResponse(notFoundResponse: Request[F] => Response[F]): Self =
+    copy(notFoundResponse = Some(notFoundResponse))
 
   private def getConnector(jetty: JServer): ServerConnector = {
     def httpsConnector(sslContextFactory: SslContextFactory) =
@@ -261,7 +269,8 @@ object JettyBuilder {
     sslBits = None,
     mounts = Vector.empty,
     serviceErrorHandler = DefaultServiceErrorHandler,
-    banner = defaults.Banner
+    banner = defaults.Banner,
+    notFoundResponse = None
   )
 }
 
