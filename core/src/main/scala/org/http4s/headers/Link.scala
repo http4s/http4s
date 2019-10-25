@@ -4,7 +4,7 @@ package headers
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
-object Link extends HeaderKey.Internal[Link] {
+object Link extends HeaderKey.Internal[Link] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Link] =
     HttpHeaderParser.LINK(s)
 }

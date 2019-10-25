@@ -28,4 +28,11 @@ class LinkSpec extends HeaderLaws {
         "Link: </feed>; rel=alternate; title=main; type=text/*"
     }
   }
+
+  "get" should {
+    "return extracted link header" in {
+      val headers = Headers.of(Header("Link", """<https://example.com>; rel="preconnect""""))
+      headers.get(Link) must beSome(Link(Uri.uri("https://example.com"), Some("preconnect")))
+    }
+  }
 }
