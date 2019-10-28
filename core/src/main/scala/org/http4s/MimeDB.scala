@@ -46,6 +46,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "andrew-inset", Compressible, NotBinary, List("ez"))
       lazy val `applefile`: MediaType =
         new MediaType("application", "applefile", Compressible, NotBinary)
+      lazy val `ipython-notebook`: MediaType =
+        new MediaType("application", "application/x-ipynb+json", Compressible, List("ipynb"))
       lazy val `applixware`: MediaType =
         new MediaType("application", "applixware", Compressible, NotBinary, List("aw"))
       lazy val `atf`: MediaType = new MediaType("application", "atf", Compressible, NotBinary)
