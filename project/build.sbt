@@ -6,7 +6,7 @@ scalacOptions := Seq(
 // our other sbt plugins.
 libraryDependencies ++= List(
   "com.eed3si9n" %% "treehugger" % "0.4.4",
-  "io.circe" %% "circe-generic" % "0.12.2",
+  "io.circe" %% "circe-generic" % "0.12.3",
   "org.http4s" %% "http4s-blaze-client" % "0.20.11",
   "org.http4s" %% "http4s-circe" % "0.20.11",
 )
