@@ -65,7 +65,7 @@ private[parser] trait SimpleHeaders {
 
   def CONTENT_ENCODING(value: String): ParseResult[`Content-Encoding`] =
     new Http4sHeaderParser[`Content-Encoding`](value)
-    with org.http4s.ContentCoding.ContentCodingParser {
+      with org.http4s.ContentCoding.ContentCodingParser {
       def entry = rule {
         EncodingRangeDecl ~ EOL ~> { c: ContentCoding =>
           `Content-Encoding`(c)
