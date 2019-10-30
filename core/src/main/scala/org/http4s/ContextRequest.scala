@@ -6,8 +6,9 @@ import cats.data.Kleisli
 
 final case class ContextRequest[F[_], A](context: A, req: Request[F]) {
   def mapK[G[_]](fk: F ~> G): ContextRequest[G, A] =
-    ContextRequest(authInfo, req.mapK(fk))
+    ContextRequest(context, req.mapK(fk))
 
+  @deprecated("Use context instead", "0.21.0")
   def authInfo: A = context
 
 }
