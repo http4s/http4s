@@ -151,7 +151,8 @@ private class Http2NodeStage[F[_]](
         else if (method == null) org.http4s.Method.fromString(v) match {
           case Right(m) => method = m
           case Left(e) => error = s"$error Invalid method: $e "
-        } else error += "Multiple ':method' headers defined. "
+        }
+        else error += "Multiple ':method' headers defined. "
 
       case (PseudoHeaders.Scheme, v) =>
         if (pseudoDone) error += "Pseudo header in invalid position. "
@@ -163,7 +164,8 @@ private class Http2NodeStage[F[_]](
         else if (path == null) Uri.requestTarget(v) match {
           case Right(p) => path = p
           case Left(e) => error = s"$error Invalid path: $e"
-        } else error += "Multiple ':path' headers defined. "
+        }
+        else error += "Multiple ':path' headers defined. "
 
       case (PseudoHeaders.Authority, _) => // NOOP; TODO: we should keep the authority header
         if (pseudoDone) error += "Pseudo header in invalid position. "
@@ -185,7 +187,8 @@ private class Http2NodeStage[F[_]](
               else contentLength = sz
             } catch {
               case _: NumberFormatException => error += s"Invalid content-length: $v. "
-            } else
+            }
+            else
               error += "Received multiple content-length headers"
 
           case (HeaderNames.TE, v) =>
