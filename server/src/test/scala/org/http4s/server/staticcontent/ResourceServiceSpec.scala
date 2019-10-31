@@ -7,7 +7,7 @@ import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}
 import org.http4s.server.middleware.TranslateUri
 import org.http4s.Uri.uri
 
-class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
+class ResourceServiceSpec extends Http4sSpec with PlatformHttp4sSpec with StaticContentShared {
 
   val config =
     ResourceService.Config[IO]("", blockingExecutionContext = testBlockingExecutionContext)

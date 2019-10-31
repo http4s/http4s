@@ -5,7 +5,7 @@ import org.http4s._
 import org.http4s.Method.GET
 import org.http4s.server.staticcontent.WebjarService.Config
 
-object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
+object WebjarServiceFilterSpec extends Http4sSpec with PlatformHttp4sSpec with StaticContentShared {
 
   def routes: HttpRoutes[IO] = webjarService(
     Config(
