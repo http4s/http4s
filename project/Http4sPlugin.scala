@@ -305,7 +305,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.2"
-  lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.0"
+  lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.1"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   def discipline(sv: String)                = "org.typelevel"          %% "discipline"                % disciplineVersion(sv)
   def fs2Io(sv: String)                     = "co.fs2"                 %% "fs2-io"                    % fs2Version(sv)
