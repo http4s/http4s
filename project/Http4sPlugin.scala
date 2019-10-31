@@ -103,7 +103,7 @@ object Http4sPlugin extends AutoPlugin {
     ),
 
     libraryDependencies += compilerPlugin("org.typelevel" %% "kind-projector" % "0.10.0"),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0-M4"),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 
     scalafmtVersion := "1.5.1",
     Test / scalafmt := {
