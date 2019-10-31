@@ -312,8 +312,8 @@ object Http4sPlugin extends AutoPlugin {
   def fs2ReactiveStreams(sv: String)        = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Version(sv)
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.14.2"
-  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.1"
-  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.1"
+  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.2"
+  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.2"
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.20.v20190813"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.20.v20190813"
