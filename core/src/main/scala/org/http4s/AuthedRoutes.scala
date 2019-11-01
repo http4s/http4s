@@ -1,9 +1,8 @@
 package org.http4s
 
-import cats.Applicative
+import cats.{Applicative, Defer}
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
-import cats.effect.Sync
 
 object AuthedRoutes {
 
@@ -17,8 +16,8 @@ object AuthedRoutes {
     * @return an [[AuthedRoutes]] that wraps `run`
     */
   def apply[T, F[_]](run: AuthedRequest[F, T] => OptionT[F, Response[F]])(
-      implicit F: Sync[F]): AuthedRoutes[T, F] =
-    Kleisli(req => OptionT(F.suspend(run(req).value)))
+      implicit F: Defer[F]): AuthedRoutes[T, F] =
+    Kleisli(req => OptionT(F.defer(run(req).value)))
 
   /** Lifts a partial function into an [[AuthedRoutes]].  The application of the
     * partial function is suspended in `F` to permit more efficient combination
@@ -30,8 +29,8 @@ object AuthedRoutes {
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def of[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
-      implicit F: Sync[F]): AuthedRoutes[T, F] =
-    Kleisli(req => OptionT(F.suspend(pf.lift(req).sequence)))
+      implicit F: Defer[F], FA: Applicative[F]): AuthedRoutes[T, F] =
+    Kleisli(req => OptionT(F.defer(pf.lift(req).sequence)))
 
   /**
     * The empty service (all requests fallthrough).
