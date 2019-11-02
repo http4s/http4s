@@ -67,12 +67,30 @@ class MessageSpec extends Http4sSpec {
           .map(_.value) must beSome("token=value")
       }
 
+      "contain a single Cookie header when multiple explicit cookies are added" in {
+        Request(Method.GET)
+          .addCookie(RequestCookie("token1", "value1"))
+          .addCookie(RequestCookie("token2", "value2"))
+          .headers
+          .get("Cookie".ci)
+          .map(_.value) must beSome("token1=value1; token2=value2")
+      }
+
       "contain a Cookie header when a name/value pair is added" in {
         Request(Method.GET)
           .addCookie("token", "value")
           .headers
           .get("Cookie".ci)
           .map(_.value) must beSome("token=value")
+      }
+
+      "contain a single Cookie header when name/value pairs are added" in {
+        Request(Method.GET)
+          .addCookie("token1", "value1")
+          .addCookie("token2", "value2")
+          .headers
+          .get("Cookie".ci)
+          .map(_.value) must beSome("token1=value1; token2=value2")
       }
     }
 
@@ -118,7 +136,7 @@ class MessageSpec extends Http4sSpec {
       "redact Cookie Headers" in {
         val request =
           Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
-        request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>, Cookie: <REDACTED>))")
+        request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
       }
     }
   }
