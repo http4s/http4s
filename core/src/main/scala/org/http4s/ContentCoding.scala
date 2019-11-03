@@ -76,6 +76,7 @@ object ContentCoding {
   val `*` : ContentCoding = new ContentCoding("*")
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-1
+  val br = new ContentCoding("br")
   val compress = new ContentCoding("compress")
   val deflate = new ContentCoding("deflate")
   val exi = new ContentCoding("exi")
