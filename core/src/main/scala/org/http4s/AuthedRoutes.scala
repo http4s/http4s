@@ -29,7 +29,8 @@ object AuthedRoutes {
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def of[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
-      implicit F: Defer[F], FA: Applicative[F]): AuthedRoutes[T, F] =
+      implicit F: Defer[F],
+      FA: Applicative[F]): AuthedRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(pf.lift(req).sequence)))
 
   /**

@@ -29,7 +29,8 @@ object ContextRoutes {
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def of[T, F[_]](pf: PartialFunction[ContextRequest[F, T], F[Response[F]]])(
-      implicit F: Defer[F], FA: Applicative[F]): ContextRoutes[T, F] =
+      implicit F: Defer[F],
+      FA: Applicative[F]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(pf.lift(req).sequence)))
 
   /**
