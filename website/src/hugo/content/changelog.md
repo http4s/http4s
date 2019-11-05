@@ -16,6 +16,7 @@ it.
 * [#2922](https://github.com/http4s/http4s/pull/2922): Handle Content-Length longer that Int.MaxValue in chunked uploads
 * [#2941](https://github.com/http4s/http4s/pull/2941): Fix for `BlockingHttp4sServlet` with shifted IO.
 * [#2953](https://github.com/http4s/http4s/pull/2953): Fix connection info in servlet backend.  The local and remote addresses were reversed.
+* [#2942](https://github.com/http4s/http4s/pull/2942): Fix `Request.addcookie` to consolidate all `Cookie` headers into one.
 
 ## Enhancements
 
