@@ -3,6 +3,7 @@ package servlet
 
 import cats.data.OptionT
 import cats.effect._
+import cats.effect.implicits._
 import cats.implicits._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.server._
@@ -18,20 +19,19 @@ class BlockingHttp4sServlet[F[_]](
   override def service(
       servletRequest: HttpServletRequest,
       servletResponse: HttpServletResponse): Unit =
-    try {
-      val bodyWriter = servletIo.initWriter(servletResponse)
+    F.suspend {
+        val bodyWriter = servletIo.initWriter(servletResponse)
 
-      val render = toRequest(servletRequest).fold(
-        onParseFailure(_, servletResponse, bodyWriter),
-        handleRequest(_, servletResponse, bodyWriter)
-      )
+        val render = toRequest(servletRequest).fold(
+          onParseFailure(_, servletResponse, bodyWriter),
+          handleRequest(_, servletResponse, bodyWriter)
+        )
 
-      F.runAsync(render) {
-          case Right(_) => IO.unit
-          case Left(t) => IO(errorHandler(servletResponse)(t))
-        }
-        .unsafeRunSync()
-    } catch errorHandler(servletResponse)
+        render
+      }
+      .handleErrorWith(errorHandler(servletResponse))
+      .toIO
+      .unsafeRunSync()
 
   private def handleRequest(
       request: Request[F],
@@ -44,18 +44,19 @@ class BlockingHttp4sServlet[F[_]](
       .recoverWith(serviceErrorHandler(request))
       .flatMap(renderResponse(_, servletResponse, bodyWriter))
 
-  private def errorHandler(servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {
-    case t: Throwable if servletResponse.isCommitted =>
-      logger.error(t)("Error processing request after response was committed")
-
-    case t: Throwable =>
-      logger.error(t)("Error processing request")
-      val response = Response[F](Status.InternalServerError)
-      // We don't know what I/O mode we're in here, and we're not rendering a body
-      // anyway, so we use a NullBodyWriter.
-      val render = renderResponse(response, servletResponse, NullBodyWriter)
-      F.runAsync(render)(_ => IO.unit).unsafeRunSync()
-  }
+  private def errorHandler(servletResponse: HttpServletResponse)(t: Throwable): F[Unit] =
+    F.suspend {
+      if (servletResponse.isCommitted) {
+        logger.error(t)("Error processing request after response was committed")
+        F.unit
+      } else {
+        logger.error(t)("Error processing request")
+        val response = Response[F](Status.InternalServerError)
+        // We don't know what I/O mode we're in here, and we're not rendering a body
+        // anyway, so we use a NullBodyWriter.
+        renderResponse(response, servletResponse, NullBodyWriter)
+      }
+    }
 }
 
 object BlockingHttp4sServlet {

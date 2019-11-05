@@ -19,7 +19,7 @@ env:
   - LOGBACK_ROOT_LEVEL=WARN
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
 
-scala_version_212: &scala_version_212 2.12.9
+scala_version_212: &scala_version_212 2.12.10
 scala_version_213: &scala_version_213 2.13.1
 
 java_8: &java_8 openjdk8
@@ -55,7 +55,7 @@ jobs:
         - sbt ++$TRAVIS_SCALA_VERSION docs/makeSite
         - sbt ++$TRAVIS_SCALA_VERSION website/makeSite
     - env: TEST="scalafix"
-      scala: "2.12.8"
+      scala: *scala_version_212
       jdk: *java_8
       script:
         - cd scalafix

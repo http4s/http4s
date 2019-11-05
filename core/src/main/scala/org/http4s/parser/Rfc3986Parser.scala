@@ -7,7 +7,6 @@ import org.http4s.{Query => Q}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.internal.parboiled2.support.HNil
-import org.http4s.util.UrlCodingUtils
 import org.http4s.syntax.string._
 
 private[http4s] trait Rfc3986Parser
@@ -144,6 +143,6 @@ private[http4s] trait Rfc3986Parser
 
   def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 
-  protected def decode(s: String) = UrlCodingUtils.urlDecode(s, charset)
+  protected def decode(s: String) = org.http4s.Uri.decode(s, charset)
   // scalastyle:on public.methods.have.type
 }
