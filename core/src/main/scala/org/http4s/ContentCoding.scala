@@ -93,7 +93,9 @@ object ContentCoding {
   val `x-gzip` = gzip
 
   val standard: Map[String, ContentCoding] =
-    List(`*`, aes128gcm, br, compress, deflate, exi, gzip, identity, `pack200-gzip`, zstd).map(c => c.coding -> c).toMap
+    List(`*`, aes128gcm, br, compress, deflate, exi, gzip, identity, `pack200-gzip`, zstd)
+      .map(c => c.coding -> c)
+      .toMap
 
   /**
     * Parse a Content Coding
