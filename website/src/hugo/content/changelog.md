@@ -8,11 +8,13 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.12 (2019-10-31)
+# v0.20.13 (unreleased)
 
 ## Bug fixes
 
 * [#2922](https://github.com/http4s/http4s/pull/2922): Handle Content-Length longer that Int.MaxValue in chunked uploads
+
+# v0.20.12 (2019-10-31)
 
 ## Enhancements
 
