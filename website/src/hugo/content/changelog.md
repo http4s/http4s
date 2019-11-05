@@ -17,10 +17,15 @@ it.
 * [#2941](https://github.com/http4s/http4s/pull/2941): Fix for `BlockingHttp4sServlet` with shifted IO.
 * [#2953](https://github.com/http4s/http4s/pull/2953): Fix connection info in servlet backend.  The local and remote addresses were reversed.
 * [#2942](https://github.com/http4s/http4s/pull/2942): Fix `Request.addcookie` to consolidate all `Cookie` headers into one.
+* [#2957](https://github.com/http4s/http4s/pull/2957): Shift the write to Blocker in `BlockingServletIo`
 
 ## Enhancements
 
 * [#2948](https://github.com/http4s/http4s/pull/2948): Add all missing `ContentCoding`s from the IANA registry.
+
+## Dependency updates
+
+* blaze-0.14.9
 
 # v0.20.12 (2019-10-31)
 
