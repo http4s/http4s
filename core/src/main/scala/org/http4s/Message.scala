@@ -340,7 +340,14 @@ sealed abstract case class Request[F[_]](
 
   /** Add a Cookie header for the provided [[Cookie]] */
   def addCookie(cookie: RequestCookie): Self =
-    putHeaders(Cookie(NonEmptyList.of(cookie)))
+    headers
+      .get(Cookie)
+      .fold(putHeaders(Cookie(NonEmptyList.of(cookie)))) { preExistingCookie =>
+        removeHeader(Cookie).putHeaders(
+          Header(
+            Cookie.name.value,
+            s"${preExistingCookie.value}; ${cookie.name}=${cookie.content}"))
+      }
 
   /** Add a Cookie header with the provided values */
   def addCookie(name: String, content: String): Self =
