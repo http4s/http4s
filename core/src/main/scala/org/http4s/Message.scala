@@ -8,10 +8,13 @@ import fs2.{Pure, Stream}
 import fs2.text.{utf8Decode, utf8Encode}
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
+
 import org.http4s.headers._
 import org.http4s.util.decode
 import org.log4s.getLogger
 import _root_.io.chrisdavenport.vault._
+
+import scala.util.hashing.MurmurHash3
 
 /**
   * Represents a HTTP Message. The interesting subclasses are Request and Response.
@@ -236,14 +239,17 @@ object Message {
   * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-sealed abstract case class Request[F[_]](
-    method: Method = Method.GET,
-    uri: Uri = Uri(path = "/"),
-    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    headers: Headers = Headers.empty,
-    body: EntityBody[F] = EmptyBody,
-    attributes: Vault = Vault.empty
-) extends Message[F] {
+final class Request[F[_]](
+    val method: Method = Method.GET,
+    val uri: Uri = Uri(path = "/"),
+    val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+    val headers: Headers = Headers.empty,
+    val body: EntityBody[F] = EmptyBody,
+    val attributes: Vault = Vault.empty
+) extends Message[F]
+    with Product
+    with Serializable {
+
   import Request._
 
   type Self = Request[F]
@@ -361,7 +367,7 @@ sealed abstract case class Request[F[_]](
   def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
 
   /**
-    *Returns the the X-Forwarded-For value if present, else the remote address.
+    * Returns the the X-Forwarded-For value if present, else the remote address.
     */
   def from: Option[InetAddress] =
     headers
@@ -369,12 +375,15 @@ sealed abstract case class Request[F[_]](
       .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
 
   def remoteAddr: Option[String] = remote.map(_.getHostString)
+
   def remoteHost: Option[String] = remote.map(_.getHostName)
+
   def remotePort: Option[Int] = remote.map(_.getPort)
 
   def remoteUser: Option[String] = None
 
   def server: Option[InetSocketAddress] = connectionInfo.map(_.local)
+
   def serverAddr: String =
     server
       .map(_.getHostString)
@@ -418,6 +427,34 @@ sealed abstract case class Request[F[_]](
       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
     decodeWith(decoder, strict = true)(f)
 
+  override def hashCode(): Int = MurmurHash3.productHash(this)
+
+  override def equals(that: Any): Boolean =
+    (this eq that.asInstanceOf[Object]) || (that match {
+      case that: Request[_] =>
+        (this.method == that.method) &&
+          (this.uri == that.uri) &&
+          (this.httpVersion == that.httpVersion) &&
+          (this.headers == that.headers) &&
+          (this.body == that.body) &&
+          (this.attributes == that.attributes)
+      case _ => false
+    })
+
+  def canEqual(that: Any): Boolean = that.isInstanceOf[Request[F]]
+
+  def productArity: Int = 6
+
+  def productElement(n: Int): Any = n match {
+    case 0 => method
+    case 1 => uri
+    case 2 => httpVersion
+    case 3 => headers
+    case 4 => body
+    case 5 => attributes
+    case _ => throw new IndexOutOfBoundsException()
+  }
+
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
 
@@ -440,7 +477,22 @@ object Request {
       headers = headers,
       body = body,
       attributes = attributes
-    ) {}
+    )
+
+  def unapply[F[_]](
+      message: Message[F]): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+    message match {
+      case request: Request[F] =>
+        Some(
+          (
+            request.method,
+            request.uri,
+            request.httpVersion,
+            request.headers,
+            request.body,
+            request.attributes))
+      case _ => None
+    }
 
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
