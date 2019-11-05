@@ -41,7 +41,7 @@ final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, b
     val flush = response.isChunked
     response.body.chunks
       .evalTap { chunk =>
-        F.delay {
+        blocker.delay[F, Unit] {
           // Avoids copying for specialized chunks
           val byteChunk = chunk.toBytes
           out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
