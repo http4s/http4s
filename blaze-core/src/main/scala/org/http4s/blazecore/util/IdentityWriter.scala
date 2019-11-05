@@ -16,6 +16,12 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
 
+  @deprecated("Kept for binary compatibility. To be removed in 0.21.", "0.20.13")
+  private[IdentityWriter] def this(size: Int, out: TailStage[ByteBuffer])(
+      implicit F: Effect[F],
+      ec: ExecutionContext) =
+    this(size.toLong, out)
+
   private[this] val logger = getLogger
   private[this] var headers: ByteBuffer = null
 
