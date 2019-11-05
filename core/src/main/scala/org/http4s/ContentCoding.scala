@@ -78,19 +78,24 @@ object ContentCoding {
   val `*` : ContentCoding = new ContentCoding("*")
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-1
+  val aes128gcm = new ContentCoding("aes128gcm")
+  val br = new ContentCoding("br")
   val compress = new ContentCoding("compress")
   val deflate = new ContentCoding("deflate")
   val exi = new ContentCoding("exi")
   val gzip = new ContentCoding("gzip")
   val identity = new ContentCoding("identity")
   val `pack200-gzip` = new ContentCoding("pack200-gzip")
+  val zstd = new ContentCoding("zstd")
 
   // Legacy encodings defined by RFC2616 3.5.
   val `x-compress` = compress
   val `x-gzip` = gzip
 
   val standard: Map[String, ContentCoding] =
-    List(`*`, compress, deflate, exi, gzip, identity, `pack200-gzip`).map(c => c.coding -> c).toMap
+    List(`*`, aes128gcm, br, compress, deflate, exi, gzip, identity, `pack200-gzip`, zstd)
+      .map(c => c.coding -> c)
+      .toMap
 
   /**
     * Parse a Content Coding
