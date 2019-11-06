@@ -87,9 +87,9 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
         .insert(
           Request.Keys.ConnectionInfo,
           Request.Connection(
-            InetSocketAddress.createUnresolved(req.getRemoteAddr, req.getRemotePort),
-            InetSocketAddress.createUnresolved(req.getLocalAddr, req.getLocalPort),
-            req.isSecure
+            local = InetSocketAddress.createUnresolved(req.getLocalAddr, req.getLocalPort),
+            remote = InetSocketAddress.createUnresolved(req.getRemoteAddr, req.getRemotePort),
+            secure = req.isSecure
           )
         )
         .insert(Request.Keys.ServerSoftware, serverSoftware)
