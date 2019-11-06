@@ -126,6 +126,40 @@ class MessageSpec extends Http4sSpec {
       }
     }
 
+    "cookies" should {
+      val cookieList = List(
+        RequestCookie("test1", "value1"),
+        RequestCookie("test2", "value2"),
+        RequestCookie("test3", "value3"))
+
+      "be empty if there are no Cookie headers present" in {
+        Request(Method.GET).cookies mustEqual List.empty
+      }
+
+      "parse discrete HTTP/1 Cookie header(s) into corresponding RequestCookies" in {
+        val cookies = Header("Cookie", "test1=value1; test2=value2; test3=value3")
+        val request = Request(Method.GET, headers = Headers.of(cookies))
+        request.cookies mustEqual cookieList
+      }
+
+      "parse discrete HTTP/2 Cookie header(s) into corresponding RequestCookies" in {
+        val cookies = Headers.of(
+          Header("Cookie", "test1=value1"),
+          Header("Cookie", "test2=value2"),
+          Header("Cookie", "test3=value3"))
+        val request = Request(Method.GET, headers = cookies)
+        request.cookies mustEqual cookieList
+      }
+
+      "parse HTTP/1 and HTTP/2 Cookie headers on a single request into corresponding RequestCookies" in {
+        val cookies = Headers.of(
+          Header("Cookie", "test1=value1; test2=value2"), // HTTP/1 style
+          Header("Cookie", "test3=value3")) // HTTP/2 style (separate headers for separate cookies)
+        val request = Request(Method.GET, headers = cookies)
+        request.cookies mustEqual cookieList
+      }
+    }
+
     "toString" should {
       "redact an Authorization header" in {
         val request =
