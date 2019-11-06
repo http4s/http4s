@@ -95,6 +95,21 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       channelOptions = channelOptions
     ) {}
 
+  def withTimeouts(timeouts: Timeouts): BlazeClientBuilder[F] =
+    this
+      .withConnectTimeout(
+        timeouts.connectTimeout.value
+      )
+      .withIdleTimeout(
+        timeouts.idleTimeout.value
+      )
+      .withRequestTimeout(
+        timeouts.requestTimeout.value
+      )
+      .withResponseHeaderTimeout(
+        timeouts.responseHeaderTimeout.value
+      )
+
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
     copy(responseHeaderTimeout = responseHeaderTimeout)
 
