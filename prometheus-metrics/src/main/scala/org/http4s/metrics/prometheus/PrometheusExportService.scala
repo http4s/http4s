@@ -10,7 +10,7 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 
 /*
- * PromethusExportService Contains an HttpService
+ * PrometheusExportService Contains an HttpService
  * ready to be scraped by Prometheus, paired
  * with the CollectorRegistry that it is creating
  * metrics for, allowing custom metric registration.
@@ -25,9 +25,9 @@ object PrometheusExportService {
   def apply[F[_]: Sync](collectorRegistry: CollectorRegistry): PrometheusExportService[F] =
     new PrometheusExportService(service(collectorRegistry), collectorRegistry)
 
-  def build[F[_]: Sync]: F[PrometheusExportService[F]] =
+  def build[F[_]: Sync]: Resource[F, PrometheusExportService[F]] =
     for {
-      cr <- new CollectorRegistry().pure[F]
+      cr <- Prometheus.collectorRegistry[F]
       _ <- addDefaults(cr)
     } yield new PrometheusExportService[F](service(cr), cr)
 
@@ -49,15 +49,16 @@ object PrometheusExportService {
     }
   }
 
-  def addDefaults[F[_]: Sync](cr: CollectorRegistry): F[Unit] = Sync[F].delay {
-    cr.register(new StandardExports())
-    cr.register(new MemoryPoolsExports())
-    cr.register(new BufferPoolsExports())
-    cr.register(new GarbageCollectorExports())
-    cr.register(new ThreadExports())
-    cr.register(new ClassLoadingExports())
-    cr.register(new VersionInfoExports())
-    cr.register(new MemoryAllocationExports())
-  }
+  def addDefaults[F[_]: Sync](cr: CollectorRegistry): Resource[F, Unit] =
+    for {
+      _ <- Prometheus.registerCollector(new StandardExports(), cr)
+      _ <- Prometheus.registerCollector(new MemoryPoolsExports(), cr)
+      _ <- Prometheus.registerCollector(new BufferPoolsExports(), cr)
+      _ <- Prometheus.registerCollector(new GarbageCollectorExports(), cr)
+      _ <- Prometheus.registerCollector(new ThreadExports(), cr)
+      _ <- Prometheus.registerCollector(new ClassLoadingExports(), cr)
+      _ <- Prometheus.registerCollector(new VersionInfoExports(), cr)
+      _ <- Prometheus.registerCollector(new MemoryAllocationExports(), cr)
+    } yield ()
 
 }
