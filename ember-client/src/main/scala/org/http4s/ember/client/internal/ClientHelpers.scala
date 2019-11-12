@@ -63,7 +63,8 @@ private[client] object ClientHelpers {
                 requestKey.authority.host.value,
                 requestKey.authority.port.getOrElse(443)
               )
-          } else Applicative[F].pure(initSocket)
+          }
+        else Applicative[F].pure(initSocket)
       }
     } yield RequestKeySocket(socket, requestKey)
 

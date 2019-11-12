@@ -253,14 +253,14 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.4"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.8"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.9"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
-  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.12.2"
+  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.12.3"
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % circeGeneric.revision
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeGeneric.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeGeneric.revision
@@ -274,9 +274,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.15.0"
-  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.2"
-  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.2"
-  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.22.v20191022"
+  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.3"
+  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.3"
+  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.21.v20190926"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.22.v20191022"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
@@ -293,12 +293,12 @@ object Http4sPlugin extends AutoPlugin {
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "3.1.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "4.2.1"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.7.4"
-  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.7.0"
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.8.0"
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "2.0.1"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
-  lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.14.0"
+  lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.14.2"
   def scalaReflect(sv: String)              = "org.scala-lang"         %  "scala-reflect"             % sv
   def scalatagsApi(sv: String)              = "com.lihaoyi"            %% "scalatags"                 % CrossVersion.partialVersion(sv).filter(_._2 > 11).fold("0.6.8")(_ => "0.7.0")
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.2.0"

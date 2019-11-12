@@ -69,7 +69,8 @@ object TransferCoding {
     */
   def parseList(s: String): ParseResult[NonEmptyList[TransferCoding]] =
     new Http4sParser[NonEmptyList[TransferCoding]](s, "Invalid Transfer Coding")
-    with Rfc2616BasicRules with TransferCodingParser {
+      with Rfc2616BasicRules
+      with TransferCodingParser {
       def main = rule {
         oneOrMore(codingRule).separatedBy(ListSep) ~> { codes: Seq[TransferCoding] =>
           NonEmptyList.of(codes.head, codes.tail: _*)

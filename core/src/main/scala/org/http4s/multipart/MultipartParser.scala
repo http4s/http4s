@@ -330,7 +330,8 @@ object MultipartParser {
               elideEmptyChunks(remaining).flatMap {
                 case (chnk, remaining) =>
                   checkTwoNonEmpty(c, chnk, remaining)
-              } else checkTwoNonEmpty(c, chnk, remaining)
+              }
+            else checkTwoNonEmpty(c, chnk, remaining)
           case None =>
             Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
         }
