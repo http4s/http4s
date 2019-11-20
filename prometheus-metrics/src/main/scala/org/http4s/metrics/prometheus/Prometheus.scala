@@ -1,7 +1,8 @@
 package org.http4s.metrics.prometheus
 
 import cats.data.NonEmptyList
-import cats.effect.Sync
+import cats.effect.{Resource, Sync}
+import cats.syntax.apply._
 import io.prometheus.client._
 import org.http4s.{Method, Status}
 import org.http4s.metrics.MetricsOps
@@ -14,20 +15,24 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a [[org.http4s.server.middleware.Metrics]]
   * that records metrics to a given metric registry.
   * {{{
-  * import org.http4s.client.middleware.Metrics
-  * import org.http4s.client.prometheus.Prometheus
+  * import cats.effect.{Resource, IO}
+  * import org.http4s.server.middleware.Metrics
+  * import org.http4s.metrics.Prometheus
   *
-  * val meteredRoutes = Metrics[IO](Prometheus(registry, "server"))(testRoutes)
+  * val meteredRoutes: Resource[IO, HttpRoutes[IO]] =
+  *   Prometheus.metricsOps[IO](registry, "server").map(ops => Metrics[IO](ops)(testRoutes))
   * }}}
   *
   * Analogously, the following code would wrap a [[org.http4s.client.Client]] with a [[org.http4s.client.middleware.Metrics]]
   * that records metrics to a given metric registry, classifying the metrics by HTTP method.
   * {{{
+  * import cats.effect.{Resource, IO}
   * import org.http4s.client.middleware.Metrics
-  * import org.http4s.client.prometheus.Prometheus
+  * import org.http4s.metrics.Prometheus
   *
   * val classifierFunc = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
-  * val meteredClient = Metrics(Prometheus(registry, "client"), classifierFunc)(client)
+  * val meteredClient: Resource[IO, Client[IO]] =
+  *   Prometheus.metricsOps[IO](registry, "client").map(ops => Metrics[IO](ops, classifierFunc)(client))
   * }}}
   *
   * Registers the following metrics:
@@ -56,17 +61,27 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   */
 object Prometheus {
 
+  def collectorRegistry[F[_]](implicit F: Sync[F]): Resource[F, CollectorRegistry] =
+    Resource.make(F.delay(new CollectorRegistry()))(cr => F.delay(cr.clear()))
+
   /**
     * Creates a  [[MetricsOps]] that supports Prometheus metrics
     * *
     * * @param registry a metrics collector registry
     * * @param prefix a prefix that will be added to all metrics
     **/
-  def apply[F[_]](
+  def metricsOps[F[_]: Sync](
       registry: CollectorRegistry,
       prefix: String = "org_http4s_server",
-      responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets)(
-      implicit F: Sync[F]): F[MetricsOps[F]] = F.delay {
+      responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets
+  ): Resource[F, MetricsOps[F]] =
+    for {
+      metrics <- createMetricsCollection(registry, prefix, responseDurationSecondsHistogramBuckets)
+    } yield createMetricsOps(metrics)
+
+  private def createMetricsOps[F[_]](
+      metrics: MetricsCollection
+  )(implicit F: Sync[F]): MetricsOps[F] =
     new MetricsOps[F] {
 
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
@@ -84,7 +99,8 @@ object Prometheus {
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
-          classifier: Option[String]): F[Unit] = F.delay {
+          classifier: Option[String]
+      ): F[Unit] = F.delay {
         metrics.responseDuration
           .labels(label(classifier), reportMethod(method), Phase.report(Phase.Headers))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
@@ -95,7 +111,8 @@ object Prometheus {
           method: Method,
           status: Status,
           elapsed: Long,
-          classifier: Option[String]): F[Unit] =
+          classifier: Option[String]
+      ): F[Unit] =
         F.delay {
           metrics.responseDuration
             .labels(label(classifier), reportMethod(method), Phase.report(Phase.Body))
@@ -156,36 +173,63 @@ object Prometheus {
         case _ => "other"
       }
 
-      val metrics =
-        MetricsCollection(
-          responseDuration = Histogram
-            .build()
-            .buckets(responseDurationSecondsHistogramBuckets.toList: _*)
-            .name(prefix + "_" + "response_duration_seconds")
-            .help("Response Duration in seconds.")
-            .labelNames("classifier", "method", "phase")
-            .register(registry),
-          activeRequests = Gauge
-            .build()
-            .name(prefix + "_" + "active_request_count")
-            .help("Total Active Requests.")
-            .labelNames("classifier")
-            .register(registry),
-          requests = Counter
-            .build()
-            .name(prefix + "_" + "request_count")
-            .help("Total Requests.")
-            .labelNames("classifier", "method", "status")
-            .register(registry),
-          abnormalTerminations = Histogram
-            .build()
-            .name(prefix + "_" + "abnormal_terminations")
-            .help("Total Abnormal Terminations.")
-            .labelNames("classifier", "termination_type")
-            .register(registry)
-        )
     }
+
+  private def createMetricsCollection[F[_]: Sync](
+      registry: CollectorRegistry,
+      prefix: String,
+      responseDurationSecondsHistogramBuckets: NonEmptyList[Double]
+  ): Resource[F, MetricsCollection] = {
+
+    val responseDuration: Resource[F, Histogram] = registerCollector(
+      Histogram
+        .build()
+        .buckets(responseDurationSecondsHistogramBuckets.toList: _*)
+        .name(prefix + "_" + "response_duration_seconds")
+        .help("Response Duration in seconds.")
+        .labelNames("classifier", "method", "phase")
+        .create(),
+      registry
+    )
+
+    val activeRequests: Resource[F, Gauge] = registerCollector(
+      Gauge
+        .build()
+        .name(prefix + "_" + "active_request_count")
+        .help("Total Active Requests.")
+        .labelNames("classifier")
+        .create(),
+      registry
+    )
+
+    val requests: Resource[F, Counter] = registerCollector(
+      Counter
+        .build()
+        .name(prefix + "_" + "request_count")
+        .help("Total Requests.")
+        .labelNames("classifier", "method", "status")
+        .create(),
+      registry
+    )
+
+    val abnormalTerminations: Resource[F, Histogram] = registerCollector(
+      Histogram
+        .build()
+        .name(prefix + "_" + "abnormal_terminations")
+        .help("Total Abnormal Terminations.")
+        .labelNames("classifier", "termination_type")
+        .create(),
+      registry
+    )
+
+    (responseDuration, activeRequests, requests, abnormalTerminations).mapN(MetricsCollection.apply)
   }
+
+  private[prometheus] def registerCollector[F[_], C <: Collector](
+      collector: C,
+      registry: CollectorRegistry
+  )(implicit F: Sync[F]): Resource[F, C] =
+    Resource.make(F.delay(collector.register[C](registry)))(c => F.delay(registry.unregister(c)))
 
   // https://github.com/prometheus/client_java/blob/parent-0.6.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
   private val DefaultHistogramBuckets: NonEmptyList[Double] =
@@ -193,7 +237,7 @@ object Prometheus {
 
 }
 
-case class MetricsCollection(
+final case class MetricsCollection(
     responseDuration: Histogram,
     activeRequests: Gauge,
     requests: Counter,
