@@ -208,7 +208,7 @@ error handling, we recommend an error <a href="https://typelevel.org/blog/2014/1
 
 <pre><code class="language-scala">val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ =&gt; IO(???))
 
-val onFailure: AuthedRoutes[String, IO] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.authInfo)))
+val onFailure: AuthedRoutes[String, IO] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.context)))
 val middleware = AuthMiddleware(authUser, onFailure)
 
 val service: HttpRoutes[IO] = middleware(authedRoutes)

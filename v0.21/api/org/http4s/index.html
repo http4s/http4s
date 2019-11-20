@@ -497,9 +497,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="AuthScheme$.html" title=""></a>
                         <a href="AuthScheme$.html" title="">AuthScheme</a>
                       </li><li class="current-entities indented2">
+                        <span class="separator"></span>
                         <a class="object" href="AuthedRequest$.html" title=""></a>
-                        <a class="class" href="AuthedRequest.html" title=""></a>
-                        <a href="AuthedRequest.html" title="">AuthedRequest</a>
+                        <a href="AuthedRequest$.html" title="">AuthedRequest</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="AuthedRoutes$.html" title=""></a>
@@ -540,6 +540,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="ContentCoding$.html" title=""></a>
                         <a class="class" href="ContentCoding.html" title=""></a>
                         <a href="ContentCoding.html" title="">ContentCoding</a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="ContextRequest$.html" title=""></a>
+                        <a class="class" href="ContextRequest.html" title=""></a>
+                        <a href="ContextRequest.html" title="">ContextRequest</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="ContextRoutes$.html" title=""></a>
+                        <a href="ContextRoutes$.html" title="">ContextRoutes</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="Credentials$.html" title=""></a>
                         <a class="class" href="Credentials.html" title=""></a>
@@ -840,7 +848,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/ad05b75b66e1bd78919db852f297c4f8a723f748/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -909,25 +917,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       
     </li><li name="org.http4s.AuthedRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AuthedRequest[F[_],A]extendsProductwithSerializable"></a><a id="AuthedRequest[F[_],A]:AuthedRequest[F,A]"></a>
+      <a id="AuthedRequest[F[_],T]=org.http4s.ContextRequest[F,T]"></a><a id="AuthedRequest[F[_],T]:AuthedRequest[F,T]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/AuthedRequest.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="AuthedRequest.html"><span class="name">AuthedRequest</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="authInfo">authInfo: <span class="extype" name="org.http4s.AuthedRequest.A">A</span></span>, <span name="req">req: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.AuthedRequest.F">F</span>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.AuthedRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="AuthedRoutes[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]"></a><a id="AuthedRoutes[T,F[_]]:AuthedRoutes[T,F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#AuthedRoutes[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/index.html#AuthedRequest[F[_],T]=org.http4s.ContextRequest[F,T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -936,7 +928,23 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthedRoutes</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>, <span class="extype" name="org.http4s.AuthedRoutes.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>]]</span>
+        <span class="name">AuthedRequest</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="T">T</span>]</span><span class="result alias"> = <a href="ContextRequest.html" class="extype" name="org.http4s.ContextRequest">ContextRequest</a>[<span class="extype" name="org.http4s.AuthedRequest.F">F</span>, <span class="extype" name="org.http4s.AuthedRequest.T">T</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.AuthedRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AuthedRoutes[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.package.AuthedRequest[F,T],org.http4s.Response[F]]"></a><a id="AuthedRoutes[T,F[_]]:AuthedRoutes[T,F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#AuthedRoutes[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.package.AuthedRequest[F,T],org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">AuthedRoutes</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="#AuthedRequest[F[_],T]=org.http4s.ContextRequest[F,T]" class="extmbr" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>, <span class="extype" name="org.http4s.AuthedRoutes.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedRoutes.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">The type parameters need to be in this order to make partial unification
@@ -1068,6 +1076,38 @@ trigger. See https://github.com/http4s/http4s/issues/1506
       </span>
       <span class="symbol">
         <a title="" href="ContentCoding.html"><span class="name">ContentCoding</span></a><span class="result"> extends <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="ContentCoding.html" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.ContextRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContextRequest[F[_],A]extendsProductwithSerializable"></a><a id="ContextRequest[F[_],A]:ContextRequest[F,A]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ContextRequest.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="ContextRequest.html"><span class="name">ContextRequest</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="context">context: <span class="extype" name="org.http4s.ContextRequest.A">A</span></span>, <span name="req">req: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.ContextRequest.F">F</span>]</span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.ContextRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContextRoutes[T,F[_]]=cats.data.Kleisli[[β$2$]cats.data.OptionT[F,β$2$],org.http4s.ContextRequest[F,T],org.http4s.Response[F]]"></a><a id="ContextRoutes[T,F[_]]:ContextRoutes[T,F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#ContextRoutes[T,F[_]]=cats.data.Kleisli[[β$2$]cats.data.OptionT[F,β$2$],org.http4s.ContextRequest[F,T],org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ContextRoutes</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$2$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.ContextRoutes.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$2$">β$2$</span>], <a href="ContextRequest.html" class="extype" name="org.http4s.ContextRequest">ContextRequest</a>[<span class="extype" name="org.http4s.ContextRoutes.F">F</span>, <span class="extype" name="org.http4s.ContextRoutes.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.ContextRoutes.F">F</span>]]</span>
       </span>
       
       
@@ -2077,7 +2117,7 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.20.1) Deprecated in favor of AuthedRoutes">AuthedService</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>]]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.20.1) Deprecated in favor of AuthedRoutes">AuthedService</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="#AuthedRequest[F[_],T]=org.http4s.ContextRequest[F,T]" class="extmbr" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
@@ -2282,7 +2322,7 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="AuthedRequest$.html"><span class="name">AuthedRequest</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="AuthedRequest$.html"><span class="name">AuthedRequest</span></a>
       </span>
       
       
@@ -2397,6 +2437,38 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </span>
       <span class="symbol">
         <a title="" href="ContentCoding$.html"><span class="name">ContentCoding</span></a>
+      </span>
+      
+      
+    </li><li name="org.http4s.ContextRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContextRequest"></a><a id="ContextRequest:ContextRequest"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ContextRequest$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="ContextRequest$.html"><span class="name">ContextRequest</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.ContextRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContextRoutes"></a><a id="ContextRoutes:ContextRoutes"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ContextRoutes$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="ContextRoutes$.html"><span class="name">ContextRoutes</span></a>
       </span>
       
       

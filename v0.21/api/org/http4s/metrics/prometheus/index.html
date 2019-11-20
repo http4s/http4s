@@ -232,7 +232,7 @@
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
@@ -280,15 +280,19 @@
       </span>
       
       <p class="shortcomment cmt"><a href="../MetricsOps.html" class="extype" name="org.http4s.metrics.MetricsOps">MetricsOps</a> algebra capable of recording Prometheus metrics</p><div class="fullcomment"><div class="comment cmt"><p><a href="../MetricsOps.html" class="extype" name="org.http4s.metrics.MetricsOps">MetricsOps</a> algebra capable of recording Prometheus metrics</p><p>For example, the following code would wrap a <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">org.http4s.HttpRoutes</a> with a <a href="../../server/middleware/Metrics$.html" class="extype" name="org.http4s.server.middleware.Metrics">org.http4s.server.middleware.Metrics</a>
-that records metrics to a given metric registry.</p><pre><span class="kw">import</span> org.http4s.client.middleware.Metrics
-<span class="kw">import</span> org.http4s.client.prometheus.Prometheus
+that records metrics to a given metric registry.</p><pre><span class="kw">import</span> cats.effect.{Resource, IO}
+<span class="kw">import</span> org.http4s.server.middleware.Metrics
+<span class="kw">import</span> org.http4s.metrics.Prometheus
 
-<span class="kw">val</span> meteredRoutes = Metrics[IO](Prometheus(registry, <span class="lit">"server"</span>))(testRoutes)</pre><p>Analogously, the following code would wrap a <a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a> with a <a href="../../client/middleware/Metrics$.html" class="extype" name="org.http4s.client.middleware.Metrics">org.http4s.client.middleware.Metrics</a>
-that records metrics to a given metric registry, classifying the metrics by HTTP method.</p><pre><span class="kw">import</span> org.http4s.client.middleware.Metrics
-<span class="kw">import</span> org.http4s.client.prometheus.Prometheus
+<span class="kw">val</span> meteredRoutes: Resource[IO, HttpRoutes[IO]] =
+  Prometheus.metricsOps[IO](registry, <span class="lit">"server"</span>).map(ops <span class="kw">=&gt;</span> Metrics[IO](ops)(testRoutes))</pre><p>Analogously, the following code would wrap a <a href="../../client/Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a> with a <a href="../../client/middleware/Metrics$.html" class="extype" name="org.http4s.client.middleware.Metrics">org.http4s.client.middleware.Metrics</a>
+that records metrics to a given metric registry, classifying the metrics by HTTP method.</p><pre><span class="kw">import</span> cats.effect.{Resource, IO}
+<span class="kw">import</span> org.http4s.client.middleware.Metrics
+<span class="kw">import</span> org.http4s.metrics.Prometheus
 
 <span class="kw">val</span> classifierFunc = (r: Request[IO]) <span class="kw">=&gt;</span> <span class="std">Some</span>(r.method.toString.toLowerCase)
-<span class="kw">val</span> meteredClient = Metrics(Prometheus(registry, <span class="lit">"client"</span>), classifierFunc)(client)</pre><p>Registers the following metrics:</p><p>{prefix}_response_duration_seconds{labels=classifier,method,phase} - Histogram</p><p>{prefix}_active_request_count{labels=classifier} - Gauge</p><p>{prefix}_request_count{labels=classifier,method,status} - Counter</p><p>{prefix}_abnormal_terminations{labels=classifier,termination_type} - Histogram</p><p>Labels --</p><p>method: Enumeration
+<span class="kw">val</span> meteredClient: Resource[IO, Client[IO]] =
+  Prometheus.metricsOps[IO](registry, <span class="lit">"client"</span>).map(ops <span class="kw">=&gt;</span> Metrics[IO](ops, classifierFunc)(client))</pre><p>Registers the following metrics:</p><p>{prefix}_response_duration_seconds{labels=classifier,method,phase} - Histogram</p><p>{prefix}_active_request_count{labels=classifier} - Gauge</p><p>{prefix}_request_count{labels=classifier,method,status} - Counter</p><p>{prefix}_abnormal_terminations{labels=classifier,termination_type} - Histogram</p><p>Labels --</p><p>method: Enumeration
 values: get, put, post, head, move, options, trace, connect, delete, other</p><p>phase: Enumeration
 values: headers, body</p><p>code: Enumeration
 values:  1xx, 2xx, 3xx, 4xx, 5xx</p><p>termination_type: Enumeration

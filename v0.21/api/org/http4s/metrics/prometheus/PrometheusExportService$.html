@@ -175,7 +175,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/ad05b75b66e1bd78919db852f297c4f8a723f748/prometheus-metrics/src/main/scala/org/http4s/metrics/prometheus/PrometheusExportService.scala" target="_blank">PrometheusExportService.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/prometheus-metrics/src/main/scala/org/http4s/metrics/prometheus/PrometheusExportService.scala" target="_blank">PrometheusExportService.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -281,9 +281,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.metrics.prometheus.PrometheusExportService#addDefaults" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addDefaults[F[_]](cr:io.prometheus.client.CollectorRegistry)(implicitevidence$6:cats.effect.Sync[F]):F[Unit]"></a><a id="addDefaults[F[_]](CollectorRegistry)(Sync[F]):F[Unit]"></a>
+      <a id="addDefaults[F[_]](cr:io.prometheus.client.CollectorRegistry)(implicitevidence$6:cats.effect.Sync[F]):cats.effect.Resource[F,Unit]"></a><a id="addDefaults[F[_]](CollectorRegistry)(Sync[F]):Resource[F,Unit]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/metrics/prometheus/PrometheusExportService$.html#addDefaults[F[_]](cr:io.prometheus.client.CollectorRegistry)(implicitevidence$6:cats.effect.Sync[F]):F[Unit]" title="Permalink">
+      <a href="../../../../org/http4s/metrics/prometheus/PrometheusExportService$.html#addDefaults[F[_]](cr:io.prometheus.client.CollectorRegistry)(implicitevidence$6:cats.effect.Sync[F]):cats.effect.Resource[F,Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -292,7 +292,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addDefaults</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="cr">cr: <span class="extype" name="io.prometheus.client.CollectorRegistry">CollectorRegistry</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.addDefaults.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.addDefaults.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.9/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">addDefaults</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="cr">cr: <span class="extype" name="io.prometheus.client.CollectorRegistry">CollectorRegistry</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.addDefaults.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.addDefaults.F">F</span>, <a href="https://www.scala-lang.org/api/2.12.9/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       
@@ -329,9 +329,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.metrics.prometheus.PrometheusExportService#build" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="build[F[_]](implicitevidence$3:cats.effect.Sync[F]):F[org.http4s.metrics.prometheus.PrometheusExportService[F]]"></a><a id="build[F[_]](Sync[F]):F[PrometheusExportService[F]]"></a>
+      <a id="build[F[_]](implicitevidence$3:cats.effect.Sync[F]):cats.effect.Resource[F,org.http4s.metrics.prometheus.PrometheusExportService[F]]"></a><a id="build[F[_]](Sync[F]):Resource[F,PrometheusExportService[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/metrics/prometheus/PrometheusExportService$.html#build[F[_]](implicitevidence$3:cats.effect.Sync[F]):F[org.http4s.metrics.prometheus.PrometheusExportService[F]]" title="Permalink">
+      <a href="../../../../org/http4s/metrics/prometheus/PrometheusExportService$.html#build[F[_]](implicitevidence$3:cats.effect.Sync[F]):cats.effect.Resource[F,org.http4s.metrics.prometheus.PrometheusExportService[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -340,7 +340,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">build</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.build.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.build.F">F</span>[<a href="PrometheusExportService.html" class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService">PrometheusExportService</a>[<span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.build.F">F</span>]]</span>
+        <span class="name">build</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.build.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.build.F">F</span>, <a href="PrometheusExportService.html" class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService">PrometheusExportService</a>[<span class="extype" name="org.http4s.metrics.prometheus.PrometheusExportService.build.F">F</span>]]</span>
       </span>
       
       
