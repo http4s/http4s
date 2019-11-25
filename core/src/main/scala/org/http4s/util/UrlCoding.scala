@@ -14,6 +14,12 @@ private[http4s] object UrlCodingUtils {
   val Unreserved =
     CharPredicate.AlphaNum ++ "-_.~"
 
+  val GenDelims =
+    CharPredicate.from(":/?#[]@".toSet)
+
+  val SubDelims =
+    CharPredicate.from("!$&'()*+,;=".toSet)
+
   private val toSkip =
     Unreserved ++ "!$&'()*+,;=:/?@"
 

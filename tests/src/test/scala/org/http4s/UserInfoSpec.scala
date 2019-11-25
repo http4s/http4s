@@ -3,12 +3,12 @@ package org.http4s
 import cats.implicits._
 import cats.kernel.laws.discipline.{HashTests, OrderTests}
 import org.http4s.Uri.UserInfo
-import org.http4s.internal.parboiled2.CharPredicate
+import org.http4s.util.UrlCodingUtils._
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer.renderString
-import org.http4s.util.UrlCodingUtils
 
 class UserInfoSpec extends Http4sSpec {
+
   checkAll("Order[UserInfo]", OrderTests[UserInfo].order)
   checkAll("Hash[UserInfo]", HashTests[UserInfo].hash)
   checkAll("HttpCodec[UserInfo]", HttpCodecTests[UserInfo].httpCodec)
@@ -73,7 +73,7 @@ class UserInfoSpec extends Http4sSpec {
     }
 
     "reject userinfos with invalid characters" in prop { s: String =>
-      !s.forall(CharPredicate.Alpha ++ UrlCodingUtils.Unreserved ++ ":") ==>
+      !s.forall(Unreserved ++ GenDelims ++ SubDelims ++ ":") ==>
         (UserInfo.fromString(s) must beLeft)
     }
   }
