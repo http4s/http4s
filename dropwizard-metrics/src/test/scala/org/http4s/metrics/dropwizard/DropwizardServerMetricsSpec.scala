@@ -169,8 +169,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec {
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
-      // Not sure why this changed
-      valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(150000000L))
+      valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
     }
 
     "use the provided request classifier" in {

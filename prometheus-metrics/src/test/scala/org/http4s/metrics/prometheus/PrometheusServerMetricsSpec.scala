@@ -164,8 +164,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
           count(registry, "abnormal_terminations", "server") must beEqualTo(1)
           count(registry, "active_requests", "server") must beEqualTo(0)
           count(registry, "2xx_headers_duration", "server") must beEqualTo(0.05)
-          // Not Sure why this changed
-          count(registry, "2xx_total_duration", "server") must beEqualTo(0.15)
+          count(registry, "2xx_total_duration", "server") must beEqualTo(0.1)
         }
     }
 
@@ -215,7 +214,6 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
       classifier: Request[IO] => Option[String] = (_: Request[IO]) => None
   ): Resource[IO, (CollectorRegistry, HttpApp[IO])] = {
     implicit val clock: Clock[IO] = FakeClock[IO]
-
     for {
       registry <- Prometheus.collectorRegistry[IO]
       metrics <- Prometheus.metricsOps[IO](registry, "server")
