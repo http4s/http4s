@@ -8,6 +8,7 @@ import com.jsuereth.sbtpgp.SbtPgp.autoImport._
 import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import java.lang.{Runtime => JRuntime}
 import org.scalafmt.sbt.ScalafmtPlugin
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
@@ -119,6 +120,11 @@ object Http4sPlugin extends AutoPlugin {
     },
 
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
+    unusedCompileDependenciesFilter -= moduleFilter(
+      organization = "org.scala-lang",
+      name = "scala-reflect",
+      revision = "2.12.*",
+    ), // false positive on 2.12.10
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
