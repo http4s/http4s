@@ -57,15 +57,6 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-    // Getting some spurious unreachable code warnings in 2.13
-    scalacOptions -= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 13)) =>
-          "-Xfatal-warnings"
-        case _ =>
-          "I DON'T EXIST I'M WORKING AROUND NOT BEING ABLE TO CALL scalaVersion.value FROM ~="
-      }
-    },
 
     // https://github.com/tkawachi/sbt-doctest/issues/102
     Test / compile / scalacOptions -= "-Ywarn-unused:params",
