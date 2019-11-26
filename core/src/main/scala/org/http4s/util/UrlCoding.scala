@@ -6,6 +6,7 @@ package org.http4s.util
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
+import org.http4s.internal.parboiled2.CharPredicate
 
 private[http4s] object UrlCodingUtils {
 
