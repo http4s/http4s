@@ -6,8 +6,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
-import org.http4s.Uri.{ Authority, RegName, Scheme }
-
+import org.http4s.Uri.{Authority, RegName, Scheme}
 
 class HttpsRedirectSpec extends Http4sSpec {
 
@@ -17,7 +16,7 @@ class HttpsRedirectSpec extends Http4sSpec {
   }
 
   val reqHeaders = Headers.of(Header("X-Forwarded-Proto", "http"), Header("Host", "example.com"))
-  val req        = Request[IO](method = GET, uri = Uri(path = "/"), headers = reqHeaders)
+  val req = Request[IO](method = GET, uri = Uri(path = "/"), headers = reqHeaders)
 
   "HttpsRedirect" should {
 
@@ -25,7 +24,8 @@ class HttpsRedirectSpec extends Http4sSpec {
       val app = HttpsRedirect(innerRoutes).orNotFound
       val resp = app(req).unsafeRunSync
       val expectedAuthority = Authority(host = RegName("example.com"))
-      val expectedLocation = Location(Uri(path = "/", scheme = Some(Scheme.https), authority = Some(expectedAuthority)))
+      val expectedLocation =
+        Location(Uri(path = "/", scheme = Some(Scheme.https), authority = Some(expectedAuthority)))
       val expectedHeaders = Headers(expectedLocation :: `Content-Type`(MediaType.text.xml) :: Nil)
       resp.status must_== Status.MovedPermanently
       resp.headers must_== expectedHeaders
