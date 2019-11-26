@@ -79,7 +79,7 @@ lazy val core = libraryProject("core")
       fs2Io,
       log4s,
       parboiled,
-      scalaReflect(scalaVersion.value),
+      scalaReflect(scalaVersion.value) % Provided,
       vault,
     ),
     unmanagedSourceDirectories in Compile ++= {
@@ -372,7 +372,7 @@ lazy val twirl = http4sProject("twirl")
 lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
-    libraryDependencies += scalatagsApi(scalaVersion.value),
+    libraryDependencies += scalatagsApi,
   )
   .dependsOn(core, testing % "test->test")
 

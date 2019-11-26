@@ -1,3 +1,3 @@
 package org.http4s
 
-object implicits extends syntax.AllSyntax
+object implicits extends syntax.AllSyntaxBinCompat
