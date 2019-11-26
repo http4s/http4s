@@ -426,6 +426,10 @@
                         <a class="class" href="Link.html" title=""></a>
                         <a href="Link.html" title="">Link</a>
                       </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="LinkValue.html" title=""></a>
+                        <a href="LinkValue.html" title="">LinkValue</a>
+                      </li><li class="current-entities indented3">
                         <a class="object" href="Location$.html" title=""></a>
                         <a class="class" href="Location.html" title=""></a>
                         <a href="Location.html" title="">Location</a>
@@ -1419,7 +1423,7 @@ Thus any instant is in practice allowed
       
       
     </li><li name="org.http4s.headers.Link" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="LinkextendsHeader.ParsedwithProductwithSerializable"></a><a id="Link:Link"></a>
+      <a id="LinkextendsHeader.RecurringRenderablewithProductwithSerializable"></a><a id="Link:Link"></a>
       <span class="permalink">
       <a href="../../../org/http4s/headers/Link.html" title="Permalink">
         <i class="material-icons"></i>
@@ -1430,7 +1434,23 @@ Thus any instant is in practice allowed
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="Link.html"><span class="name">Link</span></a><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>, <span name="rel">rel: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="rev">rev: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="title">title: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="type">type: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Link.html"><span class="name">Link</span></a><span class="params">(<span name="values">values: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<a href="LinkValue.html" class="extype" name="org.http4s.headers.LinkValue">LinkValue</a>]</span>)</span><span class="result"> extends <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.headers.LinkValue" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LinkValueextendsRenderablewithProductwithSerializable"></a><a id="LinkValue:LinkValue"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/LinkValue.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="LinkValue.html"><span class="name">LinkValue</span></a><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>, <span name="rel">rel: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="rev">rev: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="title">title: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="type">type: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="../util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -2464,7 +2484,7 @@ Thus any instant is in practice allowed
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="Link$.html"><span class="name">Link</span></a><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Link.html" class="extype" name="org.http4s.headers.Link">Link</a>] with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="" href="Link$.html"><span class="name">Link</span></a><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Link.html" class="extype" name="org.http4s.headers.Link">Link</a>] with <a href="../HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">Recurring</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       

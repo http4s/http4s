@@ -314,6 +314,10 @@
                         <a class="class" href="Link.html" title=""></a>
                         <a href="Link.html" title="">Link</a>
                       </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="LinkValue.html" title=""></a>
+                        <a href="LinkValue.html" title="">LinkValue</a>
+                      </li><li class="current-entities indented3">
                         <a class="object" href="Location$.html" title=""></a>
                         <a class="class" href="Location.html" title=""></a>
                         <a href="Location.html" title="">Location</a>
@@ -518,7 +522,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Link</span><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Link.html" class="extype" name="org.http4s.headers.Link">Link</a>] with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Link</span><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Link.html" class="extype" name="org.http4s.headers.Link">Link</a>] with <a href="../HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">Recurring</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -527,7 +531,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Link.html" class="extype" name="org.http4s.headers.Link">Link</a>], <a href="../HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a>, <a href="https://www.scala-lang.org/api/2.12.9/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.9/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="../HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">Recurring</a>, <a href="../HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a>, <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Link.html" class="extype" name="org.http4s.headers.Link">Link</a>], <a href="../HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a>, <a href="https://www.scala-lang.org/api/2.12.9/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.9/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -553,7 +557,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.headers.Link"><span>Link</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="org.http4s.HeaderKey.Internal"><span>Internal</span></li><li class="in" name="org.http4s.HeaderKey"><span>HeaderKey</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.headers.Link"><span>Link</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="org.http4s.HeaderKey.Recurring"><span>Recurring</span></li><li class="in" name="org.http4s.HeaderKey.Extractable"><span>Extractable</span></li><li class="in" name="org.http4s.HeaderKey.Internal"><span>Internal</span></li><li class="in" name="org.http4s.HeaderKey"><span>HeaderKey</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -575,7 +579,23 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.HeaderKey.Internal.HeaderT" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.HeaderKey.Recurring.GetT" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="GetT=Option[Recurring.this.HeaderT]"></a><a id="GetT:GetT"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/Link$.html#GetT=Option[Recurring.this.HeaderT]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">GetT</span><span class="result alias"> = <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderT=T" class="extmbr" name="org.http4s.headers.Link.HeaderT">HeaderT</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">Recurring</a></dd></dl></div>
+    </li><li name="org.http4s.HeaderKey.Internal.HeaderT" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HeaderT=T"></a><a id="HeaderT:HeaderT"></a>
       <span class="permalink">
       <a href="../../../org/http4s/headers/Link$.html#HeaderT=T" title="Permalink">
@@ -647,6 +667,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.HeaderKey.Recurring#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(first:Recurring.this.HeaderT#Value,more:Recurring.this.HeaderT#Value*):Recurring.this.HeaderT"></a><a id="apply(Value,Value*):HeaderT"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/Link$.html#apply(first:Recurring.this.HeaderT#Value,more:Recurring.this.HeaderT#Value*):Recurring.this.HeaderT" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="first">first: <a href="Link.html#Value=org.http4s.headers.LinkValue" class="extmbr" name="org.http4s.headers.Link.Value">Value</a></span>, <span name="more">more: <a href="Link.html#Value=org.http4s.headers.LinkValue" class="extmbr" name="org.http4s.headers.Link.Value">Value</a>*</span>)</span><span class="result">: <a href="#HeaderT=T" class="extmbr" name="org.http4s.headers.Link.HeaderT">HeaderT</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">Recurring</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -741,6 +777,22 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.HeaderKey.Recurring#from" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="from(headers:org.http4s.Headers):Option[Recurring.this.HeaderT]"></a><a id="from(Headers):Option[HeaderT]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/Link$.html#from(headers:org.http4s.Headers):Option[Recurring.this.HeaderT]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">from</span><span class="params">(<span name="headers">headers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderT=T" class="extmbr" name="org.http4s.headers.Link.HeaderT">HeaderT</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">Recurring</a> → <a href="../HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -929,6 +981,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a> → AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.HeaderKey.Extractable#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unapply(headers:org.http4s.Headers):Option[Extractable.this.HeaderT]"></a><a id="unapply(Headers):Option[HeaderT]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/Link$.html#unapply(headers:org.http4s.Headers):Option[Extractable.this.HeaderT]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unapply</span><span class="params">(<span name="headers">headers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.9/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="#HeaderT=T" class="extmbr" name="org.http4s.headers.Link.HeaderT">HeaderT</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a></dd></dl></div>
     </li><li name="org.http4s.HeaderKey#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="unapply(header:org.http4s.Header):Option[HeaderKey.this.HeaderT]"></a><a id="unapply(Header):Option[HeaderT]"></a>
       <span class="permalink">
@@ -1027,6 +1095,10 @@
               <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="org.http4s.HeaderKey.Recurring">
+              <h3>Inherited from <a href="../HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">Recurring</a></h3>
+            </div><div class="parent" name="org.http4s.HeaderKey.Extractable">
+              <h3>Inherited from <a href="../HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a></h3>
             </div><div class="parent" name="org.http4s.HeaderKey.Internal">
               <h3>Inherited from <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Link.html" class="extype" name="org.http4s.headers.Link">Link</a>]</h3>
             </div><div class="parent" name="org.http4s.HeaderKey">
