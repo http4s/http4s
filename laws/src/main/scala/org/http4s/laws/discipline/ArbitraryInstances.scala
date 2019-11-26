@@ -695,10 +695,10 @@ private[http4s] trait ArbitraryInstances {
     } yield Uri(scheme, authority, path, query, fragment)
   }
 
-  implicit val http4sTestingArbitraryForLink: Arbitrary[Link] = Arbitrary {
+  implicit val http4sTestingArbitraryForLink: Arbitrary[LinkValue] = Arbitrary {
     for {
       uri <- http4sTestingArbitraryForUri.arbitrary
-    } yield Link(uri)
+    } yield LinkValue(uri)
   }
 
   implicit val http4sTestingCogenForUri: Cogen[Uri] =
