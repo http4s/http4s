@@ -8,6 +8,20 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.14 (2019-11-25)
+
+## Bug fixes
+
+* The blaze upgrade fixes the "SSL Handshake WRAP produced 0 bytes" error on JDK 11.
+
+## Dependency updates
+
+* blaze-0.14.11
+* circe-0.11.2
+* jawn-0.14.3
+* jetty-9.4.24.v20191120
+* tomcat-9.0.29
+
 # v0.20.13 (2019-11-05)
 
 ## Bug fixes

@@ -7,11 +7,7 @@ if: tag IS blank
 stages:
   - name: test
   - name: publish
-    branches:
-      only:
-        - master
-        - /^series\//
-    if: type = push
+    if: type = push AND (branch = master OR branch =~ /^series\//)
 
 env:
   global:
