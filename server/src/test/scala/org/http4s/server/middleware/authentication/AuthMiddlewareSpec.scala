@@ -18,7 +18,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
         Kleisli.pure(Left("Unauthorized"))
 
       val onAuthFailure: AuthedRoutes[String, IO] =
-        Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
+        Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
       val authedRoutes: AuthedRoutes[User, IO] =
         AuthedRoutes.of {
@@ -41,7 +41,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
         Kleisli.pure(Right(userId))
 
       val onAuthFailure: AuthedRoutes[String, IO] =
-        Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
+        Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
       val authedRoutes: AuthedRoutes[User, IO] =
         AuthedRoutes.of {
@@ -63,7 +63,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
         Kleisli.pure(Right(userId))
 
       val onAuthFailure: AuthedRoutes[String, IO] =
-        Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
+        Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
       val authedRoutes: AuthedRoutes[User, IO] =
         AuthedRoutes.of {

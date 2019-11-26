@@ -72,6 +72,12 @@ package object server {
     Middleware[OptionT[F, ?], AuthedRequest[F, T], Response[F], Request[F], Response[F]]
 
   /**
+    * An HTTP middleware that adds a context.
+    */
+  type ContextMiddleware[F[_], T] =
+    Middleware[OptionT[F, ?], ContextRequest[F, T], Response[F], Request[F], Response[F]]
+
+  /**
     * Old name for SSLConfig
     */
   @deprecated("Use SSLConfig", "2016-12-31")

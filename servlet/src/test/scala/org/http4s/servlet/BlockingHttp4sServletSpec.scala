@@ -28,12 +28,11 @@ class BlockingHttp4sServletSpec extends Http4sSpec {
 
   withResource(serverPortR) { serverPort =>
     def get(path: String): IO[String] =
-      testBlocker.delay {
+      testBlocker.delay(
         Source
           .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
           .getLines
-          .mkString
-      }
+          .mkString)
 
     def post(path: String, body: String): IO[String] =
       testBlocker.delay {
