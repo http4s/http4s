@@ -8,6 +8,61 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.14 (2019-11-25)
+
+## Bug fixes
+
+* [#2909](https://github.com/http4s/http4s/pull/2909): Properly propagate streamed errors in jetty-client
+* The blaze upgrade fixes the "SSL Handshake WRAP produced 0 bytes" error on JDK 11.
+
+## Enhancements
+
+* [#2911](https://github.com/http4s/http4s/pull/2911): Add missing bincompat syntax to `org.http4s.implicits`.
+
+## Dependency updates
+
+* blaze-0.14.11
+* circe-0.11.2
+* jawn-0.14.3
+* jetty-9.4.24.v20191120
+* tomcat-9.0.29
+
+# v0.20.13 (2019-11-05)
+
+## Bug fixes
+
+* [#2946](https://github.com/http4s/http4s/pull/2946): Restore binary compatibility of private `UrlCodingUtils`. [#2930](https://github.com/http4s/http4s/pull/2930) caused a breakage in rho.
+* [#2922](https://github.com/http4s/http4s/pull/2922): Handle Content-Length longer that Int.MaxValue in chunked uploads
+* [#2941](https://github.com/http4s/http4s/pull/2941): Fix for `BlockingHttp4sServlet` with shifted IO.
+* [#2953](https://github.com/http4s/http4s/pull/2953): Fix connection info in servlet backend.  The local and remote addresses were reversed.
+* [#2942](https://github.com/http4s/http4s/pull/2942): Fix `Request.addcookie` to consolidate all `Cookie` headers into one.
+* [#2957](https://github.com/http4s/http4s/pull/2957): Shift the write to Blocker in `BlockingServletIo`
+
+## Enhancements
+
+* [#2948](https://github.com/http4s/http4s/pull/2948): Add all missing `ContentCoding`s from the IANA registry.
+
+## Dependency updates
+
+* blaze-0.14.9
+
+# v0.20.12 (2019-10-31)
+
+## Enhancements
+
+* [#2930](https://github.com/http4s/http4s/pull/2830): Move private `UrlCodingUtils` to the `Uri` companion object, make public
+
+## Dependency updates
+
+* jawn-0.14.2
+* jetty-9.4.22
+* json4s-0.14.2
+* metrics-4.1.1
+* okhttp-3.14.4
+* play-json-2.7.4
+* tomcat-9.0.27
+* twirl-1.4.2
+
 # v0.21.0-M5 (2019-09-19)
 
 ## Breaking changes

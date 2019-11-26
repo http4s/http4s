@@ -7,7 +7,6 @@ import cats.implicits._
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
-import org.http4s.util._
 import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
@@ -128,11 +127,7 @@ object UrlForm {
   /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
   def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
-      UrlCodingUtils.urlEncode(
-        s,
-        charset.nioCharset,
-        spaceIsPlus = true,
-        toSkip = UrlCodingUtils.Unreserved)
+      Uri.encode(s, charset.nioCharset, spaceIsPlus = true, toSkip = Uri.Unreserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
     urlForm.values.foreach {

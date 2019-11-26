@@ -3,7 +3,6 @@ package parser
 
 import java.io.UnsupportedEncodingException
 import java.nio.CharBuffer
-import org.http4s.util.UrlCodingUtils
 import scala.annotation.switch
 import scala.collection.immutable.BitSet
 import scala.collection.mutable.Builder
@@ -96,7 +95,7 @@ private[http4s] class QueryParser(
   }
 
   private def decodeParam(str: String): String =
-    try UrlCodingUtils.urlDecode(str, codec.charSet, plusIsSpace = true)
+    try Uri.decode(str, codec.charSet, plusIsSpace = true)
     catch {
       case _: IllegalArgumentException => ""
       case _: UnsupportedEncodingException => ""

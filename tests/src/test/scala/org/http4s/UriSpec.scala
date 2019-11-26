@@ -3,6 +3,7 @@ package org.http4s
 import cats.implicits._
 import cats.kernel.laws.discipline.EqTests
 import java.nio.file.Paths
+import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.Uri._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
@@ -922,6 +923,94 @@ http://example.org/a file
 
     "not make bad URIs" >> forAll { s: String =>
       Uri.fromString((uri("http://example.com/") / s).toString) must beRight
+    }
+  }
+
+  /**
+    * Taken from https://github.com/scalatra/rl/blob/v0.4.10/core/src/test/scala/rl/UrlCodingSpec.scala
+    * Copyright (c) 2011 Mojolly Ltd.
+    */
+  "Encoding a URI" should {
+    "not change any of the allowed chars" in {
+      val encoded =
+        encode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
+      encoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~"
+    }
+    "not uppercase hex digits after percent chars that will be encoded" in {
+      // https://github.com/http4s/http4s/issues/720
+      encode("hello%3fworld") must_== "hello%253fworld"
+    }
+    "percent encode spaces" in {
+      encode("hello world") must_== "hello%20world"
+    }
+    "encode a letter with an accent as 2 values" in {
+      encode("é") must_== "%C3%A9"
+    }
+  }
+  "Decoding a URI" should {
+    "not change any of the allowed chars" in {
+      val decoded = decode(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~")
+      decoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~"
+    }
+    "leave Fußgängerübergänge as is" in {
+      decode("Fußgängerübergänge") must_== "Fußgängerübergänge"
+    }
+    "not overflow on all utf-8 chars" in {
+      decode("äéèüああああああああ") must_== "äéèüああああああああ"
+    }
+    "decode a pct encoded string" in {
+      decode("hello%20world") must_== "hello world"
+    }
+    "gracefully handle '%' encoding errors" in {
+      decode("%") must_== "%"
+      decode("%2") must_== "%2"
+      decode("%20") must_== " "
+    }
+    "decode value consisting of 2 values to 1 char" in {
+      decode("%C3%A9") must_== "é"
+    }
+    "skip the chars in toSkip when decoding" in {
+      "skips '%2F' when decoding" in {
+        decode("%2F", toSkip = CharPredicate("/?#")) must_== "%2F"
+      }
+      "skips '%23' when decoding" in {
+        decode("%23", toSkip = CharPredicate("/?#")) must_== "%23"
+      }
+      "skips '%3F' when decoding" in {
+        decode("%3F", toSkip = CharPredicate("/?#")) must_== "%3F"
+      }
+    }
+    "still encodes others" in {
+      decode("br%C3%BCcke", toSkip = CharPredicate("/?#")) must_== "brücke"
+    }
+    "handles mixed" in {
+      decode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = CharPredicate("/?#")) must_== "/ac%2Fdc/brücke%2342%3Fcheck"
+    }
+  }
+  "The plusIsSpace flag" should {
+    "treats + as allowed when the plusIsSpace flag is either not supplied or supplied as false" in {
+      decode("+") must_== "+"
+      decode("+", plusIsSpace = false) must_== "+"
+    }
+    "decode + as space when the plusIsSpace flag is true" in {
+      decode("+", plusIsSpace = true) must_== " "
+    }
+  }
+
+  "urlDecode(urlEncode(s)) == s" should {
+    "for all s" in prop { (s: String) =>
+      decode(encode(s)) must_== s
+    }
+    """for "%ab"""" in {
+      // Special case that triggers https://github.com/http4s/http4s/issues/720,
+      // not likely to be uncovered by the generator.
+      decode(encode("%ab")) must_== "%ab"
+    }
+    """when decode skips a skipped percent encoding""" in {
+      // This is a silly thing to do, but as long as the API allows it, it would
+      // be good to know if it breaks.
+      decode(encode("%2f", toSkip = CharPredicate("%")), toSkip = CharPredicate("/")) must_== "%2f"
     }
   }
 }
