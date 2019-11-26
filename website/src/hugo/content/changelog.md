@@ -12,7 +12,12 @@ it.
 
 ## Bug fixes
 
+* [#2909](https://github.com/http4s/http4s/pull/2909): Properly propagate streamed errors in jetty-client
 * The blaze upgrade fixes the "SSL Handshake WRAP produced 0 bytes" error on JDK 11.
+
+## Enhancements
+
+* [#2911](https://github.com/http4s/http4s/pull/2911): Add missing bincompat syntax to `org.http4s.implicits`.
 
 ## Dependency updates
 
