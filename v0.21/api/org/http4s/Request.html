@@ -825,8 +825,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">sealed abstract </span>
-        <span class="kind">case class</span>
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
         <span class="name">Request</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Request.F">F</span>] with <a href="https://www.scala-lang.org/api/2.12.9/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.9/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
@@ -889,7 +889,26 @@ status line, headers, and a possible request body.
 
       <div id="template">
         <div id="allMembers">
-        
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="org.http4s.Request#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;init&gt;(method:org.http4s.Method,uri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody[F],attributes:io.chrisdavenport.vault.Vault):org.http4s.Request[F]"></a><a id="&lt;init&gt;:Request[F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#&lt;init&gt;(method:org.http4s.Method,uri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody[F],attributes:io.chrisdavenport.vault.Vault):org.http4s.Request[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Request</span><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Request.F">F</span>] = <span class="symbol"><span class="name"><a href="index.html#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span> = <span class="symbol">Vault.empty</span></span>)</span>
+      </span>
+      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Method.SafeMethodWithBody" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <a href="Method$.html#POST:org.http4s.Method.DefaultMethodWithBody" class="extmbr" name="org.http4s.Method#POST">Method.POST</a>, etc.</p></dd><dt class="param">uri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>fs2.Stream[F, Byte] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion</p></dd></dl></div>
+    </li></ol>
+            </div>
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
@@ -1155,6 +1174,22 @@ status line, headers, and a possible request body.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Request#canEqual" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="canEqual(that:Any):Boolean"></a><a id="canEqual(Any):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#canEqual(that:Any):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">canEqual</span><span class="params">(<span name="that">that: <a href="https://www.scala-lang.org/api/2.12.9/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.9/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → Equals</dd></dl></div>
     </li><li name="org.http4s.Request#change" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="change(httpVersion:org.http4s.HttpVersion,body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:io.chrisdavenport.vault.Vault):Request.this.Self"></a><a id="change(HttpVersion,EntityBody[F],Headers,Vault):Self"></a>
       <span class="permalink">
@@ -1395,6 +1430,22 @@ If decoding fails, an <code>UnprocessableEntity</code> <a href="Response.html" c
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.Request#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(that:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#equals(that:Any):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="that">that: <a href="https://www.scala-lang.org/api/2.12.9/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.9/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → Equals → AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.Message#filterHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean):Message.this.Self"></a><a id="filterHeaders((Header)⇒Boolean):Self"></a>
       <span class="permalink">
@@ -1493,6 +1544,22 @@ If decoding fails, an <code>UnprocessableEntity</code> <a href="Response.html" c
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.Request#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#hashCode():Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.9/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.Request#headers" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="headers:org.http4s.Headers"></a><a id="headers:Headers"></a>
       <span class="permalink">
@@ -1735,6 +1802,70 @@ an empty <code>Map</code> is returned.
       </span>
       
       
+    </li><li name="org.http4s.Request#productArity" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="productArity:Int"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#productArity:Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">productArity</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.9/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → Product</dd></dl></div>
+    </li><li name="org.http4s.Request#productElement" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="productElement(n:Int):Any"></a><a id="productElement(Int):Any"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#productElement(n:Int):Any" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">productElement</span><span class="params">(<span name="n">n: <a href="https://www.scala-lang.org/api/2.12.9/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.9/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → Product</dd></dl></div>
+    </li><li name="scala.Product#productIterator" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="productIterator:Iterator[Any]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#productIterator:Iterator[Any]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">productIterator</span><span class="result">: <span class="extype" name="scala.Iterator">Iterator</span>[<a href="https://www.scala-lang.org/api/2.12.9/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
+    </li><li name="scala.Product#productPrefix" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="productPrefix:String"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#productPrefix:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">productPrefix</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Product</dd></dl></div>
     </li><li name="org.http4s.Message#putHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="putHeaders(headers:org.http4s.Header*):Message.this.Self"></a><a id="putHeaders(Header*):Self"></a>
       <span class="permalink">
