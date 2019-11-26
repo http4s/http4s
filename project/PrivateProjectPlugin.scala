@@ -1,6 +1,6 @@
 package org.http4s.build
 
-import com.typesafe.sbt.pgp.PgpKeys.{publishLocalSigned, publishSigned}
+import com.jsuereth.sbtpgp.PgpKeys.{publishLocalSigned, publishSigned}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport._

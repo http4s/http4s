@@ -197,17 +197,19 @@ We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
 ```tut:silent
+import cats.effect.{Resource, IO}
 import org.http4s.server.middleware.Metrics
 import org.http4s.metrics.prometheus.Prometheus
 import io.prometheus.client.CollectorRegistry
 ```
 ```tut:book
 implicit val clock = Clock.create[IO]
-val registry = new CollectorRegistry()
 
-val meteredRoutes = Prometheus[IO](registry, "server").map(
-  Metrics[IO](_)(apiService)
-)
+val meteredRoutes: Resource[IO, HttpRoutes[IO]] =
+  for {
+    registry <- Prometheus.collectorRegistry[IO]
+    metrics <- Prometheus.metricsOps[IO](registry, "server")
+  } yield Metrics[IO](metrics)(apiService)
 ```
 
 [service]: ../service

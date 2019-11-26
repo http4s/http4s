@@ -13,14 +13,12 @@ import org.specs2.concurrent.ExecutionEnv
 import scala.concurrent.duration._
 import scala.io.Source
 
-class TomcatServerSpec(implicit ee: ExecutionEnv) extends {
+class TomcatServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec {
   // Prevents us from loading jar and war URLs, but lets us
   // run Tomcat twice in the same JVM.  This makes me grumpy.
   //
-  // Needs to run before the server is initialized in the superclass.
-  // This also makes me grumpy.
-  val _ = TomcatURLStreamHandlerFactory.disable()
-} with Http4sSpec {
+  TomcatURLStreamHandlerFactory.disable()
+
   def builder = TomcatBuilder[IO]
 
   val serverR =

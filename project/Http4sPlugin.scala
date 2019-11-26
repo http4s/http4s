@@ -2,9 +2,9 @@ package org.http4s.build
 
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
-import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
-import com.typesafe.sbt.pgp.PgpKeys.publishSigned
+import com.jsuereth.sbtpgp.PgpKeys.publishSigned
+import com.jsuereth.sbtpgp.SbtPgp.autoImport._
 import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
@@ -57,15 +57,6 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-    // Getting some spurious unreachable code warnings in 2.13
-    scalacOptions -= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 13)) =>
-          "-Xfatal-warnings"
-        case _ =>
-          "I DON'T EXIST I'M WORKING AROUND NOT BEING ABLE TO CALL scalaVersion.value FROM ~="
-      }
-    },
 
     // https://github.com/tkawachi/sbt-doctest/issues/102
     Test / compile / scalacOptions -= "-Ywarn-unused:params",
@@ -179,7 +170,6 @@ object Http4sPlugin extends AutoPlugin {
   )
 
   val signingSettings = Seq(
-    useGpg := false,
     usePgpKeyHex("42FAD8A85B13261D"),
     pgpPublicRing := baseDirectory.value / "project" / ".gnupg" / "pubring.gpg",
     pgpSecretRing := baseDirectory.value / "project" / ".gnupg" / "secring.gpg",
@@ -274,8 +264,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.15.0"
-  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.2"
-  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.2"
+  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.3"
+  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.3"
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.21.v20190926"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.21.v20190926"
@@ -302,11 +292,11 @@ object Http4sPlugin extends AutoPlugin {
   def scalaReflect(sv: String)              = "org.scala-lang"         %  "scala-reflect"             % sv
   def scalatagsApi(sv: String)              = "com.lihaoyi"            %% "scalatags"                 % CrossVersion.partialVersion(sv).filter(_._2 > 11).fold("0.6.8")(_ => "0.7.0")
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.2.0"
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.7.1"
+  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.8.1"
   lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.27"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.29"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.2"
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "2.0.0"
