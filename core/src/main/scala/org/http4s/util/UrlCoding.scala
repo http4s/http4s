@@ -13,6 +13,12 @@ private[http4s] object UrlCodingUtils {
   val Unreserved =
     org.http4s.Uri.Unreserved
 
+  val GenDelims =
+    CharPredicate.from(":/?#[]@".toSet)
+
+  val SubDelims =
+    CharPredicate.from("!$&'()*+,;=".toSet)
+
   private val toSkip =
     org.http4s.Uri.Unreserved ++ "!$&'()*+,;=:/?@"
 

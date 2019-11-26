@@ -10,8 +10,8 @@ import org.http4s.Uri.uri
 object PathInHttpRoutesSpec extends Http4sSpec {
 
   object List {
-    def unapplySeq(params: Map[String, Seq[String]]) = params.get("list")
-    def unapply(params: Map[String, Seq[String]]) = unapplySeq(params)
+    def unapplySeq(params: Map[String, collection.Seq[String]]) = params.get("list")
+    def unapply(params: Map[String, collection.Seq[String]]) = unapplySeq(params)
   }
 
   object I extends QueryParamDecoderMatcher[Int]("start")
