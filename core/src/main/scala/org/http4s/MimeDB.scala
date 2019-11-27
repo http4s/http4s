@@ -64,6 +64,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "atsc-dwd+xml", Compressible, NotBinary)
       lazy val `atsc-held+xml`: MediaType =
         new MediaType("application", "atsc-held+xml", Compressible, NotBinary)
+      lazy val `atsc-rdt+json`: MediaType =
+        new MediaType("application", "atsc-rdt+json", Compressible, NotBinary)
       lazy val `atsc-rsat+xml`: MediaType =
         new MediaType("application", "atsc-rsat+xml", Compressible, NotBinary)
       lazy val `atxml`: MediaType = new MediaType("application", "atxml", Compressible, NotBinary)
@@ -86,6 +88,8 @@ private[http4s] trait MimeDB {
       lazy val `cals-1840`: MediaType =
         new MediaType("application", "cals-1840", Compressible, NotBinary)
       lazy val `cbor`: MediaType = new MediaType("application", "cbor", Compressible, NotBinary)
+      lazy val `cbor-seq`: MediaType =
+        new MediaType("application", "cbor-seq", Compressible, NotBinary)
       lazy val `cccex`: MediaType = new MediaType("application", "cccex", Compressible, NotBinary)
       lazy val `ccmp+xml`: MediaType =
         new MediaType("application", "ccmp+xml", Compressible, NotBinary)
@@ -233,6 +237,8 @@ private[http4s] trait MimeDB {
       lazy val `fido.trusted-apps+json`: MediaType =
         new MediaType("application", "fido.trusted-apps+json", Compressible, NotBinary)
       lazy val `fits`: MediaType = new MediaType("application", "fits", Compressible, NotBinary)
+      lazy val `flexfec`: MediaType =
+        new MediaType("application", "flexfec", Compressible, NotBinary)
       lazy val `font-sfnt`: MediaType =
         new MediaType("application", "font-sfnt", Compressible, NotBinary)
       lazy val `font-tdpfr`: MediaType =
@@ -418,6 +424,7 @@ private[http4s] trait MimeDB {
         new MediaType("application", "mets+xml", Compressible, NotBinary, List("mets"))
       lazy val `mf4`: MediaType = new MediaType("application", "mf4", Compressible, NotBinary)
       lazy val `mikey`: MediaType = new MediaType("application", "mikey", Compressible, NotBinary)
+      lazy val `mipc`: MediaType = new MediaType("application", "mipc", Compressible, NotBinary)
       lazy val `mmt-aei+xml`: MediaType =
         new MediaType("application", "mmt-aei+xml", Compressible, NotBinary)
       lazy val `mmt-usd+xml`: MediaType =
@@ -454,6 +461,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "msword", Uncompressible, Binary, List("doc", "dot"))
       lazy val `mud+json`: MediaType =
         new MediaType("application", "mud+json", Compressible, NotBinary)
+      lazy val `multipart-core`: MediaType =
+        new MediaType("application", "multipart-core", Compressible, NotBinary)
       lazy val `mxf`: MediaType =
         new MediaType("application", "mxf", Compressible, NotBinary, List("mxf"))
       lazy val `n-quads`: MediaType =
@@ -503,8 +512,7 @@ private[http4s] trait MimeDB {
           "msi",
           "msp",
           "msm",
-          "buffer")
-      )
+          "buffer"))
       lazy val `oda`: MediaType =
         new MediaType("application", "oda", Compressible, NotBinary, List("oda"))
       lazy val `odm+xml`: MediaType =
@@ -735,6 +743,7 @@ private[http4s] trait MimeDB {
         new MediaType("application", "simple-message-summary", Compressible, NotBinary)
       lazy val `simplesymbolcontainer`: MediaType =
         new MediaType("application", "simplesymbolcontainer", Compressible, NotBinary)
+      lazy val `sipc`: MediaType = new MediaType("application", "sipc", Compressible, NotBinary)
       lazy val `slate`: MediaType = new MediaType("application", "slate", Compressible, NotBinary)
       lazy val `smil`: MediaType = new MediaType("application", "smil", Compressible, NotBinary)
       lazy val `smil+xml`: MediaType =
@@ -764,6 +773,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "ssml+xml", Compressible, NotBinary, List("ssml"))
       lazy val `stix+json`: MediaType =
         new MediaType("application", "stix+json", Compressible, NotBinary)
+      lazy val `swid+xml`: MediaType =
+        new MediaType("application", "swid+xml", Compressible, NotBinary)
       lazy val `tamp-apex-update`: MediaType =
         new MediaType("application", "tamp-apex-update", Compressible, NotBinary)
       lazy val `tamp-apex-update-confirm`: MediaType =
@@ -807,6 +818,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "tlsrpt+json", Compressible, NotBinary)
       lazy val `tnauthlist`: MediaType =
         new MediaType("application", "tnauthlist", Compressible, NotBinary)
+      lazy val `toml`: MediaType =
+        new MediaType("application", "toml", Compressible, NotBinary, List("toml"))
       lazy val `trickle-ice-sdpfrag`: MediaType =
         new MediaType("application", "trickle-ice-sdpfrag", Compressible, NotBinary)
       lazy val `trig`: MediaType = new MediaType("application", "trig", Compressible, NotBinary)
@@ -902,6 +915,8 @@ private[http4s] trait MimeDB {
         "vnd.3gpp.mcvideo-affiliation-info+xml",
         Compressible,
         NotBinary)
+      lazy val `vnd.3gpp.mcvideo-info+xml`: MediaType =
+        new MediaType("application", "vnd.3gpp.mcvideo-info+xml", Compressible, NotBinary)
       lazy val `vnd.3gpp.mcvideo-location-info+xml`: MediaType =
         new MediaType("application", "vnd.3gpp.mcvideo-location-info+xml", Compressible, NotBinary)
       lazy val `vnd.3gpp.mcvideo-mbms-usage-info+xml`: MediaType = new MediaType(
@@ -984,8 +999,26 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.aether.imp", Compressible, NotBinary)
       lazy val `vnd.afpc.afplinedata`: MediaType =
         new MediaType("application", "vnd.afpc.afplinedata", Compressible, NotBinary)
+      lazy val `vnd.afpc.afplinedata-pagedef`: MediaType =
+        new MediaType("application", "vnd.afpc.afplinedata-pagedef", Compressible, NotBinary)
+      lazy val `vnd.afpc.foca-charset`: MediaType =
+        new MediaType("application", "vnd.afpc.foca-charset", Compressible, NotBinary)
+      lazy val `vnd.afpc.foca-codedfont`: MediaType =
+        new MediaType("application", "vnd.afpc.foca-codedfont", Compressible, NotBinary)
+      lazy val `vnd.afpc.foca-codepage`: MediaType =
+        new MediaType("application", "vnd.afpc.foca-codepage", Compressible, NotBinary)
       lazy val `vnd.afpc.modca`: MediaType =
         new MediaType("application", "vnd.afpc.modca", Compressible, NotBinary)
+      lazy val `vnd.afpc.modca-formdef`: MediaType =
+        new MediaType("application", "vnd.afpc.modca-formdef", Compressible, NotBinary)
+      lazy val `vnd.afpc.modca-mediummap`: MediaType =
+        new MediaType("application", "vnd.afpc.modca-mediummap", Compressible, NotBinary)
+      lazy val `vnd.afpc.modca-objectcontainer`: MediaType =
+        new MediaType("application", "vnd.afpc.modca-objectcontainer", Compressible, NotBinary)
+      lazy val `vnd.afpc.modca-overlay`: MediaType =
+        new MediaType("application", "vnd.afpc.modca-overlay", Compressible, NotBinary)
+      lazy val `vnd.afpc.modca-pagesegment`: MediaType =
+        new MediaType("application", "vnd.afpc.modca-pagesegment", Compressible, NotBinary)
       lazy val `vnd.ah-barcode`: MediaType =
         new MediaType("application", "vnd.ah-barcode", Compressible, NotBinary)
       lazy val `vnd.ahead.space`: MediaType =
@@ -1018,6 +1051,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.amiga.ami", Compressible, NotBinary, List("ami"))
       lazy val `vnd.amundsen.maze+xml`: MediaType =
         new MediaType("application", "vnd.amundsen.maze+xml", Compressible, NotBinary)
+      lazy val `vnd.android.ota`: MediaType =
+        new MediaType("application", "vnd.android.ota", Compressible, NotBinary)
       lazy val `vnd.android.package-archive`: MediaType = new MediaType(
         "application",
         "vnd.android.package-archive",
@@ -1032,60 +1067,6 @@ private[http4s] trait MimeDB {
         Compressible,
         NotBinary,
         List("cii"))
-      lazy val `vnd.anser-web-funds-transfer-initiation`: MediaType = new MediaType(
-        "application",
-        "vnd.anser-web-funds-transfer-initiation",
-        Compressible,
-        NotBinary,
-        List("fti"))
-      lazy val `vnd.antix.game-component`: MediaType = new MediaType(
-        "application",
-        "vnd.antix.game-component",
-        Compressible,
-        NotBinary,
-        List("atx"))
-      lazy val `vnd.apache.thrift.binary`: MediaType =
-        new MediaType("application", "vnd.apache.thrift.binary", Compressible, NotBinary)
-      lazy val `vnd.apache.thrift.compact`: MediaType =
-        new MediaType("application", "vnd.apache.thrift.compact", Compressible, NotBinary)
-      lazy val `vnd.apache.thrift.json`: MediaType =
-        new MediaType("application", "vnd.apache.thrift.json", Compressible, NotBinary)
-      lazy val `vnd.api+json`: MediaType =
-        new MediaType("application", "vnd.api+json", Compressible, Binary)
-      lazy val `vnd.apothekende.reservation+json`: MediaType =
-        new MediaType("application", "vnd.apothekende.reservation+json", Compressible, NotBinary)
-      lazy val `vnd.apple.installer+xml`: MediaType = new MediaType(
-        "application",
-        "vnd.apple.installer+xml",
-        Compressible,
-        NotBinary,
-        List("mpkg"))
-      lazy val `vnd.apple.keynote`: MediaType =
-        new MediaType("application", "vnd.apple.keynote", Compressible, NotBinary, List("keynote"))
-      lazy val `vnd.apple.mpegurl`: MediaType =
-        new MediaType("application", "vnd.apple.mpegurl", Compressible, NotBinary, List("m3u8"))
-      lazy val `vnd.apple.numbers`: MediaType =
-        new MediaType("application", "vnd.apple.numbers", Compressible, NotBinary, List("numbers"))
-      lazy val `vnd.apple.pages`: MediaType =
-        new MediaType("application", "vnd.apple.pages", Compressible, NotBinary, List("pages"))
-      lazy val `vnd.apple.pkpass`: MediaType =
-        new MediaType("application", "vnd.apple.pkpass", Uncompressible, NotBinary, List("pkpass"))
-      lazy val `vnd.arastra.swi`: MediaType =
-        new MediaType("application", "vnd.arastra.swi", Compressible, NotBinary)
-      lazy val `vnd.aristanetworks.swi`: MediaType =
-        new MediaType("application", "vnd.aristanetworks.swi", Compressible, NotBinary, List("swi"))
-      lazy val `vnd.artisan+json`: MediaType =
-        new MediaType("application", "vnd.artisan+json", Compressible, NotBinary)
-      lazy val `vnd.artsquare`: MediaType =
-        new MediaType("application", "vnd.artsquare", Compressible, NotBinary)
-      lazy val `vnd.astraea-software.iota`: MediaType = new MediaType(
-        "application",
-        "vnd.astraea-software.iota",
-        Compressible,
-        NotBinary,
-        List("iota"))
-      lazy val `vnd.audiograph`: MediaType =
-        new MediaType("application", "vnd.audiograph", Compressible, NotBinary, List("aep"))
       lazy val part_0: List[MediaType] = List(
         `1d-interleaved-parityfec`,
         `3gpdash-qoe-report+xml`,
@@ -1116,6 +1097,7 @@ private[http4s] trait MimeDB {
         `atomsvc+xml`,
         `atsc-dwd+xml`,
         `atsc-held+xml`,
+        `atsc-rdt+json`,
         `atsc-rsat+xml`,
         `atxml`,
         `auth-policy+xml`,
@@ -1128,6 +1110,7 @@ private[http4s] trait MimeDB {
         `call-completion`,
         `cals-1840`,
         `cbor`,
+        `cbor-seq`,
         `cccex`,
         `ccmp+xml`,
         `ccxml+xml`,
@@ -1209,6 +1192,7 @@ private[http4s] trait MimeDB {
         `fhir+xml`,
         `fido.trusted-apps+json`,
         `fits`,
+        `flexfec`,
         `font-sfnt`,
         `font-tdpfr`,
         `font-woff`,
@@ -1300,6 +1284,7 @@ private[http4s] trait MimeDB {
         `mets+xml`,
         `mf4`,
         `mikey`,
+        `mipc`,
         `mmt-aei+xml`,
         `mmt-usd+xml`,
         `mods+xml`,
@@ -1318,6 +1303,7 @@ private[http4s] trait MimeDB {
         `msc-mixer+xml`,
         `msword`,
         `mud+json`,
+        `multipart-core`,
         `mxf`,
         `n-quads`,
         `n-triples`,
@@ -1440,6 +1426,7 @@ private[http4s] trait MimeDB {
         `simple-filter+xml`,
         `simple-message-summary`,
         `simplesymbolcontainer`,
+        `sipc`,
         `slate`,
         `smil`,
         `smil+xml`,
@@ -1456,6 +1443,7 @@ private[http4s] trait MimeDB {
         `ssdl+xml`,
         `ssml+xml`,
         `stix+json`,
+        `swid+xml`,
         `tamp-apex-update`,
         `tamp-apex-update-confirm`,
         `tamp-community-update`,
@@ -1478,6 +1466,7 @@ private[http4s] trait MimeDB {
         `tlsrpt+gzip`,
         `tlsrpt+json`,
         `tnauthlist`,
+        `toml`,
         `trickle-ice-sdpfrag`,
         `trig`,
         `ttml+xml`,
@@ -1520,6 +1509,7 @@ private[http4s] trait MimeDB {
         `vnd.3gpp.mcptt-user-profile+xml`,
         `vnd.3gpp.mcvideo-affiliation-command+xml`,
         `vnd.3gpp.mcvideo-affiliation-info+xml`,
+        `vnd.3gpp.mcvideo-info+xml`,
         `vnd.3gpp.mcvideo-location-info+xml`,
         `vnd.3gpp.mcvideo-mbms-usage-info+xml`,
         `vnd.3gpp.mcvideo-service-config+xml`,
@@ -1554,7 +1544,16 @@ private[http4s] trait MimeDB {
         `vnd.adobe.xfdf`,
         `vnd.aether.imp`,
         `vnd.afpc.afplinedata`,
+        `vnd.afpc.afplinedata-pagedef`,
+        `vnd.afpc.foca-charset`,
+        `vnd.afpc.foca-codedfont`,
+        `vnd.afpc.foca-codepage`,
         `vnd.afpc.modca`,
+        `vnd.afpc.modca-formdef`,
+        `vnd.afpc.modca-mediummap`,
+        `vnd.afpc.modca-objectcontainer`,
+        `vnd.afpc.modca-overlay`,
+        `vnd.afpc.modca-pagesegment`,
         `vnd.ah-barcode`,
         `vnd.ahead.space`,
         `vnd.airzip.filesecure.azf`,
@@ -1565,31 +1564,67 @@ private[http4s] trait MimeDB {
         `vnd.americandynamics.acc`,
         `vnd.amiga.ami`,
         `vnd.amundsen.maze+xml`,
+        `vnd.android.ota`,
         `vnd.android.package-archive`,
         `vnd.anki`,
-        `vnd.anser-web-certificate-issue-initiation`,
-        `vnd.anser-web-funds-transfer-initiation`,
-        `vnd.antix.game-component`,
-        `vnd.apache.thrift.binary`,
-        `vnd.apache.thrift.compact`,
-        `vnd.apache.thrift.json`,
-        `vnd.api+json`,
-        `vnd.apothekende.reservation+json`,
-        `vnd.apple.installer+xml`,
-        `vnd.apple.keynote`,
-        `vnd.apple.mpegurl`,
-        `vnd.apple.numbers`,
-        `vnd.apple.pages`,
-        `vnd.apple.pkpass`,
-        `vnd.arastra.swi`,
-        `vnd.aristanetworks.swi`,
-        `vnd.artisan+json`,
-        `vnd.artsquare`,
-        `vnd.astraea-software.iota`,
-        `vnd.audiograph`
+        `vnd.anser-web-certificate-issue-initiation`
       )
     }
     trait application_1 {
+      lazy val `vnd.anser-web-funds-transfer-initiation`: MediaType = new MediaType(
+        "application",
+        "vnd.anser-web-funds-transfer-initiation",
+        Compressible,
+        NotBinary,
+        List("fti"))
+      lazy val `vnd.antix.game-component`: MediaType = new MediaType(
+        "application",
+        "vnd.antix.game-component",
+        Compressible,
+        NotBinary,
+        List("atx"))
+      lazy val `vnd.apache.thrift.binary`: MediaType =
+        new MediaType("application", "vnd.apache.thrift.binary", Compressible, NotBinary)
+      lazy val `vnd.apache.thrift.compact`: MediaType =
+        new MediaType("application", "vnd.apache.thrift.compact", Compressible, NotBinary)
+      lazy val `vnd.apache.thrift.json`: MediaType =
+        new MediaType("application", "vnd.apache.thrift.json", Compressible, NotBinary)
+      lazy val `vnd.api+json`: MediaType =
+        new MediaType("application", "vnd.api+json", Compressible, Binary)
+      lazy val `vnd.apothekende.reservation+json`: MediaType =
+        new MediaType("application", "vnd.apothekende.reservation+json", Compressible, NotBinary)
+      lazy val `vnd.apple.installer+xml`: MediaType = new MediaType(
+        "application",
+        "vnd.apple.installer+xml",
+        Compressible,
+        NotBinary,
+        List("mpkg"))
+      lazy val `vnd.apple.keynote`: MediaType =
+        new MediaType("application", "vnd.apple.keynote", Compressible, NotBinary, List("keynote"))
+      lazy val `vnd.apple.mpegurl`: MediaType =
+        new MediaType("application", "vnd.apple.mpegurl", Compressible, NotBinary, List("m3u8"))
+      lazy val `vnd.apple.numbers`: MediaType =
+        new MediaType("application", "vnd.apple.numbers", Compressible, NotBinary, List("numbers"))
+      lazy val `vnd.apple.pages`: MediaType =
+        new MediaType("application", "vnd.apple.pages", Compressible, NotBinary, List("pages"))
+      lazy val `vnd.apple.pkpass`: MediaType =
+        new MediaType("application", "vnd.apple.pkpass", Uncompressible, NotBinary, List("pkpass"))
+      lazy val `vnd.arastra.swi`: MediaType =
+        new MediaType("application", "vnd.arastra.swi", Compressible, NotBinary)
+      lazy val `vnd.aristanetworks.swi`: MediaType =
+        new MediaType("application", "vnd.aristanetworks.swi", Compressible, NotBinary, List("swi"))
+      lazy val `vnd.artisan+json`: MediaType =
+        new MediaType("application", "vnd.artisan+json", Compressible, NotBinary)
+      lazy val `vnd.artsquare`: MediaType =
+        new MediaType("application", "vnd.artsquare", Compressible, NotBinary)
+      lazy val `vnd.astraea-software.iota`: MediaType = new MediaType(
+        "application",
+        "vnd.astraea-software.iota",
+        Compressible,
+        NotBinary,
+        List("iota"))
+      lazy val `vnd.audiograph`: MediaType =
+        new MediaType("application", "vnd.audiograph", Compressible, NotBinary, List("aep"))
       lazy val `vnd.autopackage`: MediaType =
         new MediaType("application", "vnd.autopackage", Compressible, NotBinary)
       lazy val `vnd.avalon+json`: MediaType =
@@ -1602,6 +1637,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.balsamiq.bmpr", Compressible, NotBinary)
       lazy val `vnd.banana-accounting`: MediaType =
         new MediaType("application", "vnd.banana-accounting", Compressible, NotBinary)
+      lazy val `vnd.bbf.usp.error`: MediaType =
+        new MediaType("application", "vnd.bbf.usp.error", Compressible, NotBinary)
       lazy val `vnd.bbf.usp.msg`: MediaType =
         new MediaType("application", "vnd.bbf.usp.msg", Compressible, NotBinary)
       lazy val `vnd.bbf.usp.msg+json`: MediaType =
@@ -1622,6 +1659,10 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.bluetooth.le.oob", Compressible, NotBinary)
       lazy val `vnd.bmi`: MediaType =
         new MediaType("application", "vnd.bmi", Compressible, NotBinary, List("bmi"))
+      lazy val `vnd.bpf`: MediaType =
+        new MediaType("application", "vnd.bpf", Compressible, NotBinary)
+      lazy val `vnd.bpf3`: MediaType =
+        new MediaType("application", "vnd.bpf3", Compressible, NotBinary)
       lazy val `vnd.businessobjects`: MediaType =
         new MediaType("application", "vnd.businessobjects", Compressible, NotBinary, List("rep"))
       lazy val `vnd.byu.uapi+json`: MediaType =
@@ -1648,6 +1689,8 @@ private[http4s] trait MimeDB {
         Compressible,
         NotBinary,
         List("mmd"))
+      lazy val `vnd.ciedi`: MediaType =
+        new MediaType("application", "vnd.ciedi", Compressible, NotBinary)
       lazy val `vnd.cinderella`: MediaType =
         new MediaType("application", "vnd.cinderella", Compressible, NotBinary, List("cdy"))
       lazy val `vnd.cirpack.isdn-ext`: MediaType =
@@ -1761,6 +1804,10 @@ private[http4s] trait MimeDB {
         Compressible,
         NotBinary,
         List("wbs"))
+      lazy val `vnd.cryptii.pipe+json`: MediaType =
+        new MediaType("application", "vnd.cryptii.pipe+json", Compressible, NotBinary)
+      lazy val `vnd.crypto-shade-file`: MediaType =
+        new MediaType("application", "vnd.crypto-shade-file", Compressible, NotBinary)
       lazy val `vnd.ctc-posml`: MediaType =
         new MediaType("application", "vnd.ctc-posml", Compressible, NotBinary, List("pml"))
       lazy val `vnd.ctct.ws+xml`: MediaType =
@@ -2037,6 +2084,8 @@ private[http4s] trait MimeDB {
         List("seed", "dataless"))
       lazy val `vnd.ffsns`: MediaType =
         new MediaType("application", "vnd.ffsns", Compressible, NotBinary)
+      lazy val `vnd.ficlab.flb+zip`: MediaType =
+        new MediaType("application", "vnd.ficlab.flb+zip", Uncompressible, NotBinary)
       lazy val `vnd.filmit.zfc`: MediaType =
         new MediaType("application", "vnd.filmit.zfc", Compressible, NotBinary)
       lazy val `vnd.fints`: MediaType =
@@ -2366,6 +2415,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.is-xpr", Compressible, NotBinary, List("xpr"))
       lazy val `vnd.isac.fcs`: MediaType =
         new MediaType("application", "vnd.isac.fcs", Compressible, NotBinary, List("fcs"))
+      lazy val `vnd.iso11783-10+zip`: MediaType =
+        new MediaType("application", "vnd.iso11783-10+zip", Uncompressible, NotBinary)
       lazy val `vnd.jam`: MediaType =
         new MediaType("application", "vnd.jam", Compressible, NotBinary, List("jam"))
       lazy val `vnd.japannet-directory-service`: MediaType =
@@ -2436,10 +2487,14 @@ private[http4s] trait MimeDB {
         List("skp", "skd", "skt", "skm"))
       lazy val `vnd.kodak-descriptor`: MediaType =
         new MediaType("application", "vnd.kodak-descriptor", Compressible, NotBinary, List("sse"))
+      lazy val `vnd.las`: MediaType =
+        new MediaType("application", "vnd.las", Compressible, NotBinary)
       lazy val `vnd.las.las+json`: MediaType =
         new MediaType("application", "vnd.las.las+json", Compressible, NotBinary)
       lazy val `vnd.las.las+xml`: MediaType =
         new MediaType("application", "vnd.las.las+xml", Compressible, NotBinary, List("lasxml"))
+      lazy val `vnd.laszip`: MediaType =
+        new MediaType("application", "vnd.laszip", Compressible, NotBinary)
       lazy val `vnd.leap+json`: MediaType =
         new MediaType("application", "vnd.leap+json", Compressible, NotBinary)
       lazy val `vnd.liberty-request+xml`: MediaType =
@@ -2456,6 +2511,10 @@ private[http4s] trait MimeDB {
         Compressible,
         NotBinary,
         List("lbe"))
+      lazy val `vnd.logipipe.circuit+zip`: MediaType =
+        new MediaType("application", "vnd.logipipe.circuit+zip", Uncompressible, NotBinary)
+      lazy val `vnd.loom`: MediaType =
+        new MediaType("application", "vnd.loom", Compressible, NotBinary)
       lazy val `vnd.lotus-1-2-3`: MediaType =
         new MediaType("application", "vnd.lotus-1-2-3", Compressible, NotBinary, List("123"))
       lazy val `vnd.lotus-approach`: MediaType =
@@ -2811,143 +2870,33 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.novadigm.ext", Compressible, NotBinary, List("ext"))
       lazy val `vnd.ntt-local.content-share`: MediaType =
         new MediaType("application", "vnd.ntt-local.content-share", Compressible, NotBinary)
-      lazy val `vnd.ntt-local.file-transfer`: MediaType =
-        new MediaType("application", "vnd.ntt-local.file-transfer", Compressible, NotBinary)
-      lazy val `vnd.ntt-local.ogw_remote-access`: MediaType =
-        new MediaType("application", "vnd.ntt-local.ogw_remote-access", Compressible, NotBinary)
-      lazy val `vnd.ntt-local.sip-ta_remote`: MediaType =
-        new MediaType("application", "vnd.ntt-local.sip-ta_remote", Compressible, NotBinary)
-      lazy val `vnd.ntt-local.sip-ta_tcp_stream`: MediaType =
-        new MediaType("application", "vnd.ntt-local.sip-ta_tcp_stream", Compressible, NotBinary)
-      lazy val `vnd.oasis.opendocument.chart`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.chart",
-        Compressible,
-        Binary,
-        List("odc"))
-      lazy val `vnd.oasis.opendocument.chart-template`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.chart-template",
-        Compressible,
-        NotBinary,
-        List("otc"))
-      lazy val `vnd.oasis.opendocument.database`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.database",
-        Compressible,
-        Binary,
-        List("odb"))
-      lazy val `vnd.oasis.opendocument.formula`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.formula",
-        Compressible,
-        Binary,
-        List("odf"))
-      lazy val `vnd.oasis.opendocument.formula-template`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.formula-template",
-        Compressible,
-        NotBinary,
-        List("odft"))
-      lazy val `vnd.oasis.opendocument.graphics`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.graphics",
-        Uncompressible,
-        Binary,
-        List("odg"))
-      lazy val `vnd.oasis.opendocument.graphics-template`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.graphics-template",
-        Compressible,
-        NotBinary,
-        List("otg"))
-      lazy val `vnd.oasis.opendocument.image`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.image",
-        Compressible,
-        Binary,
-        List("odi"))
-      lazy val `vnd.oasis.opendocument.image-template`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.image-template",
-        Compressible,
-        NotBinary,
-        List("oti"))
-      lazy val `vnd.oasis.opendocument.presentation`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.presentation",
-        Uncompressible,
-        Binary,
-        List("odp"))
-      lazy val `vnd.oasis.opendocument.presentation-template`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.presentation-template",
-        Compressible,
-        NotBinary,
-        List("otp"))
-      lazy val `vnd.oasis.opendocument.spreadsheet`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.spreadsheet",
-        Uncompressible,
-        Binary,
-        List("ods"))
-      lazy val `vnd.oasis.opendocument.spreadsheet-template`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.spreadsheet-template",
-        Compressible,
-        NotBinary,
-        List("ots"))
-      lazy val `vnd.oasis.opendocument.text`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.text",
-        Uncompressible,
-        Binary,
-        List("odt"))
-      lazy val `vnd.oasis.opendocument.text-master`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.text-master",
-        Compressible,
-        Binary,
-        List("odm"))
-      lazy val `vnd.oasis.opendocument.text-template`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.text-template",
-        Compressible,
-        NotBinary,
-        List("ott"))
-      lazy val `vnd.oasis.opendocument.text-web`: MediaType = new MediaType(
-        "application",
-        "vnd.oasis.opendocument.text-web",
-        Compressible,
-        Binary,
-        List("oth"))
-      lazy val `vnd.obn`: MediaType =
-        new MediaType("application", "vnd.obn", Compressible, NotBinary)
-      lazy val `vnd.ocf+cbor`: MediaType =
-        new MediaType("application", "vnd.ocf+cbor", Compressible, NotBinary)
-      lazy val `vnd.oftn.l10n+json`: MediaType =
-        new MediaType("application", "vnd.oftn.l10n+json", Compressible, NotBinary)
-      lazy val `vnd.oipf.contentaccessdownload+xml`: MediaType =
-        new MediaType("application", "vnd.oipf.contentaccessdownload+xml", Compressible, NotBinary)
-      lazy val `vnd.oipf.contentaccessstreaming+xml`: MediaType =
-        new MediaType("application", "vnd.oipf.contentaccessstreaming+xml", Compressible, NotBinary)
-      lazy val `vnd.oipf.cspg-hexbinary`: MediaType =
-        new MediaType("application", "vnd.oipf.cspg-hexbinary", Compressible, NotBinary)
-      lazy val `vnd.oipf.dae.svg+xml`: MediaType =
-        new MediaType("application", "vnd.oipf.dae.svg+xml", Compressible, NotBinary)
-      lazy val `vnd.oipf.dae.xhtml+xml`: MediaType =
-        new MediaType("application", "vnd.oipf.dae.xhtml+xml", Compressible, NotBinary)
-      lazy val `vnd.oipf.mippvcontrolmessage+xml`: MediaType =
-        new MediaType("application", "vnd.oipf.mippvcontrolmessage+xml", Compressible, NotBinary)
-      lazy val `vnd.oipf.pae.gem`: MediaType =
-        new MediaType("application", "vnd.oipf.pae.gem", Compressible, NotBinary)
       lazy val part_1: List[MediaType] = List(
+        `vnd.anser-web-funds-transfer-initiation`,
+        `vnd.antix.game-component`,
+        `vnd.apache.thrift.binary`,
+        `vnd.apache.thrift.compact`,
+        `vnd.apache.thrift.json`,
+        `vnd.api+json`,
+        `vnd.apothekende.reservation+json`,
+        `vnd.apple.installer+xml`,
+        `vnd.apple.keynote`,
+        `vnd.apple.mpegurl`,
+        `vnd.apple.numbers`,
+        `vnd.apple.pages`,
+        `vnd.apple.pkpass`,
+        `vnd.arastra.swi`,
+        `vnd.aristanetworks.swi`,
+        `vnd.artisan+json`,
+        `vnd.artsquare`,
+        `vnd.astraea-software.iota`,
+        `vnd.audiograph`,
         `vnd.autopackage`,
         `vnd.avalon+json`,
         `vnd.avistar+xml`,
         `vnd.balsamiq.bmml+xml`,
         `vnd.balsamiq.bmpr`,
         `vnd.banana-accounting`,
+        `vnd.bbf.usp.error`,
         `vnd.bbf.usp.msg`,
         `vnd.bbf.usp.msg+json`,
         `vnd.bekitzur-stech+json`,
@@ -2958,6 +2907,8 @@ private[http4s] trait MimeDB {
         `vnd.bluetooth.ep.oob`,
         `vnd.bluetooth.le.oob`,
         `vnd.bmi`,
+        `vnd.bpf`,
+        `vnd.bpf3`,
         `vnd.businessobjects`,
         `vnd.byu.uapi+json`,
         `vnd.cab-jscript`,
@@ -2969,6 +2920,7 @@ private[http4s] trait MimeDB {
         `vnd.chemdraw+xml`,
         `vnd.chess-pgn`,
         `vnd.chipnuts.karaoke-mmd`,
+        `vnd.ciedi`,
         `vnd.cinderella`,
         `vnd.cirpack.isdn-ext`,
         `vnd.citationstyles.style+xml`,
@@ -3000,6 +2952,8 @@ private[http4s] trait MimeDB {
         `vnd.crick.clicker.template`,
         `vnd.crick.clicker.wordbank`,
         `vnd.criticaltools.wbs+xml`,
+        `vnd.cryptii.pipe+json`,
+        `vnd.crypto-shade-file`,
         `vnd.ctc-posml`,
         `vnd.ctct.ws+xml`,
         `vnd.cups-pdf`,
@@ -3120,6 +3074,7 @@ private[http4s] trait MimeDB {
         `vnd.fdsn.mseed`,
         `vnd.fdsn.seed`,
         `vnd.ffsns`,
+        `vnd.ficlab.flb+zip`,
         `vnd.filmit.zfc`,
         `vnd.fints`,
         `vnd.firemonkeys.cloudcell`,
@@ -3242,6 +3197,7 @@ private[http4s] trait MimeDB {
         `vnd.irepository.package+xml`,
         `vnd.is-xpr`,
         `vnd.isac.fcs`,
+        `vnd.iso11783-10+zip`,
         `vnd.jam`,
         `vnd.japannet-directory-service`,
         `vnd.japannet-jpnstore-wakeup`,
@@ -3269,12 +3225,16 @@ private[http4s] trait MimeDB {
         `vnd.kinar`,
         `vnd.koan`,
         `vnd.kodak-descriptor`,
+        `vnd.las`,
         `vnd.las.las+json`,
         `vnd.las.las+xml`,
+        `vnd.laszip`,
         `vnd.leap+json`,
         `vnd.liberty-request+xml`,
         `vnd.llamagraphics.life-balance.desktop`,
         `vnd.llamagraphics.life-balance.exchange+xml`,
+        `vnd.logipipe.circuit+zip`,
+        `vnd.loom`,
         `vnd.lotus-1-2-3`,
         `vnd.lotus-approach`,
         `vnd.lotus-freelance`,
@@ -3410,41 +3370,140 @@ private[http4s] trait MimeDB {
         `vnd.novadigm.edm`,
         `vnd.novadigm.edx`,
         `vnd.novadigm.ext`,
-        `vnd.ntt-local.content-share`,
-        `vnd.ntt-local.file-transfer`,
-        `vnd.ntt-local.ogw_remote-access`,
-        `vnd.ntt-local.sip-ta_remote`,
-        `vnd.ntt-local.sip-ta_tcp_stream`,
-        `vnd.oasis.opendocument.chart`,
-        `vnd.oasis.opendocument.chart-template`,
-        `vnd.oasis.opendocument.database`,
-        `vnd.oasis.opendocument.formula`,
-        `vnd.oasis.opendocument.formula-template`,
-        `vnd.oasis.opendocument.graphics`,
-        `vnd.oasis.opendocument.graphics-template`,
-        `vnd.oasis.opendocument.image`,
-        `vnd.oasis.opendocument.image-template`,
-        `vnd.oasis.opendocument.presentation`,
-        `vnd.oasis.opendocument.presentation-template`,
-        `vnd.oasis.opendocument.spreadsheet`,
-        `vnd.oasis.opendocument.spreadsheet-template`,
-        `vnd.oasis.opendocument.text`,
-        `vnd.oasis.opendocument.text-master`,
-        `vnd.oasis.opendocument.text-template`,
-        `vnd.oasis.opendocument.text-web`,
-        `vnd.obn`,
-        `vnd.ocf+cbor`,
-        `vnd.oftn.l10n+json`,
-        `vnd.oipf.contentaccessdownload+xml`,
-        `vnd.oipf.contentaccessstreaming+xml`,
-        `vnd.oipf.cspg-hexbinary`,
-        `vnd.oipf.dae.svg+xml`,
-        `vnd.oipf.dae.xhtml+xml`,
-        `vnd.oipf.mippvcontrolmessage+xml`,
-        `vnd.oipf.pae.gem`
+        `vnd.ntt-local.content-share`
       )
     }
     trait application_2 {
+      lazy val `vnd.ntt-local.file-transfer`: MediaType =
+        new MediaType("application", "vnd.ntt-local.file-transfer", Compressible, NotBinary)
+      lazy val `vnd.ntt-local.ogw_remote-access`: MediaType =
+        new MediaType("application", "vnd.ntt-local.ogw_remote-access", Compressible, NotBinary)
+      lazy val `vnd.ntt-local.sip-ta_remote`: MediaType =
+        new MediaType("application", "vnd.ntt-local.sip-ta_remote", Compressible, NotBinary)
+      lazy val `vnd.ntt-local.sip-ta_tcp_stream`: MediaType =
+        new MediaType("application", "vnd.ntt-local.sip-ta_tcp_stream", Compressible, NotBinary)
+      lazy val `vnd.oasis.opendocument.chart`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.chart",
+        Compressible,
+        Binary,
+        List("odc"))
+      lazy val `vnd.oasis.opendocument.chart-template`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.chart-template",
+        Compressible,
+        NotBinary,
+        List("otc"))
+      lazy val `vnd.oasis.opendocument.database`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.database",
+        Compressible,
+        Binary,
+        List("odb"))
+      lazy val `vnd.oasis.opendocument.formula`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.formula",
+        Compressible,
+        Binary,
+        List("odf"))
+      lazy val `vnd.oasis.opendocument.formula-template`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.formula-template",
+        Compressible,
+        NotBinary,
+        List("odft"))
+      lazy val `vnd.oasis.opendocument.graphics`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.graphics",
+        Uncompressible,
+        Binary,
+        List("odg"))
+      lazy val `vnd.oasis.opendocument.graphics-template`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.graphics-template",
+        Compressible,
+        NotBinary,
+        List("otg"))
+      lazy val `vnd.oasis.opendocument.image`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.image",
+        Compressible,
+        Binary,
+        List("odi"))
+      lazy val `vnd.oasis.opendocument.image-template`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.image-template",
+        Compressible,
+        NotBinary,
+        List("oti"))
+      lazy val `vnd.oasis.opendocument.presentation`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.presentation",
+        Uncompressible,
+        Binary,
+        List("odp"))
+      lazy val `vnd.oasis.opendocument.presentation-template`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.presentation-template",
+        Compressible,
+        NotBinary,
+        List("otp"))
+      lazy val `vnd.oasis.opendocument.spreadsheet`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.spreadsheet",
+        Uncompressible,
+        Binary,
+        List("ods"))
+      lazy val `vnd.oasis.opendocument.spreadsheet-template`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.spreadsheet-template",
+        Compressible,
+        NotBinary,
+        List("ots"))
+      lazy val `vnd.oasis.opendocument.text`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.text",
+        Uncompressible,
+        Binary,
+        List("odt"))
+      lazy val `vnd.oasis.opendocument.text-master`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.text-master",
+        Compressible,
+        Binary,
+        List("odm"))
+      lazy val `vnd.oasis.opendocument.text-template`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.text-template",
+        Compressible,
+        NotBinary,
+        List("ott"))
+      lazy val `vnd.oasis.opendocument.text-web`: MediaType = new MediaType(
+        "application",
+        "vnd.oasis.opendocument.text-web",
+        Compressible,
+        Binary,
+        List("oth"))
+      lazy val `vnd.obn`: MediaType =
+        new MediaType("application", "vnd.obn", Compressible, NotBinary)
+      lazy val `vnd.ocf+cbor`: MediaType =
+        new MediaType("application", "vnd.ocf+cbor", Compressible, NotBinary)
+      lazy val `vnd.oftn.l10n+json`: MediaType =
+        new MediaType("application", "vnd.oftn.l10n+json", Compressible, NotBinary)
+      lazy val `vnd.oipf.contentaccessdownload+xml`: MediaType =
+        new MediaType("application", "vnd.oipf.contentaccessdownload+xml", Compressible, NotBinary)
+      lazy val `vnd.oipf.contentaccessstreaming+xml`: MediaType =
+        new MediaType("application", "vnd.oipf.contentaccessstreaming+xml", Compressible, NotBinary)
+      lazy val `vnd.oipf.cspg-hexbinary`: MediaType =
+        new MediaType("application", "vnd.oipf.cspg-hexbinary", Compressible, NotBinary)
+      lazy val `vnd.oipf.dae.svg+xml`: MediaType =
+        new MediaType("application", "vnd.oipf.dae.svg+xml", Compressible, NotBinary)
+      lazy val `vnd.oipf.dae.xhtml+xml`: MediaType =
+        new MediaType("application", "vnd.oipf.dae.xhtml+xml", Compressible, NotBinary)
+      lazy val `vnd.oipf.mippvcontrolmessage+xml`: MediaType =
+        new MediaType("application", "vnd.oipf.mippvcontrolmessage+xml", Compressible, NotBinary)
+      lazy val `vnd.oipf.pae.gem`: MediaType =
+        new MediaType("application", "vnd.oipf.pae.gem", Compressible, NotBinary)
       lazy val `vnd.oipf.spdiscovery+xml`: MediaType =
         new MediaType("application", "vnd.oipf.spdiscovery+xml", Compressible, NotBinary)
       lazy val `vnd.oipf.spdlist+xml`: MediaType =
@@ -4245,6 +4304,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.semd", Compressible, NotBinary, List("semd"))
       lazy val `vnd.semf`: MediaType =
         new MediaType("application", "vnd.semf", Compressible, NotBinary, List("semf"))
+      lazy val `vnd.shade-save-file`: MediaType =
+        new MediaType("application", "vnd.shade-save-file", Compressible, NotBinary)
       lazy val `vnd.shana.informed.formdata`: MediaType = new MediaType(
         "application",
         "vnd.shana.informed.formdata",
@@ -4271,6 +4332,8 @@ private[http4s] trait MimeDB {
         List("ipk"))
       lazy val `vnd.shootproof+json`: MediaType =
         new MediaType("application", "vnd.shootproof+json", Compressible, NotBinary)
+      lazy val `vnd.shopkick+json`: MediaType =
+        new MediaType("application", "vnd.shopkick+json", Compressible, NotBinary)
       lazy val `vnd.sigrok.session`: MediaType =
         new MediaType("application", "vnd.sigrok.session", Compressible, NotBinary)
       lazy val `vnd.simtech-mindmapper`: MediaType = new MediaType(
@@ -4505,6 +4568,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.verimatrix.vcas", Compressible, NotBinary)
       lazy val `vnd.veryant.thin`: MediaType =
         new MediaType("application", "vnd.veryant.thin", Compressible, NotBinary)
+      lazy val `vnd.ves.encrypted`: MediaType =
+        new MediaType("application", "vnd.ves.encrypted", Compressible, NotBinary)
       lazy val `vnd.vidsoft.vidconference`: MediaType =
         new MediaType("application", "vnd.vidsoft.vidconference", Compressible, NotBinary)
       lazy val `vnd.visio`: MediaType = new MediaType(
@@ -4799,6 +4864,8 @@ private[http4s] trait MimeDB {
         new MediaType("application", "x-java-jnlp-file", Uncompressible, NotBinary, List("jnlp"))
       lazy val `x-javascript`: MediaType =
         new MediaType("application", "x-javascript", Compressible, NotBinary)
+      lazy val `x-keepass2`: MediaType =
+        new MediaType("application", "x-keepass2", Compressible, NotBinary, List("kdbx"))
       lazy val `x-latex`: MediaType =
         new MediaType("application", "x-latex", Uncompressible, Binary, List("latex"))
       lazy val `x-lua-bytecode`: MediaType =
@@ -4865,85 +4932,38 @@ private[http4s] trait MimeDB {
         List("wmf", "wmz", "emf", "emz"))
       lazy val `x-msmoney`: MediaType =
         new MediaType("application", "x-msmoney", Compressible, NotBinary, List("mny"))
-      lazy val `x-mspublisher`: MediaType =
-        new MediaType("application", "x-mspublisher", Compressible, NotBinary, List("pub"))
-      lazy val `x-msschedule`: MediaType =
-        new MediaType("application", "x-msschedule", Compressible, NotBinary, List("scd"))
-      lazy val `x-msterminal`: MediaType =
-        new MediaType("application", "x-msterminal", Compressible, NotBinary, List("trm"))
-      lazy val `x-mswrite`: MediaType =
-        new MediaType("application", "x-mswrite", Compressible, NotBinary, List("wri"))
-      lazy val `x-netcdf`: MediaType =
-        new MediaType("application", "x-netcdf", Compressible, NotBinary, List("nc", "cdf"))
-      lazy val `x-ns-proxy-autoconfig`: MediaType =
-        new MediaType("application", "x-ns-proxy-autoconfig", Compressible, NotBinary, List("pac"))
-      lazy val `x-nzb`: MediaType =
-        new MediaType("application", "x-nzb", Compressible, NotBinary, List("nzb"))
-      lazy val `x-perl`: MediaType =
-        new MediaType("application", "x-perl", Compressible, NotBinary, List("pl", "pm"))
-      lazy val `x-pilot`: MediaType =
-        new MediaType("application", "x-pilot", Compressible, NotBinary, List("prc", "pdb"))
-      lazy val `x-pkcs12`: MediaType =
-        new MediaType("application", "x-pkcs12", Uncompressible, NotBinary, List("p12", "pfx"))
-      lazy val `x-pkcs7-certificates`: MediaType = new MediaType(
-        "application",
-        "x-pkcs7-certificates",
-        Compressible,
-        NotBinary,
-        List("p7b", "spc"))
-      lazy val `x-pkcs7-certreqresp`: MediaType =
-        new MediaType("application", "x-pkcs7-certreqresp", Compressible, NotBinary, List("p7r"))
-      lazy val `x-rar-compressed`: MediaType =
-        new MediaType("application", "x-rar-compressed", Uncompressible, Binary, List("rar"))
-      lazy val `x-redhat-package-manager`: MediaType =
-        new MediaType("application", "x-redhat-package-manager", Compressible, Binary, List("rpm"))
-      lazy val `x-research-info-systems`: MediaType = new MediaType(
-        "application",
-        "x-research-info-systems",
-        Compressible,
-        NotBinary,
-        List("ris"))
-      lazy val `x-sea`: MediaType =
-        new MediaType("application", "x-sea", Compressible, NotBinary, List("sea"))
-      lazy val `x-sh`: MediaType =
-        new MediaType("application", "x-sh", Compressible, NotBinary, List("sh"))
-      lazy val `x-shar`: MediaType =
-        new MediaType("application", "x-shar", Compressible, NotBinary, List("shar"))
-      lazy val `x-shockwave-flash`: MediaType =
-        new MediaType("application", "x-shockwave-flash", Uncompressible, Binary, List("swf"))
-      lazy val `x-silverlight-app`: MediaType =
-        new MediaType("application", "x-silverlight-app", Compressible, NotBinary, List("xap"))
-      lazy val `x-sql`: MediaType =
-        new MediaType("application", "x-sql", Compressible, NotBinary, List("sql"))
-      lazy val `x-stuffit`: MediaType =
-        new MediaType("application", "x-stuffit", Uncompressible, NotBinary, List("sit"))
-      lazy val `x-stuffitx`: MediaType =
-        new MediaType("application", "x-stuffitx", Compressible, NotBinary, List("sitx"))
-      lazy val `x-subrip`: MediaType =
-        new MediaType("application", "x-subrip", Compressible, NotBinary, List("srt"))
-      lazy val `x-sv4cpio`: MediaType =
-        new MediaType("application", "x-sv4cpio", Compressible, NotBinary, List("sv4cpio"))
-      lazy val `x-sv4crc`: MediaType =
-        new MediaType("application", "x-sv4crc", Compressible, NotBinary, List("sv4crc"))
-      lazy val `x-t3vm-image`: MediaType =
-        new MediaType("application", "x-t3vm-image", Compressible, NotBinary, List("t3"))
-      lazy val `x-tads`: MediaType =
-        new MediaType("application", "x-tads", Compressible, NotBinary, List("gam"))
-      lazy val `x-tar`: MediaType =
-        new MediaType("application", "x-tar", Compressible, Binary, List("tar"))
-      lazy val `x-tcl`: MediaType =
-        new MediaType("application", "x-tcl", Compressible, NotBinary, List("tcl", "tk"))
-      lazy val `x-tex`: MediaType =
-        new MediaType("application", "x-tex", Compressible, Binary, List("tex"))
-      lazy val `x-tex-tfm`: MediaType =
-        new MediaType("application", "x-tex-tfm", Compressible, NotBinary, List("tfm"))
-      lazy val `x-texinfo`: MediaType =
-        new MediaType("application", "x-texinfo", Compressible, Binary, List("texinfo", "texi"))
-      lazy val `x-tgif`: MediaType =
-        new MediaType("application", "x-tgif", Compressible, NotBinary, List("obj"))
-      lazy val `x-ustar`: MediaType =
-        new MediaType("application", "x-ustar", Compressible, NotBinary, List("ustar"))
       lazy val part_2: List[MediaType] = List(
+        `vnd.ntt-local.file-transfer`,
+        `vnd.ntt-local.ogw_remote-access`,
+        `vnd.ntt-local.sip-ta_remote`,
+        `vnd.ntt-local.sip-ta_tcp_stream`,
+        `vnd.oasis.opendocument.chart`,
+        `vnd.oasis.opendocument.chart-template`,
+        `vnd.oasis.opendocument.database`,
+        `vnd.oasis.opendocument.formula`,
+        `vnd.oasis.opendocument.formula-template`,
+        `vnd.oasis.opendocument.graphics`,
+        `vnd.oasis.opendocument.graphics-template`,
+        `vnd.oasis.opendocument.image`,
+        `vnd.oasis.opendocument.image-template`,
+        `vnd.oasis.opendocument.presentation`,
+        `vnd.oasis.opendocument.presentation-template`,
+        `vnd.oasis.opendocument.spreadsheet`,
+        `vnd.oasis.opendocument.spreadsheet-template`,
+        `vnd.oasis.opendocument.text`,
+        `vnd.oasis.opendocument.text-master`,
+        `vnd.oasis.opendocument.text-template`,
+        `vnd.oasis.opendocument.text-web`,
+        `vnd.obn`,
+        `vnd.ocf+cbor`,
+        `vnd.oftn.l10n+json`,
+        `vnd.oipf.contentaccessdownload+xml`,
+        `vnd.oipf.contentaccessstreaming+xml`,
+        `vnd.oipf.cspg-hexbinary`,
+        `vnd.oipf.dae.svg+xml`,
+        `vnd.oipf.dae.xhtml+xml`,
+        `vnd.oipf.mippvcontrolmessage+xml`,
+        `vnd.oipf.pae.gem`,
         `vnd.oipf.spdiscovery+xml`,
         `vnd.oipf.spdlist+xml`,
         `vnd.oipf.ueprofile+xml`,
@@ -5167,11 +5187,13 @@ private[http4s] trait MimeDB {
         `vnd.sema`,
         `vnd.semd`,
         `vnd.semf`,
+        `vnd.shade-save-file`,
         `vnd.shana.informed.formdata`,
         `vnd.shana.informed.formtemplate`,
         `vnd.shana.informed.interchange`,
         `vnd.shana.informed.package`,
         `vnd.shootproof+json`,
+        `vnd.shopkick+json`,
         `vnd.sigrok.session`,
         `vnd.simtech-mindmapper`,
         `vnd.siren+json`,
@@ -5259,6 +5281,7 @@ private[http4s] trait MimeDB {
         `vnd.vel+json`,
         `vnd.verimatrix.vcas`,
         `vnd.veryant.thin`,
+        `vnd.ves.encrypted`,
         `vnd.vidsoft.vidconference`,
         `vnd.visio`,
         `vnd.visionary`,
@@ -5388,6 +5411,7 @@ private[http4s] trait MimeDB {
         `x-java-archive-diff`,
         `x-java-jnlp-file`,
         `x-javascript`,
+        `x-keepass2`,
         `x-latex`,
         `x-lua-bytecode`,
         `x-lzh-compressed`,
@@ -5408,45 +5432,88 @@ private[http4s] trait MimeDB {
         `x-msdownload`,
         `x-msmediaview`,
         `x-msmetafile`,
-        `x-msmoney`,
-        `x-mspublisher`,
-        `x-msschedule`,
-        `x-msterminal`,
-        `x-mswrite`,
-        `x-netcdf`,
-        `x-ns-proxy-autoconfig`,
-        `x-nzb`,
-        `x-perl`,
-        `x-pilot`,
-        `x-pkcs12`,
-        `x-pkcs7-certificates`,
-        `x-pkcs7-certreqresp`,
-        `x-rar-compressed`,
-        `x-redhat-package-manager`,
-        `x-research-info-systems`,
-        `x-sea`,
-        `x-sh`,
-        `x-shar`,
-        `x-shockwave-flash`,
-        `x-silverlight-app`,
-        `x-sql`,
-        `x-stuffit`,
-        `x-stuffitx`,
-        `x-subrip`,
-        `x-sv4cpio`,
-        `x-sv4crc`,
-        `x-t3vm-image`,
-        `x-tads`,
-        `x-tar`,
-        `x-tcl`,
-        `x-tex`,
-        `x-tex-tfm`,
-        `x-texinfo`,
-        `x-tgif`,
-        `x-ustar`
+        `x-msmoney`
       )
     }
     trait application_3 {
+      lazy val `x-mspublisher`: MediaType =
+        new MediaType("application", "x-mspublisher", Compressible, NotBinary, List("pub"))
+      lazy val `x-msschedule`: MediaType =
+        new MediaType("application", "x-msschedule", Compressible, NotBinary, List("scd"))
+      lazy val `x-msterminal`: MediaType =
+        new MediaType("application", "x-msterminal", Compressible, NotBinary, List("trm"))
+      lazy val `x-mswrite`: MediaType =
+        new MediaType("application", "x-mswrite", Compressible, NotBinary, List("wri"))
+      lazy val `x-netcdf`: MediaType =
+        new MediaType("application", "x-netcdf", Compressible, NotBinary, List("nc", "cdf"))
+      lazy val `x-ns-proxy-autoconfig`: MediaType =
+        new MediaType("application", "x-ns-proxy-autoconfig", Compressible, NotBinary, List("pac"))
+      lazy val `x-nzb`: MediaType =
+        new MediaType("application", "x-nzb", Compressible, NotBinary, List("nzb"))
+      lazy val `x-perl`: MediaType =
+        new MediaType("application", "x-perl", Compressible, NotBinary, List("pl", "pm"))
+      lazy val `x-pilot`: MediaType =
+        new MediaType("application", "x-pilot", Compressible, NotBinary, List("prc", "pdb"))
+      lazy val `x-pkcs12`: MediaType =
+        new MediaType("application", "x-pkcs12", Uncompressible, NotBinary, List("p12", "pfx"))
+      lazy val `x-pkcs7-certificates`: MediaType = new MediaType(
+        "application",
+        "x-pkcs7-certificates",
+        Compressible,
+        NotBinary,
+        List("p7b", "spc"))
+      lazy val `x-pkcs7-certreqresp`: MediaType =
+        new MediaType("application", "x-pkcs7-certreqresp", Compressible, NotBinary, List("p7r"))
+      lazy val `x-rar-compressed`: MediaType =
+        new MediaType("application", "x-rar-compressed", Uncompressible, Binary, List("rar"))
+      lazy val `x-redhat-package-manager`: MediaType =
+        new MediaType("application", "x-redhat-package-manager", Compressible, Binary, List("rpm"))
+      lazy val `x-research-info-systems`: MediaType = new MediaType(
+        "application",
+        "x-research-info-systems",
+        Compressible,
+        NotBinary,
+        List("ris"))
+      lazy val `x-sea`: MediaType =
+        new MediaType("application", "x-sea", Compressible, NotBinary, List("sea"))
+      lazy val `x-sh`: MediaType =
+        new MediaType("application", "x-sh", Compressible, NotBinary, List("sh"))
+      lazy val `x-shar`: MediaType =
+        new MediaType("application", "x-shar", Compressible, NotBinary, List("shar"))
+      lazy val `x-shockwave-flash`: MediaType =
+        new MediaType("application", "x-shockwave-flash", Uncompressible, Binary, List("swf"))
+      lazy val `x-silverlight-app`: MediaType =
+        new MediaType("application", "x-silverlight-app", Compressible, NotBinary, List("xap"))
+      lazy val `x-sql`: MediaType =
+        new MediaType("application", "x-sql", Compressible, NotBinary, List("sql"))
+      lazy val `x-stuffit`: MediaType =
+        new MediaType("application", "x-stuffit", Uncompressible, NotBinary, List("sit"))
+      lazy val `x-stuffitx`: MediaType =
+        new MediaType("application", "x-stuffitx", Compressible, NotBinary, List("sitx"))
+      lazy val `x-subrip`: MediaType =
+        new MediaType("application", "x-subrip", Compressible, NotBinary, List("srt"))
+      lazy val `x-sv4cpio`: MediaType =
+        new MediaType("application", "x-sv4cpio", Compressible, NotBinary, List("sv4cpio"))
+      lazy val `x-sv4crc`: MediaType =
+        new MediaType("application", "x-sv4crc", Compressible, NotBinary, List("sv4crc"))
+      lazy val `x-t3vm-image`: MediaType =
+        new MediaType("application", "x-t3vm-image", Compressible, NotBinary, List("t3"))
+      lazy val `x-tads`: MediaType =
+        new MediaType("application", "x-tads", Compressible, NotBinary, List("gam"))
+      lazy val `x-tar`: MediaType =
+        new MediaType("application", "x-tar", Compressible, Binary, List("tar"))
+      lazy val `x-tcl`: MediaType =
+        new MediaType("application", "x-tcl", Compressible, NotBinary, List("tcl", "tk"))
+      lazy val `x-tex`: MediaType =
+        new MediaType("application", "x-tex", Compressible, Binary, List("tex"))
+      lazy val `x-tex-tfm`: MediaType =
+        new MediaType("application", "x-tex-tfm", Compressible, NotBinary, List("tfm"))
+      lazy val `x-texinfo`: MediaType =
+        new MediaType("application", "x-texinfo", Compressible, Binary, List("texinfo", "texi"))
+      lazy val `x-tgif`: MediaType =
+        new MediaType("application", "x-tgif", Compressible, NotBinary, List("obj"))
+      lazy val `x-ustar`: MediaType =
+        new MediaType("application", "x-ustar", Compressible, NotBinary, List("ustar"))
       lazy val `x-virtualbox-hdd`: MediaType =
         new MediaType("application", "x-virtualbox-hdd", Compressible, NotBinary, List("hdd"))
       lazy val `x-virtualbox-ova`: MediaType =
@@ -5572,6 +5639,41 @@ private[http4s] trait MimeDB {
       lazy val `zlib`: MediaType = new MediaType("application", "zlib", Compressible, NotBinary)
       lazy val `zstd`: MediaType = new MediaType("application", "zstd", Compressible, NotBinary)
       lazy val part_3: List[MediaType] = List(
+        `x-mspublisher`,
+        `x-msschedule`,
+        `x-msterminal`,
+        `x-mswrite`,
+        `x-netcdf`,
+        `x-ns-proxy-autoconfig`,
+        `x-nzb`,
+        `x-perl`,
+        `x-pilot`,
+        `x-pkcs12`,
+        `x-pkcs7-certificates`,
+        `x-pkcs7-certreqresp`,
+        `x-rar-compressed`,
+        `x-redhat-package-manager`,
+        `x-research-info-systems`,
+        `x-sea`,
+        `x-sh`,
+        `x-shar`,
+        `x-shockwave-flash`,
+        `x-silverlight-app`,
+        `x-sql`,
+        `x-stuffit`,
+        `x-stuffitx`,
+        `x-subrip`,
+        `x-sv4cpio`,
+        `x-sv4crc`,
+        `x-t3vm-image`,
+        `x-tads`,
+        `x-tar`,
+        `x-tcl`,
+        `x-tex`,
+        `x-tex-tfm`,
+        `x-texinfo`,
+        `x-tgif`,
+        `x-ustar`,
         `x-virtualbox-hdd`,
         `x-virtualbox-ova`,
         `x-virtualbox-ovf`,
@@ -5686,6 +5788,7 @@ private[http4s] trait MimeDB {
     lazy val `evrcwb0`: MediaType = new MediaType("audio", "evrcwb0", Compressible, Binary)
     lazy val `evrcwb1`: MediaType = new MediaType("audio", "evrcwb1", Compressible, Binary)
     lazy val `evs`: MediaType = new MediaType("audio", "evs", Compressible, Binary)
+    lazy val `flexfec`: MediaType = new MediaType("audio", "flexfec", Compressible, Binary)
     lazy val `fwdred`: MediaType = new MediaType("audio", "fwdred", Compressible, Binary)
     lazy val `g711-0`: MediaType = new MediaType("audio", "g711-0", Compressible, Binary)
     lazy val `g719`: MediaType = new MediaType("audio", "g719", Compressible, Binary)
@@ -5718,7 +5821,8 @@ private[http4s] trait MimeDB {
     lazy val `melp600`: MediaType = new MediaType("audio", "melp600", Compressible, Binary)
     lazy val `midi`: MediaType =
       new MediaType("audio", "midi", Compressible, Binary, List("mid", "midi", "kar", "rmi"))
-    lazy val `mobile-xmf`: MediaType = new MediaType("audio", "mobile-xmf", Compressible, Binary)
+    lazy val `mobile-xmf`: MediaType =
+      new MediaType("audio", "mobile-xmf", Compressible, Binary, List("mxmf"))
     lazy val `mp3`: MediaType = new MediaType("audio", "mp3", Uncompressible, Binary, List("mp3"))
     lazy val `mp4`: MediaType =
       new MediaType("audio", "mp4", Uncompressible, Binary, List("m4a", "mp4a"))
@@ -5926,6 +6030,7 @@ private[http4s] trait MimeDB {
       `evrcwb0`,
       `evrcwb1`,
       `evs`,
+      `flexfec`,
       `fwdred`,
       `g711-0`,
       `g719`,
@@ -6111,16 +6216,27 @@ private[http4s] trait MimeDB {
     lazy val `heif`: MediaType = new MediaType("image", "heif", Compressible, Binary, List("heif"))
     lazy val `heif-sequence`: MediaType =
       new MediaType("image", "heif-sequence", Compressible, Binary, List("heifs"))
+    lazy val `hej2k`: MediaType =
+      new MediaType("image", "hej2k", Compressible, Binary, List("hej2"))
+    lazy val `hsj2`: MediaType = new MediaType("image", "hsj2", Compressible, Binary, List("hsj2"))
     lazy val `ief`: MediaType = new MediaType("image", "ief", Compressible, Binary, List("ief"))
     lazy val `jls`: MediaType = new MediaType("image", "jls", Compressible, Binary, List("jls"))
     lazy val `jp2`: MediaType =
       new MediaType("image", "jp2", Uncompressible, Binary, List("jp2", "jpg2"))
     lazy val `jpeg`: MediaType =
       new MediaType("image", "jpeg", Uncompressible, Binary, List("jpeg", "jpg", "jpe"))
+    lazy val `jph`: MediaType = new MediaType("image", "jph", Compressible, Binary, List("jph"))
+    lazy val `jphc`: MediaType = new MediaType("image", "jphc", Compressible, Binary, List("jhc"))
     lazy val `jpm`: MediaType = new MediaType("image", "jpm", Uncompressible, Binary, List("jpm"))
     lazy val `jpx`: MediaType =
       new MediaType("image", "jpx", Uncompressible, Binary, List("jpx", "jpf"))
     lazy val `jxr`: MediaType = new MediaType("image", "jxr", Compressible, Binary, List("jxr"))
+    lazy val `jxra`: MediaType = new MediaType("image", "jxra", Compressible, Binary, List("jxra"))
+    lazy val `jxrs`: MediaType = new MediaType("image", "jxrs", Compressible, Binary, List("jxrs"))
+    lazy val `jxs`: MediaType = new MediaType("image", "jxs", Compressible, Binary, List("jxs"))
+    lazy val `jxsc`: MediaType = new MediaType("image", "jxsc", Compressible, Binary, List("jxsc"))
+    lazy val `jxsi`: MediaType = new MediaType("image", "jxsi", Compressible, Binary, List("jxsi"))
+    lazy val `jxss`: MediaType = new MediaType("image", "jxss", Compressible, Binary, List("jxss"))
     lazy val `ktx`: MediaType = new MediaType("image", "ktx", Compressible, Binary, List("ktx"))
     lazy val `naplps`: MediaType = new MediaType("image", "naplps", Compressible, Binary)
     lazy val `pjpeg`: MediaType = new MediaType("image", "pjpeg", Uncompressible, Binary)
@@ -6175,6 +6291,8 @@ private[http4s] trait MimeDB {
     lazy val `vnd.mix`: MediaType = new MediaType("image", "vnd.mix", Compressible, Binary)
     lazy val `vnd.mozilla.apng`: MediaType =
       new MediaType("image", "vnd.mozilla.apng", Compressible, Binary)
+    lazy val `vnd.ms-dds`: MediaType =
+      new MediaType("image", "vnd.ms-dds", Compressible, Binary, List("dds"))
     lazy val `vnd.ms-modi`: MediaType =
       new MediaType("image", "vnd.ms-modi", Compressible, Binary, List("mdi"))
     lazy val `vnd.ms-photo`: MediaType =
@@ -6255,13 +6373,23 @@ private[http4s] trait MimeDB {
       `heic-sequence`,
       `heif`,
       `heif-sequence`,
+      `hej2k`,
+      `hsj2`,
       `ief`,
       `jls`,
       `jp2`,
       `jpeg`,
+      `jph`,
+      `jphc`,
       `jpm`,
       `jpx`,
       `jxr`,
+      `jxra`,
+      `jxrs`,
+      `jxs`,
+      `jxsc`,
+      `jxsi`,
+      `jxss`,
       `ktx`,
       `naplps`,
       `pjpeg`,
@@ -6291,6 +6419,7 @@ private[http4s] trait MimeDB {
       `vnd.microsoft.icon`,
       `vnd.mix`,
       `vnd.mozilla.apng`,
+      `vnd.ms-dds`,
       `vnd.ms-modi`,
       `vnd.ms-photo`,
       `vnd.net-fpx`,
@@ -6490,7 +6619,7 @@ private[http4s] trait MimeDB {
       new MediaType("multipart", "form-data", Uncompressible, NotBinary)
     lazy val `header-set`: MediaType =
       new MediaType("multipart", "header-set", Compressible, NotBinary)
-    lazy val `mixed`: MediaType = new MediaType("multipart", "mixed", Uncompressible, NotBinary)
+    lazy val `mixed`: MediaType = new MediaType("multipart", "mixed", Compressible, NotBinary)
     lazy val `multilingual`: MediaType =
       new MediaType("multipart", "multilingual", Compressible, NotBinary)
     lazy val `parallel`: MediaType = new MediaType("multipart", "parallel", Compressible, NotBinary)
@@ -6541,6 +6670,7 @@ private[http4s] trait MimeDB {
     lazy val `ecmascript`: MediaType = new MediaType("text", "ecmascript", Compressible, NotBinary)
     lazy val `encaprtp`: MediaType = new MediaType("text", "encaprtp", Compressible, NotBinary)
     lazy val `enriched`: MediaType = new MediaType("text", "enriched", Compressible, NotBinary)
+    lazy val `flexfec`: MediaType = new MediaType("text", "flexfec", Compressible, NotBinary)
     lazy val `fwdred`: MediaType = new MediaType("text", "fwdred", Compressible, NotBinary)
     lazy val `grammar-ref-list`: MediaType =
       new MediaType("text", "grammar-ref-list", Compressible, NotBinary)
@@ -6633,6 +6763,8 @@ private[http4s] trait MimeDB {
       new MediaType("text", "vnd.dvb.subtitle", Compressible, NotBinary, List("sub"))
     lazy val `vnd.esmertec.theme-descriptor`: MediaType =
       new MediaType("text", "vnd.esmertec.theme-descriptor", Compressible, NotBinary)
+    lazy val `vnd.ficlab.flt`: MediaType =
+      new MediaType("text", "vnd.ficlab.flt", Compressible, NotBinary)
     lazy val `vnd.fly`: MediaType =
       new MediaType("text", "vnd.fly", Compressible, NotBinary, List("fly"))
     lazy val `vnd.fmi.flexstor`: MediaType =
@@ -6663,6 +6795,7 @@ private[http4s] trait MimeDB {
       new MediaType("text", "vnd.senx.warpscript", Compressible, NotBinary)
     lazy val `vnd.si.uricatalogue`: MediaType =
       new MediaType("text", "vnd.si.uricatalogue", Compressible, NotBinary)
+    lazy val `vnd.sosi`: MediaType = new MediaType("text", "vnd.sosi", Compressible, NotBinary)
     lazy val `vnd.sun.j2me.app-descriptor`: MediaType =
       new MediaType("text", "vnd.sun.j2me.app-descriptor", Compressible, NotBinary, List("jad"))
     lazy val `vnd.trolltech.linguist`: MediaType =
@@ -6743,6 +6876,7 @@ private[http4s] trait MimeDB {
       `ecmascript`,
       `encaprtp`,
       `enriched`,
+      `flexfec`,
       `fwdred`,
       `grammar-ref-list`,
       `html`,
@@ -6794,6 +6928,7 @@ private[http4s] trait MimeDB {
       `vnd.dmclientscript`,
       `vnd.dvb.subtitle`,
       `vnd.esmertec.theme-descriptor`,
+      `vnd.ficlab.flt`,
       `vnd.fly`,
       `vnd.fmi.flexstor`,
       `vnd.gml`,
@@ -6810,6 +6945,7 @@ private[http4s] trait MimeDB {
       `vnd.radisys.msml-basic-layout`,
       `vnd.senx.warpscript`,
       `vnd.si.uricatalogue`,
+      `vnd.sosi`,
       `vnd.sun.j2me.app-descriptor`,
       `vnd.trolltech.linguist`,
       `vnd.wap.si`,
@@ -6857,6 +6993,7 @@ private[http4s] trait MimeDB {
     lazy val `celb`: MediaType = new MediaType("video", "celb", Compressible, Binary)
     lazy val `dv`: MediaType = new MediaType("video", "dv", Compressible, Binary)
     lazy val `encaprtp`: MediaType = new MediaType("video", "encaprtp", Compressible, Binary)
+    lazy val `flexfec`: MediaType = new MediaType("video", "flexfec", Compressible, Binary)
     lazy val `h261`: MediaType = new MediaType("video", "h261", Compressible, Binary, List("h261"))
     lazy val `h263`: MediaType = new MediaType("video", "h263", Compressible, Binary, List("h263"))
     lazy val `h263-1998`: MediaType = new MediaType("video", "h263-1998", Compressible, Binary)
@@ -6973,6 +7110,8 @@ private[http4s] trait MimeDB {
       new MediaType("video", "vnd.uvvu.mp4", Compressible, Binary, List("uvu", "uvvu"))
     lazy val `vnd.vivo`: MediaType =
       new MediaType("video", "vnd.vivo", Compressible, Binary, List("viv"))
+    lazy val `vnd.youtube.yt`: MediaType =
+      new MediaType("video", "vnd.youtube.yt", Compressible, Binary)
     lazy val `vp8`: MediaType = new MediaType("video", "vp8", Compressible, Binary)
     lazy val `webm`: MediaType =
       new MediaType("video", "webm", Uncompressible, Binary, List("webm"))
@@ -7011,6 +7150,7 @@ private[http4s] trait MimeDB {
       `celb`,
       `dv`,
       `encaprtp`,
+      `flexfec`,
       `h261`,
       `h263`,
       `h263-1998`,
@@ -7082,6 +7222,7 @@ private[http4s] trait MimeDB {
       `vnd.sealedmedia.softseal.mov`,
       `vnd.uvvu.mp4`,
       `vnd.vivo`,
+      `vnd.youtube.yt`,
       `vp8`,
       `webm`,
       `x-f4v`,
