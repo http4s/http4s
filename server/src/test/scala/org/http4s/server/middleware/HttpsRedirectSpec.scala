@@ -36,7 +36,7 @@ class HttpsRedirectSpec extends Http4sSpec {
       val noHeadersReq = Request[IO](method = GET, uri = Uri(path = "/"))
       val resp = app(noHeadersReq).unsafeRunSync
       resp.status must_== Status.Ok
-      resp.as[String] must_== "pong"
+      resp.as[String] must returnValue("pong")
     }
 
   }
