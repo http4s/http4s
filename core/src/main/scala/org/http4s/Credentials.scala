@@ -21,6 +21,7 @@ package org.http4s
 import cats.data.NonEmptyList
 import java.nio.charset.StandardCharsets
 import java.util.Base64
+
 import org.http4s.util.{Renderable, Writer}
 
 sealed abstract class Credentials extends Renderable {
