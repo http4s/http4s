@@ -16,10 +16,12 @@ it.
 * [#2612](https://github.com/http4s/http4s/pull/2612): Generalize `AuthedRequest` to `ContextRequest`
 * [#2967](https://github.com/http4s/http4s/pull/2967): `Link` header is now modeled as a recurring header of `LinkValue`. Parser is now RFC8288 compliant.
 * [#2933](https://github.com/http4s/http4s/pull/2933): Changed `Request` from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.
+* [#2933](https://github.com/http4s/http4s/pull/2933): Changed `Request` from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.
 
 ## Enhancements
 
 * [#2907](https://github.com/http4s/http4s/pull/2933): Add `JsonDecoder` algebra to circe, to avoid `Sync` constraint in business logic.
+* [#2994](https://github.com/http4s/http4s/pull/2994): Refreshed the `MimeDb` from the IANA registry.
 
 ## Dependency updates
 * async-http-client-2.10.4
