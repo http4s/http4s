@@ -1,8 +1,11 @@
 package org.http4s.client.oauth1
 
-import cats.Show
+import cats.{Functor, Show}
+import cats.effect.Clock
 import cats.kernel.Order
 import cats.implicits._
+import java.util.concurrent.TimeUnit
+
 sealed trait ProtocolParameter {
   val headerName: String
   val headerValue: String
@@ -32,14 +35,24 @@ object ProtocolParameter {
   }
 
   case class Timestamp(
-      override val headerValue: String = (System.currentTimeMillis() / 1000).toString)
+      override val headerValue: String)
       extends ProtocolParameter {
     override val headerName: String = "oauth_timestamp"
   }
 
-  case class Nonce(override val headerValue: String = System.nanoTime.toString)
+  object Timestamp {
+    def now[F[_]](implicit F: Functor[F], clock: Clock[F]): F[Timestamp] =
+      clock.realTime(TimeUnit.SECONDS).map(seconds => Timestamp(seconds.toString))
+  }
+
+  case class Nonce(override val headerValue: String)
       extends ProtocolParameter {
     override val headerName: String = "oauth_nonce"
+  }
+
+  object Nonce {
+    def now[F[_]](implicit F: Functor[F], clock: Clock[F]): F[Nonce] =
+      clock.monotonic(TimeUnit.NANOSECONDS).map(nanos => Nonce(nanos.toString))
   }
 
   case class Version(override val headerValue: String = "1.0") extends ProtocolParameter {

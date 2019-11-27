@@ -1,6 +1,6 @@
 package org.http4s.client.oauth1
 
-import cats.effect.IO
+import cats.effect.{IO, Timer}
 import org.http4s._
 import org.http4s.client.oauth1
 import org.http4s.client.oauth1.ProtocolParameter.{
@@ -17,6 +17,7 @@ import org.specs2.mutable.Specification
 class OAuthTest extends Specification {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // http://tools.ietf.org/html/rfc5849
+  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
 
   val Right(uri) = Uri.fromString("http://photos.example.net/photos")
   val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")
@@ -81,12 +82,12 @@ class OAuthTest extends Specification {
             Some(oauth1.ProtocolParameter.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")),
             realm = Some(Realm("Example")),
             signatureMethod = SignatureMethod(),
-            timestampGenerator = IO.delay(Timestamp()),
+            timestampGenerator = Timestamp.now[IO],
             version = Version(),
-            nonceGenerator = IO.delay(Nonce()),
+            nonceGenerator = Nonce.now[IO],
             callback = None,
             verifier = None,
-            userParams.map { case (k, v) ⇒ Custom(k, v) }
+            userParams.map { case (k, v) => Custom(k, v) }
           )
           .unsafeRunSync()
       val creds = auth.credentials
