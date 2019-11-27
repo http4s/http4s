@@ -24,9 +24,15 @@ object HttpsRedirect {
 
   def apply[F[_], G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
+      // This is pr.contains(Scheme.http), but it's not present in 2.11.
+      def containsHttp(pr: ParseResult[Scheme]) = pr match {
+        case Right(Scheme.http) => true
+        case _ => false
+      }
+
       (req.headers.get(`X-Forwarded-Proto`), req.headers.get(Host)) match {
 
-        case (Some(proto), Some(host)) if Scheme.parse(proto.value).contains(Scheme.http) =>
+        case (Some(proto), Some(host)) if containsHttp(Scheme.parse(proto.value)) =>
           logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host")
           val authority = Authority(host = RegName(host.value))
           val location = req.uri.copy(scheme = Some(Scheme.https), authority = Some(authority))
