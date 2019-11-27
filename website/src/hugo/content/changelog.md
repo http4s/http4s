@@ -8,6 +8,19 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.15 (2019-11-27)
+
+## Enhancements
+
+* [#2966](https://github.com/http4s/http4s/pull/2966): Add `HttpsRedirect` middleware
+* [#2965](https://github.com/http4s/http4s/pull/2965): Add `Request#addCookies` method
+* [#2887](https://github.com/http4s/http4s/pull/2887): Support realm in the `OAuth1` header
+
+## Bug fixes
+
+* [#2916](https://github.com/http4s/http4s/pull/2916): Ensure that `Metrics` only decrements active requests once
+* [#2889](https://github.com/http4s/http4s/pull/2889): In `Logger`, log the prelude if `logBody` and `logHeaders` are false
+
 # v0.20.14 (2019-11-26)
 
 ## Bug fixes
