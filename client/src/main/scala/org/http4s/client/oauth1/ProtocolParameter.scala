@@ -34,9 +34,7 @@ object ProtocolParameter {
     override val headerName: String = "oauth_signature_method"
   }
 
-  case class Timestamp(
-      override val headerValue: String)
-      extends ProtocolParameter {
+  case class Timestamp(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "oauth_timestamp"
   }
 
@@ -45,8 +43,7 @@ object ProtocolParameter {
       clock.realTime(TimeUnit.SECONDS).map(seconds => Timestamp(seconds.toString))
   }
 
-  case class Nonce(override val headerValue: String)
-      extends ProtocolParameter {
+  case class Nonce(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "oauth_nonce"
   }
 

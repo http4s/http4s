@@ -185,5 +185,5 @@ object Metrics {
         ref.getAndSet(true).bracket(_ => F.unit) {
           case false => ops.decreaseActiveRequests(classifier)
           case _ => F.unit
-        })
+      })
 }
