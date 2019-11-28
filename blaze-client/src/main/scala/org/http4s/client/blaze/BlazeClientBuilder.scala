@@ -70,8 +70,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       executionContext: ExecutionContext = executionContext,
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
-      channelOptions: ChannelOptions = channelOptions,
-      connectionManager: ConnectionManager[F, BlazeConnection[F]] = connectionManager
+      channelOptions: ChannelOptions = channelOptions
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -93,8 +92,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       executionContext = executionContext,
       scheduler = scheduler,
       asynchronousChannelGroup = asynchronousChannelGroup,
-      channelOptions = channelOptions,
-      connectionManager = connectionManager
+      channelOptions = channelOptions
     ) {}
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
