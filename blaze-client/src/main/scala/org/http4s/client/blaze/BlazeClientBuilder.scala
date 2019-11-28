@@ -187,8 +187,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       scheduler <- scheduler
       _ <- Resource.liftF(verifyAllTimeoutsAccuracy(scheduler))
       _ <- Resource.liftF(verifyTimeoutRelations())
+      manager <- connectionManager(scheduler)
     } yield BlazeClient.makeClient(
-      manager = connectionManager,
+      manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
       idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
