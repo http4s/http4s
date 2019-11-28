@@ -199,8 +199,8 @@
                         <a href="HttpMethodOverrider$.html" title="">HttpMethodOverrider</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="HttpsRedirect$.html" title="Middleware to redirect http traffic to https."></a>
-                        <a href="HttpsRedirect$.html" title="Middleware to redirect http traffic to https.">HttpsRedirect</a>
+                        <a class="object" href="" title="Middleware to redirect http traffic to https."></a>
+                        <a href="" title="Middleware to redirect http traffic to https.">HttpsRedirect</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="Jsonp$.html" title="Middleware to support wrapping json responses in jsonp."></a>
@@ -219,8 +219,8 @@
                         <a href="Metrics$.html" title="Server middleware to record metrics for the http4s server.">Metrics</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">PushSupport</a>
+                        <a class="object" href="PushSupport$.html" title=""></a>
+                        <a href="PushSupport$.html" title="">PushSupport</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="RequestLogger$.html" title="Simple Middleware for Logging Requests As They Are Processed"></a>
@@ -270,8 +270,8 @@
       <div id="definition">
         <div class="big-circle object">o</div>
         <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.server">server</a>.<a href="index.html" class="extype" name="org.http4s.server.middleware">middleware</a></p>
-        <h1>PushSupport<span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html" title="Permalink">
+        <h1>HttpsRedirect<span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -284,12 +284,17 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">PushSupport</span>
+        <span class="name">HttpsRedirect</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/PushSupport.scala" target="_blank">PushSupport.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p><a href="../index.html#Middleware[F[_],A,B,C,D]=cats.data.Kleisli[F,A,B]=&gt;cats.data.Kleisli[F,C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a> to redirect http traffic to https.
+Inspects <code>X-Forwarded-Proto</code> header and if it is set to <code>http</code>,
+redirects to <code>Host</code> with same URL with https schema; otherwise does nothing.
+This middleware is useful when a service is deployed behind a load balancer
+which does not support such redirect feature, e.g. Heroku.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/HttpsRedirect.scala" target="_blank">HttpsRedirect.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -319,7 +324,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.middleware.PushSupport"><span>PushSupport</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.middleware.HttpsRedirect"><span>HttpsRedirect</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -339,26 +344,7 @@
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.middleware.PushSupport.PushOps" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PushOps[F[_]]extendsAnyRef"></a><a id="PushOps[F[_]]:PushOps[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$$PushOps.html" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="PushSupport$$PushOps.html"><span class="name">PushOps</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
-      </span>
-      
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -368,7 +354,7 @@
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -384,7 +370,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html###():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -400,7 +386,7 @@
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -413,10 +399,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.PushSupport#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_]](routes:org.http4s.HttpRoutes[F],verify:String=&gt;Boolean)(implicitevidence$3:cats.Monad[F]):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](HttpRoutes[F],(String)⇒Boolean)(Monad[F]):HttpRoutes[F]"></a>
+    </li><li name="org.http4s.server.middleware.HttpsRedirect#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[F[_],G[_]](http:org.http4s.Http[F,G])(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]"></a><a id="apply[F[_],G[_]](Http[F,G])(Applicative[F]):Http[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#apply[F[_]](routes:org.http4s.HttpRoutes[F],verify:String=&gt;Boolean)(implicitevidence$3:cats.Monad[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#apply[F[_],G[_]](http:org.http4s.Http[F,G])(implicitF:cats.Applicative[F]):org.http4s.Http[F,G]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -425,16 +411,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="routes">routes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.apply.F">F</span>]</span>, <span name="verify">verify: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">_ =&gt; true</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.HttpsRedirect.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpsRedirect.apply.G">G</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.HttpsRedirect.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.HttpsRedirect.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.HttpsRedirect.apply.G">G</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Transform the route such that requests will gather pushed resources
-</p><div class="fullcomment"><div class="comment cmt"><p>Transform the route such that requests will gather pushed resources
-</p></div><dl class="paramcmts block"><dt class="param">routes</dt><dd class="cmt"><p>HttpRoutes to transform</p></dd><dt class="param">verify</dt><dd class="cmt"><p>method that determines if the location should be pushed</p></dd><dt>returns</dt><dd class="cmt"><p>Transformed route</p></dd></dl></div>
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -450,7 +434,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#clone():Object" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -474,7 +458,7 @@
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -490,7 +474,7 @@
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -506,7 +490,7 @@
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#finalize():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -528,7 +512,7 @@
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -547,7 +531,7 @@
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#hashCode():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -563,26 +547,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.PushSupport#http4sPushOps" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="http4sPushOps[F[_]](response:org.http4s.Response[F])(implicitevidence$1:cats.Functor[F]):org.http4s.server.middleware.PushSupport.PushOps[F]"></a><a id="http4sPushOps[F[_]](Response[F])(Functor[F]):PushOps[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#http4sPushOps[F[_]](response:org.http4s.Response[F])(implicitevidence$1:cats.Functor[F]):org.http4s.server.middleware.PushSupport.PushOps[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">http4sPushOps</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="response">response: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.http4sPushOps.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.server.middleware.PushSupport.http4sPushOps.F">F</span>]</span>)</span><span class="result">: <a href="PushSupport$$PushOps.html" class="extype" name="org.http4s.server.middleware.PushSupport.PushOps">PushOps</a>[<span class="extype" name="org.http4s.server.middleware.PushSupport.http4sPushOps.F">F</span>]</span>
-      </span>
-      
-      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -598,7 +566,7 @@
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -614,7 +582,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#notify():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -633,7 +601,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -652,7 +620,7 @@
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -668,7 +636,7 @@
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#toString():String" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -684,7 +652,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#wait():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -706,7 +674,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -728,7 +696,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/PushSupport$.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
