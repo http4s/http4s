@@ -47,7 +47,7 @@ object BlazeClient {
       requestTimeout: Duration,
       scheduler: TickWheelExecutor,
       ec: ExecutionContext
-  )(implicit F: ConcurrentEffect[F]) =
+  )(implicit F: ConcurrentEffect[F]): Client[F] =
     Client[F] { req =>
       Resource.suspend {
         val key = RequestKey.fromRequest(req)
