@@ -42,7 +42,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val executionContext: ExecutionContext,
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
-    val channelOptions: ChannelOptions
+    val channelOptions: ChannelOptions,
+    val connectionManager: ConnectionManager[F, BlazeConnection[F]]
 )(implicit protected val F: ConcurrentEffect[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
