@@ -48,7 +48,6 @@
           <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
             <a class="dropdown-item" href="/">http4s</a>
             <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
-            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
             <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
           </div>
         </li>
@@ -89,44 +88,9 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v0-21-0-m6-2019-11-27">v0.21.0-M6 (2019-11-27)</h1>
-
-<h2 id="breaking-changes">Breaking changes</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2906">#2906</a>: Weaken constraint on <code>Http</code> and <code>HttpRoutes</code> from <code>Sync</code> to <code>Defer</code>.  This is binary-breaking, but is source compatible in most cases.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2612">#2612</a>: Generalize <code>AuthedRequest</code> to <code>ContextRequest</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2967">#2967</a>: <code>Link</code> header is now modeled as a recurring header of <code>LinkValue</code>. Parser is now RFC8288 compliant.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2933">#2933</a>: Changed <code>Request</code> from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2933">#2933</a>: Changed <code>Request</code> from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.</li>
-</ul>
-
-<h2 id="enhancements">Enhancements</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2933">#2907</a>: Add <code>JsonDecoder</code> algebra to circe, to avoid <code>Sync</code> constraint in business logic.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2994">#2994</a>: Refreshed the <code>MimeDb</code> from the IANA registry.</li>
-</ul>
-
-<h2 id="dependency-updates">Dependency updates</h2>
-
-<ul>
-<li>async-http-client-2.10.4</li>
-<li>circe-0.12.3</li>
-<li>jawn-0.14.3</li>
-<li>log4cats-1.0.1</li>
-<li>okhttp-4.2.1</li>
-<li>fs2-2.1.0</li>
-<li>simpleclient-0.8.0 (Prometheus)</li>
-<li>scala-2.13.1</li>
-<li>scalacheck-1.14.2</li>
-<li>specs2-4.8.1</li>
-<li>twirl-1.5.0</li>
-</ul>
-
 <h1 id="v0-20-15-2019-11-27">v0.20.15 (2019-11-27)</h1>
 
-<h2 id="enhancements-1">Enhancements</h2>
+<h2 id="enhancements">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2966">#2966</a>: Add <code>HttpsRedirect</code> middleware</li>
@@ -150,13 +114,13 @@ it.</p>
 <li>The blaze upgrade fixes the &ldquo;SSL Handshake WRAP produced 0 bytes&rdquo; error on JDK 11.</li>
 </ul>
 
-<h2 id="enhancements-2">Enhancements</h2>
+<h1 id="enhancements-1">Enhancements</h1>
 
 <ul>
-<li><a href="https://github.com/http4s/http4s/pull/2911">#2911</a>: Add missing bincompat syntax to <code>org.http4s.implicits</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2911">#2911</a>: Add missing bincompat syntax to <code>org.http4s.implicits</code></li>
 </ul>
 
-<h2 id="dependency-updates-1">Dependency updates</h2>
+<h2 id="dependency-updates">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.11</li>
@@ -179,13 +143,13 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2957">#2957</a>: Shift the write to Blocker in <code>BlockingServletIo</code></li>
 </ul>
 
-<h2 id="enhancements-3">Enhancements</h2>
+<h2 id="enhancements-2">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2948">#2948</a>: Add all missing <code>ContentCoding</code>s from the IANA registry.</li>
 </ul>
 
-<h2 id="dependency-updates-2">Dependency updates</h2>
+<h2 id="dependency-updates-1">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.9</li>
@@ -193,13 +157,13 @@ it.</p>
 
 <h1 id="v0-20-12-2019-10-31">v0.20.12 (2019-10-31)</h1>
 
-<h2 id="enhancements-4">Enhancements</h2>
+<h2 id="enhancements-3">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2830">#2930</a>: Move private <code>UrlCodingUtils</code> to the <code>Uri</code> companion object, make public</li>
 </ul>
 
-<h2 id="dependency-updates-3">Dependency updates</h2>
+<h2 id="dependency-updates-2">Dependency updates</h2>
 
 <ul>
 <li>jawn-0.14.2</li>
@@ -212,52 +176,13 @@ it.</p>
 <li>twirl-1.4.2</li>
 </ul>
 
-<h1 id="v0-21-0-m5-2019-09-19">v0.21.0-M5 (2019-09-19)</h1>
-
-<h2 id="breaking-changes-1">Breaking changes</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2815">#2815</a>: Allow <code>Allow</code> header to specify an empty set of methods.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2836">#2832</a>: Add natural transformation to <code>ResponseGenerator</code> to allow the <code>F</code> and <code>G</code> to work in unison. Relevant for http4s-directives.</li>
-</ul>
-
-<h2 id="enhancements-5">Enhancements</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2836">#2836</a>: Add <code>additionalSocketOptions</code> to ember configs</li>
-<li><a href="https://github.com/http4s/http4s/pull/2869">#2869</a>: Add JsonDebugErrorHandler middleware</li>
-<li><a href="https://github.com/http4s/http4s/pull/2830">#2830</a>: Add encoder and decoder helpers to <code>Uri</code> companion</li>
-</ul>
-
-<h2 id="documentation">Documentation</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2733">#2733</a>: Add CSRF documentation</li>
-</ul>
-
-<h2 id="dependency-updates-4">Dependency updates</h2>
-
-<ul>
-<li>async-http-client-2.10.2</li>
-<li>cats-2.0.0</li>
-<li>cats-effect-2.0.0</li>
-<li>circe-0.12.1</li>
-<li>fs2-2.0.0</li>
-<li>keypool-2.0.0</li>
-<li>log4cats-core-1.0.0</li>
-<li>okhttp-4.2.0</li>
-<li>jawn-fs2-0.15.0</li>
-<li>tomcat-9.0.24</li>
-<li>vault-2.0.0</li>
-</ul>
-
 <h1 id="v0-20-11-2019-09-19">v0.20.11 (2019-09-19)</h1>
 
-<h2 id="breaking-changes-2">Breaking changes</h2>
+<h2 id="breaking-changes">Breaking changes</h2>
 
 <ul>
-<li><a href="https://github.com/http4s/http4s/pull/2792">#2792</a>: Drop support for Scala 2.13.0-M5. Users of Scala 2.13 should be on a stable release of Scala on the http4s-0.21 release series.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2800">#2800</a>: Revert <a href="https://github.com/http4s/http4s/pull/2785">#2785</a>, using <code>F[A]</code> instead of <code>G[A]</code> in <code>EntityResponseGenerator</code>, which broke directives.</li>
+<li>* <a href="https://github.com/http4s/http4s/pull/2792">#2792</a>: Drop support for Scala 2.13.0-M5. Users of Scala 2.13 should be on a stable release of Scala on the http4s-0.21 release series.</li>
+<li>* <a href="https://github.com/http4s/http4s/pull/2800">#2800</a>: Revert <a href="https://github.com/http4s/http4s/pull/2785">#2785</a>, using <code>F[A]</code> instead of <code>G[A]</code> in <code>EntityResponseGenerator</code>, which broke directives.</li>
 </ul>
 
 <h2 id="bug-fixes-3">Bug fixes</h2>
@@ -266,35 +191,21 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2807">#2807</a>: In jetty-client, don&rsquo;t follow redirects with the internal client, which throws an exception in the http4s wrapper.</li>
 </ul>
 
-<h2 id="enhancements-6">Enhancements</h2>
+<h2 id="enhancements-4">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2817">#2817</a>: In jetty-client, disable internal client&rsquo;s default <code>Content-Type</code> to prevent default <code>application/octet-stream</code> for empty bodies.</li>
 </ul>
 
-<h2 id="dependency-updates-5">Dependency updates</h2>
+<h2 id="dependency-updates-3">Dependency updates</h2>
 
 <ul>
 <li>jetty-9.4.20</li>
 </ul>
 
-<h1 id="v0-21-0-m4-2019-08-14">v0.21.0-M4 (2019-08-14)</h1>
-
-<h2 id="dependency-updates-6">Dependency updates</h2>
-
-<ul>
-<li>cats-core-2.0.0-RC1</li>
-<li>cats-effect-2.0.0-RC1</li>
-<li>circe-0.12.0-RC1</li>
-<li>discipline-1.0.0</li>
-<li>keypool-0.2.0-RC1</li>
-<li>log4cats-1.0.0-RC1</li>
-<li>vault-2.0.0-RC1</li>
-</ul>
-
 <h1 id="v0-20-10-2019-08-14">v0.20.10 (2019-08-14)</h1>
 
-<h2 id="breaking-changes-3">Breaking changes</h2>
+<h2 id="breaking-changes-1">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2785">#2785</a>: Use <code>F[A]</code> instead of <code>G[A]</code> in the DSL&rsquo;s <code>EntityResponseGenerator</code>. This change is binary compatible, but not source compatible for users of <code>Http4sDsl2</code> where <code>F</code> is not <code>G</code>. This is uncommon.</li>
@@ -306,7 +217,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2778">#2778</a>: Don&rsquo;t truncate signing keys in CSRF middleware to 20 bytes, which causes a loss of entropy.</li>
 </ul>
 
-<h2 id="enhancements-7">Enhancements</h2>
+<h2 id="enhancements-5">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2776">#2776</a>: Add <code>MaxActiveRequest</code> middleware</li>
@@ -323,58 +234,15 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2762">#2762</a>: Fix text in warnings when blaze-client timeouts are questionably ordered.</li>
 </ul>
 
-<h1 id="v0-21-0-m3-2019-08-02">v0.21.0-M3 (2019-08-02)</h1>
-
-<h2 id="breaking-changes-4">Breaking changes</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2572">#2572</a>: Make <code>Http1Stage</code> private to <code>org.http4s</code>, which we highly doubt anybody extended directly anyway.</li>
-</ul>
-
-<h2 id="bug-fixes-6">Bug fixes</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2727">#2727</a>: Fix <code>UserInfo</code> with <code>+</code> sign</li>
-</ul>
-
-<h2 id="enhancements-8">Enhancements</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2623">#2623</a>: Propagate cookies in <code>FollowRedirect</code> client middleware</li>
-</ul>
-
-<h2 id="documentation-1">Documentation</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2717">#2717</a>: Update quickstart for v0.21</li>
-<li><a href="https://github.com/http4s/http4s/pull/2734">#2734</a>: Add missing comma in code sample</li>
-<li><a href="https://github.com/http4s/http4s/pull/2740">#2740</a>: Clarify <code>Method</code> imports for client DSL</li>
-</ul>
-
-<h2 id="internals">Internals</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2717">#2747</a>: Create .mergify.yml</li>
-</ul>
-
-<h2 id="dependency-upgrades">Dependency upgrades</h2>
-
-<ul>
-<li>better-monadic-for-0.3.1</li>
-<li>cats-effect-2.0.0-M5</li>
-<li>log4cats-0.4.0-M2</li>
-<li>okhttp-4.0.1</li>
-</ul>
-
 <h1 id="v0-20-8-2019-08-02">v0.20.8 (2019-08-02)</h1>
 
-<h2 id="enhancements-9">Enhancements</h2>
+<h2 id="enhancements-6">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2550">#2550</a>: Adjust default timeouts and add warnings about misconfiguration</li>
 </ul>
 
-<h2 id="dependency-updates-7">Dependency updates</h2>
+<h2 id="dependency-updates-4">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.8</li>
@@ -383,95 +251,41 @@ it.</p>
 
 <h1 id="v0-20-7-2019-07-30">v0.20.7 (2019-07-30)</h1>
 
-<h2 id="bug-fixes-7">Bug fixes</h2>
+<h2 id="bug-fixes-6">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2728">#2728</a>: Preserve division of <code>request.uri.path</code> into <code>scriptName</code> and <code>pathInfo</code> when calling <code>withPathInfo</code>.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2737">#2737</a>: Fix deadlock in blaze-server web socket shutdown.</li>
 </ul>
 
-<h2 id="enhancements-10">Enhancements</h2>
+<h2 id="enhancements-7">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2736">#2736</a>: Implement a <code>connectTimeout</code> in blaze-client, defaulted to 10 seconds.  Prevents indefinite hangs on non-responsive hosts.</li>
 </ul>
 
-<h2 id="documentation-2">Documentation</h2>
+<h2 id="documentation">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2741">#2741</a>: Improve docs surrounding auth middleware and fall through.</li>
 </ul>
 
-<h2 id="dependency-upgrades-1">Dependency upgrades</h2>
+<h2 id="dependency-upgrades">Dependency upgrades</h2>
 
 <ul>
 <li>blaze-0.14.7</li>
 <li>tomcat-9.0.22</li>
 </ul>
 
-<h1 id="v0-21-0-m2-2019-07-09">v0.21.0-M2 (2019-07-09)</h1>
-
-<p>This release drops support for Scala 2.11 and adds the <code>http4s-ember-server</code> and <code>http4s-ember-client</code> backends.  Ember is new and experimental, but we intend for it to become the reference implementation.  Notably, it only requires a <code>Concurrent</code> constraint.</p>
-
-<h2 id="bugfixes">Bugfixes</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2691">#2691</a>: Fix deadlock in client by releasing current connection before retrying in <code>Retry</code> client middleware.  The constraint is upgraded to <code>Concurrent</code>.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2693">#2693</a>: Fix deadlock in client by releasing current connection before retrying in <code>FollowRedirect</code> client middleware.  The constraint is upgraded to <code>Concurrent</code>.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2671">#2671</a>: Upgrade <code>Uri.UserInfo</code> to a case class with username and password, fixing encoding issues. This is for RFC 3986 compliance, where it&rsquo;s deprecated for security reasons. Please don&rsquo;t use this.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2704">#2704</a>: Remove unused <code>Sync</code> constraint on <code>Part.formData</code>.</li>
-</ul>
-
-<h2 id="breaking-changes-5">Breaking changes</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2654">#2654</a>: Extract an http4s-laws module from http4s-testing, with no dependency on Specs2.  The arbitraries, laws, and tests are now laid out in a similar structure to cats and cats-effect.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2665">#2665</a>: Change <code>withBlock</code> to <code>withBlocker</code> in <code>OkHttpBuilder</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2661">#2661</a>: Move string contexts macros for literals from <code>org.http4s</code> to <code>org.http4s.implicits</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2679">#2679</a>: Replace <code>Uri.IPv4</code> with <code>Uri.Ipv4Address</code>, including an <code>ipv4</code> interpolator and interop with <code>Inet4Address</code>.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2694">#2694</a>: Drop Scala 2.11 support</li>
-<li><a href="https://github.com/http4s/http4s/pull/2700">#2700</a>: Replace <code>Uri.IPv6</code> with <code>Uri.Ipv6Address</code>, including an <code>ipv6</code> interpolator and interop with <code>Inet6Address</code>.</li>
-</ul>
-
-<h2 id="enhancements-11">Enhancements</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2656">#2656</a>: Add <code>emap</code> and <code>emapValidatedNel</code> to <code>QueryParamDecoder</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2696">#2696</a>: Introduce <code>http4s-ember-server</code> and <code>http4s-ember-client</code></li>
-</ul>
-
-<h2 id="documentation-3">Documentation</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2658">#2658</a>: Link to http4s-jdk-http-client</li>
-<li><a href="https://github.com/http4s/http4s/pull/2668">#2668</a>: Clarify scaladoc for <code>Uri.Scheme</code></li>
-</ul>
-
-<h2 id="internal">Internal</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2655">#2655</a>: Tune JVM options for throughput</li>
-</ul>
-
-<h2 id="dependency-updates-8">Dependency updates</h2>
-
-<ul>
-<li>async-http-client-2.10.1</li>
-<li>circe-0.12.0-M4</li>
-<li>json4s-3.6.7</li>
-<li>okhttp-4.0.0</li>
-<li>specs2-core-4.6.0</li>
-</ul>
-
 <h1 id="v0-20-6-2019-07-09">v0.20.6 (2019-07-09)</h1>
 
-<h2 id="bug-fixes-8">Bug fixes</h2>
+<h2 id="bug-fixes-7">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2705">#2705</a>: Upgrades blaze to close <code>SSLEngine</code> when an <code>SSLStage</code> shuts down. This is useful in certain <code>SSLContext</code> implementations.  See <a href="https://github.com/http4s/blaze/pull/305">blaze#305</a> for more.</li>
 </ul>
 
-<h2 id="dependency-upgrades-2">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-1">Dependency upgrades</h2>
 
 <ul>
 <li>blaze-0.14.6</li>
@@ -483,121 +297,35 @@ it.</p>
 
 <h1 id="v0-20-4-2019-07-06">v0.20.4 (2019-07-06)</h1>
 
-<h2 id="bug-fixes-9">Bug fixes</h2>
+<h2 id="bug-fixes-8">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2687">#2687</a>: Don&rsquo;t throw in <code>Uri.fromString</code> on invalid ports</li>
 <li><a href="https://github.com/http4s/http4s/pull/2695">#2695</a>: Handle EOF in blaze-server web socket by shutting down stage</li>
 </ul>
 
-<h2 id="enhancements-12">Enhancements</h2>
+<h2 id="enhancements-8">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2673">#2673</a>: Add <code>GZip</code> middleware for client</li>
 </ul>
 
-<h2 id="documentation-4">Documentation</h2>
+<h2 id="documentation-1">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2668">#2668</a>: Clarifications in <code>Uri.Scheme</code> scaladoc</li>
 </ul>
 
-<h2 id="dependency-upgrades-3">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-2">Dependency upgrades</h2>
 
 <ul>
 <li>blaze-0.14.5</li>
 <li>jetty-9.14.19.v20190610 (for client)</li>
 </ul>
 
-<h1 id="v0-21-0-m1-2019-06-17">v0.21.0-M1 (2019-06-17)</h1>
-
-<h2 id="breaking-changes-6">Breaking changes</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2565">#2565</a>: Change constraint on server <code>Metrics</code> from <code>Effect</code> to <code>Sync</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2551">#2551</a>: Refactor <code>AuthMiddleware</code> to not require <code>Choice</code> constraint</li>
-<li><a href="https://github.com/http4s/http4s/pull/2614">#2614</a>: Relax various <code>ResponseGenerator</code> constraints from <code>Monad</code> to <code>Applicative</code> in http4s-dsl.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2613">#2613</a>: Rename implicit <code>http4sKleisliResponseSyntax</code> and its parameter name.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2624">#2624</a>: In <code>BlazeServerBuilder</code>, don&rsquo;t depend on laziness of <code>SSLContext</code>. <code>None</code> now disables the secure context. The default argument tries to load <code>Some(SSLContext.getDefault())</code>, but falls back to <code>None</code> in case of failure.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2493">#2493</a>: Scala 2.13 support and related upgrades
-
-<ul>
-<li>Scala 2.13.0-M5 is dropped.</li>
-<li>All modules are supported on 2.11, 2.12, and 2.13 again.</li>
-<li>Use cats-effect-2.0&rsquo;s new <code>Blocker</code> in place of <code>ExecutionContext</code> where appropriate</li>
-</ul></li>
-</ul>
-
-<h2 id="enhancements-13">Enhancements</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2590">#2591</a>: Add <code>MediaType.unsafeParse</code> and <code>QValue.unsafeFromString</code>.</li>
-<li><a href="https://github.com/http4s/http4s/pull/2548">#2548</a>: Add <code>Client#translate</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2622">#2622</a>: Add <code>Header#renderedLength</code></li>
-</ul>
-
-<h2 id="docs">Docs</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2569">#2569</a>: Fix typo in CORS scaladoc</li>
-<li><a href="https://github.com/http4s/http4s/pull/2608">#2608</a>: Replace <code>Uri.uri</code> with <code>uri</code> in tuts</li>
-<li><a href="https://github.com/http4s/http4s/pull/2626">#2626</a>: Fix typos in root package and DSL docs</li>
-<li><a href="https://github.com/http4s/http4s/pull/2635">#2635</a>: Remove obsolete scaladoc from client</li>
-<li><a href="https://github.com/http4s/http4s/pull/2645">#2645</a>: Fix string literal in router example in static file docs</li>
-</ul>
-
-<h2 id="internal-1">Internal</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/pull/2563">#2563</a>: Refactor <code>EntityDecoder#decode</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2553">#2553</a>: Refactor <code>Timeout</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2564">#2564</a>: Refactor boopickle and circe decoders</li>
-<li><a href="https://github.com/http4s/http4s/pull/2580">#2580</a>: Refactor server <code>RequestLogger</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2581">#2581</a>: Remove redundant braces in various types</li>
-<li><a href="https://github.com/http4s/http4s/pull/2539">#2539</a>: Narrow cats imports</li>
-<li><a href="https://github.com/http4s/http4s/pull/2582">#2582</a>: Refactor <code>DefaultHead</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2590">#2590</a>: Refactor <code>GZip</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2590">#2591</a>: Refactor literal macros to not use <code>.get</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2596">#2596</a>: Refactor <code>MimeLoader</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2542">#2542</a>: Refactor <code>WebjarService</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2555">#2555</a>: Refactor <code>FileService</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2597">#2597</a>: Optimize internal hex encoding</li>
-<li><a href="https://github.com/http4s/http4s/pull/2599">#2599</a>: Refactor <code>ChunkAggregator</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2574">#2574</a>: Refactor <code>FollowRedirect</code></li>
-<li><a href="https://github.com/http4s/http4s/pull/2648">#2648</a>: Move <code>mimedb-generator</code> from a project to an internal SBT plugin. Run with <code>core/generateMimeDb</code>.</li>
-</ul>
-
-<h2 id="depedency-updates">Depedency updates</h2>
-
-<ul>
-<li>cats-2.0.0-M4</li>
-<li>cats-effect-2.0.0-M4</li>
-<li>circe-0.12.0-M3</li>
-<li>discipline-0.12.0-M3</li>
-<li>fs2-1.1.0-M1</li>
-<li>jawn-0.14.2</li>
-<li>jawn-fs2-0.15.0-M1</li>
-<li>json4s-3.6.6</li>
-<li>log4s-1.8.2</li>
-<li>parboiled-2.0.1 (internal fork)</li>
-<li>play-json-2.7.4</li>
-<li>sbt-doctest-0.9.5 (tests only)</li>
-<li>sbt-native-packager-1.3.22 (examples only)</li>
-<li>sbt-site-1.4.0 (docs only)</li>
-<li>sbt-tpolecat-0.1.6 (compile time only)</li>
-<li>scalacheck-1.14.0</li>
-<li>scalatags-0.7.0 (2.12 and 2.13 only)</li>
-<li>scalaxml-1.2.0</li>
-<li>specs2-4.5.1</li>
-<li>mockito-core-2.28.2 (tests only)</li>
-<li>tut-0.6.12 (docs only)</li>
-<li>twirl-1.4.2</li>
-<li>vault-2.0.0-M2</li>
-</ul>
-
 <h1 id="v0-20-3-2019-06-12">v0.20.3 (2019-06-12)</h1>
 
-<h2 id="bug-fixes-10">Bug fixes</h2>
+<h2 id="bug-fixes-9">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2638">#2638</a>: Fix leaking sensitive headers in server RequestLogger</li>
@@ -605,13 +333,13 @@ it.</p>
 
 <h1 id="v0-18-24-2019-06-12">v0.18.24 (2019-06-12)</h1>
 
-<h2 id="bug-fixes-11">Bug fixes</h2>
+<h2 id="bug-fixes-10">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2639">#2639</a>: Fix leaking sensitive headers in server RequestLogger</li>
 </ul>
 
-<h2 id="dependency-updates-9">Dependency updates</h2>
+<h2 id="dependency-updates-5">Dependency updates</h2>
 
 <ul>
 <li>cats-1.6.1</li>
@@ -621,26 +349,26 @@ it.</p>
 
 <h1 id="v0-20-2-2019-06-12">v0.20.2 (2019-06-12)</h1>
 
-<h2 id="bug-fixes-12">Bug fixes</h2>
+<h2 id="bug-fixes-11">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2604">#2604</a>: Defer creation of <code>SSLContext.getDefault()</code> in blaze-client</li>
 <li><a href="https://github.com/http4s/http4s/pull/2611">#2611</a>: Raise errors with <code>getResource()</code> into effect in <code>StaticFile</code></li>
 </ul>
 
-<h2 id="enhancements-14">Enhancements</h2>
+<h2 id="enhancements-9">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2567">#2567</a>: Add <code>mapK</code> to <code>AuthedRequest</code>.  Deprecate <code>AuthedService</code> in favor of <code>AuthedRoutes</code>.</li>
 </ul>
 
-<h2 id="internals-1">Internals</h2>
+<h2 id="internals">Internals</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2579">#2579</a>: Skip Travis CI on tags</li>
 </ul>
 
-<h2 id="dependency-updates-10">Dependency updates</h2>
+<h2 id="dependency-updates-6">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.4</li>
@@ -655,21 +383,21 @@ it.</p>
 
 <p>Users of blaze-client are strongly urged to upgrade.  This patch fixes a bug and passes new tests, but we still lack 100% confidence in it.  The async-http-client backend has proven stable for a large number of users.</p>
 
-<h2 id="bug-fixes-13">Bug fixes</h2>
+<h2 id="bug-fixes-12">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2562">#2562</a>: Fix issue in <code>PoolManager</code> that causes hung requests in blaze-client.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2571">#2571</a>: Honor <code>If-None-Match</code> request header in <code>StaticFile</code></li>
 </ul>
 
-<h2 id="enhancements-15">Enhancements</h2>
+<h2 id="enhancements-10">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2532">#2532</a>: Add queue limit to log message when client wait queue is full</li>
 <li><a href="https://github.com/http4s/http4s/pull/2535">#2535</a>: Add <code>translate</code> to <code>HttpRoutes</code> and <code>HttpApp</code></li>
 </ul>
 
-<h2 id="documentation-5">Documentation</h2>
+<h2 id="documentation-2">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2533">#2533</a>: Fix link to Metrics middleware</li>
@@ -677,7 +405,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2559">#2559</a>: Add @gvolpe&rsquo;s presentation and http4s-tracer</li>
 </ul>
 
-<h2 id="internals-2">Internals</h2>
+<h2 id="internals-1">Internals</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2525">#2525</a>: Pointful implementation of <code>AuthMiddleware.noSpider</code></li>
@@ -689,7 +417,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2575">#2575</a>: Fix the Travis CI release pipeline</li>
 </ul>
 
-<h2 id="dependency-updates-11">Dependency updates</h2>
+<h2 id="dependency-updates-7">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.2</li>
@@ -720,26 +448,26 @@ it.</p>
 
 <p>This marks the end of active support for the 0.18 series.  Further releases in that series will require a pull request and an accompanying tale of woe.</p>
 
-<h2 id="breaking-changes-7">Breaking changes</h2>
+<h2 id="breaking-changes-2">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2506">#2506</a>: Raise <code>DecodeFailure</code> with <code>MonadError</code> in <code>Message#as</code> rather than relying on effect to catch in <code>fold</code>. Requires a new <code>MonadError</code> constraint.</li>
 </ul>
 
-<h2 id="bugfixes-1">Bugfixes</h2>
+<h2 id="bugfixes">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2502">#2502</a>: Stop relying on undefined behavior of <code>fold</code> to catch errors in client.</li>
 </ul>
 
-<h2 id="enhancements-16">Enhancements</h2>
+<h2 id="enhancements-11">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2508">#2508</a>: Add <code>mediaType</code> String context macro for validating literals.  Provide the same for <code>uri</code> and <code>qValue</code>, deprecating <code>Uri.uri</code> and <code>QValue.q</code>.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2520">#2520</a>: Parameterize <code>selectorThreadFactory</code> for blaze server.  This allows setting the priority for selector threads.</li>
 </ul>
 
-<h2 id="documentation-6">Documentation</h2>
+<h2 id="documentation-3">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2488">#2488</a>: Fix bad link in changelog</li>
@@ -748,13 +476,13 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2516">#2516</a>: Drop redundant <code>enableWebSockets</code> in blaze example.</li>
 </ul>
 
-<h2 id="internals-3">Internals</h2>
+<h2 id="internals-2">Internals</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2521">#2521</a>: Add utility conversion for <code>java.util.concurrent.CompletableFuture</code> to <code>F[_]: Concurrent</code></li>
 </ul>
 
-<h2 id="dependency-updates-12">Dependency updates</h2>
+<h2 id="dependency-updates-8">Dependency updates</h2>
 
 <ul>
 <li>blaze-0.14.0</li>
@@ -769,7 +497,7 @@ it.</p>
 
 <h1 id="v0-20-0-rc1-2019-04-03">v0.20.0-RC1 (2019-04-03)</h1>
 
-<h2 id="breaking-changes-8">Breaking changes</h2>
+<h2 id="breaking-changes-3">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2471">#2471</a>: <code>Headers</code> is no longer an <code>Iterable[Header]</code></li>
@@ -792,7 +520,7 @@ it.</p>
 </ul></li>
 </ul>
 
-<h2 id="enhancements-17">Enhancements</h2>
+<h2 id="enhancements-12">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2466">#2466</a>: Provide better message for <code>WaitQueueFullFailure</code></li>
@@ -805,13 +533,13 @@ it.</p>
 </ul></li>
 </ul>
 
-<h2 id="bugfixes-2">Bugfixes</h2>
+<h2 id="bugfixes-1">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2470">#2470</a>: Don&rsquo;t wait indefinitely if a request timeout happens while borrowing a connection in blaze-client.</li>
 </ul>
 
-<h2 id="documentation-7">Documentation</h2>
+<h2 id="documentation-4">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2469">#2469</a>: Add scala-steward to adopters</li>
@@ -826,7 +554,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2474">#2474</a>: Skip another blaze test that fails only on CI</li>
 </ul>
 
-<h2 id="dependency-upgrades-4">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-3">Dependency upgrades</h2>
 
 <ul>
 <li>argonaut-6.2.3</li>
@@ -838,13 +566,13 @@ it.</p>
 
 <h1 id="v0-20-0-m7-2019-03-20">v0.20.0-M7 (2019-03-20)</h1>
 
-<h2 id="bugfixes-3">Bugfixes</h2>
+<h2 id="bugfixes-2">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2450">#2450</a>: Fix <code>CirceInstances.builder</code> initialization, which referenced unintialized eager vals.</li>
 </ul>
 
-<h2 id="enhancements-18">Enhancements</h2>
+<h2 id="enhancements-13">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2435">#2435</a>: Log information about canceled requests in <code>ResponseLogger</code></li>
@@ -854,7 +582,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2458">#2458</a>: Building on bugfix in <a href="https://github.com/http4s/http4s/pull/2453">#2453</a>, don&rsquo;t clean up the stage if it&rsquo;s going to be shut down anyway</li>
 </ul>
 
-<h2 id="documentation-8">Documentation</h2>
+<h2 id="documentation-5">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2432">#2432</a>: Fix Github URL in Scaladoc for tagged versions</li>
@@ -872,7 +600,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2464">#2464</a>: Temporarily disable blaze tests that fail only on CI while running on CI.</li>
 </ul>
 
-<h2 id="dependency-upgrades-5">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-4">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.8.1</li>
@@ -886,13 +614,13 @@ it.</p>
 
 <h1 id="v0-18-23-2019-03-19">v0.18.23 (2019-03-19)</h1>
 
-<h2 id="bug-fixes-14">Bug fixes</h2>
+<h2 id="bug-fixes-13">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2453">#2453</a>: Fix bug in blaze-client that unnecessarily recycled connections.</li>
 </ul>
 
-<h2 id="dependency-upgrades-6">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-5">Dependency upgrades</h2>
 
 <ul>
 <li>jetty-9.4.15.v20190215</li>
@@ -905,7 +633,7 @@ it.</p>
 
 <h1 id="v0-20-0-m6-2019-02-16">v0.20.0-M6 (2019-02-16)</h1>
 
-<h2 id="breaking-changes-9">Breaking changes</h2>
+<h2 id="breaking-changes-4">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2369">#2369</a>: Make <code>log</code> operation on logging middlewares return an <code>F[Unit]</code> to support pure logging.</li>
@@ -917,13 +645,13 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2419">#2419</a>: Relax constraint on <code>Retry</code> middleware from <code>Effect</code> to <code>Sync</code></li>
 </ul>
 
-<h2 id="bugfixes-4">Bugfixes</h2>
+<h2 id="bugfixes-3">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2421">#2421</a>: Fix buggy use of <code>toString</code> in async-http-client when rendering URIs.</li>
 </ul>
 
-<h2 id="enhancements-19">Enhancements</h2>
+<h2 id="enhancements-14">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2364">#2364</a>: Scalafix <code>allocate</code> to <code>allocated</code></li>
@@ -935,7 +663,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2424">#2424</a>: Include Chunked Transfer-Encoding header in Multipart Requests</li>
 </ul>
 
-<h2 id="documentation-9">Documentation</h2>
+<h2 id="documentation-6">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2378">#2378</a>: Fix typo in <code>EntityDecoder</code> scaladoc</li>
@@ -945,7 +673,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2420">#2420</a>: Add Raster Foundry to adopters</li>
 </ul>
 
-<h2 id="internal-2">Internal</h2>
+<h2 id="internal">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2359">#2359</a>: Remove code coverage checks</li>
@@ -954,7 +682,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2422">#2422</a>: Use Scala 2.12.8 and slash-syntax in SBT files</li>
 </ul>
 
-<h2 id="dependency-upgrades-7">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-6">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.7.0</li>
@@ -977,7 +705,7 @@ it.</p>
 
 <h1 id="v0-18-22-2019-02-13">v0.18.22 (2019-02-13)</h1>
 
-<h2 id="enhancements-20">Enhancements</h2>
+<h2 id="enhancements-15">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2389">#2389</a>: Add <code>RequestKey</code> to Logging when eviction is necessary</li>
@@ -988,7 +716,7 @@ it.</p>
 <p>Consider the blaze beta and all other modules RC quality. Don&rsquo;t forget
 there is a scalafix to assist migration from 0.18!</p>
 
-<h2 id="breaking-changes-10">Breaking changes</h2>
+<h2 id="breaking-changes-5">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2308">#2308</a>: Change <code>allocate</code> to <code>allocated</code> on backend builders for consistency with <code>cats.effect.Resource#allocated</code>.</li>
@@ -996,7 +724,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2351">#2351</a>: Change <code>clientAuthMode</code> on server builders from <code>Boolean</code> to sum type <code>SSLClientAuthMode</code></li>
 </ul>
 
-<h2 id="enhancements-21">Enhancements</h2>
+<h2 id="enhancements-16">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2308">#2309</a>: Specialize <code>TimeoutException</code> to <code>WaitQueueTimeoutException</code> in client pool manager.  Do not retry this by default in <code>Retry</code> middleware.</li>
@@ -1004,21 +732,21 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2328">#2328</a>: Add a <code>SecureSession</code> attribute to server requests to expose the SSL session ID, the cipher suite, the key size, and a list of X509 certificates.</li>
 </ul>
 
-<h2 id="documentation-10">Documentation</h2>
+<h2 id="documentation-7">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2337">#2337</a>: Use <code>tut:silent</code> on imports in docs</li>
 <li><a href="https://github.com/http4s/http4s/pull/2336">#2336</a>: Add example of building a server from a <code>Resource</code></li>
 </ul>
 
-<h2 id="internal-3">Internal</h2>
+<h2 id="internal-1">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2310">#2310</a>: Use max of 16 cores in <code>-Ybackend-parallelism</code></li>
 <li><a href="https://github.com/http4s/http4s/pull/2332">#2332</a>: Don&rsquo;t make <code>F</code> evidence parameter a val in jetty-client <code>ResponseListener</code>.</li>
 </ul>
 
-<h2 id="dependency-upgrades-8">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-7">Dependency upgrades</h2>
 
 <ul>
 <li>blaze-0.14.0-M2</li>
@@ -1035,7 +763,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-20-0-m4-2018-12-05">v0.20.0-M4 (2018-12-05)</h1>
 
-<h2 id="bugfixes-5">Bugfixes</h2>
+<h2 id="bugfixes-4">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2283">#2283</a>: Fix client metrics bug that decremented active requests and recorded time before the resource was released.</li>
@@ -1044,7 +772,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2305">#2305</a>: Correctly shut down the blaze-client</li>
 </ul>
 
-<h2 id="enhancements-22">Enhancements</h2>
+<h2 id="enhancements-17">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2275">#2275</a>: Set default prefix for Prometheus and Dropwizard metrics backends.</li>
@@ -1060,13 +788,13 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h1 id="documentation-11">Documentation</h1>
+<h1 id="documentation-8">Documentation</h1>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2297">#2297</a>: Remove appveyor badge</li>
 </ul>
 
-<h2 id="dependency-upgrades-9">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-8">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.5.0</li>
@@ -1084,7 +812,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-20-0-m3-2018-11-13">v0.20.0-M3 (2018-11-13)</h1>
 
-<h2 id="breaking-changes-11">Breaking changes</h2>
+<h2 id="breaking-changes-6">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2228">#2228</a>: Support more attributes for the response cookie in <code>CSRF</code> middleware. Configuration is now done through a builder, similar to backends.</li>
@@ -1093,14 +821,14 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2262">#2197</a>: Require <code>Signal</code> rather than <code>SignallingRef</code> in <code>serveWhile</code></li>
 </ul>
 
-<h2 id="bugfixes-6">Bugfixes</h2>
+<h2 id="bugfixes-5">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2260">#2260</a>: Fix leak in blaze-client on a canceled connection</li>
 <li><a href="https://github.com/http4s/http4s/pull/2258">#2258</a>: Fix deadlocks in the blaze-client pool manager under cancellation and certain other failures.</li>
 </ul>
 
-<h2 id="enhancements-23">Enhancements</h2>
+<h2 id="enhancements-18">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2266">#2266</a>: Support flag query parameters (i.e., parameters with no value) in the DSL with <code>FlagQueryParamMatcher</code>.</li>
@@ -1109,7 +837,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2270">#2270</a>: Refresh <code>MimeDB</code> from the IANA registry.</li>
 </ul>
 
-<h2 id="internal-4">Internal</h2>
+<h2 id="internal-2">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2250">#2250</a>: Ignore http4s updates in scalafix-inputs</li>
@@ -1118,13 +846,13 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2271">#2271</a>: Fix compilation error introduced between <a href="https://github.com/http4s/http4s/pull/2228">#2228</a> and <a href="https://github.com/http4s/http4s/pull/2262">#2262</a>.</li>
 </ul>
 
-<h2 id="documentation-12">Documentation</h2>
+<h2 id="documentation-9">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2255">#2255</a>: Improve scalafix docs</li>
 </ul>
 
-<h2 id="dependency-upgrades-10">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-9">Dependency upgrades</h2>
 
 <ul>
 <li>blaze-0.14.0-M11</li>
@@ -1133,13 +861,13 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-20-0-m2-2018-11-05">v0.20.0-M2 (2018-11-05)</h1>
 
-<h2 id="bug-fixes-15">Bug fixes</h2>
+<h2 id="bug-fixes-14">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
 </ul>
 
-<h2 id="breaking-changes-12">Breaking changes</h2>
+<h2 id="breaking-changes-7">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2207">#2207</a>: Remove <code>PathNormalizer</code>. The functionality is now on <code>Uri.removeDotSegments</code>.</li>
@@ -1172,7 +900,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="enhancements-24">Enhancements</h2>
+<h2 id="enhancements-19">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2205">#2205</a>: Add new <code>ResponseTiming</code> middleware, which adds a header to the Response as opposed to full <code>MetricsOps</code>.</li>
@@ -1189,7 +917,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="bug-fixes-16">Bug fixes</h2>
+<h2 id="bug-fixes-15">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2239">#2239</a>: Fix hang when <code>.allocate</code> on a client builder fails</li>
@@ -1197,21 +925,21 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2241">#2241</a>: Restrict internal <code>IdleTimeoutStage</code> to a <code>FiniteDuration</code>.  Fixes an exception when converting to milliseconds when debug logging.</li>
 </ul>
 
-<h2 id="documentation-13">Documentation</h2>
+<h2 id="documentation-10">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2223">#2223</a>: Fix color of EOL label on v0.19</li>
 <li><a href="https://github.com/http4s/http4s/pull/2226">#2226</a>: Correct erroneous <code>Resource</code> in 0.19.0-M3 changelog</li>
 </ul>
 
-<h2 id="internal-5">Internal</h2>
+<h2 id="internal-3">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2219">#2219</a>: Allow test failures on openjdk11 until we can fix the SSL issue</li>
 <li><a href="https://github.com/http4s/http4s/pull/2194">#2221</a>: Don&rsquo;t grant MiMa exceptions for 0.19.1, which will never be</li>
 </ul>
 
-<h2 id="dependency-upgrades-11">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-10">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.6.0</li>
@@ -1226,7 +954,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <p>Due to the inadvertent release of 0.19.0, we have opened a new minor version.  The stable release with MiMa enforcement will be v0.20.0.</p>
 
-<h2 id="breaking-changes-13">Breaking changes</h2>
+<h2 id="breaking-changes-8">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2159">#2159</a>: Add a <code>responseHeaderTimeout</code> property to <code>BlazeServerBuilder</code>. Responses that timeout are completed with <code>Response.timeout</code>, which defaults to 503 Service Unavailable.  <code>BlazeServerBuilder</code> now requires a <code>Timer[F]</code>.</li>
@@ -1241,7 +969,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2180">#2180</a>: Change default response on <code>Timeout</code> middlware to <code>503 Service Unavailable</code></li>
 </ul>
 
-<h2 id="enhancements-25">Enhancements</h2>
+<h2 id="enhancements-20">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2159">#2159</a>: Set default client request timeout to 1 minute</li>
@@ -1257,14 +985,14 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2190">#2190</a>: Add <code>channelOptions</code> to blaze-client to customize socket options.</li>
 </ul>
 
-<h2 id="bug-fixes-17">Bug fixes</h2>
+<h2 id="bug-fixes-16">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2166">#2166</a>: Fix request timeout calculation in blaze-client to resolve &ldquo;Client response header timeout after 0 millseconds&rdquo; error.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2189">#2189</a>: Manage the <code>TickWheelTimer</code> as a resource instead of an <code>F[A, F[Unit]]</code>. This prevents a leak in (extremely unlikely) cases of cancellation.</li>
 </ul>
 
-<h2 id="internal-6">Internal</h2>
+<h2 id="internal-4">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2179">#2179</a>: Method to silence expected exceptions in tests</li>
@@ -1272,7 +1000,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2199">#2199</a>: Make client test sizes proportional to the number of processors for greater Travis stability</li>
 </ul>
 
-<h2 id="dependency-upgrades-12">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-11">Dependency upgrades</h2>
 
 <ul>
 <li>alpn-boot-8.1.13.v20181017 (examples only)</li>
@@ -1282,7 +1010,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-21-2018-11-05">v0.18.21 (2018-11-05)</h1>
 
-<h2 id="bug-fixes-18">Bug fixes</h2>
+<h2 id="bug-fixes-17">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2231">#2231</a>: Fix off-by-one error that lets blaze-client wait queue grow one past its limit</li>
@@ -1290,25 +1018,25 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-20-2018-10-18">v0.18.20 (2018-10-18)</h1>
 
-<h2 id="bug-fixes-19">Bug fixes</h2>
+<h2 id="bug-fixes-18">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2181">#2181</a>: Honor <code>redactHeadersWhen</code> in client <code>RequestLogger</code> middleware</li>
 </ul>
 
-<h2 id="enhancements-26">Enhancements</h2>
+<h2 id="enhancements-21">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2178">#2178</a>: Redact sensitive headers by default in <code>Retry</code> middleware. Add <code>retryWithRedactedHeaders</code> function that parameterizes the headers predicate.</li>
 </ul>
 
-<h2 id="documentation-14">Documentation</h2>
+<h2 id="documentation-11">Documentation</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2147">#2147</a>: Fix link to v0.19 docs</li>
 </ul>
 
-<h2 id="internal-7">Internal</h2>
+<h2 id="internal-5">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2130">#2130</a>: Build with scala-2.12.7 and sbt-1.2.3</li>
@@ -1320,7 +1048,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m4-2018-10-05">v0.19.0-M4 (2018-10-05)</h1>
 
-<h2 id="breaking-changes-14">Breaking changes</h2>
+<h2 id="breaking-changes-9">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2137">#2137</a>: Remove <code>ExecutionContext</code> argument to jetty-client in favor of the <code>ContextShift[F]</code>.</li>
@@ -1344,7 +1072,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="enhancements-27">Enhancements</h2>
+<h2 id="enhancements-22">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2134">#2149</a>: Refresh <code>MimeDB</code> constants from the public registry</li>
@@ -1359,7 +1087,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2145">#2145</a>: Fix deprecated calls to <code>Client#streaming</code></li>
 </ul>
 
-<h2 id="internal-8">Internal</h2>
+<h2 id="internal-6">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2126">#2126</a>: Delete obsolete <code>bin</code> directory</li>
@@ -1370,7 +1098,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2146">#2146</a>: Remove all use of <code>OutboundCommand</code> in blaze integration</li>
 </ul>
 
-<h2 id="dependency-upgrades-13">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-12">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.5.4</li>
@@ -1382,7 +1110,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m3-2018-09-27">v0.19.0-M3 (2018-09-27)</h1>
 
-<h2 id="breaking-changes-15">Breaking changes</h2>
+<h2 id="breaking-changes-10">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2081">#2081</a>: Remove <code>OkHttp</code> code redundant with <code>OkHttpBuilder</code>.</li>
@@ -1407,7 +1135,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="enhancements-28">Enhancements</h2>
+<h2 id="enhancements-23">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2042">#2042</a>: New <code>Throttle</code> server middleware</li>
@@ -1425,7 +1153,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="bugfixes-7">Bugfixes</h2>
+<h2 id="bugfixes-6">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2069">#2069</a>: Add proper <code>withMaxTotalConnections</code> method to <code>BlazeClientBuilder</code> in place of misnamed <code>withIdleTimeout</code> overload.</li>
@@ -1441,7 +1169,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2100">#2100</a>: Correct <code>re-start</code> to <code>reStart</code> in docs</li>
 </ul>
 
-<h2 id="internal-9">Internal</h2>
+<h2 id="internal-7">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2105">#2105</a>: Test on OpenJDK 11</li>
@@ -1451,7 +1179,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2123">#2123</a>: Remove unmaintained <code>load-test</code> module</li>
 </ul>
 
-<h2 id="dependency-upgrades-14">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-13">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.4.0</li>
@@ -1464,14 +1192,14 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-19-2018-09-27">v0.18.19 (2018-09-27)</h1>
 
-<h2 id="bug-fixes-20">Bug fixes</h2>
+<h2 id="bug-fixes-19">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2101">#2101</a>: <code>haveHeaders</code> checks by equality, not reference</li>
 <li><a href="https://github.com/http4s/http4s/pull/2117">#2117</a>: Handle unsuccessful responses in <code>JavaNetClient</code></li>
 </ul>
 
-<h2 id="internal-10">Internal</h2>
+<h2 id="internal-8">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2116">#2116</a>: Test against OpenJDK 11. Retire Oracle JDK 10.</li>
@@ -1479,21 +1207,21 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-18-18-2018-09-18">v0.18.18 (2018-09-18)</h1>
 
-<h2 id="bug-fixes-21">Bug fixes</h2>
+<h2 id="bug-fixes-20">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2048">#2048</a>: Correct misleading logging in <code>Retry</code> middleware</li>
 <li><a href="https://github.com/http4s/http4s/pull/2078">#2078</a>: Replace generic exception on full wait queue with new <code>WaitQueueFullFailure</code></li>
 </ul>
 
-<h2 id="enhancements-29">Enhancements</h2>
+<h2 id="enhancements-24">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2078">#2078</a>: Replace generic exception on full wait queue with new <code>WaitQueueFullFailure</code></li>
 <li><a href="https://github.com/http4s/http4s/pull/2095">#2095</a>: Add <code>Monoid[UrlForm]</code> instance</li>
 </ul>
 
-<h2 id="dependency-upgrades-15">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-14">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.4.0</li>
@@ -1504,7 +1232,7 @@ there is a scalafix to assist migration from 0.18!</p>
 
 <h1 id="v0-19-0-m2-2018-09-07">v0.19.0-M2 (2018-09-07)</h1>
 
-<h2 id="breaking-changes-16">Breaking changes</h2>
+<h2 id="breaking-changes-11">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/1802">#1802</a>: Race servlet requests against the <code>AsyncContext.timeout</code>. <code>JettyBuilder</code> and <code>TomcatBuilder</code> now require a <code>ConcurrentEffect</code> instance.</li>
@@ -1602,7 +1330,7 @@ there is a scalafix to assist migration from 0.18!</p>
 </ul></li>
 </ul>
 
-<h2 id="enhancements-30">Enhancements</h2>
+<h2 id="enhancements-25">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/1953">#1953</a>: Add <code>UUIDVar</code> path extractor</li>
@@ -1614,7 +1342,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2062">#2062</a>: Eliminate &ldquo;unhandled inbund command: Disconnected&rdquo;` warnings in blaze-server</li>
 </ul>
 
-<h2 id="bugfixes-8">Bugfixes</h2>
+<h2 id="bugfixes-7">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2024">#2027</a>: Miscellaneous websocket fixes
@@ -1639,7 +1367,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2060">#2060</a>: Guide to setting up IntelliJ for contributors</li>
 </ul>
 
-<h2 id="internal-11">Internal</h2>
+<h2 id="internal-9">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/1966">#1966</a>: Use scalafmt directly from IntelliJ</li>
@@ -1650,7 +1378,7 @@ there is a scalafix to assist migration from 0.18!</p>
 <li><a href="https://github.com/http4s/http4s/pull/2050">#2052</a>: Introduce expiring <code>TestScheduler</code> to avoid leaking threads on tests</li>
 </ul>
 
-<h2 id="dependency-upgrades-16">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-15">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.5.2</li>
