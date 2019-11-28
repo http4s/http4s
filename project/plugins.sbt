@@ -18,7 +18,7 @@ addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-twirl"                 % "1.5.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-native-packager"       % "1.5.1")
 addSbtPlugin("io.get-coursier"            %  "sbt-coursier"              % "1.0.3")
-addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.8")
+addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.10")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
 addSbtPlugin("org.scalameta"              %  "sbt-scalafmt"              % "2.2.1")
 addSbtPlugin("org.scalastyle"             %% "scalastyle-sbt-plugin"     % "1.0.0")
