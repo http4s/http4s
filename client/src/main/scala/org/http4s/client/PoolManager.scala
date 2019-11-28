@@ -258,6 +258,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
               s"Connection could not be recycled, no pending requests. Shrinking pool: $stats"))
       }
 
+  override def currentWaitQueueSize: F[Option[Int]] =
+    F.delay(Some(waitQueue.size))
+
   /**
     * This is how connections are returned to the ConnectionPool.
     *
