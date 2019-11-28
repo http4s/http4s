@@ -279,7 +279,8 @@ object BlazeClientBuilder {
     */
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
-      sslContext: Option[SSLContext] = tryDefaultSslContext): BlazeClientBuilder[F] =
+      sslContext: Option[SSLContext] = tryDefaultSslContext,
+      connectionManager: ConnectionManager[F, BlazeConnection[F]]): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
@@ -300,7 +301,8 @@ object BlazeClientBuilder {
       executionContext = executionContext,
       scheduler = tickWheelResource,
       asynchronousChannelGroup = None,
-      channelOptions = ChannelOptions(Vector.empty)
+      channelOptions = ChannelOptions(Vector.empty),
+      connectionManager = connectionManager
     ) {}
 
   private def tryDefaultSslContext: Option[SSLContext] =
