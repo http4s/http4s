@@ -338,6 +338,14 @@ sealed abstract case class Request[F[_]](
     */
   def params: Map[String, String] = uri.params
 
+  /**
+    * Parses all available [[Cookie]] headers into a list of [[RequestCookie]] objects. This
+    * implementation is compatible with cookie headers formatted per HTTP/1 and HTTP/2, or even both
+    * at the same time.
+    */
+  def cookies: List[RequestCookie] =
+    headers.get(Cookie).fold(List.empty[RequestCookie])(_.values.toList)
+
   /** Add a Cookie header for the provided [[Cookie]] */
   def addCookie(cookie: RequestCookie): Self =
     headers

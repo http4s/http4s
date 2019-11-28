@@ -1,7 +1,8 @@
 package org.http4s.server.middleware
 
-import cats.data._
-import cats.effect._
+import cats.data.{Kleisli, OptionT}
+import cats.effect.{Clock, Effect, ExitCase, Sync}
+import cats.effect.concurrent.Ref
 import cats.effect.implicits._
 import cats.implicits._
 import fs2.Stream
@@ -52,6 +53,7 @@ object Metrics {
   )(req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] = OptionT {
     for {
       initialTime <- clock.monotonic(TimeUnit.NANOSECONDS)
+      decreaseActiveRequestsOnce <- decreaseActiveRequestsAtMostOnce(ops, classifierF(req))
       result <- ops
         .increaseActiveRequests(classifierF(req))
         .bracketCase { _ =>
@@ -65,10 +67,17 @@ object Metrics {
                 headersElapsed,
                 ops,
                 emptyResponseHandler,
-                classifierF(req))
+                classifierF(req),
+                decreaseActiveRequestsOnce)
                 .as(Option.empty[Response[F]])
             )(
-              onResponse(req.method, initialTime, headersElapsed, ops, classifierF(req))(_).some
+              onResponse(
+                req.method,
+                initialTime,
+                headersElapsed,
+                ops,
+                classifierF(req),
+                decreaseActiveRequestsOnce)(_).some
                 .pure[F]
             )
           } yield result
@@ -79,7 +88,7 @@ object Metrics {
               initialTime,
               ops,
               classifierF(req)
-            )
+            ) *> decreaseActiveRequestsOnce
           case (_, ExitCase.Error(e)) =>
             for {
               headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
@@ -90,7 +99,7 @@ object Metrics {
                 ops,
                 errorResponseHandler(e),
                 classifierF(req)
-              )
+              ) *> decreaseActiveRequestsOnce
             } yield out
         }
     } yield result
@@ -102,23 +111,24 @@ object Metrics {
       headerTime: Long,
       ops: MetricsOps[F],
       emptyResponseHandler: Option[Status],
-      classifier: Option[String]
+      classifier: Option[String],
+      decreaseActiveRequestsOnce: F[Unit]
   )(implicit clock: Clock[F]): F[Unit] =
-    for {
+    (for {
       now <- clock.monotonic(TimeUnit.NANOSECONDS)
       _ <- emptyResponseHandler.traverse_(
         status =>
           ops.recordHeadersTime(method, headerTime - start, classifier) *>
             ops.recordTotalTime(method, status, now - start, classifier))
-      _ <- ops.decreaseActiveRequests(classifier)
-    } yield ()
+    } yield ()).guarantee(decreaseActiveRequestsOnce)
 
   private def onResponse[F[_]: Sync](
       method: Method,
       start: Long,
       headerTime: Long,
       ops: MetricsOps[F],
-      classifier: Option[String]
+      classifier: Option[String],
+      decreaseActiveRequestsOnce: F[Unit]
   )(r: Response[F])(implicit clock: Clock[F]): Response[F] = {
     val newBody = r.body
       .onFinalize {
@@ -126,7 +136,7 @@ object Metrics {
           now <- clock.monotonic(TimeUnit.NANOSECONDS)
           _ <- ops.recordHeadersTime(method, headerTime - start, classifier)
           _ <- ops.recordTotalTime(method, r.status, now - start, classifier)
-          _ <- ops.decreaseActiveRequests(classifier)
+          _ <- decreaseActiveRequestsOnce
         } yield {}
       }
       .handleErrorWith(e =>
@@ -153,7 +163,6 @@ object Metrics {
           ops.recordHeadersTime(method, headerTime - start, classifier) *>
             ops.recordTotalTime(method, status, now - start, classifier) *>
             ops.recordAbnormalTermination(now - start, Error, classifier))
-      _ <- ops.decreaseActiveRequests(classifier)
     } yield ()
 
   private def onServiceCanceled[F[_]: Sync](
@@ -164,6 +173,17 @@ object Metrics {
     for {
       now <- clock.monotonic(TimeUnit.NANOSECONDS)
       _ <- ops.recordAbnormalTermination(now - start, Abnormal, classifier)
-      _ <- ops.decreaseActiveRequests(classifier)
     } yield ()
+
+  private def decreaseActiveRequestsAtMostOnce[F[_]](
+      ops: MetricsOps[F],
+      classifier: Option[String]
+  )(implicit F: Sync[F]): F[F[Unit]] =
+    Ref
+      .of(false)
+      .map((ref: Ref[F, Boolean]) =>
+        ref.getAndSet(true).bracket(_ => F.unit) {
+          case false => ops.decreaseActiveRequests(classifier)
+          case _ => F.unit
+      })
 }
