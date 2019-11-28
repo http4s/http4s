@@ -8,7 +8,48 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.14 (2019-11-25)
+# v0.21.0-M6 (2019-11-27)
+
+## Breaking changes
+
+* [#2906](https://github.com/http4s/http4s/pull/2906): Weaken constraint on `Http` and `HttpRoutes` from `Sync` to `Defer`.  This is binary-breaking, but is source compatible in most cases.
+* [#2612](https://github.com/http4s/http4s/pull/2612): Generalize `AuthedRequest` to `ContextRequest`
+* [#2967](https://github.com/http4s/http4s/pull/2967): `Link` header is now modeled as a recurring header of `LinkValue`. Parser is now RFC8288 compliant.
+* [#2933](https://github.com/http4s/http4s/pull/2933): Changed `Request` from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.
+* [#2933](https://github.com/http4s/http4s/pull/2933): Changed `Request` from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.
+
+## Enhancements
+
+* [#2907](https://github.com/http4s/http4s/pull/2933): Add `JsonDecoder` algebra to circe, to avoid `Sync` constraint in business logic.
+* [#2994](https://github.com/http4s/http4s/pull/2994): Refreshed the `MimeDb` from the IANA registry.
+
+## Dependency updates
+* async-http-client-2.10.4
+* circe-0.12.3
+* jawn-0.14.3
+* log4cats-1.0.1
+* okhttp-4.2.1
+* fs2-2.1.0
+* simpleclient-0.8.0 (Prometheus)
+* scala-2.13.1
+* scalacheck-1.14.2
+* specs2-4.8.1
+* twirl-1.5.0
+
+# v0.20.15 (2019-11-27)
+
+## Enhancements
+
+* [#2966](https://github.com/http4s/http4s/pull/2966): Add `HttpsRedirect` middleware
+* [#2965](https://github.com/http4s/http4s/pull/2965): Add `Request#addCookies` method
+* [#2887](https://github.com/http4s/http4s/pull/2887): Support realm in the `OAuth1` header
+
+## Bug fixes
+
+* [#2916](https://github.com/http4s/http4s/pull/2916): Ensure that `Metrics` only decrements active requests once
+* [#2889](https://github.com/http4s/http4s/pull/2889): In `Logger`, log the prelude if `logBody` and `logHeaders` are false
+
+# v0.20.14 (2019-11-26)
 
 ## Bug fixes
 
