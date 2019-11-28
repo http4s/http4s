@@ -235,6 +235,10 @@
                         <a class="class" href="Consumer.html" title="Representation of a Consumer key and secret"></a>
                         <a href="Consumer.html" title="Representation of a Consumer key and secret">Consumer</a>
                       </li><li class="current-entities indented4">
+                        <a class="object" href="ProtocolParameter$.html" title=""></a>
+                        <a class="trait" href="ProtocolParameter.html" title=""></a>
+                        <a href="ProtocolParameter.html" title="">ProtocolParameter</a>
+                      </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="Token.html" title="Representation of an OAuth Token and Token secret"></a>
                         <a href="Token.html" title="Representation of an OAuth Token and Token secret">Token</a>
@@ -283,7 +287,7 @@
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Basic OAuth1 message signing support</p><p>This feature is not considered stable.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/1df27033dbc983e7b872293aaade180cd9ff9934/client/src/main/scala/org/http4s/client/oauth1/oauth1.scala" target="_blank">oauth1.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/13186d6c3044793badaee29e4b73732bfa0b6f22/client/src/main/scala/org/http4s/client/oauth1/oauth1.scala" target="_blank">oauth1.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -351,6 +355,22 @@
       </span>
       
       <p class="shortcomment cmt">Representation of a Consumer key and secret</p>
+    </li><li name="org.http4s.client.oauth1.ProtocolParameter" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ProtocolParameterextendsAnyRef"></a><a id="ProtocolParameter:ProtocolParameter"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/ProtocolParameter.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="ProtocolParameter.html"><span class="name">ProtocolParameter</span></a><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      
     </li><li name="org.http4s.client.oauth1.Token" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="TokenextendsProductwithSerializable"></a><a id="Token:Token"></a>
       <span class="permalink">
@@ -375,7 +395,39 @@
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="org.http4s.client.oauth1#signRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+                <li name="org.http4s.client.oauth1#mkBaseString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="mkBaseString(method:org.http4s.Method,uri:org.http4s.Uri,paramsStr:String):String"></a><a id="mkBaseString(Method,Uri,String):String"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/index.html#mkBaseString(method:org.http4s.Method,uri:org.http4s.Uri,paramsStr:String):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mkBaseString</span><span class="params">(<span name="method">method: <a href="../../Method.html" class="extype" name="org.http4s.Method">Method</a></span>, <span name="uri">uri: <a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>, <span name="paramsStr">paramsStr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.oauth1#signRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="signRequest[F[_]](req:org.http4s.Request[F],consumer:org.http4s.client.oauth1.ProtocolParameter.Consumer,token:Option[org.http4s.client.oauth1.ProtocolParameter.Token],realm:Option[org.http4s.client.oauth1.ProtocolParameter.Realm],signatureMethod:org.http4s.client.oauth1.ProtocolParameter.SignatureMethod,timestampGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Timestamp],version:org.http4s.client.oauth1.ProtocolParameter.Version,nonceGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Nonce],callback:Option[org.http4s.client.oauth1.ProtocolParameter.Callback],verifier:Option[org.http4s.client.oauth1.ProtocolParameter.Verifier])(implicitF:cats.MonadError[F,Throwable],implicitW:org.http4s.EntityDecoder[F,org.http4s.UrlForm]):F[org.http4s.Request[F]]"></a><a id="signRequest[F[_]](Request[F],oauth1.ProtocolParameter.Consumer,Option[oauth1.ProtocolParameter.Token],Option[Realm],SignatureMethod,F[Timestamp],Version,F[Nonce],Option[oauth1.ProtocolParameter.Callback],Option[Verifier])(MonadError[F,Throwable],EntityDecoder[F,UrlForm]):F[Request[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/index.html#signRequest[F[_]](req:org.http4s.Request[F],consumer:org.http4s.client.oauth1.ProtocolParameter.Consumer,token:Option[org.http4s.client.oauth1.ProtocolParameter.Token],realm:Option[org.http4s.client.oauth1.ProtocolParameter.Realm],signatureMethod:org.http4s.client.oauth1.ProtocolParameter.SignatureMethod,timestampGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Timestamp],version:org.http4s.client.oauth1.ProtocolParameter.Version,nonceGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Nonce],callback:Option[org.http4s.client.oauth1.ProtocolParameter.Callback],verifier:Option[org.http4s.client.oauth1.ProtocolParameter.Verifier])(implicitF:cats.MonadError[F,Throwable],implicitW:org.http4s.EntityDecoder[F,org.http4s.UrlForm]):F[org.http4s.Request[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">signRequest</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]</span>, <span name="consumer">consumer: <a href="ProtocolParameter$$Consumer.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Consumer">oauth1.ProtocolParameter.Consumer</a></span>, <span name="token">token: <a href="https://www.scala-lang.org/api/2.12.10/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="ProtocolParameter$$Token.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Token">oauth1.ProtocolParameter.Token</a>]</span>, <span name="realm">realm: <a href="https://www.scala-lang.org/api/2.12.10/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="ProtocolParameter$$Realm.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Realm">Realm</a>]</span>, <span name="signatureMethod">signatureMethod: <a href="ProtocolParameter$$SignatureMethod.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.SignatureMethod">SignatureMethod</a> = <span class="symbol"><span class="name"><a href="ProtocolParameter$.html">ProtocolParameter.SignatureMethod()</a></span></span></span>, <span name="timestampGenerator">timestampGenerator: <span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>[<a href="ProtocolParameter$$Timestamp.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Timestamp">Timestamp</a>]</span>, <span name="version">version: <a href="ProtocolParameter$$Version.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Version">Version</a> = <span class="symbol"><span class="name"><a href="../../../index.html">Version()</a></span></span></span>, <span name="nonceGenerator">nonceGenerator: <span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>[<a href="ProtocolParameter$$Nonce.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Nonce">Nonce</a>]</span>, <span name="callback">callback: <a href="https://www.scala-lang.org/api/2.12.10/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="ProtocolParameter$$Callback.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Callback">oauth1.ProtocolParameter.Callback</a>] = <span class="symbol">None</span></span>, <span name="verifier">verifier: <a href="https://www.scala-lang.org/api/2.12.10/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="ProtocolParameter$$Verifier.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Verifier">Verifier</a>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>, <span name="W">W: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>, <a href="../../UrlForm.html" class="extype" name="org.http4s.UrlForm">UrlForm</a>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.oauth1.signRequest.F">F</span>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.oauth1#signRequest" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="signRequest[F[_]](req:org.http4s.Request[F],consumer:org.http4s.client.oauth1.Consumer,callback:Option[org.http4s.Uri],verifier:Option[String],token:Option[org.http4s.client.oauth1.Token])(implicitF:cats.MonadError[F,Throwable],implicitW:org.http4s.EntityDecoder[F,org.http4s.UrlForm]):F[org.http4s.Request[F]]"></a><a id="signRequest[F[_]](Request[F],Consumer,Option[Uri],Option[String],Option[Token])(MonadError[F,Throwable],EntityDecoder[F,UrlForm]):F[Request[F]]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/client/oauth1/index.html#signRequest[F[_]](req:org.http4s.Request[F],consumer:org.http4s.client.oauth1.Consumer,callback:Option[org.http4s.Uri],verifier:Option[String],token:Option[org.http4s.client.oauth1.Token])(implicitF:cats.MonadError[F,Throwable],implicitW:org.http4s.EntityDecoder[F,org.http4s.UrlForm]):F[org.http4s.Request[F]]" title="Permalink">
@@ -392,6 +444,38 @@
       
       <p class="shortcomment cmt">Sign the request with an OAuth Authorization header</p><div class="fullcomment"><div class="comment cmt"><p>Sign the request with an OAuth Authorization header</p><p><u>WARNING:</u> POST requests with application/x-www-form-urlencoded bodies
            will be entirely buffered due to signing requirements.</p></div></div>
+    </li><li name="org.http4s.client.oauth1#takeSigHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="takeSigHeaders[F[_]](consumer:org.http4s.client.oauth1.ProtocolParameter.Consumer,token:Option[org.http4s.client.oauth1.ProtocolParameter.Token],signatureMethod:org.http4s.client.oauth1.ProtocolParameter.SignatureMethod,timestampGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Timestamp],version:org.http4s.client.oauth1.ProtocolParameter.Version,nonceGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Nonce],callback:Option[org.http4s.client.oauth1.ProtocolParameter.Callback],verifier:Option[org.http4s.client.oauth1.ProtocolParameter.Verifier])(implicitevidence$1:cats.Monad[F]):F[scala.collection.immutable.Seq[org.http4s.client.oauth1.ProtocolParameter]]"></a><a id="takeSigHeaders[F[_]](oauth1.ProtocolParameter.Consumer,Option[oauth1.ProtocolParameter.Token],SignatureMethod,F[Timestamp],Version,F[Nonce],Option[oauth1.ProtocolParameter.Callback],Option[Verifier])(Monad[F]):F[Seq[ProtocolParameter]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/index.html#takeSigHeaders[F[_]](consumer:org.http4s.client.oauth1.ProtocolParameter.Consumer,token:Option[org.http4s.client.oauth1.ProtocolParameter.Token],signatureMethod:org.http4s.client.oauth1.ProtocolParameter.SignatureMethod,timestampGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Timestamp],version:org.http4s.client.oauth1.ProtocolParameter.Version,nonceGenerator:F[org.http4s.client.oauth1.ProtocolParameter.Nonce],callback:Option[org.http4s.client.oauth1.ProtocolParameter.Callback],verifier:Option[org.http4s.client.oauth1.ProtocolParameter.Verifier])(implicitevidence$1:cats.Monad[F]):F[scala.collection.immutable.Seq[org.http4s.client.oauth1.ProtocolParameter]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">takeSigHeaders</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="consumer">consumer: <a href="ProtocolParameter$$Consumer.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Consumer">oauth1.ProtocolParameter.Consumer</a></span>, <span name="token">token: <a href="https://www.scala-lang.org/api/2.12.10/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="ProtocolParameter$$Token.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Token">oauth1.ProtocolParameter.Token</a>]</span>, <span name="signatureMethod">signatureMethod: <a href="ProtocolParameter$$SignatureMethod.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.SignatureMethod">SignatureMethod</a></span>, <span name="timestampGenerator">timestampGenerator: <span class="extype" name="org.http4s.client.oauth1.takeSigHeaders.F">F</span>[<a href="ProtocolParameter$$Timestamp.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Timestamp">Timestamp</a>]</span>, <span name="version">version: <a href="ProtocolParameter$$Version.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Version">Version</a></span>, <span name="nonceGenerator">nonceGenerator: <span class="extype" name="org.http4s.client.oauth1.takeSigHeaders.F">F</span>[<a href="ProtocolParameter$$Nonce.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Nonce">Nonce</a>]</span>, <span name="callback">callback: <a href="https://www.scala-lang.org/api/2.12.10/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="ProtocolParameter$$Callback.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Callback">oauth1.ProtocolParameter.Callback</a>]</span>, <span name="verifier">verifier: <a href="https://www.scala-lang.org/api/2.12.10/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="ProtocolParameter$$Verifier.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter.Verifier">Verifier</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.client.oauth1.takeSigHeaders.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.oauth1.takeSigHeaders.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.10/scala/collection/immutable/Seq.html#scala.collection.immutable.Seq" class="extype" name="scala.collection.immutable.Seq">Seq</a>[<a href="ProtocolParameter.html" class="extype" name="org.http4s.client.oauth1.ProtocolParameter">ProtocolParameter</a>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.oauth1.ProtocolParameter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ProtocolParameter"></a><a id="ProtocolParameter:ProtocolParameter"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/oauth1/ProtocolParameter$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="ProtocolParameter$.html"><span class="name">ProtocolParameter</span></a>
+      </span>
+      
+      
     </li>
               </ol>
             </div>

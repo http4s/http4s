@@ -800,7 +800,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/1df27033dbc983e7b872293aaade180cd9ff9934/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/13186d6c3044793badaee29e4b73732bfa0b6f22/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1210,6 +1210,25 @@ internally.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Request#cookies" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cookies:List[org.http4s.RequestCookie]"></a><a id="cookies:List[RequestCookie]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#cookies:List[org.http4s.RequestCookie]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cookies</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Parses all available <span class="extype" name="Cookie">Cookie</span> headers into a list of <a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a> objects.</p><div class="fullcomment"><div class="comment cmt"><p>Parses all available <span class="extype" name="Cookie">Cookie</span> headers into a list of <a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a> objects. This
+implementation is compatible with cookie headers formatted per HTTP/1 and HTTP/2, or even both
+at the same time.
+</p></div></div>
     </li><li name="org.http4s.Request#decode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="decode[A](f:A=&gt;F[org.http4s.Response[F]])(implicitF:cats.Monad[F],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[org.http4s.Response[F]]"></a><a id="decode[A]((A)⇒F[Response[F]])(Monad[F],EntityDecoder[F,A]):F[Response[F]]"></a>
       <span class="permalink">

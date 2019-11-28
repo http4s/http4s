@@ -227,6 +227,10 @@
                         <a href="HttpMethodOverrider$.html" title="">HttpMethodOverrider</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="HttpsRedirect$.html" title="Middleware to redirect http traffic to https."></a>
+                        <a href="HttpsRedirect$.html" title="Middleware to redirect http traffic to https.">HttpsRedirect</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="Jsonp$.html" title="Middleware to support wrapping json responses in jsonp."></a>
                         <a href="Jsonp$.html" title="Middleware to support wrapping json responses in jsonp.">Jsonp</a>
                       </li><li class="current-entities indented4">
@@ -639,6 +643,27 @@ the Strict Transport Security headers
       </span>
       
       
+    </li><li name="org.http4s.server.middleware.HttpsRedirect" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpsRedirect"></a><a id="HttpsRedirect:HttpsRedirect"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/HttpsRedirect$.html" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Middleware to redirect http traffic to https." href="HttpsRedirect$.html"><span class="name">HttpsRedirect</span></a>
+      </span>
+      
+      <p class="shortcomment cmt"><a href="../index.html#Middleware[F[_],A,B,C,D]=cats.data.Kleisli[F,A,B]=&gt;cats.data.Kleisli[F,C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a> to redirect http traffic to https.</p><div class="fullcomment"><div class="comment cmt"><p><a href="../index.html#Middleware[F[_],A,B,C,D]=cats.data.Kleisli[F,A,B]=&gt;cats.data.Kleisli[F,C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a> to redirect http traffic to https.
+Inspects <code>X-Forwarded-Proto</code> header and if it is set to <code>http</code>,
+redirects to <code>Host</code> with same URL with https schema; otherwise does nothing.
+This middleware is useful when a service is deployed behind a load balancer
+which does not support such redirect feature, e.g. Heroku.
+</p></div></div>
     </li><li name="org.http4s.server.middleware.Jsonp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Jsonp"></a><a id="Jsonp:Jsonp"></a>
       <span class="permalink">
