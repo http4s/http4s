@@ -34,6 +34,12 @@ trait ConnectionManager[F[_], A <: Connection[F]] {
   def release(connection: A): F[Unit]
 
   /**
+    * Return the present wait queue value. It's optional since not all [[ConnectionManager]]
+    * instances have one.
+    */
+  def currentWaitQueueSize: F[Option[Int]]
+
+  /**
     * Invalidate a connection, ensuring that its resources are freed.  The connection
     * manager may not return this connection on another borrow.
     */
