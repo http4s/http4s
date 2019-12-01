@@ -6,14 +6,9 @@ import cats.data._
 import cats.effect.concurrent._
 import org.http4s._
 
-import org.specs2.execute.{AsResult, Failure, Result}
-import scala.concurrent.duration._
-
 class MaxActiveRequestsSpec extends Http4sSpec {
 
   val req = Request[IO]()
-
-  protected val Timeout = 10.seconds
 
   def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) = Kleisli {
     req: Request[IO] =>
@@ -23,13 +18,6 @@ class MaxActiveRequestsSpec extends Http4sSpec {
           OptionT.liftF(
             startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO])
       }
-  }
-
-  implicit def ioAsResult[R](implicit R: AsResult[R]): AsResult[IO[R]] = new AsResult[IO[R]] {
-    def asResult(t: => IO[R]): Result =
-      t.unsafeRunTimed(Timeout)
-        .map(R.asResult(_))
-        .getOrElse(Failure(s"expectation timed out after $Timeout"))
   }
 
   "httpApp" should {
