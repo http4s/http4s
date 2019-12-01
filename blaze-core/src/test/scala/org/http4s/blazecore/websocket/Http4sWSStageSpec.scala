@@ -50,7 +50,8 @@ class Http4sWSStageSpec extends Http4sSpec {
         closeHook = new AtomicBoolean(false)
         ws = WebSocket[IO](outQ.dequeue, _.drain, IO(closeHook.set(true)))
         deadSignal <- SignallingRef[IO, Boolean](false)
-        head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(WSTestHead())
+        wsHead <- WSTestHead()
+        head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(wsHead)
         _ <- IO(head.sendInboundCommand(Command.Connected))
       } yield new TestWebsocketStage(outQ, head, closeHook)
   }
@@ -61,7 +62,7 @@ class Http4sWSStageSpec extends Http4sSpec {
       _ <- socket.sendInbound(Ping())
       _ <- socket.pollOutbound(2).map(_ must beSome[WebSocketFrame](Pong()))
       _ <- socket.sendInbound(Close())
-    } yield ok).unsafeRunSync()
+    } yield ok)
 
     "not write any more frames after close frame sent" in (for {
       socket <- TestWebsocketStage()
@@ -70,14 +71,14 @@ class Http4sWSStageSpec extends Http4sSpec {
       _ <- socket.pollOutbound().map(_ must_=== Some(Close()))
       _ <- socket.pollOutbound().map(_ must_=== None)
       _ <- socket.sendInbound(Close())
-    } yield ok).unsafeRunSync()
+    } yield ok)
 
     "send a close frame back and call the on close handler upon receiving a close frame" in (for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Close())
       _ <- socket.pollBatchOutputbound(2, 2).map(_ must_=== List(Close()))
       _ <- socket.wasCloseHookCalled().map(_ must_=== true)
-    } yield ok).unsafeRunSync()
+    } yield ok)
 
     "not send two close frames " in (for {
       socket <- TestWebsocketStage()
@@ -85,13 +86,13 @@ class Http4sWSStageSpec extends Http4sSpec {
       _ <- socket.sendInbound(Close())
       _ <- socket.pollBatchOutputbound(2).map(_ must_=== List(Close()))
       _ <- socket.wasCloseHookCalled().map(_ must_=== true)
-    } yield ok).unsafeRunSync()
+    } yield ok)
 
     "ignore pong frames" in (for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Pong())
       _ <- socket.pollOutbound().map(_ must_=== None)
       _ <- socket.sendInbound(Close())
-    } yield ok).unsafeRunSync()
+    } yield ok)
   }
 }
