@@ -87,23 +87,25 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     "handle the optionality of jNumber" in {
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
-      def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
+      def getBody(body: EntityBody[IO]): IO[Array[Byte]] = body.compile.to[Array]
       val req = Request[IO]().withEntity(jNumberOrNull(157))
-      val body = req
+      req
         .decode { json: Json =>
           Response[IO](Ok).withEntity(json.number.flatMap(_.toLong).getOrElse(0L).toString).pure[IO]
         }
-        .unsafeRunSync
-        .body
-      new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
+        .map(_.body)
+        .flatMap(getBody)
+        .map(new String(_, StandardCharsets.UTF_8))
+        .map(_ must_== "157")
     }
   }
 
   "jsonOf" should {
     "decode JSON from an Argonaut decoder" in {
-      val result = jsonOf[IO, Foo]
+      jsonOf[IO, Foo]
         .decode(Request[IO]().withEntity(jObjectFields("bar" -> jNumberOrNull(42))), strict = true)
-      result.value.unsafeRunSync must beRight(Foo(42))
+        .value
+        .map(_ must beRight(Foo(42)))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -114,7 +116,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
         val json = Json("wort" -> jString(wort))
         val result =
           jsonOf[IO, Umlaut].decode(Request[IO]().withEntity(json), strict = true)
-        result.value.unsafeRunSync must_== Right(Umlaut(wort))
+        result.value.map(_ must_== Right(Umlaut(wort)))
       }
     }
 
@@ -122,8 +124,8 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       val result = ArgonautInstancesWithCustomErrors
         .jsonOf[IO, Foo]
         .decode(Request[IO]().withEntity(jObjectFields("bar1" -> jNumberOrNull(42))), strict = true)
-      result.value.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
-        "Custom Could not decode JSON: {\"bar1\":42.0}, error: Attempt to decode value on failed cursor., cursor: CursorHistory(List(El(CursorOpDownField(bar),false)))"))
+      result.value.map(_ must beLeft(InvalidMessageBodyFailure(
+        "Custom Could not decode JSON: {\"bar1\":42.0}, error: Attempt to decode value on failed cursor., cursor: CursorHistory(List(El(CursorOpDownField(bar),false)))")))
     }
   }
 
@@ -143,7 +145,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
 
     "fail on invalid json" in {
       val req = Request[IO]().withEntity(List(13, 14).asJson)
-      req.decodeJson[Foo].attempt.unsafeRunSync must beLeft
+      req.decodeJson[Foo].attempt.map(_ must beLeft)
     }
   }
 }
