@@ -29,26 +29,32 @@ object StaticFile {
       name: String,
       blocker: Blocker,
       req: Option[Request[F]] = None,
-      preferGzipped: Boolean = false): OptionT[F, Response[F]] = {
+      preferGzipped: Boolean = false,
+      classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
+    val loader = classloader.getOrElse(getClass.getClassLoader)
+
     val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists {
       acceptEncoding =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
           ContentCoding.`x-gzip`)
     }
+    val normalizedName = name.split("/").filter(_.nonEmpty).mkString("/")
+
+    def getResource(name: String) =
+      OptionT(Sync[F].delay(Option(loader.getResource(name))))
 
     val gzUrl: OptionT[F, URL] =
-      if (tryGzipped) OptionT(Sync[F].delay(Option(getClass.getResource(name + ".gz"))))
-      else OptionT.none
+      if (tryGzipped) getResource(normalizedName + ".gz") else OptionT.none
 
     gzUrl
       .flatMap { url =>
         // Guess content type from the name without ".gz"
-        val contentType = nameToContentType(name)
+        val contentType = nameToContentType(normalizedName)
         val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
 
         fromURL(url, blocker, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
       }
-      .orElse(OptionT(Sync[F].delay(Option(getClass.getResource(name))))
+      .orElse(getResource(normalizedName)
         .flatMap(fromURL(_, blocker, req)))
   }
 

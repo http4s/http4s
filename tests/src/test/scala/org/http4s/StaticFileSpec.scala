@@ -2,9 +2,10 @@ package org.http4s
 
 import cats.effect.IO
 import java.io.File
+import java.net.URL
 import java.nio.file.Files
 
-import org.http4s.Status.{NotModified, Ok}
+import org.http4s.Status._
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.headers._
 import org.specs2.matcher.MatchResult
@@ -31,6 +32,63 @@ class StaticFileSpec extends Http4sSpec {
       forall(tests) {
         case (p, om) =>
           check(new File(getClass.getResource(p).toURI), om)
+      }
+    }
+    "load from resource" in {
+      def check(resource: String, status: Status): MatchResult[Status] = {
+        val res1 = StaticFile
+          .fromResource(resource, testBlocker)
+          .value
+          .unsafeRunSync()
+
+        res1.map(_.status).getOrElse(NotFound) must be(status)
+      }
+
+      val tests = Seq(
+        "/Animated_PNG_example_bouncing_beach_ball.png" -> Ok,
+        "/ball.png" -> Ok,
+        "ball.png" -> Ok,
+        "Animated_PNG_example_bouncing_beach_ball.png" -> Ok,
+        "/test.fiddlefaddle" -> Ok,
+        "test.fiddlefaddle" -> Ok,
+        "//test.fiddlefaddle" -> Ok,
+        "missing.html" -> NotFound,
+        "/missing.html" -> NotFound
+      )
+
+      forall(tests) {
+        case (resource, status) => check(resource, status)
+      }
+    }
+
+    "load from resource using different classloader" in {
+      val loader = new ClassLoader() {
+        override def getResource(name: String): URL =
+          getClass.getClassLoader.getResource(name)
+      }
+
+      def check(resource: String, status: Status): MatchResult[Status] = {
+        val res1 = StaticFile
+          .fromResource(resource, testBlocker, classloader = Some(loader))
+          .value
+          .unsafeRunSync()
+
+        res1.map(_.status).getOrElse(NotFound) must be(status)
+      }
+
+      val tests = Seq(
+        "/Animated_PNG_example_bouncing_beach_ball.png" -> Ok,
+        "/ball.png" -> Ok,
+        "ball.png" -> Ok,
+        "Animated_PNG_example_bouncing_beach_ball.png" -> Ok,
+        "/test.fiddlefaddle" -> Ok,
+        "test.fiddlefaddle" -> Ok,
+        "missing.html" -> NotFound,
+        "/missing.html" -> NotFound
+      )
+
+      forall(tests) {
+        case (resource, status) => check(resource, status)
       }
     }
 
