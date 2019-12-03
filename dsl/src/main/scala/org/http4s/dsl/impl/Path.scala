@@ -319,7 +319,8 @@ abstract class FlagQueryParamMatcher(name: String) {
   * }}}
   */
 abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, collection.Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] =
+  def unapply(
+      params: Map[String, collection.Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] =
     params.get(name) match {
       case Some(values) =>
         Some(values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s))))
