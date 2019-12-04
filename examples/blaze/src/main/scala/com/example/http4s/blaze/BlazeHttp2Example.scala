@@ -11,6 +11,5 @@ object BlazeHttp2Example extends IOApp {
       .enableHttp2(true)
       .serve
       .compile
-      .drain
-      .as(ExitCode.Success)
+      .lastOrError
 }
