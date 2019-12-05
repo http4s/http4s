@@ -29,7 +29,8 @@ sealed class TomcatBuilder[F[_]] private (
     sslBits: Option[KeyStoreBits],
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    classloader: Option[ClassLoader]
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
@@ -47,7 +48,8 @@ sealed class TomcatBuilder[F[_]] private (
       sslBits: Option[KeyStoreBits] = sslBits,
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
-      banner: immutable.Seq[String] = banner
+      banner: immutable.Seq[String] = banner,
+      classloader: Option[ClassLoader] = classloader
   ): Self =
     new TomcatBuilder(
       socketAddress,
@@ -58,7 +60,9 @@ sealed class TomcatBuilder[F[_]] private (
       sslBits,
       mounts,
       serviceErrorHandler,
-      banner)
+      banner,
+      classloader
+    )
 
   def withSSL(
       keyStore: StoreInfo,
@@ -148,11 +152,14 @@ sealed class TomcatBuilder[F[_]] private (
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
+  def withClassloader(classloader: ClassLoader): Self =
+    copy(classloader = Some(classloader))
+
   override def resource: Resource[F, Server[F]] =
     Resource(F.delay {
       val tomcat = new Tomcat
-
-      val docBase = getClass.getResource("/") match {
+      val cl = classloader.getOrElse(getClass.getClassLoader)
+      val docBase = cl.getResource("") match {
         case null => null
         case resource => resource.getPath
       }
@@ -241,7 +248,8 @@ object TomcatBuilder {
       sslBits = None,
       mounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
-      banner = defaults.Banner
+      banner = defaults.Banner,
+      classloader = None
     )
 }
 
