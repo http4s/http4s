@@ -1,6 +1,7 @@
 package org.http4s.blazecore.websocket
 
 import cats.effect.{ContextShift, IO, Timer}
+import cats.implicits._
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebSocketFrame
@@ -71,11 +72,7 @@ sealed abstract class WSTestHead(
 }
 
 object WSTestHead {
-  def apply()(implicit t: Timer[IO], cs: ContextShift[IO]): WSTestHead = {
-    val inQueue =
-      Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
-    val outQueue =
-      Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
-    new WSTestHead(inQueue, outQueue) {}
-  }
+  def apply()(implicit t: Timer[IO], cs: ContextShift[IO]): IO[WSTestHead] =
+    (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame])
+      .mapN(new WSTestHead(_, _) {})
 }

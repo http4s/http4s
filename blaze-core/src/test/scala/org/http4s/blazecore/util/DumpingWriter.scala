@@ -9,10 +9,9 @@ import scala.collection.mutable.Buffer
 import scala.concurrent.{ExecutionContext, Future}
 
 object DumpingWriter {
-  def dump(p: EntityBody[IO]): Array[Byte] = {
+  def dump(p: EntityBody[IO]): IO[Array[Byte]] = {
     val w = new DumpingWriter()
-    w.writeEntityBody(p).unsafeRunSync()
-    w.toArray
+    for (_ <- w.writeEntityBody(p)) yield (w.toArray)
   }
 }
 

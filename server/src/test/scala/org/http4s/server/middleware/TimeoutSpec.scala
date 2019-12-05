@@ -11,6 +11,8 @@ import org.http4s.Uri.uri
 import scala.concurrent.duration._
 
 class TimeoutSpec extends Http4sSpec {
+  // To distinguish from the inherited cats-effect-testing Timeout
+  import org.http4s.server.middleware.{Timeout => TimeoutMiddleware}
 
   val routes = HttpRoutes.of[IO] {
     case _ -> Root / "fast" =>
@@ -22,7 +24,7 @@ class TimeoutSpec extends Http4sSpec {
       }
   }
 
-  val app = Timeout(5.milliseconds)(routes).orNotFound
+  val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound
 
   val fastReq = Request[IO](GET, uri("/fast"))
   val neverReq = Request[IO](GET, uri("/never"))
@@ -32,7 +34,7 @@ class TimeoutSpec extends Http4sSpec {
 
   "Timeout Middleware" should {
     "have no effect if the response is timely" in {
-      val app = Timeout(365.days)(routes).orNotFound
+      val app = TimeoutMiddleware(365.days)(routes).orNotFound
       checkStatus(app(fastReq), Status.Ok)
     }
 
@@ -42,7 +44,8 @@ class TimeoutSpec extends Http4sSpec {
 
     "return the provided response if the result takes too long" in {
       val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
-      val altTimeoutService = Timeout(1.nanosecond, OptionT.pure[IO](customTimeout))(routes)
+      val altTimeoutService =
+        TimeoutMiddleware(1.nanosecond, OptionT.pure[IO](customTimeout))(routes)
       checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
     }
 
@@ -52,7 +55,7 @@ class TimeoutSpec extends Http4sSpec {
         case _ =>
           IO.never.guarantee(IO(canceled.set(true)))
       }
-      val app = Timeout(1.millis)(routes).orNotFound
+      val app = TimeoutMiddleware(1.millis)(routes).orNotFound
       checkStatus(app(Request[IO]()), Status.ServiceUnavailable)
       // Give the losing response enough time to finish
       canceled.get must beTrue.eventually

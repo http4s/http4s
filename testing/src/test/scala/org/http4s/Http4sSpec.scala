@@ -10,6 +10,7 @@
 package org.http4s
 
 import cats.effect.{Blocker, ContextShift, ExitCase, IO, Resource, Timer}
+import cats.effect.specs2.CatsEffect
 import cats.implicits._
 import fs2._
 import fs2.text._
@@ -46,8 +47,8 @@ trait Http4sSpec
     with FragmentsDsl
     with Discipline
     with IOMatchers
-    with Http4sMatchers[IO] {
-
+    with Http4sMatchers[IO]
+    with CatsEffect {
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
   val testBlocker: Blocker = Http4sSpec.TestBlocker
   implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift

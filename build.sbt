@@ -593,6 +593,7 @@ lazy val commonSettings = Seq(
     "-Xlint:unchecked"
   ),
   libraryDependencies ++= Seq(
+    catsEffectTestingSpecs2,
     catsLaws,
     catsKernelLaws,
     disciplineSpecs2,
