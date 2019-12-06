@@ -4,6 +4,7 @@ package syntax
 
 import cats.effect._
 import javax.servlet.{ServletContext, ServletRegistration}
+import org.http4s
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.server.defaults
 
@@ -21,6 +22,12 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
   def mountService[F[_]: ConcurrentEffect: ContextShift](
       name: String,
       service: HttpRoutes[F],
+      mapping: String = "/*"): ServletRegistration.Dynamic =
+    mountServiceHttpApp(name, http4s.httpRoutesToApp(service), mapping)
+
+  def mountServiceHttpApp[F[_]: ConcurrentEffect: ContextShift](
+      name: String,
+      service: HttpApp[F],
       mapping: String = "/*"): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,

@@ -1,7 +1,6 @@
 package org.http4s
 package servlet
 
-import cats.data.OptionT
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import cats.implicits._
@@ -12,14 +11,12 @@ import org.http4s.server._
 import scala.concurrent.duration.Duration
 
 class AsyncHttp4sServlet[F[_]](
-    service: HttpRoutes[F],
+    service: HttpApp[F],
     asyncTimeout: Duration = Duration.Inf,
     private[this] var servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: ConcurrentEffect[F])
     extends Http4sServlet[F](service, servletIo) {
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1 // -1 == Inf
-
-  private[this] val optionTSync = Sync[OptionT[F, ?]]
 
   override def init(config: ServletConfig): Unit = {
     super.init(config)
@@ -66,9 +63,9 @@ class AsyncHttp4sServlet[F[_]](
       F.asyncF[Response[F]](cb => gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb))))
     val response =
       gate.get *>
-        optionTSync
+        Sync[F]
           .suspend(serviceFn(request))
-          .getOrElse(Response.notFound)
+          .recover({ case _: scala.MatchError => Response.notFound[F] })
           .recoverWith(serviceErrorHandler(request))
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     F.race(timeout, response).flatMap(r => renderResponse(r.merge, servletResponse, bodyWriter))
@@ -104,7 +101,7 @@ class AsyncHttp4sServlet[F[_]](
 
 object AsyncHttp4sServlet {
   def apply[F[_]: ConcurrentEffect](
-      service: HttpRoutes[F],
+      service: HttpApp[F],
       asyncTimeout: Duration = Duration.Inf): AsyncHttp4sServlet[F] =
     new AsyncHttp4sServlet[F](
       service,

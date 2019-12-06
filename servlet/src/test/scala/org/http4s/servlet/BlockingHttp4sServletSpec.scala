@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 
 class BlockingHttp4sServletSpec extends Http4sSpec {
 
-  lazy val service = HttpRoutes.of[IO] {
+  lazy val service = HttpApp[IO] {
     case GET -> Root / "simple" =>
       Ok("simple")
     case req @ POST -> Root / "echo" =>

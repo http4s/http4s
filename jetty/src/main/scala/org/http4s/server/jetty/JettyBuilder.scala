@@ -14,6 +14,7 @@ import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHo
 import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
+import org.http4s
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.log4s.getLogger
@@ -107,6 +108,9 @@ sealed class JettyBuilder[F[_]] private (
     })
 
   def mountService(service: HttpRoutes[F], prefix: String): Self =
+    mountServiceHttpApp(http4s.httpRoutesToApp(service), prefix)
+
+  def mountServiceHttpApp(service: HttpApp[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (context, index, builder) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,

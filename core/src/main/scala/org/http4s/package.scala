@@ -1,6 +1,7 @@
 package org
 
 import cats.data.{EitherT, Kleisli, OptionT}
+import cats.effect.ConcurrentEffect
 import fs2.Stream
 
 package object http4s { // scalastyle:ignore
@@ -77,4 +78,7 @@ package object http4s { // scalastyle:ignore
   type Http4sSyntax = syntax.AllSyntax
   @deprecated("Moved to org.http4s.syntax.all", "0.16")
   val Http4sSyntax = syntax.all
+
+  def httpRoutesToApp[F[_]: ConcurrentEffect](httpRoutes: HttpRoutes[F]): HttpApp[F] =
+    HttpApp[F](req => httpRoutes(req).getOrElse[Response[F]](Response.notFound[F]))
 }

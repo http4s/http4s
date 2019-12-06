@@ -44,7 +44,7 @@ object Issue454 {
   }
 
   val servlet = new AsyncHttp4sServlet[IO](
-    service = HttpRoutes.of[IO] {
+    service = HttpApp {
       case GET -> Root => Ok(insanelyHugeData)
     },
     servletIo = org.http4s.servlet.NonBlockingServletIo(4096),
