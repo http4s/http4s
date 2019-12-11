@@ -77,7 +77,7 @@ object Path {
 }
 
 object :? {
-  def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, Seq[String]])] =
+  def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
     Some((req, req.multiParams))
 }
 
@@ -319,7 +319,8 @@ abstract class FlagQueryParamMatcher(name: String) {
   * }}}
   */
 abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] =
+  def unapply(
+      params: Map[String, collection.Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] =
     params.get(name) match {
       case Some(values) =>
         Some(values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s))))
@@ -348,7 +349,7 @@ abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
   * }}}
   */
 abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[ValidatedNel[ParseFailure, T]] =
+  def unapply(params: Map[String, collection.Seq[String]]): Option[ValidatedNel[ParseFailure, T]] =
     params.get(name).flatMap(_.headOption).map { s =>
       QueryParamDecoder[T].decode(QueryParameterValue(s))
     }
