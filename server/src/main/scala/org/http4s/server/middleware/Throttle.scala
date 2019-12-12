@@ -1,5 +1,6 @@
 package org.http4s.server.middleware
 
+import cats._
 import org.http4s.{Http, Response, Status}
 import cats.data.Kleisli
 import cats.effect.{Clock, Sync}
@@ -26,9 +27,14 @@ object Throttle {
     */
   trait TokenBucket[F[_]] {
     def takeToken: F[TokenAvailability]
+    def mapK[G[_]](fk: F ~> G): TokenBucket[G] = new TokenBucket.Translated[F, G](this, fk)
   }
 
   object TokenBucket {
+
+    private class Translated[F[_], G[_]](t: TokenBucket[F], fk: F ~> G) extends TokenBucket[G]{
+      def takeToken: G[TokenAvailability] = fk(t.takeToken)
+    }
 
     /**
       * Creates an in-memory [[TokenBucket]].
@@ -111,7 +117,7 @@ object Throttle {
   def apply[F[_], G[_]](
       bucket: TokenBucket[F],
       throttleResponse: Option[FiniteDuration] => Response[G] = defaultResponse[G] _)(
-      http: Http[F, G])(implicit F: Sync[F]): Http[F, G] =
+      http: Http[F, G])(implicit F: Monad[F]): Http[F, G] =
     Kleisli { req =>
       bucket.takeToken.flatMap {
         case TokenAvailable => http(req)
