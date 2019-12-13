@@ -12,14 +12,33 @@ import scala.util.Try
 
 class NotFoundHttpAppSpec extends Http4sSpec {
 
+  private val myCustomNotFoundHandler: Request[IO] => Response[IO] =
+    req => Response[IO](Status.NotFound).withEntity(s"Not Found ${req.uri.path}")
+
   private val serverR =
     JettyBuilder[IO]
       .bindAny()
       .mountServiceHttpApp(
-        HttpApp({
-          case GET -> Root / "hello" => Ok("hello")
-        }),
+        HttpRoutes
+          .of[IO](Map.empty)
+          .orNotFound(myCustomNotFoundHandler),
         "/"
+      )
+      .mountServiceHttpApp(
+        HttpRoutes
+          .of[IO] {
+            case GET -> Root / "hello" => Ok("hello")
+          }
+          .orNotFound(myCustomNotFoundHandler),
+        "/prefix1"
+      )
+      .mountServiceHttpApp(
+        HttpRoutes
+          .of[IO] {
+            case GET -> Root / "hello2" => Ok("hello2")
+          }
+          .orNotFound(myCustomNotFoundHandler),
+        "/prefix2"
       )
       .resource
 
@@ -38,12 +57,24 @@ class NotFoundHttpAppSpec extends Http4sSpec {
     }
 
     "Server" should {
-      "return hello on hello endpoint" in {
-        get("/hello") must returnValue((Status.Ok, "hello"))
+      "return NotFound on non-implemented endpoint /foo" in {
+        get("/foo") must returnValue((Status.NotFound, "Not Found /foo"))
       }
 
-      "return NotFound on non-implemented endpoint /foo" in {
-        get("/foo") must returnValue((Status.NotFound, "Not found"))
+      "return hello on endpoint /prefix1/hello" in {
+        get("/prefix1/hello") must returnValue((Status.Ok, "hello"))
+      }
+
+      "return NotFound on non-implemented endpoint /prefix1/foo" in {
+        get("/prefix1/foo") must returnValue((Status.NotFound, "Not Found /prefix1/foo"))
+      }
+
+      "return hello on endpoint /prefix2/hello2" in {
+        get("/prefix2/hello2") must returnValue((Status.Ok, "hello2"))
+      }
+
+      "return NotFound on non-implemented endpoint /prefix2/foo2" in {
+        get("/prefix2/foo2") must returnValue((Status.NotFound, "Not Found /prefix2/foo2"))
       }
     }
   }
