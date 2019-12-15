@@ -143,7 +143,7 @@ trait QueryOps {
     * [[Query]]. If any of the given parameters' keys already exists, the
     * value(s) will be replaced. Parameters from the input map are added
     * left-to-right, so if a parameter with a given key is specified more than
-    * once, it will be self-overriding.
+    * once, it will be self-overwriting.
     */
   def withQueryParams[T: QueryParamEncoder, K: QueryParamKeyLike](params: Map[K, T]): Self =
     params.foldLeft(self) {
@@ -155,7 +155,7 @@ trait QueryOps {
     * [[Query]]. If any of the given parameters' keys already exists, the
     * value(s) will be replaced. Parameters from the input map are added
     * left-to-right, so if a parameter with a given key is specified more than
-    * once, it will be self-overriding.
+    * once, it will be self-overwriting.
     */
   def withMultiValueQueryParams[T: QueryParamEncoder, K: QueryParamKeyLike](
       params: Map[K, collection.Seq[T]]): Self =
