@@ -13,8 +13,7 @@ object Timeout {
     * duration if the service has not yet responded.  If the timeout
     * fires, the service's response is canceled.
     *
-    * @param timeout Finite duration to wait before returning a `500
-    * Internal Server Error` response
+    * @param timeout Finite duration to wait before returning the provided response
     * @param service [[HttpRoutes]] to transform
     */
   def apply[F[_], G[_], A](timeout: FiniteDuration, timeoutResponse: F[Response[G]])(
@@ -27,8 +26,8 @@ object Timeout {
     * duration if the service has not yet responded.  If the timeout
     * fires, the service's response is canceled.
     *
-    * @param timeout Finite duration to wait before returning a `500
-    * Internal Server Error` response
+    * @param timeout Finite duration to wait before returning a `503
+    * Service Unavailable` response
     * @param service [[HttpRoutes]] to transform
     */
   def apply[F[_], G[_], A](timeout: FiniteDuration)(http: Kleisli[F, A, Response[G]])(
