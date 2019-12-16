@@ -413,8 +413,8 @@
 duration if the service has not yet responded.</p><div class="fullcomment"><div class="comment cmt"><p>Transform the service to return a timeout response after the given
 duration if the service has not yet responded.  If the timeout
 fires, the service's response is canceled.
-</p></div><dl class="paramcmts block"><dt class="param">timeout</dt><dd class="cmt"><p>Finite duration to wait before returning a <code>500
-Internal Server Error</code> response</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">timeout</dt><dd class="cmt"><p>Finite duration to wait before returning a <code>503
+Service Unavailable</code> response</p></dd></dl></div>
     </li><li name="org.http4s.server.middleware.Timeout#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply[F[_],G[_],A](timeout:scala.concurrent.duration.FiniteDuration,timeoutResponse:F[org.http4s.Response[G]])(http:cats.data.Kleisli[F,A,org.http4s.Response[G]])(implicitF:cats.effect.Concurrent[F],implicitT:cats.effect.Timer[F]):cats.data.Kleisli[F,A,org.http4s.Response[G]]"></a><a id="apply[F[_],G[_],A](FiniteDuration,F[Response[G]])(Kleisli[F,A,Response[G]])(Concurrent[F],Timer[F]):Kleisli[F,A,Response[G]]"></a>
       <span class="permalink">
@@ -434,8 +434,7 @@ Internal Server Error</code> response</p></dd></dl></div>
 duration if the service has not yet responded.</p><div class="fullcomment"><div class="comment cmt"><p>Transform the service to return a timeout response after the given
 duration if the service has not yet responded.  If the timeout
 fires, the service's response is canceled.
-</p></div><dl class="paramcmts block"><dt class="param">timeout</dt><dd class="cmt"><p>Finite duration to wait before returning a <code>500
-Internal Server Error</code> response</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">timeout</dt><dd class="cmt"><p>Finite duration to wait before returning the provided response</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
