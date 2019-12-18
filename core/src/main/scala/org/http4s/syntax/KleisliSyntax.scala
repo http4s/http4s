@@ -30,9 +30,6 @@ trait KleisliSyntaxBinCompat1 {
 final class KleisliResponseOps[F[_]: Functor, A](self: Kleisli[OptionT[F, ?], A, Response[F]]) {
   def orNotFound: Kleisli[F, A, Response[F]] =
     Kleisli(a => self.run(a).getOrElse(Response.notFound))
-
-  def orNotFound(notFoundHandler: A => Response[F]): Kleisli[F, A, Response[F]] =
-    Kleisli(a => self.run(a).getOrElse(notFoundHandler(a)))
 }
 
 final class KleisliHttpRoutesOps[F[_]: Sync](self: HttpRoutes[F]) {

@@ -65,7 +65,6 @@ class AsyncHttp4sServlet[F[_]](
       gate.get *>
         Sync[F]
           .suspend(serviceFn(request))
-          .recover({ case _: scala.MatchError => Response.notFound[F] })
           .recoverWith(serviceErrorHandler(request))
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     F.race(timeout, response).flatMap(r => renderResponse(r.merge, servletResponse, bodyWriter))

@@ -37,7 +37,6 @@ class BlockingHttp4sServlet[F[_]](
     // Note: We're catching silly user errors in the lift => flatten.
     Sync[F]
       .suspend(serviceFn(request))
-      .recover({ case _: scala.MatchError => Response.notFound[F] })
       .recoverWith(serviceErrorHandler(request))
       .flatMap(renderResponse(_, servletResponse, bodyWriter))
 

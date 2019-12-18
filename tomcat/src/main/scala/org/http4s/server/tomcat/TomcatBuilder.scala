@@ -13,10 +13,10 @@ import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
-import org.http4s
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
+import org.http4s.syntax.all._
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.duration._
@@ -121,9 +121,9 @@ sealed class TomcatBuilder[F[_]] private (
     })
 
   def mountService(service: HttpRoutes[F], prefix: String): Self =
-    mountServiceHttpApp(http4s.httpRoutesToApp(service), prefix)
+    mountHttpApp(service.orNotFound, prefix)
 
-  def mountServiceHttpApp(service: HttpApp[F], prefix: String): Self =
+  def mountHttpApp(service: HttpApp[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,

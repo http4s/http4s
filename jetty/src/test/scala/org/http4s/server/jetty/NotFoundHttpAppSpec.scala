@@ -4,6 +4,7 @@ package jetty
 
 import java.net.{HttpURLConnection, URL}
 
+import cats.data.Kleisli
 import cats.effect.IO
 import org.http4s.dsl.io._
 
@@ -12,33 +13,26 @@ import scala.util.Try
 
 class NotFoundHttpAppSpec extends Http4sSpec {
 
-  private val myCustomNotFoundHandler: Request[IO] => Response[IO] =
-    req => Response[IO](Status.NotFound).withEntity(s"Not Found ${req.uri.path}")
+  def orMyHandler(x: HttpRoutes[IO]): HttpApp[IO] =
+    Kleisli { req =>
+      x.run(req).getOrElse(Response[IO](Status.NotFound).withEntity(s"Not Found ${req.uri.path}"))
+    }
+
+  val router = Router(
+    "/prefix1" -> HttpRoutes.of[IO] {
+      case GET -> Root / "hello" => Ok("hello")
+    },
+    "/prefix2" -> HttpRoutes.of[IO] {
+      case GET -> Root / "hello2" => Ok("hello2")
+    }
+  )
 
   private val serverR =
     JettyBuilder[IO]
       .bindAny()
-      .mountServiceHttpApp(
-        HttpRoutes
-          .of[IO](Map.empty)
-          .orNotFound(myCustomNotFoundHandler),
+      .mountHttpApp(
+        orMyHandler(router),
         "/"
-      )
-      .mountServiceHttpApp(
-        HttpRoutes
-          .of[IO] {
-            case GET -> Root / "hello" => Ok("hello")
-          }
-          .orNotFound(myCustomNotFoundHandler),
-        "/prefix1"
-      )
-      .mountServiceHttpApp(
-        HttpRoutes
-          .of[IO] {
-            case GET -> Root / "hello2" => Ok("hello2")
-          }
-          .orNotFound(myCustomNotFoundHandler),
-        "/prefix2"
       )
       .resource
 
