@@ -8,6 +8,7 @@ import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Serve
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.http4s.dsl.io._
 import org.http4s.servlet.AsyncHttp4sServlet
+import org.http4s.syntax.all._
 
 object Issue454 {
   implicit val cs: ContextShift[IO] = Http4sSpec.TestContextShift
@@ -44,9 +45,11 @@ object Issue454 {
   }
 
   val servlet = new AsyncHttp4sServlet[IO](
-    service = HttpApp {
-      case GET -> Root => Ok(insanelyHugeData)
-    },
+    service = HttpRoutes
+      .of[IO] {
+        case GET -> Root => Ok(insanelyHugeData)
+      }
+      .orNotFound,
     servletIo = org.http4s.servlet.NonBlockingServletIo(4096),
     serviceErrorHandler = DefaultServiceErrorHandler
   )

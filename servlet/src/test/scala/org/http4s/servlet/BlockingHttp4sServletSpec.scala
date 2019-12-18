@@ -14,17 +14,19 @@ import scala.concurrent.duration._
 
 class BlockingHttp4sServletSpec extends Http4sSpec {
 
-  lazy val service = HttpApp[IO] {
-    case GET -> Root / "simple" =>
-      Ok("simple")
-    case req @ POST -> Root / "echo" =>
-      Ok(req.body)
-    case GET -> Root / "shifted" =>
-      IO.shift(testExecutionContext) *>
-        // Wait for a bit to make sure we lose the race
-        Timer[IO].sleep(50.millis) *>
-        Ok("shifted")
-  }
+  lazy val service = HttpRoutes
+    .of[IO] {
+      case GET -> Root / "simple" =>
+        Ok("simple")
+      case req @ POST -> Root / "echo" =>
+        Ok(req.body)
+      case GET -> Root / "shifted" =>
+        IO.shift(testExecutionContext) *>
+          // Wait for a bit to make sure we lose the race
+          Timer[IO].sleep(50.millis) *>
+          Ok("shifted")
+    }
+    .orNotFound
 
   withResource(serverPortR) { serverPort =>
     def get(path: String): IO[String] =
