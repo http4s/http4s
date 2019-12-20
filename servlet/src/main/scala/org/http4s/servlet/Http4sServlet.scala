@@ -14,13 +14,13 @@ import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
 
-abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[F])(
+abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(
     implicit F: Effect[F])
     extends HttpServlet {
   protected val logger = getLogger
 
   // micro-optimization: unwrap the service and call its .run directly
-  protected val serviceFn = service.run
+  protected val serviceFn: Request[F] => F[Response[F]] = service.run
 
   protected var servletApiVersion: ServletApiVersion = _
   private[this] var serverSoftware: ServerSoftware = _
