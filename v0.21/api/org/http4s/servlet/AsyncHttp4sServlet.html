@@ -259,9 +259,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.servlet.AsyncHttp4sServlet#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(service:org.http4s.HttpRoutes[F],asyncTimeout:scala.concurrent.duration.Duration,servletIo:org.http4s.servlet.ServletIo[F],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F])(implicitF:cats.effect.ConcurrentEffect[F]):org.http4s.servlet.AsyncHttp4sServlet[F]"></a><a id="&lt;init&gt;:AsyncHttp4sServlet[F]"></a>
+      <a id="&lt;init&gt;(service:org.http4s.HttpApp[F],asyncTimeout:scala.concurrent.duration.Duration,servletIo:org.http4s.servlet.ServletIo[F],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F])(implicitF:cats.effect.ConcurrentEffect[F]):org.http4s.servlet.AsyncHttp4sServlet[F]"></a><a id="&lt;init&gt;:AsyncHttp4sServlet[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/AsyncHttp4sServlet.html#&lt;init&gt;(service:org.http4s.HttpRoutes[F],asyncTimeout:scala.concurrent.duration.Duration,servletIo:org.http4s.servlet.ServletIo[F],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F])(implicitF:cats.effect.ConcurrentEffect[F]):org.http4s.servlet.AsyncHttp4sServlet[F]" title="Permalink">
+      <a href="../../../org/http4s/servlet/AsyncHttp4sServlet.html#&lt;init&gt;(service:org.http4s.HttpApp[F],asyncTimeout:scala.concurrent.duration.Duration,servletIo:org.http4s.servlet.ServletIo[F],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F])(implicitF:cats.effect.ConcurrentEffect[F]):org.http4s.servlet.AsyncHttp4sServlet[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -270,7 +270,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">AsyncHttp4sServlet</span><span class="params">(<span name="service">service: <a href="../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]</span>, <span name="asyncTimeout">asyncTimeout: <a href="https://www.scala-lang.org/api/2.12.10/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a> = <span class="symbol">Duration.Inf</span></span>, <span name="servletIo">servletIo: <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]</span>, <span name="serviceErrorHandler">serviceErrorHandler: <a href="../server/index.html#ServiceErrorHandler[F[_]]=org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]</span>)</span>
+        <span class="name">AsyncHttp4sServlet</span><span class="params">(<span name="service">service: <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]</span>, <span name="asyncTimeout">asyncTimeout: <a href="https://www.scala-lang.org/api/2.12.10/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a> = <span class="symbol">Duration.Inf</span></span>, <span name="servletIo">servletIo: <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]</span>, <span name="serviceErrorHandler">serviceErrorHandler: <a href="../server/index.html#ServiceErrorHandler[F[_]]=org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]</span>)</span>
       </span>
       
       
@@ -1159,9 +1159,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.servlet.Http4sServlet#serviceFn" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serviceFn:org.http4s.Request[F]=&gt;cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="serviceFn:(Request[F])⇒OptionT[F,Response[F]]"></a>
+      <a id="serviceFn:org.http4s.Request[F]=&gt;F[org.http4s.Response[F]]"></a><a id="serviceFn:(Request[F])⇒F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/AsyncHttp4sServlet.html#serviceFn:org.http4s.Request[F]=&gt;cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../org/http4s/servlet/AsyncHttp4sServlet.html#serviceFn:org.http4s.Request[F]=&gt;F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1170,7 +1170,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">serviceFn</span><span class="result">: (<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]) ⇒ <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]]</span>
+        <span class="name">serviceFn</span><span class="result">: (<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]) ⇒ <span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.servlet.AsyncHttp4sServlet.F">F</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="Http4sServlet.html" class="extype" name="org.http4s.servlet.Http4sServlet">Http4sServlet</a></dd></dl></div>
