@@ -10,7 +10,7 @@
 package org.http4s
 
 import cats.effect.{Blocker, ContextShift, ExitCase, IO, Resource, Timer}
-import cats.effect.specs2.CatsEffect
+import cats.effect.testing.specs2.CatsEffect
 import cats.implicits._
 import fs2._
 import fs2.text._
