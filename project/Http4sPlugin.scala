@@ -255,7 +255,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.0.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
-  lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % "0.3.0"
+  lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % "0.4.0"
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.12.3"
