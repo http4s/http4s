@@ -73,6 +73,9 @@ title: Adopters
 [0x7e.xyz](https://github.com/timo-schmid/0x7e.xyz)
 : A simple link-shortener
 
+[Docspell](https://github.com/eikek/docspell)
+: A personal document (pdf) organizer
+
 [fleet-buddy](https://github.com/reactormonk/fleet-buddy)
 : Eve Online fleet buddy based on the CREST API
 
@@ -96,6 +99,9 @@ title: Adopters
 
 [scala-steward](https://github.com/fthomas/scala-steward)
 : Bot that keeps library dependencies and sbt plugins up-to-date
+
+[Sharry](https://github.com/eikek/sharry)
+: A file-sharing web application
 
 [Smart Backpacker App](https://github.com/SmartBackpacker/core)
 : Backend of the traveler's app using the Typelevel stack
