@@ -98,7 +98,6 @@ lazy val laws = libraryProject("laws")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      scalacheck,
     ),
   )
   .dependsOn(core)
@@ -108,8 +107,7 @@ lazy val testing = libraryProject("testing")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      scalacheck,
-      specs2Matcher
+      specs2Matcher,
     ),
   )
   .dependsOn(laws)
