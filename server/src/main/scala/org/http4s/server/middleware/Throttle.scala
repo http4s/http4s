@@ -32,7 +32,7 @@ object Throttle {
 
   object TokenBucket {
 
-    private class Translated[F[_], G[_]](t: TokenBucket[F], fk: F ~> G) extends TokenBucket[G]{
+    private class Translated[F[_], G[_]](t: TokenBucket[F], fk: F ~> G) extends TokenBucket[G] {
       def takeToken: G[TokenAvailability] = fk(t.takeToken)
     }
 
