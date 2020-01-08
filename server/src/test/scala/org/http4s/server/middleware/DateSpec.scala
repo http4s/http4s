@@ -9,7 +9,7 @@ import cats.effect.testing.specs2.CatsIO
 
 class DateSpec extends Http4sSpec with CatsIO {
 
-  implicit val T = IO.timer(scala.concurrent.ExecutionContext.global)
+  override implicit val timer: Timer[IO] = Http4sSpec.TestTimer
 
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case _ => Response[IO](Status.Ok).pure[IO]
@@ -29,8 +29,7 @@ class DateSpec extends Http4sSpec with CatsIO {
         out.flatMap(_.headers.get(HDate)) must beSome.like {
           case date =>
             val diff = date.date.epochSecond - HttpDate.now.epochSecond
-            val test = diff <= 2
-            test must beTrue
+            diff must be_<=(2L)
         }
       }
     }
@@ -42,8 +41,7 @@ class DateSpec extends Http4sSpec with CatsIO {
         out.headers.get(HDate) must beSome.like {
           case date =>
             val diff = date.date.epochSecond - HttpDate.now.epochSecond
-            val test = diff <= 2
-            test must beTrue
+            diff must be_<=(2L)
         }
       }
     }
