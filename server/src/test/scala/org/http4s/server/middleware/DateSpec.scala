@@ -28,7 +28,7 @@ class DateSpec extends Http4sSpec with CatsIO {
       } yield {
         out.flatMap(_.headers.get(HDate)) must beSome.like {
           case date =>
-            val diff = date.date.epochSecond - HttpDate.now.epochSecond
+            val diff = HttpDate.now.epochSecond - date.date.epochSecond
             diff must be_<=(2L)
         }
       }
@@ -40,7 +40,7 @@ class DateSpec extends Http4sSpec with CatsIO {
       } yield {
         out.headers.get(HDate) must beSome.like {
           case date =>
-            val diff = date.date.epochSecond - HttpDate.now.epochSecond
+            val diff = HttpDate.now.epochSecond - date.date.epochSecond
             diff must be_<=(2L)
         }
       }
@@ -63,8 +63,8 @@ class DateSpec extends Http4sSpec with CatsIO {
         out.headers.get(HDate) must beSome.like {
           case date =>
             val now = HttpDate.now.epochSecond
-            val diff = date.date.epochSecond - now
-            now must_=== Math.abs(diff)
+            val diff = now - date.date.epochSecond
+            now must_=== diff
         }
       }
     }
