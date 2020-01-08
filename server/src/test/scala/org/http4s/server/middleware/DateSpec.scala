@@ -2,6 +2,7 @@ package org.http4s.server.middleware
 
 import cats.implicits._
 import cats.effect._
+import cats.data.OptionT
 import org.http4s._
 import org.http4s.headers.{Date => HDate}
 import cats.effect.testing.specs2.CatsIO
@@ -14,7 +15,8 @@ class DateSpec extends Http4sSpec with CatsIO {
     case _ => Response[IO](Status.Ok).pure[IO]
   }
 
-  val testService = Date(service)
+  // Hack for https://github.com/typelevel/cats-effect/pull/682
+  val testService = Date(service)(Sync[OptionT[IO, *]], Clock.deriveOptionT[IO])
   val testApp = Date(service.orNotFound)
 
   val req = Request[IO]()
@@ -24,10 +26,11 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- testService(req).value
       } yield {
-        out.flatMap(_.headers.get(HDate)) must beSome.like { date =>
-          val diff = date.date.epochSecond - HttpDate.now.epochSecond
-          val test = diff <= 2
-          test must beTrue
+        out.flatMap(_.headers.get(HDate)) must beSome.like {
+          case date =>
+            val diff = date.date.epochSecond - HttpDate.now.epochSecond
+            val test = diff <= 2
+            test must beTrue
         }
       }
     }
@@ -36,10 +39,11 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- testApp(req)
       } yield {
-        out.headers.get(HDate) must beSome.like { date =>
-          val diff = date.date.epochSecond - HttpDate.now.epochSecond
-          val test = diff <= 2
-          test must beTrue
+        out.headers.get(HDate) must beSome.like {
+          case date =>
+            val diff = date.date.epochSecond - HttpDate.now.epochSecond
+            val test = diff <= 2
+            test must beTrue
         }
       }
     }
@@ -58,10 +62,11 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- test(req)
       } yield {
-        out.headers.get(HDate) must beSome.like { date =>
-          val now = HttpDate.now.epochSecond
-          val diff = date.date.epochSecond - now
-          now must_=== Math.abs(diff)
+        out.headers.get(HDate) must beSome.like {
+          case date =>
+            val now = HttpDate.now.epochSecond
+            val diff = date.date.epochSecond - now
+            now must_=== Math.abs(diff)
         }
       }
     }
