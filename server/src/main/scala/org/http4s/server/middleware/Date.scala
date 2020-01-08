@@ -16,7 +16,7 @@ import java.time.Instant
   * by the service.
  **/
 object Date {
-  def apply[G[_]: Monad: Clock, F[_], A](
+  def apply[G[_]: MonadError[*[_], Throwable]: Clock, F[_], A](
       k: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
     Kleisli { a =>
       for {
@@ -27,9 +27,8 @@ object Date {
             Clock[G]
               .realTime(MILLISECONDS)
               .map(Instant.ofEpochMilli(_))
-              .map(nowInstant => HDate(HttpDate.unsafeFromInstant(nowInstant)))
-            // Starting on January 1,n 10000, this will throw an exception.
-            // The author intends to leave this problem for future generations.
+              .flatMap(nowInstant => HttpDate.fromInstant(nowInstant).liftTo[G])
+              .map(nowHttpDate => HDate(nowHttpDate))
           )(_.pure[G])
 
       } yield resp.putHeaders(header)
