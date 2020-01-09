@@ -20,11 +20,14 @@ object Caching {
         val headers = List(
           `Cache-Control`(
             NonEmptyList.of(
-              CacheDirective.`no-store`
+              CacheDirective.`no-store`,
+              CacheDirective.`private`,
+              CacheDirective.`no-cache`,
+              CacheDirective.`max-age`(0)
             )),
           Header("Pragma", "no-cache"),
           HDate(now),
-          Expires(now)
+          Expires(HttpDate.Epoch) // Expire at the epoch for no time confusion
         )
         resp.putHeaders(headers: _*)
       }
