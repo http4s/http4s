@@ -9,7 +9,7 @@ class HttpDateSpec extends Http4sSpec with CatsIO {
     "current should be extremely close to now" >> {
       HttpDate.current[IO].map { current =>
         val diff = HttpDate.now.epochSecond - current.epochSecond
-        diff must be_<=(1L)
+        diff must be_===(0L) or be_===(1L)
       }
     }
   }
