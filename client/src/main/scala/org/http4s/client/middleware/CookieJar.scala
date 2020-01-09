@@ -100,7 +100,7 @@ object CookieJar {
       for {
         now <- currentHttpDate
         out <- ref.update(
-          _.filterNot { t =>
+          _.filter { t =>
             now <= t._2.expiresAt
           }
         )
@@ -185,6 +185,7 @@ object CookieJar {
   private[middleware] def cookieAppliesToRequest[N[_]](
       r: Request[N],
       c: ResponseCookie): Boolean = {
+
     val domainApplies = c.domain.exists(s =>
       r.uri.host.forall { authority =>
         authority.renderString.contains(s)
