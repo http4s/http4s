@@ -19,11 +19,11 @@ object Caching {
       } yield {
         val headers = List(
           `Cache-Control`(
-            NonEmptyList.of(
+            NonEmptyList.of[CacheDirective](
               CacheDirective.`no-store`,
-              CacheDirective.`private`,
-              CacheDirective.`no-cache`,
-              CacheDirective.`max-age`(0)
+              CacheDirective.`private`(),
+              CacheDirective.`no-cache`(),
+              CacheDirective.`max-age`(0.seconds)
             )),
           Header("Pragma", "no-cache"),
           HDate(now),
