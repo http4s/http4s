@@ -9,7 +9,18 @@ import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.{Date => HDate, _}
 import scala.concurrent.duration._
 
+/**
+  * Caching contains middlewares to support caching functionality.
+  *
+  * Helper functions to support [[Caching.cache]] can be found in
+  * [[Caching.Helpers]]
+  */
 object Caching {
+
+  /**
+    * Middleware that implies responses should NOT be cached.
+    * This is a best attempt, many implementors of caching have done so differently.
+    */
   def `no-store`[G[_]: Monad: Clock, F[_], A](
       http: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
     Kleisli { a: A =>
@@ -33,8 +44,13 @@ object Caching {
       }
     }
 
+  /**
+    * Helpers Contains the default arguments used to help construct
+    * middleware with [[caching]]. They serve to support the default arguments for
+    * [[publicCache]] and [[privateCache]].
+    */
   object Helpers {
-    def defaultStatussToSetOn(s: Status): Boolean =
+    def defaultStatusToSetOn(s: Status): Boolean =
       s match {
         case Status.NotModified => true
         case otherwise => otherwise.isSuccess
@@ -48,6 +64,12 @@ object Caching {
     )
   }
 
+  /**
+    * Sets headers for response to be publicly cached for the specified duration.
+    *
+    * Note: If set to Duration.Inf, lifetime falls back to
+    * 10 years for support of Http1 caches.
+    */
   def publicCache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
       lifetime: Duration,
       http: Http[G, F]): Http[G, F] =
@@ -55,9 +77,15 @@ object Caching {
       lifetime,
       Either.left(CacheDirective.public),
       Helpers.defaultMethodsToSetOn,
-      Helpers.defaultStatussToSetOn,
+      Helpers.defaultStatusToSetOn,
       http)
 
+  /**
+    * Sets headers for response to be privately cached for the specified duration.
+    *
+    * Note: If set to Duration.Inf, lifetime falls back to
+    * 10 years for support of Http1 caches.
+    */
   def privateCache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
       lifetime: Duration,
       http: Http[G, F],
@@ -66,9 +94,17 @@ object Caching {
       lifetime,
       Either.right(CacheDirective.`private`(fieldNames)),
       Helpers.defaultMethodsToSetOn,
-      Helpers.defaultStatussToSetOn,
+      Helpers.defaultStatusToSetOn,
       http)
 
+  /**
+    * Construct a Middleware that will apply the appropriate caching headers.
+    *
+    * Helper functions for methodToSetOn and statusToSetOn can be found in [[Helpers]].
+    *
+    * Note: If set to Duration.Inf, lifetime falls back to
+    * 10 years for support of Http1 caches.
+    */
   def cache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
       lifetime: Duration,
       isPublic: Either[CacheDirective.public.type, CacheDirective.`private`],
