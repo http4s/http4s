@@ -38,7 +38,8 @@ We'll need the following imports to get started:
 ```tut:silent
 import cats.effect._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
-implicit val T : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
+// Provided by `cats.effect.IOApp`
+implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
@@ -273,9 +274,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 ```tut:book
-// Provided by `cats.effect.IOApp`
-implicit val timer: Timer[IO] = IO.timer(global)
-
 val drip: Stream[IO, String] =
   Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
 ```
