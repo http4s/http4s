@@ -29,7 +29,7 @@ class HeaderSpec extends Http4sSpec {
       h1 == h2 should beTrue
       h2 == h1 should beTrue
 
-      val h3 = Date(HttpDate.now).toRaw.parsed
+      val h3 = Date(HttpDate.Epoch).toRaw.parsed
       val h4 = h3.toRaw
 
       h3 == h4 should beTrue
