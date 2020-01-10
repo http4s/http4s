@@ -164,12 +164,13 @@ Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync.
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
 ```tut
-{
+val cookieResp = {
   for {
     resp <- Ok("Ok response.")
-    now <- HttpDate.current
+    now <- HttpDate.current[IO]
   } yield resp.addCookie(ResponseCookie("foo", "bar", expires = Some(now), httpOnly = true, secure = true))
-}.unsafeRunSync.headers
+}
+cookieResp.unsafeRunSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
