@@ -26,11 +26,11 @@ trait CookieJar[F[_]] {
   /**
     * Add Cookie to the cookie jar
     */
-  def addCookie(c: ResponseCookie, uri: Uri): F[Unit] = 
+  def addCookie(c: ResponseCookie, uri: Uri): F[Unit] =
     addCookies(List((c, uri)))
 
   /**
-   * Like addCookie but puts several in at once
+    * Like addCookie but puts several in at once
    **/
   def addCookies[G[_]: Foldable](cookies: G[(ResponseCookie, Uri)]): F[Unit]
 
@@ -113,12 +113,11 @@ object CookieJar {
 
     override def evictAll: F[Unit] = ref.set(Map.empty)
 
-    override def addCookies[G[_]: Foldable](cookies: G[(ResponseCookie, Uri)]): F[Unit] = {
+    override def addCookies[G[_]: Foldable](cookies: G[(ResponseCookie, Uri)]): F[Unit] =
       for {
         now <- HttpDate.current[F]
         out <- ref.update(extractFromResponseCookies(_)(cookies, now))
       } yield out
-    }
 
     override def enrichRequest[N[_]](r: Request[N]): F[Request[N]] =
       for {
@@ -166,15 +165,16 @@ object CookieJar {
       )
       .getOrElse(default)
 
-  private[middleware] def extractFromResponseCookies[G[_]: Foldable](m: Map[CookieKey, CookieValue])(
-    cookies: G[(ResponseCookie, Uri)],
-    httpDate: HttpDate
-  ): Map[CookieKey, CookieValue] = {
-    cookies.foldRight(Eval.now(m)){
-      case ((rc, uri), eM) => eM.map(m => extractFromResponseCookie(m)(rc, httpDate, uri))
-    }
+  private[middleware] def extractFromResponseCookies[G[_]: Foldable](
+      m: Map[CookieKey, CookieValue])(
+      cookies: G[(ResponseCookie, Uri)],
+      httpDate: HttpDate
+  ): Map[CookieKey, CookieValue] =
+    cookies
+      .foldRight(Eval.now(m)) {
+        case ((rc, uri), eM) => eM.map(m => extractFromResponseCookie(m)(rc, httpDate, uri))
+      }
       .value
-  }
 
   private[middleware] def extractFromResponseCookie(
       m: Map[CookieKey, CookieValue]
