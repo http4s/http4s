@@ -107,7 +107,9 @@ private[parser] trait CookieHeader {
 
     def StringValue: Rule1[String] = rule { capture(oneOrMore((!(CTL | ch(';'))) ~ Char)) }
 
-    def SameSite: Rule1[SameSite] = rule { "Strict" ~ push(Strict) | "Lax" ~ push(Lax) | "None" ~ push(None) }
+    def SameSite: Rule1[SameSite] = rule {
+      "Strict" ~ push(Strict) | "Lax" ~ push(Lax) | "None" ~ push(None)
+    }
   }
   // scalastyle:on public.methods.have.type
 }
