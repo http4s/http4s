@@ -110,8 +110,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http
     val hs = rec.headers.toList
     for {
       _ <- IO(rec.status must be_==(expected.status))
-      body <- rec.body.compile.to[Array]
-      expBody <- expected.body.compile.to[Array]
+      body <- rec.body.compile.to(Array)
+      expBody <- expected.body.compile.to(Array)
       _ <- IO(body must_== expBody)
       _ <- IO(expected.headers.foreach { h =>
         h must beOneOf(hs: _*); ()

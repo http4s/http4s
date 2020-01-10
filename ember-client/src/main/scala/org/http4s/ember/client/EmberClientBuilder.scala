@@ -7,19 +7,21 @@ import org.http4s.client._
 import cats._
 import cats.implicits._
 import cats.effect._
-import javax.net.ssl.SSLContext
-import scala.concurrent.ExecutionContext
+// import javax.net.ssl.SSLContext
+// import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import org.http4s.headers.Connection
 import org.http4s.Response
 import org.http4s.client._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
+import fs2.io.tls._
 import scala.concurrent.duration.Duration
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
-    private val sslContextOpt: Option[(ExecutionContext, SSLContext)],
-    private val sgR: Resource[F, SocketGroup],
+    private val blockerOpt: Option[Blocker],
+    private val tlsContextOpt: Option[TLSContext],
+    private val sgOpt: Option[SocketGroup],
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
     val idleTimeInPool: Duration,
@@ -31,8 +33,9 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 ) { self =>
 
   private def copy(
-      sslContextOpt: Option[(ExecutionContext, SSLContext)] = self.sslContextOpt,
-      sgR: Resource[F, SocketGroup] = self.sgR,
+      blockerOpt: Option[Blocker] = self.blockerOpt,
+      tlsContextOpt: Option[TLSContext] = self.tlsContextOpt,
+      sgOpt: Option[SocketGroup] = self.sgOpt,
       maxTotal: Int = self.maxTotal,
       maxPerKey: RequestKey => Int = self.maxPerKey,
       idleTimeInPool: Duration = self.idleTimeInPool,
@@ -42,8 +45,9 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       timeout: Duration = self.timeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions
   ): EmberClientBuilder[F] = new EmberClientBuilder[F](
-    sslContextOpt = sslContextOpt,
-    sgR = sgR,
+    blockerOpt = blockerOpt,
+    tlsContextOpt = tlsContextOpt,
+    sgOpt = sgOpt,
     maxTotal = maxTotal,
     maxPerKey = maxPerKey,
     idleTimeInPool = idleTimeInPool,
@@ -54,11 +58,14 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     additionalSocketOptions = additionalSocketOptions
   )
 
-  def withSslContext(sslExecutionContext: ExecutionContext, sslContext: SSLContext) =
-    copy(sslContextOpt = (sslExecutionContext, sslContext).some)
-  def withoutSSLContext = copy(sslContextOpt = Option.empty[(ExecutionContext, SSLContext)])
+  def withTLSContext(tlsContext: TLSContext) =
+    copy(tlsContextOpt = tlsContext.some)
+  def withoutTLSContext = copy(tlsContextOpt = None)
 
-  def withSocketGroup(sg: SocketGroup) = copy(sgR = sg.pure[Resource[F, ?]])
+  def withBlocker(blocker: Blocker) =
+    copy(blockerOpt = blocker.some)
+
+  def withSocketGroup(sg: SocketGroup) = copy(sgOpt = sg.some)
 
   def withMaxTotal(maxTotal: Int) = copy(maxTotal = maxTotal)
   def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
@@ -74,14 +81,19 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Client[F]] =
     for {
-      sg <- sgR
+      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, ?]])
+      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, ?]])
+      tlsContextOptWithDefault <- Resource.liftF(
+        tlsContextOpt
+          .fold(Sync[F].delay(TLSContext.system(blocker)).attempt.map(_.toOption))(_.some.pure[F])
+      )
       builder = KeyPoolBuilder
         .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
           { requestKey: RequestKey =>
             org.http4s.ember.client.internal.ClientHelpers
               .requestKeyToSocketWithKey[F](
                 requestKey,
-                sslContextOpt,
+                tlsContextOptWithDefault,
                 sg,
                 additionalSocketOptions
               )
@@ -146,27 +158,22 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 }
 
 object EmberClientBuilder {
-
   def default[F[_]: Concurrent: Timer: ContextShift] = new EmberClientBuilder[F](
-    tryDefaultSslContext.map((ExecutionContext.global, _)),
-    Defaults.socketGroup[F],
-    Defaults.maxTotal,
-    Defaults.maxPerKey,
-    Defaults.idleTimeInPool,
-    Slf4jLogger.getLogger[F],
-    Defaults.chunkSize,
-    Defaults.maxResponseHeaderSize,
-    Defaults.timeout,
-    Defaults.additionalSocketOptions
+    blockerOpt = None,
+    tlsContextOpt = None,
+    sgOpt = None,
+    maxTotal = Defaults.maxTotal,
+    maxPerKey = Defaults.maxPerKey,
+    idleTimeInPool = Defaults.idleTimeInPool,
+    logger = Slf4jLogger.getLogger[F],
+    chunkSize = Defaults.chunkSize,
+    maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
+    timeout = Defaults.timeout,
+    additionalSocketOptions = Defaults.additionalSocketOptions
   )
 
   private object Defaults {
-    def sslExecutionContext: ExecutionContext = ExecutionContext.global
     val acgFixedThreadPoolSize: Int = 100
-    def socketGroup[F[_]: Sync: ContextShift]: Resource[F, SocketGroup] =
-      Blocker[F].flatMap(b => SocketGroup[F](b))
-
-    def sslContext[F[_]: Sync]: F[SSLContext] = Sync[F].delay(SSLContext.getDefault)
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
     val timeout: Duration = 60.seconds
@@ -179,11 +186,5 @@ object EmberClientBuilder {
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
   }
-
-  private def tryDefaultSslContext: Option[SSLContext] =
-    try Some(SSLContext.getDefault())
-    catch {
-      case scala.util.control.NonFatal(_) => None
-    }
 
 }

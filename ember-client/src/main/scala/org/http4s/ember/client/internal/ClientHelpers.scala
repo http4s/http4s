@@ -7,31 +7,29 @@ import cats._
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
-import javax.net.ssl.SSLContext
 import org.http4s._
 import org.http4s.client.RequestKey
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
-import spinoco.fs2.crypto.io.tcp.TLSSocket
-import scala.concurrent.ExecutionContext
 import _root_.fs2.io.tcp.SocketGroup
+import _root_.fs2.io.tls._
 import _root_.io.chrisdavenport.log4cats.Logger
+import javax.net.ssl.SNIHostName
 
 private[client] object ClientHelpers {
 
   def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       request: Request[F],
-      sslContext: Option[(ExecutionContext, SSLContext)],
+      tlsContextOpt: Option[TLSContext],
       sg: SocketGroup,
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
       requestKey,
-      sslContext,
+      tlsContextOpt,
       sg,
       additionalSocketOptions
     )
@@ -39,32 +37,24 @@ private[client] object ClientHelpers {
 
   def requestKeyToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       requestKey: RequestKey,
-      sslContext: Option[(ExecutionContext, SSLContext)],
+      tlsContextOpt: Option[TLSContext],
       sg: SocketGroup,
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] =
     for {
       address <- Resource.liftF(getAddress(requestKey))
       initSocket <- sg.client[F](address, additionalSocketOptions = additionalSocketOptions)
-      socket <- Resource.liftF {
+      socket <- {
         if (requestKey.scheme === Uri.Scheme.https)
-          sslContext.fold[F[Socket[F]]](
-            ApplicativeError[F, Throwable].raiseError(
-              new Throwable("EmberClient Not Configured for Https"))
-          ) {
-            case (sslExecutionContext, sslContext) =>
-              liftToSecure[F](
-                sslExecutionContext,
-                sslContext
-              )(
-                initSocket,
-                true
-              )(
-                requestKey.authority.host.value,
-                requestKey.authority.port.getOrElse(443)
-              )
+          tlsContextOpt.fold[Resource[F, Socket[F]]]{
+            ApplicativeError[Resource[F, *], Throwable].raiseError(
+              new Throwable("EmberClient Not Configured for Https")
+            )
+          }{tlsContext =>
+            tlsContext.client(initSocket, TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
+              .widen[Socket[F]]
           }
-        else Applicative[F].pure(initSocket)
+        else initSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
 
@@ -115,26 +105,13 @@ private[client] object ClientHelpers {
     }
   }
 
-  /** function that lifts supplied socket to secure socket **/
-  def liftToSecure[F[_]: Concurrent: ContextShift](
-      sslES: ExecutionContext,
-      sslContext: SSLContext
-  )(socket: Socket[F], clientMode: Boolean)(host: String, port: Int): F[Socket[F]] = {
-    for {
-      sslEngine <- Concurrent[F].delay(sslContext.createSSLEngine(host, port))
-      _ <- Concurrent[F].delay(sslEngine.setUseClientMode(clientMode))
-      secureSocket <- TLSSocket.instance[F](socket, sslEngine, sslES)
-      _ <- secureSocket.startHandshake
-    } yield secureSocket
-  }.widen
-
   // https://github.com/http4s/http4s/blob/master/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
-  private def getAddress[F[_]: Concurrent](requestKey: RequestKey): F[InetSocketAddress] =
+  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[InetSocketAddress] =
     requestKey match {
       case RequestKey(s, auth) =>
         val port = auth.port.getOrElse { if (s == Uri.Scheme.https) 443 else 80 }
         val host = auth.host.value
-        Concurrent[F].delay(new InetSocketAddress(host, port))
+        Sync[F].delay(new InetSocketAddress(host, port))
     }
 
 }
