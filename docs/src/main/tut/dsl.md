@@ -38,6 +38,7 @@ We'll need the following imports to get started:
 ```tut:silent
 import cats.effect._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
+implicit val T : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
@@ -167,7 +168,7 @@ Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync.
   for {
     resp <- Ok("Ok response.")
     now <- HttpDate.current
-  } yield resp.addCookie(ResponseCookie("foo", "bar", expires = Some(HttpDate), httpOnly = true, secure = true))
+  } yield resp.addCookie(ResponseCookie("foo", "bar", expires = Some(now), httpOnly = true, secure = true))
 }.unsafeRunSync.headers
 ```
 
