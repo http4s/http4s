@@ -9,7 +9,8 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
 
   "Set-Cookie parser" should {
     "parse a set cookie" in {
-      val cookiestr = "myname=\"foo\"; Domain=value; Max-Age=1; Path=value; SameSite=Strict; Secure;HttpOnly"
+      val cookiestr =
+        "myname=\"foo\"; Domain=value; Max-Age=1; Path=value; SameSite=Strict; Secure;HttpOnly"
       val c = parse(cookiestr).cookie
       c.name must be_==("myname")
       c.content must be_==("foo")
