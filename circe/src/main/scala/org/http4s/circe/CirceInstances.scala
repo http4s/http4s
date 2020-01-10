@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.implicits._
-import fs2.Chunk
+import fs2.{Chunk, Stream}
 import io.circe._
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
@@ -92,20 +92,52 @@ trait CirceInstances extends JawnInstances {
   implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  def jsonEncoderWithPrinter[F[_]: Applicative](printer: Printer): EntityEncoder[F, Json] =
+  private def fromJsonToChunk(printer: Printer, cs: Charset)(json: Json): Chunk[Byte] =
+    Chunk.byteBuffer(printer.printToByteBuffer(json, cs.nioCharset))
+
+  def jsonEncoderWithPrinter[F[_]: Applicative](
+      printer: Printer,
+      cs: Charset = DefaultCharset): EntityEncoder[F, Json] =
     EntityEncoder[F, Chunk[Byte]]
-      .contramap[Json] { json =>
-        val bytes = printer.printToByteBuffer(json)
-        Chunk.byteBuffer(bytes)
-      }
+      .contramap[Json](fromJsonToChunk(printer, cs))
       .withContentType(`Content-Type`(MediaType.application.json))
 
   def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
-  def jsonEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
-      implicit encoder: Encoder[A]): EntityEncoder[F, A] =
-    jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
+  def jsonEncoderWithPrinterOf[F[_]: Applicative, A](
+      printer: Printer,
+      cs: Charset = DefaultCharset)(implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+    jsonEncoderWithPrinter[F](printer, cs).contramap[A](encoder.apply)
+
+  implicit def streamJsonArrayEncoder[F[_]: Applicative]: EntityEncoder[F, Stream[F, Json]] =
+    streamJsonArrayEncoderWithPrinter(defaultPrinter)
+
+  /** An [[EntityEncoder]] for a [[Stream]] of JSONs, which will encode it as a single JSON array. */
+  def streamJsonArrayEncoderWithPrinter[F[_]: Applicative](
+      printer: Printer,
+      cs: Charset = DefaultCharset): EntityEncoder[F, Stream[F, Json]] = {
+    def fromStr(str: String): Chunk[Byte] =
+      Chunk.byteBuffer(cs.nioCharset.encode(str))
+
+    EntityEncoder
+      .streamEncoder[F, Chunk[Byte]]
+      .contramap[Stream[F, Json]] { stream =>
+        val jsons = stream.map(fromJsonToChunk(printer, cs))
+        Stream.emit(fromStr("[")) ++ jsons.intersperse(fromStr(",")) ++ Stream.emit(fromStr("]"))
+      }
+      .withContentType(`Content-Type`(MediaType.application.json))
+  }
+
+  def streamJsonArrayEncoderOf[F[_]: Applicative, A](
+      implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
+    streamJsonArrayEncoderWithPrinterOf(defaultPrinter)
+
+  /** An [[EntityEncoder]] for a [[Stream]] of values, which will encode it as a single JSON array. */
+  def streamJsonArrayEncoderWithPrinterOf[F[_]: Applicative, A](
+      printer: Printer,
+      cs: Charset = DefaultCharset)(implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
+    streamJsonArrayEncoderWithPrinter[F](printer, cs).contramap[Stream[F, A]](_.map(encoder.apply))
 
   implicit val encodeUri: Encoder[Uri] =
     Encoder.encodeString.contramap[Uri](_.toString)
@@ -125,6 +157,7 @@ trait CirceInstances extends JawnInstances {
       self.as(implicitly, jsonOf[F, A])
   }
 }
+
 sealed abstract case class CirceInstancesBuilder private[circe] (
     defaultPrinter: Printer = Printer.noSpaces,
     jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
