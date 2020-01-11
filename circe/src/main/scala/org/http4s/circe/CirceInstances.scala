@@ -92,52 +92,48 @@ trait CirceInstances extends JawnInstances {
   implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  private def fromJsonToChunk(printer: Printer, cs: Charset)(json: Json): Chunk[Byte] =
-    Chunk.byteBuffer(printer.printToByteBuffer(json, cs.nioCharset))
+  private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
+    Chunk.byteBuffer(printer.printToByteBuffer(json))
 
-  def jsonEncoderWithPrinter[F[_]: Applicative](
-      printer: Printer,
-      cs: Charset = DefaultCharset): EntityEncoder[F, Json] =
+  def jsonEncoderWithPrinter[F[_]: Applicative](printer: Printer): EntityEncoder[F, Json] =
     EntityEncoder[F, Chunk[Byte]]
-      .contramap[Json](fromJsonToChunk(printer, cs))
+      .contramap[Json](fromJsonToChunk(printer))
       .withContentType(`Content-Type`(MediaType.application.json))
 
   def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
-  def jsonEncoderWithPrinterOf[F[_]: Applicative, A](
-      printer: Printer,
-      cs: Charset = DefaultCharset)(implicit encoder: Encoder[A]): EntityEncoder[F, A] =
-    jsonEncoderWithPrinter[F](printer, cs).contramap[A](encoder.apply)
+  def jsonEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
+      implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+    jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
   implicit def streamJsonArrayEncoder[F[_]: Applicative]: EntityEncoder[F, Stream[F, Json]] =
     streamJsonArrayEncoderWithPrinter(defaultPrinter)
 
+  // Constant byte chunks.
+  private final val openBrace: Chunk[Byte] = Chunk.singleton('['.toByte)
+  private final val closeBrace: Chunk[Byte] = Chunk.singleton(']'.toByte)
+  private final val comma: Chunk[Byte] = Chunk.singleton(','.toByte)
+
   /** An [[EntityEncoder]] for a [[Stream]] of JSONs, which will encode it as a single JSON array. */
   def streamJsonArrayEncoderWithPrinter[F[_]: Applicative](
-      printer: Printer,
-      cs: Charset = DefaultCharset): EntityEncoder[F, Stream[F, Json]] = {
-    def fromStr(str: String): Chunk[Byte] =
-      Chunk.byteBuffer(cs.nioCharset.encode(str))
-
+      printer: Printer): EntityEncoder[F, Stream[F, Json]] =
     EntityEncoder
       .streamEncoder[F, Chunk[Byte]]
       .contramap[Stream[F, Json]] { stream =>
-        val jsons = stream.map(fromJsonToChunk(printer, cs))
-        Stream.emit(fromStr("[")) ++ jsons.intersperse(fromStr(",")) ++ Stream.emit(fromStr("]"))
+        val jsons = stream.map(fromJsonToChunk(printer))
+        Stream.emit(openBrace) ++ jsons.intersperse(comma) ++ Stream.emit(closeBrace)
       }
       .withContentType(`Content-Type`(MediaType.application.json))
-  }
 
   def streamJsonArrayEncoderOf[F[_]: Applicative, A](
       implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
     streamJsonArrayEncoderWithPrinterOf(defaultPrinter)
 
   /** An [[EntityEncoder]] for a [[Stream]] of values, which will encode it as a single JSON array. */
-  def streamJsonArrayEncoderWithPrinterOf[F[_]: Applicative, A](
-      printer: Printer,
-      cs: Charset = DefaultCharset)(implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
-    streamJsonArrayEncoderWithPrinter[F](printer, cs).contramap[Stream[F, A]](_.map(encoder.apply))
+  def streamJsonArrayEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
+      implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
+    streamJsonArrayEncoderWithPrinter[F](printer).contramap[Stream[F, A]](_.map(encoder.apply))
 
   implicit val encodeUri: Encoder[Uri] =
     Encoder.encodeString.contramap[Uri](_.toString)
