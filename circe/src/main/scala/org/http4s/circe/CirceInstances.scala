@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.implicits._
-import fs2.Chunk
+import fs2.{Chunk, Stream}
 import io.circe._
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
@@ -92,12 +92,12 @@ trait CirceInstances extends JawnInstances {
   implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
+  private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
+    Chunk.byteBuffer(printer.printToByteBuffer(json))
+
   def jsonEncoderWithPrinter[F[_]: Applicative](printer: Printer): EntityEncoder[F, Json] =
     EntityEncoder[F, Chunk[Byte]]
-      .contramap[Json] { json =>
-        val bytes = printer.printToByteBuffer(json)
-        Chunk.byteBuffer(bytes)
-      }
+      .contramap[Json](fromJsonToChunk(printer))
       .withContentType(`Content-Type`(MediaType.application.json))
 
   def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
@@ -106,6 +106,29 @@ trait CirceInstances extends JawnInstances {
   def jsonEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
       implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
+
+  implicit def streamJsonArrayEncoder[F[_]: Applicative]: EntityEncoder[F, Stream[F, Json]] =
+    streamJsonArrayEncoderWithPrinter(defaultPrinter)
+
+  /** An [[EntityEncoder]] for a [[Stream]] of JSONs, which will encode it as a single JSON array. */
+  def streamJsonArrayEncoderWithPrinter[F[_]: Applicative](
+      printer: Printer): EntityEncoder[F, Stream[F, Json]] =
+    EntityEncoder
+      .streamEncoder[F, Chunk[Byte]]
+      .contramap[Stream[F, Json]] { stream =>
+        val jsons = stream.map(fromJsonToChunk(printer))
+        CirceInstances.openBrace ++ jsons.intersperse(CirceInstances.comma) ++ CirceInstances.closeBrace
+      }
+      .withContentType(`Content-Type`(MediaType.application.json))
+
+  def streamJsonArrayEncoderOf[F[_]: Applicative, A](
+      implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
+    streamJsonArrayEncoderWithPrinterOf(defaultPrinter)
+
+  /** An [[EntityEncoder]] for a [[Stream]] of values, which will encode it as a single JSON array. */
+  def streamJsonArrayEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
+      implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
+    streamJsonArrayEncoderWithPrinter[F](printer).contramap[Stream[F, A]](_.map(encoder.apply))
 
   implicit val encodeUri: Encoder[Uri] =
     Encoder.encodeString.contramap[Uri](_.toString)
@@ -125,6 +148,7 @@ trait CirceInstances extends JawnInstances {
       self.as(implicitly, jsonOf[F, A])
   }
 }
+
 sealed abstract case class CirceInstancesBuilder private[circe] (
     defaultPrinter: Printer = Printer.noSpaces,
     jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
@@ -193,4 +217,15 @@ object CirceInstances {
       s"Could not decode JSON: $json",
       if (failures.tail.isEmpty) Some(failures.head) else Some(DecodingFailures(failures)))
   }
+
+  // Constant byte chunks for the stream as JSON array encoder.
+
+  private final val openBrace: Stream[fs2.Pure, Chunk[Byte]] =
+    Stream.emit(Chunk.singleton('['.toByte))
+
+  private final val closeBrace: Stream[fs2.Pure, Chunk[Byte]] =
+    Stream.emit(Chunk.singleton(']'.toByte))
+
+  private final val comma: Chunk[Byte] =
+    Chunk.singleton(','.toByte)
 }
