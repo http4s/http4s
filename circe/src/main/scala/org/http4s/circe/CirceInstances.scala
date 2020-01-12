@@ -110,11 +110,6 @@ trait CirceInstances extends JawnInstances {
   implicit def streamJsonArrayEncoder[F[_]: Applicative]: EntityEncoder[F, Stream[F, Json]] =
     streamJsonArrayEncoderWithPrinter(defaultPrinter)
 
-  // Constant byte chunks.
-  private final val openBrace: Chunk[Byte] = Chunk.singleton('['.toByte)
-  private final val closeBrace: Chunk[Byte] = Chunk.singleton(']'.toByte)
-  private final val comma: Chunk[Byte] = Chunk.singleton(','.toByte)
-
   /** An [[EntityEncoder]] for a [[Stream]] of JSONs, which will encode it as a single JSON array. */
   def streamJsonArrayEncoderWithPrinter[F[_]: Applicative](
       printer: Printer): EntityEncoder[F, Stream[F, Json]] =
@@ -122,7 +117,7 @@ trait CirceInstances extends JawnInstances {
       .streamEncoder[F, Chunk[Byte]]
       .contramap[Stream[F, Json]] { stream =>
         val jsons = stream.map(fromJsonToChunk(printer))
-        Stream.emit(openBrace) ++ jsons.intersperse(comma) ++ Stream.emit(closeBrace)
+        CirceInstances.openBrace ++ jsons.intersperse(CirceInstances.comma) ++ CirceInstances.closeBrace
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
@@ -222,4 +217,15 @@ object CirceInstances {
       s"Could not decode JSON: $json",
       if (failures.tail.isEmpty) Some(failures.head) else Some(DecodingFailures(failures)))
   }
+
+  // Constant byte chunks for the stream as JSON array encoder.
+
+  private final val openBrace: Stream[fs2.Pure, Chunk[Byte]] =
+    Stream.emit(Chunk.singleton('['.toByte))
+
+  private final val closeBrace: Stream[fs2.Pure, Chunk[Byte]] =
+    Stream.emit(Chunk.singleton(']'.toByte))
+
+  private final val comma: Chunk[Byte] =
+    Chunk.singleton(','.toByte)
 }
