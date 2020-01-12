@@ -59,11 +59,12 @@ trait CirceInstances extends JawnInstances {
       }
     }
 
-  def jsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
     jsonOfWithMedia(MediaType.application.json)
 
-  def jsonOfWithMedia[F[_]: Sync, A](r1: MediaRange, rs: MediaRange*)(
-      implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+  def jsonOfWithMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(
+      implicit F: Sync[F],
+      decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
       decoder
         .decodeJson(json)
@@ -79,7 +80,7 @@ trait CirceInstances extends JawnInstances {
     * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing
     * a [[DecodingFailures]] exception, from which the errors can be extracted.
     */
-  def accumulatingJsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+  def accumulatingJsonOf[F[_], A](implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeAccumulating(json.hcursor)
@@ -100,11 +101,11 @@ trait CirceInstances extends JawnInstances {
       .contramap[Json](fromJsonToChunk(printer))
       .withContentType(`Content-Type`(MediaType.application.json))
 
-  def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_]: Applicative, A: Encoder]: EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
-  def jsonEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
-      implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+  def jsonEncoderWithPrinterOf[F[_], A](
+      printer: Printer)(implicit F: Applicative[F], encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
   implicit def streamJsonArrayEncoder[F[_]: Applicative]: EntityEncoder[F, Stream[F, Json]] =
@@ -121,13 +122,13 @@ trait CirceInstances extends JawnInstances {
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
-  def streamJsonArrayEncoderOf[F[_]: Applicative, A](
-      implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
+  def streamJsonArrayEncoderOf[F[_]: Applicative, A: Encoder]: EntityEncoder[F, Stream[F, A]] =
     streamJsonArrayEncoderWithPrinterOf(defaultPrinter)
 
   /** An [[EntityEncoder]] for a [[Stream]] of values, which will encode it as a single JSON array. */
-  def streamJsonArrayEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
-      implicit encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
+  def streamJsonArrayEncoderWithPrinterOf[F[_], A](printer: Printer)(
+      implicit F: Applicative[F],
+      encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
     streamJsonArrayEncoderWithPrinter[F](printer).contramap[Stream[F, A]](_.map(encoder.apply))
 
   implicit val encodeUri: Encoder[Uri] =
@@ -138,15 +139,8 @@ trait CirceInstances extends JawnInstances {
       Uri.fromString(str).leftMap(_ => "Uri")
     }
 
-  implicit class JsonDecoderSyntax[F[_]](private val req: Message[F])(implicit F: JsonDecoder[F]) {
-    def asJson: F[Json] = F.asJson(req)
-    def asJsonDecode[A: Decoder]: F[A] = F.asJsonDecode(req)
-  }
-
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
-    def decodeJson[A](implicit decoder: Decoder[A]): F[A] =
-      self.as(implicitly, jsonOf[F, A])
-  }
+  implicit final def toMessageSynax[F[_]](req: Message[F]): CirceInstances.MessageSyntax[F] =
+    new CirceInstances.MessageSyntax(req)
 }
 
 sealed abstract case class CirceInstancesBuilder private[circe] (
@@ -228,4 +222,20 @@ object CirceInstances {
 
   private final val comma: Chunk[Byte] =
     Chunk.singleton(','.toByte)
+
+  // Extension methods.
+
+  private[circe] final class MessageSyntax[F[_]](private val req: Message[F]) extends AnyVal {
+    def asJson(implicit F: JsonDecoder[F]): F[Json] =
+      F.asJson(req)
+
+    def asJsonDecode[A](implicit F: JsonDecoder[F], decoder: Decoder[A]): F[A] =
+      F.asJsonDecode(req)
+
+    def decodeJson[A](implicit F: Sync[F], decoder: Decoder[A]): F[A] =
+      req.as(F, jsonOf[F, A])
+
+    def json(implicit F: Sync[F]): F[Json] =
+      req.as(F, jsonDecoder[F])
+  }
 }
