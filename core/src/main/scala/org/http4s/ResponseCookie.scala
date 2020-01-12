@@ -114,7 +114,7 @@ final case class ResponseCookie(
     maxAge.foreach(writer.append("; Max-Age=").append(_))
     domain.foreach(writer.append("; Domain=").append(_))
     path.foreach(writer.append("; Path=").append(_))
-    writer.append("; SameSite").append(sameSite)
+    writer.append("; SameSite=").append(sameSite)
     if (secure || sameSite == SameSite.None) writer.append("; Secure")
     if (httpOnly) writer.append("; HttpOnly")
     extension.foreach(writer.append("; ").append(_))
