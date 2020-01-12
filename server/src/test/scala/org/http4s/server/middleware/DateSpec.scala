@@ -25,10 +25,11 @@ class DateSpec extends Http4sSpec with CatsIO {
     "always be very shortly before the current time httpRoutes" >> {
       for {
         out <- testService(req).value
+        now <- HttpDate.current[IO]
       } yield {
         out.flatMap(_.headers.get(HDate)) must beSome.like {
           case date =>
-            val diff = HttpDate.now.epochSecond - date.date.epochSecond
+            val diff = now.epochSecond - date.date.epochSecond
             diff must be_<=(2L)
         }
       }
@@ -37,10 +38,11 @@ class DateSpec extends Http4sSpec with CatsIO {
     "always be very shortly before the current time httpApp" >> {
       for {
         out <- testApp(req)
+        now <- HttpDate.current[IO]
       } yield {
         out.headers.get(HDate) must beSome.like {
           case date =>
-            val diff = HttpDate.now.epochSecond - date.date.epochSecond
+            val diff = now.epochSecond - date.date.epochSecond
             diff must be_<=(2L)
         }
       }
@@ -59,10 +61,11 @@ class DateSpec extends Http4sSpec with CatsIO {
 
       for {
         out <- test(req)
+        nowD <- HttpDate.current[IO]
       } yield {
         out.headers.get(HDate) must beSome.like {
           case date =>
-            val now = HttpDate.now.epochSecond
+            val now = nowD.epochSecond
             val diff = now - date.date.epochSecond
             now must_=== diff
         }
