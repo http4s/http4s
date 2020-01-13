@@ -12,23 +12,23 @@ import scala.collection.mutable
 /* Temporary parser until jawn-argonaut supports 6.2.x. */
 private[argonaut] object Parser extends SupportParser[Json] {
   implicit val facade: Facade[Json] =
-    new Facade[Json] {
-      override def jnull() = Json.jNull
-      override def jfalse() = Json.jFalse
-      override def jtrue() = Json.jTrue
+    new Facade.NoIndexFacade[Json] {
+      override def jnull: Json = Json.jNull
+      override def jfalse: Json = Json.jFalse
+      override def jtrue: Json = Json.jTrue
       override def jnum(s: CharSequence, decIndex: Int, expIndex: Int): Json =
         Json.jNumber(JsonNumber.unsafeDecimal(s.toString))
       override def jstring(s: CharSequence): Json = Json.jString(s.toString)
 
-      def singleContext() = new FContext[Json] {
+      def singleContext(): FContext[Json] = new FContext.NoIndexFContext[Json] {
         var value: Json = null
         def add(s: CharSequence): Unit = { value = jstring(s); () }
         def add(v: Json): Unit = { value = v; () }
-        def finish: Json = value
+        def finish(): Json = value
         def isObj: Boolean = false
       }
 
-      def arrayContext() = new FContext[Json] {
+      def arrayContext(): FContext[Json] = new FContext.NoIndexFContext[Json] {
         val vs = mutable.ListBuffer.empty[Json]
         def add(s: CharSequence): Unit = { vs += jstring(s); () }
         def add(v: Json): Unit = { vs += v; () }
@@ -36,7 +36,7 @@ private[argonaut] object Parser extends SupportParser[Json] {
         def isObj: Boolean = false
       }
 
-      def objectContext() = new FContext[Json] {
+      def objectContext(): FContext[Json] = new FContext.NoIndexFContext[Json] {
         var key: String = null
         var vs = JsonObject.empty
         def add(s: CharSequence): Unit =
