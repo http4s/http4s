@@ -238,7 +238,7 @@ class BlazeClientSpec extends Http4sSpec {
             .unsafeRunSync() must beRight
         }
 
-        "reset request timeout" in {
+        "reset request timeout" in skipOnCi {
           val address = addresses(0)
           val name = address.getHostName
           val port = address.getPort
