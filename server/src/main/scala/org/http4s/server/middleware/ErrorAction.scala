@@ -23,10 +23,11 @@ object ErrorAction {
   ): Kleisli[F, Request[G], B] =
     apply(
       http, {
-        case (req, mf: MessageFailure) => 
+        case (req, mf: MessageFailure) =>
           messageFailureLogAction(
             mf,
-            s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse("<unknown>")}"""
+            s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+              .getOrElse("<unknown>")}"""
           )
         case (req, e) =>
           serviceErrorLogAction(
