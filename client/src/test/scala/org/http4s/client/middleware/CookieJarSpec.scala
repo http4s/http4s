@@ -101,6 +101,27 @@ class CookieJarSpec extends Specification with CatsIO {
       CookieJar.cookieAppliesToRequest(req, cookie) must_=== false
     }
 
+    "not apply a secure cookie to an http request" in {
+      val req = Request[IO](Method.GET, uri = uri"http://google.com")
+      val cookie = ResponseCookie(
+        "foo",
+        "bar",
+        domain = Some("google.com"),
+        secure = true
+      )
+      CookieJar.cookieAppliesToRequest(req, cookie) must_=== false
+    }
+
+    "apply a secure cookie to an https request" in {
+      val req = Request[IO](Method.GET, uri = uri"https://google.com")
+      val cookie = ResponseCookie(
+        "foo",
+        "bar",
+        domain = Some("google.com"),
+        secure = true
+      )
+      CookieJar.cookieAppliesToRequest(req, cookie) must_=== true
+    }
   }
 
 }

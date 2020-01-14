@@ -202,7 +202,14 @@ object CookieJar {
         authority.renderString.contains(s)
       })
     val pathApplies = c.path.forall(s => r.uri.path.contains(s))
-    domainApplies && pathApplies
+
+    val secureSatisfied = if (c.secure) {
+      r.uri.scheme.exists { scheme =>
+        scheme === Uri.Scheme.https
+      }
+    } else true
+
+    domainApplies && pathApplies && secureSatisfied
   }
 
   private[middleware] def cookiesForRequest[N[_]](
