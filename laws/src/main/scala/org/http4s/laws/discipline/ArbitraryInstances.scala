@@ -841,6 +841,15 @@ private[http4s] trait ArbitraryInstances {
         case t: Throwable => t.printStackTrace(); throw t
       }
     }
+  private[http4s] implicit def http4sTestingArbitraryForContextRequest[F[_], A: Arbitrary]
+      : Arbitrary[ContextRequest[F, A]] =
+    // TODO this is bad because the underlying generators are bad
+    Arbitrary {
+      for {
+        a <- getArbitrary[A]
+        request <- getArbitrary[Request[F]]
+      } yield new ContextRequest(a, request)
+    }
 
   private[http4s] implicit def http4sTestingArbitraryForResponse[F[_]]: Arbitrary[Response[F]] =
     Arbitrary {
@@ -855,6 +864,7 @@ private[http4s] trait ArbitraryInstances {
         body <- http4sTestingGenForPureByteStream
       } yield Response(status, httpVersion, headers, body)
     }
+
 }
 
 object ArbitraryInstances extends ArbitraryInstances

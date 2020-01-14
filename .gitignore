@@ -25,6 +25,7 @@ atlassian-ide-plugin.xml
 
 .metals
 .bloop
+project/metals.sbt
 
 project/travis-deploy-key
 project/.gnupg
