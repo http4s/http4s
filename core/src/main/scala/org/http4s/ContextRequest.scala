@@ -1,7 +1,7 @@
 package org.http4s
 
-import cats.syntax.functor._
-import cats.{Applicative, Eval, Functor, Traverse, ~>}
+import cats._
+import cats.implicits._
 import cats.data.Kleisli
 
 final case class ContextRequest[F[_], A](context: A, req: Request[F]) {
@@ -18,16 +18,25 @@ object ContextRequest {
       getContext: Request[F] => F[T]): Kleisli[F, Request[F], ContextRequest[F, T]] =
     Kleisli(request => getContext(request).map(ctx => ContextRequest(ctx, request)))
 
-  implicit def contextRequestInstances[F[_]]: Traverse[ContextRequest[F, *]] =
-    new Traverse[ContextRequest[F, *]] {
+  implicit def contextRequestInstances[F[_]]: NonEmptyTraverse[ContextRequest[F, *]] =
+    new NonEmptyTraverse[ContextRequest[F, *]] {
+      // Members declared in cats.Foldable
       override def foldLeft[A, B](fa: ContextRequest[F, A], b: B)(f: (B, A) => B): B =
         f(b, fa.context)
       override def foldRight[A, B](fa: ContextRequest[F, A], lb: Eval[B])(
           f: (A, Eval[B]) => Eval[B]): Eval[B] =
         f(fa.context, lb)
 
-      override def traverse[G[_]: Applicative, A, B](fa: ContextRequest[F, A])(
+      // Members declared in cats.NonEmptyTraverse
+      override def nonEmptyTraverse[G[_]: Apply, A, B](fa: ContextRequest[F, A])(
           f: A => G[B]): G[ContextRequest[F, B]] =
         f(fa.context).map(b => ContextRequest(b, fa.req))
+
+      // Members declared in cats.Reducible
+      def reduceLeftTo[A, B](fa: ContextRequest[F, A])(f: A => B)(g: (B, A) => B): B =
+        f(fa.context)
+      def reduceRightTo[A, B](fa: ContextRequest[F, A])(f: A => B)(
+          g: (A, Eval[B]) => Eval[B]): Eval[B] =
+        Eval.later(f(fa.context))
     }
 }
