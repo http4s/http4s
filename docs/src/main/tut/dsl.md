@@ -38,6 +38,8 @@ We'll need the following imports to get started:
 ```tut:silent
 import cats.effect._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
+// Provided by `cats.effect.IOApp`
+implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
@@ -163,7 +165,13 @@ Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync.
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
 ```tut
-Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true))).unsafeRunSync.headers
+val cookieResp = {
+  for {
+    resp <- Ok("Ok response.")
+    now <- HttpDate.current[IO]
+  } yield resp.addCookie(ResponseCookie("foo", "bar", expires = Some(now), httpOnly = true, secure = true))
+}
+cookieResp.unsafeRunSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
@@ -266,9 +274,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 ```tut:book
-// Provided by `cats.effect.IOApp`
-implicit val timer: Timer[IO] = IO.timer(global)
-
 val drip: Stream[IO, String] =
   Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
 ```

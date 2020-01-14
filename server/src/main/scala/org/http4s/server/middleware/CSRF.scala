@@ -96,6 +96,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
       maxAge = None,
       domain = cookieSettings.domain,
       path = cookieSettings.path,
+      sameSite = cookieSettings.sameSite,
       secure = cookieSettings.secure,
       httpOnly = cookieSettings.httpOnly,
       extension = cookieSettings.extension
@@ -367,6 +368,7 @@ object CSRF {
       httpOnly: Boolean,
       domain: Option[String] = None,
       path: Option[String] = None,
+      sameSite: SameSite = SameSite.Lax,
       extension: Option[String] = None
   )
 
