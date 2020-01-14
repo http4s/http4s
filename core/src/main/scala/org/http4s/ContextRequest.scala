@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.syntax.functor._
-import cats.{Functor, ~>}
+import cats.{Applicative, Eval, Functor, Traverse, ~>}
 import cats.data.Kleisli
 
 final case class ContextRequest[F[_], A](context: A, req: Request[F]) {
@@ -18,9 +18,16 @@ object ContextRequest {
       getContext: Request[F] => F[T]): Kleisli[F, Request[F], ContextRequest[F, T]] =
     Kleisli(request => getContext(request).map(ctx => ContextRequest(ctx, request)))
 
-  implicit def contextRequestInstances[F[_]]: Functor[ContextRequest[F, *]] =
-    new Functor[ContextRequest[F, *]] {
-      override def map[A, B](fa: ContextRequest[F, A])(f: A => B): ContextRequest[F, B] =
-        ContextRequest(f(fa.context), fa.req)
+  implicit def contextRequestInstances[F[_]]: Traverse[ContextRequest[F, *]] =
+    new Traverse[ContextRequest[F, *]] {
+      override def foldLeft[A, B](fa: ContextRequest[F, A], b: B)(f: (B, A) => B): B =
+        f(b, fa.context)
+      override def foldRight[A, B](fa: ContextRequest[F, A], lb: Eval[B])(
+          f: (A, Eval[B]) => Eval[B]): Eval[B] =
+        f(fa.context, lb)
+
+      override def traverse[G[_]: Applicative, A, B](fa: ContextRequest[F, A])(
+          f: A => G[B]): G[ContextRequest[F, B]] =
+        f(fa.context).map(b => ContextRequest(b, fa.req))
     }
 }
