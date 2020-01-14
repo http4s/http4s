@@ -17,4 +17,10 @@ object ContextRequest {
   def apply[F[_]: Functor, T](
       getContext: Request[F] => F[T]): Kleisli[F, Request[F], ContextRequest[F, T]] =
     Kleisli(request => getContext(request).map(ctx => ContextRequest(ctx, request)))
+
+  implicit def contextRequestInstances[F[_]]: Functor[ContextRequest[F, *]] =
+    new Functor[ContextRequest[F, *]] {
+      override def map[A, B](fa: ContextRequest[F, A])(f: A => B): ContextRequest[F, B] =
+        ContextRequest(f(fa.context), fa.req)
+    }
 }
