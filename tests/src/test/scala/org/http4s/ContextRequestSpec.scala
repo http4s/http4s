@@ -19,7 +19,8 @@ class ContextRequestSpec extends Specification with Discipline {
   def is =
     checkAll(
       "ContextRequest[F, *]",
-      NonEmptyTraverseTests[ContextRequest[Id, *]]
-        .nonEmptyTraverse[Option, Int, Int, Int, Int, Option, Option])
+      NonEmptyTraverseTests[ContextRequest[Option, *]]
+        .nonEmptyTraverse[Option, Int, Int, Int, Int, Option, Option]
+    )
 
 }
