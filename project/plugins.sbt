@@ -7,7 +7,7 @@ classpathTypes += "maven-plugin"
 addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.0.3")
 addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.9.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.2")
-addSbtPlugin("com.github.cb372"           %  "sbt-explicit-dependencies" % "0.2.11")
+addSbtPlugin("com.github.cb372"           %  "sbt-explicit-dependencies" % "0.2.12")
 addSbtPlugin("com.github.gseitz"          %  "sbt-release"               % "1.0.12")
 addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.5")
 addSbtPlugin("com.jsuereth"               %  "sbt-pgp"                   % "1.1.2")
