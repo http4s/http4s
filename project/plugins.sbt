@@ -4,7 +4,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 // https://github.com/coursier/coursier/issues/450
 classpathTypes += "maven-plugin"
 
-addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.0.2")
+addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.0.3")
 addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.9.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.2")
 addSbtPlugin("com.github.cb372"           %  "sbt-explicit-dependencies" % "0.2.11")
