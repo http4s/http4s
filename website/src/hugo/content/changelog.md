@@ -35,6 +35,7 @@ it.
 * cats-2.1.0
 * okhttp-4.3.1
 * play-json-2.8.1
+* scalacheck-1.14.3
 * scalatags-0.8.4
 * specs2-4.8.3
 
