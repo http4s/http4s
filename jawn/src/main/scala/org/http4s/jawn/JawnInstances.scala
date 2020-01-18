@@ -4,7 +4,7 @@ package jawn
 import cats.effect._
 import cats.implicits._
 import fs2.Stream
-import org.typelevel.jawn.{AsyncParser, ParseException, Facade}
+import org.typelevel.jawn.{AsyncParser, Facade, ParseException}
 import jawnfs2._
 
 trait JawnInstances {
