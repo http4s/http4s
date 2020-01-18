@@ -24,6 +24,7 @@ it.
 ## Documentation
 
 * [#3017](https://github.com/http4s/http4s/pull/3017): Correct the documentation in `Timeout.apply`
+* [#3020](https://github.com/http4s/http4s/pull/3020): Update scaladoc to compiling example code on OptionalMultiQueryParamDecoderMatcher
 
 ## Dependency updates
 
