@@ -8,6 +8,48 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-RC1
+
+## Breaking changes
+
+* [#3012](https://github.com/http4s/http4s/pull/3012): Use `HttpApp` instead of `HttpRoutes` in `Http4sServlet`. The servlet builders themselves retain compatibility.
+* [#3053](https://github.com/http4s/http4s/pull/3053): Deprecate `HttpDate.now`, which is not referentially transparent. Prefer `HttpDate.current`.
+* [#3078](https://github.com/http4s/http4s/pull/3078): Wrap Java exceptions in `ConnectionFailure` when a blaze-client fails to establish a connection. This preserves information about which host could not be connected to.
+
+## Enhancements
+
+* [#3004](https://github.com/http4s/http4s/pull/3004): Add `classloader` argument to `StaticFile.fromResource`
+* [#3007](https://github.com/http4s/http4s/pull/3007): Add `classloader` argument to `TomcatBuilder`
+* [#3008](https://github.com/http4s/http4s/pull/3008): Consistently use `collection.Seq` across Scala versions in DSL
+* [#3031](https://github.com/http4s/http4s/pull/3031): Relax `Router.apply` constraint from `Sync` to `Monad`
+* [#3049](https://github.com/http4s/http4s/pull/3049): Add new `Date` server middleware
+* [#2821](https://github.com/http4s/http4s/pull/2821): Add `Media` supertype of `Message` and `Part`, so multipart parts can use `EntityDecoder`s
+* [#3021](https://github.com/http4s/http4s/pull/3021): Relax `Throttle.apply` constraint from `Sync` to `Monad`. Add a `mapK` operation to `TokenBucket`.
+* [#3051](https://github.com/http4s/http4s/pull/3051): Add `HttpDate.current` convenience constructor, based on `Clock`.
+* [#3056](https://github.com/http4s/http4s/pull/3056): Add `streamJsonArrayEncoder*` operations to circe support, to encode a `Stream` of `A` to a JSON array, given an encoder for `A`.
+* [#3052](https://github.com/http4s/http4s/pull/3052): Add `Caching` server middleware.
+* [#3053](https://github.com/http4s/http4s/pull/3053): Remove unneeded `Functor[G]` constraint on `HeaderEcho.apply`.
+* [#3054](https://github.com/http4s/http4s/pull/3054): Add `SameSite` cookie support
+* [#3065](https://github.com/http4s/http4s/pull/3065): Add `ErrorAction` server middleware
+* [#2518](https://github.com/http4s/http4s/pull/2518): Add `status` methods to `Client` that take a `String` or `Uri`
+* [#3069](https://github.com/http4s/http4s/pull/3069): Add `ContextMiddleware.const` function
+* [#3070](https://github.com/http4s/http4s/pull/3070): Add `NonEmptyTraverse` instance to `ContextRequest`
+
+## Documentation
+
+* [#3017](https://github.com/http4s/http4s/pull/3017): Correct the documentation in `Timeout.apply`
+
+## Dependency updates
+
+* cats-2.1.0
+* jetty-9.4.25.v20191120
+* metrics-4.1.2
+* okhttp-4.3.1
+* play-json-2.8.1
+* scalatags-0.8.4
+* specs2-4.8.3
+* tomcat-9.0.30
+
 # v0.21.0-M6 (2019-11-27)
 
 ## Breaking changes
