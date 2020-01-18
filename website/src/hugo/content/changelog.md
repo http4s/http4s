@@ -13,7 +13,6 @@ it.
 ## Breaking changes
 
 * [#3012](https://github.com/http4s/http4s/pull/3012): Use `HttpApp` instead of `HttpRoutes` in `Http4sServlet`. The servlet builders themselves retain compatibility.
-* [#3053](https://github.com/http4s/http4s/pull/3053): Deprecate `HttpDate.now`, which is not referentially transparent. Prefer `HttpDate.current`.
 * [#3078](https://github.com/http4s/http4s/pull/3078): Wrap Java exceptions in `ConnectionFailure` when a blaze-client fails to establish a connection. This preserves information about which host could not be connected to.
 
 ## Enhancements
@@ -22,18 +21,35 @@ it.
 * [#3007](https://github.com/http4s/http4s/pull/3007): Add `classloader` argument to `TomcatBuilder`
 * [#3008](https://github.com/http4s/http4s/pull/3008): Consistently use `collection.Seq` across Scala versions in DSL
 * [#3031](https://github.com/http4s/http4s/pull/3031): Relax `Router.apply` constraint from `Sync` to `Monad`
-* [#3049](https://github.com/http4s/http4s/pull/3049): Add new `Date` server middleware
 * [#2821](https://github.com/http4s/http4s/pull/2821): Add `Media` supertype of `Message` and `Part`, so multipart parts can use `EntityDecoder`s
 * [#3021](https://github.com/http4s/http4s/pull/3021): Relax `Throttle.apply` constraint from `Sync` to `Monad`. Add a `mapK` operation to `TokenBucket`.
-* [#3051](https://github.com/http4s/http4s/pull/3051): Add `HttpDate.current` convenience constructor, based on `Clock`.
 * [#3056](https://github.com/http4s/http4s/pull/3056): Add `streamJsonArrayEncoder*` operations to circe support, to encode a `Stream` of `A` to a JSON array, given an encoder for `A`.
-* [#3052](https://github.com/http4s/http4s/pull/3052): Add `Caching` server middleware.
 * [#3053](https://github.com/http4s/http4s/pull/3053): Remove unneeded `Functor[G]` constraint on `HeaderEcho.apply`.
 * [#3054](https://github.com/http4s/http4s/pull/3054): Add `SameSite` cookie support
-* [#3065](https://github.com/http4s/http4s/pull/3065): Add `ErrorAction` server middleware
 * [#2518](https://github.com/http4s/http4s/pull/2518): Add `status` methods to `Client` that take a `String` or `Uri`
 * [#3069](https://github.com/http4s/http4s/pull/3069): Add `ContextMiddleware.const` function
 * [#3070](https://github.com/http4s/http4s/pull/3070): Add `NonEmptyTraverse` instance to `ContextRequest`
+
+## Dependency updates
+
+* cats-2.1.0
+* okhttp-4.3.1
+* play-json-2.8.1
+* scalatags-0.8.4
+* specs2-4.8.3
+
+# v0.20.16
+
+## Breaking changes
+
+* [#3053](https://github.com/http4s/http4s/pull/3053): Deprecate `HttpDate.now`, which is not referentially transparent. Prefer `HttpDate.current`.
+
+## Enhancements
+
+* [#3049](https://github.com/http4s/http4s/pull/3049): Add new `Date` server middleware
+* [#3051](https://github.com/http4s/http4s/pull/3051): Add `HttpDate.current` convenience constructor, based on `Clock`.
+* [#3052](https://github.com/http4s/http4s/pull/3052): Add `Caching` server middleware.
+* [#3065](https://github.com/http4s/http4s/pull/3065): Add `ErrorAction` server middleware
 
 ## Documentation
 
@@ -41,42 +57,13 @@ it.
 
 ## Dependency updates
 
-* cats-2.1.0
-* jetty-9.4.25.v20191120
-* metrics-4.1.2
-* okhttp-4.3.1
-* play-json-2.8.1
-* scalatags-0.8.4
-* specs2-4.8.3
-* tomcat-9.0.30
-
-# v0.21.0-M6 (2019-11-27)
-
-## Breaking changes
-
-* [#2906](https://github.com/http4s/http4s/pull/2906): Weaken constraint on `Http` and `HttpRoutes` from `Sync` to `Defer`.  This is binary-breaking, but is source compatible in most cases.
-* [#2612](https://github.com/http4s/http4s/pull/2612): Generalize `AuthedRequest` to `ContextRequest`
-* [#2967](https://github.com/http4s/http4s/pull/2967): `Link` header is now modeled as a recurring header of `LinkValue`. Parser is now RFC8288 compliant.
-* [#2933](https://github.com/http4s/http4s/pull/2933): Changed `Request` from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.
-* [#2933](https://github.com/http4s/http4s/pull/2933): Changed `Request` from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.
-
-## Enhancements
-
-* [#2907](https://github.com/http4s/http4s/pull/2933): Add `JsonDecoder` algebra to circe, to avoid `Sync` constraint in business logic.
-* [#2994](https://github.com/http4s/http4s/pull/2994): Refreshed the `MimeDb` from the IANA registry.
-
-## Dependency updates
 * async-http-client-2.10.4
-* circe-0.12.3
-* jawn-0.14.3
-* log4cats-1.0.1
-* okhttp-4.2.1
-* fs2-2.1.0
+* jetty-9.4.26.v20200117
+* metrics-4.1.2 (Dropwizard)
+* log4s-1.8.2
+* okhttp-3.14.6
 * simpleclient-0.8.0 (Prometheus)
-* scala-2.13.1
-* scalacheck-1.14.2
-* specs2-4.8.1
-* twirl-1.5.0
+* tomcat-9.0.30
 
 # v0.20.15 (2019-11-27)
 
