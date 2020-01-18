@@ -8,6 +8,33 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.16
+
+## Breaking changes
+
+* [#3053](https://github.com/http4s/http4s/pull/3053): Deprecate `HttpDate.now`, which is not referentially transparent. Prefer `HttpDate.current`.
+
+## Enhancements
+
+* [#3049](https://github.com/http4s/http4s/pull/3049): Add new `Date` server middleware
+* [#3051](https://github.com/http4s/http4s/pull/3051): Add `HttpDate.current` convenience constructor, based on `Clock`.
+* [#3052](https://github.com/http4s/http4s/pull/3052): Add `Caching` server middleware.
+* [#3065](https://github.com/http4s/http4s/pull/3065): Add `ErrorAction` server middleware
+
+## Documentation
+
+* [#3017](https://github.com/http4s/http4s/pull/3017): Correct the documentation in `Timeout.apply`
+
+## Dependency updates
+
+* async-http-client-2.10.4
+* jetty-9.4.26.v20200117
+* metrics-4.1.2 (Dropwizard)
+* log4s-1.8.2
+* okhttp-3.14.6
+* simpleclient-0.8.0 (Prometheus)
+* tomcat-9.0.30
+
 # v0.20.15 (2019-11-27)
 
 ## Enhancements
