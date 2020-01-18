@@ -7,8 +7,6 @@ import org.http4s.client._
 import cats._
 import cats.implicits._
 import cats.effect._
-// import javax.net.ssl.SSLContext
-// import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import org.http4s.headers.Connection
 import org.http4s.Response
