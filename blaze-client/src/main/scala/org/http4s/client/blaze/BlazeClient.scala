@@ -7,16 +7,63 @@ import cats.effect.concurrent._
 import cats.effect.implicits._
 import cats.implicits._
 import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousChannelGroup
 import java.util.concurrent.TimeoutException
+
+import javax.net.ssl.SSLContext
+import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{IdleTimeoutStage, ResponseHeaderTimeoutStage}
+import org.http4s.headers.`User-Agent`
 import org.log4s.getLogger
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 /** Blaze client implementation */
 object BlazeClient {
+
+  def make[F[_]: ConcurrentEffect](
+      config: Config,
+      executionContext: ExecutionContext,
+      maxConnectionsPerRequestKey: Option[RequestKey => Int] = None,
+      sslContext: Option[SSLContext] = None,
+      scheduler: Option[TickWheelExecutor] = None,
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup] = None,
+      channelOptions: Option[ChannelOptions] = None): Resource[F, Client[F]] = {
+    val builder = BlazeClientBuilder[F](executionContext, sslContext)
+
+    implicit class OptionOps[A](val c: A) extends AnyVal {
+      def withOption[O](o: Option[O])(f: A => O => A): A = o match {
+        case Some(value) => f(c)(value)
+        case None => c
+      }
+    }
+
+    builder
+      .withOption(config.responseHeaderTimeout)(_.withResponseHeaderTimeout)
+      .withOption(config.idleTimeout)(_.withIdleTimeout)
+      .withOption(config.requestTimeout)(_.withRequestTimeout)
+      .withOption(config.connectTimeout)(_.withConnectTimeout)
+      .withOption(config.maxTotalConnections)(_.withMaxTotalConnections)
+      .withOption(config.maxWaitQueueLimit)(_.withMaxWaitQueueLimit)
+      .withOption(config.checkEndpointAuthentication)(_.withCheckEndpointAuthentication)
+      .withOption(config.maxResponseLineSize)(_.withMaxResponseLineSize)
+      .withOption(config.maxHeaderLength)(_.withMaxHeaderLength)
+      .withOption(config.maxChunkSize)(_.withMaxChunkSize)
+      .withOption(config.chunkBufferMaxSize)(_.withChunkBufferMaxSize)
+      .withOption(config.parserMode)(_.withParserMode)
+      .withOption(config.bufferSize)(_.withBufferSize)
+      .withOption(config.userAgent)(_.withUserAgent)
+      .withOption(maxConnectionsPerRequestKey)(_.withMaxConnectionsPerRequestKey)
+      .withOption(sslContext)(_.withSslContext)
+      .withOption(scheduler)(_.withScheduler)
+      .withOption(asynchronousChannelGroup)(_.withAsynchronousChannelGroup)
+      .withOption(channelOptions)(_.withChannelOptions)
+      .resource
+  }
+
   private[this] val logger = getLogger
 
   /** Construct a new [[Client]] using blaze components
