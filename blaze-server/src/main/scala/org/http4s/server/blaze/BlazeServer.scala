@@ -3,6 +3,8 @@ package org.http4s.server.blaze
 import java.net.InetSocketAddress
 import java.util.concurrent.ThreadFactory
 
+import cats.Applicative
+import cats.instances.option._
 import cats.effect.{ConcurrentEffect, Resource, Timer}
 import org.http4s.HttpApp
 import org.http4s.blaze.channel.ChannelOptions
@@ -20,8 +22,8 @@ object BlazeServer {
       httpApp: Option[HttpApp[F]] = None,
       serviceErrorHandler: Option[ServiceErrorHandler[F]] = None,
       channelOptions: Option[ChannelOptions] = None)(
-      implicit CE: ConcurrentEffect[F],
-      T: Timer[F]): Resource[F, Server[F]] = {
+      implicit F: ConcurrentEffect[F],
+      timer: Timer[F]): Resource[F, Server[F]] = {
 
     implicit class BuilderOps[A](val c: A) {
       def withOption[O](o: Option[O])(f: A => O => A): A = o match {
@@ -31,7 +33,7 @@ object BlazeServer {
     }
 
     BlazeServerBuilder[F]
-      .withOption(config.host.zip(config.port)) { s =>
+      .withOption(Applicative[Option].tuple2(config.host, config.port)) { s =>
         {
           case (host, port) =>
             s.bindSocketAddress(InetSocketAddress.createUnresolved(host, port))
