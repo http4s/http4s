@@ -46,15 +46,17 @@ private[client] object ClientHelpers {
       initSocket <- sg.client[F](address, additionalSocketOptions = additionalSocketOptions)
       socket <- {
         if (requestKey.scheme === Uri.Scheme.https)
-          tlsContextOpt.fold[Resource[F, Socket[F]]]{
+          tlsContextOpt.fold[Resource[F, Socket[F]]] {
             ApplicativeError[Resource[F, *], Throwable].raiseError(
               new Throwable("EmberClient Not Configured for Https")
             )
-          }{tlsContext =>
-            tlsContext.client(initSocket, TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
+          } { tlsContext =>
+            tlsContext
+              .client(
+                initSocket,
+                TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
               .widen[Socket[F]]
-          }
-        else initSocket.pure[Resource[F, *]]
+          } else initSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
 
