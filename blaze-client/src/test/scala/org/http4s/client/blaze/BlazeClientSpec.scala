@@ -5,6 +5,7 @@ import cats.effect._
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.implicits._
 import fs2.Stream
+import java.nio.channels.UnresolvedAddressException
 import java.util.concurrent.TimeoutException
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -17,7 +18,6 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 class BlazeClientSpec extends Http4sSpec {
-
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
   /** the map method allows to "post-process" the fragments after their creation */
@@ -322,6 +322,16 @@ class BlazeClientSpec extends Http4sSpec {
             }
             .unsafeRunTimed(5.seconds)
             .attempt must_== Some(Right("simple path"))
+        }
+
+        "raise a ConnectionFailure when a host can't be resolved" in {
+          mkClient(1)
+            .use { client =>
+              client.status(Request[IO](uri = uri"http://example.invalid/"))
+            }
+            .unsafeRunTimed(5.seconds) must throwAn[UnresolvedAddressException].like {
+            case e => e.getMessage must_== "Error connecting to http://example.invalid"
+          }
         }
       }
     }
