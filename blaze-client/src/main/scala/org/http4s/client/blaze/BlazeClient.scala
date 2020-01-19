@@ -2,20 +2,19 @@ package org.http4s
 package client
 package blaze
 
-import cats.effect._
-import cats.effect.concurrent._
-import cats.effect.implicits._
-import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
 import java.util.concurrent.TimeoutException
 
+import cats.effect._
+import cats.effect.concurrent._
+import cats.effect.implicits._
+import cats.implicits._
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{IdleTimeoutStage, ResponseHeaderTimeoutStage}
-import org.http4s.headers.`User-Agent`
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext
@@ -34,7 +33,7 @@ object BlazeClient {
       channelOptions: Option[ChannelOptions] = None): Resource[F, Client[F]] = {
     val builder = BlazeClientBuilder[F](executionContext, sslContext)
 
-    implicit class OptionOps[A](val c: A) extends AnyVal {
+    implicit class BuilderOps[A](val c: A) {
       def withOption[O](o: Option[O])(f: A => O => A): A = o match {
         case Some(value) => f(c)(value)
         case None => c

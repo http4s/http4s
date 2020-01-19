@@ -23,7 +23,7 @@ object BlazeServer {
       implicit CE: ConcurrentEffect[F],
       T: Timer[F]): Resource[F, Server[F]] = {
 
-    implicit class OptionOps[A](val c: A) extends AnyVal {
+    implicit class BuilderOps[A](val c: A) {
       def withOption[O](o: Option[O])(f: A => O => A): A = o match {
         case Some(value) => f(c)(value)
         case None => c
