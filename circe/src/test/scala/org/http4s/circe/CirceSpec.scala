@@ -1,15 +1,16 @@
 package org.http4s
 package circe.test // Get out of circe package so we can import custom instances
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._
 import cats.implicits._
+import fs2.Stream
 import io.circe._
 import io.circe.syntax._
 import io.circe.testing.instances._
 import java.nio.charset.StandardCharsets
-import cats.data.NonEmptyList
 import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
@@ -106,6 +107,76 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       writeToString(foo)(jsonEncoderWithPrinterOf(Printer.spaces2)) must_== ("""{
           |  "bar" : 42
           |}""".stripMargin)
+    }
+  }
+
+  "stream json array encoder" should {
+    val jsons = Stream(
+      Json.obj("test1" -> Json.fromString("CirceSupport")),
+      Json.obj("test2" -> Json.fromString("CirceSupport"))
+    ).lift[IO]
+
+    "have json content type" in {
+      streamJsonArrayEncoder[IO].headers.get(`Content-Type`) must_== Some(
+        `Content-Type`(MediaType.application.json))
+    }
+
+    "write compact JSON" in {
+      writeToString(jsons) must_== ("""[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""")
+    }
+
+    "write JSON according to custom encoders" in {
+      val custom = CirceInstances.withPrinter(Printer.spaces2).build
+      import custom._
+      writeToString(jsons) must_== ("""[{
+          |  "test1" : "CirceSupport"
+          |},{
+          |  "test2" : "CirceSupport"
+          |}]""".stripMargin)
+    }
+
+    "write JSON according to explicit printer" in {
+      writeToString(jsons)(streamJsonArrayEncoderWithPrinter(Printer.spaces2)) must_== ("""[{
+          |  "test1" : "CirceSupport"
+          |},{
+          |  "test2" : "CirceSupport"
+          |}]""".stripMargin)
+    }
+  }
+
+  "stream json array encoder of" should {
+    val foos = Stream(
+      Foo(42),
+      Foo(350)
+    ).lift[IO]
+
+    "have json content type" in {
+      streamJsonArrayEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(
+        `Content-Type`(MediaType.application.json))
+    }
+
+    "write compact JSON" in {
+      writeToString(foos)(streamJsonArrayEncoderOf[IO, Foo]) must_== (
+        """[{"bar":42},{"bar":350}]"""
+      )
+    }
+
+    "write JSON according to custom encoders" in {
+      val custom = CirceInstances.withPrinter(Printer.spaces2).build
+      import custom._
+      writeToString(foos)(streamJsonArrayEncoderOf) must_== ("""[{
+          |  "bar" : 42
+          |},{
+          |  "bar" : 350
+          |}]""".stripMargin)
+    }
+
+    "write JSON according to explicit printer" in {
+      writeToString(foos)(streamJsonArrayEncoderWithPrinterOf(Printer.spaces2)) must_== ("""[{
+          |  "bar" : 42
+          |},{
+          |  "bar" : 350
+          |}]""".stripMargin)
     }
   }
 

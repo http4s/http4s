@@ -8,7 +8,7 @@ import org.http4s._
 
 object ErrorHandling {
 
-  def apply[F[_], G[_], A](k: Kleisli[F, Request[G], Response[G]])(
+  def apply[F[_], G[_]](k: Kleisli[F, Request[G], Response[G]])(
       implicit F: MonadError[F, Throwable],
       G: Applicative[G]): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>

@@ -8,19 +8,24 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
   def hparse(value: String): ParseResult[`Set-Cookie`] = HttpHeaderParser.SET_COOKIE(value)
 
   "Set-Cookie parser" should {
-    val cookiestr = "myname=\"foo\"; Domain=value; Max-Age=1; Path=value; Secure;HttpOnly"
-
     "parse a set cookie" in {
+      val cookiestr =
+        "myname=\"foo\"; Domain=value; Max-Age=1; Path=value; SameSite=Strict; Secure;HttpOnly"
       val c = parse(cookiestr).cookie
       c.name must be_==("myname")
       c.content must be_==("foo")
       c.maxAge must be_==(Some(1))
-      c.path must be_==(Some("value"))
+      c.path must beSome("value")
+      c.sameSite must be_==(SameSite.Strict)
       c.secure must be_==(true)
       c.httpOnly must be_==(true)
-
     }
 
+    "default to SameSite=Lax" in {
+      val cookiestr = "myname=\"foo\"; Domain=value; Max-Age=1; Path=value"
+      val c = parse(cookiestr).cookie
+      c.sameSite must be_==(SameSite.Lax)
+    }
   }
 }
 

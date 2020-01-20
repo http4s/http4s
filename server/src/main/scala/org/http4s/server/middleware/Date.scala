@@ -7,16 +7,13 @@ import cats.effect._
 
 import org.http4s._
 import org.http4s.headers.{Date => HDate}
-import scala.concurrent.duration.MILLISECONDS
-
-import java.time.Instant
 
 /**
   * Date Middleware, adds the Date Header to All Responses generated
   * by the service.
  **/
 object Date {
-  def apply[G[_]: MonadError[*[_], Throwable]: Clock, F[_], A](
+  def apply[G[_]: Monad: Clock, F[_], A](
       k: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
     Kleisli { a =>
       for {
@@ -24,11 +21,7 @@ object Date {
         header <- resp.headers
           .get(HDate)
           .fold(
-            Clock[G]
-              .realTime(MILLISECONDS)
-              .map(Instant.ofEpochMilli(_))
-              .flatMap(nowInstant => HttpDate.fromInstant(nowInstant).liftTo[G])
-              .map(nowHttpDate => HDate(nowHttpDate))
+            HttpDate.current[G].map(HDate(_))
           )(_.pure[G])
 
       } yield resp.putHeaders(header)
