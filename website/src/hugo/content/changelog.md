@@ -41,6 +41,10 @@ it.
 
 # v0.20.16
 
+## Bugfixes
+
+* [#3086](https://github.com/http4s/http4s/pull/3086): Fix connection leak in blaze-client pool manager when the next request in the queue is expired.
+
 ## Breaking changes
 
 * [#3053](https://github.com/http4s/http4s/pull/3053): Deprecate `HttpDate.now`, which is not referentially transparent. Prefer `HttpDate.current`.
