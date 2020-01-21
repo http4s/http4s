@@ -203,6 +203,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         if (isExpired(at)) {
           logger.debug(s"Request expired")
           callback(Left(new TimeoutException("In wait queue for too long, timing out request.")))
+          releaseRecyclable(key, connection)
         } else {
           logger.debug(s"Fulfilling waiting connection request: $stats")
           callback(Right(NextConnection(connection, fresh = false)))
