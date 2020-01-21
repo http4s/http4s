@@ -24,6 +24,7 @@ it.
 * [#3051](https://github.com/http4s/http4s/pull/3051): Add `HttpDate.current` convenience constructor, based on `Clock`.
 * [#3052](https://github.com/http4s/http4s/pull/3052): Add `Caching` server middleware.
 * [#3065](https://github.com/http4s/http4s/pull/3065): Add `ErrorAction` server middleware
+* [#3082](https://github.com/http4s/http4s/pull/3082): Wrap `UnresolvedAddressException` in blaze in an `UnresolvedAddressException` subtype that contains the address that could not resolve to aid diagnostics.  This is a conservative change.  See [#3078](https://github.com/http4s/http4s/pull/3078) for the wrapper forthcoming in http4s-0.21.
 
 ## Documentation
 
