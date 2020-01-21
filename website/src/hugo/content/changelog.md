@@ -8,6 +8,11 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.25 (2020-01-21)
+
+## Bug fixes
+* [#3093](https://github.com/http4s/http4s/pull/3093): Fix connection leak in PoolManager
+
 # v0.18.24 (2019-06-12)
 
 ## Bug fixes
