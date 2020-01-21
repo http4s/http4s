@@ -71,12 +71,12 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def withTLS(tlsContext: TLSContext, tlsParameters: TLSParameters = TLSParameters.Default) =
     copy(tlsInfoOpt = (tlsContext, tlsParameters).pure[Option])
-  def withoutTLS = 
+  def withoutTLS =
     copy(tlsInfoOpt = None)
 
-  def withBlocker(blocker: Blocker) = 
+  def withBlocker(blocker: Blocker) =
     copy(blockerOpt = blocker.pure[Option])
-  
+
   def withOnError(onError: Throwable => Response[F]) = copy(onError = onError)
   def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
