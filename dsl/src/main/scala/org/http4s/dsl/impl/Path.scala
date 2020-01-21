@@ -309,7 +309,7 @@ abstract class FlagQueryParamMatcher(name: String) {
   *   object FooMatcher extends OptionalMultiQueryParamDecoderMatcher[Foo]("foo")
   *   val routes = HttpRoutes.of {
   *     // matches http://.../closest?foo=2&foo=3&foo=4
-  *     case GET -> Root / "closest" :? FooMatcher(Some(Seq(2,3,4))) => ...
+  *     case GET -> Root / "closest" :? FooMatcher(Validated.Valid(Seq(Foo(2),Foo(3),Foo(4)))) => ...
   *
   *     /*
   *     *  matches http://.../closest?foo=2&foo=3&foo=4 as well as http://.../closest (no parameters)

@@ -8,6 +8,39 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.16
+
+## Bugfixes
+
+* [#3086](https://github.com/http4s/http4s/pull/3086): Fix connection leak in blaze-client pool manager when the next request in the queue is expired.
+
+## Breaking changes
+
+* [#3053](https://github.com/http4s/http4s/pull/3053): Deprecate `HttpDate.now`, which is not referentially transparent. Prefer `HttpDate.current`.
+
+## Enhancements
+
+* [#3049](https://github.com/http4s/http4s/pull/3049): Add new `Date` server middleware
+* [#3051](https://github.com/http4s/http4s/pull/3051): Add `HttpDate.current` convenience constructor, based on `Clock`.
+* [#3052](https://github.com/http4s/http4s/pull/3052): Add `Caching` server middleware.
+* [#3065](https://github.com/http4s/http4s/pull/3065): Add `ErrorAction` server middleware
+* [#3082](https://github.com/http4s/http4s/pull/3082): Wrap `UnresolvedAddressException` in blaze in an `UnresolvedAddressException` subtype that contains the address that could not resolve to aid diagnostics.  This is a conservative change.  See [#3078](https://github.com/http4s/http4s/pull/3078) for the wrapper forthcoming in http4s-0.21.
+
+## Documentation
+
+* [#3017](https://github.com/http4s/http4s/pull/3017): Correct the documentation in `Timeout.apply`
+* [#3020](https://github.com/http4s/http4s/pull/3020): Update scaladoc to compiling example code on OptionalMultiQueryParamDecoderMatcher
+
+## Dependency updates
+
+* async-http-client-2.10.4
+* jetty-9.4.26.v20200117
+* metrics-4.1.2 (Dropwizard)
+* log4s-1.8.2
+* okhttp-3.14.6
+* simpleclient-0.8.0 (Prometheus)
+* tomcat-9.0.30
+
 # v0.20.15 (2019-11-27)
 
 ## Enhancements
