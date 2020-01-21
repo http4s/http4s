@@ -3,6 +3,7 @@ package org.http4s.ember.server.internal
 import fs2._
 import fs2.concurrent._
 import fs2.io.tcp._
+import fs2.io.tls._
 import cats.effect._
 import cats.implicits._
 import scala.concurrent.duration._
@@ -18,6 +19,8 @@ private[server] object ServerHelpers {
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
       sg: SocketGroup,
+      tlsContextOpt: Option[TLSContext],
+      tlsParametersOpt: Option[TLSParameters],
       // Defaults
       onError: Throwable => Response[F] = { _: Throwable =>
         Response[F](Status.InternalServerError)
@@ -66,7 +69,18 @@ private[server] object ServerHelpers {
           sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
             .map(connect =>
               Stream.eval(
-                connect.use { socket =>
+                connect.flatMap{ socketInit => 
+                  tlsContextOpt.fold(
+                    socketInit.pure[Resource[F, *]]
+                  ){
+                    context => 
+                      val params = tlsParametersOpt.getOrElse(TLSParameters.Default)
+                      
+                      context.server(socketInit, params, {s: String => logger.trace(s)}.some)
+                        .widen[Socket[F]]
+                  }
+                }.use { socket =>
+                  
                   val app: F[(Request[F], Response[F])] = for {
                     req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
                     resp <- httpApp
