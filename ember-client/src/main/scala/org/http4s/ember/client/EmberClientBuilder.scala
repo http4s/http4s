@@ -9,7 +9,7 @@ import cats.implicits._
 import cats.effect._
 import scala.concurrent.duration._
 import org.http4s.headers.Connection
-import org.http4s.Response
+import org.http4s.{Response, Uri}
 import org.http4s.client._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
@@ -115,10 +115,14 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
         .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
     } yield {
-      val client = Client[F](request =>
+      val client = Client[F] { request =>
+        val requestKey = RequestKey.fromRequest(request)
+        val tlsParamOpts = if (requestKey.scheme === Uri.Scheme.https) {
+          request.attributes.lookup(EmberClient.TLSParameters)
+        } else None
+
         for {
-          managed <- pool.take(
-            (RequestKey.fromRequest(request), request.attributes.lookup(EmberClient.TLSParameters)))
+          managed <- pool.take((requestKey, tlsParamOpts))
           _ <- Resource.liftF(
             pool.state.flatMap { poolState =>
               logger.trace(
@@ -153,7 +157,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               case Reusable.Reuse => resp.body.compile.drain.attempt.void
               case Reusable.DontReuse => Sync[F].unit
             })
-        } yield response)
+        } yield response
+      }
       new EmberClient[F](client, pool)
     }
 
