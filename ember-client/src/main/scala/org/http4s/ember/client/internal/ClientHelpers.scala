@@ -27,8 +27,10 @@ private[client] object ClientHelpers {
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
+    val parametersOpt = request.attributes.lookup(EmberClient.TLSParameters)
     requestKeyToSocketWithKey[F](
       requestKey,
+      parametersOpt,
       tlsContextOpt,
       sg,
       additionalSocketOptions
@@ -37,6 +39,7 @@ private[client] object ClientHelpers {
 
   def requestKeyToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       requestKey: RequestKey,
+      tlsParametersOpt: Option[TLSParameters],
       tlsContextOpt: Option[TLSContext],
       sg: SocketGroup,
       additionalSocketOptions: List[SocketOptionMapping[_]]
@@ -54,7 +57,10 @@ private[client] object ClientHelpers {
             tlsContext
               .client(
                 initSocket,
-                TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
+                tlsParametersOpt
+                  .getOrElse(
+                    TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
+              )
               .widen[Socket[F]]
           } else initSocket.pure[Resource[F, *]]
       }
