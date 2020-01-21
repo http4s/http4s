@@ -1,6 +1,7 @@
 package org.http4s
 package client
 
+import cats.implicits._
 import cats.effect._
 import fs2.Stream
 import scala.concurrent.duration._
@@ -96,8 +97,8 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
         result3 <- waiting3.join.void.attempt
       } yield (result1, result2, result3)).unsafeRunTimed(2.seconds) must beSome.like {
         case (result1, result2, result3) =>
-          result1 must_== Left(WaitQueueTimeoutException)
-          result2 must_== Left(WaitQueueTimeoutException)
+          result1 must beLeft
+          result2 must beLeft
           result3 must beRight
       }
     }
