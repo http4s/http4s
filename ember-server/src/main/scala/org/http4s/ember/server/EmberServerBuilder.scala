@@ -18,8 +18,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val port: Int,
     private val httpApp: HttpApp[F],
     private val blockerOpt: Option[Blocker],
-    private val tlsContextOpt: Option[TLSContext],
-    private val tlsParametersOpt: Option[TLSParameters],
+    private val tlsInfoOpt: Option[(TLSContext, TLSParameters)],
     private val sgOpt: Option[SocketGroup],
     private val onError: Throwable => Response[F],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
@@ -36,8 +35,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       port: Int = self.port,
       httpApp: HttpApp[F] = self.httpApp,
       blockerOpt: Option[Blocker] = self.blockerOpt,
-      tlsContextOpt: Option[TLSContext] = self.tlsContextOpt,
-      tlsParametersOpt: Option[TLSParameters] = self.tlsParametersOpt,
+      tlsInfoOpt: Option[(TLSContext, TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup] = self.sgOpt,
       onError: Throwable => Response[F] = self.onError,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
@@ -52,8 +50,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     port = port,
     httpApp = httpApp,
     blockerOpt = blockerOpt,
-    tlsContextOpt = tlsContextOpt,
-    tlsParametersOpt = tlsParametersOpt,
+    tlsInfoOpt = tlsInfoOpt,
     sgOpt = sgOpt,
     onError = onError,
     onWriteFailure = onWriteFailure,
@@ -71,8 +68,12 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def withSocketGroup(sg: SocketGroup) =
     copy(sgOpt = sg.pure[Option])
-  def withTLSContext(tlsContext: TLSContext, tlsParameters: Option[TLSParameters]) =
-    copy(tlsContextOpt = tlsContext.pure[Option], tlsParametersOpt = tlsParameters)
+
+  def withTLS(tlsContext: TLSContext, tlsParameters: TLSParameters = TLSParameters.Default) =
+    copy(tlsInfoOpt = (tlsContext, tlsParameters).pure[Option])
+  def withoutTLS = 
+    copy(tlsInfoOpt = None)
+
   def withBlocker(blocker: Blocker) = 
     copy(blockerOpt = blocker.pure[Option])
   
@@ -100,8 +101,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 bindAddress,
                 httpApp,
                 sg,
-                tlsContextOpt,
-                tlsParametersOpt,
+                tlsInfoOpt,
                 onError,
                 onWriteFailure,
                 shutdownSignal.some,
@@ -134,8 +134,7 @@ object EmberServerBuilder {
       port = Defaults.port,
       httpApp = Defaults.httpApp[F],
       blockerOpt = None,
-      tlsContextOpt = None,
-      tlsParametersOpt = None, 
+      tlsInfoOpt = None,
       sgOpt = None,
       onError = Defaults.onError[F],
       onWriteFailure = Defaults.onWriteFailure[F],

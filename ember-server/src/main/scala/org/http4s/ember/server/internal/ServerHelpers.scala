@@ -19,8 +19,7 @@ private[server] object ServerHelpers {
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
       sg: SocketGroup,
-      tlsContextOpt: Option[TLSContext],
-      tlsParametersOpt: Option[TLSParameters],
+      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
       // Defaults
       onError: Throwable => Response[F] = { _: Throwable =>
         Response[F](Status.InternalServerError)
@@ -70,12 +69,10 @@ private[server] object ServerHelpers {
             .map(connect =>
               Stream.eval(
                 connect.flatMap{ socketInit => 
-                  tlsContextOpt.fold(
+                  tlsInfoOpt.fold(
                     socketInit.pure[Resource[F, *]]
                   ){
-                    context => 
-                      val params = tlsParametersOpt.getOrElse(TLSParameters.Default)
-                      
+                    case (context, params) => 
                       context.server(socketInit, params, {s: String => logger.trace(s)}.some)
                         .widen[Socket[F]]
                   }
@@ -86,7 +83,6 @@ private[server] object ServerHelpers {
                     resp <- httpApp
                       .run(req)
                       .handleError(onError)
-                    // .flatTap(resp => Sync[F].delay(logger.debug(s"Response Created $resp")))
                   } yield (req, resp)
                   def send(request: Option[Request[F]], resp: Response[F]): F[Unit] =
                     Stream(resp)
