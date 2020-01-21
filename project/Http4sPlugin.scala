@@ -258,7 +258,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % "0.4.0"
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
-  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.12.3"
+  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.13.0-RC1"
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % circeGeneric.revision
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeGeneric.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeGeneric.revision
@@ -267,13 +267,12 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.2"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.0.0"
-  lazy val fs2Crypto                        = "com.spinoco"            %% "fs2-crypto"                % "0.5.0-M1"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.1.0"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.2.1"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.15.0"
-  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.3"
-  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "0.14.3"
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "1.0.0-RC2"
+  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "1.0.0"
+  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "1.0.0"
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.26.v20200117"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.26.v20200117"
@@ -296,7 +295,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "2.0.1"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
-  lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.14.2"
+  lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.14.3"
   def scalaReflect(sv: String)              = "org.scala-lang"         %  "scala-reflect"             % sv
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.8.4"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.2.0"

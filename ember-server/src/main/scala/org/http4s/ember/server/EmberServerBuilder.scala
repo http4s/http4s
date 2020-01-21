@@ -6,6 +6,7 @@ import cats.effect._
 import fs2.concurrent._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
+import fs2.io.tls._
 import org.http4s._
 import org.http4s.server.Server
 import scala.concurrent.duration._
@@ -16,7 +17,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val host: String,
     val port: Int,
     private val httpApp: HttpApp[F],
-    private val sgR: Resource[F, SocketGroup],
+    private val blockerOpt: Option[Blocker],
+    private val tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+    private val sgOpt: Option[SocketGroup],
     private val onError: Throwable => Response[F],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
     val maxConcurrency: Int,
@@ -31,7 +34,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       host: String = self.host,
       port: Int = self.port,
       httpApp: HttpApp[F] = self.httpApp,
-      sgR: Resource[F, SocketGroup] = self.sgR,
+      blockerOpt: Option[Blocker] = self.blockerOpt,
+      tlsInfoOpt: Option[(TLSContext, TLSParameters)] = self.tlsInfoOpt,
+      sgOpt: Option[SocketGroup] = self.sgOpt,
       onError: Throwable => Response[F] = self.onError,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
       maxConcurrency: Int = self.maxConcurrency,
@@ -44,7 +49,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     host = host,
     port = port,
     httpApp = httpApp,
-    sgR = sgR,
+    blockerOpt = blockerOpt,
+    tlsInfoOpt = tlsInfoOpt,
+    sgOpt = sgOpt,
     onError = onError,
     onWriteFailure = onWriteFailure,
     maxConcurrency = maxConcurrency,
@@ -58,8 +65,18 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withHost(host: String) = copy(host = host)
   def withPort(port: Int) = copy(port = port)
   def withHttpApp(httpApp: HttpApp[F]) = copy(httpApp = httpApp)
+
   def withSocketGroup(sg: SocketGroup) =
-    copy(sgR = sg.pure[Resource[F, ?]])
+    copy(sgOpt = sg.pure[Option])
+
+  def withTLS(tlsContext: TLSContext, tlsParameters: TLSParameters = TLSParameters.Default) =
+    copy(tlsInfoOpt = (tlsContext, tlsParameters).pure[Option])
+  def withoutTLS =
+    copy(tlsInfoOpt = None)
+
+  def withBlocker(blocker: Blocker) =
+    copy(blockerOpt = blocker.pure[Option])
+
   def withOnError(onError: Throwable => Response[F]) = copy(onError = onError)
   def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
@@ -72,8 +89,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Server[F]] =
     for {
+      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, ?]])
+      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, ?]])
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
-      sg <- sgR
       shutdownSignal <- Resource.liftF(SignallingRef[F, Boolean](false))
       out <- Resource.make(
         Concurrent[F]
@@ -83,6 +101,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 bindAddress,
                 httpApp,
                 sg,
+                tlsInfoOpt,
                 onError,
                 onWriteFailure,
                 shutdownSignal.some,
@@ -114,7 +133,9 @@ object EmberServerBuilder {
       host = Defaults.host,
       port = Defaults.port,
       httpApp = Defaults.httpApp[F],
-      sgR = Defaults.sgR[F],
+      blockerOpt = None,
+      tlsInfoOpt = None,
+      sgOpt = None,
       onError = Defaults.onError[F],
       onWriteFailure = Defaults.onWriteFailure[F],
       maxConcurrency = Defaults.maxConcurrency,
@@ -130,8 +151,6 @@ object EmberServerBuilder {
     val port: Int = 8000
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
-    def sgR[F[_]: Sync: ContextShift]: Resource[F, SocketGroup] =
-      Blocker[F].flatMap(b => SocketGroup[F](b))
     def onError[F[_]]: Throwable => Response[F] = { _: Throwable =>
       Response[F](Status.InternalServerError)
     }
