@@ -8,33 +8,77 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.0-M6 (2019-11-27)
+# v0.21.0-RC1 (2020-01-21)
 
 ## Breaking changes
 
-* [#2906](https://github.com/http4s/http4s/pull/2906): Weaken constraint on `Http` and `HttpRoutes` from `Sync` to `Defer`.  This is binary-breaking, but is source compatible in most cases.
-* [#2612](https://github.com/http4s/http4s/pull/2612): Generalize `AuthedRequest` to `ContextRequest`
-* [#2967](https://github.com/http4s/http4s/pull/2967): `Link` header is now modeled as a recurring header of `LinkValue`. Parser is now RFC8288 compliant.
-* [#2933](https://github.com/http4s/http4s/pull/2933): Changed `Request` from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.
-* [#2933](https://github.com/http4s/http4s/pull/2933): Changed `Request` from a sealed abstract case class to a final class to work around unreachable code warnings in Scala 2.13.  The case class methods are reimplemented manually, so this is not expected to be source breaking.
+* [#3012](https://github.com/http4s/http4s/pull/3012): Use `HttpApp` instead of `HttpRoutes` in `Http4sServlet`. The servlet builders themselves retain compatibility.
+* [#3078](https://github.com/http4s/http4s/pull/3078): Wrap Java exceptions in `ConnectionFailure` when a blaze-client fails to establish a connection. This preserves information about which host could not be connected to.
+* [#3062](https://github.com/http4s/http4s/pull/3062): http4s' JSON support is now built on jawn-1.0.0, which is a binary break from jawn-0.14.x.  This comes with a bump to circe-0.13.  Most circe-0.13 modules are binary compatible with circe-0.12, but note that circe-parser is not.
+* [#3055](https://github.com/http4s/http4s/pull/3055): Add fs2-io's TLS support to ember-client.  The `sslContext: Option[(ExecutionContext, SSLContext)]` argument is replaced by a `tlsContext: Option[TLSContext]`.`
 
 ## Enhancements
 
-* [#2907](https://github.com/http4s/http4s/pull/2933): Add `JsonDecoder` algebra to circe, to avoid `Sync` constraint in business logic.
-* [#2994](https://github.com/http4s/http4s/pull/2994): Refreshed the `MimeDb` from the IANA registry.
+* [#3004](https://github.com/http4s/http4s/pull/3004): Add `classloader` argument to `StaticFile.fromResource` 
+* [#3007](https://github.com/http4s/http4s/pull/3007): Add `classloader` argument to `TomcatBuilder`
+* [#3008](https://github.com/http4s/http4s/pull/3008): Consistently use `collection.Seq` across Scala versions in DSL
+* [#3031](https://github.com/http4s/http4s/pull/3031): Relax `Router.apply` constraint from `Sync` to `Monad`
+* [#2821](https://github.com/http4s/http4s/pull/2821): Add `Media` supertype of `Message` and `Part`, so multipart parts can use `EntityDecoder`s
+* [#3021](https://github.com/http4s/http4s/pull/3021): Relax `Throttle.apply` constraint from `Sync` to `Monad`. Add a `mapK` operation to `TokenBucket`.
+* [#3056](https://github.com/http4s/http4s/pull/3056): Add `streamJsonArrayEncoder*` operations to circe support, to encode a `Stream` of `A` to a JSON array, given an encoder for `A`.
+* [#3053](https://github.com/http4s/http4s/pull/3053): Remove unneeded `Functor[G]` constraint on `HeaderEcho.apply`.
+* [#3054](https://github.com/http4s/http4s/pull/3054): Add `SameSite` cookie support
+* [#2518](https://github.com/http4s/http4s/pull/2518): Add `status` methods to `Client` that take a `String` or `Uri`
+* [#3069](https://github.com/http4s/http4s/pull/3069): Add `ContextMiddleware.const` function
+* [#3070](https://github.com/http4s/http4s/pull/3070): Add `NonEmptyTraverse` instance to `ContextRequest`
+* [#3060](https://github.com/http4s/http4s/pull/3060): Stop mixing context bounds and implicits in `CirceInstances`.
+* [#3024](https://github.com/http4s/http4s/pull/3024): Add `withQueryParams` and `withMultiValueQueryParams` to `QueryOps`
+* [#3092](https://github.com/http4s/http4s/pull/3092): Add TLS support to ember-server via fs2-io.
 
 ## Dependency updates
+
+* cats-2.1.0
+* circe-0.13.0-RC1
+* fs2-2.2.0
+* jawn-1.0.0
+* jawn-fs2-1.0.0-RC2
+* okhttp-4.3.1
+* play-json-2.8.1
+* scalacheck-1.14.3
+* scalatags-0.8.4
+* specs2-4.8.3
+
+# v0.20.16 (2020-01-21)
+
+## Bugfixes
+
+* [#3086](https://github.com/http4s/http4s/pull/3086): Fix connection leak in blaze-client pool manager when the next request in the queue is expired.
+
+## Breaking changes
+
+* [#3053](https://github.com/http4s/http4s/pull/3053): Deprecate `HttpDate.now`, which is not referentially transparent. Prefer `HttpDate.current`.
+
+## Enhancements
+
+* [#3049](https://github.com/http4s/http4s/pull/3049): Add new `Date` server middleware
+* [#3051](https://github.com/http4s/http4s/pull/3051): Add `HttpDate.current` convenience constructor, based on `Clock`.
+* [#3052](https://github.com/http4s/http4s/pull/3052): Add `Caching` server middleware.
+* [#3065](https://github.com/http4s/http4s/pull/3065): Add `ErrorAction` server middleware
+
+## Documentation
+
+* [#3017](https://github.com/http4s/http4s/pull/3017): Correct the documentation in `Timeout.apply`
+* [#3020](https://github.com/http4s/http4s/pull/3020): Update scaladoc to compiling example code on OptionalMultiQueryParamDecoderMatcher
+
+## Dependency updates
+
 * async-http-client-2.10.4
-* circe-0.12.3
-* jawn-0.14.3
-* log4cats-1.0.1
-* okhttp-4.2.1
-* fs2-2.1.0
+* jetty-9.4.26.v20200117
+* metrics-4.1.2 (Dropwizard)
+* log4s-1.8.2
+* okhttp-3.14.6
 * simpleclient-0.8.0 (Prometheus)
-* scala-2.13.1
-* scalacheck-1.14.2
-* specs2-4.8.1
-* twirl-1.5.0
+* tomcat-9.0.30
 
 # v0.20.15 (2019-11-27)
 

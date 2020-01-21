@@ -273,9 +273,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "1.0.0-RC2"
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "1.0.0"
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "1.0.0"
-  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.25.v20191220"
+  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.26.v20200117"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
-  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.25.v20191220"
+  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.26.v20200117"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.6.7"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
