@@ -30,6 +30,7 @@ it.
 * [#2518](https://github.com/http4s/http4s/pull/2518): Add `status` methods to `Client` that take a `String` or `Uri`
 * [#3069](https://github.com/http4s/http4s/pull/3069): Add `ContextMiddleware.const` function
 * [#3070](https://github.com/http4s/http4s/pull/3070): Add `NonEmptyTraverse` instance to `ContextRequest`
+* [#3060](https://github.com/http4s/http4s/pull/3060): Stop mixing context bounds and implicits in `CirceInstances`.
 
 ## Dependency updates
 
