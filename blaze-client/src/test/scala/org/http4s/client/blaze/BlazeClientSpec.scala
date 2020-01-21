@@ -116,7 +116,7 @@ class BlazeClientSpec extends Http4sSpec with CatsIO {
             .use(_.expect[String](u))
             .attempt
             .unsafeRunTimed(1.second)
-          resp must beSome(beLeft[Throwable](beAnInstanceOf[IllegalStateException]))
+          resp must beSome(beLeft[Throwable](beAnInstanceOf[ClientFailure]))
         }
 
         "behave and not deadlock" in {
@@ -350,7 +350,7 @@ class BlazeClientSpec extends Http4sSpec with CatsIO {
             .map {
               _ must beLike {
                 case Left(e: ClientFailure) =>
-                  e.getMessage must_== "http://example.invalid using address example.invalid:80 (unresolved: true)"
+                  e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
               }
             }
         }
