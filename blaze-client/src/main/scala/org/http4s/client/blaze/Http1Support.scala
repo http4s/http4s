@@ -2,12 +2,11 @@ package org.http4s
 package client
 package blaze
 
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousChannelGroup
-
 import cats.effect._
 import cats.implicits._
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.nio.channels.{AsynchronousChannelGroup, UnresolvedAddressException}
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
@@ -16,9 +15,8 @@ import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.fromFuture
-
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 
 /** Provides basic HTTP1 pipeline building
   */
@@ -62,6 +60,13 @@ final private class Http1Support[F[_]](
       addr: InetSocketAddress): Future[BlazeConnection[F]] =
     connectionManager
       .connect(addr)
+      .recoverWith {
+        case e: UnresolvedAddressException =>
+          Future.failed(new UnresolvedAddressException() {
+            override def getMessage: String = s"Error connecting to $requestKey"
+            override def getCause: Throwable = e
+          })
+      }(executionContext)
       .map { head =>
         val (builder, t) = buildStages(requestKey)
         builder.base(head)
