@@ -31,6 +31,7 @@ it.
 * [#3069](https://github.com/http4s/http4s/pull/3069): Add `ContextMiddleware.const` function
 * [#3070](https://github.com/http4s/http4s/pull/3070): Add `NonEmptyTraverse` instance to `ContextRequest`
 * [#3060](https://github.com/http4s/http4s/pull/3060): Stop mixing context bounds and implicits in `CirceInstances`.
+* [#3024](https://github.com/http4s/http4s/pull/3024): Add `withQueryParams` and `withMultiValueQueryParams` to `QueryOps`
 
 ## Dependency updates
 
@@ -38,6 +39,7 @@ it.
 * circe-0.13.0-RC1
 * fs2-2.2.0
 * jawn-1.0.0
+* jawn-fs2-1.0.0-RC2
 * okhttp-4.3.1
 * play-json-2.8.1
 * scalacheck-1.14.3
