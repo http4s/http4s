@@ -83,7 +83,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, ?]])
       tlsContextOptWithDefault <- Resource.liftF(
         tlsContextOpt
-          .fold(Sync[F].delay(TLSContext.system(blocker)).attempt.map(_.toOption))(_.some.pure[F])
+          .fold(TLSContext.system(blocker).attempt.map(_.toOption))(_.some.pure[F])
       )
       builder = KeyPoolBuilder
         .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
