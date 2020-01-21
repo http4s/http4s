@@ -86,7 +86,7 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
         result1 <- waiting1.join.void.attempt
         result2 <- waiting2.join.void.attempt
         result3 <- waiting3.join.void.attempt
-      } yield (result1, result2, result3)).unsafeRunTimed(2.seconds) must beSome.like {
+      } yield (result1, result2, result3)).unsafeRunTimed(10.seconds) must beSome.like {
         case (result1, result2, result3) =>
           result1 must_== Left(WaitQueueTimeoutException)
           result2 must_== Left(WaitQueueTimeoutException)
