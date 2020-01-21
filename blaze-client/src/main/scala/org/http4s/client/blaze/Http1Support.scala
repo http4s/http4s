@@ -69,9 +69,9 @@ final private class Http1Support[F[_]](
                 t
               }
             case Left(e) =>
-              Future.failed(e)
+              Future.failed(new ClientFailure(requestKey, addr, e))
           }
-        case Failure(e) => Future.failed(new ConnectionFailure(requestKey, e))
+        case Failure(e) => Future.failed(new ClientFailure(requestKey, addr, e))
       }(executionContext)
 
   private def buildStages(requestKey: RequestKey)
