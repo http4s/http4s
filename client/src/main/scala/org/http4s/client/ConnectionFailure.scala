@@ -17,5 +17,5 @@ class ConnectionFailure(
 
 object ConnectionFailure {
   def unapply(failure: ConnectionFailure): Option[(RequestKey, InetSocketAddress, Throwable)] =
-    Some(failure.requestKey, failure.upstream, failure.cause)
+    Some((failure.requestKey, failure.upstream, failure.cause))
 }
