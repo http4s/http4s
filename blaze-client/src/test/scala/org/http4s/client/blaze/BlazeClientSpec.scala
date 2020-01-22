@@ -12,7 +12,7 @@ import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.client.ClientFailure
+import org.http4s.client.ConnectionFailure
 import org.http4s.client.testroutes.GetRoutes
 import org.specs2.specification.core.Fragments
 import scala.concurrent.Await
@@ -116,7 +116,7 @@ class BlazeClientSpec extends Http4sSpec with CatsIO {
             .use(_.expect[String](u))
             .attempt
             .unsafeRunTimed(1.second)
-          resp must beSome(beLeft[Throwable](beAnInstanceOf[ClientFailure]))
+          resp must beSome(beLeft[Throwable](beAnInstanceOf[ConnectionFailure]))
         }
 
         "behave and not deadlock" in {
@@ -349,7 +349,7 @@ class BlazeClientSpec extends Http4sSpec with CatsIO {
             .attempt
             .map {
               _ must beLike {
-                case Left(e: ClientFailure) =>
+                case Left(e: ConnectionFailure) =>
                   e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
               }
             }
