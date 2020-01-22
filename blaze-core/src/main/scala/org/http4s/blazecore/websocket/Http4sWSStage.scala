@@ -5,28 +5,31 @@ package websocket
 import cats.effect._
 import cats.implicits._
 import fs2._
-import fs2.concurrent.SignallingRef
+import fs2.concurrent.{Queue, SignallingRef}
 import java.util.concurrent.atomic.AtomicBoolean
+
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.{WebSocket, WebSocketFrame}
 import org.http4s.websocket.WebSocketFrame._
+
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
     sentClose: AtomicBoolean,
-    deadSignal: SignallingRef[F, Boolean]
+    deadSignal: SignallingRef[F, Boolean],
+    sinkQueue: Queue[F, WebSocketFrame]
 )(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
 
   def name: String = "Http4s WebSocket Stage"
 
   //////////////////////// Source and Sink generators ////////////////////////
-  def snk: Pipe[F, WebSocketFrame, Unit] = _.evalMap { frame =>
+  def sinkStream: Stream[F, Unit] = sinkQueue.dequeue.evalMap { frame =>
     F.delay(sentClose.get()).flatMap { wasCloseSent =>
       if (!wasCloseSent) {
         frame match {
@@ -88,7 +91,7 @@ private[http4s] class Http4sWSStage[F[_]](
         } yield c
       case Ping(d) =>
         //Reply to ping frame immediately
-        writeFrame(Pong(d), trampoline) >> handleRead()
+        sinkQueue.offer1(Pong(d)) >> handleRead()
       case _: Pong =>
         //Don't forward pong frame
         handleRead()
@@ -117,7 +120,7 @@ private[http4s] class Http4sWSStage[F[_]](
 
     val wsStream = inputstream
       .through(ws.receive)
-      .concurrently(ws.send.through(snk).drain) //We don't need to terminate if the send stream terminates.
+      .concurrently(ws.send.through(sinkQueue.enqueue).merge(sinkStream).drain) //We don't need to terminate if the send stream terminates.
       .interruptWhen(deadSignal)
       .onFinalize(ws.onClose.attempt.void) //Doing it this way ensures `sendClose` is sent no matter what
       .onFinalize(sendClose)
