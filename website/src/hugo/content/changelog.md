@@ -8,7 +8,12 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.16
+# v0.18.25 (2020-01-21)
+
+## Bug fixes
+* [#3093](https://github.com/http4s/http4s/pull/3093): Backport [#3086](https://github.com/http4s/http4s/pull/3086): Fix connection leak in blaze-client pool manager when the next request in the queue is expired.
+
+# v0.20.16 (2020-01-21)
 
 ## Bugfixes
 
