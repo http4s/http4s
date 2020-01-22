@@ -149,7 +149,8 @@ object BlazeClient {
                 F.cancelable[TimeoutException] { cb =>
                   val c = scheduler.schedule(new Runnable {
                     def run() =
-                      cb(Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
+                      cb(Right(
+                        new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
                   }, ec, d)
                   F.delay(c.cancel)
                 }
