@@ -23,7 +23,6 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
       maxWaitQueueLimit: Int = 2,
       requestTimeout: Duration = Duration.Inf
   ) =
-<<<<<<< HEAD
     ConnectionManager.pool(
       builder = _ => IO(new TestConnection()),
       maxTotal = maxTotal,
@@ -33,18 +32,6 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
       requestTimeout = requestTimeout,
       executionContext = testExecutionContext
     )
-=======
-    IO(
-      ConnectionManager.pool(
-        builder = _ => IO(new TestConnection()),
-        maxTotal = maxTotal,
-        maxWaitQueueLimit = maxWaitQueueLimit,
-        maxConnectionsPerRequestKey = _ => 5,
-        responseHeaderTimeout = Duration.Inf,
-        requestTimeout = requestTimeout,
-        executionContext = testExecutionContext
-      ))
->>>>>>> release-0.18.x
 
   "A pool manager" should {
     "wait up to maxWaitQueueLimit" in {
