@@ -57,7 +57,7 @@ object BlazeClient {
         def invalidate(connection: A): F[Unit] =
           manager
             .invalidate(connection)
-            .handleError(e => logger.error(e)("Error invalidating connection"))
+            .handleError(e => logger.error(e)(s"Error invalidating connection for $key"))
 
         def borrow: Resource[F, manager.NextConnection] =
           Resource.makeCase(manager.borrow(key)) {
