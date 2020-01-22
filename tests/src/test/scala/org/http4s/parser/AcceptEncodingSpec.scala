@@ -16,7 +16,6 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
   val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(QValue.q(1.0)))
 
   "Accept-Encoding parser" should {
-
     "parse all encodings" in {
       foreach(ContentCoding.standard) {
         case (_, coding) =>

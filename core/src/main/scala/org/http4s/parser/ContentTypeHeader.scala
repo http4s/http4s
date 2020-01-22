@@ -22,7 +22,6 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.internal.parboiled2._
 
 private[parser] trait ContentTypeHeader {
-
   def CONTENT_TYPE(value: String): ParseResult[`Content-Type`] =
     new ContentTypeParser(value).parse
 

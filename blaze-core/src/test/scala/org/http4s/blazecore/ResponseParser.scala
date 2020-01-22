@@ -9,7 +9,6 @@ import org.http4s.blaze.http.parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
 
 class ResponseParser extends Http1ClientParser {
-
   val headers = new ListBuffer[(String, String)]
 
   var code: Int = -1

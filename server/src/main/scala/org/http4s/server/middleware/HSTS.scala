@@ -36,5 +36,4 @@ object HSTS {
     val header = `Strict-Transport-Security`.unsafeFromDuration(maxAge, includeSubDomains, preload)
     apply(http, header)
   }
-
 }

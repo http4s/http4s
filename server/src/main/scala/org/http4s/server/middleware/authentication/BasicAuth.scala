@@ -13,7 +13,6 @@ import org.http4s.headers.Authorization
   * Provides Basic Authentication from RFC 2617.
   */
 object BasicAuth {
-
   /**
     * Validates a plaintext password (presumably by comparing it to a
     * hashed value).  A Some value indicates success; None indicates

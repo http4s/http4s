@@ -8,7 +8,6 @@ import io.chrisdavenport.log4cats.testing.TestingLogger
 
 class ParsingSpec extends Specification {
   private object Helpers {
-
     def stripLines(s: String): String = s.replace("\r\n", "\n")
     def httpifyString(s: String): String = s.replace("\n", "\r\n")
 
@@ -78,5 +77,4 @@ class ParsingSpec extends Specification {
       result.body.compile.toVector.unsafeRunSync must_=== expected.body.compile.toVector.unsafeRunSync
     }
   }
-
 }

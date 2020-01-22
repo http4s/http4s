@@ -6,7 +6,6 @@ import cats.data.Kleisli
 import cats.syntax.semigroupk._
 
 object Router {
-
   /**
     * Defines an [[HttpRoutes]] based on list of mappings.
     * @see define
@@ -50,5 +49,4 @@ object Router {
       req.withAttribute(Request.Keys.PathInfoCaret, oldCaret + newCaret)
     }
   }
-
 }

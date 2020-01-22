@@ -197,7 +197,6 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`. */
 object JavaNetClientBuilder {
-
   /**
     * @param blockingExecutionContext An `ExecutionContext` on which
     * blocking operations will be performed.

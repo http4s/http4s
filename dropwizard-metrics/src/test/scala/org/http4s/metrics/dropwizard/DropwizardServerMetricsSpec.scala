@@ -9,9 +9,7 @@ import org.http4s.server.middleware.Metrics
 import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
 
 class DropwizardServerMetricsSpec extends Http4sSpec {
-
   "Http routes with a dropwizard metrics middleware" should {
-
     "register a 2xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test1")
@@ -194,5 +192,4 @@ class DropwizardServerMetricsSpec extends Http4sSpec {
   }
 
   private def testRoutes = HttpRoutes.of[IO](stub)
-
 }

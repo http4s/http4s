@@ -14,14 +14,12 @@ import org.http4s.Http
 import org.http4s.util.CaseInsensitiveString
 
 object HttpMethodOverrider {
-
   /**
     * HttpMethodOverrider middleware config options.
     */
   class HttpMethodOverriderConfig[F[_], G[_]](
       val overrideStrategy: OverrideStrategy[F, G],
       val overridableMethods: Set[Method]) {
-
     type Self = HttpMethodOverriderConfig[F, G]
 
     private def copy(
@@ -74,7 +72,6 @@ object HttpMethodOverrider {
   def apply[F[_], G[_]](http: Http[F, G], config: HttpMethodOverriderConfig[F, G])(
       implicit F: Monad[F],
       S: Sync[G]): Http[F, G] = {
-
     val parseMethod = (m: String) => Method.fromString(m.toUpperCase)
 
     val processRequestWithOriginalMethod = (req: Request[G]) => http(req)

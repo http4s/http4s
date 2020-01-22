@@ -315,7 +315,6 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   }
 
   "application/x-www-form-urlencoded" should {
-
     val server: Request[IO] => IO[Response[IO]] = { req =>
       req
         .decode[UrlForm](form => Response[IO](Ok).withEntity(form).pure[IO])

@@ -87,5 +87,4 @@ package object testing {
 
   @deprecated("Moved to org.http4s.laws.discipline.HttpCodecTests.", "0.21.0-M2")
   val HttpCodecTests = org.http4s.laws.discipline.HttpCodecTests
-
 }

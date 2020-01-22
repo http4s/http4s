@@ -6,7 +6,6 @@ import cats.implicits._
 import org.http4s.Uri.uri
 
 class HttpRoutesSpec extends Http4sSpec {
-
   val routes1 = HttpRoutes.of[IO] {
     case req if req.pathInfo == "/match" =>
       Response[IO](Status.Ok).withEntity("match").pure[IO]

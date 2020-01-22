@@ -8,14 +8,12 @@ import org.http4s.headers.Origin
 import org.http4s.internal.parboiled2._
 
 trait OriginHeader {
-
   def ORIGIN(value: String): ParseResult[Origin] =
     new OriginParser(value).parse
 
   private class OriginParser(value: String)
       extends Http4sHeaderParser[Origin](value)
       with Rfc3986Parser {
-
     override def charset: Charset =
       StandardCharsets.ISO_8859_1
 

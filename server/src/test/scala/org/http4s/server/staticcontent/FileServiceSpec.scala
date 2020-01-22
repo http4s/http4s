@@ -14,7 +14,6 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
     FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath, testBlocker))
 
   "FileService" should {
-
     "Respect UriTranslation" in {
       val app = TranslateUri("/foo")(routes).orNotFound
 
@@ -89,5 +88,4 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       }
     }
   }
-
 }

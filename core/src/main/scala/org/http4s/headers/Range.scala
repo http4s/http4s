@@ -8,7 +8,6 @@ import org.http4s.util.{Renderable, Writer}
 // See https://tools.ietf.org/html/rfc7233
 
 object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
-
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
     Range(unit, NonEmptyList.of(r1, rs: _*))
 
@@ -24,7 +23,6 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
   }
 
   final case class SubRange(first: Long, second: Option[Long]) extends Renderable {
-
     /** Base method for rendering this object efficiently */
     override def render(writer: Writer): writer.type = {
       writer << first

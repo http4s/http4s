@@ -6,7 +6,6 @@ import cats.effect._
 import org.http4s.dsl.io._
 
 class TranslateUriSpec extends Http4sSpec {
-
   val routes = HttpRoutes.of[IO] {
     case _ -> Root / "foo" =>
       Ok("foo")

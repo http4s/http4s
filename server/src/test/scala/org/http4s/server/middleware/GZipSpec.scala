@@ -13,7 +13,6 @@ import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 
 class GZipSpec extends Http4sSpec {
-
   "GZip" should {
     "fall through if the route doesn't match" in {
       val routes = GZip(HttpRoutes.empty[IO]) <+> HttpRoutes.of[IO] {

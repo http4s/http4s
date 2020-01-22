@@ -9,7 +9,6 @@ import java.nio.file.{Files, Path, StandardOpenOption}
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
-
   private[this] val logger = org.log4s.getLogger
 
   private[this] val CRLFBytesN = Array[Byte]('\r', '\n')
@@ -279,7 +278,6 @@ object MultipartParser {
       values: Array[Byte],
       stream: Stream[F, Byte],
       limit: Int): SplitStream[F] = {
-
     //Check if a particular chunk a final chunk, that is,
     //whether it's the boundary plus an extra "--", indicating it's
     //the last boundary
@@ -414,7 +412,6 @@ object MultipartParser {
   private def splitHalf[F[_]: Sync](
       values: Array[Byte],
       stream: Stream[F, Byte]): SplitStream[F] = {
-
     def go(
         s: Stream[F, Byte],
         state: Int,
@@ -772,7 +769,6 @@ object MultipartParser {
       stream: Stream[F, Byte],
       maxBeforeWrite: Int,
       blocker: Blocker)(implicit F: Sync[F], cs: ContextShift[F]): SplitFileStream[F] = {
-
     def streamAndWrite(
         s: Stream[F, Byte],
         state: Int,
@@ -841,5 +837,4 @@ object MultipartParser {
         Pull.raiseError[F](MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
     }
   }
-
 }

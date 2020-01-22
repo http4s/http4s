@@ -8,12 +8,10 @@ import org.http4s.server.AuthMiddleware
 import cats.syntax.semigroupk._
 
 class AuthMiddlewareSpec extends Http4sSpec {
-
   type User = Long
 
   "AuthMiddleware" should {
     "fall back to onAuthFailure when authentication returns a Either.Left" in {
-
       val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
         Kleisli.pure(Left("Unauthorized"))
 
@@ -34,7 +32,6 @@ class AuthMiddlewareSpec extends Http4sSpec {
     }
 
     "enrich the request with a user when authentication returns Either.Right" in {
-
       val userId: User = 42
 
       val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
@@ -192,7 +189,6 @@ class AuthMiddlewareSpec extends Http4sSpec {
     }
 
     "not consume the entire request when using fall through" in {
-
       val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
         Kleisli.liftF(OptionT.none)
 
@@ -217,9 +213,6 @@ class AuthMiddlewareSpec extends Http4sSpec {
       //Unmatched
       (service <+> regularRoutes).orNotFound(Request[IO](method = Method.PUT)) must returnStatus(
         NotFound)
-
     }
-
   }
-
 }

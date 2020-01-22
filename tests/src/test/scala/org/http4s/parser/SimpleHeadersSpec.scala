@@ -7,9 +7,7 @@ import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 
 class SimpleHeadersSpec extends Http4sSpec {
-
   "SimpleHeaders" should {
-
     "parse Connection" in {
       val header = Connection("closed".ci)
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)

@@ -19,7 +19,6 @@ import _root_.io.chrisdavenport.log4cats.Logger
 import javax.net.ssl.SNIHostName
 
 private[client] object ClientHelpers {
-
   def requestToSocketWithKey[F[_]: Concurrent: Timer: ContextShift](
       request: Request[F],
       tlsContextOpt: Option[TLSContext],
@@ -67,7 +66,6 @@ private[client] object ClientHelpers {
       maxResponseHeaderSize: Int,
       timeout: Duration
   )(logger: Logger[F])(implicit T: Timer[F]): F[Response[F]] = {
-
     def onNoTimeout(socket: Socket[F]): F[Response[F]] =
       Parser.Response.parser(maxResponseHeaderSize)(
         socket
@@ -115,5 +113,4 @@ private[client] object ClientHelpers {
         val host = auth.host.value
         Sync[F].delay(new InetSocketAddress(host, port))
     }
-
 }

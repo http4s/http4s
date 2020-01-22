@@ -35,7 +35,6 @@ sealed class JettyBuilder[F[_]] private (
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
-
   type Self = JettyBuilder[F]
 
   private[this] val logger = getLogger

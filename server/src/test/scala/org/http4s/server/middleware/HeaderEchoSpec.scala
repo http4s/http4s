@@ -7,7 +7,6 @@ import org.http4s.Uri.uri
 import org.http4s.util.CaseInsensitiveString
 
 class HeaderEchoSpec extends Http4sSpec {
-
   object someHeaderKey extends HeaderKey.Default
   object anotherHeaderKey extends HeaderKey.Default
 
@@ -62,5 +61,4 @@ class HeaderEchoSpec extends Http4sSpec {
       (responseHeaders.toList must have).size(2)
     }
   }
-
 }

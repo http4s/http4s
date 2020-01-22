@@ -10,7 +10,6 @@ import org.http4s.headers.`Accept-Ranges`
   * for serious static content serving.
   */
 package object staticcontent {
-
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
   def resourceService[F[_]: Effect: ContextShift](
       config: ResourceService.Config[F]): HttpRoutes[F] =

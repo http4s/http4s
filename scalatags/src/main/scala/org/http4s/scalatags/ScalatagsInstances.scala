@@ -6,7 +6,6 @@ import cats.Applicative
 import org.http4s.headers.`Content-Type`
 
 trait ScalatagsInstances {
-
   implicit def scalatagsEncoder[F[_]: Applicative](
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, TypedTag[String]] =
     contentEncoder(MediaType.text.html)
@@ -17,5 +16,4 @@ trait ScalatagsInstances {
       .stringEncoder[F]
       .contramap[C](content => content.render)
       .withContentType(`Content-Type`(mediaType, charset))
-
 }

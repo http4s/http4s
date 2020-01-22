@@ -24,7 +24,6 @@ import org.http4s.CharsetRange._
 import org.http4s.QValue.QValueParser
 
 private[parser] trait AcceptCharsetHeader {
-
   def ACCEPT_CHARSET(value: String): ParseResult[headers.`Accept-Charset`] =
     new AcceptCharsetParser(value).parse
 

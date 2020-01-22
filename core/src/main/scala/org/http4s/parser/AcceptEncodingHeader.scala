@@ -29,12 +29,10 @@ private[parser] trait AcceptEncodingHeader {
   private class AcceptEncodingParser(input: ParserInput)
       extends Http4sHeaderParser[`Accept-Encoding`](input)
       with ContentCodingParser {
-
     def entry: Rule1[`Accept-Encoding`] = rule {
       oneOrMore(EncodingRangeDecl).separatedBy(ListSep) ~ EOL ~> { xs: Seq[ContentCoding] =>
         `Accept-Encoding`(xs.head, xs.tail: _*)
       }
     }
-
   }
 }

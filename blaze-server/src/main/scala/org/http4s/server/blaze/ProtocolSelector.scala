@@ -29,7 +29,6 @@ private[blaze] object ProtocolSelector {
       scheduler: TickWheelExecutor)(
       implicit F: ConcurrentEffect[F],
       timer: Timer[F]): ALPNServerSelector = {
-
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { streamId: Int =>
         LeafBuilder(

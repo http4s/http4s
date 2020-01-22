@@ -22,7 +22,6 @@ import org.http4s.internal.parboiled2._
 import org.http4s.QValue.QValueParser
 
 private[parser] trait AcceptLanguageHeader {
-
   def ACCEPT_LANGUAGE(value: String): ParseResult[headers.`Accept-Language`] =
     new AcceptLanguageParser(value).parse
 
@@ -42,7 +41,5 @@ private[parser] trait AcceptLanguageHeader {
           LanguageTag(main, q, sub.toList)
       }
     }
-
   }
-
 }

@@ -12,7 +12,6 @@ import org.http4s.{Header, Request, Uri}
 
 // See: https://developer.github.com/apps/building-oauth-apps/authorization-options-for-oauth-apps/#web-application-flow
 class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
-
   // NEVER make this data public! This is just a demo!
   private val ClientId = "959ea01cd3065cad274a"
   private val ClientSecret = "53901db46451977e6331432faa2616ba24bc2550"
@@ -54,5 +53,4 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
 
     client.expect[String](request)
   }
-
 }

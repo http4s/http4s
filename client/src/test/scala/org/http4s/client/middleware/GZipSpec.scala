@@ -7,18 +7,15 @@ import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Encoding`
 
 class GZipSpec extends Http4sSpec {
-
   val service = server.middleware.GZip(HttpApp[IO] {
     case GET -> Root / "gziptest" =>
       Ok("Dummy response")
   })
 
   "Client Gzip" should {
-
     val gzipClient = GZip()(Client.fromHttpApp(service))
 
     "return data correctly" in {
-
       val body = gzipClient.get(Uri.unsafeFromString("/gziptest")) { response =>
         response.status must_== Status.Ok
         response.headers.get(`Content-Encoding`) must beNone

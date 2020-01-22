@@ -11,7 +11,6 @@ import org.scalacheck._
 import org.specs2.matcher.MatchResult
 
 class ChunkAggregatorSpec extends Http4sSpec {
-
   val transferCodingGen: Gen[collection.Seq[TransferCoding]] =
     Gen.someOf(
       collection.Seq(
@@ -81,5 +80,4 @@ class ChunkAggregatorSpec extends Http4sSpec {
       }
     }
   }
-
 }

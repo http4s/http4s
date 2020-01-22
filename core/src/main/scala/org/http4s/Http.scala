@@ -5,7 +5,6 @@ import cats.data.Kleisli
 
 /** Functions for creating [[Http]] kleislis. */
 object Http {
-
   /** Lifts a function into an [[Http]] kleisli.  The application of
     * `run` is suspended in `F` to permit more efficient combination
     * of routes via `SemigroupK`.

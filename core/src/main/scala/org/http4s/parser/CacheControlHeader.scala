@@ -26,13 +26,11 @@ import org.http4s.syntax.string._
 import scala.concurrent.duration._
 
 private[parser] trait CacheControlHeader {
-
   def CACHE_CONTROL(value: String): ParseResult[`Cache-Control`] =
     new CacheControlParser(value).parse
 
   private class CacheControlParser(input: ParserInput)
       extends Http4sHeaderParser[`Cache-Control`](input) {
-
     def entry: Rule1[`Cache-Control`] = rule {
       oneOrMore(CacheDirective).separatedBy(ListSep) ~ EOI ~> { xs: Seq[CacheDirective] =>
         `Cache-Control`(xs.head, xs.tail: _*)
@@ -70,5 +68,4 @@ private[parser] trait CacheControlHeader {
       }
     }
   }
-
 }

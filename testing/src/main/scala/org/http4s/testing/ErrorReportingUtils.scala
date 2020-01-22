@@ -22,7 +22,6 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.util.control.NonFatal
 
 trait ErrorReportingUtils {
-
   /**
     * Silences `System.err`, only printing the output in case exceptions are
     * thrown by the executed `thunk`.
@@ -64,5 +63,4 @@ trait ErrorReportingUtils {
     }
     outStream.toString("utf-8")
   }
-
 }

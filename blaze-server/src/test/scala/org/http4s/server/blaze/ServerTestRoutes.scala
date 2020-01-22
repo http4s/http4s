@@ -11,7 +11,6 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 
 object ServerTestRoutes extends Http4sDsl[IO] {
-
   val textPlain: Header = `Content-Type`(MediaType.text.plain, `UTF-8`)
 
   val connClose = Connection("close".ci)
@@ -121,5 +120,4 @@ object ServerTestRoutes extends Http4sDsl[IO] {
           NotModified()
       }
       .orNotFound
-
 }

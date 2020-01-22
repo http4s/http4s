@@ -28,7 +28,6 @@ import scala.language.postfixOps
   * This feature is not considered stable.
   */
 package object oauth1 {
-
   private val SHA1 = "HmacSHA1"
   private def UTF_8 = StandardCharsets.UTF_8
   private val OutOfBand = "oob"

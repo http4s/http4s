@@ -11,7 +11,6 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import scala.concurrent.ExecutionContext.global
 
 object ClientExample extends IOApp {
-
   def getSite(client: Client[IO]): IO[Unit] = IO {
     val page: IO[String] = client.expect[String](Uri.uri("https://www.google.com/"))
 

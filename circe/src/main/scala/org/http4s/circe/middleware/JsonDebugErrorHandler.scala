@@ -12,7 +12,6 @@ import org.http4s.implicits._
 import org.http4s.circe._
 
 object JsonDebugErrorHandler {
-
   private[this] val messageFailureLogger =
     org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.message-failures")
   private[this] val serviceErrorLogger =

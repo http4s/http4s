@@ -10,7 +10,6 @@ final case class ContextRequest[F[_], A](context: A, req: Request[F]) {
 
   @deprecated("Use context instead", "0.21.0")
   def authInfo: A = context
-
 }
 
 object ContextRequest {

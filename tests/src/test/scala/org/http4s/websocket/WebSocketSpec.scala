@@ -12,7 +12,6 @@ import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 
 class WebSocketSpec extends Specification with ScalaCheck {
-
   def helloTxtMasked =
     Array(0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58).map(_.toByte)
 
@@ -30,7 +29,6 @@ class WebSocketSpec extends Specification with ScalaCheck {
   }
 
   "WebSocket decoder" should {
-
     "equate frames correctly" in {
       val f1 = Binary(ByteVector(0x2.toByte, 0x3.toByte), true)
       val f11 = Binary(ByteVector(0x2.toByte, 0x3.toByte), true)
@@ -46,7 +44,6 @@ class WebSocketSpec extends Specification with ScalaCheck {
     }
 
     "decode a hello world message" in {
-
       val result = decode(helloTxtMasked, false)
       result.last should_== true
       new String(result.data.toArray, UTF_8) should_== "Hello"
@@ -73,7 +70,6 @@ class WebSocketSpec extends Specification with ScalaCheck {
     }
 
     "encode a close message" in {
-
       val reasonGen = for {
         length <- choose(0, 30) //UTF-8 chars are at most 4 bytes, byte limit is 123
         chars <- listOfN(length, arbitrary[Char])
@@ -127,5 +123,4 @@ class WebSocketSpec extends Specification with ScalaCheck {
       msg should_== msg2
     }
   }
-
 }

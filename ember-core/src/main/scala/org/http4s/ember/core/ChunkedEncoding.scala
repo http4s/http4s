@@ -8,7 +8,6 @@ import Shared._
 import scala.util.control.NonFatal
 
 private[ember] object ChunkedEncoding {
-
   /** From fs2-http
     * decodes from the HTTP chunked encoding. After last chunk this terminates. Allows to specify max header size, after which this terminates
     * Please see https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
@@ -56,7 +55,6 @@ private[ember] object ChunkedEncoding {
                   Stream.chunk(Chunk.ByteVectorChunk(next)) ++ tl)
               }
           }
-
       }
 
     go(Left(ByteVector.empty), _).stream
@@ -90,5 +88,4 @@ private[ember] object ChunkedEncoding {
         } catch { case NonFatal(_) => None }
       }
     }
-
 }

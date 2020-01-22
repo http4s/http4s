@@ -14,7 +14,6 @@ import scala.collection.mutable
 import scodec.bits.ByteVector
 
 private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame] {
-
   def name: String = "WebSocket Frame Aggregator"
 
   private[this] val accumulator = new Accumulator

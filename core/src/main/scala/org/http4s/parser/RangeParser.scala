@@ -7,7 +7,6 @@ import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parboiled2._
 
 private[parser] trait RangeParser {
-
   def RANGE(value: String): ParseResult[Range] =
     new Http4sHeaderParser[Range](value) with RangeRule {
       import Range.SubRange
@@ -35,7 +34,6 @@ private[parser] trait RangeParser {
           Some(s.toLong)
         })
       }
-
     }.parse
 
   trait RangeRule extends Parser with AdditionalRules {

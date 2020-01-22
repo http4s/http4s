@@ -10,7 +10,6 @@ import Shared._
 import _root_.io.chrisdavenport.log4cats.Logger
 
 private[ember] object Parser {
-
   /**
     * From the stream of bytes this extracts Http Header and body part.
     */
@@ -40,7 +39,6 @@ private[ember] object Parser {
                   s"Size of the header exceeded the limit of $maxHeaderSize (${all.size})"))
             else
               Pull.output1((h, Stream.chunk(Chunk.ByteVectorChunk(t.drop(`\r\n\r\n`.size))) ++ tl))
-
           }
       }
     src => go(ByteVector.empty, src).stream
@@ -72,7 +70,6 @@ private[ember] object Parser {
         val out = headerO.map(Headers.of(_)).foldMap(identity) ++ acc
         out.pure[F]
     }
-
   }
 
   def splitHeader[F[_]: Applicative](byteVector: ByteVector)(
@@ -89,7 +86,6 @@ private[ember] object Parser {
   }
 
   object Request {
-
     def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(l: Logger[F]): F[Request[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
         .evalMap {
@@ -133,7 +129,6 @@ private[ember] object Parser {
         newUri = uri.copy(
           authority = host.map(h => Uri.Authority(host = Uri.RegName(h.host), port = h.port)))
         newHeaders = headers.filterNot(_.is(org.http4s.headers.Host))
-
       } yield org.http4s.Request[F](
         method = method,
         uri = newUri,
@@ -148,7 +143,6 @@ private[ember] object Parser {
         (method, rest) <- getMethodEmitRest[F](b)
         (uri, httpVString) <- getUriEmitHttpVersion[F](rest)
         httpVersion <- HttpVersion.fromString(httpVString).liftTo[F]
-
       } yield (method, uri, httpVersion)
 
     private def getMethodEmitRest[F[_]: ApplicativeError[?[_], Throwable]](
@@ -182,7 +176,6 @@ private[ember] object Parser {
   }
 
   object Response {
-
     def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(
         logger: Logger[F]): F[Response[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
@@ -198,7 +191,6 @@ private[ember] object Parser {
         s: Stream[F, Byte],
         maxHeaderLength: Int)(logger: Logger[F]): F[Response[F]] =
       for {
-
         hE <- splitHeader(b)(logger)
         (methodHttpUri, headersBV) <- hE.fold(
           _ =>
@@ -216,7 +208,6 @@ private[ember] object Parser {
 
         body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
         else s.take(contentLength)
-
       } yield org.http4s.Response[F](
         status = status,
         httpVersion = httpV,
@@ -264,7 +255,5 @@ private[ember] object Parser {
         status <- Status.fromInt(code).liftTo[F]
       } yield status
     }
-
   }
-
 }

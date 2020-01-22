@@ -15,7 +15,6 @@ import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
 
 trait CirceInstances extends JawnInstances {
-
   private val circeSupportParser =
     new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
   import circeSupportParser.facade

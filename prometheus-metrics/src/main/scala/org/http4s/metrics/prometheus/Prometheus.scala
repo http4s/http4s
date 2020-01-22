@@ -60,7 +60,6 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   * values: abnormal, error, timeout
   */
 object Prometheus {
-
   def collectorRegistry[F[_]](implicit F: Sync[F]): Resource[F, CollectorRegistry] =
     Resource.make(F.delay(new CollectorRegistry()))(cr => F.delay(cr.clear()))
 
@@ -83,7 +82,6 @@ object Prometheus {
       metrics: MetricsCollection
   )(implicit F: Sync[F]): MetricsOps[F] =
     new MetricsOps[F] {
-
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
         metrics.activeRequests
           .labels(label(classifier))
@@ -104,7 +102,6 @@ object Prometheus {
         metrics.responseDuration
           .labels(label(classifier), reportMethod(method), Phase.report(Phase.Headers))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-
       }
 
       override def recordTotalTime(
@@ -172,7 +169,6 @@ object Prometheus {
         case Method.DELETE => "delete"
         case _ => "other"
       }
-
     }
 
   private def createMetricsCollection[F[_]: Sync](
@@ -180,7 +176,6 @@ object Prometheus {
       prefix: String,
       responseDurationSecondsHistogramBuckets: NonEmptyList[Double]
   ): Resource[F, MetricsCollection] = {
-
     val responseDuration: Resource[F, Histogram] = registerCollector(
       Histogram
         .build()
@@ -234,7 +229,6 @@ object Prometheus {
   // https://github.com/prometheus/client_java/blob/parent-0.6.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
   private val DefaultHistogramBuckets: NonEmptyList[Double] =
     NonEmptyList(.005, List(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10))
-
 }
 
 final case class MetricsCollection(

@@ -10,7 +10,6 @@ import org.http4s.Status
 import org.http4s.{Request, Response}
 
 object MaxActiveRequests {
-
   def httpApp[F[_]: Concurrent](
       maxActive: Long,
       defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
@@ -75,5 +74,4 @@ object MaxActiveRequests {
           }
         }
     }
-
 }

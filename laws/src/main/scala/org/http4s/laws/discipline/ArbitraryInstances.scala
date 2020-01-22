@@ -864,7 +864,6 @@ private[http4s] trait ArbitraryInstances {
         body <- http4sTestingGenForPureByteStream
       } yield Response(status, httpVersion, headers, body)
     }
-
 }
 
 object ArbitraryInstances extends ArbitraryInstances

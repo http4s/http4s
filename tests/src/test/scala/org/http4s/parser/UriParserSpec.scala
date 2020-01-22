@@ -14,9 +14,7 @@ class IpParserImpl(val input: ParserInput, val charset: NioCharset) extends Pars
 }
 
 class UriParserSpec extends Http4sSpec {
-
   "Uri.requestTarget" should {
-
     def check(items: Seq[(String, Uri)]) = foreach(items) {
       case (str, uri) =>
         Uri.requestTarget(str) must beRight(uri)
@@ -28,7 +26,6 @@ class UriParserSpec extends Http4sSpec {
     // http://www.ietf.org/rfc/rfc2396.txt
 
     "parse a IPv6 address" in {
-
       val v = "01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab" +: (for {
         h <- 0 to 7
         l <- 0 to 7 - h
@@ -205,7 +202,6 @@ class UriParserSpec extends Http4sSpec {
   }
 
   "Uri.fromString" should {
-
     def check(items: Seq[(String, Uri)]) = foreach(items) {
       case (str, uri) =>
         Uri.fromString(str) must beRight(uri)

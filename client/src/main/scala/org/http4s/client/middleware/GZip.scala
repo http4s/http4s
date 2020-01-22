@@ -9,7 +9,6 @@ import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Lengt
   * Client middleware for enabling gzip.
   */
 object GZip {
-
   private val supportedCompressions =
     Seq(ContentCoding.gzip.coding, ContentCoding.deflate.coding).mkString(", ")
 

@@ -8,7 +8,6 @@ import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer.renderString
 
 class UserInfoSpec extends Http4sSpec {
-
   checkAll("Order[UserInfo]", OrderTests[UserInfo].order)
   checkAll("Hash[UserInfo]", HashTests[UserInfo].hash)
   checkAll("HttpCodec[UserInfo]", HttpCodecTests[UserInfo].httpCodec)

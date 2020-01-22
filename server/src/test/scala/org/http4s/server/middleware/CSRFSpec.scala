@@ -12,7 +12,6 @@ import CSRF.unlift
 import cats.arrow.FunctionK
 
 class CSRFSpec extends Http4sSpec {
-
   /** Create a clock that always ticks forward once per millis() call.
     *
     * This is to emulate scenarios where we want to mitigate BREACH where, in
@@ -99,7 +98,6 @@ class CSRFSpec extends Http4sSpec {
     }
 
     "Extract a valid token from header or form field when form enabled" in {
-
       def check(f: (String, Request[IO]) => Request[IO]): IO[Response[IO]] =
         for {
           token <- csrfForm.generateToken[IO]
@@ -118,7 +116,6 @@ class CSRFSpec extends Http4sSpec {
       fromHeader.unsafeRunSync().status must_== Status.Ok
       fromForm.unsafeRunSync().status must_== Status.Ok
       preferHeader.unsafeRunSync().status must_== Status.Ok
-
     }
 
     "pass a request with valid origin a request without any origin, even with a token" in {
@@ -291,5 +288,4 @@ class CSRFSpec extends Http4sSpec {
       !response.cookies.exists(_.name == cookieName) must_== true
     }
   }
-
 }

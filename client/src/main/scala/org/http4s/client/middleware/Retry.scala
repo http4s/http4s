@@ -14,7 +14,6 @@ import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 
 object Retry {
-
   private[this] val logger = getLogger
 
   def apply[F[_]](
@@ -79,7 +78,6 @@ object Retry {
 }
 
 object RetryPolicy {
-
   /** Decomposes a retry policy into components that are typically configured
     * individually.
     *

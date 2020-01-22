@@ -11,7 +11,6 @@ import org.http4s.Method.GET
 import scala.concurrent.duration.TimeUnit
 
 object util {
-
   def stub: PartialFunction[Request[IO], IO[Response[IO]]] = {
     case (GET | POST | PUT | DELETE) -> Root / "ok" =>
       Ok("200 OK")
@@ -57,5 +56,4 @@ object util {
       }
     }
   }
-
 }

@@ -17,7 +17,6 @@ import scala.concurrent.duration._
   * Provides Digest Authentication from RFC 2617.
   */
 object DigestAuth {
-
   /**
     * A function mapping username to a user object and password, or
     * None if no user exists.  Requires that the server can recover

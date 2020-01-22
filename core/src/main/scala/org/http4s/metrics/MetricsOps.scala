@@ -6,7 +6,6 @@ import org.http4s.{Method, Status}
   * Describes an algebra capable of writing metrics to a metrics registry
   */
 trait MetricsOps[F[_]] {
-
   /**
     * Increases the count of active requests
     *
@@ -61,7 +60,6 @@ trait MetricsOps[F[_]] {
 sealed trait TerminationType
 
 object TerminationType {
-
   /** Signals just a generic abnormal termination */
   case object Abnormal extends TerminationType
 

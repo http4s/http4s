@@ -13,7 +13,6 @@ import org.http4s.dsl.io._
 import org.http4s.headers.Cookie
 
 class CookieJarSpec extends Specification with CatsIO {
-
   val epoch: HttpDate = HttpDate.Epoch
 
   "CookieJar middleware" should {
@@ -123,5 +122,4 @@ class CookieJarSpec extends Specification with CatsIO {
       CookieJar.cookieAppliesToRequest(req, cookie) must_=== true
     }
   }
-
 }

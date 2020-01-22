@@ -23,7 +23,6 @@ object Date {
           .fold(
             HttpDate.current[G].map(HDate(_))
           )(_.pure[G])
-
       } yield resp.putHeaders(header)
     }
 }

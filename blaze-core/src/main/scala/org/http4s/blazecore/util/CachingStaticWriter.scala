@@ -16,7 +16,6 @@ private[http4s] class CachingStaticWriter[F[_]](
     implicit protected val F: Effect[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
-
   @volatile
   private var _forceClose = false
   private val bodyBuffer: Buffer[Chunk[Byte]] = Buffer()

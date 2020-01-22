@@ -8,12 +8,10 @@ import org.http4s.Uri.uri
 import org.http4s.server.staticcontent.WebjarService.Config
 
 object WebjarServiceSpec extends Http4sSpec with StaticContentShared {
-
   def routes: HttpRoutes[IO] =
     webjarService(Config[IO](blocker = testBlocker))
 
   "The WebjarService" should {
-
     "Return a 200 Ok file" in {
       val req = Request[IO](GET, Uri(path = "/test-lib/1.0.0/testresource.txt"))
       val rb = runReq(req)

@@ -19,7 +19,6 @@ class MediaRangeSpec extends Specification {
   def ext = Map("foo" -> "bar")
 
   "MediaRanges" should {
-
     "Perform equality correctly" in {
       `text/*` must be_==(`text/*`)
 
@@ -48,7 +47,6 @@ class MediaRangeSpec extends Specification {
   }
 
   "MediaTypes" should {
-
     "Perform equality correctly" in {
       MediaType.text.html must be_==(MediaType.text.html)
 

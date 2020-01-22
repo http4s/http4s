@@ -239,7 +239,6 @@ final class CSRF[F[_], G[_]] private[middleware] (
 }
 
 object CSRF {
-
   def apply[F[_]: Sync, G[_]: Applicative](
       key: SecretKey,
       headerCheck: Request[G] => Boolean
@@ -301,7 +300,6 @@ object CSRF {
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G]
   )(implicit F: Sync[F], G: Applicative[G]) {
-
     private def copy(
         headerName: CaseInsensitiveString = headerName,
         cookieSettings: CookieSettings = cookieSettings,
@@ -359,7 +357,6 @@ object CSRF {
         key,
         headerCheck,
         csrfCheck)
-
   }
 
   private[middleware] final case class CookieSettings(
@@ -384,7 +381,6 @@ object CSRF {
       implicit F: Sync[F]
   ): CSRF[F, G] => CSRFCheck[F, G] = { csrf => (r, http) =>
     def getFormToken: F[Option[String]] = {
-
       def extractToken: G[Option[String]] =
         r.attemptAs[UrlForm]
           .value
@@ -402,7 +398,6 @@ object CSRF {
       snd <- if (fst.isDefined) F.pure(fst) else getFormToken
       tok <- snd.fold(csrf.onfailureF)(csrf.checkCSRFToken(r, http, _))
     } yield tok
-
   }
 
   ///
@@ -512,5 +507,4 @@ object CSRF {
     */
   def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[SecretKey] =
     F.delay(new SecretKeySpec(array, SigningAlgo))
-
 }

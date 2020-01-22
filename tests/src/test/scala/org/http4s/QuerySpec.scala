@@ -3,7 +3,6 @@ package org.http4s
 import org.scalacheck.Prop._
 
 class QuerySpec extends Http4sSpec {
-
   import Query.KeyValue
 
   "fromString(query.toString) == query if query.nonEmpty" >> forAll { query: Query =>
@@ -17,7 +16,6 @@ class QuerySpec extends Http4sSpec {
       q2.length must_== q.length + 1
       q2.pairs.last must_== p
       q2.toList must_== (q.toList :+ p)
-
     }
 
     "prepend a single Pair element" >> forAll { (q: Query, elem: KeyValue) =>
@@ -26,7 +24,6 @@ class QuerySpec extends Http4sSpec {
       q2 must beAnInstanceOf[Query]
       q2.pairs.head must_== elem
       q2.toList must_== (elem :: q.toList)
-
     }
 
     "append many KeyValue elements" >> forAll { (q: Query, elems: Seq[KeyValue]) =>

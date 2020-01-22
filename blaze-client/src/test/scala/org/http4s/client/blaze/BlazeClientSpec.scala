@@ -172,7 +172,6 @@ class BlazeClientSpec extends Http4sSpec with CatsIO {
 
               allRequests
                 .map(_.forall(identity))
-
             }
             .unsafeRunTimed(timeout) must beSome(true)
         }

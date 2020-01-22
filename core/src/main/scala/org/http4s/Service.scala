@@ -7,7 +7,6 @@ import cats.implicits._
 
 @deprecated("Deprecated in favor of Kleisli", "0.18")
 object Service {
-
   /**
     * Lifts a total function to a `Service`. The function is expected to handle
     * all requests it is given.  If `f` is a `PartialFunction`, use `apply`

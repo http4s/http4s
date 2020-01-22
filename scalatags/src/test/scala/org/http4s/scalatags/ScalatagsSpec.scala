@@ -8,7 +8,6 @@ import cats.data.NonEmptyList
 import org.http4s.headers.`Content-Type`
 
 class ScalatagsSpec extends Http4sSpec {
-
   private val testCharsets = NonEmptyList.of(
     Charset.`ISO-8859-1`,
     Charset.fromString("Windows-1251").yolo,
@@ -25,7 +24,6 @@ class ScalatagsSpec extends Http4sSpec {
   }
 
   "TypedTag encoder" should {
-
     "return Content-Type text/html with proper charset" in {
       testCharsets.forall { implicit cs =>
         val headers = EntityEncoder[IO, Text.TypedTag[String]].headers

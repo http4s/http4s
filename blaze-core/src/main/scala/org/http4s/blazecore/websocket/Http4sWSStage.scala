@@ -22,7 +22,6 @@ private[http4s] class Http4sWSStage[F[_]](
     deadSignal: SignallingRef[F, Boolean]
 )(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
-
   def name: String = "Http4s WebSocket Stage"
 
   //////////////////////// Source and Sink generators ////////////////////////

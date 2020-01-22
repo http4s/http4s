@@ -8,7 +8,6 @@ import cats.syntax.applicative._
 import scala.concurrent.duration.FiniteDuration
 
 object Timeout {
-
   /** Transform the service to return a timeout response after the given
     * duration if the service has not yet responded.  If the timeout
     * fires, the service's response is canceled.

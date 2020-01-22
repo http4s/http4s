@@ -29,7 +29,6 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] {
     "write JSON" in {
       writeToString(json) must_== ("""{"test":"PlaySupport"}""")
     }
-
   }
 
   "jsonEncoderOf" should {
@@ -41,7 +40,6 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] {
     "write compact JSON" in {
       writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== ("""{"bar":42}""")
     }
-
   }
 
   "jsonOf" should {

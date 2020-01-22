@@ -11,7 +11,6 @@ import org.specs2.matcher.MustThrownMatchers
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
-
   sealed case class Ttl(seconds: Int)
   object Ttl {
     implicit val queryParamInstance = new QueryParamEncoder[Ttl] with QueryParam[Ttl] {
@@ -147,7 +146,6 @@ http://example.org/a file
   }
 
   "Uri Query decoding" should {
-
     def getQueryParams(uri: String): Map[String, String] = getUri(uri).params
 
     "Handle queries with no spaces properly" in {
@@ -167,7 +165,6 @@ http://example.org/a file
         "x" -> "a bc",
         "y" -> "ijk")
     }
-
   }
 
   "Uri copy" should {
@@ -778,7 +775,6 @@ http://example.org/a file
       val updated = u.withoutFragment
       updated.renderString must_== "/"
     }
-
   }
 
   "Uri.renderString" should {
@@ -793,7 +789,6 @@ http://example.org/a file
   }
 
   "Uri relative resolution" should {
-
     val base = getUri("http://a/b/c/d;p?q")
 
     "correctly remove ./.. sequences" >> {

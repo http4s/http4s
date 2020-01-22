@@ -66,7 +66,6 @@ final case class BlazeClientConfig( // HTTP properties
 
 @deprecated("Use BlazeClientBuilder", "0.19.0-M2")
 object BlazeClientConfig {
-
   /** Default configuration of a blaze client. */
   val defaultConfig =
     BlazeClientConfig(

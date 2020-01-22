@@ -7,7 +7,6 @@ import org.http4s.headers._
 import org.specs2.mutable.Specification
 
 class ResponderSpec extends Specification {
-
   val resp = Response[IO](Status.Ok)
 
   "Responder" should {

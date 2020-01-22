@@ -4,7 +4,6 @@ import java.util.LinkedHashMap
 import scala.annotation.tailrec
 
 private[authentication] object NonceKeeper {
-
   sealed abstract class Reply
 
   case object StaleReply extends Reply
@@ -12,7 +11,6 @@ private[authentication] object NonceKeeper {
   case object OKReply extends Reply
 
   case object BadNCReply extends Reply
-
 }
 
 /**

@@ -24,7 +24,6 @@ import scala.concurrent.TimeoutException
   * This middleware can be extended to support any metrics ecosystem by implementing the [[MetricsOps]] type
   */
 object Metrics {
-
   /**
     * Wraps a [[Client]] with a middleware capable of recording metrics
     *

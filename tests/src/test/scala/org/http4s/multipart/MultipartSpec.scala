@@ -12,7 +12,6 @@ import org.http4s.EntityEncoder._
 import org.specs2.mutable.Specification
 
 class MultipartSpec extends Specification {
-
   implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
 
   val url = Uri(
@@ -40,7 +39,6 @@ class MultipartSpec extends Specification {
       implicit E: EntityDecoder[IO, Multipart[IO]]): org.specs2.specification.core.Fragment = {
     s"Multipart form data $name" should {
       "be encoded and decoded with content types" in {
-
         val field1 =
           Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
         val field2 = Part.formData[IO]("field2", "Text_Field_2")
@@ -59,7 +57,6 @@ class MultipartSpec extends Specification {
       }
 
       "be encoded and decoded without content types" in {
-
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
         val multipart = Multipart[IO](Vector(field1))
 
@@ -74,11 +71,9 @@ class MultipartSpec extends Specification {
           case mp =>
             mp === multipart
         }
-
       }
 
       "encoded and decoded with binary data" in {
-
         val file = new File(getClass.getResource("/ball.png").toURI)
 
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
@@ -102,7 +97,6 @@ class MultipartSpec extends Specification {
       }
 
       "be decoded and encode with content types" in {
-
         val body =
           """
 ------WebKitFormBoundarycaZFo8IAKVROTEeD
@@ -137,7 +131,6 @@ Content-Type: application/pdf
       }
 
       "be decoded and encoded without content types" in {
-
         val body =
           """--bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz
 Content-Disposition: form-data; name="Mooses"
@@ -190,5 +183,4 @@ I am a big moose
 
   multipartSpec("with default decoder")(implicitly)
   multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlocker))
-
 }

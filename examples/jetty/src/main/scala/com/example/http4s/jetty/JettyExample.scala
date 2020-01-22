@@ -15,7 +15,6 @@ object JettyExample extends IOApp {
 }
 
 object JettyExampleApp {
-
   def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): JettyBuilder[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
@@ -32,5 +31,4 @@ object JettyExampleApp {
       blocker <- Blocker[F]
       server <- builder[F](blocker).resource
     } yield server
-
 }

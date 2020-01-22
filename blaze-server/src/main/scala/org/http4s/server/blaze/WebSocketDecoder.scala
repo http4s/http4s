@@ -8,7 +8,6 @@ import org.http4s.websocket.FrameTranscoder.TranscodeError
 private class WebSocketDecoder
     extends FrameTranscoder(isClient = false)
     with ByteToObjectStage[WebSocketFrame] {
-
   // unbounded
   val maxBufferSize: Int = 0
 

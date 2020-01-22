@@ -11,7 +11,6 @@ import scala.util.Try
   * Based on SSLContextFactory from jetty.
   */
 private[blaze] object SSLContextFactory {
-
   /**
     * Return X509 certificates for the session.
     *
@@ -63,5 +62,4 @@ private[blaze] object SSLContextFactory {
     else if (cipherSuite.contains("WITH_DES40_CBC_")) 40
     else if (cipherSuite.contains("WITH_DES_CBC_")) 56
     else 0
-
 }

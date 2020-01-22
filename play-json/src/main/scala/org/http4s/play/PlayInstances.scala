@@ -18,7 +18,6 @@ import org.typelevel.jawn.support.play.Parser.facade
 import play.api.libs.json._
 
 trait PlayInstances {
-
   def jsonOf[F[_]: Sync, A](implicit decoder: Reads[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder

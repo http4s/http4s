@@ -21,7 +21,6 @@ private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Item],
     cb: Callback[Resource[F, Response[F]]])(implicit F: ConcurrentEffect[F])
     extends JettyResponse.Listener.Adapter {
-
   import ResponseListener.logger
 
   /* Needed to properly propagate client errors */
@@ -100,7 +99,6 @@ private[jetty] final case class ResponseListener[F[_]](
 
   private def enqueue(item: Item)(cb: Either[Throwable, Unit] => IO[Unit]): Unit =
     queue.enqueue1(item).runAsync(cb).unsafeRunSync()
-
 }
 
 private[jetty] object ResponseListener {

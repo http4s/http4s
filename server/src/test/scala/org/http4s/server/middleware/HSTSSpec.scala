@@ -8,7 +8,6 @@ import org.http4s.headers._
 import scala.concurrent.duration._
 
 class HSTSSpec extends Http4sSpec {
-
   val innerRoutes = HttpRoutes.of[IO] {
     case GET -> Root =>
       Ok("pong")
@@ -17,7 +16,6 @@ class HSTSSpec extends Http4sSpec {
   val req = Request[IO](Method.GET, Uri.uri("/"))
 
   "HSTS" should {
-
     "add the Strict-Transport-Security header" in {
       val app = HSTS.unsafeFromDuration(innerRoutes, 365.days).orNotFound
       val resp = app(req).unsafeRunSync
@@ -39,6 +37,5 @@ class HSTSSpec extends Http4sSpec {
       resp.status must_== Status.Ok
       resp.headers.get(`Strict-Transport-Security`) must beSome
     }
-
   }
 }

@@ -10,7 +10,6 @@ import org.openjdk.jmh.annotations._
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
 class QueryParamBench {
-
   @Benchmark def withQueryParam(in: QueryParamInput): Query =
     in.queryParams.foldLeft(Query.empty) {
       case (query, (key, value)) => query.withQueryParam(key, value)
@@ -18,5 +17,4 @@ class QueryParamBench {
 
   @Benchmark def setQueryParams(in: QueryParamInput): Query =
     Query.empty.setQueryParams(CollectionCompat.mapValues(in.queryParams)(Seq(_)))
-
 }
