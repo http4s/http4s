@@ -10,9 +10,7 @@ import org.http4s.Http4sSpec
 import org.mockito.Mockito._
 
 class ServletIoSpec extends Http4sSpec {
-
   "NonBlockingServletIo" should {
-
     "decode request body which is smaller than chunk size correctly" in {
       val request = mock(classOf[HttpServletRequest])
       when(request.getInputStream).thenReturn(new TestServletInputStream("test".getBytes(UTF_8)))
@@ -38,7 +36,6 @@ class ServletIoSpec extends Http4sSpec {
   }
 
   class TestServletInputStream(body: Array[Byte]) extends ServletInputStream {
-
     private var readListener: ReadListener = null
     private val in = new ByteArrayInputStream(body)
 

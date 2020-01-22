@@ -49,7 +49,6 @@ object ServerSentEvent {
         id: Option[EventId],
         retry: Option[Long],
         stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
-
       //      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
       def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] =
         dataBuffer.toString match {
@@ -104,5 +103,4 @@ object ServerSentEvent {
 
   def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =
     _.map(_.renderString).through(utf8Encode)
-
 }

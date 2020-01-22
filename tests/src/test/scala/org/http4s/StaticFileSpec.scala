@@ -11,10 +11,8 @@ import org.http4s.headers._
 import org.specs2.matcher.MatchResult
 
 class StaticFileSpec extends Http4sSpec {
-
   "StaticFile" should {
     "Determine the media-type based on the files extension" in {
-
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
         val r = StaticFile.fromFile[IO](f, testBlocker).value.unsafeRunSync
 

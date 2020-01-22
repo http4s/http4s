@@ -13,7 +13,6 @@ import org.http4s.headers.Host
   * based on the [[org.http4s.headers.Host]] header of the [[org.http4s.Request]].
   */
 object VirtualHost {
-
   /** Specification of the virtual host service and predicate.
     *
     * The predicate receives the the Host header information with the port

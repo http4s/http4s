@@ -9,7 +9,6 @@ import org.http4s.headers._
 import org.http4s.Uri.{Authority, RegName, Scheme}
 
 class HttpsRedirectSpec extends Http4sSpec {
-
   val innerRoutes = HttpRoutes.of[IO] {
     case GET -> Root =>
       Ok("pong")
@@ -19,7 +18,6 @@ class HttpsRedirectSpec extends Http4sSpec {
   val req = Request[IO](method = GET, uri = Uri(path = "/"), headers = reqHeaders)
 
   "HttpsRedirect" should {
-
     "redirect to https when 'X-Forwarded-Proto' is http" in {
       val app = HttpsRedirect(innerRoutes).orNotFound
       val resp = app(req).unsafeRunSync
@@ -38,7 +36,5 @@ class HttpsRedirectSpec extends Http4sSpec {
       resp.status must_== Status.Ok
       resp.as[String] must returnValue("pong")
     }
-
   }
-
 }

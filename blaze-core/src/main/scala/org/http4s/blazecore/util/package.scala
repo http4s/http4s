@@ -5,7 +5,6 @@ import fs2._
 import scala.concurrent.Future
 
 package object util {
-
   /** Used as a terminator for streams built from repeatEval */
   private[http4s] val End = Right(None)
 

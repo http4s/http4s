@@ -4,7 +4,6 @@ import fs2._
 import scodec.bits.ByteVector
 
 private[core] object Shared {
-
   val `\n` : ByteVector = ByteVector('\n')
   val `\r` : ByteVector = ByteVector('\r')
   val `\r\n` : ByteVector = ByteVector('\r', '\n')
@@ -17,5 +16,4 @@ private[core] object Shared {
         val bs = other.toBytes
         ByteVector(bs.values, bs.offset, bs.size)
     }
-
 }

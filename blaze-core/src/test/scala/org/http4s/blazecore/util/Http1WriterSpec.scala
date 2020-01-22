@@ -109,7 +109,6 @@ class Http1WriterSpec extends Http4sSpec {
   }
 
   "FlushingChunkWriter" should {
-
     def builder(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
       new FlushingChunkWriter[IO](tail, IO.pure(Headers.empty))
 
@@ -292,7 +291,6 @@ class Http1WriterSpec extends Http4sSpec {
           |X-Trailer: trailer header value
           |
           |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
-
     }
   }
 }

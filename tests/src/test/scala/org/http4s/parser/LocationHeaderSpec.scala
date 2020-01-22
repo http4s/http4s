@@ -5,7 +5,6 @@ import org.http4s.headers.Location
 
 // TODO: this could use more tests
 class LocationHeaderSpec extends Http4sSpec {
-
   "LocationHeader parser".can {
     "Parse a simple uri" in {
       val s = "http://www.foo.com"

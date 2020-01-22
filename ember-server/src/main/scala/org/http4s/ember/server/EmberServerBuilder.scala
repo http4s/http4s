@@ -127,7 +127,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 object EmberServerBuilder {
-
   def default[F[_]: Concurrent: Timer: ContextShift]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Defaults.host,

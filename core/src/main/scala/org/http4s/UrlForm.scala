@@ -71,7 +71,6 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
 }
 
 object UrlForm {
-
   val empty: UrlForm = new UrlForm(Map.empty)
 
   def apply(values: Map[String, Chain[String]]): UrlForm =

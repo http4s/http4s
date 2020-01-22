@@ -4,7 +4,6 @@ import java.net.ProtocolException
 import scodec.bits.ByteVector
 
 package object websocket {
-
   // Masks for extracting fields
   private[websocket] val OP_CODE = 0xf
   private[websocket] val FINISHED = 0x80

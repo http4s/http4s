@@ -81,5 +81,4 @@ class EncoderSpec extends Specification {
       Helpers.encodeResponseRig(resp).unsafeRunSync must_=== expected
     }
   }
-
 }

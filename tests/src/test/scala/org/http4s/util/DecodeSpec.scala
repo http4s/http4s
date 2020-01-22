@@ -55,6 +55,5 @@ class DecodeSpec extends Http4sSpec {
         decoded must_== expected
       }
     }
-
   }
 }

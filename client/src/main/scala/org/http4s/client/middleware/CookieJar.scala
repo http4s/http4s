@@ -12,7 +12,6 @@ import org.http4s.client.Client
   * Allows manual intervention and eviction.
  **/
 trait CookieJar[F[_]] {
-
   /**
     * Default Expiration Approach, Removes Expired Cookies
     */
@@ -38,7 +37,6 @@ trait CookieJar[F[_]] {
     * Enrich a Request with the cookies available
     */
   def enrichRequest[G[_]](r: Request[G]): F[Request[G]]
-
 }
 
 /**
@@ -47,7 +45,6 @@ trait CookieJar[F[_]] {
   * jar creation, as well as the middleware
  **/
 object CookieJar {
-
   /**
     * Middleware Constructor Using a Provided [[CookieJar]].
    **/
@@ -196,7 +193,6 @@ object CookieJar {
   private[middleware] def cookieAppliesToRequest[N[_]](
       r: Request[N],
       c: ResponseCookie): Boolean = {
-
     val domainApplies = c.domain.exists(s =>
       r.uri.host.forall { authority =>
         authority.renderString.contains(s)

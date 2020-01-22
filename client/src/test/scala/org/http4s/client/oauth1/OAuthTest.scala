@@ -56,7 +56,6 @@ class OAuthTest extends Specification {
     "3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal"
 
   "OAuth support" should {
-
     "generate a Base String" in {
       oauth1.genBaseString(Method.GET, uri, allParams) must_== specBaseString
     }
@@ -96,7 +95,6 @@ class OAuthTest extends Specification {
   }
 
   "RFC 5849 example" should {
-
     implicit def urlFormEncoder: EntityEncoder[IO, UrlForm] =
       UrlForm.entityEncoder(Charset.`US-ASCII`)
 

@@ -14,7 +14,6 @@ private[http4s] class Http2Writer[F[_]](
     private var headers: Headers,
     protected val ec: ExecutionContext)(implicit protected val F: Effect[F])
     extends EntityBodyWriter[F] {
-
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val f =
       if (headers == null) tail.channelWrite(DataFrame(endStream = true, chunk.toByteBuffer))

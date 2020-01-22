@@ -14,7 +14,6 @@ import scala.concurrent.duration._
   * Transform a service to reject any calls the go over a given rate.
   */
 object Throttle {
-
   sealed abstract class TokenAvailability extends Product with Serializable
   case object TokenAvailable extends TokenAvailability
   final case class TokenUnavailable(retryAfter: Option[FiniteDuration]) extends TokenAvailability
@@ -31,7 +30,6 @@ object Throttle {
   }
 
   object TokenBucket {
-
     private class Translated[F[_], G[_]](t: TokenBucket[F], fk: F ~> G) extends TokenBucket[G] {
       def takeToken: G[TokenAvailability] = fk(t.takeToken)
     }
@@ -46,7 +44,6 @@ object Throttle {
     def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(
         implicit F: Sync[F],
         clock: Clock[F]): F[TokenBucket[F]] = {
-
       def getTime = clock.monotonic(NANOSECONDS)
       val bucket = getTime.flatMap(time => Ref[F].of((capacity.toDouble, time)))
 
@@ -78,12 +75,9 @@ object Throttle {
             }
             loop
           }
-
         }
       }
-
     }
-
   }
 
   /**

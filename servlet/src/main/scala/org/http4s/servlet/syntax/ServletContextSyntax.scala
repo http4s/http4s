@@ -14,7 +14,6 @@ trait ServletContextSyntax {
 }
 
 final class ServletContextOps private[syntax] (val self: ServletContext) extends AnyVal {
-
   /** Wraps an [[HttpRoutes]] and mounts it as an [[AsyncHttp4sServlet]]
     *
     * Assumes non-blocking servlet IO is available, and thus requires at least Servlet 3.1.

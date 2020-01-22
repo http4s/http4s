@@ -35,7 +35,6 @@ sealed class TomcatBuilder[F[_]] private (
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
-
   type Self = TomcatBuilder[F]
 
   private[this] val logger = getLogger
@@ -241,7 +240,6 @@ sealed class TomcatBuilder[F[_]] private (
 }
 
 object TomcatBuilder {
-
   def apply[F[_]: ConcurrentEffect]: TomcatBuilder[F] =
     new TomcatBuilder[F](
       socketAddress = defaults.SocketAddress,

@@ -1,7 +1,6 @@
 package org.http4s
 
 trait QueryOps {
-
   protected type Self <: QueryOps
 
   protected val query: Query

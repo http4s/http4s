@@ -9,7 +9,6 @@ import org.http4s.internal.fromFuture
 import scala.concurrent._
 
 private[http4s] trait EntityBodyWriter[F[_]] {
-
   implicit protected def F: Effect[F]
 
   protected val wroteHeader: Promise[Unit] = Promise[Unit]

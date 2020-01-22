@@ -5,7 +5,6 @@ import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 
 object AuthedRoutes {
-
   /** Lifts a function into an [[AuthedRoutes]].  The application of `run`
     * is suspended in `F` to permit more efficient combination of
     * routes via `SemigroupK`.

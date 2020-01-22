@@ -11,7 +11,6 @@ import scala.xml._
 
 // Docs: http://http4s.org/v0.18/entity/
 class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
-
   case class Person(name: String, age: Int)
 
   /**
@@ -45,5 +44,4 @@ class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
         Ok(s"Successfully decoded person: ${person.name}")
       }
   }
-
 }

@@ -12,7 +12,6 @@ import scala.concurrent.duration.FiniteDuration
   * @tparam T the type which will be rendered
   */
 trait Renderer[T] {
-
   /** Renders the object to the writer
     * @param writer [[Writer]] to render to
     * @param t object to render
@@ -25,7 +24,6 @@ object Renderer {
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
-
     private val dateFormat =
       DateTimeFormatter
         .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -34,7 +32,6 @@ object Renderer {
 
     override def render(writer: Writer, t: Instant): writer.type =
       writer << dateFormat.format(t)
-
   }
 
   // Render a finite duration in seconds
@@ -62,7 +59,6 @@ object Renderer {
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
 trait Renderable extends Any {
-
   /** Base method for rendering this object efficiently */
   def render(writer: Writer): writer.type
 
@@ -163,7 +159,6 @@ trait Writer {
   final def <<(int: Int): this.type = append(int)
   final def <<(long: Long): this.type = append(long)
   final def <<[T: Renderer](r: T): this.type = append(r)
-
 }
 
 /** [[Writer]] that will result in a `String`

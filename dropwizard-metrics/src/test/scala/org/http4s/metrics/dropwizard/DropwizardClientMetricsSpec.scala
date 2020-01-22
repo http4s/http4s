@@ -15,11 +15,9 @@ import org.http4s.Uri.uri
 import scala.util.Try
 
 class DropwizardMetricsSpec extends Http4sSpec {
-
   val client = Client.fromHttpApp[IO](HttpApp[IO](stub))
 
   "A http client with a dropwizard metrics middleware" should {
-
     "register a 2xx response" in {
       implicit val clock = FakeClock[IO]
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test1")

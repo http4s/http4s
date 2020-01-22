@@ -14,7 +14,6 @@ object BlazeExample extends IOApp {
 }
 
 object BlazeExampleApp {
-
   def httpApp[F[_]: Effect: ContextShift: Timer](blocker: Blocker): HttpApp[F] =
     Router(
       "/http4s" -> ExampleService[F](blocker).routes
@@ -29,5 +28,4 @@ object BlazeExampleApp {
         .withHttpApp(app)
         .resource
     } yield server
-
 }

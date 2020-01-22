@@ -5,9 +5,7 @@ import org.http4s.laws.discipline.HttpCodecTests
 import cats.syntax.show._
 
 class MediaTypeSpec extends Http4sSpec {
-
   "MediaType" should {
-
     "Render itself" in {
       MediaType.text.html.show must_== "text/html"
     }

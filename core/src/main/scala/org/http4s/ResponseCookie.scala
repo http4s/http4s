@@ -82,7 +82,6 @@ class RequestCookieJar private (val cookies: List[RequestCookie]) extends AnyVal
 
 // see http://tools.ietf.org/html/rfc6265
 final case class RequestCookie(name: String, content: String) extends Renderable {
-
   override lazy val renderString: String = super.renderString
 
   override def render(writer: Writer): writer.type = {
@@ -103,7 +102,6 @@ final case class ResponseCookie(
     httpOnly: Boolean = false,
     extension: Option[String] = None
 ) extends Renderable {
-
   override lazy val renderString: String = super.renderString
 
   override def render(writer: Writer): writer.type = {

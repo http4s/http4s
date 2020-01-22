@@ -15,7 +15,6 @@ import org.log4s.getLogger
 private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[F])(
     implicit F: Effect[F])
     extends DeferredContentProvider {
-
   import StreamRequestContentProvider.logger
 
   def write(req: Request[F]): F[Unit] =
@@ -40,7 +39,6 @@ private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[
     override def succeeded(): Unit =
       s.release.runAsync(loggingAsyncCallback(logger)).unsafeRunSync()
   }
-
 }
 
 private[jetty] object StreamRequestContentProvider {

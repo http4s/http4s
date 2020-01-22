@@ -12,7 +12,6 @@ import org.http4s.parser.HttpHeaderParser
 import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
-
   def nukeService(launchTheNukes: => Unit) = AuthedRoutes.of[String, IO] {
     case GET -> Root / "launch-the-nukes" as user =>
       for {

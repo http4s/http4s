@@ -14,7 +14,6 @@ import scala.concurrent.duration._
 
 class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatchers {
   "LocalTokenBucket" should {
-
     "contain initial number of tokens equal to specified capacity" in {
       val ctx = TestContext()
       val testTimer: Timer[IO] = ctx.timer[IO]

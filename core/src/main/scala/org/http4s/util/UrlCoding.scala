@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 import org.http4s.internal.parboiled2.CharPredicate
 
 private[http4s] object UrlCodingUtils {
-
   @deprecated("Moved to org.http4s.Uri.Unreserved", "0.20.13")
   val Unreserved =
     org.http4s.Uri.Unreserved

@@ -7,7 +7,6 @@ import cats.implicits._
 import Shared._
 
 private[ember] object Encoder {
-
   def respToBytes[F[_]: Sync](resp: Response[F]): Stream[F, Byte] = {
     val headerStrings: List[String] =
       resp.headers.toList.map(h => h.name.show + ": " + h.value).toList

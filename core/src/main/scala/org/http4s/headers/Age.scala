@@ -24,7 +24,6 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
 
   override def parse(s: String): ParseResult[Age] =
     HttpHeaderParser.AGE(s)
-
 }
 
 /**
@@ -35,7 +34,6 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
   * @param age age of the response
   */
 sealed abstract case class Age(age: Long) extends Header.Parsed {
-
   val key = Age
 
   override val value = Renderer.renderString(age)
@@ -45,5 +43,4 @@ sealed abstract case class Age(age: Long) extends Header.Parsed {
   def duration: Option[FiniteDuration] = Try(age.seconds).toOption
 
   def unsafeDuration: FiniteDuration = age.seconds
-
 }

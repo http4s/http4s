@@ -7,7 +7,6 @@ import cats.implicits._
 import org.http4s._
 
 object ErrorAction {
-
   def apply[F[_]: ApplicativeError[*[_], Throwable], G[_], B](
       k: Kleisli[F, Request[G], B],
       f: (Request[G], Throwable) => F[Unit]
@@ -37,5 +36,4 @@ object ErrorAction {
           )
       }
     )
-
 }

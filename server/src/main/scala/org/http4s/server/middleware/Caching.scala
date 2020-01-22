@@ -16,7 +16,6 @@ import scala.concurrent.duration._
   * [[Caching.Helpers]]
   */
 object Caching {
-
   /**
     * Middleware that implies responses should NOT be cached.
     * This is a best attempt, many implementors of caching have done so differently.
@@ -143,5 +142,4 @@ object Caching {
       } yield out
     }
   }
-
 }

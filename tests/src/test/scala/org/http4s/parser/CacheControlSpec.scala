@@ -36,7 +36,6 @@ class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Cont
     CacheDirective("Foo", Some("Bar")))
 
   "CacheControl parser" should {
-
     "Generate correct directive values" in {
       valueless.foreach { v =>
         v.value must be_==(v.name.toString)

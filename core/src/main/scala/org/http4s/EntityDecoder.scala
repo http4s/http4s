@@ -111,7 +111,6 @@ trait EntityDecoder[F[_], T] { self =>
   * with some commonly used instances which can be resolved implicitly.
   */
 object EntityDecoder {
-
   // This is not a real media type but will still be matched by `*/*`
   private val UndefinedMediaType = new MediaType("UNKNOWN", "UNKNOWN")
 
@@ -123,7 +122,6 @@ object EntityDecoder {
       override def combineK[T](
           a: EntityDecoder[F, T],
           b: EntityDecoder[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
-
         override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] = {
           val mediaType = m.contentType.fold(UndefinedMediaType)(_.mediaType)
 
@@ -137,7 +135,6 @@ object EntityDecoder {
                 MediaTypeMissing(expected ++ a.consumes)
               case other => other
             }
-
         }
 
         override def consumes: Set[MediaRange] = a.consumes ++ b.consumes

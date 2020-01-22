@@ -33,7 +33,6 @@ class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   "success(a) always succeeds" >> forAll { (n: Int, qpv: QueryParameterValue) =>
     QueryParamDecoder.success(n).decode(qpv) must_== n.valid
   }
-
 }
 
 trait QueryParamCodecInstances { this: Http4sSpec =>

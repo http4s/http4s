@@ -13,11 +13,9 @@ import org.http4s.metrics.prometheus.util._
 import org.specs2.execute.AsResult
 
 class PrometheusClientMetricsSpec extends Http4sSpec {
-
   val client: Client[IO] = Client.fromHttpApp[IO](HttpApp[IO](stub))
 
   "A http client with a prometheus metrics middleware" should {
-
     "register a 2xx response" in withMeteredClient {
       case (registry, client) =>
         for {
@@ -180,7 +178,6 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       count(registry, "2xx_headers_duration", "client") must beEqualTo(0)
       count(registry, "2xx_total_duration", "client") must beEqualTo(0)
     }
-
   }
 
   private def withMeteredClient[R: AsResult](in: (CollectorRegistry, Client[IO]) => IO[R]): R =
@@ -196,5 +193,4 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       metrics <- Prometheus.metricsOps[IO](registry, "client")
     } yield (registry, Metrics(metrics, classifier)(client))
   }
-
 }

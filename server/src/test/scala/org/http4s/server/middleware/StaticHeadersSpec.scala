@@ -6,7 +6,6 @@ import org.http4s.dsl.io._
 import org.http4s.Uri.uri
 
 class StaticHeadersSpec extends Http4sSpec {
-
   val testService = HttpRoutes.of[IO] {
     case GET -> Root / "request" =>
       Ok("request response")
@@ -24,5 +23,4 @@ class StaticHeadersSpec extends Http4sSpec {
       check must_=== true
     }
   }
-
 }

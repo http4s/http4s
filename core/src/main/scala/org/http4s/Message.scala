@@ -203,7 +203,6 @@ final class Request[F[_]](
 ) extends Message[F]
     with Product
     with Serializable {
-
   import Request._
 
   type Self = Request[F]
@@ -419,11 +418,9 @@ final class Request[F[_]](
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
-
 }
 
 object Request {
-
   def apply[F[_]](
       method: Method = Method.GET,
       uri: Uri = Uri(path = "/"),
@@ -481,7 +478,6 @@ final case class Response[F[_]](
     body: EntityBody[F] = EmptyBody,
     attributes: Vault = Vault.empty)
     extends Message[F] {
-
   type Self = Response[F]
 
   def mapK[G[_]](f: F ~> G): Response[G] = Response[G](
@@ -532,7 +528,6 @@ final case class Response[F[_]](
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=${headers.redactSensitive()})"""
-
 }
 
 object Response {

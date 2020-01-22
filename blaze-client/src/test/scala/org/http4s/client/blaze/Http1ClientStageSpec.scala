@@ -16,7 +16,6 @@ import org.http4s.headers.`User-Agent`
 import scala.concurrent.duration._
 
 class Http1ClientStageSpec extends Http4sSpec {
-
   val trampoline = org.http4s.blaze.util.Execution.trampoline
 
   val www_foo_test = Uri.uri("http://www.foo.test")
@@ -60,7 +59,6 @@ class Http1ClientStageSpec extends Http4sSpec {
         _ <- IO(stage.shutdown())
       } yield t
     }
-
   }
 
   private def getSubmission(
@@ -101,7 +99,6 @@ class Http1ClientStageSpec extends Http4sSpec {
   }
 
   "Http1ClientStage" should {
-
     "Run a basic request" in {
       val (request, response) = getSubmission(FooRequest, resp).unsafeRunSync()
       val statusline = request.split("\r\n").apply(0)

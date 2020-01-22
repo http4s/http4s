@@ -4,7 +4,6 @@ import org.http4s.headers._
 import cats.kernel.laws.discipline.{EqTests, MonoidTests}
 
 class HeadersSpec extends Http4sSpec {
-
   val clength = `Content-Length`.unsafeFromLong(10)
   val raw = Header.Raw("raw-header".ci, "Raw value")
 

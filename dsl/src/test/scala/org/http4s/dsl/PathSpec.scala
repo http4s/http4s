@@ -20,7 +20,6 @@ class PathSpec extends Http4sSpec {
     }
 
   "Path" should {
-
     "/foo/bar" in {
       Path("/foo/bar") must_== Path("foo", "bar")
     }

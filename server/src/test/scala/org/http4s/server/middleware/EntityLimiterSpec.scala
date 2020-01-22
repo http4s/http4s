@@ -13,7 +13,6 @@ import org.http4s.Status._
 import org.http4s.Uri.uri
 
 class EntityLimiterSpec extends Http4sSpec {
-
   val routes = HttpRoutes.of[IO] {
     case r if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
   }
@@ -21,7 +20,6 @@ class EntityLimiterSpec extends Http4sSpec {
   val b = chunk(Chunk.bytes("hello".getBytes(StandardCharsets.UTF_8)))
 
   "EntityLimiter" should {
-
     "Allow reasonable entities" in {
       EntityLimiter(routes, 100)
         .apply(Request[IO](POST, uri("/echo"), body = b))
@@ -55,5 +53,4 @@ class EntityLimiterSpec extends Http4sSpec {
         .handleError { case EntityTooLarge(i) => Some(i) } must returnValue(Some(3L))
     }
   }
-
 }

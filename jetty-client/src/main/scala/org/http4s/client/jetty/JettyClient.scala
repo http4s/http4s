@@ -11,7 +11,6 @@ import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.log4s.{Logger, getLogger}
 
 object JettyClient {
-
   private val logger: Logger = getLogger
 
   def allocate[F[_]](client: HttpClient = defaultHttpClient())(
@@ -74,5 +73,4 @@ object JettyClient {
     for (h <- request.headers.toList) jReq.header(h.name.toString, h.value)
     jReq.content(dcp)
   }
-
 }

@@ -10,12 +10,10 @@ import scala.concurrent.duration.FiniteDuration
   * Matchers for cats.effect.IO
   */
 trait IOMatchers extends RunTimedMatchers[IO] {
-
   protected implicit def F: Sync[IO] = IO.ioEffect
   protected def runWithTimeout[A](fa: IO[A], timeout: FiniteDuration): Option[A] =
     fa.unsafeRunTimed(timeout)
   protected def runAwait[A](fa: IO[A]): A = fa.unsafeRunSync
-
 }
 
 object IOMatchers extends IOMatchers

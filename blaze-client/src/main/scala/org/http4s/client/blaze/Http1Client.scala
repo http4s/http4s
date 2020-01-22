@@ -11,7 +11,6 @@ import scala.concurrent.duration.Duration
 /** Create a HTTP1 client which will attempt to recycle connections */
 @deprecated("Use BlazeClientBuilder", "0.19.0-M2")
 object Http1Client {
-
   /** Construct a new PooledHttp1Client
     *
     * @param config blaze client configuration options

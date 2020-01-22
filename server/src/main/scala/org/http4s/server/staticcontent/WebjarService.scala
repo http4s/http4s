@@ -9,7 +9,6 @@ import cats.effect.{Blocker, ContextShift, Effect}
   * Constructs new services to serve assets from Webjars
   */
 object WebjarService {
-
   /** [[org.http4s.server.staticcontent.WebjarService]] configuration
     *
     * @param blockingExecutionContext execution context for blocking I/O
@@ -29,7 +28,6 @@ object WebjarService {
     * @param asset The asset name inside the webjar
     */
   final case class WebjarAsset(library: String, version: String, asset: String) {
-
     /**
       * Constructs a full path for an asset inside a webjar asset
       *
@@ -37,7 +35,6 @@ object WebjarService {
       */
     private[staticcontent] lazy val pathInJar: String =
       s"/META-INF/resources/webjars/$library/$version/$asset"
-
   }
 
   /**

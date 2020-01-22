@@ -8,7 +8,6 @@ import org.http4s.headers.{Date => HDate}
 import cats.effect.testing.specs2.CatsIO
 
 class DateSpec extends Http4sSpec with CatsIO {
-
   override implicit val timer: Timer[IO] = Http4sSpec.TestTimer
 
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] {

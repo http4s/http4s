@@ -135,5 +135,4 @@ object Header {
   implicit val HeaderEq: Eq[Header] = Eq.instance[Header] { (a, b) =>
     a.name === b.name && a.value === b.value
   }
-
 }

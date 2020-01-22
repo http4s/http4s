@@ -5,7 +5,6 @@ import scala.util.Random
 
 @State(Scope.Thread)
 class QueryParamInput {
-
   @Param(Array("10", "100", "1000"))
   var size: Int = _
 
@@ -17,5 +16,4 @@ class QueryParamInput {
   @Setup
   def setup(): Unit =
     queryParams = (1 to size).map(_ => genString() -> genString()).toMap
-
 }

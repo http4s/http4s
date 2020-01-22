@@ -22,7 +22,6 @@ import org.http4s.util.{Renderable, Writer}
 
 final case class Challenge(scheme: String, realm: String, params: Map[String, String] = Map.empty)
     extends Renderable {
-
   lazy val value = renderString
 
   override def render(writer: Writer): writer.type = {

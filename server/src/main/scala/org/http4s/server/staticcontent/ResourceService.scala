@@ -6,7 +6,6 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect._
 
 object ResourceService {
-
   /** [[org.http4s.server.staticcontent.ResourceService]] configuration
     *
     * @param basePath prefix of the path files will be served from

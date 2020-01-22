@@ -170,7 +170,6 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     // TODO: we need to work trailers into here somehow
     val t = F.async[Option[Chunk[Byte]]] { cb =>
       if (!contentComplete()) {
-
         def go(): Unit =
           try {
             val parseResult = doParseContent(currentBuffer)
@@ -239,7 +238,6 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 }
 
 object Http1Stage {
-
   private val CachedEmptyBufferThunk = {
     val b = Future.successful(emptyBuffer)
     () => b

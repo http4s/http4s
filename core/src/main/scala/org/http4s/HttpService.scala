@@ -5,7 +5,6 @@ import cats.data.{Kleisli, OptionT}
 
 @deprecated("Replaced by HttpRoutes", "0.19")
 object HttpService extends Serializable {
-
   /**
     * Lifts a total function to an `HttpService`. The function is expected to
     * handle all requests it is given.  If `f` is a `PartialFunction`, use

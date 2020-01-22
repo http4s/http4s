@@ -6,7 +6,6 @@ import org.http4s.internal.CollectionCompat
 import scala.io.Codec
 
 class QueryParserSpec extends Http4sSpec {
-
   def parseQueryString(str: String): ParseResult[Query] =
     QueryParser.parseQueryString(str)
 

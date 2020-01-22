@@ -12,7 +12,6 @@ object TomcatSslExample extends IOApp {
 }
 
 object TomcatSslExampleApp {
-
   def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): TomcatBuilder[F] =
     TomcatExampleApp
       .builder[F](blocker)
@@ -24,5 +23,4 @@ object TomcatSslExampleApp {
       blocker <- Blocker[F]
       server <- builder[F](blocker).resource
     } yield server
-
 }

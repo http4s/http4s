@@ -14,7 +14,6 @@ sealed trait ProtocolParameter {
 }
 
 object ProtocolParameter {
-
   case class Consumer(override val headerValue: String, secret: String) extends ProtocolParameter {
     override val headerName: String = "oauth_consumer_key"
   }
@@ -87,5 +86,4 @@ object ProtocolParameter {
       case v: Verifier => tupleShow.contramap[Verifier](_.toTuple).show(v)
     }
   }
-
 }

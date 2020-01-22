@@ -13,7 +13,6 @@ import org.specs2.mutable._
 import org.specs2.specification.core.{Fragment, Fragments}
 
 object MultipartParserSpec extends Specification {
-
   implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
 
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
@@ -434,7 +433,6 @@ object MultipartParserSpec extends Specification {
 
       Fragments.foreach(List.range(0, 100)) { count =>
         s"parse randomized chunk length properly iteration #$count" in {
-
           val unprocessedInput =
             """
               |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
@@ -595,7 +593,6 @@ object MultipartParserSpec extends Specification {
   )
 
   "Multipart mixed file parser" should {
-
     "truncate parts when limit set" in {
       val unprocessedInput =
         """

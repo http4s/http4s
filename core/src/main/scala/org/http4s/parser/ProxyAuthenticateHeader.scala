@@ -5,7 +5,6 @@ import org.http4s.headers._
 import org.http4s.internal.parboiled2._
 
 trait ProxyAuthenticateHeader {
-
   def PROXY_AUTHENTICATE(value: String): ParseResult[`Proxy-Authenticate`] =
     new ProxyAuthenticateParser(value).parse
 
@@ -17,5 +16,4 @@ trait ProxyAuthenticateHeader {
       }
     }
   }
-
 }

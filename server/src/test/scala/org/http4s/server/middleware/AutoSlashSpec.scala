@@ -6,7 +6,6 @@ import org.http4s.server.{MockRoute, Router}
 import org.http4s.Uri.uri
 
 class AutoSlashSpec extends Http4sSpec {
-
   val route = MockRoute.route()
 
   val pingRoutes = {

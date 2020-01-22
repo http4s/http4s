@@ -152,7 +152,6 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
         } yield response)
       new EmberClient[F](client, pool)
     }
-
 }
 
 object EmberClientBuilder {
@@ -184,5 +183,4 @@ object EmberClientBuilder {
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
   }
-
 }

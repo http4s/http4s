@@ -269,7 +269,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 }
 
 object BlazeClientBuilder {
-
   /** Creates a BlazeClientBuilder
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures

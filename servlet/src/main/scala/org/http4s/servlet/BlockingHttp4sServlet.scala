@@ -12,7 +12,6 @@ class BlockingHttp4sServlet[F[_]](
     servletIo: BlockingServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
     extends Http4sServlet[F](service, servletIo) {
-
   override def service(
       servletRequest: HttpServletRequest,
       servletResponse: HttpServletResponse): Unit =

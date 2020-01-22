@@ -24,7 +24,6 @@ import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
 
 private[parser] trait CookieHeader {
-
   def SET_COOKIE(value: String): ParseResult[`Set-Cookie`] =
     new SetCookieParser(value).parse
 
@@ -50,7 +49,6 @@ private[parser] trait CookieHeader {
 
   private abstract class BaseCookieParser[H <: Header](input: ParserInput)
       extends Http4sHeaderParser[H](input) {
-
     def CookiePair[A](f: (String, String) => A) = rule {
       Token ~ ch('=') ~ CookieValue ~> (f(_, _))
     }

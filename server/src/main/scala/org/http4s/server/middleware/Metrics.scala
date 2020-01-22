@@ -24,7 +24,6 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error}
   * This middleware can be extended to support any metrics ecosystem by implementing the [[MetricsOps]] type
   */
 object Metrics {
-
   /**
     * A server middleware capable of recording metrics
     *

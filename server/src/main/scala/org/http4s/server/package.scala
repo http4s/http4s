@@ -13,7 +13,6 @@ import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}
 
 package object server {
-
   object defaults {
     val Banner =
       """|  _   _   _        _ _
@@ -84,7 +83,6 @@ package object server {
   type SSLBits = SSLConfig
 
   object AuthMiddleware {
-
     def apply[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, ?], Request[F], T]
     ): AuthMiddleware[F, T] =

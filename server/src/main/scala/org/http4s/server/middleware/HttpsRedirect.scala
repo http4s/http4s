@@ -19,13 +19,11 @@ import org.log4s.getLogger
   * which does not support such redirect feature, e.g. Heroku.
   */
 object HttpsRedirect {
-
   private[HttpsRedirect] val logger = getLogger
 
   def apply[F[_], G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       (req.headers.get(`X-Forwarded-Proto`), req.headers.get(Host)) match {
-
         case (Some(proto), Some(host)) if Scheme.fromString(proto.value).contains(Scheme.http) =>
           logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host")
           val authority = Authority(host = RegName(host.value))
@@ -38,5 +36,4 @@ object HttpsRedirect {
           http(req)
       }
     }
-
 }

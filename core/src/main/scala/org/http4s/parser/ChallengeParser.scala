@@ -5,7 +5,6 @@ import org.http4s.internal.parboiled2._
 
 abstract private[parser] class ChallengeParser[H <: Header](input: ParserInput)
     extends Http4sHeaderParser[H](input) {
-
   def ChallengeRule: Rule1[Challenge] = rule {
     Token ~ oneOrMore(LWS) ~ zeroOrMore(AuthParam).separatedBy(ListSep) ~> {
       (scheme: String, params: collection.Seq[(String, String)]) =>

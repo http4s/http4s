@@ -2,7 +2,6 @@ package org.http4s
 package client
 
 trait Connection[F[_]] {
-
   /** Determine if the connection is closed and resources have been freed */
   def isClosed: Boolean
 

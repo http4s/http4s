@@ -9,7 +9,6 @@ import org.http4s.server.middleware.HttpMethodOverrider._
 import org.http4s.util.CaseInsensitiveString
 
 class HttpMethodOverriderSpec extends Http4sSpec {
-
   private final val overrideHeader = "X-HTTP-Method-Override"
   private final val overrideParam, overrideField: String = "_method"
   private final val varyHeader = "Vary"

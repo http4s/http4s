@@ -6,7 +6,6 @@ import scala.util.control.{NoStackTrace, NonFatal}
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
 trait MessageFailure extends RuntimeException {
-
   /** Provides a message appropriate for logging. */
   def message: String
 
@@ -23,7 +22,6 @@ trait MessageFailure extends RuntimeException {
 
   def inHttpResponse[F[_], G[_]](
       httpVersion: HttpVersion)(implicit F: Applicative[F], G: Applicative[G]): F[Response[G]]
-
 }
 
 /**

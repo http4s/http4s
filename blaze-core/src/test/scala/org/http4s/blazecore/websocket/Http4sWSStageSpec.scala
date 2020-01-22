@@ -21,7 +21,6 @@ class Http4sWSStageSpec extends Http4sSpec {
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
       closeHook: AtomicBoolean) {
-
     def sendWSOutbound(w: WebSocketFrame*): IO[Unit] =
       Stream
         .emits(w)

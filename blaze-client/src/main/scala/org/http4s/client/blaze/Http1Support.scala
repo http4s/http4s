@@ -37,7 +37,6 @@ final private class Http1Support[F[_]](
     channelOptions: ChannelOptions,
     connectTimeout: Duration
 )(implicit F: ConcurrentEffect[F]) {
-
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
     asynchronousChannelGroup,

@@ -14,7 +14,6 @@ import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.io.chrisdavenport.log4cats.Logger
 
 private[server] object ServerHelpers {
-
   def server[F[_]: Concurrent: ContextShift](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
@@ -33,7 +32,6 @@ private[server] object ServerHelpers {
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
   )(implicit C: Clock[F]): Stream[F, Nothing] = {
-
     // Termination Signal, if not present then does not terminate.
     val termSignal: F[SignallingRef[F, Boolean]] =
       terminationSignal.fold(SignallingRef[F, Boolean](false))(_.pure[F])

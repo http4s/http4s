@@ -5,7 +5,6 @@ import org.http4s.headers.{Range, `Content-Range`}
 import org.http4s.headers.Range.SubRange
 
 class RangeParserSpec extends Http4sSpec {
-
   "RangeParser" should {
     "parse Range" in {
       val headers = Seq(

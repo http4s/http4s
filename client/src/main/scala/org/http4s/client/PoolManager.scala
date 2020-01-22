@@ -32,7 +32,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
     semaphore: Semaphore[F],
     implicit private val executionContext: ExecutionContext)(implicit F: Concurrent[F])
     extends ConnectionManager[F, A] {
-
   private sealed case class Waiting(
       key: RequestKey,
       callback: Callback[NextConnection],

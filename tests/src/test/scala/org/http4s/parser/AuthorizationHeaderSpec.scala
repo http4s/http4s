@@ -5,7 +5,6 @@ import cats.data.NonEmptyList
 import org.http4s.headers.Authorization
 
 class AuthorizationHeaderSpec extends Http4sSpec {
-
   def hparse(value: String) = HttpHeaderParser.AUTHORIZATION(value)
 
   "Authorization header" should {

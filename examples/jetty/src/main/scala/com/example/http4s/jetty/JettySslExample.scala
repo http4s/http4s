@@ -12,7 +12,6 @@ object JettySslExample extends IOApp {
 }
 
 object JettySslExampleApp {
-
   def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): JettyBuilder[F] =
     JettyExampleApp
       .builder[F](blocker)
@@ -24,5 +23,4 @@ object JettySslExampleApp {
       blocker <- Blocker[F]
       server <- builder[F](blocker).resource
     } yield server
-
 }

@@ -50,7 +50,6 @@ sealed abstract case class `Strict-Transport-Security`(
     includeSubDomains: Boolean = true,
     preload: Boolean = false)
     extends Header.Parsed {
-
   override def key: `Strict-Transport-Security`.type = `Strict-Transport-Security`
 
   override def renderValue(writer: Writer): writer.type = {

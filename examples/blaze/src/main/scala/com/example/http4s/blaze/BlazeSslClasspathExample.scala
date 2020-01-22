@@ -12,7 +12,6 @@ object BlazeSslClasspathExample extends IOApp {
 }
 
 object BlazeSslClasspathExampleApp {
-
   def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
     for {
       blocker <- Blocker[F]
@@ -24,5 +23,4 @@ object BlazeSslClasspathExampleApp {
         .withHttpApp(BlazeExampleApp.httpApp[F](blocker))
         .resource
     } yield server
-
 }

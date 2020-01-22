@@ -10,7 +10,6 @@ import org.http4s.Uri.uri
 import org.http4s.headers.Host
 
 class VirtualHostSpec extends Http4sSpec {
-
   val default = HttpRoutes.of[IO] {
     case _ => Response[IO](Ok).withEntity("default").pure[IO]
   }
@@ -24,7 +23,6 @@ class VirtualHostSpec extends Http4sSpec {
   }
 
   "VirtualHost" >> {
-
     val vhost = VirtualHost(
       VirtualHost.exact(default, "default", None),
       VirtualHost.exact(routesA, "routesA", None),
@@ -114,5 +112,4 @@ class VirtualHostSpec extends Http4sSpec {
       }
     }
   }
-
 }

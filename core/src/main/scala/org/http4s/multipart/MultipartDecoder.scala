@@ -5,7 +5,6 @@ import cats.effect.{Blocker, ContextShift, Sync}
 import cats.implicits._
 
 private[http4s] object MultipartDecoder {
-
   def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {

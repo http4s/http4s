@@ -11,11 +11,9 @@ import org.http4s.Method.GET
 import org.specs2.execute.AsResult
 
 class PrometheusServerMetricsSpec extends Http4sSpec {
-
   private val testRoutes = HttpRoutes.of[IO](stub)
 
   "A http routes with a prometheus metrics middleware" should {
-
     "register a 2xx response" in withMeteredRoutes {
       case (registry, routes) =>
         val req = Request[IO](uri = uri"/ok")
@@ -219,5 +217,4 @@ class PrometheusServerMetricsSpec extends Http4sSpec {
       metrics <- Prometheus.metricsOps[IO](registry, "server")
     } yield (registry, Metrics(metrics, classifierF = classifier)(testRoutes).orNotFound)
   }
-
 }

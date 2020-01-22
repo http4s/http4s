@@ -34,7 +34,6 @@ private class Http2NodeStage[F[_]](
     idleTimeout: Duration,
     scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F], timer: Timer[F])
     extends TailStage[StreamFrame] {
-
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
 
@@ -136,7 +135,6 @@ private class Http2NodeStage[F[_]](
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {
-
     val headers = new ListBuffer[Header]
     var method: HMethod = null
     var scheme: String = null

@@ -12,7 +12,6 @@ import scala.concurrent.duration.FiniteDuration
   * Matchers for cats.effect.F_
   */
 trait RunTimedMatchers[F[_]] {
-
   protected implicit def F: Sync[F]
   protected def runWithTimeout[A](fa: F[A], timeout: FiniteDuration): Option[A]
   protected def runAwait[A](fa: F[A]): A
@@ -41,9 +40,7 @@ trait RunTimedMatchers[F[_]] {
       check: ValueCheck[T],
       duration: Option[FiniteDuration]
   ) extends Matcher[F[T]] {
-
     override final def apply[S <: F[T]](expected: Expectable[S]): MatchResult[S] = {
-
       def checkOrFail[A](res: Either[Throwable, T]): MatchResult[S] = res match {
         case Left(error) =>
           val message = s"an exception was thrown ${error.getMessage.notNull}"
@@ -64,7 +61,6 @@ trait RunTimedMatchers[F[_]] {
         case None =>
           checkOrFail(runAwait(theAttempt))
       }
-
     }
 
     def before(d: FiniteDuration): TimedMatcher[T] =
@@ -75,6 +71,5 @@ trait RunTimedMatchers[F[_]] {
 
     def withValue(t: T): TimedMatcher[T] =
       withValue(valueIsTypedValueCheck(t))
-
   }
 }

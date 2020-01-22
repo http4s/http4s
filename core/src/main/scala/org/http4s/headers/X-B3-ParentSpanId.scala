@@ -9,7 +9,6 @@ object `X-B3-ParentSpanId`
     with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-ParentSpanId`] =
     HttpHeaderParser.X_B3_PARENTSPANID(s)
-
 }
 
 final case class `X-B3-ParentSpanId`(id: Long) extends Header.Parsed {

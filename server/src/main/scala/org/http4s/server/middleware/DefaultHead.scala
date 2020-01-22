@@ -25,5 +25,4 @@ object DefaultHead {
 
   private[this] def drainBody[G[_]](response: Response[G]): Response[G] =
     response.copy(body = response.body.drain)
-
 }

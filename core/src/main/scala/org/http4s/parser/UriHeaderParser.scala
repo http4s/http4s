@@ -7,7 +7,6 @@ import org.http4s.internal.parboiled2.Rule1
 abstract class UriHeaderParser[A <: Header](value: String)
     extends Http4sHeaderParser[A](value)
     with Rfc3986Parser {
-
   override def charset: java.nio.charset.Charset = StandardCharsets.ISO_8859_1
 
   // Implementors should build a Header out of the uri
