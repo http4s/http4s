@@ -55,6 +55,7 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   * {prefix}.{classifier}.abnormal-terminations - Timer
   */
 object Dropwizard {
+
   /**
     * Creates a [[MetricsOps]] that supports Dropwizard metrics
     *

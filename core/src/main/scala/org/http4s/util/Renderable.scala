@@ -12,6 +12,7 @@ import scala.concurrent.duration.FiniteDuration
   * @tparam T the type which will be rendered
   */
 trait Renderer[T] {
+
   /** Renders the object to the writer
     * @param writer [[Writer]] to render to
     * @param t object to render
@@ -59,6 +60,7 @@ object Renderer {
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
 trait Renderable extends Any {
+
   /** Base method for rendering this object efficiently */
   def render(writer: Writer): writer.type
 

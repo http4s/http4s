@@ -23,6 +23,7 @@ trait Path {
 }
 
 object Path {
+
   /** Constructs a path from a single string by splitting on the `'/'`
     * character.
     *
@@ -82,6 +83,7 @@ object :? {
 
 /** File extension extractor */
 object ~ {
+
   /**
     * File extension extractor for Path:
     *   Path("example.json") match {
@@ -126,6 +128,7 @@ final case class /(parent: Path, child: String) extends Path {
 }
 
 object -> {
+
   /**
     * HttpMethod extractor:
     * {{{
@@ -138,6 +141,7 @@ object -> {
 }
 
 class MethodConcat(val methods: Set[Method]) {
+
   /**
     * HttpMethod 'or' extractor:
     * {{{

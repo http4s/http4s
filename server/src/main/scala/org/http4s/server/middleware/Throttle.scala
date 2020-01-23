@@ -52,7 +52,7 @@ object Throttle {
           override def takeToken: F[TokenAvailability] = {
             val attemptUpdate = counter.access.flatMap {
               case ((previousTokens, previousTime), setter) =>
-                getTime.flatMap(currentTime => {
+                getTime.flatMap { currentTime =>
                   val timeDifference = currentTime - previousTime
                   val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
                   val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
@@ -67,7 +67,7 @@ object Throttle {
                   }
 
                   attemptSet
-                })
+                }
             }
 
             def loop: F[TokenAvailability] = attemptUpdate.flatMap { attempt =>

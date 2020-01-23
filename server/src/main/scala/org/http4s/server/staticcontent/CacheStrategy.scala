@@ -11,6 +11,7 @@ import cats.effect.Effect
   * the response has already been cached, needs caching, or to let it pass through.
   */
 trait CacheStrategy[F[_]] {
+
   /** Performs the caching operations */
   def cache(uriPath: String, resp: Response[F])(implicit F: Effect[F]): F[Response[F]]
 }

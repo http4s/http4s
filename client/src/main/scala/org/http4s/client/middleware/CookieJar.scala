@@ -12,6 +12,7 @@ import org.http4s.client.Client
   * Allows manual intervention and eviction.
  **/
 trait CookieJar[F[_]] {
+
   /**
     * Default Expiration Approach, Removes Expired Cookies
     */
@@ -45,6 +46,7 @@ trait CookieJar[F[_]] {
   * jar creation, as well as the middleware
  **/
 object CookieJar {
+
   /**
     * Middleware Constructor Using a Provided [[CookieJar]].
    **/

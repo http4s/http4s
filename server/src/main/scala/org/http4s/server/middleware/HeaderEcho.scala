@@ -7,6 +7,7 @@ import cats.implicits._
 import org.http4s.util.CaseInsensitiveString
 
 object HeaderEcho {
+
   /**
     * Simple server middleware that adds selected headers present on the request to the response.
     *

@@ -10,6 +10,7 @@ import scala.concurrent.duration.MILLISECONDS
 import java.time.Instant
 
 private[ember] object Util {
+
   /**
     * The issue with a normal http body is that there is no termination character,
     * thus unless you have content-length and the client still has their input side open,
@@ -36,11 +37,10 @@ private[ember] object Util {
       if (remains <= 0.millis)
         Stream
           .eval(C.realTime(MILLISECONDS))
-          .flatMap(
-            now =>
-              Stream.raiseError[F](
-                EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
-              ))
+          .flatMap(now =>
+            Stream.raiseError[F](
+              EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
+            ))
       else
         for {
           start <- Stream.eval(C.realTime(MILLISECONDS))

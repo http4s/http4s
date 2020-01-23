@@ -31,6 +31,7 @@ import scala.util.hashing.MurmurHash3
 sealed class MediaRange private[http4s] (
     val mainType: String,
     val extensions: Map[String, String] = Map.empty) {
+
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean =
     (mainType.charAt(0) === '*' || mainType === mediaType.mainType)

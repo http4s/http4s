@@ -26,6 +26,7 @@ final case class UriTemplate(
     path: Path = Nil,
     query: UriTemplate.Query = Nil,
     fragment: Fragment = Nil) {
+
   /**
     * Replaces any expansion type that matches the given `name`. If no matching
     * `expansion` could be found the same instance will be returned.

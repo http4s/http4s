@@ -127,7 +127,7 @@ package object internal {
   private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(
       implicit F: Concurrent[F]): F[A] =
     fcf.flatMap { cf =>
-      F.cancelable(cb => {
+      F.cancelable { cb =>
         cf.handle[Unit](new BiFunction[A, Throwable, Unit] {
           override def apply(result: A, err: Throwable): Unit = err match {
             case null => cb(Right(result))
@@ -137,6 +137,6 @@ package object internal {
           }
         })
         F.delay { cf.cancel(true); () }
-      })
+      }
     }
 }

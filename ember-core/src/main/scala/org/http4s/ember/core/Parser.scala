@@ -10,6 +10,7 @@ import Shared._
 import _root_.io.chrisdavenport.log4cats.Logger
 
 private[ember] object Parser {
+
   /**
     * From the stream of bytes this extracts Http Header and body part.
     */

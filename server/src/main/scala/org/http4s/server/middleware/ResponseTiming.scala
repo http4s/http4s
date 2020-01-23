@@ -10,6 +10,7 @@ import org.http4s.util.CaseInsensitiveString
 import scala.concurrent.duration._
 
 object ResponseTiming {
+
   /**
     * Simple middleware for adding a custom header with timing information to a response.
     *

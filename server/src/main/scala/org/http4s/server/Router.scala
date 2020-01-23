@@ -6,6 +6,7 @@ import cats.data.Kleisli
 import cats.syntax.semigroupk._
 
 object Router {
+
   /**
     * Defines an [[HttpRoutes]] based on list of mappings.
     * @see define

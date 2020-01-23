@@ -22,11 +22,9 @@ class MethodSpec extends Http4sSpec {
 
   "name is case sensitive" in {
     prop { m: Method =>
-      {
-        val upper = m.name.toUpperCase(Locale.ROOT)
-        val lower = m.name.toLowerCase(Locale.ROOT)
-        (upper != lower) ==> { fromString(upper) must_!= fromString(lower) }
-      }
+      val upper = m.name.toUpperCase(Locale.ROOT)
+      val lower = m.name.toLowerCase(Locale.ROOT)
+      (upper != lower) ==> { fromString(upper) must_!= fromString(lower) }
     }
   }
 

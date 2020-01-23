@@ -6,6 +6,7 @@ import cats.effect.Sync
 
 /** Functions for creating [[HttpApp]] kleislis. */
 object HttpApp {
+
   /** Lifts a function into an [[HttpApp]].  The application of `run` is
     * suspended in `F` to permit more efficient combination of routes
     * via `SemigroupK`.

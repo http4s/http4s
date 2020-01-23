@@ -258,7 +258,7 @@ class AuthenticationSpec extends Http4sSpec {
 
       val expected = (0 to params.size).map(_ => Unauthorized)
 
-      val result = (0 to params.size).map(i => {
+      val result = (0 to params.size).map { i =>
         val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
         val header = Authorization(
           Credentials.AuthParams("Digest".ci, invalidParams.head, invalidParams.tail: _*))
@@ -266,7 +266,7 @@ class AuthenticationSpec extends Http4sSpec {
         val res = digestAuthService.orNotFound(req).unsafeRunSync
 
         res.status
-      })
+      }
 
       expected must_=== result
 

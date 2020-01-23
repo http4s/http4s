@@ -81,21 +81,19 @@ class CORSSpec extends Http4sSpec {
       val req = buildRequest("/unexistant", OPTIONS)
       cors1
         .orNotFound(req)
-        .map(
-          resp =>
-            resp.status.isSuccess && matchHeader(
-              resp.headers,
-              `Access-Control-Allow-Credentials`,
-              "true"))
+        .map(resp =>
+          resp.status.isSuccess && matchHeader(
+            resp.headers,
+            `Access-Control-Allow-Credentials`,
+            "true"))
         .unsafeRunSync()
       cors2
         .orNotFound(req)
-        .map(
-          resp =>
-            resp.status.isSuccess && matchHeader(
-              resp.headers,
-              `Access-Control-Allow-Credentials`,
-              "false"))
+        .map(resp =>
+          resp.status.isSuccess && matchHeader(
+            resp.headers,
+            `Access-Control-Allow-Credentials`,
+            "false"))
         .unsafeRunSync()
     }
 

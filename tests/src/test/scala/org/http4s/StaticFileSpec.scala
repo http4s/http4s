@@ -237,11 +237,10 @@ class StaticFileSpec extends Http4sSpec {
         val body = r.map(_.body.compile.toVector.unsafeRunSync)
         body.map(_.length) must beSome(fileSize - 1)
         // Verify the context
-        body.map(
-          bytes =>
-            java.util.Arrays.equals(
-              bytes.toArray,
-              java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1))) must beSome(true)
+        body.map(bytes =>
+          java.util.Arrays.equals(
+            bytes.toArray,
+            java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1))) must beSome(true)
       }
 
       check(emptyFile)

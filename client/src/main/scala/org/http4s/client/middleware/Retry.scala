@@ -78,6 +78,7 @@ object Retry {
 }
 
 object RetryPolicy {
+
   /** Decomposes a retry policy into components that are typically configured
     * individually.
     *

@@ -6,6 +6,7 @@ import cats.implicits._
 
 /** Functions for creating [[HttpRoutes]] kleislis. */
 object HttpRoutes {
+
   /** Lifts a function into an [[HttpRoutes]].  The application of `run`
     * is suspended in `F` to permit more efficient combination of
     * routes via `SemigroupK`.

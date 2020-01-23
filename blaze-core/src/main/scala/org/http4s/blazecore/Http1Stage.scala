@@ -79,10 +79,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       // HTTP 1.1: we have a length and no chunked encoding
       // HTTP 1.0: we have a length
 
-      bodyEncoding.foreach(
-        enc =>
-          logger.warn(
-            s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."))
+      bodyEncoding.foreach(enc =>
+        logger.warn(
+          s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."))
 
       logger.trace("Using static encoder")
 

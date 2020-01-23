@@ -6,11 +6,13 @@ import java.util.Base64
 import scala.util.Random
 
 private[http4s] object WebSocketHandshake {
+
   /** Creates a new [[ClientHandshaker]] */
   def clientHandshaker(host: String): ClientHandshaker = new ClientHandshaker(host)
 
   /** Provides the initial headers and a 16 byte Base64 encoded random key for websocket connections */
   class ClientHandshaker(host: String) {
+
     /** Randomly generated 16-byte key in Base64 encoded form */
     val key = {
       val bytes = new Array[Byte](16)

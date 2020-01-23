@@ -61,54 +61,50 @@ private[server] object ServerHelpers {
 
     Stream
       .eval(termSignal)
-      .flatMap(
-        terminationSignal =>
-          sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
-            .map(connect =>
-              Stream.eval(
-                connect
-                  .flatMap { socketInit =>
-                    tlsInfoOpt.fold(
-                      socketInit.pure[Resource[F, *]]
-                    ) {
-                      case (context, params) =>
-                        context
-                          .server(socketInit, params, { s: String =>
-                            logger.trace(s)
-                          }.some)
-                          .widen[Socket[F]]
-                    }
+      .flatMap(terminationSignal =>
+        sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+          .map(connect =>
+            Stream.eval(
+              connect
+                .flatMap { socketInit =>
+                  tlsInfoOpt.fold(
+                    socketInit.pure[Resource[F, *]]
+                  ) {
+                    case (context, params) =>
+                      context
+                        .server(socketInit, params, { s: String =>
+                          logger.trace(s)
+                        }.some)
+                        .widen[Socket[F]]
                   }
-                  .use { socket =>
-                    val app: F[(Request[F], Response[F])] = for {
-                      req <- socketReadRequest(
-                        socket,
-                        requestHeaderReceiveTimeout,
-                        receiveBufferSize)
-                      resp <- httpApp
-                        .run(req)
-                        .handleError(onError)
-                    } yield (req, resp)
-                    def send(request: Option[Request[F]], resp: Response[F]): F[Unit] =
-                      Stream(resp)
-                        .covary[F]
-                        .flatMap(Encoder.respToBytes[F])
-                        .through(socket.writes())
-                        .compile
-                        .drain
-                        .attempt
-                        .flatMap {
-                          case Left(err) => onWriteFailure(request, resp, err)
-                          case Right(()) => Sync[F].pure(())
-                        }
-                    app.attempt.flatMap {
-                      case Right((request, response)) => send(Some(request), response)
-                      case Left(err) => send(None, onError(err))
-                    }
+                }
+                .use { socket =>
+                  val app: F[(Request[F], Response[F])] = for {
+                    req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
+                    resp <- httpApp
+                      .run(req)
+                      .handleError(onError)
+                  } yield (req, resp)
+                  def send(request: Option[Request[F]], resp: Response[F]): F[Unit] =
+                    Stream(resp)
+                      .covary[F]
+                      .flatMap(Encoder.respToBytes[F])
+                      .through(socket.writes())
+                      .compile
+                      .drain
+                      .attempt
+                      .flatMap {
+                        case Left(err) => onWriteFailure(request, resp, err)
+                        case Right(()) => Sync[F].pure(())
+                      }
+                  app.attempt.flatMap {
+                    case Right((request, response)) => send(Some(request), response)
+                    case Left(err) => send(None, onError(err))
                   }
-              ))
-            .parJoin(maxConcurrency)
-            .interruptWhen(terminationSignal)
-            .drain)
+                }
+            ))
+          .parJoin(maxConcurrency)
+          .interruptWhen(terminationSignal)
+          .drain)
   }
 }

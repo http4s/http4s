@@ -5,6 +5,7 @@ import cats.data.{Kleisli, OptionT}
 
 @deprecated("Use AuthedRoutes instead", "0.20.2")
 object AuthedService {
+
   /**
     * Lifts a total function to an `AuthedService`. The function is expected to
     * handle all requests it is given.  If `f` is a `PartialFunction`, use

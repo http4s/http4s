@@ -25,6 +25,7 @@ trait Http4sClientDsl[F[_]] {
 }
 
 object Http4sClientDsl {
+
   /** Syntax classes to generate a request directly from a [[Method]] */
   implicit class WithBodyOps[F[_]](val method: Method with PermitsBody)
       extends AnyVal

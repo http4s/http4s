@@ -20,6 +20,7 @@ trait QueryParam[T] {
 }
 
 object QueryParam {
+
   /** summon an implicit [[QueryParam]] */
   def apply[T](implicit ev: QueryParam[T]): QueryParam[T] = ev
 
@@ -76,6 +77,7 @@ trait QueryParamEncoder[T] { outer =>
 }
 
 object QueryParamEncoder {
+
   /** summon an implicit [[QueryParamEncoder]] */
   def apply[T](implicit ev: QueryParamEncoder[T]): QueryParamEncoder[T] = ev
 
@@ -158,6 +160,7 @@ trait QueryParamDecoder[T] { outer =>
 }
 
 object QueryParamDecoder {
+
   /** summon an implicit [[QueryParamDecoder]] */
   def apply[T](implicit ev: QueryParamDecoder[T]): QueryParamDecoder[T] = ev
 
