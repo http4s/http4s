@@ -6,6 +6,8 @@ import org.http4s.Method.{GET, HEAD}
 import cats.{Functor, MonoidK}
 import cats.data.Kleisli
 import cats.implicits._
+import fs2.Stream
+import cats.effect.Concurrent
 
 /** Handles HEAD requests as a GET without a body.
   *
@@ -15,14 +17,14 @@ import cats.implicits._
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor, G[_]](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
+  def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
-        case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody)
+        case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody[G])
         case _ => http(req)
       }
     }
 
-  private[this] def drainBody[G[_]](response: Response[G]): Response[G] =
-    response.copy(body = response.body.drain)
+  private[this] def drainBody[G[_]: Concurrent](response: Response[G]): Response[G] =
+    response.copy(body = response.body.interruptWhen[G](Stream(true)).drain)
 }
