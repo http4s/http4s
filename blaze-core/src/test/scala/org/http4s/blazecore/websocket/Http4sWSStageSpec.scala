@@ -93,5 +93,18 @@ class Http4sWSStageSpec extends Http4sSpec {
       _ <- socket.pollOutbound().map(_ must_=== None)
       _ <- socket.sendInbound(Close())
     } yield ok).unsafeRunSync()
+
+    "not fail on pending write request" in (for {
+      socket <- TestWebsocketStage()
+      pings = 100L
+      in = Stream.eval(socket.sendInbound(Ping())).repeat.take(pings)
+      out = Stream.eval(socket.sendWSOutbound(Text("."))).repeat.take(200)
+      _ <- in.merge(out).compile.drain
+      _ <- socket.sendInbound(Close())
+      _ <- socket
+        .pollBatchOutputbound(500)
+        .map(_.count(_.isInstanceOf[Pong]))
+        .map(pongs => pongs must_== pings)
+    } yield ok).unsafeRunSync()
   }
 }
