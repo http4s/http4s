@@ -632,7 +632,7 @@ http://example.org/a file
       val u = Uri().withQueryParams(params)
       u must be_==(Uri(query = Query.fromString("param1=1&param2=2")))
     }
-    "add of multiple values for same query parameter name" in {
+    "add multiple values for same query parameter name" in {
       val params = Map("param1" -> List(1), "param2" -> List(2, 3))
       val u = Uri().withMultiValueQueryParams(params)
       u must be_==(Uri(query = Query.fromString("param1=1&param2=2&param2=3")))
