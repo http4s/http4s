@@ -12,6 +12,7 @@ import org.http4s.websocket.{WebSocket, WebSocketFrame}
 import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
 import scala.concurrent.ExecutionContext
+import scodec.bits.ByteVector
 
 class Http4sWSStageSpec extends Http4sSpec {
   override implicit def testExecutionContext: ExecutionContext =
@@ -92,6 +93,19 @@ class Http4sWSStageSpec extends Http4sSpec {
       _ <- socket.sendInbound(Pong())
       _ <- socket.pollOutbound().map(_ must_=== None)
       _ <- socket.sendInbound(Close())
+    } yield ok).unsafeRunSync()
+
+    "not fail on pending write request" in (for {
+      socket <- TestWebsocketStage()
+      reasonSent = ByteVector(42)
+      in = Stream.eval(socket.sendInbound(Ping())).repeat.take(100)
+      out = Stream.eval(socket.sendWSOutbound(Text("."))).repeat.take(200)
+      _ <- in.merge(out).compile.drain
+      _ <- socket.sendInbound(Close(reasonSent))
+      reasonReceived <- socket
+        .pollBatchOutputbound(500)
+        .map(_.collectFirst { case Close(reasonReceived) => reasonReceived })
+      _ = reasonReceived must beSome(reasonSent)
     } yield ok).unsafeRunSync()
   }
 }
