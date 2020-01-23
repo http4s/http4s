@@ -7,6 +7,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object `If-Match` extends HeaderKey.Internal[`If-Match`] with HeaderKey.Singleton {
+
   /** Match any existing entity */
   val `*` = `If-Match`(None)
 

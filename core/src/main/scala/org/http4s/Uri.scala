@@ -271,6 +271,7 @@ object Uri {
   }
 
   object UserInfo {
+
     /** Parses a userInfo from a percent-encoded string. */
     def fromString(s: String): ParseResult[UserInfo] =
       fromStringWithCharset(s, StandardCharsets.UTF_8)

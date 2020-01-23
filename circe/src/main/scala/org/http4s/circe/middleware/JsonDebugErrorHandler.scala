@@ -89,17 +89,16 @@ object JsonDebugErrorHandler {
           .obj(
             "scheme" -> req.uri.scheme.map(_.value).asJson,
             "authority" -> req.uri.authority
-              .map(
-                auth =>
-                  Json
-                    .obj(
-                      "host" -> auth.host.toString().asJson,
-                      "port" -> auth.port.asJson,
-                      "user_info" -> auth.userInfo
-                        .map(_.toString())
-                        .asJson
-                    )
-                    .dropNullValues)
+              .map(auth =>
+                Json
+                  .obj(
+                    "host" -> auth.host.toString().asJson,
+                    "port" -> auth.port.asJson,
+                    "user_info" -> auth.userInfo
+                      .map(_.toString())
+                      .asJson
+                  )
+                  .dropNullValues)
               .asJson,
             "path" -> req.uri.path.asJson,
             "query" -> req.uri.query.multiParams.asJson

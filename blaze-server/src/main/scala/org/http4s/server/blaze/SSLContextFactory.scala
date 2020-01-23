@@ -11,6 +11,7 @@ import scala.util.Try
   * Based on SSLContextFactory from jetty.
   */
 private[blaze] object SSLContextFactory {
+
   /**
     * Return X509 certificates for the session.
     *

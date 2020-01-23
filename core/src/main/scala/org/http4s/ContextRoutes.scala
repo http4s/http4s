@@ -5,6 +5,7 @@ import cats.{Applicative, Defer}
 import cats.implicits._
 
 object ContextRoutes {
+
   /** Lifts a function into an [[ContextRoutes]].  The application of `run`
     * is suspended in `F` to permit more efficient combination of
     * routes via `SemigroupK`.

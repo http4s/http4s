@@ -5,6 +5,7 @@ import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 object execution {
+
   /** Execute `Runnable`s directly on the current thread, using a stack frame.
     *
     * This is not safe to use for recursive function calls as you will ultimately

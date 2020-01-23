@@ -14,6 +14,7 @@ import org.http4s.Http
 import org.http4s.util.CaseInsensitiveString
 
 object HttpMethodOverrider {
+
   /**
     * HttpMethodOverrider middleware config options.
     */
@@ -124,13 +125,11 @@ object HttpMethodOverrider {
     }
 
     Kleisli { req: Request[G] =>
-      {
-        config.overridableMethods
-          .contains(req.method)
-          .guard[Option]
-          .as(processRequest(req))
-          .getOrElse(processRequestWithOriginalMethod(req))
-      }
+      config.overridableMethods
+        .contains(req.method)
+        .guard[Option]
+        .as(processRequest(req))
+        .getOrElse(processRequestWithOriginalMethod(req))
     }
   }
 }

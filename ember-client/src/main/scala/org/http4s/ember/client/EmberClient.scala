@@ -9,6 +9,7 @@ final class EmberClient[F[_]: Bracket[?[_], Throwable]] private[client] (
     private val client: Client[F],
     private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])]
 ) extends DefaultClient[F] {
+
   /**
     * The reason for this extra class. This allows you to see the present state
     * of the underlying Pool, without having access to the pool itself.

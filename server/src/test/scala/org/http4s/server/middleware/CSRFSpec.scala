@@ -12,6 +12,7 @@ import CSRF.unlift
 import cats.arrow.FunctionK
 
 class CSRFSpec extends Http4sSpec {
+
   /** Create a clock that always ticks forward once per millis() call.
     *
     * This is to emulate scenarios where we want to mitigate BREACH where, in

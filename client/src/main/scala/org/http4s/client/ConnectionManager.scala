@@ -16,6 +16,7 @@ import scala.concurrent.duration.Duration
   * must have a mechanism to free resources associated with it.
   */
 trait ConnectionManager[F[_], A <: Connection[F]] {
+
   /** Bundle of the connection and whether its new or not */
   // Sealed, rather than final, because SI-4440.
   sealed case class NextConnection(connection: A, fresh: Boolean)
@@ -40,6 +41,7 @@ trait ConnectionManager[F[_], A <: Connection[F]] {
 }
 
 object ConnectionManager {
+
   /** Create a [[ConnectionManager]] that creates new connections on each request
     *
     * @param builder generator of new connections

@@ -26,6 +26,7 @@ sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
     outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
     extends HeadStage[WebSocketFrame] {
+
   /** Block while we put elements into our queue
     *
     * @return
