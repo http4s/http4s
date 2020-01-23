@@ -48,7 +48,7 @@ class DefaultHeadSpec extends Http4sSpec with CatsIO {
         cleanedUpRef <- Ref[IO].of(false)
         route = HttpRoutes.of[IO] {
           case GET -> _ =>
-            val body: EntityBody[IO] = Stream.empty.onFinalizeWeak(cleanedUpRef.set(true))
+            val body: EntityBody[IO] = Stream.never.onFinalizeWeak(cleanedUpRef.set(true))
             Ok(body)
         }
         app = DefaultHead(route).orNotFound
