@@ -19,7 +19,6 @@ import org.http4s.laws.discipline.ArbitraryInstances
 import org.http4s.testing._
 import org.http4s.util.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import org.scalacheck._
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.specs2.ScalaCheck
 import org.specs2.execute.{Result, Skipped}
@@ -60,16 +59,6 @@ trait Http4sSpec
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
-
-  /** This isn't really ours to provide publicly in implicit scope */
-  implicit lazy val arbitraryByteChunk: Arbitrary[Chunk[Byte]] =
-    Arbitrary {
-      Gen
-        .containerOf[Array, Byte](arbitrary[Byte])
-        .map { b =>
-          Chunk.bytes(b)
-        }
-    }
 
   def writeToString[A](a: A)(implicit W: EntityEncoder[IO, A]): String =
     Stream
