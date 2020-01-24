@@ -83,18 +83,6 @@ trait Http4sSpec
       .map(_.getOrElse(""))
       .unsafeRunSync
 
-  def writeToChunk[A](a: A)(implicit W: EntityEncoder[IO, A]): Chunk[Byte] =
-    Stream
-      .emit(W.toEntity(a))
-      .covary[IO]
-      .flatMap(_.body)
-      .bufferAll
-      .chunks
-      .compile
-      .last
-      .map(_.getOrElse(Chunk.empty))
-      .unsafeRunSync
-
   def checkAll(name: String, props: Properties)(
       implicit p: Parameters,
       f: FreqMap[Set[Any]] => Pretty): Fragments = {
