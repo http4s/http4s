@@ -267,6 +267,11 @@ final class Request[F[_]](
 
   def queryString: String = uri.query.renderString
 
+  /**
+    * creates a cURL-command from the request, supported parameters are
+    * -X to specify the HTTP-method
+    * -H for headers, redacts sensitive information such as Authorization- or Cookie-Headers
+    */
   def asCurl: String = {
     val elements = List(
       s"-X ${method.name}",
