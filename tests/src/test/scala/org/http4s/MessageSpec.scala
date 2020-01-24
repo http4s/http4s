@@ -4,8 +4,10 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
+
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import _root_.io.chrisdavenport.vault._
+import org.http4s.Uri.{Authority, Scheme}
 
 class MessageSpec extends Http4sSpec {
   "Request" >> {
@@ -169,6 +171,32 @@ class MessageSpec extends Http4sSpec {
         val request =
           Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
         request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
+      }
+    }
+
+    "asCurl" should {
+      val port = 1234
+      val uri = Uri(
+        path = "/foo",
+        scheme = Some(Scheme.http),
+        authority = Some(Authority(port = Some(port)))
+      )
+      val request = Request[IO](Method.GET, uri)
+
+      "build cURL command with scheme and authority" in {
+        request.asCurl mustEqual "curl -X GET 'http://localhost:1234/foo'"
+      }
+
+      "build cURL command with headers and redact sensitive information" in {
+        request
+          .withHeaders(Header("k1", "v1"), Header("k2", "v2"))
+          .asCurl mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'k1: v1' -H 'k2: v2'"
+      }
+
+      "build cURL command but redact sensitive information" in {
+        request
+          .withHeaders(Header("Cookie", "k3=v3; k4=v4"), Authorization(BasicCredentials("user", "pass")))
+          .asCurl mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
       }
     }
   }

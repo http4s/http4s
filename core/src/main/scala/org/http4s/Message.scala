@@ -267,6 +267,21 @@ final class Request[F[_]](
 
   def queryString: String = uri.query.renderString
 
+  def asCurl: String = {
+    val elements = List(
+      s"-X ${method.name}",
+      s"'${uri.renderString}'",
+      headers
+        .redactSensitive()
+        .toList
+        .map { header =>
+          s"-H '${header.toString}'"
+        }
+        .mkString(" ")
+    )
+    s"curl ${elements.filter(_.nonEmpty).mkString(" ")}"
+  }
+
   /**
     * Representation of the query string as a map
     *
