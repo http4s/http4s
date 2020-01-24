@@ -7,6 +7,7 @@ import cats.effect.laws.util.TestInstances._
 import cats.implicits._
 import fs2.Chunk
 import org.http4s.laws.discipline.EntityCodecTests
+import org.http4s.testing.fs2Arbitraries._
 
 class EntityCodecSpec extends Http4sSpec {
   implicit val testContext: TestContext = TestContext()
