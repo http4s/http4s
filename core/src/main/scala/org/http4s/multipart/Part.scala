@@ -14,6 +14,8 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Med
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
   def filename: Option[String] =
     headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
+
+  override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }
 
 object Part {

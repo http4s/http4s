@@ -183,4 +183,21 @@ I am a big moose
 
   multipartSpec("with default decoder")(implicitly)
   multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlocker))
+
+  "Part" >> {
+    def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
+    "covary" should {
+      "disallow unrelated effects" in {
+        illTyped("testPart[Option].covary[IO]")
+        true
+      }
+
+      "allow related effects" in {
+        trait F1[A]
+        trait F2[A] extends F1[A]
+        testPart[F2].covary[F1]
+        true
+      }
+    }
+  }
 }

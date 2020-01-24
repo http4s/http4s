@@ -176,7 +176,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   /**
     * Lifts this Message's body to the specified effect type.
     */
-  def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
+  override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
 }
 
 object Message {

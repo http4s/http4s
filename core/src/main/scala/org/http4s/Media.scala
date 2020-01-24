@@ -10,6 +10,7 @@ import org.http4s.util.decode
 trait Media[F[_]] {
   def body: EntityBody[F]
   def headers: Headers
+  def covary[F2[x] >: F[x]]: Media[F2]
 
   final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
     charset.getOrElse(defaultCharset) match {
@@ -58,5 +59,7 @@ object Media {
     def body = b
 
     def headers: Headers = h
+
+    override def covary[F2[x] >: F[x]]: Media[F2] = this.asInstanceOf[Media[F2]]
   }
 }
