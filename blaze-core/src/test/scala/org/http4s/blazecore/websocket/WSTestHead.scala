@@ -3,13 +3,15 @@ package org.http4s.blazecore.websocket
 import cats.effect.{ContextShift, IO, Timer}
 import cats.effect.concurrent.Semaphore
 import cats.implicits._
+import fs2.Stream
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebSocketFrame
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-/** A simple stage to help test websocket requests
+/** A simple stage t
+o help test websocket requests
   *
   * This is really disgusting code but bear with me here:
   * `java.util.LinkedBlockingDeque` does NOT have nodes with
@@ -57,6 +59,9 @@ sealed abstract class WSTestHead(
     */
   def put(ws: WebSocketFrame): IO[Unit] =
     inQueue.enqueue1(ws)
+
+  val outStream: Stream[IO, WebSocketFrame] =
+    outQueue.dequeue
 
   /** poll our queue for a value,
     * timing out after `timeoutSeconds` seconds

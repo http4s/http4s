@@ -12,6 +12,7 @@ import org.http4s.websocket.{WebSocket, WebSocketFrame}
 import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 import scodec.bits.ByteVector
 
 class Http4sWSStageSpec extends Http4sSpec {
@@ -39,6 +40,9 @@ class Http4sWSStageSpec extends Http4sSpec {
 
     def pollBatchOutputbound(batchSize: Int, timeoutSeconds: Long = 4L): IO[List[WebSocketFrame]] =
       head.pollBatch(batchSize, timeoutSeconds)
+
+    val outStream: Stream[IO, WebSocketFrame] =
+      head.outStream
 
     def wasCloseHookCalled(): IO[Boolean] =
       IO(closeHook.get())
@@ -102,10 +106,12 @@ class Http4sWSStageSpec extends Http4sSpec {
       out = Stream.eval(socket.sendWSOutbound(Text("."))).repeat.take(200)
       _ <- in.merge(out).compile.drain
       _ <- socket.sendInbound(Close(reasonSent))
-      reasonReceived <- socket
-        .pollBatchOutputbound(500)
-        .map(_.collectFirst { case Close(reasonReceived) => reasonReceived })
-      _ = reasonReceived must beSome(reasonSent)
+      reasonReceived <- socket.outStream
+        .collectFirst { case Close(reasonReceived) => reasonReceived }
+        .compile
+        .toList
+        .timeout(5.seconds)
+      _ = reasonReceived must_== (List(reasonSent))
     } yield ok).unsafeRunSync()
   }
 }
