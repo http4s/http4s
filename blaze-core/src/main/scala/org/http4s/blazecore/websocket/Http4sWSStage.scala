@@ -3,6 +3,7 @@ package blazecore
 package websocket
 
 import cats.effect._
+import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import fs2._
 import fs2.concurrent.SignallingRef
@@ -22,6 +23,8 @@ private[http4s] class Http4sWSStage[F[_]](
     deadSignal: SignallingRef[F, Boolean]
 )(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
+
+  private[this] val writeSemaphore = F.toIO(Semaphore[F](1L)).unsafeRunSync()
 
   def name: String = "Http4s WebSocket Stage"
 
@@ -44,12 +47,12 @@ private[http4s] class Http4sWSStage[F[_]](
   }
 
   private[this] def writeFrame(frame: WebSocketFrame, ec: ExecutionContext): F[Unit] =
-    F.async[Unit] { cb =>
+    writeSemaphore.withPermit(F.async[Unit] { cb =>
       channelWrite(frame).onComplete {
         case Success(res) => cb(Right(res))
         case Failure(t) => cb(Left(t))
       }(ec)
-    }
+    })
 
   private[this] def readFrameTrampoline: F[WebSocketFrame] = F.async[WebSocketFrame] { cb =>
     channelRead().onComplete {
