@@ -223,7 +223,6 @@ class MessageSpec extends Http4sSpec {
       }
     }
 
-
     "covary" should {
       "disallow unrelated effects" in {
         illTyped("Response[Option]().covary[IO]")
