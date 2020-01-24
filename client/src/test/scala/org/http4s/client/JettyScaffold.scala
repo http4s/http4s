@@ -19,7 +19,6 @@ object JettyScaffold {
 }
 
 class JettyScaffold private (num: Int, secure: Boolean) {
-
   private var servers = Vector.empty[JServer]
   var addresses = Vector.empty[InetSocketAddress]
 

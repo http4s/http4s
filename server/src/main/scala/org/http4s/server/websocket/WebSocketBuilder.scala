@@ -41,7 +41,6 @@ final case class WebSocketBuilder[F[_]](
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]])
 object WebSocketBuilder {
-
   class Builder[F[_]: Applicative] {
     def build(
         send: Stream[F, WebSocketFrame],

@@ -7,7 +7,6 @@ import cats.effect.concurrent._
 import org.http4s._
 
 class MaxActiveRequestsSpec extends Http4sSpec {
-
   val req = Request[IO]()
 
   def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) = Kleisli {

@@ -16,6 +16,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
+import org.http4s.syntax.all._
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.duration._
@@ -34,7 +35,6 @@ sealed class JettyBuilder[F[_]] private (
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
-
   type Self = JettyBuilder[F]
 
   private[this] val logger = getLogger
@@ -107,6 +107,9 @@ sealed class JettyBuilder[F[_]] private (
     })
 
   def mountService(service: HttpRoutes[F], prefix: String): Self =
+    mountHttpApp(service.orNotFound, prefix)
+
+  def mountHttpApp(service: HttpApp[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (context, index, builder) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,

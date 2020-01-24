@@ -10,7 +10,7 @@
 package org.http4s
 
 import cats.effect.{Blocker, ContextShift, ExitCase, IO, Resource, Timer}
-import cats.effect.specs2.CatsEffect
+import cats.effect.testing.specs2.CatsEffect
 import cats.implicits._
 import fs2._
 import fs2.text._
@@ -19,7 +19,6 @@ import org.http4s.laws.discipline.ArbitraryInstances
 import org.http4s.testing._
 import org.http4s.util.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import org.scalacheck._
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.specs2.ScalaCheck
 import org.specs2.execute.{Result, Skipped}
@@ -61,16 +60,6 @@ trait Http4sSpec
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
 
-  /** This isn't really ours to provide publicly in implicit scope */
-  implicit lazy val arbitraryByteChunk: Arbitrary[Chunk[Byte]] =
-    Arbitrary {
-      Gen
-        .containerOf[Array, Byte](arbitrary[Byte])
-        .map { b =>
-          Chunk.bytes(b)
-        }
-    }
-
   def writeToString[A](a: A)(implicit W: EntityEncoder[IO, A]): String =
     Stream
       .emit(W.toEntity(a))
@@ -81,18 +70,6 @@ trait Http4sSpec
       .compile
       .last
       .map(_.getOrElse(""))
-      .unsafeRunSync
-
-  def writeToChunk[A](a: A)(implicit W: EntityEncoder[IO, A]): Chunk[Byte] =
-    Stream
-      .emit(W.toEntity(a))
-      .covary[IO]
-      .flatMap(_.body)
-      .bufferAll
-      .chunks
-      .compile
-      .last
-      .map(_.getOrElse(Chunk.empty))
       .unsafeRunSync
 
   def checkAll(name: String, props: Properties)(

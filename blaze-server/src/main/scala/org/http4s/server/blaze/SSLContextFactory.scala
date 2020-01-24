@@ -63,5 +63,4 @@ private[blaze] object SSLContextFactory {
     else if (cipherSuite.contains("WITH_DES40_CBC_")) 40
     else if (cipherSuite.contains("WITH_DES_CBC_")) 56
     else 0
-
 }

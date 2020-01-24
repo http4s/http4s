@@ -11,7 +11,6 @@ import org.specs2.matcher.MustThrownMatchers
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
-
   sealed case class Ttl(seconds: Int)
   object Ttl {
     implicit val queryParamInstance = new QueryParamEncoder[Ttl] with QueryParam[Ttl] {
@@ -59,10 +58,8 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
       "parse port correctly" >> {
         "if there is a valid (non-negative) one" >> prop { nonNegative: Int =>
-          {
-            val uri = getUri(s"http://localhost:$nonNegative/")
-            uri.port must_=== Some(nonNegative)
-          }
+          val uri = getUri(s"http://localhost:$nonNegative/")
+          uri.port must_=== Some(nonNegative)
         }.setGen(Gen.choose[Int](0, Int.MaxValue))
         "if there is none" in {
           val uri = getUri("http://localhost/")
@@ -96,30 +93,24 @@ http://example.org/a file
 
     "fail to parse port" >> {
       "if it's negative" >> prop { negative: Int =>
-        {
-          val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$negative/")
-          uri match {
-            case Left(ParseFailure("Invalid URI", _)) => ok
-            case unexpected => ko(unexpected.toString)
-          }
+        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$negative/")
+        uri match {
+          case Left(ParseFailure("Invalid URI", _)) => ok
+          case unexpected => ko(unexpected.toString)
         }
       }.setGen(Gen.choose[Int](Int.MinValue, -1))
       "if it's larger than Int.MaxValue" >> prop { tooBig: Long =>
-        {
-          val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$tooBig/")
-          uri match {
-            case Left(ParseFailure("Invalid URI", _)) => ok
-            case unexpected => ko(unexpected.toString)
-          }
+        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$tooBig/")
+        uri match {
+          case Left(ParseFailure("Invalid URI", _)) => ok
+          case unexpected => ko(unexpected.toString)
         }
       }.setGen(Gen.choose[Long]((Int.MaxValue: Long) + 1, Long.MaxValue))
       "if it's not a number or an empty String" >> prop { notNumber: String =>
-        {
-          val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
-          uri match {
-            case Left(ParseFailure("Invalid URI", _)) => ok
-            case unexpected => ko(unexpected.toString)
-          }
+        val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
+        uri match {
+          case Left(ParseFailure("Invalid URI", _)) => ok
+          case unexpected => ko(unexpected.toString)
         }
       }.setGen(Gen.alphaNumStr.suchThat(str =>
         str.nonEmpty && Either.catchOnly[NumberFormatException](str.toInt).isLeft))
@@ -147,7 +138,6 @@ http://example.org/a file
   }
 
   "Uri Query decoding" should {
-
     def getQueryParams(uri: String): Map[String, String] = getUri(uri).params
 
     "Handle queries with no spaces properly" in {
@@ -167,7 +157,6 @@ http://example.org/a file
         "x" -> "a bc",
         "y" -> "ijk")
     }
-
   }
 
   "Uri copy" should {
@@ -618,7 +607,7 @@ http://example.org/a file
       val u = Uri() +*? (Ttl(2))
       u must be_==(Uri(query = Query.fromString(s"ttl=2")))
     }
-    "Work with queryParam" in {
+    "add a QueryParam instance" in {
       val u = Uri().withQueryParam[Ttl]
       u must be_==(Uri(query = Query.fromString(s"ttl")))
     }
@@ -629,6 +618,27 @@ http://example.org/a file
     "add an optional query parameter (Empty)" in {
       val u = Uri() +?? ("param1", None: Option[Int])
       u must be_==(Uri(query = Query.empty))
+    }
+    "add multiple query parameters at once" in {
+      val params = Map("param1" -> 1, "param2" -> 2)
+      val u = Uri().withQueryParams(params)
+      u must be_==(Uri(query = Query.fromString("param1=1&param2=2")))
+    }
+    "add multiple values for same query parameter name" in {
+      val params = Map("param1" -> List(1), "param2" -> List(2, 3))
+      val u = Uri().withMultiValueQueryParams(params)
+      u must be_==(Uri(query = Query.fromString("param1=1&param2=2&param2=3")))
+    }
+    "replace an existing parameter" in {
+      val params = Map("param2" -> 3, "param3" -> 4)
+      val u = Uri(query = Query.fromString("param1=1&param2=2")).withQueryParams(params)
+      u must be_==(Uri(query = Query.fromString("param1=1&param2=3&param3=4")))
+    }
+    "replace an existing multi-valued parameter" in {
+      val u = Uri(query = Query.fromString("param1=1&param1=2"))
+        .withQueryParams(Map("param1" -> 3))
+        .withMultiValueQueryParams(Map("param2" -> List(4, 5)))
+      u must be_==(Uri(query = Query.fromString("param1=3&param2=4&param2=5")))
     }
     "contains not a parameter" in {
       Uri(query = Query.empty) ? "param1" must be_==(false)
@@ -778,7 +788,6 @@ http://example.org/a file
       val updated = u.withoutFragment
       updated.renderString must_== "/"
     }
-
   }
 
   "Uri.renderString" should {
@@ -793,7 +802,6 @@ http://example.org/a file
   }
 
   "Uri relative resolution" should {
-
     val base = getUri("http://a/b/c/d;p?q")
 
     "correctly remove ./.. sequences" >> {

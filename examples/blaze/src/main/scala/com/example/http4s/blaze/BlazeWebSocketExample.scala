@@ -14,15 +14,12 @@ import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.duration._
 
 object BlazeWebSocketExample extends IOApp {
-
   override def run(args: List[String]): IO[ExitCode] =
     BlazeWebSocketExampleApp[IO].stream.compile.drain.as(ExitCode.Success)
-
 }
 
 class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F])
     extends Http4sDsl[F] {
-
   def routes: HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / "hello" =>
       Ok("Hello world.")

@@ -64,5 +64,4 @@ trait ErrorReportingUtils {
     }
     outStream.toString("utf-8")
   }
-
 }

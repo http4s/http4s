@@ -8,7 +8,6 @@ import org.http4s.MediaType
 import org.http4s.headers.{Accept, Location, `Content-Length`, `Content-Type`}
 
 class ResponseGeneratorSpec extends Http4sSpec {
-
   "Add the EntityEncoder headers along with a content-length header" in {
     val body = "foo"
     val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers

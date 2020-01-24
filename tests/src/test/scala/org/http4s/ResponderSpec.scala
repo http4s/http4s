@@ -7,7 +7,6 @@ import org.http4s.headers._
 import org.specs2.mutable.Specification
 
 class ResponderSpec extends Specification {
-
   val resp = Response[IO](Status.Ok)
 
   "Responder" should {
@@ -52,7 +51,7 @@ class ResponderSpec extends Specification {
         resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       (wHeader.headers.toList must have).length(3)
 
-      val newHeaders = wHeader.withHeaders(Date(HttpDate.now))
+      val newHeaders = wHeader.withHeaders(Date(HttpDate.Epoch))
       (newHeaders.headers.toList must have).length(1)
       newHeaders.headers.get(Connection) must beNone
     }
@@ -62,7 +61,7 @@ class ResponderSpec extends Specification {
         resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       (wHeader.headers.toList must have).length(3)
 
-      val newHeaders = wHeader.withHeaders(Headers.of(Date(HttpDate.now)))
+      val newHeaders = wHeader.withHeaders(Headers.of(Date(HttpDate.Epoch)))
       (newHeaders.headers.toList must have).length(1)
       newHeaders.headers.get(Connection) must beNone
     }

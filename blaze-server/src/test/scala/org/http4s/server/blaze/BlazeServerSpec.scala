@@ -14,7 +14,6 @@ import org.specs2.execute.Result
 import org.http4s.multipart.Multipart
 
 class BlazeServerSpec extends Http4sSpec {
-
   def builder =
     BlazeServerBuilder[IO]
       .withResponseHeaderTimeout(1.second)

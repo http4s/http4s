@@ -18,7 +18,6 @@ import scala.util.Try
   * Test cases for mTLS support in blaze server
   */
 class BlazeServerMtlsSpec extends Http4sSpec {
-
   {
     val hostnameVerifier: HostnameVerifier = new HostnameVerifier {
       override def verify(s: String, sslSession: SSLSession): Boolean = true
@@ -95,7 +94,6 @@ class BlazeServerMtlsSpec extends Http4sSpec {
     * Used for no mTLS client. Required to trust self-signed certificate.
     */
   lazy val noAuthClientContext: SSLContext = {
-
     val js = KeyStore.getInstance("JKS")
     js.load(getClass.getResourceAsStream("/keystore.jks"), "password".toCharArray)
 
@@ -170,7 +168,6 @@ class BlazeServerMtlsSpec extends Http4sSpec {
     }
 
     "Server" should {
-
       "send mTLS request correctly with optional auth" in {
         get("/dummy") shouldEqual "CN=Test,OU=Test,O=Test,L=CA,ST=CA,C=US"
       }

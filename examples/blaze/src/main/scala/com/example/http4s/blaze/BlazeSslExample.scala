@@ -12,7 +12,6 @@ object BlazeSslExample extends IOApp {
 }
 
 object BlazeSslExampleApp {
-
   def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: BlazeServerBuilder[F] =
     BlazeServerBuilder[F]
       .bindHttp(8443)
@@ -23,5 +22,4 @@ object BlazeSslExampleApp {
       blocker <- Blocker[F]
       server <- builder[F].withHttpApp(BlazeExampleApp.httpApp(blocker)).resource
     } yield server
-
 }

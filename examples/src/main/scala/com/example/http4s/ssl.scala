@@ -12,7 +12,6 @@ import org.http4s.headers.{Host, Location}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
 object ssl {
-
   val keystorePassword: String = "password"
   val keyManagerPassword: String = "secure"
 
@@ -60,5 +59,4 @@ object ssl {
       }
     }
   }
-
 }

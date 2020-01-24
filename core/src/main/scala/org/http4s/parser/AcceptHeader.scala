@@ -22,13 +22,11 @@ import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.internal.parboiled2._
 
 private[parser] trait AcceptHeader {
-
   def ACCEPT(value: String): ParseResult[headers.Accept] = new AcceptParser(value).parse
 
   private class AcceptParser(value: String)
       extends Http4sHeaderParser[Accept](value)
       with MediaRange.MediaRangeParser {
-
     def entry: Rule1[headers.Accept] = rule {
       oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { xs: Seq[MediaRangeAndQValue] =>
         Accept(xs.head, xs.tail: _*)

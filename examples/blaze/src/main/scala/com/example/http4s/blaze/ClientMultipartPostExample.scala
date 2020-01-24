@@ -13,7 +13,6 @@ import org.http4s.multipart._
 import scala.concurrent.ExecutionContext.global
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
-
   val blocker = Blocker.liftExecutionContext(global)
 
   val bottle: URL = getClass.getResource("/beerbottle.png")

@@ -41,5 +41,4 @@ object ContextRoutes {
     */
   def empty[T, F[_]: Applicative]: ContextRoutes[T, F] =
     Kleisli.liftF(OptionT.none)
-
 }

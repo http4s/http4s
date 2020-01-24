@@ -98,7 +98,6 @@ lazy val laws = libraryProject("laws")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      scalacheck,
     ),
   )
   .dependsOn(core)
@@ -108,8 +107,7 @@ lazy val testing = libraryProject("testing")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      scalacheck,
-      specs2Matcher
+      specs2Matcher,
     ),
   )
   .dependsOn(laws)
@@ -188,7 +186,7 @@ lazy val emberServer = libraryProject("ember-server")
 lazy val emberClient = libraryProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
-    libraryDependencies ++= Seq(fs2Crypto, keypool, log4catsSlf4j)
+    libraryDependencies ++= Seq(keypool, log4catsSlf4j)
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 

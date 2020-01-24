@@ -37,13 +37,11 @@ class ResponseTimingSpec extends Http4sSpec {
 }
 
 object Sys {
-
   private val currentTime: Ref[IO, Long] = Ref.unsafe[IO, Long](System.currentTimeMillis())
 
   def tick(): IO[Long] = currentTime.modify(l => (l + 1L, l))
 
   implicit val clock: Clock[IO] = new Clock[IO] {
-
     override def realTime(unit: TimeUnit): IO[Long] = currentTime.get
 
     override def monotonic(unit: TimeUnit): IO[Long] = currentTime.get

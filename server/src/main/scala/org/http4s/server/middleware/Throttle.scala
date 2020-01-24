@@ -1,5 +1,6 @@
 package org.http4s.server.middleware
 
+import cats._
 import org.http4s.{Http, Response, Status}
 import cats.data.Kleisli
 import cats.effect.{Clock, Sync}
@@ -13,7 +14,6 @@ import scala.concurrent.duration._
   * Transform a service to reject any calls the go over a given rate.
   */
 object Throttle {
-
   sealed abstract class TokenAvailability extends Product with Serializable
   case object TokenAvailable extends TokenAvailability
   final case class TokenUnavailable(retryAfter: Option[FiniteDuration]) extends TokenAvailability
@@ -26,9 +26,13 @@ object Throttle {
     */
   trait TokenBucket[F[_]] {
     def takeToken: F[TokenAvailability]
+    def mapK[G[_]](fk: F ~> G): TokenBucket[G] = new TokenBucket.Translated[F, G](this, fk)
   }
 
   object TokenBucket {
+    private class Translated[F[_], G[_]](t: TokenBucket[F], fk: F ~> G) extends TokenBucket[G] {
+      def takeToken: G[TokenAvailability] = fk(t.takeToken)
+    }
 
     /**
       * Creates an in-memory [[TokenBucket]].
@@ -40,7 +44,6 @@ object Throttle {
     def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(
         implicit F: Sync[F],
         clock: Clock[F]): F[TokenBucket[F]] = {
-
       def getTime = clock.monotonic(NANOSECONDS)
       val bucket = getTime.flatMap(time => Ref[F].of((capacity.toDouble, time)))
 
@@ -49,7 +52,7 @@ object Throttle {
           override def takeToken: F[TokenAvailability] = {
             val attemptUpdate = counter.access.flatMap {
               case ((previousTokens, previousTime), setter) =>
-                getTime.flatMap(currentTime => {
+                getTime.flatMap { currentTime =>
                   val timeDifference = currentTime - previousTime
                   val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
                   val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
@@ -64,7 +67,7 @@ object Throttle {
                   }
 
                   attemptSet
-                })
+                }
             }
 
             def loop: F[TokenAvailability] = attemptUpdate.flatMap { attempt =>
@@ -72,12 +75,9 @@ object Throttle {
             }
             loop
           }
-
         }
       }
-
     }
-
   }
 
   /**
@@ -111,7 +111,7 @@ object Throttle {
   def apply[F[_], G[_]](
       bucket: TokenBucket[F],
       throttleResponse: Option[FiniteDuration] => Response[G] = defaultResponse[G] _)(
-      http: Http[F, G])(implicit F: Sync[F]): Http[F, G] =
+      http: Http[F, G])(implicit F: Monad[F]): Http[F, G] =
     Kleisli { req =>
       bucket.takeToken.flatMap {
         case TokenAvailable => http(req)

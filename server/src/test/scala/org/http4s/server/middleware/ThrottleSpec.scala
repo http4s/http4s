@@ -14,7 +14,6 @@ import scala.concurrent.duration._
 
 class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatchers {
   "LocalTokenBucket" should {
-
     "contain initial number of tokens equal to specified capacity" in {
       val ctx = TestContext()
       val testTimer: Timer[IO] = ctx.timer[IO]
@@ -25,14 +24,14 @@ class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatc
         TokenBucket.local[IO](capacity, someRefillTime)(ioEffect, testTimer.clock)
 
       val takeExtraToken = createBucket
-        .flatMap(testee => {
+        .flatMap { testee =>
           val takeFiveTokens: IO[List[TokenAvailability]] =
             (1 to 5).toList.traverse(_ => testee.takeToken)
           val checkTokensUpToCapacity =
             takeFiveTokens.map(tokens =>
               tokens must contain(TokenAvailable: TokenAvailability).forall)
           checkTokensUpToCapacity *> testee.takeToken
-        })
+        }
 
       val result = takeExtraToken.unsafeToFuture()
 
@@ -47,9 +46,9 @@ class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatc
       val createBucket =
         TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, testTimer.clock)
 
-      val takeTokenAfterRefill = createBucket.flatMap(testee => {
+      val takeTokenAfterRefill = createBucket.flatMap { testee =>
         testee.takeToken *> testTimer.sleep(101.milliseconds) *> testee.takeToken
-      })
+      }
 
       val result = takeTokenAfterRefill.unsafeToFuture()
 
@@ -65,12 +64,12 @@ class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatc
       val createBucket =
         TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, testTimer.clock)
 
-      val takeExtraToken = createBucket.flatMap(testee => {
-        val takeFiveTokens: IO[List[TokenAvailability]] = (1 to 5).toList.traverse(_ => {
+      val takeExtraToken = createBucket.flatMap { testee =>
+        val takeFiveTokens: IO[List[TokenAvailability]] = (1 to 5).toList.traverse { _ =>
           testee.takeToken
-        })
+        }
         testTimer.sleep(300.milliseconds) >> takeFiveTokens >> testee.takeToken
-      })
+      }
 
       val result = takeExtraToken.unsafeToFuture()
 
@@ -86,9 +85,9 @@ class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatc
       val createBucket =
         TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, testTimer.clock)
 
-      val takeTokensSimultaneously = createBucket.flatMap(testee => {
+      val takeTokensSimultaneously = createBucket.flatMap { testee =>
         (1 to 5).toList.parTraverse(_ => testee.takeToken)
-      })
+      }
 
       val result = takeTokensSimultaneously.unsafeToFuture()
 
@@ -102,9 +101,9 @@ class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatc
       val createBucket =
         TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, testTimer.clock)
 
-      val takeTwoTokens = createBucket.flatMap(testee => {
+      val takeTwoTokens = createBucket.flatMap { testee =>
         testee.takeToken *> testTimer.sleep(75.milliseconds) *> testee.takeToken
-      })
+      }
 
       val result = takeTwoTokens.unsafeToFuture()
 

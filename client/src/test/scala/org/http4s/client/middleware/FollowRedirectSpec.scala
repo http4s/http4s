@@ -14,7 +14,6 @@ import org.http4s.Uri.uri
 import org.specs2.mutable.Tables
 
 class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables {
-
   private val loopCounter = new AtomicInteger(0)
 
   val app = HttpRoutes
@@ -64,7 +63,6 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
           pure: Boolean,
           response: Either[Throwable, RedirectResponse]
       ) = {
-
         val u = uri("http://localhost") / status.code.toString
         val req: Request[IO] = method match {
           case _: Method.PermitsBody if body.nonEmpty =>

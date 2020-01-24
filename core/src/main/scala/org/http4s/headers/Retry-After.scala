@@ -36,7 +36,6 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
   * @param retry Either the date of expiration or seconds until expiration
   */
 sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long]) extends Header.Parsed {
-
   val key = `Retry-After`
   override val value = Renderer.renderString(retry)
   override def renderValue(writer: Writer): writer.type = writer.append(value)

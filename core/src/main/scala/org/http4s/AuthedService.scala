@@ -33,5 +33,4 @@ object AuthedService {
   @deprecated("Use AuthedRoutes.empty instead", "0.20.2")
   def empty[T, F[_]: Applicative]: AuthedService[T, F] =
     Kleisli.liftF(OptionT.none)
-
 }

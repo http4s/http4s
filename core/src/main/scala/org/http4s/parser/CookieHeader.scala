@@ -18,12 +18,12 @@
 package org.http4s
 package parser
 
+import org.http4s.SameSite._
 import org.http4s.headers.`Set-Cookie`
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
 
 private[parser] trait CookieHeader {
-
   def SET_COOKIE(value: String): ParseResult[`Set-Cookie`] =
     new SetCookieParser(value).parse
 
@@ -49,7 +49,6 @@ private[parser] trait CookieHeader {
 
   private abstract class BaseCookieParser[H <: Header](input: ParserInput)
       extends Http4sHeaderParser[H](input) {
-
     def CookiePair[A](f: (String, String) => A) = rule {
       Token ~ ch('=') ~ CookieValue ~> (f(_, _))
     }
@@ -79,6 +78,9 @@ private[parser] trait CookieHeader {
         "Path=" ~ StringValue ~> { (cookie: ResponseCookie, pathValue: String) =>
           cookie.copy(path = Some(pathValue))
         } |
+        "SameSite=" ~ SameSite ~> { (cookie: ResponseCookie, sameSiteValue: SameSite) =>
+          cookie.copy(sameSite = sameSiteValue)
+        } |
         // TODO: Capture so we can create the rule, but there must be a better way
         "Secure" ~ MATCH ~> { (cookie: ResponseCookie) =>
           cookie.copy(secure = true)
@@ -102,6 +104,10 @@ private[parser] trait CookieHeader {
     def DomainNamePart: Rule0 = rule { AlphaNum ~ zeroOrMore(AlphaNum | ch('-')) }
 
     def StringValue: Rule1[String] = rule { capture(oneOrMore((!(CTL | ch(';'))) ~ Char)) }
+
+    def SameSite: Rule1[SameSite] = rule {
+      "Strict" ~ push(Strict) | "Lax" ~ push(Lax) | "None" ~ push(None)
+    }
   }
   // scalastyle:on public.methods.have.type
 }

@@ -7,7 +7,6 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 
 class StatusSpec extends Http4sSpec {
-
   checkAll("Status", OrderTests[Status].order)
 
   "Statuses" should {
@@ -43,7 +42,6 @@ class StatusSpec extends Http4sSpec {
         fromInt(code) must beRight.like { case s => s.responseClass must_== expected }
       }
     }
-
   }
 
   "The collection of registered statuses" should {
@@ -58,7 +56,6 @@ class StatusSpec extends Http4sSpec {
   }
 
   "Finding a status by code" should {
-
     "fail if the code is not in the range of valid codes" in {
       forAll(Gen.choose(Int.MinValue, 99)) { i =>
         fromInt(i).isLeft

@@ -3,6 +3,7 @@ package org.http4s.ember.server.internal
 import fs2._
 import fs2.concurrent._
 import fs2.io.tcp._
+import fs2.io.tls._
 import cats.effect._
 import cats.implicits._
 import scala.concurrent.duration._
@@ -13,11 +14,11 @@ import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.io.chrisdavenport.log4cats.Logger
 
 private[server] object ServerHelpers {
-
   def server[F[_]: Concurrent: ContextShift](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
       sg: SocketGroup,
+      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
       // Defaults
       onError: Throwable => Response[F] = { _: Throwable =>
         Response[F](Status.InternalServerError)
@@ -31,7 +32,6 @@ private[server] object ServerHelpers {
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
   )(implicit C: Clock[F]): Stream[F, Nothing] = {
-
     // Termination Signal, if not present then does not terminate.
     val termSignal: F[SignallingRef[F, Boolean]] =
       terminationSignal.fold(SignallingRef[F, Boolean](false))(_.pure[F])
@@ -61,18 +61,29 @@ private[server] object ServerHelpers {
 
     Stream
       .eval(termSignal)
-      .flatMap(
-        terminationSignal =>
-          sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
-            .map(connect =>
-              Stream.eval(
-                connect.use { socket =>
+      .flatMap(terminationSignal =>
+        sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+          .map(connect =>
+            Stream.eval(
+              connect
+                .flatMap { socketInit =>
+                  tlsInfoOpt.fold(
+                    socketInit.pure[Resource[F, *]]
+                  ) {
+                    case (context, params) =>
+                      context
+                        .server(socketInit, params, { s: String =>
+                          logger.trace(s)
+                        }.some)
+                        .widen[Socket[F]]
+                  }
+                }
+                .use { socket =>
                   val app: F[(Request[F], Response[F])] = for {
                     req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
                     resp <- httpApp
                       .run(req)
                       .handleError(onError)
-                    // .flatTap(resp => Sync[F].delay(logger.debug(s"Response Created $resp")))
                   } yield (req, resp)
                   def send(request: Option[Request[F]], resp: Response[F]): F[Unit] =
                     Stream(resp)
@@ -91,9 +102,9 @@ private[server] object ServerHelpers {
                     case Left(err) => send(None, onError(err))
                   }
                 }
-              ))
-            .parJoin(maxConcurrency)
-            .interruptWhen(terminationSignal)
-            .drain)
+            ))
+          .parJoin(maxConcurrency)
+          .interruptWhen(terminationSignal)
+          .drain)
   }
 }

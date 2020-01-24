@@ -12,7 +12,6 @@ import scala.io.Source
   * Common Tests for Logger, RequestLogger, and ResponseLogger
   */
 class LoggerSpec extends Http4sSpec {
-
   val testApp = HttpApp[IO] {
     case GET -> Root / "request" =>
       Ok("request response")

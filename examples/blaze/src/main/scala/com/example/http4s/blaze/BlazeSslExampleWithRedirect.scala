@@ -15,11 +15,9 @@ object BlazeSslExampleWithRedirect extends IOApp {
       .compile
       .drain
       .as(ExitCode.Success)
-
 }
 
 object BlazeSslExampleWithRedirectApp {
-
   def redirectStream[F[_]: ConcurrentEffect: Timer]: Stream[F, ExitCode] =
     BlazeServerBuilder[F]
       .bindHttp(8080)
@@ -28,5 +26,4 @@ object BlazeSslExampleWithRedirectApp {
 
   def sslStream[F[_]: ConcurrentEffect: ContextShift: Timer]: Stream[F, ExitCode] =
     BlazeSslExampleApp.builder[F].serve
-
 }

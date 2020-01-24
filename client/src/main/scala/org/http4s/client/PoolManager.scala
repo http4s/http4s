@@ -32,7 +32,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
     semaphore: Semaphore[F],
     implicit private val executionContext: ExecutionContext)(implicit F: Concurrent[F])
     extends ConnectionManager[F, A] {
-
   private sealed case class Waiting(
       key: RequestKey,
       callback: Callback[NextConnection],
@@ -211,7 +210,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
       case Some(Waiting(_, callback, at)) =>
         if (isExpired(at)) {
           F.delay(logger.debug(s"Request expired")) *>
-            F.delay(callback(Left(WaitQueueTimeoutException)))
+            F.delay(callback(Left(WaitQueueTimeoutException))) *>
+            releaseRecyclable(key, connection)
         } else {
           F.delay(logger.debug(s"Fulfilling waiting connection request: $stats")) *>
             F.delay(callback(Right(NextConnection(connection, fresh = false))))

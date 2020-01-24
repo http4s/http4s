@@ -21,7 +21,6 @@ final class PrometheusExportService[F[_]: Sync] private (
 )
 
 object PrometheusExportService {
-
   def apply[F[_]: Sync](collectorRegistry: CollectorRegistry): PrometheusExportService[F] =
     new PrometheusExportService(service(collectorRegistry), collectorRegistry)
 
@@ -60,5 +59,4 @@ object PrometheusExportService {
       _ <- Prometheus.registerCollector(new VersionInfoExports(), cr)
       _ <- Prometheus.registerCollector(new MemoryAllocationExports(), cr)
     } yield ()
-
 }

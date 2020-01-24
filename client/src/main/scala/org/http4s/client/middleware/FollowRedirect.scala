@@ -41,7 +41,6 @@ object FollowRedirect {
       maxRedirects: Int,
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
       client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
-
     def nextRequest(
         req: Request[F],
         uri: Uri,

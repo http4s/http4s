@@ -37,7 +37,6 @@ object WebjarService {
       */
     private[staticcontent] lazy val pathInJar: String =
       s"/META-INF/resources/webjars/$library/$version/$asset"
-
   }
 
   /**

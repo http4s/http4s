@@ -16,7 +16,6 @@ object TomcatExample extends IOApp {
 }
 
 object TomcatExampleApp {
-
   def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): TomcatBuilder[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
@@ -33,5 +32,4 @@ object TomcatExampleApp {
       blocker <- Blocker[F]
       server <- builder[F](blocker).resource
     } yield server
-
 }

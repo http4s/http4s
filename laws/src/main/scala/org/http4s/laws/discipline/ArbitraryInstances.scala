@@ -756,12 +756,15 @@ private[http4s] trait ArbitraryInstances {
       F: Effect[F],
       g: Arbitrary[DecodeResult[F, A]]) =
     Arbitrary(for {
-      f <- getArbitrary[(Message[F], Boolean) => DecodeResult[F, A]]
+      f <- getArbitrary[(Media[F], Boolean) => DecodeResult[F, A]]
       mrs <- getArbitrary[Set[MediaRange]]
     } yield new EntityDecoder[F, A] {
-      def decode(msg: Message[F], strict: Boolean): DecodeResult[F, A] = f(msg, strict)
+      def decode(m: Media[F], strict: Boolean): DecodeResult[F, A] = f(m, strict)
       def consumes = mrs
     })
+
+  implicit def http4sTestingCogenForMedia[F[_]](implicit F: Effect[F]): Cogen[Media[F]] =
+    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
   implicit def http4sTestingCogenForMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
@@ -837,6 +840,15 @@ private[http4s] trait ArbitraryInstances {
       } catch {
         case t: Throwable => t.printStackTrace(); throw t
       }
+    }
+  private[http4s] implicit def http4sTestingArbitraryForContextRequest[F[_], A: Arbitrary]
+      : Arbitrary[ContextRequest[F, A]] =
+    // TODO this is bad because the underlying generators are bad
+    Arbitrary {
+      for {
+        a <- getArbitrary[A]
+        request <- getArbitrary[Request[F]]
+      } yield new ContextRequest(a, request)
     }
 
   private[http4s] implicit def http4sTestingArbitraryForResponse[F[_]]: Arbitrary[Response[F]] =

@@ -7,7 +7,6 @@ private[http4s] final case class WebSocket[F[_]](
     receive: Pipe[F, WebSocketFrame, Unit],
     onClose: F[Unit]
 ) {
-
   @deprecated("Parameter has been renamed to `send`", "0.18.0-M7")
   def read: Stream[F, WebSocketFrame] = send
 

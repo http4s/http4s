@@ -4,7 +4,6 @@ import org.http4s._
 import org.http4s.headers.Referer
 
 trait RefererHeader {
-
   def REFERER(value: String): ParseResult[Referer] = new RefererParser(value).parse
 
   private class RefererParser(value: String) extends UriHeaderParser[Referer](value) {

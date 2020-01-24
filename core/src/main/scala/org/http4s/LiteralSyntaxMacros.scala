@@ -6,7 +6,6 @@ import scala.reflect.macros.blackbox
   * https://github.com/Comcast/ip4s/blob/b4f01a4637f2766a8e12668492a3814c478c6a03/shared/src/main/scala/com/comcast/ip4s/LiteralSyntaxMacros.scala
   */
 object LiteralSyntaxMacros {
-
   def uriInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri] =
     singlePartInterpolator(c)(
       args,
@@ -63,5 +62,4 @@ object LiteralSyntaxMacros {
         else c.abort(c.enclosingPosition, s"invalid $typeName")
     }
   }
-
 }

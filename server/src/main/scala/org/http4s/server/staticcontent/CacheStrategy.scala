@@ -14,5 +14,4 @@ trait CacheStrategy[F[_]] {
 
   /** Performs the caching operations */
   def cache(uriPath: String, resp: Response[F])(implicit F: Effect[F]): F[Response[F]]
-
 }

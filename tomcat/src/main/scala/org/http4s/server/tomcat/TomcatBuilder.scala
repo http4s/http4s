@@ -16,6 +16,7 @@ import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
+import org.http4s.syntax.all._
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.duration._
@@ -34,7 +35,6 @@ sealed class TomcatBuilder[F[_]] private (
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
-
   type Self = TomcatBuilder[F]
 
   private[this] val logger = getLogger
@@ -120,6 +120,9 @@ sealed class TomcatBuilder[F[_]] private (
     })
 
   def mountService(service: HttpRoutes[F], prefix: String): Self =
+    mountHttpApp(service.orNotFound, prefix)
+
+  def mountHttpApp(service: HttpApp[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,
@@ -237,7 +240,6 @@ sealed class TomcatBuilder[F[_]] private (
 }
 
 object TomcatBuilder {
-
   def apply[F[_]: ConcurrentEffect]: TomcatBuilder[F] =
     new TomcatBuilder[F](
       socketAddress = defaults.SocketAddress,

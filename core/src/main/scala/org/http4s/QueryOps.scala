@@ -1,7 +1,6 @@
 package org.http4s
 
 trait QueryOps {
-
   protected type Self <: QueryOps
 
   protected val query: Query
@@ -137,6 +136,31 @@ trait QueryOps {
       key: K,
       values: collection.Seq[T]): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(key), values.map(QueryParamEncoder[T].encode))
+
+  /**
+    * Creates maybe a new `Self` with all the specified parameters in the
+    * [[Query]]. If any of the given parameters' keys already exists, the
+    * value(s) will be replaced. Parameters from the input map are added
+    * left-to-right, so if a parameter with a given key is specified more than
+    * once, it will be self-overwriting.
+    */
+  def withQueryParams[T: QueryParamEncoder, K: QueryParamKeyLike](params: Map[K, T]): Self =
+    params.foldLeft(self) {
+      case (s, (k, v)) => replaceQuery(Query.fromVector(s.withQueryParam(k, v).query.toVector))
+    }
+
+  /**
+    * Creates maybe a new `Self` with all the specified parameters in the
+    * [[Query]]. If any of the given parameters' keys already exists, the
+    * value(s) will be replaced. Parameters from the input map are added
+    * left-to-right, so if a parameter with a given key is specified more than
+    * once, it will be self-overwriting.
+    */
+  def withMultiValueQueryParams[T: QueryParamEncoder, K: QueryParamKeyLike](
+      params: Map[K, collection.Seq[T]]): Self =
+    params.foldLeft(self) {
+      case (s, (k, v)) => replaceQuery(Query.fromVector(s.withQueryParam(k, v).query.toVector))
+    }
 
   private def _withQueryParam(
       name: QueryParameterKey,

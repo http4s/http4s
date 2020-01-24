@@ -9,7 +9,6 @@ import org.http4s.Status.Ok
 import scala.xml.Elem
 
 class ScalaXmlSpec extends Http4sSpec {
-
   def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
 
   def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8Encode)

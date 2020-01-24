@@ -54,7 +54,6 @@ trait Http4sDsl2[F[_], G[_]] extends Methods with Statuses with Responses[F, G] 
 
   implicit def http4sMethodConcatSyntax(methods: MethodConcat): MethodConcatOps =
     new MethodConcatOps(methods)
-
 }
 
 trait Http4sDsl[F[_]] extends Http4sDsl2[F, F] {
@@ -62,7 +61,6 @@ trait Http4sDsl[F[_]] extends Http4sDsl2[F, F] {
 }
 
 object Http4sDsl {
-
   def apply[F[_]]: Http4sDsl[F] = new Http4sDsl[F] {}
 
   final class MethodOps(val method: Method) extends AnyVal {

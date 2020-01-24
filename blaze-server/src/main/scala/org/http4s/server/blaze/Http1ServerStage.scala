@@ -24,7 +24,6 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 import io.chrisdavenport.vault._
 
 private[blaze] object Http1ServerStage {
-
   def apply[F[_]](
       routes: HttpApp[F],
       attributes: () => Vault,
@@ -78,7 +77,6 @@ private[blaze] class Http1ServerStage[F[_]](
     scheduler: TickWheelExecutor)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
-
   // micro-optimization: unwrap the routes and call its .run directly
   private[this] val runApp = httpApp.run
 

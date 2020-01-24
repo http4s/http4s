@@ -43,7 +43,6 @@ object QueryParamKeyLike {
 
 trait QueryParamCodec[T] extends QueryParamEncoder[T] with QueryParamDecoder[T]
 object QueryParamCodec {
-
   def apply[A](implicit instance: QueryParamCodec[A]): QueryParamCodec[A] = instance
 
   def from[A](decodeA: QueryParamDecoder[A], encodeA: QueryParamEncoder[A]): QueryParamCodec[A] =
@@ -54,14 +53,12 @@ object QueryParamCodec {
     }
 
   def instantQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[Instant] = {
-
     import QueryParamDecoder.instantQueryParamDecoder
     import QueryParamEncoder.instantQueryParamEncoder
 
     QueryParamCodec
       .from[Instant](instantQueryParamDecoder(formatter), instantQueryParamEncoder(formatter))
   }
-
 }
 
 /**
@@ -77,7 +74,6 @@ trait QueryParamEncoder[T] { outer =>
       override def encode(value: U) =
         outer.encode(f(value))
     }
-
 }
 
 object QueryParamEncoder {
@@ -161,7 +157,6 @@ trait QueryParamDecoder[T] { outer =>
       override def decode(value: QueryParameterValue) =
         outer.decode(value).andThen(f)
     }
-
 }
 
 object QueryParamDecoder {

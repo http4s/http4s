@@ -12,7 +12,6 @@ import org.specs2.specification.Tables
 import scala.concurrent.duration._
 
 class RetrySpec extends Http4sSpec with Tables {
-
   val app = HttpRoutes
     .of[IO] {
       case req @ _ -> Root / "status-from-body" =>

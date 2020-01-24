@@ -65,7 +65,6 @@ object Dropwizard {
   def apply[F[_]](registry: MetricRegistry, prefix: String = "org.http4s.server")(
       implicit F: Sync[F]): MetricsOps[F] =
     new MetricsOps[F] {
-
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
         registry.counter(s"${namespace(prefix, classifier)}.active-requests").inc()
       }

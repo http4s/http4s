@@ -3,7 +3,6 @@ package org.http4s.parser
 import org.http4s.{Header, ParseResult}
 
 trait HeaderParserHelper[H <: Header] {
-
   def hparse(value: String): ParseResult[H]
 
   // Also checks to make sure whitespace doesn't effect the outcome
@@ -15,5 +14,4 @@ trait HeaderParserHelper[H <: Header] {
     assert(a == b, "Whitespace resulted in different headers")
     a
   }
-
 }

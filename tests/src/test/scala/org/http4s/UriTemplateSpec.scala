@@ -4,7 +4,6 @@ import org.http4s.Uri.{Authority, RegName, Scheme, UserInfo}
 import org.http4s.UriTemplate._
 
 class UriTemplateSpec extends Http4sSpec {
-
   "UriTemplate" should {
     "render /" in {
       UriTemplate().toString must equalTo("/")
@@ -728,5 +727,4 @@ class UriTemplateSpec extends Http4sSpec {
       tpl.expandFragment("unknown", "123") must equalTo(tpl)
     }
   }
-
 }

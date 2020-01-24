@@ -1,9 +1,8 @@
 package org.http4s
 package server
 
-import cats.Functor
+import cats._
 import cats.data.Kleisli
-import cats.effect.Sync
 import cats.syntax.semigroupk._
 
 object Router {
@@ -12,7 +11,7 @@ object Router {
     * Defines an [[HttpRoutes]] based on list of mappings.
     * @see define
     */
-  def apply[F[_]: Sync](mappings: (String, HttpRoutes[F])*): HttpRoutes[F] =
+  def apply[F[_]: Monad](mappings: (String, HttpRoutes[F])*): HttpRoutes[F] =
     define(mappings: _*)(HttpRoutes.empty[F])
 
   /**
@@ -21,7 +20,7 @@ object Router {
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */
-  def define[F[_]: Sync](mappings: (String, HttpRoutes[F])*)(
+  def define[F[_]: Monad](mappings: (String, HttpRoutes[F])*)(
       default: HttpRoutes[F]): HttpRoutes[F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, routes)) =>
@@ -51,5 +50,4 @@ object Router {
       req.withAttribute(Request.Keys.PathInfoCaret, oldCaret + newCaret)
     }
   }
-
 }

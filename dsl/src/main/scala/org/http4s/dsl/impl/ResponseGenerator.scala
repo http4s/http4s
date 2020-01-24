@@ -129,7 +129,6 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
   * distinguishes this from other `ResponseGenerator`s.
   */
 trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
-
   def apply(allow: Allow, headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status, headers = Headers(`Content-Length`.zero +: allow +: headers.toList)))
 
@@ -140,7 +139,6 @@ trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
     val entity = w.toEntity(body)
     F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
   }
-
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which must contain

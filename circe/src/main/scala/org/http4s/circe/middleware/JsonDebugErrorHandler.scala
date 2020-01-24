@@ -12,7 +12,6 @@ import org.http4s.implicits._
 import org.http4s.circe._
 
 object JsonDebugErrorHandler {
-
   private[this] val messageFailureLogger =
     org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.message-failures")
   private[this] val serviceErrorLogger =
@@ -33,13 +32,12 @@ object JsonDebugErrorHandler {
           messageFailureLogger.debug(mf)(
             s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
               .getOrElse("<unknown>")}""")
-          mf.inHttpResponse[F, G](req.httpVersion).map { firstResp =>
-            Response[G](
-              status = firstResp.status,
-              httpVersion = firstResp.httpVersion,
-              headers = firstResp.headers.redactSensitive(redactWhen)
-            ).withEntity(JsonErrorHandlerResponse[G](req, mf))
-          }
+          val firstResp = mf.toHttpResponse[G](req.httpVersion)
+          Response[G](
+            status = firstResp.status,
+            httpVersion = firstResp.httpVersion,
+            headers = firstResp.headers.redactSensitive(redactWhen)
+          ).withEntity(JsonErrorHandlerResponse[G](req, mf)).pure[F]
         case t =>
           serviceErrorLogger.error(t)(
             s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
@@ -90,17 +88,16 @@ object JsonDebugErrorHandler {
           .obj(
             "scheme" -> req.uri.scheme.map(_.value).asJson,
             "authority" -> req.uri.authority
-              .map(
-                auth =>
-                  Json
-                    .obj(
-                      "host" -> auth.host.toString().asJson,
-                      "port" -> auth.port.asJson,
-                      "user_info" -> auth.userInfo
-                        .map(_.toString())
-                        .asJson
-                    )
-                    .dropNullValues)
+              .map(auth =>
+                Json
+                  .obj(
+                    "host" -> auth.host.toString().asJson,
+                    "port" -> auth.port.asJson,
+                    "user_info" -> auth.userInfo
+                      .map(_.toString())
+                      .asJson
+                  )
+                  .dropNullValues)
               .asJson,
             "path" -> req.uri.path.asJson,
             "query" -> req.uri.query.multiParams.asJson

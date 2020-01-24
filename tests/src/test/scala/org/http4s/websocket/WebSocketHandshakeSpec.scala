@@ -3,9 +3,7 @@ package org.http4s.websocket
 import org.specs2.mutable.Specification
 
 class WebSocketHandshakeSpec extends Specification {
-
   "WebSocketHandshake" should {
-
     "Be able to split multi value header keys" in {
       val totalValue = "keep-alive, Upgrade"
       val values = List("upgrade", "Upgrade", "keep-alive", "Keep-alive")
@@ -22,7 +20,5 @@ class WebSocketHandshakeSpec extends Specification {
       val Right(headers) = valid
       client.checkResponse(headers) must beRight
     }
-
   }
-
 }

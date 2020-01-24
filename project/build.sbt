@@ -6,9 +6,9 @@ scalacOptions := Seq(
 // our other sbt plugins.
 libraryDependencies ++= List(
   "com.eed3si9n" %% "treehugger" % "0.4.4",
-  "io.circe" %% "circe-generic" % "0.12.3",
-  "org.http4s" %% "http4s-blaze-client" % "0.20.15",
-  "org.http4s" %% "http4s-circe" % "0.20.15",
+  "io.circe" %% "circe-generic" % "0.11.2",
+  "org.http4s" %% "http4s-blaze-client" % "0.20.16",
+  "org.http4s" %% "http4s-circe" % "0.20.16",
 )
 
 // Hack around a binary conflict in scalameta's dependency on

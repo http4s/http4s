@@ -37,11 +37,10 @@ private[ember] object Util {
       if (remains <= 0.millis)
         Stream
           .eval(C.realTime(MILLISECONDS))
-          .flatMap(
-            now =>
-              Stream.raiseError[F](
-                EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
-              ))
+          .flatMap(now =>
+            Stream.raiseError[F](
+              EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
+            ))
       else
         for {
           start <- Stream.eval(C.realTime(MILLISECONDS))
@@ -62,5 +61,4 @@ private[ember] object Util {
         )
     go(timeout)
   }
-
 }

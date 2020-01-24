@@ -9,7 +9,6 @@ import scala.concurrent.ExecutionContext
 
 @WebListener
 class Bootstrap extends ServletContextListener with IOApp {
-
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     val ctx = sce.getServletContext
     val blocker = Blocker.liftExecutionContext(ExecutionContext.global)

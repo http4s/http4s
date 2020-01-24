@@ -11,7 +11,6 @@ import scala.concurrent.Future
   * effects, and therefore cannot be retried.
   */
 private[blaze] final class ReadBufferStage[T] extends MidStage[T, T] {
-
   override def name: String = "ReadBufferingStage"
 
   private val lock: Object = this

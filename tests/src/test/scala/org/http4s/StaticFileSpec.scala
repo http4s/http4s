@@ -11,10 +11,8 @@ import org.http4s.headers._
 import org.specs2.matcher.MatchResult
 
 class StaticFileSpec extends Http4sSpec {
-
   "StaticFile" should {
     "Determine the media-type based on the files extension" in {
-
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
         val r = StaticFile.fromFile[IO](f, testBlocker).value.unsafeRunSync
 
@@ -239,11 +237,10 @@ class StaticFileSpec extends Http4sSpec {
         val body = r.map(_.body.compile.toVector.unsafeRunSync)
         body.map(_.length) must beSome(fileSize - 1)
         // Verify the context
-        body.map(
-          bytes =>
-            java.util.Arrays.equals(
-              bytes.toArray,
-              java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1))) must beSome(true)
+        body.map(bytes =>
+          java.util.Arrays.equals(
+            bytes.toArray,
+            java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1))) must beSome(true)
       }
 
       check(emptyFile)
@@ -261,7 +258,7 @@ class StaticFileSpec extends Http4sSpec {
       // saves chunks, which are mutated by naive usage of readInputStream.
       // This ensures that we're making a defensive copy of the bytes for
       // things like CachingChunkWriter that buffer the chunks.
-      new String(s.compile.to[Array].unsafeRunSync(), "utf-8") must_== expected
+      new String(s.compile.to(Array).unsafeRunSync(), "utf-8") must_== expected
     }
 
     "Set content-length header from a URL" in {

@@ -294,7 +294,6 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     }
 
     "Maintain the connection if the body is ignored but was already read to completion by the Http1Stage" in {
-
       val routes = HttpRoutes
         .of[IO] {
           case _ => IO.pure(Response().withEntity("foo"))
@@ -316,7 +315,6 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     }
 
     "Drop the connection if the body is ignored and was not read to completion by the Http1Stage" in {
-
       val routes = HttpRoutes
         .of[IO] {
           case _ => IO.pure(Response().withEntity("foo"))
@@ -340,7 +338,6 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     }
 
     "Handle routes that runs the request body for non-chunked" in {
-
       val routes = HttpRoutes
         .of[IO] {
           case req => req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
@@ -364,7 +361,6 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     // Think of this as drunk HTTP pipelining
     "Not die when two requests come in back to back" in {
-
       val routes = HttpRoutes
         .of[IO] {
           case req =>
@@ -392,7 +388,6 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     }
 
     "Handle using the request body as the response body" in {
-
       val routes = HttpRoutes
         .of[IO] {
           case req => IO.pure(Response(body = req.body))

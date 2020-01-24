@@ -7,7 +7,6 @@ import fs2._
 import org.http4s.internal.ChunkWriter
 
 private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[F]] {
-
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
@@ -69,5 +68,4 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
               part)
         } ++ Stream.chunk(end(boundary))
     }
-
 }

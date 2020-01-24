@@ -99,17 +99,16 @@ class Http1WriterSpec extends Http4sSpec {
   }
 
   "CachingChunkWriter" should {
-    runNonChunkedTests(
-      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
+    runNonChunkedTests(tail =>
+      new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
   }
 
   "CachingStaticWriter" should {
-    runNonChunkedTests(
-      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
+    runNonChunkedTests(tail =>
+      new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
   }
 
   "FlushingChunkWriter" should {
-
     def builder(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
       new FlushingChunkWriter[IO](tail, IO.pure(Headers.empty))
 
@@ -292,7 +291,6 @@ class Http1WriterSpec extends Http4sSpec {
           |X-Trailer: trailer header value
           |
           |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
-
     }
   }
 }

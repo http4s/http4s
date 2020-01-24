@@ -21,7 +21,6 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
 
   override def parse(s: String): ParseResult[ETag] =
     HttpHeaderParser.ETAG(s)
-
 }
 
 final case class ETag(tag: ETag.EntityTag) extends Header.Parsed {

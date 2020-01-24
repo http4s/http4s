@@ -16,7 +16,6 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
   def ext = Map("foo" -> "bar", "baz" -> "whatever")
 
   "Accept-Header parser" should {
-
     "Parse all registered MediaRanges" in {
       // Parse a single one
       parse("image/*").values.head must be_==~(`image/*`)
@@ -33,7 +32,6 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
       val accept =
         Accept(MediaType.application.`soap+xml`, MediaType.application.`vnd.ms-fontobject`)
       parse(value) must be_===(accept)
-
     }
 
     "Parse all registered MediaTypes" in {
@@ -73,7 +71,6 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
           parse(h.value) must be_===(h)
         }
       }
-
     }
 
     "Parse multiple Types" in {
@@ -106,5 +103,4 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
       }
     }
   }
-
 }

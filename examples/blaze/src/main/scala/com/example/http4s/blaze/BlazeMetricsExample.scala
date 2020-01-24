@@ -12,14 +12,11 @@ import org.http4s.server.middleware.Metrics
 import org.http4s.server.{HttpMiddleware, Router, Server}
 
 class BlazeMetricsExample extends IOApp {
-
   override def run(args: List[String]): IO[ExitCode] =
     BlazeMetricsExampleApp.resource[IO].use(_ => IO.never).as(ExitCode.Success)
-
 }
 
 object BlazeMetricsExampleApp {
-
   def httpApp[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): HttpApp[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry()
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
@@ -38,5 +35,4 @@ object BlazeMetricsExampleApp {
         .withHttpApp(app)
         .resource
     } yield server
-
 }

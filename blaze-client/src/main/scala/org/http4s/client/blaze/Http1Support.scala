@@ -2,12 +2,11 @@ package org.http4s
 package client
 package blaze
 
+import cats.effect._
+import cats.implicits._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
-
-import cats.effect._
-import cats.implicits._
 import javax.net.ssl.SSLContext
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
@@ -16,9 +15,9 @@ import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.fromFuture
-
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 /** Provides basic HTTP1 pipeline building
   */
@@ -38,7 +37,6 @@ final private class Http1Support[F[_]](
     channelOptions: ChannelOptions,
     connectTimeout: Duration
 )(implicit F: ConcurrentEffect[F]) {
-
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
     asynchronousChannelGroup,
@@ -60,17 +58,19 @@ final private class Http1Support[F[_]](
       addr: InetSocketAddress): Future[BlazeConnection[F]] =
     connectionManager
       .connect(addr)
-      .flatMap { head =>
-        buildStages(requestKey) match {
-          case Right((builder, t)) =>
-            Future.successful {
-              builder.base(head)
-              head.inboundCommand(Command.Connected)
-              t
-            }
-          case Left(e) =>
-            Future.failed(e)
-        }
+      .transformWith {
+        case Success(head) =>
+          buildStages(requestKey) match {
+            case Right((builder, t)) =>
+              Future.successful {
+                builder.base(head)
+                head.inboundCommand(Command.Connected)
+                t
+              }
+            case Left(e) =>
+              Future.failed(e)
+          }
+        case Failure(e) => Future.failed(new ConnectionFailure(requestKey, e))
       }(executionContext)
 
   private def buildStages(requestKey: RequestKey)

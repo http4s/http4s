@@ -7,7 +7,6 @@ import cats.{Functor, MonoidK}
 /** Removes the given prefix from the beginning of the path of the [[Request]].
   */
 object TranslateUri {
-
   def apply[F[_], G[_], B](prefix: String)(http: Kleisli[F, Request[G], B])(
       implicit F: MonoidK[F],
       G: Functor[G]): Kleisli[F, Request[G], B] =
@@ -26,7 +25,6 @@ object TranslateUri {
         if (shouldTranslate) http(setCaret(req, newCaret))
         else F.empty
       }
-
     }
 
   private def setCaret[F[_]: Functor](req: Request[F], newCaret: Int): Request[F] = {

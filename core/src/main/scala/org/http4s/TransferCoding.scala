@@ -100,5 +100,4 @@ object TransferCoding {
       override def render(writer: Writer, coding: TransferCoding): writer.type =
         writer << coding.coding
     }
-
 }

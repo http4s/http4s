@@ -238,7 +238,6 @@ object Uri {
       host: Host = RegName("localhost"),
       port: Option[Int] = None)
       extends Renderable {
-
     override def render(writer: Writer): writer.type = this match {
       case Authority(Some(u), h, None) => writer << u << '@' << h
       case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p

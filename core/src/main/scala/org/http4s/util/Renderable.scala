@@ -25,7 +25,6 @@ object Renderer {
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
-
     private val dateFormat =
       DateTimeFormatter
         .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -34,7 +33,6 @@ object Renderer {
 
     override def render(writer: Writer, t: Instant): writer.type =
       writer << dateFormat.format(t)
-
   }
 
   // Render a finite duration in seconds
@@ -163,7 +161,6 @@ trait Writer {
   final def <<(int: Int): this.type = append(int)
   final def <<(long: Long): this.type = append(long)
   final def <<[T: Renderer](r: T): this.type = append(r)
-
 }
 
 /** [[Writer]] that will result in a `String`

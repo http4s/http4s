@@ -7,9 +7,7 @@ import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 
 class SimpleHeadersSpec extends Http4sSpec {
-
   "SimpleHeaders" should {
-
     "parse Connection" in {
       val header = Connection("closed".ci)
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
@@ -37,7 +35,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Date" in { // mills are lost, get rid of them
-      val header = Date(HttpDate.now).toRaw.parsed
+      val header = Date(HttpDate.Epoch).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -56,7 +54,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Last-Modified" in {
-      val header = `Last-Modified`(HttpDate.now).toRaw.parsed
+      val header = `Last-Modified`(HttpDate.Epoch).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -64,7 +62,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse If-Modified-Since" in {
-      val header = `If-Modified-Since`(HttpDate.now).toRaw.parsed
+      val header = `If-Modified-Since`(HttpDate.Epoch).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
       val bad = Header(header.name.toString, "foo")

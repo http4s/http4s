@@ -174,7 +174,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           Request[IO](headers = Headers.of(`Content-Type`(MediaType.text.plain))),
           strict = true)
         .swap
-        .semiflatMap(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`)) must returnRight(
+        .map(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`)) must returnRight(
         haveStatus(Status.UnprocessableEntity))
     }
 
@@ -315,7 +315,6 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   }
 
   "application/x-www-form-urlencoded" should {
-
     val server: Request[IO] => IO[Response[IO]] = { req =>
       req
         .decode[UrlForm](form => Response[IO](Ok).withEntity(form).pure[IO])

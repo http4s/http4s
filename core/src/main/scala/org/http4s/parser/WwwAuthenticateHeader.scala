@@ -22,7 +22,6 @@ import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.internal.parboiled2.{ParserInput, Rule1}
 
 private[parser] trait WwwAuthenticateHeader {
-
   def WWW_AUTHENTICATE(value: String): ParseResult[`WWW-Authenticate`] =
     new WWWAuthenticateParser(value).parse
 
@@ -34,5 +33,4 @@ private[parser] trait WwwAuthenticateHeader {
       }
     }
   }
-
 }

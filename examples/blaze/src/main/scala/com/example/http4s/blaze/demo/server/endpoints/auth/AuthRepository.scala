@@ -10,7 +10,6 @@ trait AuthRepository[F[_], A] {
 }
 
 object AuthRepository {
-
   implicit def authUserRepo[F[_]](implicit F: Sync[F]): AuthRepository[F, BasicCredentials] =
     new AuthRepository[F, BasicCredentials] {
       private val storage = scala.collection.mutable.Set[BasicCredentials](
@@ -21,5 +20,4 @@ object AuthRepository {
       override def find(entity: BasicCredentials): F[Option[BasicCredentials]] =
         F.delay(storage.find(_ == entity))
     }
-
 }

@@ -3,6 +3,7 @@ package blaze
 
 import cats.effect._
 import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.testing.specs2.CatsIO
 import cats.implicits._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
@@ -11,13 +12,16 @@ import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.client.ConnectionFailure
 import org.http4s.client.testroutes.GetRoutes
 import org.specs2.specification.core.Fragments
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Random
 
-class BlazeClientSpec extends Http4sSpec {
+class BlazeClientSpec extends Http4sSpec with CatsIO {
+  override val timer: Timer[IO] = Http4sSpec.TestTimer
+  override implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
 
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
@@ -168,7 +172,6 @@ class BlazeClientSpec extends Http4sSpec {
 
               allRequests
                 .map(_.forall(identity))
-
             }
             .unsafeRunTimed(timeout) must beSome(true)
         }
@@ -238,7 +241,7 @@ class BlazeClientSpec extends Http4sSpec {
             .unsafeRunSync() must beRight
         }
 
-        "reset request timeout" in {
+        "reset request timeout" in skipOnCi {
           val address = addresses(0)
           val name = address.getHostName
           val port = address.getPort
@@ -335,6 +338,20 @@ class BlazeClientSpec extends Http4sSpec {
             }
             .unsafeRunTimed(5.seconds)
             .attempt must_== Some(Right("simple path"))
+        }
+
+        "raise a ConnectionFailure when a host can't be resolved" in {
+          mkClient(1)
+            .use { client =>
+              client.status(Request[IO](uri = uri"http://example.invalid/"))
+            }
+            .attempt
+            .map {
+              _ must beLike {
+                case Left(e: ConnectionFailure) =>
+                  e.getMessage must_== "Error connecting to http://example.invalid"
+              }
+            }
         }
       }
     }

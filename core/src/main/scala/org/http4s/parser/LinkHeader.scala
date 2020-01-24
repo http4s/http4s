@@ -15,7 +15,6 @@ private[parser] trait LinkHeader {
       extends Http4sHeaderParser[Link](input)
       with MediaRange.MediaRangeParser
       with Rfc3986Parser {
-
     override def charset: java.nio.charset.Charset = StandardCharsets.ISO_8859_1
 
     def entry: Rule1[Link] = rule {

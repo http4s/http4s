@@ -93,11 +93,9 @@ final case class UriTemplate(
       Failure(
         new IllegalStateException(s"all expansions must be resolved to be convertable: $this"))
     else Success(toUri(this))
-
 }
 
 object UriTemplate {
-
   type Path = List[PathDef]
   type Query = List[QueryDef]
   type Fragment = List[FragmentDef]
@@ -377,7 +375,6 @@ object UriTemplate {
     case UriTemplate(_, _, p, q, Nil) => (p.exists(pathExp)) || (q.exists(queryExp))
     case UriTemplate(_, _, p, q, f) =>
       (p.exists(pathExp)) || (q.exists(queryExp)) || (f.exists(fragmentExp))
-
   }
 
   protected def toUri(t: UriTemplate): Uri = t match {
@@ -550,5 +547,4 @@ object UriTemplate {
   object ParamContExp {
     def apply(names: String*): ParamContExp = new ParamContExp(names.toList)
   }
-
 }

@@ -14,7 +14,6 @@ import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 
 object Retry {
-
   private[this] val logger = getLogger
 
   def apply[F[_]](

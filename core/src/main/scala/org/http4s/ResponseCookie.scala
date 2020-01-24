@@ -82,7 +82,6 @@ class RequestCookieJar private (val cookies: List[RequestCookie]) extends AnyVal
 
 // see http://tools.ietf.org/html/rfc6265
 final case class RequestCookie(name: String, content: String) extends Renderable {
-
   override lazy val renderString: String = super.renderString
 
   override def render(writer: Writer): writer.type = {
@@ -98,11 +97,11 @@ final case class ResponseCookie(
     maxAge: Option[Long] = None,
     domain: Option[String] = None,
     path: Option[String] = None,
+    sameSite: SameSite = SameSite.Lax,
     secure: Boolean = false,
     httpOnly: Boolean = false,
     extension: Option[String] = None
 ) extends Renderable {
-
   override lazy val renderString: String = super.renderString
 
   override def render(writer: Writer): writer.type = {
@@ -113,7 +112,8 @@ final case class ResponseCookie(
     maxAge.foreach(writer.append("; Max-Age=").append(_))
     domain.foreach(writer.append("; Domain=").append(_))
     path.foreach(writer.append("; Path=").append(_))
-    if (secure) writer.append("; Secure")
+    writer.append("; SameSite=").append(sameSite)
+    if (secure || sameSite == SameSite.None) writer.append("; Secure")
     if (httpOnly) writer.append("; HttpOnly")
     extension.foreach(writer.append("; ").append(_))
     writer

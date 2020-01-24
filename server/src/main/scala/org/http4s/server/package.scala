@@ -13,7 +13,6 @@ import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}
 
 package object server {
-
   object defaults {
     val Banner =
       """|  _   _   _        _ _
@@ -84,7 +83,6 @@ package object server {
   type SSLBits = SSLConfig
 
   object AuthMiddleware {
-
     def apply[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, ?], Request[F], T]
     ): AuthMiddleware[F, T] =
@@ -136,13 +134,12 @@ package object server {
     inDefaultServiceErrorHandler[F, F]
 
   def inDefaultServiceErrorHandler[F[_], G[_]](
-      implicit F: Monad[F],
-      G: Applicative[G]): Request[G] => PartialFunction[Throwable, F[Response[G]]] = req => {
+      implicit F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] = req => {
     case mf: MessageFailure =>
       messageFailureLogger.debug(mf)(
         s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
           .getOrElse("<unknown>")}""")
-      mf.inHttpResponse[F, G](req.httpVersion)
+      mf.toHttpResponse[G](req.httpVersion).pure[F]
     case NonFatal(t) =>
       serviceErrorLogger.error(t)(
         s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse(

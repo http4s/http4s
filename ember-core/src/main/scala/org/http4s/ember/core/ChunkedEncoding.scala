@@ -56,7 +56,6 @@ private[ember] object ChunkedEncoding {
                   Stream.chunk(Chunk.ByteVectorChunk(next)) ++ tl)
               }
           }
-
       }
 
     go(Left(ByteVector.empty), _).stream
@@ -90,5 +89,4 @@ private[ember] object ChunkedEncoding {
         } catch { case NonFatal(_) => None }
       }
     }
-
 }

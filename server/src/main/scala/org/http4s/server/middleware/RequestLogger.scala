@@ -46,7 +46,6 @@ object RequestLogger {
             case ExitCase.Error(_) => fk(logAct)
             case ExitCase.Completed => G.unit
           } <* fk(logAct)
-
       } else {
         fk(Ref[F].of(Vector.empty[Chunk[Byte]]))
           .flatMap { vec =>
@@ -94,5 +93,4 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
-
 }

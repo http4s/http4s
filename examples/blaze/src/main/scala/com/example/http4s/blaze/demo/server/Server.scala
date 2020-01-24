@@ -11,14 +11,11 @@ import org.http4s.syntax.kleisli._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Server extends IOApp {
-
   override def run(args: List[String]): IO[ExitCode] =
     HttpServer.stream[IO].compile.drain.as(ExitCode.Success)
-
 }
 
 object HttpServer {
-
   def httpApp[F[_]: Sync](ctx: Module[F]): HttpApp[F] =
     Router(
       s"/${endpoints.ApiVersion}/protected" -> ctx.basicAuthHttpEndpoint,
@@ -37,5 +34,4 @@ object HttpServer {
         .withHttpApp(httpApp(ctx))
         .serve
     } yield exitCode
-
 }

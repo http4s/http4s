@@ -8,7 +8,6 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 
 class CORSSpec extends Http4sSpec {
-
   val routes = HttpRoutes.of[IO] {
     case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
     case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
@@ -82,21 +81,19 @@ class CORSSpec extends Http4sSpec {
       val req = buildRequest("/unexistant", OPTIONS)
       cors1
         .orNotFound(req)
-        .map(
-          resp =>
-            resp.status.isSuccess && matchHeader(
-              resp.headers,
-              `Access-Control-Allow-Credentials`,
-              "true"))
+        .map(resp =>
+          resp.status.isSuccess && matchHeader(
+            resp.headers,
+            `Access-Control-Allow-Credentials`,
+            "true"))
         .unsafeRunSync()
       cors2
         .orNotFound(req)
-        .map(
-          resp =>
-            resp.status.isSuccess && matchHeader(
-              resp.headers,
-              `Access-Control-Allow-Credentials`,
-              "false"))
+        .map(resp =>
+          resp.status.isSuccess && matchHeader(
+            resp.headers,
+            `Access-Control-Allow-Credentials`,
+            "false"))
         .unsafeRunSync()
     }
 

@@ -10,7 +10,7 @@ import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 
-final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
+final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
   def filename: Option[String] =
     headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))

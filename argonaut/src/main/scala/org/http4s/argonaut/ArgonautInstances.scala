@@ -50,11 +50,10 @@ trait ArgonautInstances extends JawnInstances {
     (uri: Uri) => Json.jString(uri.toString),
     c =>
       c.as[String]
-        .flatMap(
-          str =>
-            Uri
-              .fromString(str)
-              .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok))
+        .flatMap(str =>
+          Uri
+            .fromString(str)
+            .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok))
   )
 
   implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {

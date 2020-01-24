@@ -47,7 +47,6 @@ trait EntityEncoder[F[_], A] { self =>
 }
 
 object EntityEncoder {
-
   private val DefaultChunkSize = 4096
 
   /** summon an implicit [[EntityEncoder]] */

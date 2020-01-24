@@ -69,7 +69,6 @@ sealed class MediaRange private[http4s] (
     }
     hash
   }
-
 }
 
 private[http4s] trait MediaParser extends Rfc2616BasicRules { self: PbParser =>
@@ -178,7 +177,6 @@ sealed class MediaType(
     val fileExtensions: List[String] = Nil,
     extensions: Map[String, String] = Map.empty)
     extends MediaRange(mainType, extensions) {
-
   override def withExtensions(ext: Map[String, String]): MediaType =
     new MediaType(mainType, subType, compressible, binary, fileExtensions, ext)
 
@@ -315,5 +313,4 @@ object MediaType extends MimeDB {
     */
   @deprecated("""use mediaType"" string interpolation instead""", "0.20")
   def mediaType(s: String): MediaType = macro MediaType.Macros.mediaTypeLiteral
-
 }

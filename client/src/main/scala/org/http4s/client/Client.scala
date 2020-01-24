@@ -141,6 +141,12 @@ trait Client[F[_]] {
   /** Submits a request and returns the response status */
   def status(req: F[Request[F]]): F[Status]
 
+  /** Submits a GET request to the URI and returns the response status */
+  def statusFromUri(uri: Uri): F[Status]
+
+  /** Submits a GET request to the URI and returns the response status */
+  def statusFromString(s: String): F[Status]
+
   /** Submits a request and returns true if and only if the response status is
     * successful */
   def successful(req: Request[F]): F[Boolean]
@@ -186,13 +192,11 @@ trait Client[F[_]] {
     * Translates the effect type of this client from F to G
     */
   def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(implicit b: Bracket[F, Throwable]): Client[G] =
-    Client(
-      (req: Request[G]) =>
-        run(
-          req.mapK(gK)
-        ).mapK(fk)
-          .map(_.mapK(fk))
-    )
+    Client((req: Request[G]) =>
+      run(
+        req.mapK(gK)
+      ).mapK(fk)
+        .map(_.mapK(fk)))
 }
 
 object Client {

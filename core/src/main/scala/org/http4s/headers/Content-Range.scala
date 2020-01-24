@@ -5,7 +5,6 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKey.Singleton {
-
   def apply(range: Range.SubRange, length: Option[Long] = None): `Content-Range` =
     `Content-Range`(RangeUnit.Bytes, range, length)
 

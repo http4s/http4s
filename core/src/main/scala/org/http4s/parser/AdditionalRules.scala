@@ -206,7 +206,5 @@ private[http4s] object AdditionalRules {
       override def input: ParserInput = s
     }.HttpDate
       .run()(Parser.DeliveryScheme.Either)
-      .leftMap(
-        e => ParseFailure("Invalid HTTP date", e.format(s))
-      )
+      .leftMap(e => ParseFailure("Invalid HTTP date", e.format(s)))
 }

@@ -15,7 +15,6 @@ import cats.~>
   * the body must be acessed through `multiParams`.
   */
 object UrlFormLifter {
-
   def apply[F[_]: Sync, G[_]: Sync](f: G ~> F)(
       http: Kleisli[F, Request[G], Response[G]],
       strictDecode: Boolean = false): Kleisli[F, Request[G], Response[G]] =
@@ -39,7 +38,7 @@ object UrlFormLifter {
           for {
             decoded <- f(UrlForm.entityDecoder[G].decode(req, strictDecode).value)
             resp <- decoded.fold(
-              mf => f(mf.toHttpResponse[G](req.httpVersion)),
+              mf => f(mf.toHttpResponse[G](req.httpVersion).pure[G]),
               addUrlForm
             )
           } yield resp

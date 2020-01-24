@@ -46,7 +46,6 @@ trait ElemInstances {
           case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))
         }
       }
-
     }
   }
 }

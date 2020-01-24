@@ -9,7 +9,6 @@ import scala.collection.mutable.ListBuffer
 
 /** A collection of HTTP Headers */
 final class Headers private (private val headers: List[Header]) extends AnyVal {
-
   def toList: List[Header] = headers
 
   def isEmpty: Boolean = headers.isEmpty

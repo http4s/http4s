@@ -6,7 +6,7 @@ import cats.implicits._
 import io.circe.Json
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.{Request, Uri}
-import org.typelevel.jawn.RawFacade
+import org.typelevel.jawn.Facade
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object StreamClient extends IOApp {
@@ -15,7 +15,7 @@ object StreamClient extends IOApp {
 }
 
 class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F]) {
-  implicit val jsonFacade: RawFacade[Json] =
+  implicit val jsonFacade: Facade[Json] =
     new io.circe.jawn.CirceSupportParser(None, false).facade
 
   def run: F[Unit] =

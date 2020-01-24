@@ -8,7 +8,6 @@ import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import _root_.io.chrisdavenport.vault._
 
 class MessageSpec extends Http4sSpec {
-
   "Request" >> {
     "ConnectionInfo" should {
       val local = InetSocketAddress.createUnresolved("www.local.com", 8080)
@@ -55,7 +54,6 @@ class MessageSpec extends Http4sSpec {
           .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
         r.from must_== Option(remote.getAddress)
       }
-
     }
 
     "support cookies" should {
@@ -211,5 +209,4 @@ class MessageSpec extends Http4sSpec {
       }
     }
   }
-
 }

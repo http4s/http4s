@@ -117,10 +117,9 @@ object Metrics {
   )(implicit clock: Clock[F]): F[Unit] =
     (for {
       now <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- emptyResponseHandler.traverse_(
-        status =>
-          ops.recordHeadersTime(method, headerTime - start, classifier) *>
-            ops.recordTotalTime(method, status, now - start, classifier))
+      _ <- emptyResponseHandler.traverse_(status =>
+        ops.recordHeadersTime(method, headerTime - start, classifier) *>
+          ops.recordTotalTime(method, status, now - start, classifier))
     } yield ()).guarantee(decreaseActiveRequestsOnce)
 
   private def onResponse[F[_]: Sync](
@@ -159,11 +158,10 @@ object Metrics {
   )(implicit clock: Clock[F]): F[Unit] =
     for {
       now <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- errorResponseHandler.traverse_(
-        status =>
-          ops.recordHeadersTime(method, headerTime - start, classifier) *>
-            ops.recordTotalTime(method, status, now - start, classifier) *>
-            ops.recordAbnormalTermination(now - start, Error, classifier))
+      _ <- errorResponseHandler.traverse_(status =>
+        ops.recordHeadersTime(method, headerTime - start, classifier) *>
+          ops.recordTotalTime(method, status, now - start, classifier) *>
+          ops.recordAbnormalTermination(now - start, Error, classifier))
     } yield ()
 
   private def onServiceCanceled[F[_]: Sync](

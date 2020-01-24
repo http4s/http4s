@@ -333,5 +333,4 @@ object Responses {
       val status: NetworkAuthenticationRequired.type,
       val liftG: G ~> F)
       extends EntityResponseGenerator[F, G]
-
 }

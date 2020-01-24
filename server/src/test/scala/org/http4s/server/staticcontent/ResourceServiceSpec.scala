@@ -8,13 +8,11 @@ import org.http4s.server.middleware.TranslateUri
 import org.http4s.Uri.uri
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
-
   val config =
     ResourceService.Config[IO]("", blocker = testBlocker)
   val routes = resourceService(config)
 
   "ResourceService" should {
-
     "Respect UriTranslation" in {
       val app = TranslateUri("/foo")(routes).orNotFound
 

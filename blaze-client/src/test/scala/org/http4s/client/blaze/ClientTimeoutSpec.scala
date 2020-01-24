@@ -18,7 +18,6 @@ import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class ClientTimeoutSpec extends Http4sSpec {
-
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
   /** the map method allows to "post-process" the fragments after their creation */
@@ -96,7 +95,6 @@ class ClientTimeoutSpec extends Http4sSpec {
     }
 
     "Not timeout on only marginally slow POST body" in {
-
       def dataStream(n: Int): EntityBody[IO] = {
         val interval = 100.millis
         Stream

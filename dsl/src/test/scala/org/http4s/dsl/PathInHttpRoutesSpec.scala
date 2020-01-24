@@ -8,7 +8,6 @@ import org.http4s.dsl.io._
 import org.http4s.Uri.uri
 
 object PathInHttpRoutesSpec extends Http4sSpec {
-
   object List {
     def unapplySeq(params: Map[String, collection.Seq[String]]) = params.get("list")
     def unapply(params: Map[String, collection.Seq[String]]) = unapplySeq(params)
