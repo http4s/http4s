@@ -32,13 +32,12 @@ object JsonDebugErrorHandler {
           messageFailureLogger.debug(mf)(
             s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
               .getOrElse("<unknown>")}""")
-          mf.inHttpResponse[F, G](req.httpVersion).map { firstResp =>
-            Response[G](
-              status = firstResp.status,
-              httpVersion = firstResp.httpVersion,
-              headers = firstResp.headers.redactSensitive(redactWhen)
-            ).withEntity(JsonErrorHandlerResponse[G](req, mf))
-          }
+          val firstResp = mf.toHttpResponse[G](req.httpVersion)
+          Response[G](
+            status = firstResp.status,
+            httpVersion = firstResp.httpVersion,
+            headers = firstResp.headers.redactSensitive(redactWhen)
+          ).withEntity(JsonErrorHandlerResponse[G](req, mf)).pure[F]
         case t =>
           serviceErrorLogger.error(t)(
             s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr

@@ -38,7 +38,7 @@ object UrlFormLifter {
           for {
             decoded <- f(UrlForm.entityDecoder[G].decode(req, strictDecode).value)
             resp <- decoded.fold(
-              mf => f(mf.toHttpResponse[G](req.httpVersion)),
+              mf => f(mf.toHttpResponse[G](req.httpVersion).pure[G]),
               addUrlForm
             )
           } yield resp
