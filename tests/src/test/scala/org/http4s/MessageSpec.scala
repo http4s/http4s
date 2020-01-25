@@ -195,7 +195,9 @@ class MessageSpec extends Http4sSpec {
 
       "build cURL representation but redact sensitive information" in {
         request
-          .withHeaders(Header("Cookie", "k3=v3; k4=v4"), Authorization(BasicCredentials("user", "pass")))
+          .withHeaders(
+            Header("Cookie", "k3=v3; k4=v4"),
+            Authorization(BasicCredentials("user", "pass")))
           .asCurl mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
       }
     }
