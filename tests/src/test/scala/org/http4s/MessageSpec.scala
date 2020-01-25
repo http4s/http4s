@@ -171,6 +171,20 @@ class MessageSpec extends Http4sSpec {
         request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
       }
     }
+
+    "covary" should {
+      "disallow unrelated effects" in {
+        illTyped("Request[Option]().covary[IO]")
+        true
+      }
+
+      "allow related effects" in {
+        trait F1[A]
+        trait F2[A] extends F1[A]
+        Request[F2]().covary[F1]
+        true
+      }
+    }
   }
 
   "Message" >> {
@@ -206,6 +220,20 @@ class MessageSpec extends Http4sSpec {
         resp.contentType must beSome(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`))
         resp.status must_=== Status.NotFound
         resp.body.through(fs2.text.utf8Decode).toList.mkString("") must_=== "Not found"
+      }
+    }
+
+    "covary" should {
+      "disallow unrelated effects" in {
+        illTyped("Response[Option]().covary[IO]")
+        true
+      }
+
+      "allow related effects" in {
+        trait F1[A]
+        trait F2[A] extends F1[A]
+        Response[F2]().covary[F1]
+        true
       }
     }
   }
