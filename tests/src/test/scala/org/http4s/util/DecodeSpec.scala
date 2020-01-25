@@ -56,5 +56,10 @@ class DecodeSpec extends Http4sSpec {
       }
     }
 
+    "drop Byte Order Mark" in {
+      val source = Stream.emits(Seq(0xef.toByte, 0xbb.toByte, 0xbf.toByte))
+      val decoded = decode(Charset.`UTF-8`)(source).toList.combineAll
+      decoded must_== ""
+    }
   }
 }
