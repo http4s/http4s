@@ -183,17 +183,17 @@ class MessageSpec extends Http4sSpec {
       )
       val request = Request[IO](Method.GET, uri)
 
-      "build cURL command with scheme and authority" in {
+      "build cURL representation with scheme and authority" in {
         request.asCurl mustEqual "curl -X GET 'http://localhost:1234/foo'"
       }
 
-      "build cURL command with headers and redact sensitive information" in {
+      "build cURL representation with headers" in {
         request
           .withHeaders(Header("k1", "v1"), Header("k2", "v2"))
           .asCurl mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'k1: v1' -H 'k2: v2'"
       }
 
-      "build cURL command but redact sensitive information" in {
+      "build cURL representation but redact sensitive information" in {
         request
           .withHeaders(Header("Cookie", "k3=v3; k4=v4"), Authorization(BasicCredentials("user", "pass")))
           .asCurl mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
