@@ -184,21 +184,30 @@ class MessageSpec extends Http4sSpec {
       val request = Request[IO](Method.GET, uri)
 
       "build cURL representation with scheme and authority" in {
-        request.asCurl mustEqual "curl -X GET 'http://localhost:1234/foo'"
+        request.asCurl() mustEqual "curl -X GET 'http://localhost:1234/foo'"
       }
 
       "build cURL representation with headers" in {
         request
           .withHeaders(Header("k1", "v1"), Header("k2", "v2"))
-          .asCurl mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'k1: v1' -H 'k2: v2'"
+          .asCurl() mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'k1: v1' -H 'k2: v2'"
       }
 
-      "build cURL representation but redact sensitive information" in {
+      "build cURL representation but redact sensitive information on default" in {
         request
           .withHeaders(
             Header("Cookie", "k3=v3; k4=v4"),
             Authorization(BasicCredentials("user", "pass")))
-          .asCurl mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
+          .asCurl() mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
+      }
+
+      "build cURL representation but display sensitive headers on demand" in {
+        request
+          .withHeaders(
+            Header("Cookie", "k3=v3; k4=v4"),
+            Header("k5", "v5"),
+            Authorization(BasicCredentials("user", "pass")))
+          .asCurl(redactHeaders = false) mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
       }
     }
   }

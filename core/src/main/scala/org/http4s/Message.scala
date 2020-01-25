@@ -269,18 +269,18 @@ final class Request[F[_]](
 
   /** cURL representation of the request.
     *
-    * Supported Parameters are:
+    * Supported cURL-Parameters are: -X, -H
     *
-    * -X,
-    * -H (redacts sensitive information such as Authorization- or Cookie-Headers)
+    * @param redactHeaders to determine whether sensitive information inheaders should be redacted, true per default
     */
-  def asCurl: String = {
+  def asCurl(redactHeaders: Boolean = true): String = {
+    val filteredHeaders =
+      if (redactHeaders) headers.redactSensitive(Headers.SensitiveHeaders.contains)
+      else headers
     val elements = List(
       s"-X ${method.name}",
       s"'${uri.renderString}'",
-      headers
-        .redactSensitive()
-        .toList
+      filteredHeaders.toList
         .map { header =>
           s"-H '${header.toString}'"
         }
