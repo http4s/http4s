@@ -12,6 +12,8 @@ import org.http4s.websocket.{WebSocket, WebSocketFrame}
 import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+import scodec.bits.ByteVector
 
 class Http4sWSStageSpec extends Http4sSpec {
   override implicit def testExecutionContext: ExecutionContext =
@@ -37,6 +39,9 @@ class Http4sWSStageSpec extends Http4sSpec {
 
     def pollBatchOutputbound(batchSize: Int, timeoutSeconds: Long = 4L): IO[List[WebSocketFrame]] =
       head.pollBatch(batchSize, timeoutSeconds)
+
+    val outStream: Stream[IO, WebSocketFrame] =
+      head.outStream
 
     def wasCloseHookCalled(): IO[Boolean] =
       IO(closeHook.get())
@@ -92,6 +97,21 @@ class Http4sWSStageSpec extends Http4sSpec {
       _ <- socket.sendInbound(Pong())
       _ <- socket.pollOutbound().map(_ must_=== None)
       _ <- socket.sendInbound(Close())
+    } yield ok)
+
+    "not fail on pending write request" in (for {
+      socket <- TestWebsocketStage()
+      reasonSent = ByteVector(42)
+      in = Stream.eval(socket.sendInbound(Ping())).repeat.take(100)
+      out = Stream.eval(socket.sendWSOutbound(Text("."))).repeat.take(200)
+      _ <- in.merge(out).compile.drain
+      _ <- socket.sendInbound(Close(reasonSent))
+      reasonReceived <- socket.outStream
+        .collectFirst { case Close(reasonReceived) => reasonReceived }
+        .compile
+        .toList
+        .timeout(5.seconds)
+      _ = reasonReceived must_== (List(reasonSent))
     } yield ok)
   }
 }

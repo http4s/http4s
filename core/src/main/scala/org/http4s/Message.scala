@@ -20,7 +20,8 @@ import scala.util.hashing.MurmurHash3
   * Represents a HTTP Message. The interesting subclasses are Request and Response.
   */
 sealed trait Message[F[_]] extends Media[F] { self =>
-  type Self <: Message[F] { type Self = self.Self }
+  type SelfF[F2[_]] <: Message[F2] { type SelfF[F3[_]] = self.SelfF[F3] }
+  type Self = SelfF[F]
 
   def httpVersion: HttpVersion
 
@@ -172,6 +173,11 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     */
   def withoutAttribute(key: Key[_]): Self =
     change(attributes = attributes.delete(key))
+
+  /**
+    * Lifts this Message's body to the specified effect type.
+    */
+  override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
 }
 
 object Message {
@@ -206,7 +212,7 @@ final class Request[F[_]](
     with Serializable {
   import Request._
 
-  type Self = Request[F]
+  type SelfF[F0[_]] = Request[F0]
 
   private def copy(
       method: Method = this.method,
@@ -509,7 +515,7 @@ final case class Response[F[_]](
     body: EntityBody[F] = EmptyBody,
     attributes: Vault = Vault.empty)
     extends Message[F] {
-  type Self = Response[F]
+  type SelfF[F0[_]] = Response[F0]
 
   def mapK[G[_]](f: F ~> G): Response[G] = Response[G](
     status = status,
