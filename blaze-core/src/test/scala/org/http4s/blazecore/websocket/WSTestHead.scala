@@ -1,14 +1,17 @@
 package org.http4s.blazecore.websocket
 
 import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.concurrent.Semaphore
 import cats.implicits._
+import fs2.Stream
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebSocketFrame
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-/** A simple stage to help test websocket requests
+/** A simple stage t
+o help test websocket requests
   *
   * This is really disgusting code but bear with me here:
   * `java.util.LinkedBlockingDeque` does NOT have nodes with
@@ -27,6 +30,8 @@ sealed abstract class WSTestHead(
     outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
     extends HeadStage[WebSocketFrame] {
 
+  private[this] val writeSemaphore = Semaphore[IO](1L).unsafeRunSync()
+
   /** Block while we put elements into our queue
     *
     * @return
@@ -39,7 +44,14 @@ sealed abstract class WSTestHead(
     * pull from it later to inspect it
     */
   override def writeRequest(data: WebSocketFrame): Future[Unit] =
-    outQueue.enqueue1(data).unsafeToFuture()
+    writeSemaphore.tryAcquire
+      .flatMap {
+        case true =>
+          outQueue.enqueue1(data) *> writeSemaphore.release
+        case false =>
+          IO.raiseError(new IllegalStateException("pending write"))
+      }
+      .unsafeToFuture()
 
   /** Insert data into the read queue,
     * so it's read by the websocket stage
@@ -47,6 +59,9 @@ sealed abstract class WSTestHead(
     */
   def put(ws: WebSocketFrame): IO[Unit] =
     inQueue.enqueue1(ws)
+
+  val outStream: Stream[IO, WebSocketFrame] =
+    outQueue.dequeue
 
   /** poll our queue for a value,
     * timing out after `timeoutSeconds` seconds
