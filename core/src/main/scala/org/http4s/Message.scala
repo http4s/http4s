@@ -284,8 +284,8 @@ final class Request[F[_]](
       : String = {
 
     /*
-      * escapes characters that are used in the curl-command, such as '
-      */
+     * escapes characters that are used in the curl-command, such as '
+     */
     def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
 
     val elements = List(
