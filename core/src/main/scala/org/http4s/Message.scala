@@ -283,7 +283,7 @@ final class Request[F[_]](
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
       : String = {
 
-    /**
+    /*
       * escapes characters that are used in the curl-command, such as '
       */
     def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
