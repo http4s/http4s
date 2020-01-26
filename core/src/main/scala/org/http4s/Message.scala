@@ -282,6 +282,7 @@ final class Request[F[_]](
   def asCurl(
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
       : String = {
+
     /**
       * escapes characters that are used in the curl-command, such as '
       */
