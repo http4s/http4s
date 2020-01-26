@@ -207,7 +207,13 @@ class MessageSpec extends Http4sSpec {
             Header("Cookie", "k3=v3; k4=v4"),
             Header("k5", "v5"),
             Authorization(BasicCredentials("user", "pass")))
-          .asCurl(redactHeaders = false) mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
+          .asCurl(_ => false) mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
+      }
+
+      "escape quotation marks in header" in {
+        request
+          .withHeaders(Header("k6", "'v6'"), Header("'k7'", "v7"))
+          .asCurl() mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'k6: '''v6'''' -H ''''k7''': v7'"
       }
     }
   }

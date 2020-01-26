@@ -12,6 +12,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.log4s.getLogger
 import _root_.io.chrisdavenport.vault._
+import org.http4s.util.CaseInsensitiveString
 
 import scala.util.hashing.MurmurHash3
 
@@ -271,18 +272,23 @@ final class Request[F[_]](
     *
     * Supported cURL-Parameters are: -X, -H
     *
-    * @param redactHeaders to determine whether sensitive information inheaders should be redacted, true per default
     */
-  def asCurl(redactHeaders: Boolean = true): String = {
-    val filteredHeaders =
-      if (redactHeaders) headers.redactSensitive(Headers.SensitiveHeaders.contains)
-      else headers
+  def asCurl(
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
+      : String = {
+    /**
+      * escapes characters that are used in the curl-command, such as '
+      */
+    def escapeQuotationMarks(s: String) = s.replaceAll("'", "'\\''")
+
     val elements = List(
       s"-X ${method.name}",
-      s"'${uri.renderString}'",
-      filteredHeaders.toList
+      s"'${escapeQuotationMarks(uri.renderString)}'",
+      headers
+        .redactSensitive(redactHeadersWhen)
+        .toList
         .map { header =>
-          s"-H '${header.toString}'"
+          s"-H '${escapeQuotationMarks(header.toString)}'"
         }
         .mkString(" ")
     )
