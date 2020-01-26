@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.17 (2020-01-24)
+
+## Bugfixes
+
+* [#3105](https://github.com/http4s/http4s/pull/3105): Fix "cannot have more than one pending write request" error in blaze-server web sockets.
+
+## Dependency updates
+
+* simpleclient-0.8.1 (Prometheus)
+
 # v0.18.25 (2020-01-21)
 
 ## Bug fixes
