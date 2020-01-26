@@ -213,7 +213,7 @@ class MessageSpec extends Http4sSpec {
       "escape quotation marks in header" in {
         request
           .withHeaders(Header("k6", "'v6'"), Header("'k7'", "v7"))
-          .asCurl() mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'k6: '''v6'''' -H ''''k7''': v7'"
+          .asCurl() mustEqual s"""curl -X GET 'http://localhost:1234/foo' -H 'k6: '\\''v6'\\''' -H ''\\''k7'\\'': v7'"""
       }
     }
   }

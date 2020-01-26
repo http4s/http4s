@@ -279,7 +279,7 @@ final class Request[F[_]](
     /**
       * escapes characters that are used in the curl-command, such as '
       */
-    def escapeQuotationMarks(s: String) = s.replaceAll("'", "'\\''")
+    def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
 
     val elements = List(
       s"-X ${method.name}",
