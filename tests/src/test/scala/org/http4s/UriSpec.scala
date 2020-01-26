@@ -607,7 +607,7 @@ http://example.org/a file
       val u = Uri() +*? (Ttl(2))
       u must be_==(Uri(query = Query.fromString(s"ttl=2")))
     }
-    "Work with queryParam" in {
+    "add a QueryParam instance" in {
       val u = Uri().withQueryParam[Ttl]
       u must be_==(Uri(query = Query.fromString(s"ttl")))
     }
@@ -618,6 +618,27 @@ http://example.org/a file
     "add an optional query parameter (Empty)" in {
       val u = Uri() +?? ("param1", None: Option[Int])
       u must be_==(Uri(query = Query.empty))
+    }
+    "add multiple query parameters at once" in {
+      val params = Map("param1" -> 1, "param2" -> 2)
+      val u = Uri().withQueryParams(params)
+      u must be_==(Uri(query = Query.fromString("param1=1&param2=2")))
+    }
+    "add multiple values for same query parameter name" in {
+      val params = Map("param1" -> List(1), "param2" -> List(2, 3))
+      val u = Uri().withMultiValueQueryParams(params)
+      u must be_==(Uri(query = Query.fromString("param1=1&param2=2&param2=3")))
+    }
+    "replace an existing parameter" in {
+      val params = Map("param2" -> 3, "param3" -> 4)
+      val u = Uri(query = Query.fromString("param1=1&param2=2")).withQueryParams(params)
+      u must be_==(Uri(query = Query.fromString("param1=1&param2=3&param3=4")))
+    }
+    "replace an existing multi-valued parameter" in {
+      val u = Uri(query = Query.fromString("param1=1&param1=2"))
+        .withQueryParams(Map("param1" -> 3))
+        .withMultiValueQueryParams(Map("param2" -> List(4, 5)))
+      u must be_==(Uri(query = Query.fromString("param1=3&param2=4&param2=5")))
     }
     "contains not a parameter" in {
       Uri(query = Query.empty) ? "param1" must be_==(false)

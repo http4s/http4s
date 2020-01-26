@@ -395,7 +395,10 @@ final class Request[F[_]](
 
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
       implicit F: Monad[F]): F[Response[F]] =
-    decoder.decode(this, strict = strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
+    decoder
+      .decode(this, strict = strict)
+      .fold(_.toHttpResponse[F](httpVersion).pure[F], f)
+      .flatten
 
   /** Helper method for decoding [[Request]]s
     *
