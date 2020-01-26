@@ -1,15 +1,14 @@
 package org.http4s
 package testing
 
-import cats.syntax.flatMap._
+import cats.MonadError
 import cats.data.EitherT
+import cats.implicits._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
-import org.specs2.matcher._
+import org.specs2.matcher.{RunTimedMatchers => Specs2RunTimedMatchers, _}
 
-/** This might be useful in a testkit spinoff.  Let's see what they do for us. */
-// TODO these akas might be all wrong.
-trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
+trait Http4sMatchers[F[_]] extends Matchers with Specs2RunTimedMatchers[F] {
   def haveStatus(expected: Status): Matcher[Response[F]] =
     be_===(expected) ^^ { r: Response[F] =>
       r.status.aka("the response status")
@@ -20,12 +19,16 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       runAwait(r).aka("the returned")
     }
 
-  def haveBody[A: EntityDecoder[F, ?]](a: ValueCheck[A]): Matcher[Message[F]] =
+  def haveBody[A](a: ValueCheck[A])(
+      implicit F: MonadError[F, Throwable],
+      ee: EntityDecoder[F, A]): Matcher[Message[F]] =
     returnValue(a) ^^ { m: Message[F] =>
       m.as[A].aka("the message body")
     }
 
-  def returnBody[A: EntityDecoder[F, ?]](a: ValueCheck[A]): Matcher[F[Message[F]]] =
+  def returnBody[A](a: ValueCheck[A])(
+      implicit F: MonadError[F, Throwable],
+      ee: EntityDecoder[F, A]): Matcher[F[Message[F]]] =
     returnValue(a) ^^ { m: F[Message[F]] =>
       m.flatMap(_.as[A]).aka("the returned message body")
     }

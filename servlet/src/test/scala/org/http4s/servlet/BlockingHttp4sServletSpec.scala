@@ -29,14 +29,14 @@ class BlockingHttp4sServletSpec extends Http4sSpec {
 
   withResource(serverPortR) { serverPort =>
     def get(path: String): IO[String] =
-      testBlocker.delay(
+      testBlocker.delay[IO, String](
         Source
           .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
           .getLines
           .mkString)
 
     def post(path: String, body: String): IO[String] =
-      testBlocker.delay {
+      testBlocker.delay[IO, String] {
         val url = new URL(s"http://127.0.0.1:$serverPort/$path")
         val conn = url.openConnection().asInstanceOf[HttpURLConnection]
         val bytes = body.getBytes(StandardCharsets.UTF_8)

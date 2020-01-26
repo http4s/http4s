@@ -35,7 +35,7 @@ class StaticFileSpec extends Http4sSpec {
     "load from resource" in {
       def check(resource: String, status: Status): MatchResult[Status] = {
         val res1 = StaticFile
-          .fromResource(resource, testBlocker)
+          .fromResource[IO](resource, testBlocker)
           .value
           .unsafeRunSync()
 
@@ -67,7 +67,7 @@ class StaticFileSpec extends Http4sSpec {
 
       def check(resource: String, status: Status): MatchResult[Status] = {
         val res1 = StaticFile
-          .fromResource(resource, testBlocker, classloader = Some(loader))
+          .fromResource[IO](resource, testBlocker, classloader = Some(loader))
           .value
           .unsafeRunSync()
 

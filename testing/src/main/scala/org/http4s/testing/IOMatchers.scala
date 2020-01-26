@@ -9,6 +9,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
   * Matchers for cats.effect.IO
   */
+@deprecated("Provided by specs2-cats in org.specs2.matcher.IOMatchers", "0.21.0-RC2")
 trait IOMatchers extends RunTimedMatchers[IO] {
   protected implicit def F: Sync[IO] = IO.ioEffect
   protected def runWithTimeout[A](fa: IO[A], timeout: FiniteDuration): Option[A] =
@@ -16,4 +17,5 @@ trait IOMatchers extends RunTimedMatchers[IO] {
   protected def runAwait[A](fa: IO[A]): A = fa.unsafeRunSync
 }
 
+@deprecated("Provided by specs2-cats in org.specs2.matcher.IOMatchers", "0.21.0-RC2")
 object IOMatchers extends IOMatchers

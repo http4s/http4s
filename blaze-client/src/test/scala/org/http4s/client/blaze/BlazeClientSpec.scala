@@ -3,7 +3,6 @@ package blaze
 
 import cats.effect._
 import cats.effect.concurrent.{Deferred, Ref}
-import cats.effect.testing.specs2.CatsIO
 import cats.implicits._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
@@ -19,7 +18,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Random
 
-class BlazeClientSpec extends Http4sSpec with CatsIO {
+class BlazeClientSpec extends Http4sSpec {
   override val timer: Timer[IO] = Http4sSpec.TestTimer
   override implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
 

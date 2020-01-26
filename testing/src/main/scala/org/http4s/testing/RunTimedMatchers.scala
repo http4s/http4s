@@ -11,6 +11,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
   * Matchers for cats.effect.F_
   */
+@deprecated("Provided by specs2-cats in org.specs2.matcher.RunTimedMatchers", "0.21.0-RC2")
 trait RunTimedMatchers[F[_]] {
   protected implicit def F: Sync[F]
   protected def runWithTimeout[A](fa: F[A], timeout: FiniteDuration): Option[A]

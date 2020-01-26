@@ -16,7 +16,7 @@ import fs2._
 import fs2.text._
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.laws.discipline.ArbitraryInstances
-import org.http4s.testing._
+import org.http4s.testing.Http4sMatchers
 import org.http4s.util.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import org.scalacheck._
 import org.scalacheck.util.{FreqMap, Pretty}

@@ -3,8 +3,9 @@ package testing
 
 import cats.effect.IO
 import org.http4s.headers._
+import org.specs2.matcher.IOMatchers
 
-class ResponseGeneratorSpec extends Http4sSpec {
+class ResponseGeneratorSpec extends Http4sSpec with IOMatchers {
   "haveHeaders" should {
     "work on value equality" in {
       val resp = Response[IO]().withEntity("test")
