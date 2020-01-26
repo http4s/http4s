@@ -1,25 +1,25 @@
 package org.http4s.servlet
 
+import cats.effect.IO
+import cats.implicits._
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import javax.servlet._
 import javax.servlet.http._
-
-import cats.effect.IO
-import org.http4s.Http4sSpec
+import org.http4s.testing.Http4sAsyncSpec
 import org.mockito.Mockito._
 
-class ServletIoSpec extends Http4sSpec {
-  "NonBlockingServletIo" should {
+class ServletIoSpec extends Http4sAsyncSpec {
+  "NonBlockingServletIo" - {
     "decode request body which is smaller than chunk size correctly" in {
       val request = mock(classOf[HttpServletRequest])
       when(request.getInputStream).thenReturn(new TestServletInputStream("test".getBytes(UTF_8)))
 
       val io = NonBlockingServletIo[IO](10)
       val body = io.reader(request)
-      val bytes = body.compile.toList.unsafeRunSync()
-
-      new String(bytes.toArray, UTF_8) must_== ("test")
+      body.compile.toList.asserting { bytes =>
+        assert(new String(bytes.toArray, UTF_8) === "test")
+      }
     }
 
     "decode request body which is bigger than chunk size correctly" in {
@@ -29,9 +29,9 @@ class ServletIoSpec extends Http4sSpec {
 
       val io = NonBlockingServletIo[IO](10)
       val body = io.reader(request)
-      val bytes = body.compile.toList.unsafeRunSync()
-
-      new String(bytes.toArray, UTF_8) must_== ("testtesttest")
+      body.compile.toList.asserting { bytes =>
+        assert(new String(bytes.toArray, UTF_8) === "testtesttest")
+      }
     }
   }
 
