@@ -12,6 +12,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.log4s.getLogger
 import _root_.io.chrisdavenport.vault._
+import org.http4s.util.CaseInsensitiveString
 
 import scala.util.hashing.MurmurHash3
 
@@ -272,6 +273,34 @@ final class Request[F[_]](
   def pathTranslated: Option[File] = attributes.lookup(Keys.PathTranslated)
 
   def queryString: String = uri.query.renderString
+
+  /** cURL representation of the request.
+    *
+    * Supported cURL-Parameters are: -X, -H
+    *
+    */
+  def asCurl(
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
+      : String = {
+
+    /*
+     * escapes characters that are used in the curl-command, such as '
+     */
+    def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
+
+    val elements = List(
+      s"-X ${method.name}",
+      s"'${escapeQuotationMarks(uri.renderString)}'",
+      headers
+        .redactSensitive(redactHeadersWhen)
+        .toList
+        .map { header =>
+          s"-H '${escapeQuotationMarks(header.toString)}'"
+        }
+        .mkString(" ")
+    )
+    s"curl ${elements.filter(_.nonEmpty).mkString(" ")}"
+  }
 
   /**
     * Representation of the query string as a map

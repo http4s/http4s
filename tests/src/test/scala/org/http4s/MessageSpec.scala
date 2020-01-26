@@ -4,8 +4,10 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
+
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import _root_.io.chrisdavenport.vault._
+import org.http4s.Uri.{Authority, Scheme}
 
 class MessageSpec extends Http4sSpec {
   "Request" >> {
@@ -183,6 +185,49 @@ class MessageSpec extends Http4sSpec {
         trait F2[A] extends F1[A]
         Request[F2]().covary[F1]
         true
+      }
+    }
+
+    "asCurl" should {
+      val port = 1234
+      val uri = Uri(
+        path = "/foo",
+        scheme = Some(Scheme.http),
+        authority = Some(Authority(port = Some(port)))
+      )
+      val request = Request[IO](Method.GET, uri)
+
+      "build cURL representation with scheme and authority" in {
+        request.asCurl() mustEqual "curl -X GET 'http://localhost:1234/foo'"
+      }
+
+      "build cURL representation with headers" in {
+        request
+          .withHeaders(Header("k1", "v1"), Header("k2", "v2"))
+          .asCurl() mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'k1: v1' -H 'k2: v2'"
+      }
+
+      "build cURL representation but redact sensitive information on default" in {
+        request
+          .withHeaders(
+            Header("Cookie", "k3=v3; k4=v4"),
+            Authorization(BasicCredentials("user", "pass")))
+          .asCurl() mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
+      }
+
+      "build cURL representation but display sensitive headers on demand" in {
+        request
+          .withHeaders(
+            Header("Cookie", "k3=v3; k4=v4"),
+            Header("k5", "v5"),
+            Authorization(BasicCredentials("user", "pass")))
+          .asCurl(_ => false) mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
+      }
+
+      "escape quotation marks in header" in {
+        request
+          .withHeaders(Header("k6", "'v6'"), Header("'k7'", "v7"))
+          .asCurl() mustEqual s"""curl -X GET 'http://localhost:1234/foo' -H 'k6: '\\''v6'\\''' -H ''\\''k7'\\'': v7'"""
       }
     }
   }
