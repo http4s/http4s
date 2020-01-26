@@ -2,18 +2,19 @@ package org.http4s
 package testing
 
 import cats.effect.IO
+import cats.implicits._
 import org.http4s.headers._
+import org.http4s.testing.Http4sSyncSpec
 
-class ResponseGeneratorSpec extends Http4sSpec {
-  "haveHeaders" should {
+class Http4sMatchersSpec extends Http4sSyncSpec {
+  "haveHeaders" - {
     "work on value equality" in {
       val resp = Response[IO]().withEntity("test")
-      resp must
-        haveHeaders(
-          Headers.of(
-            `Content-Length`.unsafeFromLong(4L),
-            `Content-Type`(MediaType.text.`plain`, Charset.`UTF-8`)
-          ))
+      assert(
+        resp.headers === Headers.of(
+          `Content-Length`.unsafeFromLong(4L),
+          `Content-Type`(MediaType.text.`plain`, Charset.`UTF-8`)
+        ))
     }
   }
 }

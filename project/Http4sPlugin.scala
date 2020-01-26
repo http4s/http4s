@@ -256,6 +256,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.0.0"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % "0.4.0"
+  lazy val catsEffectTestingScalatest       = "com.codecommit"         %% "cats-effect-testing-scalatest" % "0.4.0"
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % "0.13.0-RC1"
@@ -267,6 +268,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.2"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.0.0"
+  lazy val disciplineScalatest              = "org.typelevel"          %% "discipline-scalatest"      % "1.0.0"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.2.1"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"

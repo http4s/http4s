@@ -592,9 +592,11 @@ lazy val commonSettings = Seq(
   ),
   libraryDependencies ++= Seq(
     catsEffectTestingSpecs2,
+    catsEffectTestingScalatest,
     catsLaws,
     catsKernelLaws,
     disciplineSpecs2,
+    disciplineScalatest,
     logbackClassic,
     scalacheck,
     specs2Core,
