@@ -113,7 +113,7 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             .use(_.expect[String](u))
             .attempt
             .unsafeRunTimed(1.second)
-          resp must beSome(beLeft[Throwable](beAnInstanceOf[IllegalStateException]))
+          resp must beSome(beLeft[Throwable](beAnInstanceOf[ConnectionFailure]))
         }
 
         "behave and not deadlock" in {
@@ -344,9 +344,9 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             }
             .attempt
             .unsafeRunSync() must beLike {
-            case Left(e: ConnectionFailure) =>
-              e.getMessage must_== "Error connecting to http://example.invalid"
-          }
+              case Left(e: ConnectionFailure) =>
+                e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
+            }
         }
       }
     }
