@@ -7,12 +7,13 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.nio.charset.StandardCharsets
-import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.Method._
 import org.http4s.Status._
 import org.http4s.Uri.uri
+import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class EntityLimiterSpec extends Http4sSpec {
+class EntityLimiterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val routes = HttpRoutes.of[IO] {
     case r if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
   }

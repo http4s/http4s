@@ -11,10 +11,14 @@ import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.multipart.{Multipart, Part}
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.specification.core.Fragments
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http4sClientDsl[IO] {
+abstract class ClientRouteTestBattery(name: String)
+    extends Http4sSpec
+    with Http4sClientDsl[IO]
+    with Http4sLegacyMatchersIO {
   val timeout = 20.seconds
   var address: InetSocketAddress = null
 

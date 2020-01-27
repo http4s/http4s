@@ -6,10 +6,11 @@ import cats.effect._
 import fs2._
 import java.io.File
 import org.http4s.Uri.uri
-import org.http4s.server.middleware.TranslateUri
 import org.http4s.headers.Range.SubRange
+import org.http4s.server.middleware.TranslateUri
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class FileServiceSpec extends Http4sSpec with StaticContentShared {
+class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLegacyMatchersIO {
   val routes = fileService(
     FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath, testBlocker))
 

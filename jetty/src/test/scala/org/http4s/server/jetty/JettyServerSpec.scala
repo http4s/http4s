@@ -8,11 +8,12 @@ import java.net.{HttpURLConnection, URL}
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.concurrent.ExecutionEnv
 import scala.concurrent.duration._
 import scala.io.Source
 
-class JettyServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec {
+class JettyServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec with Http4sLegacyMatchersIO {
   def builder = JettyBuilder[IO]
 
   val serverR =

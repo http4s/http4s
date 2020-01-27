@@ -5,12 +5,14 @@ import cats.effect.IO
 import cats.implicits._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.json4s.{JValue, JsonFormat}
 import org.json4s.DefaultReaders._
 import org.json4s.DefaultWriters._
 import org.json4s.JsonAST.{JField, JInt, JObject, JString}
 
-trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstances[J] =>
+trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] with Http4sLegacyMatchersIO {
+  self: Json4sInstances[J] =>
   import Json4sSpec._
 
   testJsonDecoder(jsonDecoder)

@@ -16,10 +16,11 @@ import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.laws.discipline.EntityCodecTests
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.specification.core.Fragment
 
 // Originally based on ArgonautSpec
-class CirceSpec extends JawnDecodeSupportSpec[Json] {
+class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO {
   implicit val testContext = TestContext()
 
   val CirceInstancesWithCustomErrors = CirceInstances.builder

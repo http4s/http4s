@@ -4,8 +4,9 @@ package middleware
 
 import cats.effect._
 import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class TranslateUriSpec extends Http4sSpec {
+class TranslateUriSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val routes = HttpRoutes.of[IO] {
     case _ -> Root / "foo" =>
       Ok("foo")

@@ -107,7 +107,6 @@ lazy val testing = libraryProject("testing")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       catsEffectLaws,
-      specs2Cats,
       specs2Matcher,
     ),
   )

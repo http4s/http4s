@@ -6,8 +6,9 @@ import cats.effect._
 import org.http4s.Method.{GET, POST}
 import org.http4s.Uri.uri
 import org.http4s.server.staticcontent.WebjarService.Config
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-object WebjarServiceSpec extends Http4sSpec with StaticContentShared {
+object WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sLegacyMatchersIO {
   def routes: HttpRoutes[IO] =
     webjarService(Config[IO](blocker = testBlocker))
 

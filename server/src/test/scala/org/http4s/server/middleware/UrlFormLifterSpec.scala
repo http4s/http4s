@@ -6,8 +6,9 @@ import cats.data.OptionT
 import cats.effect._
 import cats.syntax.applicative._
 import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class UrlFormLifterSpec extends Http4sSpec {
+class UrlFormLifterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val urlForm = UrlForm("foo" -> "bar")
 
   val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] {

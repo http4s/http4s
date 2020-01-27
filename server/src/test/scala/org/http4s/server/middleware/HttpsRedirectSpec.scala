@@ -7,8 +7,9 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.Uri.{Authority, RegName, Scheme}
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class HttpsRedirectSpec extends Http4sSpec {
+class HttpsRedirectSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val innerRoutes = HttpRoutes.of[IO] {
     case GET -> Root =>
       Ok("pong")

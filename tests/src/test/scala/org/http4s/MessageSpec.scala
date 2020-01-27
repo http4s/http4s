@@ -5,9 +5,10 @@ import cats.effect.IO
 import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
+import org.http4s.testing.Http4sLegacyMatchersIO
 import _root_.io.chrisdavenport.vault._
 
-class MessageSpec extends Http4sSpec {
+class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "Request" >> {
     "ConnectionInfo" should {
       val local = InetSocketAddress.createUnresolved("www.local.com", 8080)

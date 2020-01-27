@@ -6,9 +6,10 @@ import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.metrics.dropwizard.util._
 import org.http4s.server.middleware.Metrics
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
 
-class DropwizardServerMetricsSpec extends Http4sSpec {
+class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "Http routes with a dropwizard metrics middleware" should {
     "register a 2xx response" in {
       implicit val clock = FakeClock[IO]

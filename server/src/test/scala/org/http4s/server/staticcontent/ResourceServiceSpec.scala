@@ -3,11 +3,12 @@ package server
 package staticcontent
 
 import cats.effect._
+import org.http4s.Uri.uri
 import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}
 import org.http4s.server.middleware.TranslateUri
-import org.http4s.Uri.uri
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
+class ResourceServiceSpec extends Http4sSpec with StaticContentShared with Http4sLegacyMatchersIO {
   val config =
     ResourceService.Config[IO]("", blocker = testBlocker)
   val routes = resourceService(config)

@@ -4,8 +4,9 @@ package server
 import cats.effect._
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class RouterSpec extends Http4sSpec {
+class RouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val numbers = HttpRoutes.of[IO] {
     case GET -> Root / "1" =>
       Ok("one")

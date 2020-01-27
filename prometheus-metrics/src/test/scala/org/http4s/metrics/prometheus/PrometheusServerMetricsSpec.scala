@@ -4,13 +4,14 @@ import cats.effect.{Clock, IO, Resource}
 import cats.syntax.functor._
 import io.prometheus.client.CollectorRegistry
 import org.http4s.{Http4sSpec, HttpApp, HttpRoutes, Request, Status}
+import org.http4s.Method.GET
 import org.http4s.dsl.io._
 import org.http4s.metrics.prometheus.util._
 import org.http4s.server.middleware.Metrics
-import org.http4s.Method.GET
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.execute.AsResult
 
-class PrometheusServerMetricsSpec extends Http4sSpec {
+class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   private val testRoutes = HttpRoutes.of[IO](stub)
 
   "A http routes with a prometheus metrics middleware" should {

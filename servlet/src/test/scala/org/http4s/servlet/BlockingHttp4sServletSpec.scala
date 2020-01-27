@@ -9,10 +9,11 @@ import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Serve
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.http4s.dsl.io._
 import org.http4s.server.DefaultServiceErrorHandler
+import org.http4s.testing.Http4sLegacyMatchersIO
 import scala.io.Source
 import scala.concurrent.duration._
 
-class BlockingHttp4sServletSpec extends Http4sSpec {
+class BlockingHttp4sServletSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   lazy val service = HttpRoutes
     .of[IO] {
       case GET -> Root / "simple" =>

@@ -8,12 +8,13 @@ import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 import scala.concurrent.duration._
 import scala.io.Source
 import org.specs2.execute.Result
 import org.http4s.multipart.Multipart
 
-class BlazeServerSpec extends Http4sSpec {
+class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   def builder =
     BlazeServerBuilder[IO]
       .withResponseHeaderTimeout(1.second)

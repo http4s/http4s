@@ -8,10 +8,7 @@ import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.specs2.matcher._
 
-@deprecated(
-  "Discontinued. Inherits from vendored `RunTimedMatchers` that are now provided by specs-cats. The matchers that require them block threads and are disrecommended. What's left is insubstantial.",
-  "0.21.0-RC2")
-trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
+trait Http4sLegacyMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
   def haveStatus(expected: Status): Matcher[Response[F]] =
     be_===(expected) ^^ { r: Response[F] =>
       r.status.aka("the response status")

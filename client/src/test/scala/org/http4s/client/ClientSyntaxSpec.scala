@@ -8,12 +8,17 @@ import fs2._
 import org.http4s.Method._
 import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
+import org.http4s.Uri.uri
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
-import org.http4s.Uri.uri
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.matcher.MustThrownMatchers
 
-class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThrownMatchers {
+class ClientSyntaxSpec
+    extends Http4sSpec
+    with Http4sClientDsl[IO]
+    with MustThrownMatchers
+    with Http4sLegacyMatchersIO {
   val app = HttpRoutes
     .of[IO] {
       case r if r.method == GET && r.pathInfo == "/" =>

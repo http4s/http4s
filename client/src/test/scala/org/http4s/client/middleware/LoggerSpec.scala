@@ -6,12 +6,13 @@ import cats.effect._
 import fs2.io.readInputStream
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 import scala.io.Source
 
 /**
   * Common Tests for Logger, RequestLogger, and ResponseLogger
   */
-class LoggerSpec extends Http4sSpec {
+class LoggerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val testApp = HttpApp[IO] {
     case req @ POST -> Root / "post" =>
       Ok(req.body)

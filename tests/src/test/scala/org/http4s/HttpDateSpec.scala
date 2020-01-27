@@ -1,9 +1,9 @@
 package org.http4s
 
-import cats.effect.{IO, Timer}
+import cats.effect.IO
+import cats.effect.testing.specs2.CatsEffect
 
-class HttpDateSpec extends Http4sSpec {
-  override val timer: Timer[IO] = Http4sSpec.TestTimer
+class HttpDateSpec extends Http4sSpec with CatsEffect {
   "HttpDate" should {
     "current should be extremely close to Instant.now" >> {
       HttpDate.current[IO].map { current =>

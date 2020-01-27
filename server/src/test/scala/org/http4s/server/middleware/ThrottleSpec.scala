@@ -4,15 +4,19 @@ import cats.effect.IO.ioEffect
 import cats.effect.laws.util.TestContext
 import cats.effect.{IO, Timer}
 import cats.implicits._
+import org.http4s.{Http4sSpec, HttpApp, Request, Status}
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.Throttle._
-import org.http4s.{Http4sSpec, HttpApp, Request, Status}
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
 import scala.concurrent.duration._
 
-class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatchers {
+class ThrottleSpec(implicit ee: ExecutionEnv)
+    extends Http4sSpec
+    with FutureMatchers
+    with Http4sLegacyMatchersIO {
   "LocalTokenBucket" should {
     "contain initial number of tokens equal to specified capacity" in {
       val ctx = TestContext()
