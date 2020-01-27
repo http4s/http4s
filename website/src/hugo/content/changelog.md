@@ -8,7 +8,36 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.17 (2020-01-24)
+# v0.21.0-RC2 (2020-01-27)
+
+## Breaking changes
+
+### Binary and source
+
+* [#3110](https://github.com/http4s/http4s/pull/3098): Change `MessageFailure#toHttpResponse` to return a `Response[F]` instead of an `F[Response[F]]`, and relax constraints accordingly. Drops the `inHttpResponse` method.
+* [#3107](https://github.com/http4s/http4s/pull/3107): Add `covary[F[_]]` method to `Media` types.  Should not break your source unless you have your own `Media` subclass, which you shouldn't.
+
+### Binary only
+
+* [#3098](https://github.com/http4s/http4s/pull/3098): Update `MimeDB` from IANA registry. 
+
+### Deprecation
+
+* [#3087](https://github.com/http4s/http4s/pull/3087): Deprecate the public http4s-testing module.  This was mostly Specs2 matchers, the majority of which block threads.  This is not to be confused with http4s-laws, which depends only on Discipline and is still maintained.
+
+## Bugfixes
+
+* [#3105](https://github.com/http4s/http4s/pull/3105): Fix "cannot have more than one pending write request" error in blaze-server web sockets.
+* [#3115](https://github.com/http4s/http4s/pull/3115): Handle BOM at the head of a chunk in `decode`.
+
+## Enhancements
+
+* [#3106](https://github.com/http4s/http4s/pull/3106): Interrupt response body in `DefaultHead` middleware. This optimization saves us from draining a potentially large response body that, because `HEAD` is a safe method, should not have side effects.
+* [#3095](https://github.com/http4s/http4s/pull/3095): Add `Request#asCurl` method to render a request as a curl command.  Renders the method, URI, and headers, but not yet the body.
+
+# v0.20.17 (2020-01-25)
+
+This release is fully compatible with 0.20.16.
 
 ## Bugfixes
 
