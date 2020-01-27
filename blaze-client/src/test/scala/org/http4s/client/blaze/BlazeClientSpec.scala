@@ -344,9 +344,9 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             }
             .attempt
             .unsafeRunSync() must beLike {
-              case Left(e: ConnectionFailure) =>
-                e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
-            }
+            case Left(e: ConnectionFailure) =>
+              e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
+          }
         }
       }
     }

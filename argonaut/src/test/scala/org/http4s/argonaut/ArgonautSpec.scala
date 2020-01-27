@@ -102,8 +102,8 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
   "jsonOf" should {
     "decode JSON from an Argonaut decoder" in {
       jsonOf[IO, Foo]
-        .decode(Request[IO]().withEntity(jObjectFields("bar" -> jNumberOrNull(42))), strict = true)
-        .value must returnValue(Right(Foo(42)))
+        .decode(Request[IO]().withEntity(jObjectFields("bar" -> jNumberOrNull(42))), strict = true) must returnRight(
+        Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -114,7 +114,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
         val json = Json("wort" -> jString(wort))
         val result =
           jsonOf[IO, Umlaut].decode(Request[IO]().withEntity(json), strict = true)
-        result.value must returnValue(Right(Umlaut(wort)))
+        result must returnRight(Umlaut(wort))
       }
     }
 
