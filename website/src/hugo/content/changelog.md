@@ -28,6 +28,7 @@ it.
 ## Bugfixes
 
 * [#3105](https://github.com/http4s/http4s/pull/3105): Fix "cannot have more than one pending write request" error in blaze-server web sockets.
+* [#3115](https://github.com/http4s/http4s/pull/3115): Handle BOM at the head of a chunk in `decode`.
 
 ## Enhancements
 
