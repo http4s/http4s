@@ -21,8 +21,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import scala.util.control.NonFatal
 
-@deprecated("Not related to HTTP, and will be removed from public interface.", "0.21.0-RC2")
-trait ErrorReportingUtils {
+object ErrorReporting {
 
   /**
     * Silences `System.err`, only printing the output in case exceptions are
