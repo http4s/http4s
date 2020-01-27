@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets
 import scala.concurrent.ExecutionContextExecutor
 
 package object util {
+  private val utf8Bom: Chunk[Byte] = Chunk(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
+
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
     val decoder = charset.nioCharset.newDecoder
     val maxCharsPerByte = math.ceil(decoder.maxCharsPerByte().toDouble).toInt
@@ -24,7 +26,8 @@ package object util {
           else Pull.output1(outputString).as(None)
         case Some((chunk, stream)) =>
           if (chunk.nonEmpty) {
-            val bytes = chunk.toArray
+            val chunkWithoutBom = skipByteOrderMark(chunk)
+            val bytes = chunkWithoutBom.toArray
             val byteBuffer = ByteBuffer.wrap(bytes)
             val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
             decoder.decode(byteBuffer, charBuffer, false)
@@ -36,6 +39,11 @@ package object util {
       }
     }
   }
+
+  private def skipByteOrderMark[F[_]](chunk: Chunk[Byte]): Chunk[Byte] =
+    if (chunk.size >= 3 && chunk.take(3) == utf8Bom) {
+      chunk.drop(3)
+    } else chunk
 
   /** Converts ASCII encoded byte stream to a stream of `String`. */
   private[http4s] def asciiDecode[F[_]](
