@@ -10,13 +10,11 @@
 package org.http4s
 
 import cats.effect.{Blocker, ContextShift, ExitCase, IO, Resource, Timer}
-import cats.effect.testing.specs2.CatsEffect
 import cats.implicits._
 import fs2._
 import fs2.text._
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.laws.discipline.ArbitraryInstances
-import org.http4s.testing._
 import org.http4s.util.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import org.scalacheck._
 import org.scalacheck.util.{FreqMap, Pretty}
@@ -44,10 +42,7 @@ trait Http4sSpec
     with syntax.AllSyntax
     with ArbitraryInstances
     with FragmentsDsl
-    with Discipline
-    with IOMatchers
-    with Http4sMatchers[IO]
-    with CatsEffect {
+    with Discipline {
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
   val testBlocker: Blocker = Http4sSpec.TestBlocker
   implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift

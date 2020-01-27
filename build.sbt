@@ -597,6 +597,7 @@ lazy val commonSettings = Seq(
     disciplineSpecs2,
     logbackClassic,
     scalacheck,
+    specs2Cats,
     specs2Core,
     specs2MatcherExtra,
     specs2Scalacheck

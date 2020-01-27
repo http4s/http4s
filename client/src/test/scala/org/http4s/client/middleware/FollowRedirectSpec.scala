@@ -7,13 +7,18 @@ import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import fs2._
 import java.util.concurrent.atomic._
+import org.http4s.Uri.uri
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.headers._
-import org.http4s.Uri.uri
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.mutable.Tables
 
-class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables {
+class FollowRedirectSpec
+    extends Http4sSpec
+    with Http4sClientDsl[IO]
+    with Tables
+    with Http4sLegacyMatchersIO {
   private val loopCounter = new AtomicInteger(0)
 
   val app = HttpRoutes

@@ -5,8 +5,9 @@ import cats.effect._
 import cats.data._
 import cats.effect.concurrent._
 import org.http4s._
+import cats.effect.testing.specs2.CatsEffect
 
-class MaxActiveRequestsSpec extends Http4sSpec {
+class MaxActiveRequestsSpec extends Http4sSpec with CatsEffect {
   val req = Request[IO]()
 
   def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) = Kleisli {

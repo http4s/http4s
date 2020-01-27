@@ -9,10 +9,11 @@ import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Serve
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.http4s.dsl.io._
 import org.http4s.server.DefaultServiceErrorHandler
+import org.http4s.testing.Http4sLegacyMatchersIO
 import scala.io.Source
 import scala.concurrent.duration._
 
-class BlockingHttp4sServletSpec extends Http4sSpec {
+class BlockingHttp4sServletSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   lazy val service = HttpRoutes
     .of[IO] {
       case GET -> Root / "simple" =>
@@ -29,14 +30,14 @@ class BlockingHttp4sServletSpec extends Http4sSpec {
 
   withResource(serverPortR) { serverPort =>
     def get(path: String): IO[String] =
-      testBlocker.delay(
+      testBlocker.delay[IO, String](
         Source
           .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
           .getLines
           .mkString)
 
     def post(path: String, body: String): IO[String] =
-      testBlocker.delay {
+      testBlocker.delay[IO, String] {
         val url = new URL(s"http://127.0.0.1:$serverPort/$path")
         val conn = url.openConnection().asInstanceOf[HttpURLConnection]
         val bytes = body.getBytes(StandardCharsets.UTF_8)

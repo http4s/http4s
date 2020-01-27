@@ -4,6 +4,7 @@ package util
 
 import cats.effect._
 import cats.effect.concurrent.Ref
+import cats.effect.testing.specs2.CatsEffect
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -14,7 +15,7 @@ import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
 import scala.concurrent.Future
 
-class Http1WriterSpec extends Http4sSpec {
+class Http1WriterSpec extends Http4sSpec with CatsEffect {
   case object Failed extends RuntimeException
 
   final def writeEntityBody(p: EntityBody[IO])(

@@ -4,8 +4,9 @@ package server
 import cats.effect._
 import cats.implicits._
 import org.http4s.Uri.uri
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class HttpRoutesSpec extends Http4sSpec {
+class HttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val routes1 = HttpRoutes.of[IO] {
     case req if req.pathInfo == "/match" =>
       Response[IO](Status.Ok).withEntity("match").pure[IO]

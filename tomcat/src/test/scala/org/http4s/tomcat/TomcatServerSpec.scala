@@ -9,11 +9,12 @@ import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
 import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.concurrent.ExecutionEnv
 import scala.concurrent.duration._
 import scala.io.Source
 
-class TomcatServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec {
+class TomcatServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec with Http4sLegacyMatchersIO {
   // Prevents us from loading jar and war URLs, but lets us
   // run Tomcat twice in the same JVM.  This makes me grumpy.
   //

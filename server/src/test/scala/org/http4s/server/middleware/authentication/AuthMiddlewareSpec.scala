@@ -5,9 +5,10 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.AuthMiddleware
+import org.http4s.testing.Http4sLegacyMatchersIO
 import cats.syntax.semigroupk._
 
-class AuthMiddlewareSpec extends Http4sSpec {
+class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   type User = Long
 
   "AuthMiddleware" should {

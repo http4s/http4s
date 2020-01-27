@@ -6,12 +6,13 @@ import cats.effect.{IO, Resource}
 import cats.effect.concurrent.{Ref, Semaphore}
 import cats.implicits._
 import fs2.Stream
-import org.http4s.dsl.io._
 import org.http4s.Uri.uri
+import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.specification.Tables
 import scala.concurrent.duration._
 
-class RetrySpec extends Http4sSpec with Tables {
+class RetrySpec extends Http4sSpec with Tables with Http4sLegacyMatchersIO {
   val app = HttpRoutes
     .of[IO] {
       case req @ _ -> Root / "status-from-body" =>

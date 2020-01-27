@@ -4,10 +4,11 @@ package dsl
 import cats.data.Validated._
 import cats.effect.IO
 import cats.implicits._
-import org.http4s.dsl.io._
 import org.http4s.Uri.uri
+import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-object PathInHttpRoutesSpec extends Http4sSpec {
+object PathInHttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   object List {
     def unapplySeq(params: Map[String, collection.Seq[String]]) = params.get("list")
     def unapply(params: Map[String, collection.Seq[String]]) = unapplySeq(params)

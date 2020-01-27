@@ -8,9 +8,10 @@ import java.nio.file.Files
 import org.http4s.Status._
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.headers._
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.matcher.MatchResult
 
-class StaticFileSpec extends Http4sSpec {
+class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "StaticFile" should {
     "Determine the media-type based on the files extension" in {
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
@@ -35,7 +36,7 @@ class StaticFileSpec extends Http4sSpec {
     "load from resource" in {
       def check(resource: String, status: Status): MatchResult[Status] = {
         val res1 = StaticFile
-          .fromResource(resource, testBlocker)
+          .fromResource[IO](resource, testBlocker)
           .value
           .unsafeRunSync()
 
@@ -67,7 +68,7 @@ class StaticFileSpec extends Http4sSpec {
 
       def check(resource: String, status: Status): MatchResult[Status] = {
         val res1 = StaticFile
-          .fromResource(resource, testBlocker, classloader = Some(loader))
+          .fromResource[IO](resource, testBlocker, classloader = Some(loader))
           .value
           .unsafeRunSync()
 

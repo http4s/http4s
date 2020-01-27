@@ -6,8 +6,9 @@ import cats.effect.IO
 import org.http4s.dsl.io._
 import org.http4s.MediaType
 import org.http4s.headers.{Accept, Location, `Content-Length`, `Content-Type`}
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class ResponseGeneratorSpec extends Http4sSpec {
+class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "Add the EntityEncoder headers along with a content-length header" in {
     val body = "foo"
     val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers

@@ -1,12 +1,12 @@
 package org.http4s
 package util
 
-import org.http4s.testing.ErrorReportingUtils
+import org.http4s.testing.ErrorReporting._
 import org.specs2.mutable.Specification
 
 import scala.concurrent.ExecutionContext
 
-abstract class ExecutionSpec extends Specification with ErrorReportingUtils {
+abstract class ExecutionSpec extends Specification {
   def ec: ExecutionContext
   def ecName: String
 

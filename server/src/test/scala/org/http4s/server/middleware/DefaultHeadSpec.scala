@@ -5,14 +5,11 @@ package middleware
 import cats.effect._
 import cats.effect.concurrent.Ref
 import fs2.Stream
-import org.http4s.dsl.io._
 import org.http4s.Uri.uri
-import cats.effect.testing.specs2.CatsIO
+import org.http4s.dsl.io._
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class DefaultHeadSpec extends Http4sSpec with CatsIO {
-  override implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
-  override implicit val timer: Timer[IO] = Http4sSpec.TestTimer
-
+class DefaultHeadSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val app = DefaultHead(HttpRoutes.of[IO] {
     case GET -> Root / "hello" =>
       Ok("hello")
@@ -38,13 +35,13 @@ class DefaultHeadSpec extends Http4sSpec with CatsIO {
     "retain all headers of corresponding GET on fallthrough" in {
       val get = Request[IO](Method.GET, uri = uri("/hello"))
       val head = get.withMethod(Method.HEAD)
-      app(get).map(_.headers).unsafeRunSync() must_== app(head)
-        .map(_.headers)
-        .unsafeRunSync()
+      val getHeaders = app(get).map(_.headers).unsafeRunSync()
+      val headHeaders = app(head).map(_.headers).unsafeRunSync()
+      getHeaders must_== headHeaders
     }
 
     "allow GET body to clean up on fallthrough" in {
-      for {
+      (for {
         cleanedUpRef <- Ref[IO].of(false)
         route = HttpRoutes.of[IO] {
           case GET -> _ =>
@@ -55,7 +52,7 @@ class DefaultHeadSpec extends Http4sSpec with CatsIO {
         resp <- app(Request[IO](Method.HEAD))
         _ <- resp.as[String]
         cleanedUp <- cleanedUpRef.get
-      } yield cleanedUp must beTrue
+      } yield cleanedUp).unsafeRunSync() must beTrue
     }
   }
 }

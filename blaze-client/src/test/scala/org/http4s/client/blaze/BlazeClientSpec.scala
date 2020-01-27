@@ -3,7 +3,6 @@ package blaze
 
 import cats.effect._
 import cats.effect.concurrent.{Deferred, Ref}
-import cats.effect.testing.specs2.CatsIO
 import cats.implicits._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
@@ -14,15 +13,13 @@ import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.client.ConnectionFailure
 import org.http4s.client.testroutes.GetRoutes
+import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.specification.core.Fragments
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Random
 
-class BlazeClientSpec extends Http4sSpec with CatsIO {
-  override val timer: Timer[IO] = Http4sSpec.TestTimer
-  override implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
-
+class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
   /** the map method allows to "post-process" the fragments after their creation */
@@ -346,12 +343,10 @@ class BlazeClientSpec extends Http4sSpec with CatsIO {
               client.status(Request[IO](uri = uri"http://example.invalid/"))
             }
             .attempt
-            .map {
-              _ must beLike {
-                case Left(e: ConnectionFailure) =>
-                  e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
-              }
-            }
+            .unsafeRunSync() must beLike {
+            case Left(e: ConnectionFailure) =>
+              e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
+          }
         }
       }
     }

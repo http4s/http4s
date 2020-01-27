@@ -8,8 +8,9 @@ import org.http4s.Method._
 import org.http4s.Status.{BadRequest, NotFound, Ok}
 import org.http4s.Uri.uri
 import org.http4s.headers.Host
+import org.http4s.testing.Http4sLegacyMatchersIO
 
-class VirtualHostSpec extends Http4sSpec {
+class VirtualHostSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val default = HttpRoutes.of[IO] {
     case _ => Response[IO](Ok).withEntity("default").pure[IO]
   }

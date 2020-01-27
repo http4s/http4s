@@ -14,8 +14,9 @@ import org.http4s.blaze.pipeline.Command
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
+import cats.effect.testing.specs2.CatsEffect
 
-class Http4sWSStageSpec extends Http4sSpec {
+class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
   override implicit def testExecutionContext: ExecutionContext =
     ExecutionContext.global
 
