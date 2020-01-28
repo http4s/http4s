@@ -3,7 +3,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.{Blocker, ContextShift, Effect, Sync}
+import cats.effect.{Blocker, ContextShift, Sync}
 import cats.implicits._
 import java.io.File
 import org.http4s.headers.Range.SubRange
@@ -42,7 +42,7 @@ object FileService {
   }
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Effect[F]): HttpRoutes[F] =
+  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Sync[F]): HttpRoutes[F] =
     Kleisli {
       case request if request.pathInfo.startsWith(config.pathPrefix) =>
         OptionT(getFile(s"${config.systemPath}/${getSubPath(request.pathInfo, config.pathPrefix)}"))

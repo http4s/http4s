@@ -17,7 +17,7 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
   private[this] val logger = getLogger
   private val cacheMap = new ConcurrentHashMap[String, Response[F]]()
 
-  override def cache(uriPath: String, resp: Response[F])(implicit F: Effect[F]): F[Response[F]] =
+  override def cache(uriPath: String, resp: Response[F])(implicit F: Sync[F]): F[Response[F]] =
     if (resp.status == Status.Ok) {
       Option(cacheMap.get(uriPath)) match {
         case Some(r) if r.headers.toList == resp.headers.toList =>
@@ -33,7 +33,7 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
   ////////////// private methods //////////////////////////////////////////////
 
   private def collectResource(path: String, resp: Response[F])(
-      implicit F: Effect[F]): F[Response[F]] =
+      implicit F: Sync[F]): F[Response[F]] =
     resp
       .as[Chunk[Byte]]
       .map { chunk =>
