@@ -5,7 +5,9 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._
-import cats.implicits._
+import cats.instances.boolean._
+import cats.syntax.applicative._
+import cats.syntax.foldable._
 import fs2.Stream
 import io.circe._
 import io.circe.syntax._

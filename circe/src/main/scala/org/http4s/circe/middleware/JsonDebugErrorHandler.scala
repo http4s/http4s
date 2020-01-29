@@ -1,6 +1,5 @@
 package org.http4s.circe.middleware
 
-import cats._
 import cats.effect._
 import cats.data._
 import io.circe._
@@ -18,12 +17,13 @@ object JsonDebugErrorHandler {
     org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.service-errors")
 
   // Can be parametric on my other PR is merged.
-  def apply[F[_]: Sync, G[_]: Applicative](
+  def apply[F[_]: Sync, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
       redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
   ): Kleisli[F, Request[G], Response[G]] = Kleisli { req =>
-    import cats.implicits._
-    implicit def entEnc[M[_]: Applicative, N[_]] = JsonErrorHandlerResponse.entEnc[M, N](redactWhen)
+    import cats.syntax.applicative._
+    import cats.syntax.applicativeError._
+    implicit def entEnc[M[_], N[_]] = JsonErrorHandlerResponse.entEnc[M, N](redactWhen)
 
     service
       .run(req)
@@ -60,11 +60,10 @@ object JsonDebugErrorHandler {
       caught: Throwable
   )
   private object JsonErrorHandlerResponse {
-    def entEnc[F[_]: Applicative, G[_]](
+    def entEnc[F[_], G[_]](
         redactWhen: CaseInsensitiveString => Boolean
     ): EntityEncoder[F, JsonErrorHandlerResponse[G]] =
       jsonEncoderOf(
-        Applicative[F],
         encoder(redactWhen)
       )
     def encoder[F[_]](
