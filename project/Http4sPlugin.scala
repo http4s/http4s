@@ -92,6 +92,11 @@ object Http4sPlugin extends AutoPlugin {
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 
+    libraryDependencies ++= Seq(
+      compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.4.4" cross CrossVersion.full),
+      "com.github.ghik" % "silencer-lib" % "1.4.4" % Provided cross CrossVersion.full
+    ),
+
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = http4sApiVersion.value

@@ -17,6 +17,9 @@ object BlazeSslExampleApp {
       .bindHttp(8443)
       .withSSL(ssl.storeInfo, ssl.keyManagerPassword)
 
+  def sslContext =
+    SSLContext
+
   def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
     for {
       blocker <- Blocker[F]

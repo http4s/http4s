@@ -1,7 +1,7 @@
 package org.http4s.internal
 
 import cats.effect.{Bracket, Resource}
-import fs2.Stream
+import _root_.fs2.Stream
 
 private[http4s] trait BackendBuilder[F[_], A] {
   protected implicit def F: Bracket[F, Throwable]

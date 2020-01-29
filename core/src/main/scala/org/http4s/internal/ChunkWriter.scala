@@ -1,7 +1,7 @@
 package org.http4s.internal
 
 import java.nio.charset.{Charset, StandardCharsets}
-import fs2.Chunk
+import _root_.fs2.Chunk
 import org.http4s.util.Writer
 import scala.collection.mutable.Buffer
 

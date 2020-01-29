@@ -6,6 +6,7 @@ import cats.{Alternative, Applicative}
 import cats.data.Kleisli
 import cats.implicits._
 import cats.effect.{ConcurrentEffect, Resource, Timer}
+import com.github.ghik.silencer.silent
 import fs2.io.tls.TLSParameters
 import java.io.FileInputStream
 import java.net.InetSocketAddress
@@ -83,7 +84,7 @@ class BlazeServerBuilder[F[_]](
     selectorThreadFactory: ThreadFactory,
     enableWebSockets: Boolean,
     sslContext: F[Option[SSLContext]],
-    tlsParameters: TLSParameters,
+    sslEngineConfig: SSLEngine => Unit,
     isHttp2Enabled: Boolean,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
@@ -110,7 +111,7 @@ class BlazeServerBuilder[F[_]](
       selectorThreadFactory: ThreadFactory = selectorThreadFactory,
       enableWebSockets: Boolean = enableWebSockets,
       sslContext: F[Option[SSLContext]] = sslContext,
-      tlsParameters: TLSParameters = tlsParameters,
+      sslEngineConfig: SSLEngine => Unit = sslEngineConfig,
       http2Support: Boolean = isHttp2Enabled,
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
@@ -131,7 +132,7 @@ class BlazeServerBuilder[F[_]](
       selectorThreadFactory,
       enableWebSockets,
       sslContext,
-      tlsParameters,
+      sslEngineConfig,
       http2Support,
       maxRequestLineLen,
       maxHeadersLen,
@@ -156,6 +157,7 @@ class BlazeServerBuilder[F[_]](
     copy(maxRequestLineLen = maxRequestLineLen, maxHeadersLen = maxHeadersLen)
 
   @deprecated("Use withSSLContext and withTLSParameters instead", "0.21.0-RC3")
+  @silent("deprecated")
   def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
@@ -193,7 +195,7 @@ class BlazeServerBuilder[F[_]](
       context.some
     }
 
-    copy(sslContext = sslContext, tlsParameters = clientAuthModeToTlsParameters(clientAuth))
+    copy(sslContext = sslContext, sslEngineConfig = clientAuthModeToTlsParameters(clientAuth))
   }
 
   def withSSLContext(sslContext: SSLContext): Self =
@@ -202,27 +204,35 @@ class BlazeServerBuilder[F[_]](
   @deprecated(
     "Overload with clientAuth param is deprecated.  Use withSSLContext(SSLContext).withTLSParameters(TLSParameters(...)) instead.",
     "0.21.0-RC3")
+  @silent("deprecated")
   def withSSLContext(
       sslContext: SSLContext,
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
     copy(
       sslContext = F.pure(sslContext.some),
-      tlsParameters = clientAuthModeToTlsParameters(clientAuth))
+      sslEngineConfig = clientAuthModeToTlsParameters(clientAuth))
 
   def withoutSSLContext: Self =
     copy(sslContext = F.pure(None))
 
-  def withTLSParameters(tlsParameters: TLSParameters): Self =
-    copy(tlsParameters = tlsParameters)
+  def withSSLParameters(sslParameters: SSLParameters): Self =
+    copy(sslEngineConfig = _.setSSLParameters(sslParameters))
 
-  private def clientAuthModeToTlsParameters(clientAuthMode: SSLClientAuthMode) =
+  def withTLSParameters(tlsParameters: TLSParameters): Self = {
+    val sslParameters = toSSLParameters(tlsParameters)
+    withSSLParameters(sslParameters)
+  }
+
+  @silent("deprecated")
+  private def clientAuthModeToTlsParameters(clientAuthMode: SSLClientAuthMode)(
+      sslEngine: SSLEngine): Unit =
     clientAuthMode match {
       case SSLClientAuthMode.Requested =>
-        TLSParameters(wantClientAuth = true)
+        sslEngine.setWantClientAuth(true)
       case SSLClientAuthMode.Required =>
-        TLSParameters(needClientAuth = true)
+        sslEngine.setNeedClientAuth(true)
       case SSLClientAuthMode.NotRequested =>
-        TLSParameters.Default
+        ()
     }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
@@ -273,7 +283,7 @@ class BlazeServerBuilder[F[_]](
 
   private def pipelineFactory(
       scheduler: TickWheelExecutor,
-      sslConfig: Option[(SSLContext, SSLParameters)]
+      sslContext: Option[SSLContext]
   )(conn: SocketConnection): Future[LeafBuilder[ByteBuffer]] = {
     def requestAttributes(secure: Boolean, optionalSslEngine: Option[SSLEngine]): () => Vault =
       (conn.local, conn.remote) match {
@@ -339,10 +349,10 @@ class BlazeServerBuilder[F[_]](
       )
 
     Future.successful {
-      sslConfig match {
-        case Some((ctx, params)) =>
+      sslContext match {
+        case Some(ctx) =>
           val engine = ctx.createSSLEngine()
-          engine.setSSLParameters(params)
+          sslEngineConfig(engine)
           engine.setUseClientMode(false)
 
           LeafBuilder(
@@ -376,11 +386,8 @@ class BlazeServerBuilder[F[_]](
       def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
         Resource.make(F.delay {
           val address = resolveAddress(socketAddress)
-
-          val sslConfig = sslCtxOpt.map(ctx => (ctx, toSSLParameters(tlsParameters)))
-
           // if we have a Failure, it will be caught by the effect
-          factory.bind(address, pipelineFactory(scheduler, sslConfig)).get
+          factory.bind(address, pipelineFactory(scheduler, sslCtxOpt)).get
         })(serverChannel => F.delay { serverChannel.close() })
 
       def logStart(server: Server[F]): Resource[F, Unit] =
@@ -435,7 +442,7 @@ object BlazeServerBuilder {
       selectorThreadFactory = defaultThreadSelectorFactory,
       enableWebSockets = true,
       sslContext = F.pure(None),
-      tlsParameters = TLSParameters.Default,
+      sslEngineConfig = Function.const(()),
       isHttp2Enabled = false,
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = 40 * 1024,

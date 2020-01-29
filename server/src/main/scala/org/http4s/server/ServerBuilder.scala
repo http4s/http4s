@@ -90,8 +90,10 @@ object AsyncTimeoutSupport {
   val DefaultAsyncTimeout = defaults.ResponseTimeout
 }
 
-sealed trait SSLConfig
+@deprecated("Use javax.net.ssl.SSLContext and fs2.io.tls.TLSParameters instead", "0.21.0-RC3")
+trait SSLConfig
 
+@deprecated("Use javax.net.ssl.SSLContext and fs2.io.tls.TLSParameters instead", "0.21.0-RC3")
 final case class KeyStoreBits(
     keyStore: StoreInfo,
     keyManagerPassword: String,
@@ -100,9 +102,11 @@ final case class KeyStoreBits(
     clientAuth: SSLClientAuthMode)
     extends SSLConfig
 
+@deprecated("Use javax.net.ssl.SSLContext and fs2.io.tls.TLSParameters instead", "0.21.0-RC3")
 final case class SSLContextBits(sslContext: SSLContext, clientAuth: SSLClientAuthMode)
     extends SSLConfig
 
+@deprecated("Use javax.net.ssl.SSLContext instead", "0.21.0-RC3")
 object SSLKeyStoreSupport {
   final case class StoreInfo(path: String, password: String)
 }
