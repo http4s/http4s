@@ -1,15 +1,14 @@
 package org.http4s.server.blaze
 
+import cats.effect.{IO, Resource}
+import fs2.io.tls.TLSParameters
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
-
-import cats.effect.{IO, Resource}
 import javax.net.ssl._
 import org.http4s.dsl.io._
-import org.http4s.server.{SSLClientAuthMode, Server, ServerRequestKeys}
+import org.http4s.server.{Server, ServerRequestKeys}
 import org.http4s.{Http4sSpec, HttpApp}
-
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.Try
@@ -64,10 +63,11 @@ class BlazeServerMtlsSpec extends Http4sSpec {
     case _ => NotFound()
   }
 
-  def serverR(clientAuthMode: SSLClientAuthMode): Resource[IO, Server[IO]] =
+  def serverR(tlsParameters: TLSParameters): Resource[IO, Server[IO]] =
     builder
       .bindAny()
-      .withSSLContext(sslContext, clientAuth = clientAuthMode)
+      .withSSLContext(sslContext)
+      .withTLSParameters(tlsParameters)
       .withHttpApp(service)
       .resource
 
@@ -106,10 +106,7 @@ class BlazeServerMtlsSpec extends Http4sSpec {
     sc
   }
 
-  /**
-    * Test "required" auth mode
-    */
-  withResource(serverR(SSLClientAuthMode.Required)) { server =>
+  withResource(serverR(TLSParameters(needClientAuth = true))) { server =>
     def get(path: String, clientAuth: Boolean = true): String = {
       val url = new URL(s"https://localhost:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpsURLConnection]
@@ -142,10 +139,7 @@ class BlazeServerMtlsSpec extends Http4sSpec {
     }
   }
 
-  /**
-    * Test "requested" auth mode
-    */
-  withResource(serverR(SSLClientAuthMode.Requested)) { server =>
+  withResource(serverR(TLSParameters(wantClientAuth = true))) { server =>
     def get(path: String, clientAuth: Boolean = true): String = {
       val url = new URL(s"https://localhost:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpsURLConnection]
