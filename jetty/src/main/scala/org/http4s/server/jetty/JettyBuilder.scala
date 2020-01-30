@@ -6,7 +6,7 @@ import cats.effect._
 import cats.implicits._
 import java.net.InetSocketAddress
 import java.util
-import javax.net.ssl.SSLContext
+import javax.net.ssl.{SSLContext, SSLParameters}
 import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{ServerConnector, Server => JServer}
@@ -75,10 +75,27 @@ sealed class JettyBuilder[F[_]] private (
     copy(sslConfig =
       new KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth))
 
+  @deprecated(
+    "Use `withSslContext` (note lowercase). To request client certificates, use `withSslContextAndParameters, calling either `.setWantClientAuth(true)` or `setNeedClientAuth(true)` on the `SSLParameters`.",
+    "0.21.0-RC3")
   def withSSLContext(
       sslContext: SSLContext,
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
     copy(sslConfig = new ContextWithClientAuth(sslContext, clientAuth))
+
+  /** Configures the server with TLS, using the provided `SSLContext` and its
+    * default `SSLParameters` */
+  def withSslContext(sslContext: SSLContext): Self =
+    copy(sslConfig = new ContextOnly(sslContext))
+
+  /** Configures the server with TLS, using the provided `SSLContext` and its
+    * default `SSLParameters` */
+  def withSslContextAndParameters(sslContext: SSLContext, sslParameters: SSLParameters): Self =
+    copy(sslConfig = new ContextWithParameters(sslContext, sslParameters))
+
+  /** Disables SSL. */
+  def withoutSsl: Self =
+    copy(sslConfig = NoSsl)
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -261,6 +278,26 @@ object JettyBuilder {
       val sslContextFactory = new SslContextFactory.Server()
       sslContextFactory.setSslContext(sslContext)
       updateClientAuth(sslContextFactory, clientAuth)
+      sslContextFactory.some
+    }
+    def isSecure = true
+  }
+
+  private class ContextOnly(sslContext: SSLContext) extends SslConfig {
+    def makeSslContextFactory: Option[SslContextFactory.Server] = {
+      val sslContextFactory = new SslContextFactory.Server()
+      sslContextFactory.setSslContext(sslContext)
+      sslContextFactory.some
+    }
+    def isSecure = true
+  }
+
+  private class ContextWithParameters(sslContext: SSLContext, sslParameters: SSLParameters)
+      extends SslConfig {
+    def makeSslContextFactory: Option[SslContextFactory.Server] = {
+      val sslContextFactory = new SslContextFactory.Server()
+      sslContextFactory.setSslContext(sslContext)
+      sslContextFactory.customize(sslParameters)
       sslContextFactory.some
     }
     def isSecure = true
