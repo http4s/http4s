@@ -13,7 +13,7 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import java.util.concurrent.ThreadFactory
-import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
+import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, SSLParameters, TrustManagerFactory}
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.blaze.channel.{
   ChannelOptions,
@@ -162,10 +162,25 @@ class BlazeServerBuilder[F[_]](
     copy(sslConfig = bits)
   }
 
+  @deprecated(
+    "Use `withSslContext` (note lowercase). To request client certificates, use `withSslContextAndParameters, calling either `.setWantClientAuth(true)` or `setNeedClientAuth(true)` on the `SSLParameters`.",
+    "0.21.0-RC3")
   def withSSLContext(
       sslContext: SSLContext,
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
     copy(sslConfig = new ContextWithClientAuth[F](sslContext, clientAuth))
+
+  /** Configures the server with TLS, using the provided `SSLContext` and its
+    * default `SSLParameters` */
+  def withSslContext(sslContext: SSLContext): Self =
+    copy(sslConfig = new ContextOnly[F](sslContext))
+
+  /** Configures the server with TLS, using the provided `SSLContext` and `SSLParameters`. */
+  def withSslContextAndParameters(sslContext: SSLContext, sslParameters: SSLParameters): Self =
+    copy(sslConfig = new ContextWithParameters[F](sslContext, sslParameters))
+
+  def withoutSsl: Self =
+    copy(sslConfig = new NoSsl[F]())
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -437,6 +452,24 @@ object BlazeServerBuilder {
     def isSecure = true
   }
 
+  private class ContextOnly[F[_]](sslContext: SSLContext)(implicit F: Applicative[F])
+      extends SslConfig[F] {
+    def makeContext = F.pure(sslContext.some)
+    def configureEngine(engine: SSLEngine) = {
+      val _ = engine
+      ()
+    }
+    def isSecure = true
+  }
+
+  private class ContextWithParameters[F[_]](sslContext: SSLContext, sslParameters: SSLParameters)(
+      implicit F: Applicative[F])
+      extends SslConfig[F] {
+    def makeContext = F.pure(sslContext.some)
+    def configureEngine(engine: SSLEngine) = engine.setSSLParameters(sslParameters)
+    def isSecure = true
+  }
+
   private class ContextWithClientAuth[F[_]](sslContext: SSLContext, clientAuth: SSLClientAuthMode)(
       implicit F: Applicative[F])
       extends SslConfig[F] {
@@ -458,7 +491,7 @@ object BlazeServerBuilder {
   private def configureEngineFromSslClientAuthMode(
       engine: SSLEngine,
       clientAuthMode: SSLClientAuthMode) =
-    clientAuth match {
+    clientAuthMode match {
       case SSLClientAuthMode.Required => engine.setNeedClientAuth(true)
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
       case SSLClientAuthMode.NotRequested => ()
