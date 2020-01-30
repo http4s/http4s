@@ -3,6 +3,7 @@ package server
 package jetty
 
 import cats.effect._
+import cats.implicits._
 import java.net.InetSocketAddress
 import java.util
 import javax.net.ssl.SSLContext
@@ -15,6 +16,7 @@ import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.server.jetty.JettyBuilder._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.http4s.syntax.all._
 import org.log4s.getLogger
@@ -28,7 +30,7 @@ sealed class JettyBuilder[F[_]] private (
     private val asyncTimeout: Duration,
     shutdownTimeout: Duration,
     private val servletIo: ServletIo[F],
-    sslBits: Option[SSLConfig],
+    sslConfig: SslConfig,
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
@@ -46,7 +48,7 @@ sealed class JettyBuilder[F[_]] private (
       asyncTimeout: Duration = asyncTimeout,
       shutdownTimeout: Duration = shutdownTimeout,
       servletIo: ServletIo[F] = servletIo,
-      sslBits: Option[SSLConfig] = sslBits,
+      sslConfig: SslConfig = sslConfig,
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner
@@ -58,7 +60,7 @@ sealed class JettyBuilder[F[_]] private (
       asyncTimeout,
       shutdownTimeout,
       servletIo,
-      sslBits,
+      sslConfig,
       mounts,
       serviceErrorHandler,
       banner)
@@ -70,13 +72,13 @@ sealed class JettyBuilder[F[_]] private (
       trustStore: Option[StoreInfo] = None,
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested
   ): Self =
-    copy(
-      sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
+    copy(sslConfig =
+      new KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth))
 
   def withSSLContext(
       sslContext: SSLContext,
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
-    copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
+    copy(sslConfig = new ContextWithClientAuth(sslContext, clientAuth))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -142,55 +144,12 @@ sealed class JettyBuilder[F[_]] private (
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  private def getConnector(jetty: JServer): ServerConnector = {
-    def httpsConnector(sslContextFactory: SslContextFactory) =
-      new ServerConnector(
-        jetty,
-        sslContextFactory
-      )
-
-    sslBits match {
-      case Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)) =>
-        // SSL Context Factory
-        val sslContextFactory = new SslContextFactory.Server()
-        sslContextFactory.setKeyStorePath(keyStore.path)
-        sslContextFactory.setKeyStorePassword(keyStore.password)
-        sslContextFactory.setKeyManagerPassword(keyManagerPassword)
-        sslContextFactory.setProtocol(protocol)
-        updateClientAuth(sslContextFactory, clientAuth)
-
-        trustStore.foreach { trustManagerBits =>
-          sslContextFactory.setTrustStorePath(trustManagerBits.path)
-          sslContextFactory.setTrustStorePassword(trustManagerBits.password)
-        }
-
-        httpsConnector(sslContextFactory)
-
-      case Some(SSLContextBits(sslContext, clientAuth)) =>
-        val sslContextFactory = new SslContextFactory.Server()
-        sslContextFactory.setSslContext(sslContext)
-        updateClientAuth(sslContextFactory, clientAuth)
-
-        httpsConnector(sslContextFactory)
-
+  private def getConnector(jetty: JServer): ServerConnector =
+    sslConfig.makeSslContextFactory match {
+      case Some(sslContextFactory) =>
+        new ServerConnector(jetty, sslContextFactory)
       case None =>
         new ServerConnector(jetty)
-    }
-  }
-
-  private def updateClientAuth(
-      sslContextFactory: SslContextFactory.Server,
-      clientAuthMode: SSLClientAuthMode): Unit =
-    clientAuthMode match {
-      case SSLClientAuthMode.NotRequested =>
-        sslContextFactory.setWantClientAuth(false)
-        sslContextFactory.setNeedClientAuth(false)
-
-      case SSLClientAuthMode.Requested =>
-        sslContextFactory.setWantClientAuth(true)
-
-      case SSLClientAuthMode.Required =>
-        sslContextFactory.setNeedClientAuth(true)
     }
 
   def resource: Resource[F, Server[F]] =
@@ -231,7 +190,7 @@ sealed class JettyBuilder[F[_]] private (
           new InetSocketAddress(host, port)
         }
 
-        lazy val isSecure: Boolean = sslBits.isDefined
+        lazy val isSecure: Boolean = sslConfig.isSecure
       }
 
       banner.foreach(logger.info(_))
@@ -261,11 +220,71 @@ object JettyBuilder {
     asyncTimeout = defaults.ResponseTimeout,
     shutdownTimeout = defaults.ShutdownTimeout,
     servletIo = ServletContainer.DefaultServletIo,
-    sslBits = None,
+    sslConfig = NoSsl,
     mounts = Vector.empty,
     serviceErrorHandler = DefaultServiceErrorHandler,
     banner = defaults.Banner
   )
+
+  private sealed trait SslConfig {
+    def makeSslContextFactory: Option[SslContextFactory.Server]
+    def isSecure: Boolean
+  }
+
+  private class KeyStoreBits(
+      keyStore: StoreInfo,
+      keyManagerPassword: String,
+      protocol: String,
+      trustStore: Option[StoreInfo],
+      clientAuth: SSLClientAuthMode
+  ) extends SslConfig {
+    def makeSslContextFactory: Option[SslContextFactory.Server] = {
+      val sslContextFactory = new SslContextFactory.Server()
+      sslContextFactory.setKeyStorePath(keyStore.path)
+      sslContextFactory.setKeyStorePassword(keyStore.password)
+      sslContextFactory.setKeyManagerPassword(keyManagerPassword)
+      sslContextFactory.setProtocol(protocol)
+      updateClientAuth(sslContextFactory, clientAuth)
+
+      trustStore.foreach { trustManagerBits =>
+        sslContextFactory.setTrustStorePath(trustManagerBits.path)
+        sslContextFactory.setTrustStorePassword(trustManagerBits.password)
+      }
+      sslContextFactory.some
+    }
+    def isSecure = true
+  }
+
+  private class ContextWithClientAuth(sslContext: SSLContext, clientAuth: SSLClientAuthMode)
+      extends SslConfig {
+    def makeSslContextFactory: Option[SslContextFactory.Server] = {
+      val sslContextFactory = new SslContextFactory.Server()
+      sslContextFactory.setSslContext(sslContext)
+      updateClientAuth(sslContextFactory, clientAuth)
+      sslContextFactory.some
+    }
+    def isSecure = true
+  }
+
+  private object NoSsl extends SslConfig {
+    def makeSslContextFactory: Option[SslContextFactory.Server] = None
+    def isSecure = false
+  }
+
+  private def updateClientAuth(
+      sslContextFactory: SslContextFactory.Server,
+      clientAuthMode: SSLClientAuthMode): Unit =
+    clientAuthMode match {
+      case SSLClientAuthMode.NotRequested =>
+        sslContextFactory.setWantClientAuth(false)
+        sslContextFactory.setNeedClientAuth(false)
+
+      case SSLClientAuthMode.Requested =>
+        sslContextFactory.setWantClientAuth(true)
+
+      case SSLClientAuthMode.Required =>
+        sslContextFactory.setNeedClientAuth(true)
+    }
 }
 
 private final case class Mount[F[_]](f: (ServletContextHandler, Int, JettyBuilder[F]) => Unit)
