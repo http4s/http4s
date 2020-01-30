@@ -25,5 +25,5 @@ object BlazeSslExampleWithRedirectApp {
       .serve
 
   def sslStream[F[_]: ConcurrentEffect: ContextShift: Timer]: Stream[F, ExitCode] =
-    BlazeSslExampleApp.builder[F].serve
+    Stream.eval(BlazeSslExampleApp.builder[F]).flatMap(_.serve)
 }

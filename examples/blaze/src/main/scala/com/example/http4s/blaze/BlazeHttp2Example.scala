@@ -5,10 +5,5 @@ import cats.effect._
 
 object BlazeHttp2Example extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
-    BlazeSslExampleApp
-      .builder[IO]
-      .enableHttp2(true)
-      .serve
-      .compile
-      .lastOrError
+    BlazeSslExampleApp.builder[IO].flatMap(_.enableHttp2(true).serve.compile.lastOrError)
 }
