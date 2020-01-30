@@ -51,13 +51,27 @@ object WebSocketBuilder {
         onHandshakeFailure: F[Response[F]] = Response[F](Status.BadRequest)
           .withEntity("WebSocket handshake failed.")
           .pure[F],
-        onClose: F[Unit] = Applicative[F].unit): F[Response[F]] =
-      WebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure).onNonWebSocketRequest
+        onClose: F[Unit] = Applicative[F].unit,
+        filterPings: Boolean = true): F[Response[F]] = {
+
+      val finalReceive: Pipe[F, WebSocketFrame, Unit] = if(filterPings) {
+        _.filterNot(isPing).through(receive)
+      } else receive
+
+      WebSocketBuilder(send, finalReceive, headers, onNonWebSocketRequest, onHandshakeFailure).onNonWebSocketRequest
         .map(
           _.withAttribute(
             websocketKey[F],
-            WebSocketContext(WebSocket(send, receive, onClose), headers, onHandshakeFailure))
+            WebSocketContext(WebSocket(send, finalReceive, onClose), headers, onHandshakeFailure))
         )
+    }
   }
+
   def apply[F[_]: Applicative]: Builder[F] = new Builder[F]
+
+  private def isPing(frame: WebSocketFrame) = frame match {
+    case _: WebSocketFrame.Ping => true
+    case _ => false
+  }
+
 }
