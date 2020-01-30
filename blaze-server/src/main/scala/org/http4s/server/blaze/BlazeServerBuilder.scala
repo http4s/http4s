@@ -152,6 +152,9 @@ class BlazeServerBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen): Self =
     copy(maxRequestLineLen = maxRequestLineLen, maxHeadersLen = maxHeadersLen)
 
+  @deprecated(
+    "Build an `SSLContext` from the first four parameters and use `withSslContext` (note lowercase). To also request client certificates, use `withSslContextAndParameters, calling either `.setWantClientAuth(true)` or `setNeedClientAuth(true)` on the `SSLParameters`.",
+    "0.21.0-RC3")
   def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
