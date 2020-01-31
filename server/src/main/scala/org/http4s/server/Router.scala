@@ -24,30 +24,32 @@ object Router {
       default: HttpRoutes[F]): HttpRoutes[F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, routes)) =>
-        if (prefix.isEmpty || prefix == "/") routes <+> acc
+        val prefixSegments = toSegments(prefix)
+        if (prefixSegments.isEmpty) routes <+> acc
         else
           Kleisli { req =>
             (
-              if (req.pathInfo.startsWith(prefix))
-                translate(prefix)(routes) <+> acc
-              else
+              if (toSegments(req.pathInfo).startsWith(prefixSegments)) {
+                routes.local(translate(prefix)) <+> acc
+              } else
                 acc
             )(req)
           }
     }
 
-  private def translate[F[_]: Functor](prefix: String)(routes: HttpRoutes[F]): HttpRoutes[F] = {
+  private[server] def translate[F[_]: Functor](prefix: String)(req: Request[F]): Request[F] = {
     val newCaret = prefix match {
       case "/" => 0
       case x if x.startsWith("/") => x.length
       case x => x.length + 1
     }
 
-    routes.local { req: Request[F] =>
-      val oldCaret = req.attributes
-        .lookup(Request.Keys.PathInfoCaret)
-        .getOrElse(0)
-      req.withAttribute(Request.Keys.PathInfoCaret, oldCaret + newCaret)
-    }
+    val oldCaret = req.attributes
+      .lookup(Request.Keys.PathInfoCaret)
+      .getOrElse(0)
+    req.withAttribute(Request.Keys.PathInfoCaret, oldCaret + newCaret)
   }
+
+  private[server] def toSegments(path: String): List[String] =
+    path.split("/").filterNot(_.trim.isEmpty).toList
 }
