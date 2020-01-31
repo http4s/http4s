@@ -21,7 +21,7 @@ object Retry {
       redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
       client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
-      Resource.suspend(F.continual(client.run(req).allocated) {
+      Resource.suspend[F, Response[F]](F.continual(client.run(req).allocated) {
         case Right((response, dispose)) =>
           policy(req, Right(response), attempts) match {
             case Some(duration) =>
