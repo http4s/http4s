@@ -1,6 +1,5 @@
 package org.http4s.play
 
-import cats.Applicative
 import cats.effect.Sync
 import fs2.Chunk
 import org.http4s.headers.`Content-Type`
@@ -32,11 +31,10 @@ trait PlayInstances {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JsValue] =
     jawn.jawnDecoder[F, JsValue]
 
-  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A: Writes]
-      : EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String], A: Writes]: EntityEncoder[F, A] =
     jsonEncoder[F].contramap[A](Json.toJson(_))
 
-  implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, JsValue] =
+  implicit def jsonEncoder[F[_]]: EntityEncoder[F, JsValue] =
     EntityEncoder[F, Chunk[Byte]]
       .contramap[JsValue] { json =>
         val bytes = json.toString.getBytes("UTF8")
