@@ -115,6 +115,16 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
       _ <- socket.sendInbound(Close())
     } yield ok)
 
+    "send a pong frames to backend" in (for {
+      socket <- TestWebsocketStage()
+      _ <- socket.sendInbound(Pong())
+      _ <- socket.pollBackendInbound().map(_ must_=== Some(Pong()))
+      pongWithBytes = Pong(ByteVector(Array[Byte](1, 2, 3)))
+      _ <- socket.sendInbound(pongWithBytes)
+      _ <- socket.pollBackendInbound().map(_ must_=== Some(pongWithBytes))
+      _ <- socket.sendInbound(Close())
+    } yield ok)
+
     "not fail on pending write request" in (for {
       socket <- TestWebsocketStage()
       reasonSent = ByteVector(42)

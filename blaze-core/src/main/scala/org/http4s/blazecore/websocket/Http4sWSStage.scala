@@ -92,9 +92,6 @@ private[http4s] class Http4sWSStage[F[_]](
       case p@ Ping(d) =>
         //Reply to ping frame immediately
         writeFrame(Pong(d), trampoline) >> F.pure(p)
-      case _: Pong =>
-        //Don't forward pong frame
-        handleRead()
       case rest =>
         F.pure(rest)
     }
