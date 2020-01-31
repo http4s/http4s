@@ -3,7 +3,6 @@ package argonaut
 
 import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}
 import _root_.argonaut.Argonaut._
-import cats.Applicative
 import cats.effect.Sync
 import org.http4s.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
@@ -30,7 +29,7 @@ trait ArgonautInstances extends JawnInstances {
 
   protected def defaultPrettyParams: PrettyParams = PrettyParams.nospace
 
-  implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, Json] =
+  implicit def jsonEncoder[F[_]]: EntityEncoder[F, Json] =
     jsonEncoderWithPrettyParams[F](defaultPrettyParams)
 
   def jsonEncoderWithPrettyParams[F[_]](prettyParams: PrettyParams): EntityEncoder[F, Json] =
@@ -39,10 +38,10 @@ trait ArgonautInstances extends JawnInstances {
       .contramap[Json](prettyParams.pretty)
       .withContentType(`Content-Type`(MediaType.application.json))
 
-  def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_], A](implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrettyParams)
 
-  def jsonEncoderWithPrinterOf[F[_]: Applicative, A](prettyParams: PrettyParams)(
+  def jsonEncoderWithPrinterOf[F[_], A](prettyParams: PrettyParams)(
       implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrettyParams[F](prettyParams).contramap[A](encoder.encode)
 
