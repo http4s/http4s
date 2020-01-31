@@ -12,14 +12,20 @@ object BlazeSslExample extends IOApp {
 }
 
 object BlazeSslExampleApp {
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: BlazeServerBuilder[F] =
-    BlazeServerBuilder[F]
-      .bindHttp(8443)
-      .withSSL(ssl.storeInfo, ssl.keyManagerPassword)
+  def context[F[_]: Sync] =
+    ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
+
+  def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: F[BlazeServerBuilder[F]] =
+    context.map { sslContext =>
+      BlazeServerBuilder[F]
+        .bindHttp(8443)
+        .withSslContext(sslContext)
+    }
 
   def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
     for {
       blocker <- Blocker[F]
-      server <- builder[F].withHttpApp(BlazeExampleApp.httpApp(blocker)).resource
+      b <- Resource.liftF(builder[F])
+      server <- b.withHttpApp(BlazeExampleApp.httpApp(blocker)).resource
     } yield server
 }

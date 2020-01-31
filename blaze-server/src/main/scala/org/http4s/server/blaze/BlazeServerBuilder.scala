@@ -4,14 +4,16 @@ package blaze
 
 import cats.{Alternative, Applicative}
 import cats.data.Kleisli
+import cats.effect.Sync
 import cats.implicits._
 import cats.effect.{ConcurrentEffect, Resource, Timer}
+import _root_.io.chrisdavenport.vault._
 import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import java.util.concurrent.ThreadFactory
-import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
+import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, SSLParameters, TrustManagerFactory}
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.blaze.channel.{
   ChannelOptions,
@@ -29,12 +31,12 @@ import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.server.blaze.BlazeServerBuilder._
 import org.http4s.util.threads.threadFactory
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-import _root_.io.chrisdavenport.vault._
 import scodec.bits.ByteVector
 
 /**
@@ -80,7 +82,7 @@ class BlazeServerBuilder[F[_]](
     bufferSize: Int,
     selectorThreadFactory: ThreadFactory,
     enableWebSockets: Boolean,
-    sslBits: Option[SSLConfig],
+    sslConfig: SslConfig[F],
     isHttp2Enabled: Boolean,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
@@ -106,7 +108,7 @@ class BlazeServerBuilder[F[_]](
       bufferSize: Int = bufferSize,
       selectorThreadFactory: ThreadFactory = selectorThreadFactory,
       enableWebSockets: Boolean = enableWebSockets,
-      sslBits: Option[SSLConfig] = sslBits,
+      sslConfig: SslConfig[F] = sslConfig,
       http2Support: Boolean = isHttp2Enabled,
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
@@ -126,7 +128,7 @@ class BlazeServerBuilder[F[_]](
       bufferSize,
       selectorThreadFactory,
       enableWebSockets,
-      sslBits,
+      sslConfig,
       http2Support,
       maxRequestLineLen,
       maxHeadersLen,
@@ -150,20 +152,38 @@ class BlazeServerBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen): Self =
     copy(maxRequestLineLen = maxRequestLineLen, maxHeadersLen = maxHeadersLen)
 
+  @deprecated(
+    "Build an `SSLContext` from the first four parameters and use `withSslContext` (note lowercase). To also request client certificates, use `withSslContextAndParameters, calling either `.setWantClientAuth(true)` or `setNeedClientAuth(true)` on the `SSLParameters`.",
+    "0.21.0-RC3")
   def withSSL(
       keyStore: StoreInfo,
       keyManagerPassword: String,
       protocol: String = "TLS",
       trustStore: Option[StoreInfo] = None,
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self = {
-    val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
-    copy(sslBits = Some(bits))
+    val bits = new KeyStoreBits[F](keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
+    copy(sslConfig = bits)
   }
 
+  @deprecated(
+    "Use `withSslContext` (note lowercase). To request client certificates, use `withSslContextAndParameters, calling either `.setWantClientAuth(true)` or `setNeedClientAuth(true)` on the `SSLParameters`.",
+    "0.21.0-RC3")
   def withSSLContext(
       sslContext: SSLContext,
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
-    copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
+    copy(sslConfig = new ContextWithClientAuth[F](sslContext, clientAuth))
+
+  /** Configures the server with TLS, using the provided `SSLContext` and its
+    * default `SSLParameters` */
+  def withSslContext(sslContext: SSLContext): Self =
+    copy(sslConfig = new ContextOnly[F](sslContext))
+
+  /** Configures the server with TLS, using the provided `SSLContext` and `SSLParameters`. */
+  def withSslContextAndParameters(sslContext: SSLContext, sslParameters: SSLParameters): Self =
+    copy(sslConfig = new ContextWithParameters[F](sslContext, sslParameters))
+
+  def withoutSsl: Self =
+    copy(sslConfig = new NoSsl[F]())
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -212,7 +232,8 @@ class BlazeServerBuilder[F[_]](
     copy(chunkBufferMaxSize = chunkBufferMaxSize)
 
   private def pipelineFactory(
-      scheduler: TickWheelExecutor
+      scheduler: TickWheelExecutor,
+      engineConfig: Option[(SSLContext, SSLEngine => Unit)]
   )(conn: SocketConnection): Future[LeafBuilder[ByteBuffer]] = {
     def requestAttributes(secure: Boolean, optionalSslEngine: Option[SSLEngine]): () => Vault =
       (conn.local, conn.remote) match {
@@ -278,22 +299,11 @@ class BlazeServerBuilder[F[_]](
       )
 
     Future.successful {
-      getContext() match {
-        case Some((ctx, clientAuth)) =>
+      engineConfig match {
+        case Some((ctx, configure)) =>
           val engine = ctx.createSSLEngine()
           engine.setUseClientMode(false)
-
-          clientAuth match {
-            case SSLClientAuthMode.NotRequested =>
-              engine.setWantClientAuth(false)
-              engine.setNeedClientAuth(false)
-
-            case SSLClientAuthMode.Requested =>
-              engine.setWantClientAuth(true)
-
-            case SSLClientAuthMode.Required =>
-              engine.setNeedClientAuth(true)
-          }
+          configure(engine)
 
           LeafBuilder(
             if (isHttp2Enabled) http2Stage(engine)
@@ -323,12 +333,13 @@ class BlazeServerBuilder[F[_]](
     })(factory => F.delay { factory.closeGroup() })
 
     def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
-      Resource.make(F.delay {
-        val address = resolveAddress(socketAddress)
-
-        // if we have a Failure, it will be caught by the effect
-        factory.bind(address, pipelineFactory(scheduler)).get
-      })(serverChannel => F.delay { serverChannel.close() })
+      Resource.make(
+        for {
+          ctxOpt <- sslConfig.makeContext
+          engineCfg = ctxOpt.map(ctx => (ctx, sslConfig.configureEngine _))
+          address = resolveAddress(socketAddress)
+        } yield factory.bind(address, pipelineFactory(scheduler, engineCfg)).get
+      )(serverChannel => F.delay { serverChannel.close() })
 
     def logStart(server: Server[F]): Resource[F, Unit] =
       Resource.liftF(F.delay {
@@ -349,7 +360,7 @@ class BlazeServerBuilder[F[_]](
             val address: InetSocketAddress =
               serverChannel.socketAddress
 
-            val isSecure = sslBits.isDefined
+            val isSecure = sslConfig.isSecure
 
             override def toString: String =
               s"BlazeServer($address)"
@@ -358,8 +369,59 @@ class BlazeServerBuilder[F[_]](
         .flatTap(logStart)
   }
 
-  private def getContext(): Option[(SSLContext, SSLClientAuthMode)] = sslBits.map {
-    case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
+  private def verifyTimeoutRelations(): F[Unit] = F.delay {
+    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
+      logger.warn(
+        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
+          s"It is recommended to configure responseHeaderTimeout < idleTimeout, " +
+          s"otherwise timeout responses won't be delivered to clients.")
+    }
+  }
+}
+
+object BlazeServerBuilder {
+  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
+    new BlazeServerBuilder(
+      socketAddress = defaults.SocketAddress,
+      executionContext = ExecutionContext.global,
+      responseHeaderTimeout = defaults.ResponseTimeout,
+      idleTimeout = defaults.IdleTimeout,
+      isNio2 = false,
+      connectorPoolSize = DefaultPoolSize,
+      bufferSize = 64 * 1024,
+      selectorThreadFactory = defaultThreadSelectorFactory,
+      enableWebSockets = true,
+      sslConfig = new NoSsl[F](),
+      isHttp2Enabled = false,
+      maxRequestLineLen = 4 * 1024,
+      maxHeadersLen = 40 * 1024,
+      chunkBufferMaxSize = 1024 * 1024,
+      httpApp = defaultApp[F],
+      serviceErrorHandler = DefaultServiceErrorHandler[F],
+      banner = defaults.Banner,
+      channelOptions = ChannelOptions(Vector.empty)
+    )
+
+  private def defaultApp[F[_]: Applicative]: HttpApp[F] =
+    Kleisli(_ => Response[F](Status.NotFound).pure[F])
+
+  private def defaultThreadSelectorFactory: ThreadFactory =
+    threadFactory(name = n => s"blaze-selector-${n}", daemon = false)
+
+  private sealed trait SslConfig[F[_]] {
+    def makeContext: F[Option[SSLContext]]
+    def configureEngine(sslEngine: SSLEngine): Unit
+    def isSecure: Boolean
+  }
+
+  private final class KeyStoreBits[F[_]](
+      keyStore: StoreInfo,
+      keyManagerPassword: String,
+      protocol: String,
+      trustStore: Option[StoreInfo],
+      clientAuth: SSLClientAuthMode)(implicit F: Sync[F])
+      extends SslConfig[F] {
+    def makeContext = F.delay {
       val ksStream = new FileInputStream(keyStore.path)
       val ks = KeyStore.getInstance("JKS")
       ks.load(ksStream, keyStore.password.toCharArray)
@@ -386,49 +448,55 @@ class BlazeServerBuilder[F[_]](
 
       val context = SSLContext.getInstance(protocol)
       context.init(kmf.getKeyManagers, tmf.orNull, null)
-
-      (context, clientAuth)
-
-    case SSLContextBits(context, clientAuth) =>
-      (context, clientAuth)
-  }
-
-  private def verifyTimeoutRelations(): F[Unit] = F.delay {
-    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
-      logger.warn(
-        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
-          s"It is recommended to configure responseHeaderTimeout < idleTimeout, " +
-          s"otherwise timeout responses won't be delivered to clients.")
+      context.some
     }
+    def configureEngine(engine: SSLEngine) =
+      configureEngineFromSslClientAuthMode(engine, clientAuth)
+    def isSecure = true
   }
-}
 
-object BlazeServerBuilder {
-  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
-    new BlazeServerBuilder(
-      socketAddress = defaults.SocketAddress,
-      executionContext = ExecutionContext.global,
-      responseHeaderTimeout = defaults.ResponseTimeout,
-      idleTimeout = defaults.IdleTimeout,
-      isNio2 = false,
-      connectorPoolSize = DefaultPoolSize,
-      bufferSize = 64 * 1024,
-      selectorThreadFactory = defaultThreadSelectorFactory,
-      enableWebSockets = true,
-      sslBits = None,
-      isHttp2Enabled = false,
-      maxRequestLineLen = 4 * 1024,
-      maxHeadersLen = 40 * 1024,
-      chunkBufferMaxSize = 1024 * 1024,
-      httpApp = defaultApp[F],
-      serviceErrorHandler = DefaultServiceErrorHandler[F],
-      banner = defaults.Banner,
-      channelOptions = ChannelOptions(Vector.empty)
-    )
+  private class ContextOnly[F[_]](sslContext: SSLContext)(implicit F: Applicative[F])
+      extends SslConfig[F] {
+    def makeContext = F.pure(sslContext.some)
+    def configureEngine(engine: SSLEngine) = {
+      val _ = engine
+      ()
+    }
+    def isSecure = true
+  }
 
-  private def defaultApp[F[_]: Applicative]: HttpApp[F] =
-    Kleisli(_ => Response[F](Status.NotFound).pure[F])
+  private class ContextWithParameters[F[_]](sslContext: SSLContext, sslParameters: SSLParameters)(
+      implicit F: Applicative[F])
+      extends SslConfig[F] {
+    def makeContext = F.pure(sslContext.some)
+    def configureEngine(engine: SSLEngine) = engine.setSSLParameters(sslParameters)
+    def isSecure = true
+  }
 
-  private def defaultThreadSelectorFactory: ThreadFactory =
-    threadFactory(name = n => s"blaze-selector-${n}", daemon = false)
+  private class ContextWithClientAuth[F[_]](sslContext: SSLContext, clientAuth: SSLClientAuthMode)(
+      implicit F: Applicative[F])
+      extends SslConfig[F] {
+    def makeContext = F.pure(sslContext.some)
+    def configureEngine(engine: SSLEngine) =
+      configureEngineFromSslClientAuthMode(engine, clientAuth)
+    def isSecure = true
+  }
+
+  private class NoSsl[F[_]]()(implicit F: Applicative[F]) extends SslConfig[F] {
+    def makeContext = F.pure(None)
+    def configureEngine(engine: SSLEngine) = {
+      val _ = engine
+      ()
+    }
+    def isSecure = false
+  }
+
+  private def configureEngineFromSslClientAuthMode(
+      engine: SSLEngine,
+      clientAuthMode: SSLClientAuthMode) =
+    clientAuthMode match {
+      case SSLClientAuthMode.Required => engine.setNeedClientAuth(true)
+      case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)
+      case SSLClientAuthMode.NotRequested => ()
+    }
 }
