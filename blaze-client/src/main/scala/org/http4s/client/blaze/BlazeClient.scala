@@ -155,7 +155,7 @@ object BlazeClient {
                   F.delay(c.cancel)
                 }
               )
-              .flatMap[Resource[F, Response[F]]]{
+              .flatMap[Resource[F, Response[F]]] {
                 case Left((r, fiber)) => fiber.cancel.as(r)
                 case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
               }
