@@ -54,7 +54,7 @@ object WebSocketBuilder {
         onClose: F[Unit] = Applicative[F].unit,
         filterPingPongs: Boolean = true): F[Response[F]] = {
 
-      val finalReceive: Pipe[F, WebSocketFrame, Unit] = if(filterPingPongs) {
+      val finalReceive: Pipe[F, WebSocketFrame, Unit] = if (filterPingPongs) {
         _.filterNot(isPingPong).through(receive)
       } else receive
 
