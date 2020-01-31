@@ -355,7 +355,7 @@ class BlazeServerBuilder[F[_]](
     Resource.liftF(verifyTimeoutRelations()) >>
       mkFactory
         .flatMap(mkServerChannel)
-        .map[Server[F]] { serverChannel =>
+        .map[F, Server[F]] { serverChannel =>
           new Server[F] {
             val address: InetSocketAddress =
               serverChannel.socketAddress
