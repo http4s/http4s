@@ -12,15 +12,21 @@ object JettySslExample extends IOApp {
 }
 
 object JettySslExampleApp {
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): JettyBuilder[F] =
-    JettyExampleApp
-      .builder[F](blocker)
-      .bindHttp(8443)
-      .withSSL(ssl.storeInfo, ssl.keyManagerPassword)
+  def sslContext[F[_]: Sync] =
+    ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
+
+  def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): F[JettyBuilder[F]] =
+    sslContext.map { sslCtx =>
+      JettyExampleApp
+        .builder[F](blocker)
+        .bindHttp(8443)
+        .withSslContext(sslCtx)
+    }
 
   def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
     for {
       blocker <- Blocker[F]
-      server <- builder[F](blocker).resource
+      b <- Resource.liftF(builder[F](blocker))
+      server <- b.resource
     } yield server
 }
