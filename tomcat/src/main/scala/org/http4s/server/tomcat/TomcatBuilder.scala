@@ -9,12 +9,14 @@ import java.util.concurrent.Executor
 import javax.servlet.http.HttpServlet
 import javax.servlet.{DispatcherType, Filter}
 import org.apache.catalina.Context
+import org.apache.catalina.connector.Connector
 import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.server.tomcat.TomcatBuilder._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.http4s.syntax.all._
 import org.log4s.getLogger
@@ -27,7 +29,7 @@ sealed class TomcatBuilder[F[_]] private (
     private val idleTimeout: Duration,
     private val asyncTimeout: Duration,
     private val servletIo: ServletIo[F],
-    sslBits: Option[KeyStoreBits],
+    sslConfig: SslConfig,
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
@@ -45,7 +47,7 @@ sealed class TomcatBuilder[F[_]] private (
       idleTimeout: Duration = idleTimeout,
       asyncTimeout: Duration = asyncTimeout,
       servletIo: ServletIo[F] = servletIo,
-      sslBits: Option[KeyStoreBits] = sslBits,
+      sslConfig: SslConfig = sslConfig,
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
@@ -57,7 +59,7 @@ sealed class TomcatBuilder[F[_]] private (
       idleTimeout,
       asyncTimeout,
       servletIo,
-      sslBits,
+      sslConfig,
       mounts,
       serviceErrorHandler,
       banner,
@@ -71,7 +73,10 @@ sealed class TomcatBuilder[F[_]] private (
       trustStore: Option[StoreInfo] = None,
       clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
     copy(
-      sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
+      sslConfig = new KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth))
+
+  def withoutSsl: Self =
+    copy(sslConfig = NoSsl)
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -169,27 +174,7 @@ sealed class TomcatBuilder[F[_]] private (
       tomcat.addContext("", docBase)
 
       val conn = tomcat.getConnector()
-
-      sslBits.foreach {
-        sslBits =>
-          conn.setSecure(true)
-          conn.setScheme("https")
-          conn.setAttribute("keystoreFile", sslBits.keyStore.path)
-          conn.setAttribute("keystorePass", sslBits.keyStore.password)
-          conn.setAttribute("keyPass", sslBits.keyManagerPassword)
-
-          conn.setAttribute("clientAuth", sslBits.clientAuth)
-          conn.setAttribute("sslProtocol", sslBits.protocol)
-
-          sslBits.trustStore.foreach { ts =>
-            conn.setAttribute("truststoreFile", ts.path)
-            conn.setAttribute("truststorePass", ts.password)
-          }
-
-          conn.setPort(socketAddress.getPort)
-
-          conn.setAttribute("SSLEnabled", true)
-      }
+      sslConfig.configureConnector(conn)
 
       conn.setAttribute("address", socketAddress.getHostString)
       conn.setPort(socketAddress.getPort)
@@ -219,7 +204,7 @@ sealed class TomcatBuilder[F[_]] private (
           new InetSocketAddress(host, port)
         }
 
-        lazy val isSecure: Boolean = sslBits.isDefined
+        lazy val isSecure: Boolean = sslConfig.isSecure
       }
 
       val shutdown = F.delay {
@@ -247,12 +232,58 @@ object TomcatBuilder {
       idleTimeout = defaults.IdleTimeout,
       asyncTimeout = defaults.ResponseTimeout,
       servletIo = ServletContainer.DefaultServletIo[F],
-      sslBits = None,
+      sslConfig = NoSsl,
       mounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
       banner = defaults.Banner,
       classloader = None
     )
+
+  private sealed trait SslConfig {
+    def configureConnector(conn: Connector): Unit
+    def isSecure: Boolean
+  }
+
+  private class KeyStoreBits(
+      keyStore: StoreInfo,
+      keyManagerPassword: String,
+      protocol: String,
+      trustStore: Option[StoreInfo],
+      clientAuth: SSLClientAuthMode
+  ) extends SslConfig {
+    def configureConnector(conn: Connector) = {
+      conn.setSecure(true)
+      conn.setScheme("https")
+      conn.setAttribute("SSLEnabled", true)
+
+      // TODO These configuration properties are all deprecated
+      conn.setAttribute("keystoreFile", keyStore.path)
+      conn.setAttribute("keystorePass", keyStore.password)
+      conn.setAttribute("keyPass", keyManagerPassword)
+      conn.setAttribute(
+        "clientAuth",
+        clientAuth match {
+          case SSLClientAuthMode.Required => "required"
+          case SSLClientAuthMode.Requested => "optional"
+          case SSLClientAuthMode.NotRequested => "none"
+        }
+      )
+      conn.setAttribute("sslProtocol", protocol)
+      trustStore.foreach { ts =>
+        conn.setAttribute("truststoreFile", ts.path)
+        conn.setAttribute("truststorePass", ts.password)
+      }
+    }
+    def isSecure = true
+  }
+
+  private object NoSsl extends SslConfig {
+    def configureConnector(conn: Connector) = {
+      val _ = conn
+      ()
+    }
+    def isSecure = false
+  }
 }
 
 private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F]) => Unit)

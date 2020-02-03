@@ -90,8 +90,10 @@ object AsyncTimeoutSupport {
   val DefaultAsyncTimeout = defaults.ResponseTimeout
 }
 
+@deprecated("No longer used", "0.21.0-RC3")
 sealed trait SSLConfig
 
+@deprecated("No longer used", "0.21.0-RC3")
 final case class KeyStoreBits(
     keyStore: StoreInfo,
     keyManagerPassword: String,
@@ -100,6 +102,7 @@ final case class KeyStoreBits(
     clientAuth: SSLClientAuthMode)
     extends SSLConfig
 
+@deprecated("No longer used", "0.21.0-RC3")
 final case class SSLContextBits(sslContext: SSLContext, clientAuth: SSLClientAuthMode)
     extends SSLConfig
 
