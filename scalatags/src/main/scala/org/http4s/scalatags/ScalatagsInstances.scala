@@ -2,11 +2,10 @@ package org.http4s
 package scalatags
 
 import _root_.scalatags.Text.TypedTag
-import cats.Applicative
 import org.http4s.headers.`Content-Type`
 
 trait ScalatagsInstances {
-  implicit def scalatagsEncoder[F[_]: Applicative](
+  implicit def scalatagsEncoder[F[_]](
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, TypedTag[String]] =
     contentEncoder(MediaType.text.html)
 

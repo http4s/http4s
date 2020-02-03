@@ -16,7 +16,7 @@ package object dropwizard {
   }
 
   /** Encodes a metric registry in JSON format */
-  def metricRegistryEncoder[F[_]: Applicative](
+  def metricRegistryEncoder[F[_]](
       mapper: ObjectMapper = defaultMapper): EntityEncoder[F, MetricRegistry] =
     EntityEncoder[F, String].contramap { metricRegistry =>
       val writer = mapper.writerWithDefaultPrettyPrinter()

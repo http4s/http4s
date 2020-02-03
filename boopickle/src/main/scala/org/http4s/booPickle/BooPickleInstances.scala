@@ -3,7 +3,6 @@ package booPickle
 
 import boopickle.Default._
 import boopickle.Pickler
-import cats.Applicative
 import cats.effect.Sync
 import fs2.Chunk
 import java.nio.ByteBuffer
@@ -39,7 +38,7 @@ trait BooPickleInstances {
   /**
     * Create an `EntityEncoder` for `A` given a `Pickler[A]`
     */
-  def booEncoderOf[F[_]: Applicative, A: Pickler]: EntityEncoder[F, A] =
+  def booEncoderOf[F[_], A: Pickler]: EntityEncoder[F, A] =
     chunkEncoder[F]
       .contramap[A] { v =>
         Chunk.ByteBuffer(Pickle.intoBytes(v))

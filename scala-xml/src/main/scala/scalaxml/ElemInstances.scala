@@ -1,7 +1,6 @@
 package org.http4s
 package scalaxml
 
-import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import java.io.StringReader
@@ -16,7 +15,7 @@ import scala.xml.{Elem, InputSource, SAXParseException, XML}
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory
 
-  implicit def xmlEncoder[F[_]: Applicative](
+  implicit def xmlEncoder[F[_]](
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
     EntityEncoder
       .stringEncoder[F]

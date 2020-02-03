@@ -1,7 +1,6 @@
 package org.http4s
 package json4s
 
-import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import org.http4s.headers.`Content-Type`
@@ -54,7 +53,7 @@ trait Json4sInstances[J] {
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
-  def jsonEncoderOf[F[_]: Applicative, A](implicit writer: Writer[A]): EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_], A](implicit writer: Writer[A]): EntityEncoder[F, A] =
     jsonEncoder[F, JValue].contramap[A](writer.write)
 
   implicit val uriWriter: JsonFormat[Uri] =
