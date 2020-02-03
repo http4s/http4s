@@ -2,7 +2,7 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.effect.Effect
+import cats.effect.Sync
 
 /** Cache the body of a [[Response]] for future use
   *
@@ -13,5 +13,5 @@ import cats.effect.Effect
 trait CacheStrategy[F[_]] {
 
   /** Performs the caching operations */
-  def cache(uriPath: String, resp: Response[F])(implicit F: Effect[F]): F[Response[F]]
+  def cache(uriPath: String, resp: Response[F])(implicit F: Sync[F]): F[Response[F]]
 }
