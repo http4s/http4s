@@ -89,12 +89,9 @@ private[http4s] class Http4sWSStage[F[_]](
           //If we sent a close signal, we don't need to reply with one
           _ <- if (s) deadSignal.set(true) else maybeSendClose(c)
         } yield c
-      case Ping(d) =>
+      case p @ Ping(d) =>
         //Reply to ping frame immediately
-        writeFrame(Pong(d), trampoline) >> handleRead()
-      case _: Pong =>
-        //Don't forward pong frame
-        handleRead()
+        writeFrame(Pong(d), trampoline) >> F.pure(p)
       case rest =>
         F.pure(rest)
     }

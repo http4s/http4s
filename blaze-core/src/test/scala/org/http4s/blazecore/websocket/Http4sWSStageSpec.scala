@@ -23,7 +23,8 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
   class TestWebsocketStage(
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
-      closeHook: AtomicBoolean) {
+      closeHook: AtomicBoolean,
+      backendInQ: Queue[IO, WebSocketFrame]) {
     def sendWSOutbound(w: WebSocketFrame*): IO[Unit] =
       Stream
         .emits(w)
@@ -37,6 +38,9 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
 
     def pollOutbound(timeoutSeconds: Long = 4L): IO[Option[WebSocketFrame]] =
       head.poll(timeoutSeconds)
+
+    def pollBackendInbound(timeoutSeconds: Long = 4L): IO[Option[WebSocketFrame]] =
+      IO.delay(backendInQ.dequeue1.unsafeRunTimed(timeoutSeconds.seconds))
 
     def pollBatchOutputbound(batchSize: Int, timeoutSeconds: Long = 4L): IO[List[WebSocketFrame]] =
       head.pollBatch(batchSize, timeoutSeconds)
@@ -52,13 +56,14 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
     def apply(): IO[TestWebsocketStage] =
       for {
         outQ <- Queue.unbounded[IO, WebSocketFrame]
+        backendInQ <- Queue.unbounded[IO, WebSocketFrame]
         closeHook = new AtomicBoolean(false)
-        ws = WebSocket[IO](outQ.dequeue, _.drain, IO(closeHook.set(true)))
+        ws = WebSocket[IO](outQ.dequeue, backendInQ.enqueue, IO(closeHook.set(true)))
         deadSignal <- SignallingRef[IO, Boolean](false)
         wsHead <- WSTestHead()
         head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(wsHead)
         _ <- IO(head.sendInboundCommand(Command.Connected))
-      } yield new TestWebsocketStage(outQ, head, closeHook)
+      } yield new TestWebsocketStage(outQ, head, closeHook, backendInQ)
   }
 
   "Http4sWSStage" should {
@@ -97,6 +102,26 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Pong())
       _ <- socket.pollOutbound().map(_ must_=== None)
+      _ <- socket.sendInbound(Close())
+    } yield ok)
+
+    "send a ping frames to backend" in (for {
+      socket <- TestWebsocketStage()
+      _ <- socket.sendInbound(Ping())
+      _ <- socket.pollBackendInbound().map(_ must_=== Some(Ping()))
+      pingWithBytes = Ping(ByteVector(Array[Byte](1, 2, 3)))
+      _ <- socket.sendInbound(pingWithBytes)
+      _ <- socket.pollBackendInbound().map(_ must_=== Some(pingWithBytes))
+      _ <- socket.sendInbound(Close())
+    } yield ok)
+
+    "send a pong frames to backend" in (for {
+      socket <- TestWebsocketStage()
+      _ <- socket.sendInbound(Pong())
+      _ <- socket.pollBackendInbound().map(_ must_=== Some(Pong()))
+      pongWithBytes = Pong(ByteVector(Array[Byte](1, 2, 3)))
+      _ <- socket.sendInbound(pongWithBytes)
+      _ <- socket.pollBackendInbound().map(_ must_=== Some(pongWithBytes))
       _ <- socket.sendInbound(Close())
     } yield ok)
 
