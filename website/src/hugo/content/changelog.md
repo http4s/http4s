@@ -8,6 +8,43 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-RC3 (2020-02-03)
+
+This release is binary incompatible with 0.21.0-RC2, but should be source compatible, with deprecations.
+
+## Breaking changes
+
+### Binary
+
+* [#3126](https://github.com/http4s/http4s/pull/3126): Remove unnecessary `Applicative` constraints from http4s-circe
+* [#3124](https://github.com/http4s/http4s/pull/3124): Relax constraints from `Effect` to `Sync` in `FileService`.
+* [#3136](https://github.com/http4s/http4s/pull/3136): In `WebSocketBuilder`, add `filterPingPongs` parameter, default true.  When false, `send` and `receive` will see pings and pongs sent by the client.  The server still responds automatically to pings.  This change should be transparent to existing users.
+* [#3138](https://github.com/http4s/http4s/pull/3124): Remove unnecessary `Applicative` constraints on `EntityEncoder` instances in several modules.
+
+### Semantic
+  
+* [#3139](https://github.com/http4s/http4s/pull/3139): Changes `Router` to find the longest matching prefix by path segments rather than character-by-character.  This is arguably a bug fix.  The old behavior could cause unexpected matches, is inconsistent with the servlet mappings that inspired `Router`, and is unlikely to have been intentionally depended on.
+
+### Deprecation
+
+* [#3134](https://github.com/http4s/http4s/pull/3132): Deprecate `JettyBuilder#withSSLContext` in favor of new methods in favor of new `withSslContext*` methods.
+* [#3132](https://github.com/http4s/http4s/pull/3132): Deprecate `BlazeServerBuilder#withSSLContext` and `BlazeServerBuilder#withSSL` in favor of new `withSslContext*` methods.
+* [#3140](https://github.com/http4s/http4s/pull/3140): Deprecate `JettyBuilder#withSSL`, to match `BlazeServerBuilder`. It's still necessary in Tomcat, which doesn't take a `ServletContext`.  Deprecate `SSLConfig`, `KeyStoreBits`, and `SSLContextBits`, which had already been removed from public API.
+
+## Bugfixes
+
+* [#3140](https://github.com/http4s/http4s/pull/3140): In `TomcatBuilder`, fix mapping of `SSLClientAuthMode` to Tomcat's connector API.
+
+## Enhancements
+
+* [#3134](https://github.com/http4s/http4s/pull/3132): In `JettyBuilder`, add `withSslContext` and `withSslContextAndParameters` to permit full control of `SSLParameters`.  Add `withoutSsl`.
+* [#3132](https://github.com/http4s/http4s/pull/3132): In `BlazeBuilder`, add `withSslContext` and `withSslContextAndParameters` to permit full control of `SSLParameters`.  Add `withoutSsl`.
+
+## Dependency updates
+
+* cats-effect-2.1.0
+* fs2-2.2.2
+
 # v0.21.0-RC2 (2020-01-27)
 
 ## Breaking changes
