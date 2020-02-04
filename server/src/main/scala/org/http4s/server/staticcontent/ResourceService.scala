@@ -3,14 +3,14 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect._
+import cats.effect.{Blocker, ContextShift, Sync}
 
 object ResourceService {
 
   /** [[org.http4s.server.staticcontent.ResourceService]] configuration
     *
     * @param basePath prefix of the path files will be served from
-    * @param blockingExecutionContext `ExecutionContext` to use when collecting content
+    * @param blocker execution context to use when collecting content
     * @param pathPrefix prefix of the Uri that content will be served from
     * @param bufferSize size hint of internal buffers to use when serving resources
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
@@ -25,7 +25,7 @@ object ResourceService {
       preferGzipped: Boolean = false)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  private[staticcontent] def apply[F[_]: Effect: ContextShift](config: Config[F]): HttpRoutes[F] =
+  private[staticcontent] def apply[F[_]: Sync: ContextShift](config: Config[F]): HttpRoutes[F] =
     Kleisli {
       case request if request.pathInfo.startsWith(config.pathPrefix) =>
         StaticFile

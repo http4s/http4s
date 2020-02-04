@@ -2,7 +2,7 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.effect._
+import cats.effect.IO
 import fs2._
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
