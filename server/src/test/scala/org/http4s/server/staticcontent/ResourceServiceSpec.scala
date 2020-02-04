@@ -2,7 +2,7 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.effect._
+import cats.effect.IO
 import org.http4s.Uri.uri
 import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}
 import org.http4s.server.middleware.TranslateUri

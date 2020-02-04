@@ -2,7 +2,7 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.effect._
+import cats.effect.Sync
 
 /** Cache strategy that doesn't cache anything, ever. */
 class NoopCacheStrategy[F[_]] extends CacheStrategy[F] {

@@ -2,8 +2,8 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.effect._
-import cats.implicits._
+import cats.effect.Sync
+import cats.syntax.functor._
 import fs2.{Chunk, Stream}
 import java.util.concurrent.ConcurrentHashMap
 import org.log4s.getLogger

@@ -1,6 +1,6 @@
 package org.http4s.server.staticcontent
 
-import cats.effect._
+import cats.effect.IO
 import org.http4s._
 import org.http4s.Method.GET
 import org.http4s.server.staticcontent.WebjarService.Config
