@@ -10,7 +10,7 @@ object ResourceService {
   /** [[org.http4s.server.staticcontent.ResourceService]] configuration
     *
     * @param basePath prefix of the path files will be served from
-    * @param blocker `ExecutionContext` to use when collecting content
+    * @param blocker execution context to use when collecting content
     * @param pathPrefix prefix of the Uri that content will be served from
     * @param bufferSize size hint of internal buffers to use when serving resources
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.

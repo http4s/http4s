@@ -12,8 +12,7 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  def resourceService[F[_]: Sync: ContextShift](
-      config: ResourceService.Config[F]): HttpRoutes[F] =
+  def resourceService[F[_]: Sync: ContextShift](config: ResourceService.Config[F]): HttpRoutes[F] =
     ResourceService(config)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
