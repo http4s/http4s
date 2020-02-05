@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-RC4 (2020-02-04)
+
+This release is binary incompatible with 0.21.0-RC2, but is source compatible.
+
+## Breaking changes
+
+### Binary
+
+* [#3145](https://github.com/http4s/http4s/pull/3145): Relax constraints from `Effect` to `Sync` in `resourceService`, `fileService`, and `webjarService`.
+
 # v0.21.0-RC3 (2020-02-03)
 
 This release is binary incompatible with 0.21.0-RC2, but should be source compatible, with deprecations.
