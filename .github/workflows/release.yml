@@ -1,0 +1,106 @@
+name: Release
+on:
+  push:
+    branches:
+      - master
+      - series/*
+    tags: 
+      - '*'
+env:
+  HUGO_VERSION: 0.26
+  SCALA_VERSION: 2.12.10
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: olafurpg/setup-scala@v5
+      - uses: olafurpg/setup-gpg@v2    
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: sbt-coursier-cache
+      - name: Cache SBT
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('**/build.sbt') }}
+      - name: Publish
+        run: sbt ci-release
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}        
+  publish-project-website:
+    if: github.ref == 'refs/heads/master'
+    name: Publish project site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: olafurpg/setup-scala@v5
+      - uses: olafurpg/setup-gpg@v2    
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: sbt-coursier-cache
+      - name: Cache SBT
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('**/build.sbt') }}
+      - name: Add ~/bin to PATH
+        run: echo "::add-path::$HOME/bin"
+      - name: Install Hugo
+        run: scripts/install-hugo
+      - name: Configure git
+        run: |
+          eval "$(ssh-agent -s)"
+          echo "$SSH_PRIVATE_KEY" | ssh-add -
+          git config --global user.name "GitHub Actions CI"
+          git config --global user.email "ghactions@invalid"
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Publish
+        run: |
+          eval "$(ssh-agent -s)"
+          echo "$SSH_PRIVATE_KEY" | ssh-add -
+          git config --global user.name "GitHub Actions CI"
+          git config --global user.email "ghactions@invalid"
+          sbt ++$SCALA_VERSION website/makeSite website/ghpagesPushSite
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  publish-docs:
+    name: Publish docs site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: olafurpg/setup-scala@v5
+      - uses: olafurpg/setup-gpg@v2    
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: sbt-coursier-cache
+      - name: Cache SBT
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('**/build.sbt') }}
+      - name: Add ~/bin to PATH
+        run: echo "::add-path::$HOME/bin"
+      - name: Install Hugo
+        run: scripts/install-hugo
+      - name: Publish
+        run: |
+          eval "$(ssh-agent -s)"
+          echo "$SSH_PRIVATE_KEY" | ssh-add -
+          git config --global user.name "GitHub Actions CI"
+          git config --global user.email "ghactions@invalid"
+          sbt ++$SCALA_VERSION docs/makeSite docs/ghpagesPushSite
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+

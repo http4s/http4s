@@ -2,9 +2,7 @@ package org.http4s.build
 
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
-import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
-import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
@@ -14,9 +12,6 @@ import org.scalafmt.sbt.ScalafmtPlugin
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbt.Keys._
 import sbt._
-import sbtrelease.ReleasePlugin.autoImport._
-import sbtrelease.ReleaseStateTransformations._
-import sbtrelease._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -53,7 +48,7 @@ object Http4sPlugin extends AutoPlugin {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
     git.remoteRepo := "git@github.com:http4s/http4s.git"
-  ) ++ signingSettings
+  )
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
@@ -97,7 +92,7 @@ object Http4sPlugin extends AutoPlugin {
       val (major, minor) = http4sApiVersion.value
 
       val releases = latestPerMinorVersion(baseDirectory.value)
-        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.string}""""}
+        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.toString}""""}
         .mkString("\n")
 
       // Would be more elegant if `[versions.http4s]` was nested, but then
@@ -125,62 +120,6 @@ object Http4sPlugin extends AutoPlugin {
       name = "scala-reflect",
       revision = "2.12.*",
     ), // false positive on 2.12.10
-  ) ++ releaseSettings
-
-  val releaseSettings = Seq(
-    // Reset a couple sbt-release defaults that rig changed
-    releaseVersion := { ver =>
-      Version(ver).map(v =>
-        v.copy(qualifier = v.qualifier.map(_.replaceAllLiterally("-SNAPSHOT", "")))
-          .string
-      ).getOrElse(versionFormatError(ver))
-    },
-    releaseTagName := s"v${if (releaseUseGlobalVersion.value) (ThisBuild / version).value else version.value}",
-    releasePublishArtifactsAction := Def.taskDyn {
-      if (isSnapshot.value) publish
-      else publishSigned
-    }.value,
-    releaseProcess := {
-      implicit class StepSyntax(val step: ReleaseStep) {
-        def when(cond: Boolean) =
-          if (cond) step else ReleaseStep(identity)
-      }
-
-      implicit class StateFCommand(val step: State => State) {
-        def when(cond: Boolean) =
-          StepSyntax(step).when(cond)
-      }
-
-      val release = !isSnapshot.value
-      val publishable = http4sPublish.value
-
-      Seq(
-        checkSnapshotDependencies.when(release),
-        inquireVersions.when(release),
-        setReleaseVersion.when(release),
-        tagRelease.when(publishable && release),
-        runClean,
-        releaseStepCommandAndRemaining("+mimaReportBinaryIssues"),
-        releaseStepCommandAndRemaining("+publishSigned").when(publishable),
-        releaseStepCommand("sonatypeBundleRelease").when(publishable && release),
-        setNextVersion.when(publishable && release),
-        commitNextVersion.when(publishable && release),
-        pushChanges.when(publishable && release),
-        // We need a superfluous final step to ensure exit code
-        // propagation from failed steps above.
-        //
-        // https://github.com/sbt/sbt-release/issues/95
-        releaseStepCommand("show core/version")
-      )
-    }
-  )
-
-  val signingSettings = Seq(
-    useGpg := false,
-    usePgpKeyHex("42FAD8A85B13261D"),
-    pgpPublicRing := baseDirectory.value / "project" / ".gnupg" / "pubring.gpg",
-    pgpSecretRing := baseDirectory.value / "project" / ".gnupg" / "secring.gpg",
-    pgpPassphrase := sys.env.get("PGP_PASS").map(_.toArray),
   )
 
   def extractApiVersion(version: String) = {
@@ -215,27 +154,37 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
-  def latestPerMinorVersion(file: File): Map[(Int, Int), Version] =
+  def latestPerMinorVersion(file: File): Map[(Long, Long), VersionNumber] = {
+    def majorMinor(v: VersionNumber) = v match {
+      case VersionNumber(Seq(major, minor, _), _, _) =>
+        Some((major, minor))
+      case _ =>
+        None
+    }
+
+    // M before RC before final
+    def patchSortKey(v: VersionNumber) = v match {
+      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q startsWith "M" =>
+        (patch, 0L, q.drop(1).toLong)
+      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q startsWith "RC" =>
+        (patch, 1L, q.drop(2).toLong)
+      case VersionNumber(Seq(_, _, patch), Seq(), _) => (patch, 2L, 0L)
+      case _ => (-1L, -1L, -1L)
+    }
+
     JGit(file).tags.collect {
       case ref if ref.getName.startsWith("refs/tags/v") =>
-        Version(ref.getName.substring("refs/tags/v".size))
-    }.foldLeft(Map.empty[(Int, Int), Version]) {
-      case (m, Some(v)) =>
-        def toMinor(v: Version) = (v.major, v.subversions.headOption.getOrElse(0))
-        def patch(v: Version) = v.subversions.drop(1).headOption.getOrElse(0)
-        // M before RC before final
-        def milestone(v: Version) = v.qualifier match {
-          case Some(q) if q.startsWith("-M") => (0, q.substring(2).toInt)
-          case Some(q) if q.startsWith("-RC") => (1, q.substring(3).toInt)
-          case None => (2, 0)
+        VersionNumber(ref.getName.substring("refs/tags/v".size))
+    }.foldLeft(Map.empty[(Long, Long), VersionNumber]) {
+      case (m, v) =>
+        majorMinor(v) match {
+          case Some(key) =>
+            val max = m.get(key).fold(v) { v0 => Ordering[(Long, Long, Long)].on(patchSortKey).max(v, v0) }
+            m.updated(key, max)
+          case None => m
         }
-        val versionOrdering: Ordering[Version] =
-          Ordering[(Int, (Int, Int))].on(v => (patch(v), milestone(v)))
-        val key = toMinor(v)
-        val max = m.get(key).fold(v) { v0 => versionOrdering.max(v, v0) }
-        m.updated(key, max)
-      case (m, None) => m
     }
+  }
 
   def addAlpnPath(attList: Keys.Classpath): Seq[String] = {
     for {
