@@ -1,6 +1,7 @@
 name: CI
 on: [push, pull_request]
 env:
+  CI: true
   HUGO_VERSION: 0.26
   SCALA_VERSION: 2.12.10
 jobs:
