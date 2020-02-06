@@ -33,6 +33,19 @@ object ContextRoutes {
       FA: Applicative[F]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(pf.lift(req).sequence)))
 
+  /** Lifts a partial function into an [[ContextRoutes]].  The application of the
+    * partial function is not suspended in `F`, unlike [[of]]. This allows for less
+    * constraints when not combining many routes.
+    *
+    * @tparam F the base effect of the [[ContextRoutes]]
+    * @param pf the partial function to lift
+    * @return A [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, ?]`
+    * wherever `pf` is defined, an `OptionT.none` wherever it is not
+    */
+  def strict[T, F[_]: Applicative](
+      pf: PartialFunction[ContextRequest[F, T], F[Response[F]]]): ContextRoutes[T, F] =
+    Kleisli(req => OptionT(pf.lift(req).sequence))
+
   /**
     * The empty service (all requests fallthrough).
     *
