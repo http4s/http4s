@@ -62,18 +62,16 @@ object HttpRoutes {
   def of[F[_]: Defer: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
     Kleisli(req => OptionT(Defer[F].defer(pf.lift(req).sequence)))
 
-
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
     * partial function is not suspended in `F`, unlike [[of]]. This allows for less
     * constraints when not combining many routes.
     *
-    * @tparam F the base effect of the [[HttpRoutes]] - Defer suspends evaluation
-    * of routes, so only 1 section of routes is checked at a time.
+    * @tparam F the base effect of the [[HttpRoutes]]
     * @param pf the partial function to lift
     * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, ?]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def simple[F[_]: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] = 
+  def strict[F[_]: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
     Kleisli(req => OptionT(pf.lift(req).sequence))
 
   /** An empty set of routes.  Always responds with `OptionT.none`.
