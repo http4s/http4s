@@ -15,7 +15,7 @@ import sbt._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
-    val isTravisBuild = settingKey[Boolean]("true if this build is running as either a PR or a release build within Travis CI")
+    val isCi = settingKey[Boolean]("true if this build is running on CI")
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
     val http4sPublish = settingKey[Boolean]("Is this a publishing build?")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
@@ -34,7 +34,7 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
-    isTravisBuild := sys.env.get("TRAVIS").isDefined,
+    isCi := sys.env.get("CI").isDefined,
 
     // Publishing to gh-pages and sonatype only done from select branches and
     // never from pull requests.
