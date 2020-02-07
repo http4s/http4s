@@ -56,14 +56,6 @@ jobs:
         run: echo "::add-path::$HOME/bin"
       - name: Install Hugo
         run: scripts/install-hugo
-      - name: Configure git
-        run: |
-          eval "$(ssh-agent -s)"
-          echo "$SSH_PRIVATE_KEY" | ssh-add -
-          git config --global user.name "GitHub Actions CI"
-          git config --global user.email "ghactions@invalid"
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Publish
         run: |
           eval "$(ssh-agent -s)"
