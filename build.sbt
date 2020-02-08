@@ -44,6 +44,7 @@ lazy val modules: List[ProjectReference] = List(
   examples,
   examplesBlaze,
   examplesDocker,
+  examplesEmber,
   examplesJetty,
   examplesTomcat,
   examplesWar
@@ -511,6 +512,14 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     run / javaOptions ++= addAlpnPath((Runtime / managedClasspath).value)
   )
   .dependsOn(blazeServer, blazeClient)
+
+lazy val examplesEmber = exampleProject("examples-ember")
+  .settings(Revolver.settings)
+  .settings(
+    description := "Examples of http4s server and clients on blaze",
+    fork := true
+  )
+  .dependsOn(emberServer, emberClient)
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
