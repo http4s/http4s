@@ -8,6 +8,21 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0-RC5 (2020-02-08)
+
+This release is binary compatible with 0.21.0-RC4.
+
+## Enhancements
+
+* [#3148](https://github.com/http4s/http4s/pull/3148): Add `HttpRoutes.strict` and `ContextRoutes.strict` for routes that require only an `Applicative`, at the cost of evaluating `combineK`ed routes strictly.
+
+## Dependency updates
+
+* async-http-client-2.10.5
+* cats-effect-2.1.1
+* circe-0.13.0
+* scalatags-0.8.5
+
 # v0.21.0-RC4 (2020-02-04)
 
 This release is binary incompatible with 0.21.0-RC2, but is source compatible.
