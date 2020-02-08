@@ -25,12 +25,12 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: sbt-coursier-cache
+          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('**/build.sbt') }}
+          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
       - name: Check formatting
         if: startsWith(matrix.scala, '2.12.') && (matrix.java == '8')
         run: sbt ++$SCALA_VERSION scalafmtCheckAll
@@ -56,7 +56,12 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: sbt-coursier-cache
+          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
+      - name: Cache SBT
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
@@ -77,12 +82,12 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: sbt-coursier-cache
+          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('**/build.sbt') }}
+          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
       - name: Add ~/bin to PATH
         run: echo "::add-path::$HOME/bin"
       - name: Install Hugo
@@ -101,12 +106,12 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: sbt-coursier-cache
+          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('**/build.sbt') }}
+          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
       - name: Add ~/bin to PATH
         run: echo "::add-path::$HOME/bin"
       - name: Install Hugo
