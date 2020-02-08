@@ -12,13 +12,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: [8, 11]
+        java: [adopt@1.8, adopt@1.11]
         scala: [2.12.10, 2.13.1]
     env:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
++     - uses: olafurpg/setup-scala@v5
         with:
           java-version: ${{ matrix.java }}
       - name: Cache Coursier
@@ -49,9 +49,7 @@ jobs:
     runs-on: ubuntu-latest    
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 8
++     - uses: olafurpg/setup-scala@v5
       - name: Cache Coursier
         uses: actions/cache@v1
         with:
@@ -70,9 +68,7 @@ jobs:
     runs-on: ubuntu-latest    
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 8
++     - uses: olafurpg/setup-scala@v5
       - name: Cache Coursier
         uses: actions/cache@v1
         with:
@@ -94,9 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 8
+      - uses: olafurpg/setup-scala@v5
       - name: Cache Coursier
         uses: actions/cache@v1
         with:
