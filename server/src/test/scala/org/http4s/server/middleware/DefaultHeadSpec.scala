@@ -42,17 +42,18 @@ class DefaultHeadSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
     "allow GET body to clean up on fallthrough" in {
       (for {
-        cleanedUpRef <- Ref[IO].of(false)
+        open <- Ref[IO].of(false)
         route = HttpRoutes.of[IO] {
           case GET -> _ =>
-            val body: EntityBody[IO] = Stream.never[IO].onFinalizeWeak(cleanedUpRef.set(true))
+            val body: EntityBody[IO] =
+              Stream.bracket(open.set(true))(_ => open.set(false)).flatMap(_ => Stream.never[IO])
             Ok(body)
         }
         app = DefaultHead(route).orNotFound
         resp <- app(Request[IO](Method.HEAD))
-        _ <- resp.as[String]
-        cleanedUp <- cleanedUpRef.get
-      } yield cleanedUp).unsafeRunSync() must beTrue
+        _ <- resp.body.compile.drain
+        leaked <- open.get
+      } yield leaked).unsafeRunSync() must beFalse
     }
   }
 }
