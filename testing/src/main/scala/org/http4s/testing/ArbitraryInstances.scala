@@ -11,7 +11,7 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
-import java.util.Locale
+import java.util.{Locale, UUID}
 import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.syntax.string._
@@ -861,6 +861,9 @@ trait ArbitraryInstances {
         body <- http4sTestingGenForPureByteStream
       } yield Response(status, httpVersion, headers, body)
     }
+
+  implicit val arbUUID: Arbitrary[UUID] =
+    Arbitrary(Gen.uuid)
 }
 
 object ArbitraryInstances extends ArbitraryInstances
