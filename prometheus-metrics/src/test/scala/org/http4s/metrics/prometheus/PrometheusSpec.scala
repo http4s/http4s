@@ -9,18 +9,17 @@ import Prometheus.classifierFMethodWithOptionallyExcludedPath
 class PrometheusSpec extends Http4sSpec {
 
   "classifierFMethodWithOptionallyExcludedPath" should {
-    "properly exclude UUIDs" in prop {
-      (method: Method, uuid: UUID) => {
+    "properly exclude UUIDs" in prop { (method: Method, uuid: UUID) =>
+      {
         val request: Request[IO] = Request[IO](
           method = method,
-          uri    = Uri.unsafeFromString(s"/users/$uuid/comments")
+          uri = Uri.unsafeFromString(s"/users/$uuid/comments")
         )
 
-        val excludeUUIDs: String => Boolean = {
-          str: String =>
-            Either
-              .catchOnly[IllegalArgumentException](UUID.fromString(str))
-              .isRight
+        val excludeUUIDs: String => Boolean = { str: String =>
+          Either
+            .catchOnly[IllegalArgumentException](UUID.fromString(str))
+            .isRight
         }
 
         val classifier: Request[IO] => Option[String] =
@@ -37,23 +36,22 @@ class PrometheusSpec extends Http4sSpec {
         result ==== expected
       }
     }
-    "return '$method' if the path is '/'" in prop {
-      method: Method =>
-        val request: Request[IO] = Request[IO](
-          method = method,
-          uri    = uri"""/"""
+    "return '$method' if the path is '/'" in prop { method: Method =>
+      val request: Request[IO] = Request[IO](
+        method = method,
+        uri = uri"""/"""
+      )
+
+      val classifier: Request[IO] => Option[String] =
+        classifierFMethodWithOptionallyExcludedPath(
+          _ => true
         )
 
-        val classifier: Request[IO] => Option[String] =
-          classifierFMethodWithOptionallyExcludedPath(
-            _ => true
-          )
+      val result: Option[String] =
+        classifier(request)
 
-        val result: Option[String] =
-          classifier(request)
-
-        result ==== Some(method.name.toLowerCase)
+      result ==== Some(method.name.toLowerCase)
     }
   }
-  
+
 }

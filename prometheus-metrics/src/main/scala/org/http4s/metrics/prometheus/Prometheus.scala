@@ -212,28 +212,26 @@ object Prometheus {
     * @return Request[F] => Option[String]
     */
   def classifierFMethodWithOptionallyExcludedPath[F[_]](
-    exclude: String => Boolean
-  ): Request[F] => Option[String] = {
-    request: Request[F] =>
+      exclude: String => Boolean
+  ): Request[F] => Option[String] = { request: Request[F] =>
+    val dsl: Http4sDsl[F] = Http4sDsl[F]
 
-      val dsl: Http4sDsl[F] = Http4sDsl[F]
+    val initial: String = request.method.name.toLowerCase
 
-      val initial: String = request.method.name.toLowerCase
+    val pathList: List[String] =
+      dsl.Path.unapplySeq(request).getOrElse(Nil)
 
-      val pathList: List[String] =
-        dsl.Path.unapplySeq(request).getOrElse(Nil)
+    val minusExcluded: List[String] = pathList.map { value: String =>
+      if (exclude(value)) "*" else value.toLowerCase
+    }
 
-      val minusExcluded: List[String] = pathList.map {
-        value: String => if (exclude(value)) "*" else value.toLowerCase
+    val result: String =
+      minusExcluded match {
+        case Nil => initial
+        case nonEmpty => initial + "_" + Foldable[List].intercalate(nonEmpty, "_")
       }
 
-      val result: String =
-        minusExcluded match {
-          case Nil      => initial
-          case nonEmpty => initial + "_" + Foldable[List].intercalate(nonEmpty, "_")
-        }
-
-      Some(result)
+    Some(result)
   }
 }
 
