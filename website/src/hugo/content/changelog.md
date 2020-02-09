@@ -8,6 +8,12 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0 (2020-02-09)
+
+## Dependency updates
+
+* circe-0.13.0
+
 # v0.21.0-RC5 (2020-02-08)
 
 This release is binary compatible with 0.21.0-RC4.
@@ -20,7 +26,6 @@ This release is binary compatible with 0.21.0-RC4.
 
 * async-http-client-2.10.5
 * cats-effect-2.1.1
-* circe-0.13.0
 * scalatags-0.8.5
 
 # v0.21.0-RC4 (2020-02-04)
