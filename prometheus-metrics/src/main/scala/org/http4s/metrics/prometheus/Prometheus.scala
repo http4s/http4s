@@ -196,7 +196,7 @@ object Prometheus {
 
   /**
     * Given an exclude function, return a 'classifier' function, i.e. for application in
-    * [[org.http4s.client.middleware.Metrics#apply]].
+    * [[org.http4s.server/client.middleware.Metrics#apply]].
     *
     * Let's say you want a classifier that excludes integers since your paths consist of:
     *   * GET    /users/{integer} = get_users_*
