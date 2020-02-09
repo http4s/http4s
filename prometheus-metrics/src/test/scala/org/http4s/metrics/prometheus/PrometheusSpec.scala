@@ -4,9 +4,18 @@ import cats.effect.IO
 import cats.implicits._
 import java.util.UUID
 import org.http4s._
+import org.scalacheck.{Arbitrary, Gen}
 import Prometheus.classifierFMethodWithOptionallyExcludedPath
 
+object PrometheusSpec {
+
+  private implicit val arbUUID: Arbitrary[UUID] =
+    Arbitrary(Gen.uuid)
+}
+
 class PrometheusSpec extends Http4sSpec {
+
+  import PrometheusSpec.arbUUID
 
   "classifierFMethodWithOptionallyExcludedPath" should {
     "properly exclude UUIDs" in prop { (method: Method, uuid: UUID) =>
