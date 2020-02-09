@@ -199,10 +199,10 @@ object Prometheus {
     * [[org.http4s.client.middleware.Metrics#apply]].
     *
     * Let's say you want a classifier that excludes integers since your paths consist of:
-    *   * GET    /users/{integer}
-    *   * POST   /users
-    *   * PUT    /users/{integer}
-    *   * DELETE /users/{integer}
+    *   * GET    /users/{integer} = get_users_*
+    *   * POST   /users           = post_users
+    *   * PUT    /users/{integer} = put_users_*
+    *   * DELETE /users/{integer} = delete_users_*
     *
     * In such a case, we could use:
     *
