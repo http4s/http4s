@@ -228,7 +228,7 @@ object Prometheus {
     val result: String =
       minusExcluded match {
         case Nil => initial
-        case nonEmpty => initial + "_" + Foldable[List].intercalate(nonEmpty, "_")
+        case nonEmpty @ _ :: _ => initial + "_" + Foldable[List].intercalate(nonEmpty, "_")
       }
 
     Some(result)
