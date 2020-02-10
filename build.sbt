@@ -138,7 +138,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   )
   .dependsOn(
     core % "compile->compile",
-    theDsl % "compile->compile",
+    theDsl % "test->compile",
     testing % "test->test",
     server % "test->compile",
     client % "test->compile"
