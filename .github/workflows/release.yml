@@ -18,16 +18,22 @@ jobs:
       - uses: actions/checkout@v1
       - uses: olafurpg/setup-scala@v5
       - uses: olafurpg/setup-gpg@v2    
-      - name: Cache Coursier
+      - name: Get current week
+        run: |
+          echo "::set-env name=current_week::$(( $(date +%U) ))"
+          echo "::set-env name=last_week::$(( $(date +%U) - 1 ))"
+      - name: Cache SBT coursier cache
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
+          key: coursier-${{ env.current_week }}
+          restore-keys: coursier-${{ env.last_week }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
+          key: sbt-${{ env.current_week }}
+          restore-keys: sbt-${{ env.last_week }}
       - name: Publish
         run: sbt ci-release
         env:
@@ -73,16 +79,22 @@ jobs:
       - uses: actions/checkout@v1
       - uses: olafurpg/setup-scala@v5
       - uses: olafurpg/setup-gpg@v2    
-      - name: Cache Coursier
+      - name: Get current week
+        run: |
+          echo "::set-env name=current_week::$(( $(date +%U) ))"
+          echo "::set-env name=last_week::$(( $(date +%U) - 1 ))"
+      - name: Cache SBT coursier cache
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
+          key: coursier-${{ env.current_week }}
+          restore-keys: coursier-${{ env.last_week }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
+          key: sbt-${{ env.current_week }}
+          restore-keys: sbt-${{ env.last_week }}
       - name: Add ~/bin to PATH
         run: echo "::add-path::$HOME/bin"
       - name: Install Hugo
@@ -96,4 +108,3 @@ jobs:
           sbt ++$SCALA_VERSION docs/makeSite docs/ghpagesPushSite
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-

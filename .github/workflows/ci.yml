@@ -21,16 +21,22 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
-      - name: Cache Coursier
+      - name: Get current week
+        run: |
+          echo "::set-env name=current_week::$(( $(date +%U) ))"
+          echo "::set-env name=last_week::$(( $(date +%U) - 1 ))"
+      - name: Cache SBT coursier cache
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
+          key: coursier-${{ env.current_week }}
+          restore-keys: coursier-${{ env.last_week }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
+          key: sbt-${{ env.current_week }}
+          restore-keys: sbt-${{ env.last_week }}
       - name: Check formatting
         if: startsWith(matrix.scala, '2.12.') && (matrix.java == '8')
         run: sbt ++$SCALA_VERSION scalafmtCheckAll
@@ -52,16 +58,26 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-      - name: Cache Coursier
+      - name: Get current week
+        run: |
+          echo "::set-env name=current_week::$(( $(date +%U) ))"
+          echo "::set-env name=last_week::$(( $(date +%U) - 1 ))"
+      - name: Get current week
+        run: |
+          echo "::set-env name=current_week::$(( $(date +%U) ))"
+          echo "::set-env name=last_week::$(( $(date +%U) - 1 ))"
+      - name: Cache SBT coursier cache
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
+          key: coursier-${{ env.current_week }}
+          restore-keys: coursier-${{ env.last_week }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
+          key: sbt-${{ env.current_week }}
+          restore-keys: sbt-${{ env.last_week }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
@@ -78,16 +94,22 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-      - name: Cache Coursier
+      - name: Get current week
+        run: |
+          echo "::set-env name=current_week::$(( $(date +%U) ))"
+          echo "::set-env name=last_week::$(( $(date +%U) - 1 ))"
+      - name: Cache SBT coursier cache
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
+          key: coursier-${{ env.current_week }}
+          restore-keys: coursier-${{ env.last_week }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
+          key: sbt-${{ env.current_week }}
+          restore-keys: sbt-${{ env.last_week }}
       - name: Add ~/bin to PATH
         run: echo "::add-path::$HOME/bin"
       - name: Install Hugo
@@ -102,16 +124,22 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-      - name: Cache Coursier
+      - name: Get current week
+        run: |
+          echo "::set-env name=current_week::$(( $(date +%U) ))"
+          echo "::set-env name=last_week::$(( $(date +%U) - 1 ))"
+      - name: Cache SBT coursier cache
         uses: actions/cache@v1
         with:
           path: ~/.cache/coursier
-          key: coursier-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/**/*.scala') }}
+          key: coursier-${{ env.current_week }}
+          restore-keys: coursier-${{ env.last_week }}
       - name: Cache SBT
         uses: actions/cache@v1
         with:
           path: ~/.sbt
-          key: sbt-${{ hashFiles('project/build.properties') }}-${{ hashFiles('project/plugins.sbt') }}
+          key: sbt-${{ env.current_week }}
+          restore-keys: sbt-${{ env.last_week }}
       - name: Add ~/bin to PATH
         run: echo "::add-path::$HOME/bin"
       - name: Install Hugo
