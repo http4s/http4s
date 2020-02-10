@@ -5,7 +5,7 @@ import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.implicits._
 import io.prometheus.client._
-import org.http4s.{Method, Request, Status}
+import org.http4s.{Method, Request, Status, Uri}
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
@@ -230,6 +230,23 @@ object Prometheus {
 
     Some(result)
   }
+
+  // The following was copied from
+  // https://github.com/http4s/http4s/blob/v0.20.17/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala#L56-L64,
+  // and then modified.
+  private def requestToPathList[F[_]](request: Request[F]): List[String] = {
+    val str: String = request.pathInfo
+
+    if (str == "" || str == "/")
+      Nil
+    else {
+      val segments = str.split("/", -1)
+      // .head is safe because split always returns non-empty array
+      val segments0 = if (segments.head == "") segments.drop(1) else segments
+      segments0.foldLeft[List[String]](Nil)((path, seg) => path ++ List(Uri.decode(seg)))
+    }
+  }
+
 }
 
 case class MetricsCollection(
