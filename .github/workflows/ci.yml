@@ -1,0 +1,109 @@
+name: CI
+on: [push, pull_request]
+env:
+  CI: true
+  CI_SNAPSHOT_RELEASE: +publishSigned
+  HUGO_VERSION: 0.26
+  SCALA_VERSION: 2.12.10
+jobs:
+  validate:
+    name: Scala ${{ matrix.scala }}, Java ${{ matrix.java }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [adopt@1.8, adopt@1.11]
+        scala: [2.11.12, 2.12.10]
+    env:
+      SCALA_VERSION: ${{ matrix.scala }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v5
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: sbt-coursier-cache
+      - name: Cache SBT
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('**/build.sbt') }}
+      - name: Check formatting
+        if: startsWith(matrix.scala, '2.12.') && (matrix.java == '8')
+        run: sbt ++$SCALA_VERSION scalafmtCheckAll
+      - name: Compile
+        run: sbt ++$SCALA_VERSION test:compile
+      - name: Check compatibility
+        run: sbt ++$SCALA_VERSION mimaReportBinaryIssues
+      - name: Check unused dependencies
+        run: sbt ++$SCALA_VERSION unusedCompileDependenciesTest
+      - name: Test
+        run: sbt ++$SCALA_VERSION test
+      - name: Scaladoc
+        run: sbt ++$SCALA_VERSION doc
+  scalafix:
+    name: Scalafix
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v5
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: sbt-coursier-cache
+      - name: Cache SBT
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('**/build.sbt') }}
+      - name: Scalafix
+        working-directory: ./scalafix
+        run: sbt ++$SCALA_VERSION test
+  project-site:
+    name: Project Site
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v5
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: sbt-coursier-cache
+      - name: Cache SBT
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('**/build.sbt') }}
+      - name: Add ~/bin to PATH
+        run: echo "::add-path::$HOME/bin"
+      - name: Install Hugo
+        run: scripts/install-hugo
+      - name: Build project site
+        run: sbt ++$SCALA_VERSION website/makeSite
+  docs:
+    name: Doc Site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v5
+      - name: Cache Coursier
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/coursier
+          key: sbt-coursier-cache
+      - name: Cache SBT
+        uses: actions/cache@v1
+        with:
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('**/build.sbt') }}
+      - name: Add ~/bin to PATH
+        run: echo "::add-path::$HOME/bin"
+      - name: Install Hugo
+        run: scripts/install-hugo
+      - name: Build project site
+        run: sbt ++$SCALA_VERSION docs/makeSite
