@@ -217,6 +217,7 @@ object Prometheus {
     val initial: String = request.method.name.toLowerCase
 
     val pathList: List[String] =
+      requestToPathList(request)
 
     val minusExcluded: List[String] = pathList.map { value: String =>
       if (exclude(value)) "*" else value.toLowerCase
