@@ -167,8 +167,14 @@ sealed class TomcatBuilder[F[_]] private (
           conn.setAttribute("keystoreFile", sslBits.keyStore.path)
           conn.setAttribute("keystorePass", sslBits.keyStore.password)
           conn.setAttribute("keyPass", sslBits.keyManagerPassword)
-
-          conn.setAttribute("clientAuth", sslBits.clientAuth)
+          conn.setAttribute(
+            "clientAuth",
+            sslBits.clientAuth match {
+              case SSLClientAuthMode.Required => "required"
+              case SSLClientAuthMode.Requested => "optional"
+              case SSLClientAuthMode.NotRequested => "none"
+            }
+          )
           conn.setAttribute("sslProtocol", sslBits.protocol)
 
           sslBits.trustStore.foreach { ts =>
