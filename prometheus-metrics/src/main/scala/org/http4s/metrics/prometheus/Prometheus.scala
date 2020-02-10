@@ -213,7 +213,6 @@ object Prometheus {
   def classifierFMethodWithOptionallyExcludedPath[F[_]](
       exclude: String => Boolean
   ): Request[F] => Option[String] = { request: Request[F] =>
-
     val initial: String = request.method.name.toLowerCase
 
     val pathList: List[String] =
