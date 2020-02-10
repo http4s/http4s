@@ -8,9 +8,20 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.0 (2020-02-09)
+
+This release is fully compatible with 0.21.0-RC4.  Future releases in the 0.21.x series will maintain binary compatibility with this release.  All users on the 0.20.x or earlier are strongly encouraged to upgrade.
+
+## Dependency updates
+
+* argonaut-6.2.4
+* circe-0.13.0
+
 # v0.21.0-RC5 (2020-02-08)
 
 This release is binary compatible with 0.21.0-RC4.
+
+We announced this as built on circe-0.13.0.  That was not correct, but is fixed in 0.21.0.
 
 ## Enhancements
 
@@ -20,7 +31,6 @@ This release is binary compatible with 0.21.0-RC4.
 
 * async-http-client-2.10.5
 * cats-effect-2.1.1
-* circe-0.13.0
 * scalatags-0.8.5
 
 # v0.21.0-RC4 (2020-02-04)
