@@ -7,7 +7,6 @@ import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot._
 import java.io.StringWriter
 import org.http4s._
-import org.http4s.dsl.Http4sDsl
 
 /*
  * PrometheusExportService Contains an HttpService
@@ -39,14 +38,11 @@ object PrometheusExportService {
       }
       .map(Response[F](Status.Ok).withEntity(_))
 
-  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] = {
-    object dsl extends Http4sDsl[F]
-    import dsl._
-
+  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] =
     HttpRoutes.of[F] {
-      case GET -> Root / "metrics" => generateResponse(collectorRegistry)
+      case req if req.method == Method.GET && req.pathInfo == "/metrics" =>
+        generateResponse(collectorRegistry)
     }
-  }
 
   def addDefaults[F[_]: Sync](cr: CollectorRegistry): Resource[F, Unit] =
     for {
