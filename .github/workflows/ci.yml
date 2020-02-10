@@ -18,7 +18,7 @@ jobs:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:
       - uses: actions/checkout@v2
-+     - uses: olafurpg/setup-scala@v5
+      - uses: olafurpg/setup-scala@v5
         with:
           java-version: ${{ matrix.java }}
       - name: Cache Coursier
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest    
     steps:
       - uses: actions/checkout@v2
-+     - uses: olafurpg/setup-scala@v5
+      - uses: olafurpg/setup-scala@v5
       - name: Cache Coursier
         uses: actions/cache@v1
         with:
@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest    
     steps:
       - uses: actions/checkout@v2
-+     - uses: olafurpg/setup-scala@v5
+      - uses: olafurpg/setup-scala@v5
       - name: Cache Coursier
         uses: actions/cache@v1
         with:
