@@ -5,7 +5,6 @@ import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.implicits._
 import io.prometheus.client._
-import org.http4s.dsl.Http4sDsl
 import org.http4s.{Method, Request, Status}
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
@@ -214,12 +213,10 @@ object Prometheus {
   def classifierFMethodWithOptionallyExcludedPath[F[_]](
       exclude: String => Boolean
   ): Request[F] => Option[String] = { request: Request[F] =>
-    val dsl: Http4sDsl[F] = Http4sDsl[F]
 
     val initial: String = request.method.name.toLowerCase
 
     val pathList: List[String] =
-      dsl.Path.unapplySeq(request).getOrElse(Nil)
 
     val minusExcluded: List[String] = pathList.map { value: String =>
       if (exclude(value)) "*" else value.toLowerCase
