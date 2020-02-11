@@ -18,7 +18,7 @@ class PrometheusSpec extends Http4sSpec {
   import PrometheusSpec.arbUUID
 
   "classifierFMethodWithOptionallyExcludedPath" should {
-    "properly exclude UUIDs" in prop { (method: Method, uuid: UUID) =>
+    "properly exclude UUIDs" in prop { (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
       {
         val request: Request[IO] = Request[IO](
           method = method,
@@ -33,14 +33,24 @@ class PrometheusSpec extends Http4sSpec {
 
         val classifier: Request[IO] => Option[String] =
           classifierFMethodWithOptionallyExcludedPath(
-            excludeUUIDs
+            exclude = excludeUUIDs,
+            excludedValue = excludedValue,
+            pathSeparator = separator
           )
 
         val result: Option[String] =
           classifier(request)
 
         val expected: Option[String] =
-          Some(method.name.toLowerCase() + "_" + "users_*_comments")
+          Some(
+            method.name.toLowerCase +
+              separator.toLowerCase +
+              "users" +
+              separator.toLowerCase +
+              excludedValue.toLowerCase +
+              separator.toLowerCase +
+              "comments"
+          )
 
         result ==== expected
       }
@@ -53,7 +63,9 @@ class PrometheusSpec extends Http4sSpec {
 
       val classifier: Request[IO] => Option[String] =
         classifierFMethodWithOptionallyExcludedPath(
-          _ => true
+          _ => true,
+          "*",
+          "_"
         )
 
       val result: Option[String] =
