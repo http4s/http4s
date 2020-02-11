@@ -243,7 +243,9 @@ object Prometheus {
       val segments = str.split("/", -1)
       // .head is safe because split always returns non-empty array
       val segments0 = if (segments.head == "") segments.drop(1) else segments
-      segments0.foldLeft[List[String]](Nil)((path, seg) => path ++ List(Uri.decode(seg)))
+      val reversed: List[String ] =
+        segments0.foldLeft[List[String]](Nil)((path, seg) => Uri.decode(seg) :: path)
+      reversed.reverse
     }
   }
 
