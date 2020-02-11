@@ -229,18 +229,18 @@ object Prometheus {
       requestToPathList(request)
 
     val minusExcluded: List[String] = pathList.map { value: String =>
-      if (exclude(value)) excludedValue.toLowerCase else value.toLowerCase
+      if (exclude(value)) excludedValue else value.toLowerCase
     }
 
     val result: String =
       minusExcluded match {
         case Nil => initial
         case nonEmpty @ _ :: _ =>
-          initial + pathSeparator.toLowerCase + Foldable[List]
-            .intercalate(nonEmpty, pathSeparator.toLowerCase)
+          initial + pathSeparator + Foldable[List]
+            .intercalate(nonEmpty, pathSeparator)
       }
 
-    Some(result)
+    Some(result.toLowerCase)
   }
 
   // The following was copied from
