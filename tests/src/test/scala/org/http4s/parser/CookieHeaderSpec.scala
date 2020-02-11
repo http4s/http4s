@@ -21,6 +21,18 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
       c.httpOnly must be_==(true)
     }
 
+    "parse a set cookie with lowercase attributes" in {
+      val cookiestr = "myname=\"foo\"; domain=example.com; max-age=1; path=value; secure; httponly"
+      val c = parse(cookiestr).cookie
+      c.name must be_==("myname")
+      c.domain must beSome("example.com")
+      c.content must be_==("foo")
+      c.maxAge must be_==(Some(1))
+      c.path must be_==(Some("value"))
+      c.secure must be_==(true)
+      c.httpOnly must be_==(true)
+    }
+
     "parse with a domain with a leading dot" in {
       val cookiestr = "myname=\"foo\"; Domain=.example.com"
       val c = parse(cookiestr).cookie
