@@ -18,42 +18,43 @@ class PrometheusSpec extends Http4sSpec {
   import PrometheusSpec.arbUUID
 
   "classifierFMethodWithOptionallyExcludedPath" should {
-    "properly exclude UUIDs" in prop { (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
-      {
-        val request: Request[IO] = Request[IO](
-          method = method,
-          uri = Uri.unsafeFromString(s"/users/$uuid/comments")
-        )
+    "properly exclude UUIDs" in prop {
+      (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
+        {
+          val request: Request[IO] = Request[IO](
+            method = method,
+            uri = Uri.unsafeFromString(s"/users/$uuid/comments")
+          )
 
-        val excludeUUIDs: String => Boolean = { str: String =>
-          Either
-            .catchOnly[IllegalArgumentException](UUID.fromString(str))
-            .isRight
+          val excludeUUIDs: String => Boolean = { str: String =>
+            Either
+              .catchOnly[IllegalArgumentException](UUID.fromString(str))
+              .isRight
+          }
+
+          val classifier: Request[IO] => Option[String] =
+            classifierFMethodWithOptionallyExcludedPath(
+              exclude = excludeUUIDs,
+              excludedValue = excludedValue,
+              pathSeparator = separator
+            )
+
+          val result: Option[String] =
+            classifier(request)
+
+          val expected: Option[String] =
+            Some(
+              method.name.toLowerCase +
+                separator.toLowerCase +
+                "users" +
+                separator.toLowerCase +
+                excludedValue.toLowerCase +
+                separator.toLowerCase +
+                "comments"
+            )
+
+          result ==== expected
         }
-
-        val classifier: Request[IO] => Option[String] =
-          classifierFMethodWithOptionallyExcludedPath(
-            exclude = excludeUUIDs,
-            excludedValue = excludedValue,
-            pathSeparator = separator
-          )
-
-        val result: Option[String] =
-          classifier(request)
-
-        val expected: Option[String] =
-          Some(
-            method.name.toLowerCase +
-              separator.toLowerCase +
-              "users" +
-              separator.toLowerCase +
-              excludedValue.toLowerCase +
-              separator.toLowerCase +
-              "comments"
-          )
-
-        result ==== expected
-      }
     }
     "return '$method' if the path is '/'" in prop { method: Method =>
       val request: Request[IO] = Request[IO](

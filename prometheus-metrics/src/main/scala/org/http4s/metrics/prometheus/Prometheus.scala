@@ -219,9 +219,9 @@ object Prometheus {
     * @return Request[F] => Option[String]
     */
   def classifierFMethodWithOptionallyExcludedPath[F[_]](
-                                                         exclude: String => Boolean,
-                                                         excludedValue: String,
-                                                         pathSeparator: String
+      exclude: String => Boolean,
+      excludedValue: String,
+      pathSeparator: String
   ): Request[F] => Option[String] = { request: Request[F] =>
     val initial: String = request.method.name.toLowerCase
 
@@ -236,7 +236,8 @@ object Prometheus {
       minusExcluded match {
         case Nil => initial
         case nonEmpty @ _ :: _ =>
-          initial + pathSeparator.toLowerCase + Foldable[List].intercalate(nonEmpty, pathSeparator.toLowerCase)
+          initial + pathSeparator.toLowerCase + Foldable[List]
+            .intercalate(nonEmpty, pathSeparator.toLowerCase)
       }
 
     Some(result)
@@ -254,7 +255,7 @@ object Prometheus {
       val segments = str.split("/", -1)
       // .head is safe because split always returns non-empty array
       val segments0 = if (segments.head == "") segments.drop(1) else segments
-      val reversed: List[String ] =
+      val reversed: List[String] =
         segments0.foldLeft[List[String]](Nil)((path, seg) => Uri.decode(seg) :: path)
       reversed.reverse
     }
