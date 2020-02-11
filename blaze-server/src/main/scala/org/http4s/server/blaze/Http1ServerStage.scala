@@ -257,7 +257,7 @@ private[blaze] class Http1ServerStage[F[_]](
           closeOnFinish)
     }
 
-    unsafeRunAsync(bodyEncoder.write(rr, resp.body)) {
+    unsafeRunAsync(bodyEncoder.write(rr, resp.body).recover { case EOF => true }) {
       case Right(requireClose) =>
         if (closeOnFinish || requireClose) {
           logger.trace("Request/route requested closing connection.")
@@ -274,9 +274,6 @@ private[blaze] class Http1ServerStage[F[_]](
               case Failure(t) => fatalError(t, "Failure in body cleanup")
             }(trampoline)
           }
-
-      case Left(EOF) =>
-        IO(closeConnection())
 
       case Left(t) =>
         logger.error(t)("Error writing body")
