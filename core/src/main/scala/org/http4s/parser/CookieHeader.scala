@@ -97,7 +97,9 @@ private[parser] trait CookieHeader {
       }
     }
 
-    def DomainName: Rule1[String] = rule { capture(oneOrMore(DomainNamePart).separatedBy('.')) }
+    def DomainName: Rule1[String] = rule {
+      capture(optional('.') ~ oneOrMore(DomainNamePart).separatedBy('.'))
+    }
 
     def DomainNamePart: Rule0 = rule { AlphaNum ~ zeroOrMore(AlphaNum | ch('-')) }
 
