@@ -207,13 +207,21 @@ object Prometheus {
     *
     * In such a case, we could use:
     *
-    * classifierFMethodWithOptionallyExcludedPath { str: String => scala.util.Try(str.toInt).isSuccess }
+    * classifierFMethodWithOptionallyExcludedPath(
+    *   exclude          = { str: String => scala.util.Try(str.toInt).isSuccess },
+    *   excludedValue    = "*",
+    *   intercalateValue = "_"
+    * )
     *
     * @param exclude For a given String, namely a path value, determine whether the value gets excluded.
+    * @param excludedValue Indicates the String value to be supplied for an excluded path's field.
+    * @param pathSeparator Value to use for separating the metrics fields' values
     * @return Request[F] => Option[String]
     */
   def classifierFMethodWithOptionallyExcludedPath[F[_]](
-      exclude: String => Boolean
+                                                         exclude: String => Boolean,
+                                                         excludedValue: String,
+                                                         pathSeparator: String
   ): Request[F] => Option[String] = { request: Request[F] =>
     val initial: String = request.method.name.toLowerCase
 
@@ -221,13 +229,14 @@ object Prometheus {
       requestToPathList(request)
 
     val minusExcluded: List[String] = pathList.map { value: String =>
-      if (exclude(value)) "*" else value.toLowerCase
+      if (exclude(value)) excludedValue.toLowerCase else value.toLowerCase
     }
 
     val result: String =
       minusExcluded match {
         case Nil => initial
-        case nonEmpty @ _ :: _ => initial + "_" + Foldable[List].intercalate(nonEmpty, "_")
+        case nonEmpty @ _ :: _ =>
+          initial + pathSeparator.toLowerCase + Foldable[List].intercalate(nonEmpty, pathSeparator.toLowerCase)
       }
 
     Some(result)
