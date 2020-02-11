@@ -32,6 +32,25 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
       val c = parse(cookiestr).cookie
       c.domain must beSome(".example.com")
     }
+
+    "parse with an extension" in {
+      val cookiestr = "myname=\"foo\"; http4s=fun"
+      val c = parse(cookiestr).cookie
+      c.extension must beSome("http4s=fun")
+    }
+
+    "parse with two extensions" in {
+      val cookiestr = "myname=\"foo\"; http4s=fun; rfc6265=not-fun"
+      val c = parse(cookiestr).cookie
+      c.extension must beSome("http4s=fun; rfc6265=not-fun")
+    }
+
+    "parse with an two extensions around a common attribute" in {
+      val cookiestr = "myname=\"foo\"; http4s=fun; Domain=example.com; rfc6265=not-fun"
+      val c = parse(cookiestr).cookie
+      c.domain must beSome("example.com")
+      c.extension must beSome("http4s=fun; rfc6265=not-fun")
+    }
   }
 }
 

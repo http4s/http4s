@@ -87,7 +87,11 @@ private[parser] trait CookieHeader {
           cookie.copy(httpOnly = true)
         } |
         StringValue ~> { (cookie: ResponseCookie, stringValue: String) =>
-          cookie.copy(extension = Some(stringValue))
+          val ext0 = cookie.extension match {
+            case Some(extension) => s"${extension}; $stringValue"
+            case None => stringValue
+          }
+          cookie.copy(extension = Some(ext0))
         }
     }
 
