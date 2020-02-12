@@ -7,6 +7,7 @@ import cats.effect.{Bracket, Resource}
 import cats.implicits._
 import fs2.Stream
 import org.http4s.Status.Successful
+import org.http4s.client.pagination.{ClientPagination, ClientPaginationStrategy}
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 
 private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
@@ -87,6 +88,10 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
 
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream.eval(req).flatMap(stream).flatMap(f)
+
+  def paginated[T, O](request: Request[F])(
+      implicit S: ClientPaginationStrategy[F, T, O]): Stream[F, O] =
+    new ClientPagination[F, T, O](this).paginatedWith(request)
 
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A] = {
