@@ -112,19 +112,6 @@ object HttpHeaderParser
   }
 
   private def gatherBuiltIn(): Unit = {
-    // This used to be based on reflection, which is bad for Graal, and
-    // made everyone queasy. To regenerate:
-    //
-    // HttpHeaderParser
-    //   .getClass
-    //   .getMethods
-    //   .filter(_.getName.forall(!_.isLower))
-    //   .sortBy(_.getName)
-    //   .map { method =>
-    //     val key = method.getName.replace('_', '-');
-    //     s"""addParser_("${key}".ci, `${method.getName}`)"""
-    //   }
-    //   .foreach(println)
     addParser_("ACCEPT".ci, `ACCEPT`)
     addParser_("ACCEPT-CHARSET".ci, `ACCEPT_CHARSET`)
     addParser_("ACCEPT-ENCODING".ci, `ACCEPT_ENCODING`)
