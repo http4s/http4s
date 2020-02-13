@@ -59,7 +59,7 @@ object HttpHeaderParser
   def addParser(key: CaseInsensitiveString, parser: HeaderParser): Option[HeaderParser] =
     Option(allParsers.put(key, parser))
 
-  def addParser_(key: CaseInsensitiveString, parser: HeaderParser): Unit = {
+  private def addParser_(key: CaseInsensitiveString, parser: HeaderParser): Unit = {
     addParser(key, parser)
     ()
   }
