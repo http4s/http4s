@@ -211,6 +211,14 @@ object Prometheus {
     *   intercalateValue = "_"
     * )
     *
+    *
+    * Chris Davenport notes the following on performance considerations of exclude's function value:
+    *
+    * > It's worth noting that this runs on every segment of a path. So note that if an intermediate Throwables with
+    * > Stack traces is known and discarded, there may be a performance penalty, such as the above example with Try(str.toInt).
+    * > I benchmarked some approaches and regex matches should generally be preferred over Throwable's
+    * > in this position.
+    *
     * @param exclude For a given String, namely a path value, determine whether the value gets excluded.
     * @param excludedValue Indicates the String value to be supplied for an excluded path's field.
     * @param pathSeparator Value to use for separating the metrics fields' values
