@@ -10,9 +10,10 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
   "Set-Cookie parser" should {
     "parse a set cookie" in {
       val cookiestr =
-        "myname=\"foo\"; Domain=value; Max-Age=1; Path=value; SameSite=Strict; Secure;HttpOnly"
+        "myname=\"foo\"; Domain=example.com; Max-Age=1; Path=value; SameSite=Strict; Secure;HttpOnly"
       val c = parse(cookiestr).cookie
       c.name must be_==("myname")
+      c.domain must beSome("example.com")
       c.content must be_==("foo")
       c.maxAge must be_==(Some(1))
       c.path must beSome("value")
@@ -25,6 +26,50 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
       val cookiestr = "myname=\"foo\"; Domain=value; Max-Age=1; Path=value"
       val c = parse(cookiestr).cookie
       c.sameSite must be_==(SameSite.Lax)
+    }
+
+    "parse a set cookie with lowercase attributes" in {
+      val cookiestr =
+        "myname=\"foo\"; domain=example.com; max-age=1; path=value; secure; httponly"
+      val c = parse(cookiestr).cookie
+      c.name must be_==("myname")
+      c.domain must beSome("example.com")
+      c.content must be_==("foo")
+      c.maxAge must be_==(Some(1))
+      c.path must be_==(Some("value"))
+      c.secure must be_==(true)
+      c.httpOnly must be_==(true)
+    }
+
+    "parse with a domain with a leading dot" in {
+      val cookiestr = "myname=\"foo\"; Domain=.example.com"
+      val c = parse(cookiestr).cookie
+      c.domain must beSome(".example.com")
+    }
+
+    "parse with a domain with a leading dot" in {
+      val cookiestr = "myname=\"foo\"; Domain=.example.com"
+      val c = parse(cookiestr).cookie
+      c.domain must beSome(".example.com")
+    }
+
+    "parse with an extension" in {
+      val cookiestr = "myname=\"foo\"; http4s=fun"
+      val c = parse(cookiestr).cookie
+      c.extension must beSome("http4s=fun")
+    }
+
+    "parse with two extensions" in {
+      val cookiestr = "myname=\"foo\"; http4s=fun; rfc6265=not-fun"
+      val c = parse(cookiestr).cookie
+      c.extension must beSome("http4s=fun; rfc6265=not-fun")
+    }
+
+    "parse with an two extensions around a common attribute" in {
+      val cookiestr = "myname=\"foo\"; http4s=fun; Domain=example.com; rfc6265=not-fun"
+      val c = parse(cookiestr).cookie
+      c.domain must beSome("example.com")
+      c.extension must beSome("http4s=fun; rfc6265=not-fun")
     }
   }
 }

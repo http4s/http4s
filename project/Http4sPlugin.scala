@@ -17,7 +17,6 @@ object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
-    val http4sPublish = settingKey[Boolean]("Is this a publishing build?")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
     val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
@@ -35,15 +34,6 @@ object Http4sPlugin extends AutoPlugin {
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
     isCi := sys.env.get("CI").isDefined,
-
-    // Publishing to gh-pages and sonatype only done from select branches and
-    // never from pull requests.
-    http4sPublish := {
-      sys.env.get("TRAVIS").contains("true") &&
-        sys.env.get("TRAVIS_PULL_REQUEST").contains("false") &&
-        sys.env.get("TRAVIS_REPO_SLUG").contains("http4s/http4s") &&
-        sys.env.get("TEST").contains("publish")
-    },
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
