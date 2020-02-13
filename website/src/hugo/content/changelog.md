@@ -8,6 +8,28 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.18 (2020-02-13)
+
+This release is fully backward compatible with 0.20.17.
+
+## Bugfixes
+
+* [#3178](https://github.com/http4s/http4s/pull/3178): In `TomcatBuilder`, use the correct values for the `clientAuth` connector attribute.
+* [#3184](https://github.com/http4s/http4s/pull/3184): 
+  * Parse cookie attribute names case insensitively.
+  * Preserve multiple extended cookie attributes, delimited by a `';'`
+  * Support cookie domains with a leading `'.'`
+
+## Enhancements
+
+* [#3190](https://github.com/http4s/http4s/pull/3190): Remove reflection from initialization of `HttpHeaderParser`. This allows modeled headers to be parsed when running on Graal. The change is fully transparent on the JVM.
+
+## Dependency updates
+
+* argonaut-6.2.4
+* async-http-client-2.10.5
+* tomcat-9.0.31
+
 # v0.21.0 (2020-02-09)
 
 This release is fully compatible with 0.21.0-RC4.  Future releases in the 0.21.x series will maintain binary compatibility with this release.  All users on the 0.20.x or earlier are strongly encouraged to upgrade.
@@ -110,6 +132,8 @@ This release is binary incompatible with 0.21.0-RC2, but should be source compat
 # v0.20.17 (2020-01-25)
 
 This release is fully compatible with 0.20.16.
+
+# v0.20.17 (2020-01-24)
 
 ## Bugfixes
 
