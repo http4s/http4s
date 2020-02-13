@@ -10,10 +10,14 @@ it.
 
 # v0.21.2 (2020-03-20)
 
+## Enhancements
+
+* [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware. 
+
 ## Noteworthy
 
 * [#3253](https://github.com/http4s/http4s/pull/3253): Preparation for Dotty support. Should be invisible to end users, but calling out because it touches a lot. 
-
+p
 ## Dependency updates
 
 * cats-2.1.1
