@@ -45,15 +45,27 @@ final case class Uri(
 
   def withoutFragment: Uri = copy(fragment = Option.empty[Fragment])
 
-  def addPath(newSegment: Path): Uri = {
-    val encoded = pathEncode(newSegment)
-    val newPath =
-      if (path.isEmpty || path.last != '/') s"$path/$encoded"
-      else s"$path$encoded"
-    copy(path = newPath)
-  }
+  /**
+    * Urlencodes and adds a path segment to the Uri
+    *
+    * @param newSegment the segment to add.
+    * @return a new uri with the segment added to the path
+    */
+  def addSegment(newSegment: Path): Uri = copy(path = toSegment(path, newSegment))
 
-  def /(newSegment: Path): Uri = addPath(newSegment)
+  /**
+    * This is an alias to [[addSegment(Path)]]
+    */
+  def /(newSegment: Path): Uri = addSegment(newSegment)
+
+  /**
+    * Splits the path segments and adds each of them to the path url-encoded.
+    * A segment is delimited by /
+    * @param morePath the path to add
+    * @return a new uri with the segments added to the path
+    */
+  def addPath(morePath: Path): Uri =
+    copy(path = morePath.split("/").foldLeft(path)((p, segment) => toSegment(p, segment)))
 
   def host: Option[Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
@@ -132,6 +144,14 @@ final case class Uri(
   override protected def self: Self = this
 
   override protected def replaceQuery(query: Query): Self = copy(query = query)
+
+  private def toSegment(path: Path, newSegment: Path): Path = {
+    val encoded = pathEncode(newSegment)
+    val newPath =
+      if (path.isEmpty || path.last != '/') s"$path/$encoded"
+      else s"$path$encoded"
+    newPath
+  }
 }
 
 object Uri {

@@ -40,11 +40,6 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         uri.scheme must_=== Some(Scheme.http)
       }
 
-      "do the correct thing with withPath" in {
-        val uri = getUri("http://localhost/foo/bar/baz")
-        uri.withPath("bar").toString must_=== "http://localhost/bar"
-      }
-
       "parse the authority correctly" in {
         "when uri has trailing slash" in {
           val uri = getUri("http://localhost/")
@@ -195,6 +190,11 @@ http://example.org/a file
   "Uri toString" should {
     "render default URI" in {
       Uri().toString must be_==("")
+    }
+
+    "withPath without slash adds a / on render" in {
+      val uri = getUri("http://localhost/foo/bar/baz")
+      uri.withPath("bar").toString must_=== "http://localhost/bar"
     }
 
     "render a IPv6 address, should be wrapped in brackets" in {
@@ -886,6 +886,13 @@ http://example.org/a file
       processed must not contain "./"
       processed must not contain "../"
     }.setGen(pathGen)
+  }
+
+  "Uri.addPath" should {
+    "add urlencoded segments to uri" in {
+      val uri = getUri("http://localhost/foo")
+      uri.addPath("more/path/auth|urlencoded") must_=== getUri("http://localhost/foo/more/path/auth%7Curlencoded")
+    }
   }
 
   "Uri.equals" should {
