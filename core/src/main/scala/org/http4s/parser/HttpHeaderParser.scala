@@ -19,7 +19,6 @@ package org.http4s
 package parser
 
 import java.util
-import java.lang.reflect.InvocationTargetException
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.Header.Parsed
 import org.http4s.syntax.string._
@@ -60,6 +59,11 @@ object HttpHeaderParser
   def addParser(key: CaseInsensitiveString, parser: HeaderParser): Option[HeaderParser] =
     Option(allParsers.put(key, parser))
 
+  private def addParser_(key: CaseInsensitiveString, parser: HeaderParser): Unit = {
+    addParser(key, parser)
+    ()
+  }
+
   /** Remove the parser for the specified header key
     *
     * @param key name of the header to be removed
@@ -77,9 +81,6 @@ object HttpHeaderParser
         catch {
           // We need a way to bail on invalid dates without throwing.  There should be a better way.
           case _: ParseFailure =>
-            ParseResult.success(header)
-          case e: InvocationTargetException if e.getCause.isInstanceOf[ParseFailure] =>
-            // TODO curse this runtime reflection
             ParseResult.success(header)
         }
     }
@@ -110,15 +111,50 @@ object HttpHeaderParser
     assert(results.forall(_.isRight))
   }
 
-  private def gatherBuiltIn(): Unit =
-    this.getClass.getMethods
-      .filter(_.getName.forall(!_.isLower)) // only the header rules have no lower-case letter in their name
-      .foreach { method =>
-        val key = method.getName.replace('_', '-').ci
-        val parser = { value: String =>
-          method.invoke(this, value)
-        }.asInstanceOf[HeaderParser]
-
-        addParser(key, parser)
-      }
+  private def gatherBuiltIn(): Unit = {
+    addParser_("ACCEPT".ci, `ACCEPT`)
+    addParser_("ACCEPT-CHARSET".ci, `ACCEPT_CHARSET`)
+    addParser_("ACCEPT-ENCODING".ci, `ACCEPT_ENCODING`)
+    addParser_("ACCEPT-LANGUAGE".ci, `ACCEPT_LANGUAGE`)
+    addParser_("ACCEPT-RANGES".ci, `ACCEPT_RANGES`)
+    addParser_("AGE".ci, `AGE`)
+    addParser_("ALLOW".ci, `ALLOW`)
+    addParser_("AUTHORIZATION".ci, `AUTHORIZATION`)
+    addParser_("CACHE-CONTROL".ci, `CACHE_CONTROL`)
+    addParser_("CONNECTION".ci, `CONNECTION`)
+    addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
+    addParser_("CONTENT-ENCODING".ci, `CONTENT_ENCODING`)
+    addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
+    addParser_("CONTENT-RANGE".ci, `CONTENT_RANGE`)
+    addParser_("CONTENT-TYPE".ci, `CONTENT_TYPE`)
+    addParser_("COOKIE".ci, `COOKIE`)
+    addParser_("DATE".ci, `DATE`)
+    addParser_("ETAG".ci, `ETAG`)
+    addParser_("EXPIRES".ci, `EXPIRES`)
+    addParser_("HOST".ci, `HOST`)
+    addParser_("IF-MATCH".ci, `IF_MATCH`)
+    addParser_("IF-MODIFIED-SINCE".ci, `IF_MODIFIED_SINCE`)
+    addParser_("IF-NONE-MATCH".ci, `IF_NONE_MATCH`)
+    addParser_("IF-UNMODIFIED-SINCE".ci, `IF_UNMODIFIED_SINCE`)
+    addParser_("LAST-EVENT-ID".ci, `LAST_EVENT_ID`)
+    addParser_("LAST-MODIFIED".ci, `LAST_MODIFIED`)
+    addParser_("LINK".ci, `LINK`)
+    addParser_("LOCATION".ci, `LOCATION`)
+    addParser_("ORIGIN".ci, `ORIGIN`)
+    addParser_("PROXY-AUTHENTICATE".ci, `PROXY_AUTHENTICATE`)
+    addParser_("RANGE".ci, `RANGE`)
+    addParser_("REFERER".ci, `REFERER`)
+    addParser_("RETRY-AFTER".ci, `RETRY_AFTER`)
+    addParser_("SET-COOKIE".ci, `SET_COOKIE`)
+    addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
+    addParser_("TRANSFER-ENCODING".ci, `TRANSFER_ENCODING`)
+    addParser_("USER-AGENT".ci, `USER_AGENT`)
+    addParser_("WWW-AUTHENTICATE".ci, `WWW_AUTHENTICATE`)
+    addParser_("X-B3-FLAGS".ci, `X_B3_FLAGS`)
+    addParser_("X-B3-PARENTSPANID".ci, `X_B3_PARENTSPANID`)
+    addParser_("X-B3-SAMPLED".ci, `X_B3_SAMPLED`)
+    addParser_("X-B3-SPANID".ci, `X_B3_SPANID`)
+    addParser_("X-B3-TRACEID".ci, `X_B3_TRACEID`)
+    addParser_("X-FORWARDED-FOR".ci, `X_FORWARDED_FOR`)
+  }
 }

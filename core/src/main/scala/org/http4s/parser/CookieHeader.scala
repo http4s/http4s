@@ -66,30 +66,34 @@ private[parser] trait CookieHeader {
     }
 
     def CookieAttrs: Rule[ResponseCookie :: HNil, ResponseCookie :: HNil] = rule {
-      "Expires=" ~ HttpDate ~> { (cookie: ResponseCookie, dateTime: HttpDate) =>
+      ignoreCase("expires=") ~ HttpDate ~> { (cookie: ResponseCookie, dateTime: HttpDate) =>
         cookie.copy(expires = Some(dateTime))
       } |
-        "Max-Age=" ~ NonNegativeLong ~> { (cookie: ResponseCookie, seconds: Long) =>
+        ignoreCase("max-age=") ~ NonNegativeLong ~> { (cookie: ResponseCookie, seconds: Long) =>
           cookie.copy(maxAge = Some(seconds))
         } |
-        "Domain=" ~ DomainName ~> { (cookie: ResponseCookie, domainName: String) =>
+        ignoreCase("domain=") ~ DomainName ~> { (cookie: ResponseCookie, domainName: String) =>
           cookie.copy(domain = Some(domainName))
         } |
-        "Path=" ~ StringValue ~> { (cookie: ResponseCookie, pathValue: String) =>
+        ignoreCase("path=") ~ StringValue ~> { (cookie: ResponseCookie, pathValue: String) =>
           cookie.copy(path = Some(pathValue))
         } |
         "SameSite=" ~ SameSite ~> { (cookie: ResponseCookie, sameSiteValue: SameSite) =>
           cookie.copy(sameSite = sameSiteValue)
         } |
         // TODO: Capture so we can create the rule, but there must be a better way
-        "Secure" ~ MATCH ~> { (cookie: ResponseCookie) =>
+        ignoreCase("secure") ~ MATCH ~> { (cookie: ResponseCookie) =>
           cookie.copy(secure = true)
         } |
-        "HttpOnly" ~ MATCH ~> { (cookie: ResponseCookie) =>
+        ignoreCase("httponly") ~ MATCH ~> { (cookie: ResponseCookie) =>
           cookie.copy(httpOnly = true)
         } |
         StringValue ~> { (cookie: ResponseCookie, stringValue: String) =>
-          cookie.copy(extension = Some(stringValue))
+          val ext0 = cookie.extension match {
+            case Some(extension) => s"${extension}; $stringValue"
+            case scala.None => stringValue
+          }
+          cookie.copy(extension = Some(ext0))
         }
     }
 
@@ -99,7 +103,9 @@ private[parser] trait CookieHeader {
       }
     }
 
-    def DomainName: Rule1[String] = rule { capture(oneOrMore(DomainNamePart).separatedBy('.')) }
+    def DomainName: Rule1[String] = rule {
+      capture(optional('.') ~ oneOrMore(DomainNamePart).separatedBy('.'))
+    }
 
     def DomainNamePart: Rule0 = rule { AlphaNum ~ zeroOrMore(AlphaNum | ch('-')) }
 
