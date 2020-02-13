@@ -151,8 +151,6 @@ This release is binary incompatible with 0.21.0-RC2, but should be source compat
 
 This release is fully compatible with 0.20.16.
 
-# v0.20.17 (2020-01-24)
-
 ## Bugfixes
 
 * [#3105](https://github.com/http4s/http4s/pull/3105): Fix "cannot have more than one pending write request" error in blaze-server web sockets.
