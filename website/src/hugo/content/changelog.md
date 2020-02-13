@@ -8,6 +8,14 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.3 (2020-03-25)
+
+This release is fully backward compatible with 0.21.2.
+
+## Enhancements
+
+* [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware. 
+
 # v0.20.21 (2020-03-25)
 
 This release is fully backward compatible with 0.20.20.

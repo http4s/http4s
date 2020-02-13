@@ -26,23 +26,32 @@ object Caching {
     Kleisli { (a: A) =>
       for {
         resp <- http(a)
-        now <- HttpDate.current[G]
-      } yield {
-        val headers = List(
-          `Cache-Control`(
-            NonEmptyList.of[CacheDirective](
-              CacheDirective.`no-store`,
-              CacheDirective.`private`(),
-              CacheDirective.`no-cache`(),
-              CacheDirective.`max-age`(0.seconds)
-            )),
-          Header("Pragma", "no-cache"),
-          HDate(now),
-          Expires(HttpDate.Epoch) // Expire at the epoch for no time confusion
-        )
-        resp.putHeaders(headers: _*)
-      }
+        out <- `no-store-response`[G](resp)
+      } yield out
     }
+
+  /**
+    * Transform a Response so that it will not be cached.
+    */
+  def `no-store-response`[G[_]]: PartiallyAppliedNoStoreCache[G] =
+    new PartiallyAppliedNoStoreCache[G] {
+      def apply[F[_]](resp: Response[F])(implicit M: Monad[G], C: Clock[G]): G[Response[F]] =
+        HttpDate.current[G].map(now => resp.putHeaders(HDate(now) :: noStoreStaticHeaders: _*))
+    }
+
+  // These never change, so don't recreate them each time.
+  private val noStoreStaticHeaders = List(
+    `Cache-Control`(
+      NonEmptyList.of[CacheDirective](
+        CacheDirective.`no-store`,
+        CacheDirective.`private`(),
+        CacheDirective.`no-cache`(),
+        CacheDirective.`max-age`(0.seconds)
+      )
+    ),
+    Header("Pragma", "no-cache"),
+    Expires(HttpDate.Epoch) // Expire at the epoch for no time confusion
+  )
 
   /**
     * Helpers Contains the default arguments used to help construct
@@ -81,6 +90,15 @@ object Caching {
       http)
 
   /**
+    * Publicly Cache a Response for the given lifetime.
+    *
+    * Note: If set to Duration.Inf, lifetime falls back to
+    * 10 years for support of Http1 caches.
+   **/
+  def publicCacheResponse[G[_]](lifetime: Duration): PartiallyAppliedCache[G] =
+    cacheResponse(lifetime, Either.left(CacheDirective.public))
+
+  /**
     * Sets headers for response to be privately cached for the specified duration.
     *
     * Note: If set to Duration.Inf, lifetime falls back to
@@ -98,6 +116,18 @@ object Caching {
       http)
 
   /**
+    * Privately Caches A Response for the given lifetime.
+    *
+    * Note: If set to Duration.Inf, lifetime falls back to
+    * 10 years for support of Http1 caches.
+   **/
+  def privateCacheResponse[G[_]](
+      lifetime: Duration,
+      fieldNames: List[CaseInsensitiveString] = Nil
+  ): PartiallyAppliedCache[G] =
+    cacheResponse(lifetime, Either.right(CacheDirective.`private`(fieldNames)))
+
+  /**
     * Construct a Middleware that will apply the appropriate caching headers.
     *
     * Helper functions for methodToSetOn and statusToSetOn can be found in [[Helpers]].
@@ -111,36 +141,68 @@ object Caching {
       methodToSetOn: Method => Boolean,
       statusToSetOn: Status => Boolean,
       http: Http[G, F]
-  ): Http[G, F] = {
-    val actualLifetime = lifetime match {
-      case finite: FiniteDuration => finite
-      case _ => 315360000.seconds // 10 years
-      // Http1 caches do not respect max-age headers, so to work globally it is recommended
-      // to explicitly set an Expire which requires some time interval to work
-    }
+  ): Http[G, F] =
     Kleisli { (req: Request[F]) =>
       for {
         resp <- http(req)
         out <- if (methodToSetOn(req.method) && statusToSetOn(resp.status)) {
-          HttpDate.current[G].flatMap { now =>
-            HttpDate
-              .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
-              .liftTo[G]
-              .map { expires =>
-                val headers = List(
-                  `Cache-Control`(
-                    NonEmptyList.of(
-                      isPublic.fold[CacheDirective](identity, identity),
-                      CacheDirective.`max-age`(actualLifetime)
-                    )),
-                  HDate(now),
-                  Expires(expires)
-                )
-                resp.putHeaders(headers: _*)
-              }
-          }
+          cacheResponse[G](lifetime, isPublic)(resp)
         } else resp.pure[G]
       } yield out
     }
+
+  // Here as an optimization so we don't recreate durations
+  // in cacheResponse #TeamStatic
+  private val tenYearDuration: FiniteDuration = 315360000.seconds
+
+  /**
+    *  Method in order to turn a generated Response into one that
+    * will be appropriately cached.
+    *
+    *  Note: If set to Duration.Inf, lifetime falls back to
+    * 10 years for support of Http1 caches.
+   **/
+  def cacheResponse[G[_]](
+      lifetime: Duration,
+      isPublic: Either[CacheDirective.public.type, CacheDirective.`private`]
+  ): PartiallyAppliedCache[G] = {
+    val actualLifetime = lifetime match {
+      case finite: FiniteDuration => finite
+      case _ => tenYearDuration
+      // Http1 caches do not respect max-age headers, so to work globally it is recommended
+      // to explicitly set an Expire which requires some time interval to work
+    }
+    new PartiallyAppliedCache[G] {
+      override def apply[F[_]](
+          resp: Response[F])(implicit M: MonadError[G, Throwable], C: Clock[G]): G[Response[F]] =
+        for {
+          now <- HttpDate.current[G]
+          expires <- HttpDate
+            .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
+            .liftTo[G]
+        } yield {
+          val headers = List(
+            `Cache-Control`(
+              NonEmptyList.of(
+                isPublic.fold[CacheDirective](identity, identity),
+                CacheDirective.`max-age`(actualLifetime)
+              )),
+            HDate(now),
+            Expires(expires)
+          )
+          resp.putHeaders(headers: _*)
+        }
+
+    }
   }
+
+  trait PartiallyAppliedCache[G[_]] {
+    def apply[F[_]](
+        resp: Response[F])(implicit M: MonadError[G, Throwable], C: Clock[G]): G[Response[F]]
+  }
+
+  trait PartiallyAppliedNoStoreCache[G[_]] {
+    def apply[F[_]](resp: Response[F])(implicit M: Monad[G], C: Clock[G]): G[Response[F]]
+  }
+
 }
