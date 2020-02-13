@@ -26,11 +26,9 @@ This release is fully backward compatible with 0.20.17.
 
 ## Dependency updates
 
-These are already included in the 0.21 series, but caught up here:
-
 * argonaut-6.2.4
 * async-http-client-2.10.5
-* tomcat-9.0.30
+* tomcat-9.0.31
 
 # v0.21.0 (2020-02-09)
 
