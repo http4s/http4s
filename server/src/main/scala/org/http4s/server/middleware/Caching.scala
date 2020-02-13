@@ -91,7 +91,7 @@ object Caching {
 
   /**
     * Publicly Cache a Response for the given lifetime.
-    * 
+    *
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
    **/
@@ -117,7 +117,7 @@ object Caching {
 
   /**
     * Privately Caches A Response for the given lifetime.
-    * 
+    *
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
    **/
