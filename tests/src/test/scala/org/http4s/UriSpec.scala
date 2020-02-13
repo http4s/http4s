@@ -40,6 +40,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         uri.scheme must_=== Some(Scheme.http)
       }
 
+      "do the correct thing with withPath" in {
+        val uri = getUri("http://localhost/foo/bar/baz")
+        uri.withPath("bar").toString must_=== "http://localhost/bar"
+      }
+
       "parse the authority correctly" in {
         "when uri has trailing slash" in {
           val uri = getUri("http://localhost/")
