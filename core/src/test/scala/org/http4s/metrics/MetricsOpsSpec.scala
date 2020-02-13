@@ -1,11 +1,11 @@
-package org.http4s.metrics.prometheus
+package org.http4s.metrics
 
 import cats.effect.IO
 import cats.implicits._
 import java.util.UUID
 import org.http4s._
 import org.scalacheck.{Arbitrary, Gen}
-import Prometheus.classifierFMethodWithOptionallyExcludedPath
+import MetricsOps.classifierFMethodWithOptionallyExcludedPath
 
 object PrometheusSpec {
 
