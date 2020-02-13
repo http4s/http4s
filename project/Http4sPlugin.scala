@@ -17,7 +17,6 @@ object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
-    val http4sPublish = settingKey[Boolean]("Is this a publishing build?")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
     val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
@@ -35,15 +34,6 @@ object Http4sPlugin extends AutoPlugin {
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
     isCi := sys.env.get("CI").isDefined,
-
-    // Publishing to gh-pages and sonatype only done from select branches and
-    // never from pull requests.
-    http4sPublish := {
-      sys.env.get("TRAVIS").contains("true") &&
-        sys.env.get("TRAVIS_PULL_REQUEST").contains("false") &&
-        sys.env.get("TRAVIS_REPO_SLUG").contains("http4s/http4s") &&
-        sys.env.get("TEST").contains("publish")
-    },
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
@@ -219,7 +209,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.2.2"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "1.0.0-RC2"
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "1.0.0"
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "1.0.0"
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % "1.0.0"
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.26.v20200117"
@@ -253,7 +243,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.30"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.31"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.2"
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % "2.0.0"
