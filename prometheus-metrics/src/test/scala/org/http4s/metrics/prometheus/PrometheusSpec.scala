@@ -44,12 +44,12 @@ class PrometheusSpec extends Http4sSpec {
 
           val expected: Option[String] =
             Some(
-              method.name.toLowerCase +
-                separator.toLowerCase +
+              method.name +
+                separator +
                 "users" +
-                separator.toLowerCase +
-                excludedValue.toLowerCase +
-                separator.toLowerCase +
+                separator +
+                excludedValue +
+                separator +
                 "comments"
             )
 
@@ -72,7 +72,7 @@ class PrometheusSpec extends Http4sSpec {
       val result: Option[String] =
         classifier(request)
 
-      result ==== Some(method.name.toLowerCase)
+      result ==== Some(method.name)
     }
   }
 
