@@ -891,7 +891,8 @@ http://example.org/a file
   "Uri.addPath" should {
     "add urlencoded segments to uri" in {
       val uri = getUri("http://localhost/foo")
-      uri.addPath("more/path/auth|urlencoded") must_=== getUri("http://localhost/foo/more/path/auth%7Curlencoded")
+      uri.addPath("more/path/auth|urlencoded") must_=== getUri(
+        "http://localhost/foo/more/path/auth%7Curlencoded")
     }
   }
 
