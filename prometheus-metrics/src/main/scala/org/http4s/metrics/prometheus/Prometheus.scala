@@ -218,8 +218,8 @@ object Prometheus {
     */
   def classifierFMethodWithOptionallyExcludedPath[F[_]](
       exclude: String => Boolean,
-      excludedValue: String,
-      pathSeparator: String
+      excludedValue: String = "*",
+      pathSeparator: String = "_"
   ): Request[F] => Option[String] = { request: Request[F] =>
     val initial: String = request.method.name
 
