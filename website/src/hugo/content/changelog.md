@@ -8,6 +8,37 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.1 (2020-02-13)
+
+This release is fully backward compatible with v0.21.0, and includes all the changes from v0.20.18.
+
+## Bug fixes
+
+* [#3192](https://github.com/http4s/http4s/pull/3192): Parse `SameSite` cookie attribute and values case insensitively.
+
+## Enhancements
+
+* [#3185](https://github.com/http4s/http4s/pull/3185): In blaze-server, recover `EOF` to close the connection instead of catching it. This reduces log noise in Cats Effect implementations that wrap uncaught exceptions.
+* [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware.
+
+## Dependency updates
+
+* jawn-fs2-1.0.0: We accidentally released v0.21.0 against an RC of jawn-fs2. This is fully compatible.
+
+# v0.20.19 (2020-02-13)
+
+This release is fully backward compatible with 0.20.18.
+
+## Bugfixes
+
+* [#3199](https://github.com/http4s/http4s/pull/3199): When `Uri#withPath` is called without a slash and an authority is defined, add a slash to separate them.
+
+## Enhancements
+
+* [#3199](https://github.com/http4s/http4s/pull/3199): 
+  * New `addSegment` alias for `Uri#/`
+  * New `Uri#addPath` function, which splits the path segments and adds each, URL-encoded.
+
 # v0.20.18 (2020-02-13)
 
 This release is fully backward compatible with 0.20.17.
@@ -132,8 +163,6 @@ This release is binary incompatible with 0.21.0-RC2, but should be source compat
 # v0.20.17 (2020-01-25)
 
 This release is fully compatible with 0.20.16.
-
-# v0.20.17 (2020-01-24)
 
 ## Bugfixes
 

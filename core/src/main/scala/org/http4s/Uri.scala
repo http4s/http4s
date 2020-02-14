@@ -35,19 +35,37 @@ final case class Uri(
     with Renderable {
   import Uri._
 
+  /**
+    * Adds the path exactly as described. Any path element must be urlencoded ahead of time.
+    * @param path the path string to replace
+    */
   def withPath(path: Path): Uri = copy(path = path)
 
   def withFragment(fragment: Fragment): Uri = copy(fragment = Option(fragment))
 
   def withoutFragment: Uri = copy(fragment = Option.empty[Fragment])
 
-  def /(newSegment: Path): Uri = {
-    val encoded = pathEncode(newSegment)
-    val newPath =
-      if (path.isEmpty || path.last != '/') s"$path/$encoded"
-      else s"$path$encoded"
-    copy(path = newPath)
-  }
+  /**
+    * Urlencodes and adds a path segment to the Uri
+    *
+    * @param newSegment the segment to add.
+    * @return a new uri with the segment added to the path
+    */
+  def addSegment(newSegment: Path): Uri = copy(path = toSegment(path, newSegment))
+
+  /**
+    * This is an alias to [[addSegment(Path)]]
+    */
+  def /(newSegment: Path): Uri = addSegment(newSegment)
+
+  /**
+    * Splits the path segments and adds each of them to the path url-encoded.
+    * A segment is delimited by /
+    * @param morePath the path to add
+    * @return a new uri with the segments added to the path
+    */
+  def addPath(morePath: Path): Uri =
+    copy(path = morePath.split("/").foldLeft(path)((p, segment) => toSegment(p, segment)))
 
   def host: Option[Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
@@ -105,7 +123,14 @@ final case class Uri(
 
       case Uri(None, None, _, _, _) =>
     }
-    writer << path
+
+    this match {
+      case Uri(_, Some(_), p, _, _) if p.nonEmpty && !p.startsWith("/") =>
+        writer << "/" << p
+      case Uri(_, _, p, _, _) =>
+        writer << p
+    }
+
     if (query.nonEmpty) writer << '?' << query
     fragment.foreach { f =>
       writer << '#' << encode(f, spaceIsPlus = false)
@@ -119,6 +144,14 @@ final case class Uri(
   override protected def self: Self = this
 
   override protected def replaceQuery(query: Query): Self = copy(query = query)
+
+  private def toSegment(path: Path, newSegment: Path): Path = {
+    val encoded = pathEncode(newSegment)
+    val newPath =
+      if (path.isEmpty || path.last != '/') s"$path/$encoded"
+      else s"$path$encoded"
+    newPath
+  }
 }
 
 object Uri {
