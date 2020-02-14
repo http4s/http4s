@@ -98,6 +98,7 @@ lazy val core = libraryProject("core")
       log4s,
       parboiled,
       vault,
+      specs2ScalacheckTest(scalaVersion.value)
     ),
     unmanagedSourceDirectories in Compile ++= {
       (unmanagedSourceDirectories in Compile).value.map { dir =>
