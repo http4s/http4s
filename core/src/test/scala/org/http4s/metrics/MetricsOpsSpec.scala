@@ -13,6 +13,10 @@ object MetricsOpsSpec {
 
   private implicit val arbUUID: Arbitrary[UUID] =
     Arbitrary(Gen.uuid)
+
+  private implicit val http4sTestingArbitraryForMethod: Arbitrary[Method] = Arbitrary(
+    Gen.oneOf(Method.all)
+  )
 }
 
 class MetricsOpsSpec extends Specification with ScalaCheck {
