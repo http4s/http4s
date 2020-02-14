@@ -192,6 +192,11 @@ http://example.org/a file
       Uri().toString must be_==("")
     }
 
+    "withPath without slash adds a / on render" in {
+      val uri = getUri("http://localhost/foo/bar/baz")
+      uri.withPath("bar").toString must_=== "http://localhost/bar"
+    }
+
     "render a IPv6 address, should be wrapped in brackets" in {
       val variants = "01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab" +: (for {
         h <- 0 to 7
@@ -881,6 +886,14 @@ http://example.org/a file
       processed must not contain "./"
       processed must not contain "../"
     }.setGen(pathGen)
+  }
+
+  "Uri.addPath" should {
+    "add urlencoded segments to uri" in {
+      val uri = getUri("http://localhost/foo")
+      uri.addPath("more/path/auth|urlencoded") must_=== getUri(
+        "http://localhost/foo/more/path/auth%7Curlencoded")
+    }
   }
 
   "Uri.equals" should {

@@ -8,6 +8,44 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.19 (2020-02-13)
+
+This release is fully backward compatible with 0.20.18.
+
+## Bugfixes
+
+* [#3199](https://github.com/http4s/http4s/pull/3199): When `Uri#withPath` is called without a slash and an authority is defined, add a slash to separate them.
+
+## Enhancements
+
+* [#3199](https://github.com/http4s/http4s/pull/3199): 
+  * New `addSegment` alias for `Uri#/`
+  * New `Uri#addPath` function, which splits the path segments and adds each, URL-encoded.
+
+# v0.20.18 (2020-02-13)
+
+This release is fully backward compatible with 0.20.17.
+
+## Bugfixes
+
+* [#3178](https://github.com/http4s/http4s/pull/3178): In `TomcatBuilder`, use the correct values for the `clientAuth` connector attribute.
+* [#3184](https://github.com/http4s/http4s/pull/3184): 
+  * Parse cookie attribute names case insensitively.
+  * Preserve multiple extended cookie attributes, delimited by a `';'`
+  * Support cookie domains with a leading `'.'`
+
+## Enhancements
+
+* [#3190](https://github.com/http4s/http4s/pull/3190): Remove reflection from initialization of `HttpHeaderParser`. This allows modeled headers to be parsed when running on Graal. The change is fully transparent on the JVM.
+
+## Dependency updates
+
+These are already included in the 0.21 series, but caught up here:
+
+* argonaut-6.2.4
+* async-http-client-2.10.5
+* tomcat-9.0.30
+
 # v0.20.17 (2020-01-24)
 
 ## Bugfixes

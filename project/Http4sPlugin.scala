@@ -1,27 +1,23 @@
 package org.http4s.build
 
+import com.jsuereth.sbtpgp.PgpKeys.publishSigned
 import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin
 import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
-import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
-import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import java.lang.{Runtime => JRuntime}
 import sbt.Keys._
 import sbt._
-import sbtrelease.ReleasePlugin.autoImport._
-import sbtrelease.ReleaseStateTransformations._
-import sbtrelease._
+import sbtrelease.Version
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
-    val isTravisBuild = settingKey[Boolean]("true if this build is running as either a PR or a release build within Travis CI")
+    val isCi = settingKey[Boolean]("true if this build is running as either a PR or a release build within Travis CI")
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
-    val http4sPublish = settingKey[Boolean]("Is this a publishing build?")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
     val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
@@ -35,21 +31,13 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
-    isTravisBuild := sys.env.get("TRAVIS").isDefined,
+    isCi := sys.env.get("CI").isDefined,
     
-    // Publishing to gh-pages and sonatype only done from select branches and
-    // never from pull requests.
-    http4sPublish := {
-      sys.env.get("TRAVIS").contains("true") &&
-        sys.env.get("TRAVIS_PULL_REQUEST").contains("false") &&
-        sys.env.get("TRAVIS_REPO_SLUG").contains("http4s/http4s") &&
-        sys.env.get("TEST").contains("publish")
-    },
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
     git.remoteRepo := "git@github.com:http4s/http4s.git"
-  ) ++ signingSettings
+  )
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     // scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.10"),
@@ -148,62 +136,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline"), // discipline-0.10 is incompatible with scalacheck-1.13
-  ) ++ releaseSettings
-
-  val releaseSettings = Seq(
-    // Reset a couple sbt-release defaults that rig changed
-    releaseVersion := { ver =>
-      Version(ver).map(v =>
-        v.copy(qualifier = v.qualifier.map(_.replaceAllLiterally("-SNAPSHOT", "")))
-          .string
-      ).getOrElse(versionFormatError(ver))
-    },
-    releaseTagName := s"v${if (releaseUseGlobalVersion.value) (ThisBuild / version).value else version.value}",
-    releasePublishArtifactsAction := Def.taskDyn {
-      if (isSnapshot.value) publish
-      else publishSigned
-    }.value,
-    releaseProcess := {
-      implicit class StepSyntax(val step: ReleaseStep) {
-        def when(cond: Boolean) =
-          if (cond) step else ReleaseStep(identity)
-      }
-
-      implicit class StateFCommand(val step: State => State) {
-        def when(cond: Boolean) =
-          StepSyntax(step).when(cond)
-      }
-
-      val release = !isSnapshot.value
-      val publishable = http4sPublish.value
-
-      Seq(
-        checkSnapshotDependencies.when(release),
-        inquireVersions.when(release),
-        setReleaseVersion.when(release),
-        tagRelease.when(publishable && release),
-        runClean,
-        releaseStepCommandAndRemaining("+mimaReportBinaryIssues"),
-        releaseStepCommandAndRemaining("+publishSigned").when(publishable),
-        releaseStepCommand("sonatypeBundleRelease").when(publishable && release),
-        setNextVersion.when(publishable && release),
-        commitNextVersion.when(publishable && release),
-        pushChanges.when(publishable && release),
-        // We need a superfluous final step to ensure exit code
-        // propagation from failed steps above.
-        //
-        // https://github.com/sbt/sbt-release/issues/95
-        releaseStepCommand("show core/version")
-      )
-    }
-  )
-
-  val signingSettings = Seq(
-    useGpg := false,
-    usePgpKeyHex("42FAD8A85B13261D"),
-    pgpPublicRing := baseDirectory.value / "project" / ".gnupg" / "pubring.gpg",
-    pgpSecretRing := baseDirectory.value / "project" / ".gnupg" / "secring.gpg",
-    pgpPassphrase := sys.env.get("PGP_PASS").map(_.toArray),
   )
 
   def extractApiVersion(version: String) = {
@@ -290,8 +222,8 @@ object Http4sPlugin extends AutoPlugin {
     if (priorTo2_13(scalaVersion)) "1.0.5" else "1.0.4"
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.13.v20181017"
-  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.3"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.4"
+  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.4"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.10.5"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.11"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.6.1"
@@ -342,7 +274,7 @@ object Http4sPlugin extends AutoPlugin {
   def specs2MatcherExtra(sv: String)        = "org.specs2"             %% "specs2-matcher-extra"      % specs2Version(sv)
   def specs2Scalacheck(sv: String)          = "org.specs2"             %% "specs2-scalacheck"         % specs2Version(sv)
   def specs2ScalacheckTest(sv: String)      = "org.specs2"             %% "specs2-scalacheck"         % specs2Version(sv) % Test
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.30"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.31"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.4"
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.4.2"
