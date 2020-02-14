@@ -6,6 +6,8 @@ import java.util.UUID
 import org.http4s._
 import org.scalacheck.{Arbitrary, Gen}
 import MetricsOps.classifierFMethodWithOptionallyExcludedPath
+import org.specs2.ScalaCheck
+import org.specs2.mutable.Specification
 
 object MetricsOpsSpec {
 
@@ -13,7 +15,7 @@ object MetricsOpsSpec {
     Arbitrary(Gen.uuid)
 }
 
-class MetricsOpsSpec {
+class MetricsOpsSpec extends Specification with ScalaCheck {
 
   import MetricsOpsSpec.{arbUUID, http4sTestingArbitraryForMethod}
 
