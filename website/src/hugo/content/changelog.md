@@ -8,6 +8,20 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.19 (2020-02-13)
+
+This release is fully backward compatible with 0.20.18.
+
+## Bugfixes
+
+* [#3199](https://github.com/http4s/http4s/pull/3199): When `Uri#withPath` is called without a slash and an authority is defined, add a slash to separate them.
+
+## Enhancements
+
+* [#3199](https://github.com/http4s/http4s/pull/3199): 
+  * New `addSegment` alias for `Uri#/`
+  * New `Uri#addPath` function, which splits the path segments and adds each, URL-encoded.
+
 # v0.20.18 (2020-02-13)
 
 This release is fully backward compatible with 0.20.17.
