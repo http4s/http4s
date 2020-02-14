@@ -78,7 +78,7 @@ private[parser] trait CookieHeader {
         ignoreCase("path=") ~ StringValue ~> { (cookie: ResponseCookie, pathValue: String) =>
           cookie.copy(path = Some(pathValue))
         } |
-        "SameSite=" ~ SameSite ~> { (cookie: ResponseCookie, sameSiteValue: SameSite) =>
+        ignoreCase("samesite=") ~ SameSite ~> { (cookie: ResponseCookie, sameSiteValue: SameSite) =>
           cookie.copy(sameSite = sameSiteValue)
         } |
         // TODO: Capture so we can create the rule, but there must be a better way
@@ -112,7 +112,7 @@ private[parser] trait CookieHeader {
     def StringValue: Rule1[String] = rule { capture(oneOrMore((!(CTL | ch(';'))) ~ Char)) }
 
     def SameSite: Rule1[SameSite] = rule {
-      "Strict" ~ push(Strict) | "Lax" ~ push(Lax) | "None" ~ push(None)
+      ignoreCase("strict") ~ push(Strict) | ignoreCase("lax") ~ push(Lax) | ignoreCase("none") ~ push(None)
     }
   }
   // scalastyle:on public.methods.have.type
