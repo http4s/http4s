@@ -7,15 +7,15 @@ import org.http4s._
 import org.scalacheck.{Arbitrary, Gen}
 import MetricsOps.classifierFMethodWithOptionallyExcludedPath
 
-object PrometheusSpec {
+object MetricsOpsSpec {
 
   private implicit val arbUUID: Arbitrary[UUID] =
     Arbitrary(Gen.uuid)
 }
 
-class PrometheusSpec extends Http4sSpec {
+class MetricsOpsSpec {
 
-  import PrometheusSpec.arbUUID
+  import MetricsOpsSpec.{arbUUID, http4sTestingArbitraryForMethod}
 
   "classifierFMethodWithOptionallyExcludedPath" should {
     "properly exclude UUIDs" in prop {
