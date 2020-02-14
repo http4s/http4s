@@ -19,7 +19,6 @@ This release is fully backward compatible with v0.21.0, and includes all the cha
 ## Enhancements
 
 * [#3185](https://github.com/http4s/http4s/pull/3185): In blaze-server, recover `EOF` to close the connection instead of catching it. This reduces log noise in Cats Effect implementations that wrap uncaught exceptions.
-* [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware.
 
 ## Dependency updates
 
