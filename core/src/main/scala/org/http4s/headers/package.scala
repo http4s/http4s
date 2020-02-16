@@ -49,12 +49,12 @@ package object headers {
         }
     }
 
-  @deprecated("Deprecated in favor of HttpToken", "0.18")
+  @deprecated("Deprecated in favor of HttpToken", "0.22")
   type AgentToken = ProductIdOrComment
 
-  @deprecated("Deprecated in favor of HttpComment", "0.18")
+  @deprecated("Deprecated in favor of HttpComment", "0.22")
   type AgentComment = ProductComment
 
-  @deprecated("Deprecated in favor of HttpProduct", "0.18")
+  @deprecated("Deprecated in favor of HttpProduct", "0.22")
   type AgentProduct = ProductId
 }

@@ -5,6 +5,9 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
+  def apply(id: ProductId): Server =
+    new Server(id, Nil)
+
   override def parse(s: String): ParseResult[Server] =
     HttpHeaderParser.SERVER(s)
 }
