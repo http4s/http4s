@@ -97,7 +97,7 @@ lazy val core = libraryProject("core")
       fs2Io(scalaVersion.value),
       log4s,
       parboiled,
-      vault
+      vault,
     ),
     unmanagedSourceDirectories in Compile ++= {
       (unmanagedSourceDirectories in Compile).value.map { dir =>
