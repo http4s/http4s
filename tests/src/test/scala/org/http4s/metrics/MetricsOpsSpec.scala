@@ -19,7 +19,7 @@ object MetricsOpsSpec {
   )
 }
 
-class MetricsOpsSpec extends Specification with ScalaCheck {
+class MetricsOpsSpec extends Http4sSpec {
 
   import MetricsOpsSpec.{arbUUID, http4sTestingArbitraryForMethod}
 
