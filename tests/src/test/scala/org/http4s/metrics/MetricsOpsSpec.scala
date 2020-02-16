@@ -11,15 +11,11 @@ object MetricsOpsSpec {
 
   private implicit val arbUUID: Arbitrary[UUID] =
     Arbitrary(Gen.uuid)
-
-  private implicit val http4sTestingArbitraryForMethod: Arbitrary[Method] = Arbitrary(
-    Gen.oneOf(Method.all)
-  )
 }
 
 class MetricsOpsSpec extends Http4sSpec {
 
-  import MetricsOpsSpec.{arbUUID, http4sTestingArbitraryForMethod}
+  import MetricsOpsSpec.arbUUID
 
   "classifierFMethodWithOptionallyExcludedPath" should {
     "properly exclude UUIDs" in prop {
