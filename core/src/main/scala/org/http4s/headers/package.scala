@@ -48,4 +48,13 @@ package object headers {
             .append(idMostSigBits.toHexString)
         }
     }
+
+  @deprecated("Deprecated in favor of HttpToken", "0.22")
+  type AgentToken = ProductIdOrComment
+
+  @deprecated("Deprecated in favor of HttpComment", "0.22")
+  type AgentComment = ProductComment
+
+  @deprecated("Deprecated in favor of HttpProduct", "0.22")
+  type AgentProduct = ProductId
 }
