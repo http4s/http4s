@@ -33,7 +33,7 @@ jobs:
           key: sbt-${{ hashFiles('**/build.sbt') }}
       - name: Check formatting
         if: startsWith(matrix.scala, '2.12.') && (matrix.java == 'adopt@1.8')
-        run: sbt ++$SCALA_VERSION scalafmtAll
+        run: sbt ++$SCALA_VERSION scalafmtCheckAll
       - name: Compile
         run: sbt ++$SCALA_VERSION test:compile
       - name: Check compatibility
