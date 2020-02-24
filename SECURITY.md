@@ -15,7 +15,8 @@ We are currently providing security updates to the following versions:
 ## Reporting a Vulnerability
 
 We will use [keybase](https://keybase.io) as the vehicle for reporting security issues as that gives us a
-much better feedback loop. We want to work with the reporter to make sure we understand the reported issue.
+forum to discuss, analyze, and remediate the threat before an exploit is published.
+[Responsible disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure) enhances security for the entire community.
 
 If the vulnerability is found to be true we will release a patch version of our software
 and make sure that finds it way to Maven Central before we push the patch to github.
