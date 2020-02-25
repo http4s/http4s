@@ -13,17 +13,14 @@ import cats.implicits._
 import fs2._
 import java.io.File
 import org.http4s.headers._
-import org.http4s.Uri._
+import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
 import org.specs2.mutable.Specification
 
 class MultipartSpec extends Specification {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
 
-  val url = Uri(
-    scheme = Some(Scheme.https),
-    authority = Some(Authority(host = RegName("example.com"))),
-    path = "/path/to/some/where")
+  val url = uri"https://example.com/path/to/some/where"
 
   implicit def partIOEq: Eq[Part[IO]] =
     Eq.instance[Part[IO]] {

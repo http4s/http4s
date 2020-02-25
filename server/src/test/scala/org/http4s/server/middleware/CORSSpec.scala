@@ -16,8 +16,8 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 
 class CORSSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val routes = HttpRoutes.of[IO] {
-    case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
-    case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
+    case req if req.pathInfo == path"/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
+    case req if req.pathInfo == path"/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
   }
 
   val cors1 = CORS(routes)
@@ -38,7 +38,7 @@ class CORSSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     hs.get(hk).fold(false)(_.value === expected)
 
   def buildRequest(path: String, method: Method = GET) =
-    Request[IO](uri = Uri(path = path), method = method).withHeaders(
+    Request[IO](uri = Uri(path = Uri.Path.fromString(path)), method = method).withHeaders(
       Header("Origin", "http://allowed.com"),
       Header("Access-Control-Request-Method", "GET"))
 

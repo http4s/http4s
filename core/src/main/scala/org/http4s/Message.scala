@@ -209,7 +209,7 @@ object Message {
   */
 final class Request[F[_]](
     val method: Method = Method.GET,
-    val uri: Uri = Uri(path = "/"),
+    val uri: Uri = Uri(path = Uri.Path.Root),
     val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
     val headers: Headers = Headers.empty,
     val body: EntityBody[F] = EmptyBody,
@@ -271,11 +271,14 @@ final class Request[F[_]](
     uri.path.splitAt(caret)
 
   private def caret =
-    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
 
+  @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "1.0.0-M1")
   def withPathInfo(pi: String): Self =
+    withPathInfo(Uri.Path.fromString(pi))
+  def withPathInfo(pi: Uri.Path): Self =
     // Don't use withUri, which clears the caret
-    copy(uri = uri.withPath(scriptName + pi))
+    copy(uri = uri.withPath(scriptName.concat(pi)))
 
   def pathTranslated: Option[File] = attributes.lookup(Keys.PathTranslated)
 
@@ -467,7 +470,7 @@ final class Request[F[_]](
 object Request {
   def apply[F[_]](
       method: Method = Method.GET,
-      uri: Uri = Uri(path = "/"),
+      uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
       body: EntityBody[F] = EmptyBody,

@@ -675,8 +675,7 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingCogenForTransferCoding: Cogen[TransferCoding] =
     Cogen[String].contramap(_.coding.toLowerCase(Locale.ROOT))
 
-  /** https://tools.ietf.org/html/rfc3986 */
-  implicit val http4sTestingArbitraryForUri: Arbitrary[Uri] = Arbitrary {
+  implicit val http4sTestingAbitraryForPath: Arbitrary[Uri.Path] = Arbitrary {
     val genSegmentNzNc =
       nonEmptyListOf(oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@"))).map(_.mkString)
     val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
@@ -687,16 +686,26 @@ private[http4s] trait ArbitraryInstances {
     val genPathRootless = genSegmentNz |+| genPathAbEmpty
     val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
     val genPathAbsolute = const("/") |+| opt(genPathRootless)
+
+    oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty).map(
+      Uri.Path.fromString)
+  }
+
+  implicit val http4sTestingCogenForPath: Cogen[Uri.Path] =
+    Cogen[String].contramap(_.renderString)
+
+  /** https://tools.ietf.org/html/rfc3986 */
+  implicit val http4sTestingArbitraryForUri: Arbitrary[Uri] = Arbitrary {
+    val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genScheme = oneOf(Uri.Scheme.http, Uri.Scheme.https)
-    val genPath =
-      oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty)
+
     val genFragment: Gen[Uri.Fragment] =
       listOf(oneOf(genPChar, const("/"), const("?"))).map(_.mkString)
 
     for {
       scheme <- Gen.option(genScheme)
       authority <- Gen.option(http4sTestingArbitraryForAuthority.arbitrary)
-      path <- genPath
+      path <- http4sTestingAbitraryForPath.arbitrary
       query <- http4sTestingArbitraryForQuery.arbitrary
       fragment <- Gen.option(genFragment)
     } yield Uri(scheme, authority, path, query, fragment)

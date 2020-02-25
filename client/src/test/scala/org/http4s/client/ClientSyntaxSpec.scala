@@ -27,15 +27,15 @@ class ClientSyntaxSpec
     with Http4sLegacyMatchersIO {
   val app = HttpRoutes
     .of[IO] {
-      case r if r.method == GET && r.pathInfo == "/" =>
+      case r if r.method == GET && r.pathInfo == path"/" =>
         Response[IO](Ok).withEntity("hello").pure[IO]
-      case r if r.method == PUT && r.pathInfo == "/put" =>
+      case r if r.method == PUT && r.pathInfo == path"/put" =>
         Response[IO](Created).withEntity(r.body).pure[IO]
-      case r if r.method == GET && r.pathInfo == "/echoheaders" =>
+      case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
         r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
           Response[IO](Ok).withEntity(m.toString).pure[IO]
         }
-      case r if r.pathInfo == "/status/500" =>
+      case r if r.pathInfo == path"/status/500" =>
         Response[IO](InternalServerError).withEntity("Oops").pure[IO]
     }
     .orNotFound

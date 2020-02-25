@@ -27,7 +27,10 @@ private[http4s] class RequestUriParser(val input: ParserInput, val charset: Char
       PathAbsolute ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
         (path, query, fragment) =>
           val q = query.map(Q.fromString).getOrElse(Q.empty)
-          org.http4s.Uri(path = path, query = q, fragment = fragment)
+          org.http4s.Uri(
+            path = org.http4s.Uri.Path.fromString(path),
+            query = q,
+            fragment = fragment)
       }
     }
 
@@ -36,6 +39,7 @@ private[http4s] class RequestUriParser(val input: ParserInput, val charset: Char
       "*" ~ push(
         org.http4s.Uri(
           authority = Some(org.http4s.Uri.Authority(host = org.http4s.Uri.RegName("*"))),
-          path = ""))
+          path = org.http4s.Uri.Path.empty))
     }
+  // scalastyle:on public.methods.have.type
 }

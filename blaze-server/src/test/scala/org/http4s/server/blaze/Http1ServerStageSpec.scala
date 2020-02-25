@@ -431,14 +431,14 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
       val routes = HttpRoutes
         .of[IO] {
-          case req if req.pathInfo == "/foo" =>
+          case req if req.pathInfo == path"/foo" =>
             for {
               _ <- req.body.compile.drain
               hs <- req.trailerHeaders
               resp <- Ok(hs.toList.mkString)
             } yield resp
 
-          case req if req.pathInfo == "/bar" =>
+          case req if req.pathInfo == path"/bar" =>
             for {
               // Don't run the body
               hs <- req.trailerHeaders

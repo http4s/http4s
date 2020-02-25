@@ -13,7 +13,6 @@ import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.testing.Http4sLegacyMatchersIO
 import _root_.io.chrisdavenport.vault._
-import org.http4s.Uri.{Authority, Scheme}
 import org.typelevel.ci.CIString
 
 class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
@@ -102,34 +101,34 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "Request.with..." should {
-      val path1 = "/path1"
-      val path2 = "/somethingelse"
-      val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 3)
+      val path1 = uri"/path1"
+      val path2 = path"/somethingelse"
+      val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 0)
 
       "reset pathInfo if uri is changed" in {
-        val originalReq = Request(uri = Uri(path = path1), attributes = attributes)
-        val updatedReq = originalReq.withUri(uri = Uri(path = path2))
+        val originalReq = Request(uri = path1, attributes = attributes)
+        val updatedReq = originalReq.withUri(uri = Uri().withPath(path2))
 
-        updatedReq.scriptName mustEqual ""
+        updatedReq.scriptName mustEqual Uri.Path.Root
         updatedReq.pathInfo mustEqual path2
       }
 
       "not modify pathInfo if uri is unchanged" in {
-        val originalReq = Request(uri = Uri(path = path1), attributes = attributes)
+        val originalReq = Request(uri = path1, attributes = attributes)
         val updatedReq = originalReq.withMethod(method = Method.DELETE)
 
-        originalReq.pathInfo mustEqual updatedReq.pathInfo
         originalReq.scriptName mustEqual updatedReq.scriptName
+        originalReq.pathInfo mustEqual updatedReq.pathInfo
       }
 
       "preserve caret in withPathInfo" in {
         val originalReq = Request(
-          uri = Uri(path = "/foo/bar"),
-          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 4))
-        val updatedReq = originalReq.withPathInfo("/quux")
+          uri = uri"/foo/bar",
+          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 0))
+        val updatedReq = originalReq.withPathInfo(path"/quux")
 
-        updatedReq.scriptName mustEqual "/foo"
-        updatedReq.pathInfo mustEqual "/quux"
+        updatedReq.scriptName mustEqual path"/foo"
+        updatedReq.pathInfo mustEqual path"/quux"
       }
     }
 
@@ -197,12 +196,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "asCurl" should {
-      val port = 1234
-      val uri = Uri(
-        path = "/foo",
-        scheme = Some(Scheme.http),
-        authority = Some(Authority(port = Some(port)))
-      )
+      val uri = uri"http://localhost:1234/foo"
       val request = Request[IO](Method.GET, uri)
 
       "build cURL representation with scheme and authority" in {

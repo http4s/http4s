@@ -33,6 +33,6 @@ abstract class Server {
           },
           port = Some(address.getPort)
         )),
-      path = "/"
+      path = Uri.Path.Root
     )
 }

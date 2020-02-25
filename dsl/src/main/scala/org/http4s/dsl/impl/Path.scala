@@ -56,14 +56,13 @@ object Path {
     * }}}
     */
   def apply(str: String): Path =
-    if (str == "" || str == "/")
-      Root
-    else {
-      val segments = str.split("/", -1)
-      // .head is safe because split always returns non-empty array
-      val segments0 = if (segments.head == "") segments.drop(1) else segments
-      segments0.foldLeft(Root: Path)((path, seg) => path / Uri.decode(seg))
-    }
+    apply(Uri.Path.fromString(str))
+
+  def apply(path: Uri.Path): Path =
+    if (path.isEmpty) Root
+    else
+      (if (path.endsWithSlash) path.segments :+ Uri.Path.Segment("") else path.segments)
+        .foldLeft(Root: Path)((path, seg) => path / seg.decoded())
 
   def apply(first: String, rest: String*): Path =
     rest.foldLeft(Root / first)(_ / _)

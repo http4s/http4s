@@ -67,25 +67,22 @@ object WebjarService {
     val Root = Paths.get("")
     Kleisli {
       // Intercepts the routes that match webjar asset names
-      case request if request.method == Method.GET =>
-        request.pathInfo.split("/") match {
-          case Array(head, segments @ _*) if head.isEmpty =>
-            OptionT
-              .liftF(F.catchNonFatal {
-                segments.foldLeft(Root) {
-                  case (_, "" | "." | "..") => throw BadTraversal
-                  case (path, segment) =>
-                    path.resolve(Uri.decode(segment, plusIsSpace = true))
-                }
-              })
-              .subflatMap(toWebjarAsset)
-              .filter(config.filter)
-              .flatMap(serveWebjarAsset(config, request)(_))
-              .recover {
-                case BadTraversal => Response(Status.BadRequest)
-              }
-          case _ => OptionT.none
-        }
+      case request if request.method == Method.GET && request.pathInfo.nonEmpty =>
+        val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
+        OptionT
+          .liftF(F.catchNonFatal {
+            segments.foldLeft(Root) {
+              case (_, "" | "." | "..") => throw BadTraversal
+              case (path, segment) =>
+                path.resolve(segment)
+            }
+          })
+          .subflatMap(toWebjarAsset)
+          .filter(config.filter)
+          .flatMap(serveWebjarAsset(config, request)(_))
+          .recover {
+            case BadTraversal => Response(Status.BadRequest)
+          }
       case _ => OptionT.none
     }
   }
@@ -119,5 +116,5 @@ object WebjarService {
       webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(webjarAsset.pathInJar, config.blocker, Some(request))
-      .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+      .semiflatMap(config.cacheStrategy.cache(request.pathInfo.renderString, _))
 }
