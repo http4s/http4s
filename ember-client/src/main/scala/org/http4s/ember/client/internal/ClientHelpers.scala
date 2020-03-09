@@ -58,35 +58,42 @@ private[client] object ClientHelpers {
       }
     } yield RequestKeySocket(socket, requestKey)
 
-  def request[F[_]: Concurrent: ContextShift](
+  def request[F[_]: Concurrent: ContextShift: Timer](
       request: Request[F],
       requestKeySocket: RequestKeySocket[F],
       chunkSize: Int,
       maxResponseHeaderSize: Int,
       timeout: Duration
-  )(logger: Logger[F])(implicit T: Timer[F]): F[Response[F]] = {
-    def writeRequestToSocket(socket: Socket[F], timeout: Option[FiniteDuration]): fs2.Stream[F, Unit] =
+  )(logger: Logger[F]): Resource[F, Response[F]] = {
+    val RT: Timer[Resource[F, *]] = Timer[F].mapK(Resource.liftK[F])
+
+    def writeRequestToSocket(
+        socket: Socket[F],
+        timeout: Option[FiniteDuration]): Resource[F, Unit] =
       Encoder
         .reqToBytes(request)
         .through(socket.writes(timeout))
+        .compile
+        .resource
+        .drain
 
-    def onNoTimeout(socket: Socket[F]): F[Response[F]] =
-      writeRequestToSocket(socket, None).compile.drain >>
+    def onNoTimeout(socket: Socket[F]): Resource[F, Response[F]] =
+      writeRequestToSocket(socket, None) >>
         Parser.Response.parser(maxResponseHeaderSize)(
           socket.reads(chunkSize, None)
         )(logger)
 
-    def onTimeout(socket: Socket[F], fin: FiniteDuration): F[Response[F]] =
+    def onTimeout(socket: Socket[F], fin: FiniteDuration): Resource[F, Response[F]] =
       for {
-        start <- T.clock.realTime(MILLISECONDS)
-        _ <- writeRequestToSocket(socket, Option(fin)).compile.drain
-        timeoutSignal <- SignallingRef[F, Boolean](true)
-        sent <- T.clock.realTime(MILLISECONDS)
+        start <- RT.clock.realTime(MILLISECONDS)
+        _ <- writeRequestToSocket(socket, Option(fin))
+        timeoutSignal <- Resource.liftF(SignallingRef[F, Boolean](true))
+        sent <- RT.clock.realTime(MILLISECONDS)
         remains = fin - (sent - start).millis
         resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
           readWithTimeout(socket, start, remains, timeoutSignal.get, chunkSize)
         )(logger)
-        _ <- timeoutSignal.set(false).void
+        _ <- Resource.liftF(timeoutSignal.set(false).void)
       } yield resp
 
     timeout match {
