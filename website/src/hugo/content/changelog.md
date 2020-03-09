@@ -12,6 +12,10 @@ it.
 
 This release is fully backward compatible with 0.21.2.
 
+# Bugfixes
+
+* [#3245](https://github.com/http4s/http4s/pull/3245): Write ember-client request to socket before reading response
+
 ## Enhancements
 
 * [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware. 

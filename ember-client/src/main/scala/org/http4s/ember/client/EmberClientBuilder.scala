@@ -122,29 +122,28 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               )
             }
           )
-          response <- Resource.make[F, Response[F]](
-            org.http4s.ember.client.internal.ClientHelpers
-              .request[F](
-                request,
-                managed.value._1,
-                chunkSize,
-                maxResponseHeaderSize,
-                timeout
-              )(logger)
-              .map(response =>
-                response.copy(body = response.body.onFinalizeCaseWeak {
-                  case ExitCase.Completed =>
-                    val requestClose = request.headers.get(Connection).exists(_.hasClose)
-                    val responseClose = response.isChunked || response.headers
-                      .get(Connection)
-                      .exists(_.hasClose)
+          responseResource <- org.http4s.ember.client.internal.ClientHelpers
+            .request[F](
+              request,
+              managed.value._1,
+              chunkSize,
+              maxResponseHeaderSize,
+              timeout
+            )(logger)
+            .map(response =>
+              response.copy(body = response.body.onFinalizeCaseWeak {
+                case ExitCase.Completed =>
+                  val requestClose = request.headers.get(Connection).exists(_.hasClose)
+                  val responseClose = response.isChunked || response.headers
+                    .get(Connection)
+                    .exists(_.hasClose)
 
-                    if (requestClose || responseClose) Sync[F].unit
-                    else managed.canBeReused.set(Reusable.Reuse)
-                  case ExitCase.Canceled => Sync[F].unit
-                  case ExitCase.Error(_) => Sync[F].unit
-                }))
-          )(resp =>
+                  if (requestClose || responseClose) Sync[F].unit
+                  else managed.canBeReused.set(Reusable.Reuse)
+                case ExitCase.Canceled => Sync[F].unit
+                case ExitCase.Error(_) => Sync[F].unit
+              }))
+          response <- Resource.make[F, Response[F]](responseResource.pure[F])(resp =>
             managed.canBeReused.get.flatMap {
               case Reusable.Reuse => resp.body.compile.drain.attempt.void
               case Reusable.DontReuse => Sync[F].unit
