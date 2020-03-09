@@ -5,7 +5,6 @@ import fs2.concurrent._
 import fs2.io.tcp._
 import cats._
 import cats.effect._
-import cats.effect.implicits._
 import cats.implicits._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
@@ -66,30 +65,21 @@ private[client] object ClientHelpers {
       maxResponseHeaderSize: Int,
       timeout: Duration
   )(logger: Logger[F])(implicit T: Timer[F]): F[Response[F]] = {
+    def writeRequestToSocket(socket: Socket[F], timeout: Option[FiniteDuration]): fs2.Stream[F, Unit] =
+      Encoder
+        .reqToBytes(request)
+        .through(socket.writes(timeout))
+
     def onNoTimeout(socket: Socket[F]): F[Response[F]] =
-      Parser.Response.parser(maxResponseHeaderSize)(
-        socket
-          .reads(chunkSize, None)
-          .concurrently(
-            Encoder
-              .reqToBytes(request)
-              .through(socket.writes(None))
-              .drain
-          )
-      )(logger)
+      writeRequestToSocket(socket, None).compile.drain >>
+        Parser.Response.parser(maxResponseHeaderSize)(
+          socket.reads(chunkSize, None)
+        )(logger)
 
     def onTimeout(socket: Socket[F], fin: FiniteDuration): F[Response[F]] =
       for {
         start <- T.clock.realTime(MILLISECONDS)
-
-        _ <- (
-          Encoder
-            .reqToBytes(request)
-            .through(socket.writes(Some(fin)))
-            .compile
-            .drain
-          )
-          .start
+        _ <- writeRequestToSocket(socket, Option(fin)).compile.drain
         timeoutSignal <- SignallingRef[F, Boolean](true)
         sent <- T.clock.realTime(MILLISECONDS)
         remains = fin - (sent - start).millis
