@@ -6,7 +6,6 @@ import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset, StandardCharsets}
 import java.nio.charset.StandardCharsets
-import org.http4s.Uri._
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
@@ -26,11 +25,11 @@ import scala.reflect.macros.whitebox
   */
 // TODO fix Location header, add unit tests
 final case class Uri(
-    scheme: Option[Scheme] = None,
-    authority: Option[Authority] = None,
-    path: Path = "",
+    scheme: Option[Uri.Scheme] = None,
+    authority: Option[Uri.Authority] = None,
+    path: Uri.Path = "",
     query: Query = Query.empty,
-    fragment: Option[Fragment] = None)
+    fragment: Option[Uri.Fragment] = None)
     extends QueryOps
     with Renderable {
   import Uri._
