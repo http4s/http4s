@@ -31,7 +31,7 @@ trait PlayInstances {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JsValue] =
     jawn.jawnDecoder[F, JsValue]
 
-  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String], A: Writes]: EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_], A: Writes]: EntityEncoder[F, A] =
     jsonEncoder[F].contramap[A](Json.toJson(_))
 
   implicit def jsonEncoder[F[_]]: EntityEncoder[F, JsValue] =
