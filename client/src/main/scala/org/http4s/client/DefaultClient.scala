@@ -1,7 +1,7 @@
 package org.http4s
 package client
 
-import cats.Applicative
+import cats.{Applicative, MonadError}
 import cats.data.{Kleisli, OptionT}
 import cats.effect.{Bracket, Resource}
 import cats.implicits._
@@ -34,6 +34,23 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     */
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
     req.flatMap(fetch(_)(f))
+
+  /** Submits a request, and provides a callback to process the response.
+    * Note that all errors, e.g. decoding a payload, client times out, etc.
+    *
+    * @param req An effect of the request to submit
+    * @param f A callback for the response to req.  The underlying HTTP connection
+    *          is disposed when the returned task completes.  Attempts to read the
+    *          response body afterward will result in an error.
+    * @param handle A function that maps a Throwable to an F[A]
+    * @return The result of applying f to the response to req, while handling any raised errors
+    */
+  def fetchOrError[A](req: Request[F])(f: Response[F] => F[A])(handle: Throwable => F[A])(
+    implicit ev: MonadError[F, Throwable]
+  ): F[A] =
+    run(req)
+      .use(f)
+      .handleErrorWith(handle)
 
   /**
     * Returns this client as a [[Kleisli]].  All connections created by this
