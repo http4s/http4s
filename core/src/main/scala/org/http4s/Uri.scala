@@ -612,7 +612,7 @@ object Uri {
       }
 
       def h16: Rule1[Short] = rule {
-        capture((1 to 4).times(HexDigit)) ~> { s: String => java.lang.Integer.parseInt(s, 16).toShort }
+        capture((1 to 4).times(HexDigit)) ~> { (s: String) => java.lang.Integer.parseInt(s, 16).toShort }
       }
       // format:on
 

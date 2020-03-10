@@ -16,7 +16,7 @@ object HeaderEcho {
     */
   def apply[F[_]: Functor, G[_]](echoHeadersWhen: CaseInsensitiveString => Boolean)(
       http: Http[F, G]): Http[F, G] =
-    Kleisli { req: Request[G] =>
+    Kleisli { (req: Request[G]) =>
       val headersToEcho = req.headers.filter(h => echoHeadersWhen(h.name))
 
       http(req).map(_.putHeaders(headersToEcho.toList: _*))

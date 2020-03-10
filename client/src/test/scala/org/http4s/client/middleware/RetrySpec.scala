@@ -34,7 +34,7 @@ class RetrySpec extends Http4sSpec with Tables with Http4sLegacyMatchersIO {
       body: EntityBody[IO]): Int = {
     val max = 2
     var attemptsCounter = 1
-    val policy = RetryPolicy[IO] { attempts: Int =>
+    val policy = RetryPolicy[IO] { (attempts: Int) =>
       if (attempts >= max) None
       else {
         attemptsCounter = attemptsCounter + 1
@@ -68,7 +68,7 @@ class RetrySpec extends Http4sSpec with Tables with Http4sLegacyMatchersIO {
         HttpVersionNotSupported ! 1 | { countRetries(defaultClient, GET, _, EmptyBody) must_== _ }
     }
 
-    "not retry non-idempotent methods" in prop { s: Status =>
+    "not retry non-idempotent methods" in prop { (s: Status) =>
       countRetries(defaultClient, POST, s, EmptyBody) must_== 1
     }
 
@@ -82,7 +82,7 @@ class RetrySpec extends Http4sSpec with Tables with Http4sLegacyMatchersIO {
             case true => IO.pure("OK")
           })
           val req = Request[IO](method, uri("http://localhost/status-from-body")).withEntity(body)
-          val policy = RetryPolicy[IO]({ attempts: Int =>
+          val policy = RetryPolicy[IO]({ (attempts: Int) =>
             if (attempts >= 2) None
             else Some(Duration.Zero)
           }, retriable)

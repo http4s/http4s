@@ -20,7 +20,7 @@ private[server] object ServerHelpers {
       sg: SocketGroup,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
       // Defaults
-      onError: Throwable => Response[F] = { _: Throwable =>
+      onError: Throwable => Response[F] = { (_: Throwable) =>
         Response[F](Status.InternalServerError)
       },
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
@@ -72,7 +72,7 @@ private[server] object ServerHelpers {
                   ) {
                     case (context, params) =>
                       context
-                        .server(socketInit, params, { s: String =>
+                        .server(socketInit, params, { (s: String) =>
                           logger.trace(s)
                         }.some)
                         .widen[Socket[F]]

@@ -142,7 +142,7 @@ Let's provide an encoder:
 
 ```tut:book
 implicit val HelloEncoder: Encoder[Hello] =
-  Encoder.instance { hello: Hello =>
+  Encoder.instance { (hello: Hello) =>
     json"""{"hello": ${hello.name}}"""
   }
 

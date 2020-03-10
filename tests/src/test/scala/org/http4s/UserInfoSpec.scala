@@ -71,14 +71,14 @@ class UserInfoSpec extends Http4sSpec {
       UserInfo.fromString("abc:+") must_== Right(UserInfo("abc", Some("+")))
     }
 
-    "reject userinfos with invalid characters" in prop { s: String =>
+    "reject userinfos with invalid characters" in prop { (s: String) =>
       !s.forall(Uri.Unreserved ++ GenDelims ++ SubDelims ++ ":") ==>
         (UserInfo.fromString(s) must beLeft)
     }
   }
 
   "compare" should {
-    "be consistent with (username, password)" in prop { xs: List[UserInfo] =>
+    "be consistent with (username, password)" in prop { (xs: List[UserInfo]) =>
       def tupled(u: UserInfo) = (u.username, u.password)
       xs.sorted.map(tupled) must_== xs.map(tupled).sorted
     }

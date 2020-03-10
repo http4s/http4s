@@ -153,7 +153,7 @@ object EntityEncoder {
   // TODO parameterize chunk size
   def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
       blocker: Blocker): EntityEncoder[F, F[IS]] =
-    entityBodyEncoder[F].contramap { in: F[IS] =>
+    entityBodyEncoder[F].contramap { (in: F[IS]) =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize, blocker)
     }
 
@@ -162,7 +162,7 @@ object EntityEncoder {
       implicit F: Sync[F],
       cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
-    entityBodyEncoder[F].contramap { fr: F[R] =>
+    entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
       def readToBytes(r: Reader): F[Option[Chunk[Byte]]] =

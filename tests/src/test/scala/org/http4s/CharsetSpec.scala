@@ -6,7 +6,7 @@ import java.util.Locale
 class CharsetSpec extends Http4sSpec {
   "fromString" should {
     "be case insensitive" in {
-      prop { cs: NioCharset =>
+      prop { (cs: NioCharset) =>
         val upper = cs.name.toUpperCase(Locale.ROOT)
         val lower = cs.name.toLowerCase(Locale.ROOT)
         Charset.fromString(upper) must_== Charset.fromString(lower)

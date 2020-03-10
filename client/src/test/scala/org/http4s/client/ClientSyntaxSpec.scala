@@ -46,7 +46,7 @@ class ClientSyntaxSpec
       disposed = true
       ()
     }
-    val disposingClient = Client { req: Request[IO] =>
+    val disposingClient = Client { (req: Request[IO]) =>
       Resource.make(app(req))(_ => dispose)
     }
     f(disposingClient).attempt.unsafeRunSync()

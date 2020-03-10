@@ -91,7 +91,7 @@ object QueryParamEncoder {
     }
 
   def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
-    QueryParamEncoder[String].contramap[Instant] { i: Instant =>
+    QueryParamEncoder[String].contramap[Instant] { (i: Instant) =>
       formatter.format(i)
     }
 

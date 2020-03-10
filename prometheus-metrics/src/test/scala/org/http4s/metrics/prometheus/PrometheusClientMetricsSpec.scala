@@ -35,7 +35,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("bad-request").attempt
         } yield {
-          resp must beLeft { e: Throwable =>
+          resp must beLeft { (e: Throwable) =>
             e must beLike { case UnexpectedStatus(Status.BadRequest) => ok }
           }
 
@@ -51,7 +51,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("internal-server-error").attempt
         } yield {
-          resp must beLeft { e: Throwable =>
+          resp must beLeft { (e: Throwable) =>
             e must beLike { case UnexpectedStatus(Status.InternalServerError) => ok }
           }
 
@@ -123,7 +123,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("error").attempt
         } yield {
-          resp must beLeft { e: Throwable =>
+          resp must beLeft { (e: Throwable) =>
             e must beAnInstanceOf[IOException]
           }
 
@@ -137,7 +137,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("timeout").attempt
         } yield {
-          resp must beLeft { e: Throwable =>
+          resp must beLeft { (e: Throwable) =>
             e must beAnInstanceOf[TimeoutException]
           }
 

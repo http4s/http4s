@@ -36,7 +36,7 @@ final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, b
     io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize, blocker)
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = { response: Response[F] =>
+      servletResponse: HttpServletResponse): BodyWriter[F] = { (response: Response[F]) =>
     val out = servletResponse.getOutputStream
     val flush = response.isChunked
     response.body.chunks
@@ -187,7 +187,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
     val state = new AtomicReference[State](Init)
     @volatile var autoFlush = false
 
-    val writeChunk = Right { chunk: Chunk[Byte] =>
+    val writeChunk = Right { (chunk: Chunk[Byte]) =>
       if (!out.isReady) {
         logger.error(s"writeChunk called while out was not ready, bytes will be lost!")
       } else {
@@ -230,7 +230,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         }
     }
 
-    { response: Response[F] =>
+    { (response: Response[F]) =>
       if (response.isChunked)
         autoFlush = true
       response.body.chunks

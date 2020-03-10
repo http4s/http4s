@@ -220,7 +220,7 @@ object Client {
     * @param app the [[HttpApp]] to respond to requests to this client
     */
   def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Sync[F]): Client[F] =
-    Client { req: Request[F] =>
+    Client { (req: Request[F]) =>
       Resource.suspend {
         Ref[F].of(false).map { disposed =>
           def go(stream: Stream[F, Byte]): Pull[F, Byte, Unit] =

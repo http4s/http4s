@@ -38,7 +38,7 @@ object Metrics {
       ops: MetricsOps[F],
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
-      classifierF: Request[F] => Option[String] = { _: Request[F] =>
+      classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       }
   )(routes: HttpRoutes[F])(implicit F: Sync[F], clock: Clock[F]): HttpRoutes[F] =

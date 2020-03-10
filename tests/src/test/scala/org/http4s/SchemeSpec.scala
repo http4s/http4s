@@ -33,13 +33,13 @@ class SchemeSpec extends Http4sSpec {
   }
 
   "render" should {
-    "return value" in prop { s: Scheme =>
+    "return value" in prop { (s: Scheme) =>
       Renderer.renderString(s) must_== s.value
     }
   }
 
   "fromString" should {
-    "reject all invalid schemes" in { s: String =>
+    "reject all invalid schemes" in { (s: String) =>
       (s.isEmpty ||
       !CharPredicate.Alpha(s.charAt(0)) ||
       !s.forall(CharPredicate.Alpha ++ CharPredicate(".-+"))) ==>
