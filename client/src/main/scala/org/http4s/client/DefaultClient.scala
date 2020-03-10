@@ -46,7 +46,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * @return The result of applying f to the response to req, while handling any raised errors
     */
   def fetchOrError[A](req: Request[F])(f: Response[F] => F[A])(handle: Throwable => F[A])(
-    implicit ev: MonadError[F, Throwable]
+      implicit ev: MonadError[F, Throwable]
   ): F[A] =
     run(req)
       .use(f)
