@@ -13,6 +13,7 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
   val app = HttpApp[IO] {
     case r => Response[IO](Ok).withEntity(r.body).pure[IO]
   }
+
   val client: Client[IO] = Client.fromHttpApp(app)
 
   "mock client" should {
@@ -64,6 +65,35 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
       hostClient
         .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
         .unsafeRunSync() must_== "http4s.org"
+    }
+  }
+
+  def testApp(resp: IO[Response[IO]]) = HttpApp[IO] {
+    case _ => resp
+  }
+
+  def testClient(resp: IO[Response[IO]]): Client[IO] = Client.fromHttpApp(testApp(resp))
+
+  import java.util.concurrent.TimeoutException
+  import org.http4s.scalaxml.xml
+  import scala.xml.Elem
+
+  "Client#fetchOrError" should {
+    "return handle Throwable if error is raised due to HTTP Response's raised error" in {
+      val c: Client[IO] = testClient(IO.raiseError(new TimeoutException("BOOM!")))
+      val result: IO[Int] = c.fetchOrError[Int](Request[IO]())(_ => IO.pure(42)){
+        case e if e.getClass.getCanonicalName == "java.util.concurrent.TimeoutException" => IO.pure(100)
+        case e => IO.raiseError(e)
+      }
+      result.unsafeRunSync ==== 100
+    }
+    "return handle Throwable if error is raised due to decoding failure" in {
+      val c: Client[IO] = testClient(IO.pure(Response[IO]().withEntity[String]("foobar")))
+      val result: IO[Elem] = c.fetchOrError[Elem](Request[IO]()){ _.as[Elem] } {
+        case MalformedMessageBodyFailure(_, _) => IO.pure(<oops></oops>)
+        case e => IO.raiseError(e)
+      }
+      result.unsafeRunSync ==== <oops></oops>
     }
   }
 }
