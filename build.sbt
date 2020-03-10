@@ -83,15 +83,6 @@ lazy val core = libraryProject("core")
       scalaReflect(scalaVersion.value) % Provided,
       vault,
     ),
-    unmanagedSourceDirectories in Compile ++= {
-      (unmanagedSourceDirectories in Compile).value.map { dir =>
-        val sv = scalaVersion.value
-        CrossVersion.partialVersion(sv) match {
-          case Some((2, 13)) => file(dir.getPath ++ "-2.13")
-          case _             => file(dir.getPath ++ "-2.12")
-        }
-      }
-    },
   )
 
 lazy val laws = libraryProject("laws")
