@@ -172,8 +172,8 @@ object EntityDecoder {
     DecodeResult.success(m.body.chunks.compile.toVector.map(Chunk.concatBytes))
 
   /** Decodes a message to a String */
-  def decodeString[F[_]: Sync](m: Media[F])(
-      implicit defaultCharset: Charset = DefaultCharset): F[String] =
+  def decodeString[F[_]](m: Media[F])(
+      implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
     m.bodyAsText.compile.foldMonoid
 
   /////////////////// Instances //////////////////////////////////////////////
@@ -196,8 +196,8 @@ object EntityDecoder {
   implicit def byteArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Byte]] =
     binary.map(_.toArray)
 
-  implicit def text[F[_]: Sync](
-      implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
+  implicit def text[F[_]](
+      implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(chunk =>
         new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
