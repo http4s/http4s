@@ -23,7 +23,7 @@ object Caching {
     */
   def `no-store`[G[_]: Monad: Clock, F[_], A](
       http: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
-    Kleisli { a: A =>
+    Kleisli { (a: A) =>
       for {
         resp <- http(a)
         now <- HttpDate.current[G]
@@ -118,7 +118,7 @@ object Caching {
       // Http1 caches do not respect max-age headers, so to work globally it is recommended
       // to explicitly set an Expire which requires some time interval to work
     }
-    Kleisli { req: Request[F] =>
+    Kleisli { (req: Request[F]) =>
       for {
         resp <- http(req)
         out <- if (methodToSetOn(req.method) && statusToSetOn(resp.status)) {

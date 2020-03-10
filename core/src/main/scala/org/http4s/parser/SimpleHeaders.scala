@@ -33,7 +33,7 @@ private[parser] trait SimpleHeaders {
   def ALLOW(value: String): ParseResult[Allow] =
     new Http4sHeaderParser[Allow](value) {
       def entry = rule {
-        zeroOrMore(Token).separatedBy(ListSep) ~ EOL ~> { ts: Seq[String] =>
+        zeroOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (ts: Seq[String]) =>
           val ms = ts.map(
             Method
               .fromString(_)
@@ -47,7 +47,7 @@ private[parser] trait SimpleHeaders {
   def CONNECTION(value: String): ParseResult[Connection] =
     new Http4sHeaderParser[Connection](value) {
       def entry = rule(
-        oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { xs: Seq[String] =>
+        oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[String]) =>
           Connection(xs.head.ci, xs.tail.map(_.ci): _*)
         }
       )
@@ -56,7 +56,7 @@ private[parser] trait SimpleHeaders {
   def CONTENT_LENGTH(value: String): ParseResult[`Content-Length`] =
     new Http4sHeaderParser[`Content-Length`](value) {
       def entry = rule {
-        Digits ~ EOL ~> { s: String =>
+        Digits ~ EOL ~> { (s: String) =>
           `Content-Length`.unsafeFromLong(s.toLong)
         }
       }
@@ -66,7 +66,7 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`Content-Encoding`](value)
       with org.http4s.ContentCoding.ContentCodingParser {
       def entry = rule {
-        EncodingRangeDecl ~ EOL ~> { c: ContentCoding =>
+        EncodingRangeDecl ~ EOL ~> { (c: ContentCoding) =>
           `Content-Encoding`(c)
         }
       }
@@ -132,7 +132,7 @@ private[parser] trait SimpleHeaders {
   def LAST_EVENT_ID(value: String): ParseResult[`Last-Event-Id`] =
     new Http4sHeaderParser[`Last-Event-Id`](value) {
       def entry = rule {
-        capture(zeroOrMore(ANY)) ~ EOL ~> { id: String =>
+        capture(zeroOrMore(ANY)) ~ EOL ~> { (id: String) =>
           `Last-Event-Id`(ServerSentEvent.EventId(id))
         }
       }
@@ -168,7 +168,7 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`If-Match`](value) {
       def entry = rule {
         "*" ~ push(`If-Match`.`*`) |
-          oneOrMore(EntityTag).separatedBy(ListSep) ~> { tags: Seq[EntityTag] =>
+          oneOrMore(EntityTag).separatedBy(ListSep) ~> { (tags: Seq[EntityTag]) =>
             `If-Match`(Some(NonEmptyList.of(tags.head, tags.tail: _*)))
           }
       }
@@ -178,7 +178,7 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`If-None-Match`](value) {
       def entry = rule {
         "*" ~ push(`If-None-Match`.`*`) |
-          oneOrMore(EntityTag).separatedBy(ListSep) ~> { tags: Seq[EntityTag] =>
+          oneOrMore(EntityTag).separatedBy(ListSep) ~> { (tags: Seq[EntityTag]) =>
             `If-None-Match`(Some(NonEmptyList.of(tags.head, tags.tail: _*)))
           }
       }
@@ -201,7 +201,7 @@ private[parser] trait SimpleHeaders {
       }
 
       def comment: Rule1[AgentComment] = rule {
-        capture(Comment) ~> { s: String =>
+        capture(Comment) ~> { (s: String) =>
           AgentComment(s.substring(1, s.length - 1))
         }
       }
@@ -213,11 +213,11 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`X-Forwarded-For`](value) with IpParser {
       def entry = rule {
         oneOrMore(
-          (capture(IpV4Address | IpV6Address) ~> { s: String =>
+          (capture(IpV4Address | IpV6Address) ~> { (s: String) =>
             Some(InetAddress.getByName(s))
           }) |
             ("unknown" ~ push(None))).separatedBy(ListSep) ~
-          EOL ~> { xs: Seq[Option[InetAddress]] =>
+          EOL ~> { (xs: Seq[Option[InetAddress]]) =>
           `X-Forwarded-For`(xs.head, xs.tail: _*)
         }
       }

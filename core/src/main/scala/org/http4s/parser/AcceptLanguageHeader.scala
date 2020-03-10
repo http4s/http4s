@@ -30,7 +30,7 @@ private[parser] trait AcceptLanguageHeader {
       with MediaRange.MediaRangeParser
       with QValueParser {
     def entry: Rule1[headers.`Accept-Language`] = rule {
-      oneOrMore(languageTag).separatedBy(ListSep) ~> { tags: Seq[LanguageTag] =>
+      oneOrMore(languageTag).separatedBy(ListSep) ~> { (tags: Seq[LanguageTag]) =>
         headers.`Accept-Language`(tags.head, tags.tail: _*)
       }
     }

@@ -149,7 +149,7 @@ class BlazeBuilder[F[_]](
       else {
         val newCaret = (if (prefix.startsWith("/")) 0 else 1) + prefix.length
 
-        service.local { req: Request[F] =>
+        service.local { (req: Request[F]) =>
           req.withAttribute(Request.Keys.PathInfoCaret, newCaret)
         }
       }

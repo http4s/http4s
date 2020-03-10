@@ -72,7 +72,7 @@ object TransferCoding {
       with Rfc2616BasicRules
       with TransferCodingParser {
       def main = rule {
-        oneOrMore(codingRule).separatedBy(ListSep) ~> { codes: Seq[TransferCoding] =>
+        oneOrMore(codingRule).separatedBy(ListSep) ~> { (codes: Seq[TransferCoding]) =>
           NonEmptyList.of(codes.head, codes.tail: _*)
         }
       }

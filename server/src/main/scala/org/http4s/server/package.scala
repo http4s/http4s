@@ -96,7 +96,7 @@ package object server {
         authUser: Kleisli[OptionT[F, *], Request[F], T],
         onAuthFailure: Request[F] => F[Response[F]]
     ): AuthMiddleware[F, T] = { service =>
-      Kleisli { r: Request[F] =>
+      Kleisli { (r: Request[F]) =>
         val resp = authUser(r).value.flatMap {
           case Some(authReq) =>
             service(AuthedRequest(authReq, r)).getOrElse(Response[F](Status.NotFound))
@@ -114,7 +114,7 @@ package object server {
         onFailure: AuthedRoutes[Err, F]
     )(implicit F: Monad[F]): AuthMiddleware[F, T] =
       (routes: AuthedRoutes[T, F]) =>
-        Kleisli { req: Request[F] =>
+        Kleisli { (req: Request[F]) =>
           OptionT {
             authUser(req).flatMap {
               case Left(err) => onFailure(AuthedRequest(err, req)).value

@@ -135,7 +135,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
           override def writeTo(sink: BufferedSink): Unit =
             req.body.chunks
               .map(_.toArray)
-              .evalMap { b: Array[Byte] =>
+              .evalMap { (b: Array[Byte]) =>
                 F.delay {
                   sink.write(b); ()
                 }

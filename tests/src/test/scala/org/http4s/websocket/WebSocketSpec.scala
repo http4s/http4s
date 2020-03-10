@@ -88,7 +88,7 @@ class WebSocketSpec extends Specification with ScalaCheck {
     }
 
     "refuse to encode a close message with an invalid close code" in {
-      forAll { closeCode: Int =>
+      forAll { (closeCode: Int) =>
         (closeCode < 1000 || closeCode > 4999) ==> Close(closeCode).isLeft
       }
     }
@@ -96,7 +96,7 @@ class WebSocketSpec extends Specification with ScalaCheck {
     "refuse to encode a close message with a reason that is too large" in {
       val validCloseCode = 1000
 
-      forAll { reason: String =>
+      forAll { (reason: String) =>
         (reason.getBytes(UTF_8).length > 123) ==> Close(validCloseCode, reason).isLeft
       }
     }

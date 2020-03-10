@@ -31,7 +31,7 @@ private[parser] trait AcceptCharsetHeader {
       extends Http4sHeaderParser[headers.`Accept-Charset`](input)
       with QValueParser {
     def entry: Rule1[headers.`Accept-Charset`] = rule {
-      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> { xs: Seq[CharsetRange] =>
+      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[CharsetRange]) =>
         headers.`Accept-Charset`(xs.head, xs.tail: _*)
       }
     }

@@ -150,7 +150,7 @@ object EmberServerBuilder {
     val port: Int = 8000
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
-    def onError[F[_]]: Throwable => Response[F] = { _: Throwable =>
+    def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
       Response[F](Status.InternalServerError)
     }
     def onWriteFailure[F[_]: Applicative]

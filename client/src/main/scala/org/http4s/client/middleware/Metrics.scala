@@ -33,8 +33,9 @@ object Metrics {
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
-  def apply[F[_]](ops: MetricsOps[F], classifierF: Request[F] => Option[String] = { _: Request[F] =>
-    None
+  def apply[F[_]](ops: MetricsOps[F], classifierF: Request[F] => Option[String] = {
+    (_: Request[F]) =>
+      None
   })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] =
     Client(withMetrics(client, ops, classifierF))
 
@@ -61,7 +62,7 @@ object Metrics {
       end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
       _ <- Resource.liftF(ops.recordHeadersTime(req.method, end - start, classifierF(req)))
     } yield resp)
-      .handleErrorWith { e: Throwable =>
+      .handleErrorWith { (e: Throwable) =>
         Resource.liftF[F, Response[F]](
           registerError(ops, classifierF(req))(e) *> F.raiseError[Response[F]](e)
         )
