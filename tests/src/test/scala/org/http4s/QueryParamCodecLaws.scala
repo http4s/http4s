@@ -29,14 +29,16 @@ object QueryParamCodecLaws {
           .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
       }
 
-      property("decode . emapValidatedNel(ValidNel) . encode == successNel") = forAll { (value: T) =>
-        (QueryParamDecoder[T].emapValidatedNel((t: T) => t.validNel[ParseFailure]).decode _)
-          .compose(QueryParamEncoder[T].encode)(value) === value.validNel
+      property("decode . emapValidatedNel(ValidNel) . encode == successNel") = forAll {
+        (value: T) =>
+          (QueryParamDecoder[T].emapValidatedNel((t: T) => t.validNel[ParseFailure]).decode _)
+            .compose(QueryParamEncoder[T].encode)(value) === value.validNel
       }
 
-      property("decode . emapValidatedNel(InvalidNel) . encode == failedNel") = forAll { (value: T) =>
-        (QueryParamDecoder[T].emapValidatedNel(_ => parseFailure.invalidNel[T]).decode _)
-          .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
+      property("decode . emapValidatedNel(InvalidNel) . encode == failedNel") = forAll {
+        (value: T) =>
+          (QueryParamDecoder[T].emapValidatedNel(_ => parseFailure.invalidNel[T]).decode _)
+            .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
       }
     }
 }

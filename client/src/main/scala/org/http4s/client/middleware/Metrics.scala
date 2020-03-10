@@ -33,8 +33,9 @@ object Metrics {
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
-  def apply[F[_]](ops: MetricsOps[F], classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
-    None
+  def apply[F[_]](ops: MetricsOps[F], classifierF: Request[F] => Option[String] = {
+    (_: Request[F]) =>
+      None
   })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] =
     Client(withMetrics(client, ops, classifierF))
 
