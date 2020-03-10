@@ -31,9 +31,9 @@ object HttpRoutes {
     *
     * @tparam F the base effect of the [[HttpRoutes]]
     * @param r the [[Response]] to lift
-    * @return an [[HttpRoutes]] that always returns `r` in effect `OptionT[F, ?]`
+    * @return an [[HttpRoutes]] that always returns `r` in effect `OptionT[F, *]`
     */
-  def pure[F[_]](r: Response[F])(implicit FO: Applicative[OptionT[F, ?]]): HttpRoutes[F] =
+  def pure[F[_]](r: Response[F])(implicit FO: Applicative[OptionT[F, *]]): HttpRoutes[F] =
     Kleisli.pure(r)
 
   /** Transforms an [[HttpRoutes]] on its input.  The application of the
@@ -47,7 +47,7 @@ object HttpRoutes {
     * being applied to `fa`
     */
   def local[F[_]: Defer](f: Request[F] => Request[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
-    Http.local[OptionT[F, ?], F](f)(fa)
+    Http.local[OptionT[F, *], F](f)(fa)
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
     * partial function is suspended in `F` to permit more efficient combination
@@ -56,7 +56,7 @@ object HttpRoutes {
     * @tparam F the base effect of the [[HttpRoutes]] - Defer suspends evaluation
     * of routes, so only 1 section of routes is checked at a time.
     * @param pf the partial function to lift
-    * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, ?]`
+    * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def of[F[_]: Defer: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
@@ -68,7 +68,7 @@ object HttpRoutes {
     *
     * @tparam F the base effect of the [[HttpRoutes]]
     * @param pf the partial function to lift
-    * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, ?]`
+    * @return An [[HttpRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def strict[F[_]: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =

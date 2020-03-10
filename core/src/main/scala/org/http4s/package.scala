@@ -47,7 +47,7 @@ package object http4s { // scalastyle:ignore
     * @tparam F the effect type of the [[Request]] and [[Response]] bodies,
     * and the base monad of the `OptionT` in which the response is returned.
     */
-  type HttpRoutes[F[_]] = Http[OptionT[F, ?], F]
+  type HttpRoutes[F[_]] = Http[OptionT[F, *], F]
 
   @deprecated("Deprecated in favor of just using Kleisli", "0.18")
   type Service[F[_], A, B] = Kleisli[F, A, B]
@@ -61,12 +61,12 @@ package object http4s { // scalastyle:ignore
     * The type parameters need to be in this order to make partial unification
     * trigger. See https://github.com/http4s/http4s/issues/1506
     */
-  type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, ?], AuthedRequest[F, T], Response[F]]
+  type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, *], AuthedRequest[F, T], Response[F]]
 
   @deprecated("Deprecated in favor of AuthedRoutes", "0.20.1")
   type AuthedService[T, F[_]] = AuthedRoutes[T, F]
 
-  type ContextRoutes[T, F[_]] = Kleisli[OptionT[F, ?], ContextRequest[F, T], Response[F]]
+  type ContextRoutes[T, F[_]] = Kleisli[OptionT[F, *], ContextRequest[F, T], Response[F]]
 
   type Callback[A] = Either[Throwable, A] => Unit
 
