@@ -1,15 +1,17 @@
 package org.http4s
 package client
 
-import cats.~>
+import cats.{MonadError, ~>}
 import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import java.io.IOException
+
 import org.http4s.headers.Host
 import org.http4s.syntax.kleisli._
+
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
@@ -35,6 +37,20 @@ trait Client[F[_]] {
     * @return The result of applying f to the response to req
     */
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
+
+  /** Submits a request, and provides a callback to process the response.
+    * Note that all errors, e.g. decoding a payload, client times out, etc.
+    *
+    * @param req An effect of the request to submit
+    * @param f A callback for the response to req.  The underlying HTTP connection
+    *          is disposed when the returned task completes.  Attempts to read the
+    *          response body afterward will result in an error.
+    * @param handle A function that maps a Throwable to an F[A]
+    * @return The result of applying f to the response to req, while handling any raised errors
+    */
+  def fetchOrError[A](req: Request[F])(f: Response[F] => F[A])(handle: Throwable => F[A])(
+    implicit ev: MonadError[F, Throwable]
+  ): F[A]
 
   /**
     * Returns this client as a [[Kleisli]].  All connections created by this
