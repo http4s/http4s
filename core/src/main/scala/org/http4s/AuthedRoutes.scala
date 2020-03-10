@@ -25,7 +25,7 @@ object AuthedRoutes {
     *
     * @tparam F the base effect of the [[AuthedRoutes]]
     * @param pf the partial function to lift
-    * @return An [[AuthedRoutes]] that returns some [[Response]] in an `OptionT[F, ?]`
+    * @return An [[AuthedRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def of[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(

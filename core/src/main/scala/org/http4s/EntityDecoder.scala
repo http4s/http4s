@@ -117,8 +117,8 @@ object EntityDecoder {
   /** summon an implicit [[EntityDecoder]] */
   def apply[F[_], T](implicit ev: EntityDecoder[F, T]): EntityDecoder[F, T] = ev
 
-  implicit def semigroupKForEntityDecoder[F[_]: Functor]: SemigroupK[EntityDecoder[F, ?]] =
-    new SemigroupK[EntityDecoder[F, ?]] {
+  implicit def semigroupKForEntityDecoder[F[_]: Functor]: SemigroupK[EntityDecoder[F, *]] =
+    new SemigroupK[EntityDecoder[F, *]] {
       override def combineK[T](
           a: EntityDecoder[F, T],
           b: EntityDecoder[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {

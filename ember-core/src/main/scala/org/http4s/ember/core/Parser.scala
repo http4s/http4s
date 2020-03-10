@@ -14,8 +14,8 @@ private[ember] object Parser {
   /**
     * From the stream of bytes this extracts Http Header and body part.
     */
-  def httpHeaderAndBody[F[_]: ApplicativeError[?[_], Throwable]](
-      maxHeaderSize: Int): Pipe[F, Byte, (ByteVector, Stream[F, Byte])] = {
+  def httpHeaderAndBody[F[_]](maxHeaderSize: Int)(implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, (ByteVector, Stream[F, Byte])] = {
     def go(buff: ByteVector, in: Stream[F, Byte]): Pull[F, (ByteVector, Stream[F, Byte]), Unit] =
       in.pull.uncons.flatMap {
         case None =>
@@ -96,10 +96,10 @@ private[ember] object Parser {
         .compile
         .lastOrError
 
-    private def headerBlobByteVectorToRequest[F[_]: MonadError[?[_], Throwable]](
+    private def headerBlobByteVectorToRequest[F[_]](
         b: ByteVector,
         s: Stream[F, Byte],
-        maxHeaderLength: Int)(logger: Logger[F]): F[Request[F]] =
+        maxHeaderLength: Int)(logger: Logger[F])(implicit F: MonadError[F, Throwable]): F[Request[F]] =
       for {
         shE <- splitHeader(b)(logger)
         (methodHttpUri, headersBV) <- shE.fold(
@@ -138,16 +138,16 @@ private[ember] object Parser {
         body = body
       )
 
-    private def bvToRequestTopLine[F[_]: MonadError[?[_], Throwable]](
-        b: ByteVector): F[(Method, Uri, HttpVersion)] =
+    private def bvToRequestTopLine[F[_]](
+        b: ByteVector)(implicit F: MonadError[F, Throwable]): F[(Method, Uri, HttpVersion)] =
       for {
         (method, rest) <- getMethodEmitRest[F](b)
         (uri, httpVString) <- getUriEmitHttpVersion[F](rest)
         httpVersion <- HttpVersion.fromString(httpVString).liftTo[F]
       } yield (method, uri, httpVersion)
 
-    private def getMethodEmitRest[F[_]: ApplicativeError[?[_], Throwable]](
-        b: ByteVector): F[(Method, String)] = {
+    private def getMethodEmitRest[F[_]](
+        b: ByteVector)(implicit F: ApplicativeError[F, Throwable]): F[(Method, String)] = {
       val opt = for {
         line <- b.decodeAscii.toOption
         idx <- Some(line.indexOf(' '))
@@ -161,8 +161,8 @@ private[ember] object Parser {
       )(ApplicativeError[F, Throwable].pure(_))
     }
 
-    private def getUriEmitHttpVersion[F[_]: ApplicativeError[?[_], Throwable]](
-        s: String): F[(Uri, String)] = {
+    private def getUriEmitHttpVersion[F[_]](
+        s: String)(implicit F: ApplicativeError[F, Throwable]): F[(Uri, String)] = {
       val opt = for {
         idx <- Some(s.indexOf(' '))
         if idx >= 0
@@ -187,10 +187,10 @@ private[ember] object Parser {
         .compile
         .lastOrError
 
-    private def headerBlobByteVectorToResponse[F[_]: MonadError[?[_], Throwable]](
+    private def headerBlobByteVectorToResponse[F[_]](
         b: ByteVector,
         s: Stream[F, Byte],
-        maxHeaderLength: Int)(logger: Logger[F]): F[Response[F]] =
+        maxHeaderLength: Int)(logger: Logger[F])(implicit F: MonadError[F, Throwable]): F[Response[F]] =
       for {
         hE <- splitHeader(b)(logger)
         (methodHttpUri, headersBV) <- hE.fold(
@@ -216,18 +216,18 @@ private[ember] object Parser {
         body = body
       )
 
-    private def bvToResponseTopLine[F[_]: MonadError[?[_], Throwable]](
+    private def bvToResponseTopLine[F[_]](
         b: ByteVector
-    ): F[(HttpVersion, Status)] =
+    )(implicit F: MonadError[F, Throwable]): F[(HttpVersion, Status)] =
       // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
       for {
         (httpV, restS) <- getHttpVersionEmitRest[F](b)
         status <- getStatus[F](restS)
       } yield (httpV, status)
 
-    private def getHttpVersionEmitRest[F[_]: MonadError[?[_], Throwable]](
+    private def getHttpVersionEmitRest[F[_]](
         b: ByteVector
-    ): F[(HttpVersion, String)] = {
+    )(implicit F: MonadError[F, Throwable]): F[(HttpVersion, String)] = {
       val opt = for {
         line <- b.decodeAscii.toOption
         idx <- Some(line.indexOf(' '))
@@ -243,7 +243,7 @@ private[ember] object Parser {
       } yield (httpV, rest)
     }
 
-    private def getStatus[F[_]: MonadError[?[_], Throwable]](s: String): F[Status] = {
+    private def getStatus[F[_]](s: String)(implicit F: MonadError[F, Throwable]): F[Status] = {
       def getFirstWord(text: String): String = {
         val index = text.indexOf(' ')
         if (index >= 0) {

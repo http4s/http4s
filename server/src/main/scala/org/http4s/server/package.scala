@@ -62,19 +62,19 @@ package object server {
     * An HTTP middleware converts an [[HttpRoutes]] to another.
     */
   type HttpMiddleware[F[_]] =
-    Middleware[OptionT[F, ?], Request[F], Response[F], Request[F], Response[F]]
+    Middleware[OptionT[F, *], Request[F], Response[F], Request[F], Response[F]]
 
   /**
     * An HTTP middleware that authenticates users.
     */
   type AuthMiddleware[F[_], T] =
-    Middleware[OptionT[F, ?], AuthedRequest[F, T], Response[F], Request[F], Response[F]]
+    Middleware[OptionT[F, *], AuthedRequest[F, T], Response[F], Request[F], Response[F]]
 
   /**
     * An HTTP middleware that adds a context.
     */
   type ContextMiddleware[F[_], T] =
-    Middleware[OptionT[F, ?], ContextRequest[F, T], Response[F], Request[F], Response[F]]
+    Middleware[OptionT[F, *], ContextRequest[F, T], Response[F], Request[F], Response[F]]
 
   /**
     * Old name for SSLConfig
@@ -84,16 +84,16 @@ package object server {
 
   object AuthMiddleware {
     def apply[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, ?], Request[F], T]
+        authUser: Kleisli[OptionT[F, *], Request[F], T]
     ): AuthMiddleware[F, T] =
       noSpider[F, T](authUser, defaultAuthFailure[F])
 
     def withFallThrough[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, ?], Request[F], T]): AuthMiddleware[F, T] =
+        authUser: Kleisli[OptionT[F, *], Request[F], T]): AuthMiddleware[F, T] =
       _.compose(Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r))))
 
     def noSpider[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, ?], Request[F], T],
+        authUser: Kleisli[OptionT[F, *], Request[F], T],
         onAuthFailure: Request[F] => F[Response[F]]
     ): AuthMiddleware[F, T] = { service =>
       Kleisli { r: Request[F] =>

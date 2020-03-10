@@ -37,7 +37,7 @@ $ sbt console
 ## Your first service
 
 An `HttpRoutes[F]` is a simple alias for
-`Kleisli[OptionT[F, ?], Request, Response]`.  If that's meaningful to you,
+`Kleisli[OptionT[F, *], Request, Response]`.  If that's meaningful to you,
 great.  If not, don't panic: `Kleisli` is just a convenient wrapper
 around a `Request => F[Response]`, and `F` is an effectful
 operation.  We'll teach you what you need to know as we go, or if you

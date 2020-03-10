@@ -199,8 +199,8 @@ object EntityEncoder {
   implicit def multipartEncoder[F[_]]: EntityEncoder[F, Multipart[F]] =
     new MultipartEncoder[F]
 
-  implicit def entityEncoderContravariant[F[_]]: Contravariant[EntityEncoder[F, ?]] =
-    new Contravariant[EntityEncoder[F, ?]] {
+  implicit def entityEncoderContravariant[F[_]]: Contravariant[EntityEncoder[F, *]] =
+    new Contravariant[EntityEncoder[F, *]] {
       override def contramap[A, B](r: EntityEncoder[F, A])(f: (B) => A): EntityEncoder[F, B] =
         r.contramap(f)
     }

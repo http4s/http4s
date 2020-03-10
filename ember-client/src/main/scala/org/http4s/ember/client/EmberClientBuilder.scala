@@ -79,8 +79,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Client[F]] =
     for {
-      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, ?]])
-      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, ?]])
+      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
+      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
       tlsContextOptWithDefault <- Resource.liftF(
         tlsContextOpt
           .fold(TLSContext.system(blocker).attempt.map(_.toOption))(_.some.pure[F])

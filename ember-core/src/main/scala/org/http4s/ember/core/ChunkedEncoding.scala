@@ -13,8 +13,8 @@ private[ember] object ChunkedEncoding {
     * decodes from the HTTP chunked encoding. After last chunk this terminates. Allows to specify max header size, after which this terminates
     * Please see https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
     */
-  def decode[F[_]: ApplicativeError[?[_], Throwable]](
-      maxChunkHeaderSize: Int): Pipe[F, Byte, Byte] = {
+  def decode[F[_]](
+      maxChunkHeaderSize: Int)(implicit F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
     def go(expect: Either[ByteVector, Long], in: Stream[F, Byte]): Pull[F, Byte, Unit] =

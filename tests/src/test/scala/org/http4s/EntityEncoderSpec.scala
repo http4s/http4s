@@ -129,7 +129,7 @@ class EntityEncoderSpec extends Http4sSpec {
       }
 
     checkAll(
-      "Contravariant[EntityEncoder[F, ?]]",
-      ContravariantTests[EntityEncoder[IO, ?]].contravariant[MiniInt, MiniInt, MiniInt])
+      "Contravariant[EntityEncoder[F, *]]",
+      ContravariantTests[EntityEncoder[IO, *]].contravariant[MiniInt, MiniInt, MiniInt])
   }
 }
