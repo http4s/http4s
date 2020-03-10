@@ -45,7 +45,7 @@ final case class ParseFailure(sanitized: String, details: String)
 }
 
 object ParseFailure {
-  implicit val eq = Eq.fromUniversalEquals[ParseFailure]
+  implicit val eq: Eq[ParseFailure] = Eq.fromUniversalEquals[ParseFailure]
 }
 
 object ParseResult {
