@@ -203,7 +203,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeGeneric.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeGeneric.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.3"
-  lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.4"
+  lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.5"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.0.0"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.2.2"
@@ -226,8 +226,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % log4catsCore.revision
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.8.2"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "3.3.0"
-  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "4.4.1"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "3.3.3"
+  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "4.3.1"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.8.1"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.8.1"
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
