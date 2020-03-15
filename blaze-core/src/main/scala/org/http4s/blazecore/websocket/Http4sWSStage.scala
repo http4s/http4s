@@ -18,8 +18,14 @@ import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.websocket.{WebSocket, WebSocketFrame}
+import org.http4s.websocket.{
+  WebSocket,
+  WebSocketCombinedPipe,
+  WebSocketFrame,
+  WebSocketSeparatePipe
+}
 import org.http4s.websocket.WebSocketFrame._
+
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -122,18 +128,29 @@ private[http4s] class Http4sWSStage[F[_]](
     // Effect to send a close to the other endpoint
     val sendClose: F[Unit] = F.delay(closePipeline(None))
 
-    val wsStream = inputstream
-      .through(ws.receive)
-      .concurrently(
-        ws.send.through(snk).drain
-      ) //We don't need to terminate if the send stream terminates.
-      .interruptWhen(deadSignal)
-      .onFinalizeWeak(
-        ws.onClose.attempt.void
-      ) //Doing it this way ensures `sendClose` is sent no matter what
-      .onFinalizeWeak(sendClose)
-      .compile
-      .drain
+    val receiveSend: Pipe[F, WebSocketFrame, WebSocketFrame] =
+      ws match {
+        case WebSocketSeparatePipe(send, receive, _) =>
+          incoming =>
+            send.concurrently(
+              incoming.through(receive).drain
+            ) //We don't need to terminate if the send stream terminates.
+        case WebSocketCombinedPipe(receiveSend, _) =>
+          receiveSend
+      }
+
+    val wsStream =
+      inputstream
+        .through(receiveSend)
+        .through(snk)
+        .drain
+        .interruptWhen(deadSignal)
+        .onFinalizeWeak(
+          ws.onClose.attempt.void
+        ) //Doing it this way ensures `sendClose` is sent no matter what
+        .onFinalizeWeak(sendClose)
+        .compile
+        .drain
 
     unsafeRunAsync(wsStream) {
       case Left(EOF) =>
