@@ -15,6 +15,7 @@ This release is fully backward compatible with 0.21.2.
 ## Enhancements
 
 * [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware. 
+* [#3155](https://github.com/http4s/http4s/pull/3155): Internal `j.u.c.CompletionStage` conversions.
 
 ## Dependency updates
 
