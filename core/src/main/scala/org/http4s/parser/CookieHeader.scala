@@ -79,7 +79,7 @@ private[parser] trait CookieHeader {
           cookie.copy(path = Some(pathValue))
         } |
         ignoreCase("samesite=") ~ SameSite ~> { (cookie: ResponseCookie, sameSiteValue: SameSite) =>
-          cookie.copy(sameSite = sameSiteValue)
+          cookie.copy(sameSite = Some(sameSiteValue))
         } |
         // TODO: Capture so we can create the rule, but there must be a better way
         ignoreCase("secure") ~ MATCH ~> { (cookie: ResponseCookie) =>
