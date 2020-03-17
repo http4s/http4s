@@ -1,6 +1,11 @@
 package org.http4s
 
-import java.util.concurrent.{CancellationException, CompletionException, CompletionStage}
+import java.util.concurrent.{
+  CancellationException,
+  CompletableFuture,
+  CompletionException,
+  CompletionStage
+}
 
 import cats.effect.implicits._
 import cats.effect.{Async, ConcurrentEffect, ContextShift, Effect, IO}
@@ -13,6 +18,7 @@ import scala.util.control.NoStackTrace
 import scala.util.{Failure, Success}
 
 package object internal {
+
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
   // have an ExecutionContext but not a Timer.
   private[http4s] def unsafeRunAsync[F[_], A](fa: F[A])(
@@ -140,4 +146,16 @@ package object internal {
         }
         .guarantee(CS.shift)
     }
+
+  private[http4s] def unsafeToCompletionStage[F[_], A](
+      fa: F[A]
+  )(implicit F: Effect[F]): CompletionStage[A] = {
+    val cf = new CompletableFuture[A]()
+    F.runAsync(fa) {
+        case Right(a) => IO { cf.complete(a); () }
+        case Left(e) => IO { cf.completeExceptionally(e); () }
+      }
+      .unsafeRunSync()
+    cf
+  }
 }
