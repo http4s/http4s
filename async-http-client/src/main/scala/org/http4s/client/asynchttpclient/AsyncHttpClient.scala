@@ -3,6 +3,7 @@ package client
 package asynchttpclient
 
 import cats.effect._
+import cats.effect.concurrent._
 import cats.implicits._
 import cats.effect.implicits._
 import fs2.Stream._
@@ -80,22 +81,27 @@ object AsyncHttpClient {
       val dispose = F.delay { state = State.ABORT }
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
-        // backpressure is handled by requests to the reactive streams subscription
-        StreamSubscriber[F, HttpResponseBodyPart]
-          .map { subscriber =>
-            val body = subscriber.stream.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
-            response = response.copy(body = body)
-            // Run this before we return the response, lest we violate
-            // Rule 3.16 of the reactive streams spec.
-            publisher.subscribe(subscriber)
-            // We have a fully formed response now.  Complete the
-            // callback, rather than waiting for onComplete, or else we'll
-            // buffer the entire response before we return it for
-            // streaming consumption.
-            invokeCallback(logger)(cb(Right(response -> dispose)))
+        val eff = for {
+          subscriber <- StreamSubscriber[F, HttpResponseBodyPart]
+
+          subscribeF = F.delay(publisher.subscribe(subscriber))
+          bodyDisposal <- Ref.of[F, F[Unit]] {
+            subscribeF >> subscriber.stream.take(0).compile.drain
           }
-          .runAsync(_ => IO.unit)
-          .unsafeRunSync()
+
+          body = Stream.eval(F.uncancelable(bodyDisposal.set(F.unit) >> subscribeF)) >>
+            subscriber.stream.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+
+          responseWithBody = response.copy(body = body)
+
+          // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
+          fiber <- F.start(
+            F.delay(cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten)))))
+          _ <- fiber.join
+        } yield ()
+
+        eff.runAsync(_ => IO.unit).unsafeRunSync()
+
         state
       }
 
@@ -115,9 +121,9 @@ object AsyncHttpClient {
       override def onThrowable(throwable: Throwable): Unit =
         invokeCallback(logger)(cb(Left(throwable)))
 
-      override def onCompleted(): Unit = {
-        // Don't close here.  onStream may still be being called.
-      }
+      // it's okay to invoke this repeatedly since repeated async callbacks are dropped by law
+      override def onCompleted(): Unit =
+        invokeCallback(logger)(cb(Right(response -> dispose)))
     }
 
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
