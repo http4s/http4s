@@ -14,7 +14,7 @@ private[ember] object Parser {
   /**
     * From the stream of bytes this extracts Http Header and body part.
     */
-  def httpHeaderAndBody[F[_]: ApplicativeError[?[_], Throwable]](
+  def httpHeaderAndBody[F[_]: ApplicativeError[*[_], Throwable]](
       maxHeaderSize: Int): Pipe[F, Byte, (ByteVector, Stream[F, Byte])] = {
     def go(buff: ByteVector, in: Stream[F, Byte]): Pull[F, (ByteVector, Stream[F, Byte]), Unit] =
       in.pull.uncons.flatMap {
@@ -96,7 +96,7 @@ private[ember] object Parser {
         .compile
         .lastOrError
 
-    private def headerBlobByteVectorToRequest[F[_]: MonadError[?[_], Throwable]](
+    private def headerBlobByteVectorToRequest[F[_]: MonadError[*[_], Throwable]](
         b: ByteVector,
         s: Stream[F, Byte],
         maxHeaderLength: Int)(logger: Logger[F]): F[Request[F]] =
@@ -138,7 +138,7 @@ private[ember] object Parser {
         body = body
       )
 
-    private def bvToRequestTopLine[F[_]: MonadError[?[_], Throwable]](
+    private def bvToRequestTopLine[F[_]: MonadError[*[_], Throwable]](
         b: ByteVector): F[(Method, Uri, HttpVersion)] =
       for {
         (method, rest) <- getMethodEmitRest[F](b)
@@ -146,7 +146,7 @@ private[ember] object Parser {
         httpVersion <- HttpVersion.fromString(httpVString).liftTo[F]
       } yield (method, uri, httpVersion)
 
-    private def getMethodEmitRest[F[_]: ApplicativeError[?[_], Throwable]](
+    private def getMethodEmitRest[F[_]: ApplicativeError[*[_], Throwable]](
         b: ByteVector): F[(Method, String)] = {
       val opt = for {
         line <- b.decodeAscii.toOption
@@ -161,7 +161,7 @@ private[ember] object Parser {
       )(ApplicativeError[F, Throwable].pure(_))
     }
 
-    private def getUriEmitHttpVersion[F[_]: ApplicativeError[?[_], Throwable]](
+    private def getUriEmitHttpVersion[F[_]: ApplicativeError[*[_], Throwable]](
         s: String): F[(Uri, String)] = {
       val opt = for {
         idx <- Some(s.indexOf(' '))
@@ -178,16 +178,17 @@ private[ember] object Parser {
 
   object Response {
     def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(
-        logger: Logger[F]): F[Response[F]] =
+        logger: Logger[F]): Resource[F, Response[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
         .evalMap {
           case (bv, body) => headerBlobByteVectorToResponse[F](bv, body, maxHeaderLength)(logger)
         }
         .take(1)
         .compile
+        .resource
         .lastOrError
 
-    private def headerBlobByteVectorToResponse[F[_]: MonadError[?[_], Throwable]](
+    private def headerBlobByteVectorToResponse[F[_]: MonadError[*[_], Throwable]](
         b: ByteVector,
         s: Stream[F, Byte],
         maxHeaderLength: Int)(logger: Logger[F]): F[Response[F]] =
@@ -216,7 +217,7 @@ private[ember] object Parser {
         body = body
       )
 
-    private def bvToResponseTopLine[F[_]: MonadError[?[_], Throwable]](
+    private def bvToResponseTopLine[F[_]: MonadError[*[_], Throwable]](
         b: ByteVector
     ): F[(HttpVersion, Status)] =
       // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
@@ -225,7 +226,7 @@ private[ember] object Parser {
         status <- getStatus[F](restS)
       } yield (httpV, status)
 
-    private def getHttpVersionEmitRest[F[_]: MonadError[?[_], Throwable]](
+    private def getHttpVersionEmitRest[F[_]: MonadError[*[_], Throwable]](
         b: ByteVector
     ): F[(HttpVersion, String)] = {
       val opt = for {
@@ -243,7 +244,7 @@ private[ember] object Parser {
       } yield (httpV, rest)
     }
 
-    private def getStatus[F[_]: MonadError[?[_], Throwable]](s: String): F[Status] = {
+    private def getStatus[F[_]: MonadError[*[_], Throwable]](s: String): F[Status] = {
       def getFirstWord(text: String): String = {
         val index = text.indexOf(' ')
         if (index >= 0) {
