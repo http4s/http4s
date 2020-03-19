@@ -21,7 +21,7 @@ object ResponseLogger {
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
-    val log = logAction.getOrElse { s: String =>
+    val log = logAction.getOrElse { (s: String) =>
       Sync[F].delay(logger.info(s))
     }
     Client { req =>

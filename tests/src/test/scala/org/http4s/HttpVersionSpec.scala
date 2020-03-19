@@ -25,7 +25,7 @@ class HttpVersionSpec extends Http4sSpec {
   }
 
   "fromString is consistent with toString" in {
-    prop { v: HttpVersion =>
+    prop { (v: HttpVersion) =>
       fromString(v.toString) must beRight(v)
     }
   }

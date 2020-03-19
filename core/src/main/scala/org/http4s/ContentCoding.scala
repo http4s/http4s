@@ -113,7 +113,7 @@ object ContentCoding {
     }
 
     private def ContentCodingToken: Rule1[ContentCoding] = rule {
-      Token ~> { s: String =>
+      Token ~> { (s: String) =>
         ContentCoding.standard.getOrElse(s, new ContentCoding(s))
       }
     }

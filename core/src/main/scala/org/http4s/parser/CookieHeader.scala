@@ -41,7 +41,7 @@ private[parser] trait CookieHeader {
   private class CookieParser(input: ParserInput) extends BaseCookieParser[headers.Cookie](input) {
     def entry: Rule1[headers.Cookie] = rule {
       oneOrMore(CookiePair(RequestCookie)).separatedBy(";" ~ OptWS) ~ optional(";") ~ EOI ~> {
-        xs: Seq[RequestCookie] =>
+        (xs: Seq[RequestCookie]) =>
           headers.Cookie(xs.head, xs.tail: _*)
       }
     }
@@ -98,7 +98,7 @@ private[parser] trait CookieHeader {
     }
 
     def NonNegativeLong: Rule1[Long] = rule {
-      capture(oneOrMore(Digit)) ~> { s: String =>
+      capture(oneOrMore(Digit)) ~> { (s: String) =>
         s.toLong
       }
     }

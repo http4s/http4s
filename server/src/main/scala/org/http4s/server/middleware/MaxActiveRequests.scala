@@ -21,7 +21,7 @@ object MaxActiveRequests {
       defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
   ): G[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     Semaphore.in[G, F](maxActive).map { sem => http: Kleisli[F, Request[F], Response[F]] =>
-      Kleisli { a: Request[F] =>
+      Kleisli { (a: Request[F]) =>
         sem.tryAcquire.bracketCase { bool =>
           if (bool)
             http.run(a).map(resp => resp.copy(body = resp.body.onFinalizeWeak(sem.release)))
@@ -38,8 +38,8 @@ object MaxActiveRequests {
   def httpRoutes[F[_]: Concurrent](
       maxActive: Long,
       defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
-  ): F[Kleisli[OptionT[F, ?], Request[F], Response[F]] => Kleisli[
-    OptionT[F, ?],
+  ): F[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[
+    OptionT[F, *],
     Request[F],
     Response[F]]] =
     inHttpRoutes[F, F](maxActive, defaultResp)
@@ -47,14 +47,14 @@ object MaxActiveRequests {
   def inHttpRoutes[G[_]: Sync, F[_]: Concurrent](
       maxActive: Long,
       defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
-  ): G[Kleisli[OptionT[F, ?], Request[F], Response[F]] => Kleisli[
-    OptionT[F, ?],
+  ): G[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[
+    OptionT[F, *],
     Request[F],
     Response[F]]] =
     Semaphore.in[G, F](maxActive).map {
-      sem => http: Kleisli[OptionT[F, ?], Request[F], Response[F]] =>
-        Kleisli { a: Request[F] =>
-          Concurrent[OptionT[F, ?]].bracketCase(OptionT.liftF(sem.tryAcquire)) { bool =>
+      sem => http: Kleisli[OptionT[F, *], Request[F], Response[F]] =>
+        Kleisli { (a: Request[F]) =>
+          Concurrent[OptionT[F, *]].bracketCase(OptionT.liftF(sem.tryAcquire)) { bool =>
             if (bool)
               http
                 .run(a)

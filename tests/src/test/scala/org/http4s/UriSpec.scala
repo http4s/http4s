@@ -57,7 +57,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "parse port correctly" >> {
-        "if there is a valid (non-negative) one" >> prop { nonNegative: Int =>
+        "if there is a valid (non-negative) one" >> prop { (nonNegative: Int) =>
           val uri = getUri(s"http://localhost:$nonNegative/")
           uri.port must_=== Some(nonNegative)
         }.setGen(Gen.choose[Int](0, Int.MaxValue))
@@ -92,21 +92,21 @@ http://example.org/a file
     }
 
     "fail to parse port" >> {
-      "if it's negative" >> prop { negative: Int =>
+      "if it's negative" >> prop { (negative: Int) =>
         val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$negative/")
         uri match {
           case Left(ParseFailure("Invalid URI", _)) => ok
           case unexpected => ko(unexpected.toString)
         }
       }.setGen(Gen.choose[Int](Int.MinValue, -1))
-      "if it's larger than Int.MaxValue" >> prop { tooBig: Long =>
+      "if it's larger than Int.MaxValue" >> prop { (tooBig: Long) =>
         val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$tooBig/")
         uri match {
           case Left(ParseFailure("Invalid URI", _)) => ok
           case unexpected => ko(unexpected.toString)
         }
       }.setGen(Gen.choose[Long]((Int.MaxValue: Long) + 1, Long.MaxValue))
-      "if it's not a number or an empty String" >> prop { notNumber: String =>
+      "if it's not a number or an empty String" >> prop { (notNumber: String) =>
         val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
         uri match {
           case Left(ParseFailure("Invalid URI", _)) => ok
@@ -383,7 +383,7 @@ http://example.org/a file
         .map(_.toString) must beRight("http://localhost:8080/index?filter%5Bstate%5D=public")
     }
 
-    "round trip with toString" in forAll { uri: Uri =>
+    "round trip with toString" in forAll { (uri: Uri) =>
       Uri.fromString(uri.toString) must be(uri.toString)
     }.pendingUntilFixed
   }
@@ -890,7 +890,7 @@ http://example.org/a file
         lastSlash <- Gen.oneOf("", "/")
       } yield s"$firstPathSegment${pathSegments.mkString("")}$lastSlash"
 
-    "correctly remove dot segments in other examples" >> prop { input: String =>
+    "correctly remove dot segments in other examples" >> prop { (input: String) =>
       val prefix = "/this/isa/prefix/"
       val processed = Uri.removeDotSegments(input)
       val path = Paths.get(prefix, processed).normalize
@@ -942,7 +942,7 @@ http://example.org/a file
       uri("http://example.com/") / "ö" must_== uri("http://example.com/%C3%B6")
     }
 
-    "not make bad URIs" >> forAll { s: String =>
+    "not make bad URIs" >> forAll { (s: String) =>
       Uri.fromString((uri("http://example.com/") / s).toString) must beRight
     }
   }

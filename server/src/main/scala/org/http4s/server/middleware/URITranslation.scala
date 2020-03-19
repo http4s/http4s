@@ -16,7 +16,7 @@ object URITranslation {
       case x => x.length + 1
     }
 
-    http.local { req: Request[G] =>
+    http.local { (req: Request[G]) =>
       val oldCaret = req.attributes
         .lookup(Request.Keys.PathInfoCaret)
         .getOrElse(0)

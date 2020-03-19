@@ -5,7 +5,7 @@ import org.scalacheck.Prop._
 class QuerySpec extends Http4sSpec {
   import Query.KeyValue
 
-  "fromString(query.toString) == query if query.nonEmpty" >> forAll { query: Query =>
+  "fromString(query.toString) == query if query.nonEmpty" >> forAll { (query: Query) =>
     (query.nonEmpty) ==> (Query.fromString(query.toString) == query)
   }
 
@@ -33,13 +33,13 @@ class QuerySpec extends Http4sSpec {
       q2.toList must_== (q.toList ::: elems.toList)
     }
 
-    "Drop a head element" >> forAll { q: Query =>
+    "Drop a head element" >> forAll { (q: Query) =>
       val q2 = q.drop(1)
       q2 must beAnInstanceOf[Query]
       q2.toList must_== q.toList.drop(1)
     }
 
-    "Drop a tail element" >> forAll { q: Query =>
+    "Drop a tail element" >> forAll { (q: Query) =>
       val q2 = q.dropRight(1)
       q2 must beAnInstanceOf[Query]
       q2.toList must_== q.toList.dropRight(1)

@@ -24,13 +24,13 @@ private[ember] object Util {
     * headers have been read it triggers this function
     * to then not timeout on the remaining body.
     */
-  def readWithTimeout[F[_]: ApplicativeError[?[_], Throwable]](
+  def readWithTimeout[F[_]](
       socket: Socket[F],
       started: Long,
       timeout: FiniteDuration,
       shallTimeout: F[Boolean],
       chunkSize: Int
-  )(implicit C: Clock[F]): Stream[F, Byte] = {
+  )(implicit F: ApplicativeError[F, Throwable], C: Clock[F]): Stream[F, Byte] = {
     def whenWontTimeout: Stream[F, Byte] =
       socket.reads(chunkSize, None)
     def whenMayTimeout(remains: FiniteDuration): Stream[F, Byte] =

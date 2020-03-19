@@ -33,19 +33,19 @@ class Ipv6AddressSpec extends Http4sSpec {
   }
 
   "fromInet6Address" should {
-    "round trip with toInet6Address" in prop { ipv6: Ipv6Address =>
+    "round trip with toInet6Address" in prop { (ipv6: Ipv6Address) =>
       Ipv6Address.fromInet6Address(ipv6.toInet6Address) must_== ipv6
     }
   }
 
   "fromByteArray" should {
-    "round trip with toByteArray" in prop { ipv6: Ipv6Address =>
+    "round trip with toByteArray" in prop { (ipv6: Ipv6Address) =>
       Ipv6Address.fromByteArray(ipv6.toByteArray) must_== Right(ipv6)
     }
   }
 
   "compare" should {
-    "be consistent with unsigned int" in prop { xs: List[Ipv6Address] =>
+    "be consistent with unsigned int" in prop { (xs: List[Ipv6Address]) =>
       def tupled(a: Ipv6Address) = (a.a, a.b, a.c, a.d)
       xs.sorted.map(tupled) must_== xs.map(tupled).sorted
     }

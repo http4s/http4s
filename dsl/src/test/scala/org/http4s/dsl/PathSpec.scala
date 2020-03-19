@@ -231,7 +231,7 @@ class PathSpec extends Http4sSpec {
       }
     }
 
-    "consistent apply / toList" in prop { p: Path =>
+    "consistent apply / toList" in prop { (p: Path) =>
       Path(p.toList) must_== p
     }
 

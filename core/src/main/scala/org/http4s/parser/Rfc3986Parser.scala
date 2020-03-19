@@ -70,14 +70,14 @@ private[http4s] trait Rfc3986Parser
     // format: off
     ipv4Address |
     "[" ~ ipv6Address ~ "]" |
-    capture(RegName) ~> { s: String =>
+    capture(RegName) ~> { (s: String) =>
       org.http4s.Uri.RegName(decode(s).ci)
     }
     // format:on
   }
 
   def Port = rule {
-    ":" ~ (capture(oneOrMore(Digit)) ~> { s: String =>
+    ":" ~ (capture(oneOrMore(Digit)) ~> { (s: String) =>
       val int: Option[Int] = Either.catchOnly[NumberFormatException](s.toInt).toOption
 
       test(int.nonEmpty) ~ push(int)
@@ -91,7 +91,7 @@ private[http4s] trait Rfc3986Parser
   def RegName: Rule0 = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
 
   def Path: Rule1[String] = rule {
-    (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String =>
+    (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { (s: String) =>
       decode(s)
     }
   }
@@ -117,7 +117,7 @@ private[http4s] trait Rfc3986Parser
   // NOTE: The Query is NOT url decoded.
   def Query = rule {
     clearSB() ~ zeroOrMore(
-      capture(Pchar) ~> { s: String =>
+      capture(Pchar) ~> { (s: String) =>
         appendSB(s)
       } |
         "/" ~ appendSB() |

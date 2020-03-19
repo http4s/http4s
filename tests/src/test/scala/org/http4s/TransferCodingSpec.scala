@@ -42,7 +42,7 @@ class TransferCodingSpec extends Http4sSpec {
   }
 
   "render" should {
-    "return coding" in prop { s: TransferCoding =>
+    "return coding" in prop { (s: TransferCoding) =>
       Renderer.renderString(s) must_== s.coding
     }
   }

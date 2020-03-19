@@ -7,7 +7,7 @@ title: Authentication
 ## Built in
 
 For this section, remember that, like mentioned in the [service] section, a service is a
-`Kleisli[OptionT[F, ?], Request[F], Response[F]]`, the composable version of `Request[F] => OptionT[F, Response[F]]`.
+`Kleisli[OptionT[F, *], Request[F], Response[F]]`, the composable version of `Request[F] => OptionT[F, Response[F]]`.
 
 Lets start by defining all the imports we will need in the examples below:
 
@@ -39,7 +39,7 @@ to define how to extract the authentication information from the request. For th
 with the following signature: `Request[F] => OptionT[F, User]`. Here is an example of how to define it:
 
 ```tut:silent
-val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
   Kleisli(_ => OptionT.liftF(IO(???)))
 ```
 

@@ -80,6 +80,6 @@ object ResponseLogger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
-      httpRoutes: Kleisli[OptionT[F, ?], A, Response[F]]): Kleisli[OptionT[F, ?], A, Response[F]] =
+      httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 }
