@@ -14,7 +14,7 @@ import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.collection.immutable
 import scala.math.Ordered
-import scala.reflect.macros.whitebox
+import scala.reflect.macros.blackbox
 
 /** Representation of the [[Request]] URI
   *
@@ -155,7 +155,7 @@ final case class Uri(
 }
 
 object Uri {
-  class Macros(val c: whitebox.Context) {
+  class Macros(val c: blackbox.Context) {
     import c.universe._
 
     def uriLiteral(s: c.Expr[String]): Tree =

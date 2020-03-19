@@ -18,7 +18,7 @@
 package org.http4s
 
 import java.util.regex.Pattern
-import scala.reflect.macros.{ParseException, TypecheckException, whitebox}
+import scala.reflect.macros.{ParseException, TypecheckException, blackbox}
 
 /**
   * A utility which ensures that a code fragment does not typecheck.
@@ -30,7 +30,7 @@ object illTyped {
   def apply(code: String, expected: String): Unit = macro IllTypedMacros.applyImpl
 }
 
-class IllTypedMacros(val c: whitebox.Context) {
+class IllTypedMacros(val c: blackbox.Context) {
   import c.universe._
 
   def applyImplNoExp(code: Tree): Tree = applyImpl(code, null)
