@@ -94,7 +94,10 @@ object AsyncHttpClient {
 
           responseWithBody = response.copy(body = body)
 
-          _ <- F.delay(cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
+          // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
+          fiber <- F.start(
+            F.delay(cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten)))))
+          _ <- fiber.join
         } yield ()
 
         eff.runAsync(_ => IO.unit).unsafeRunSync()
