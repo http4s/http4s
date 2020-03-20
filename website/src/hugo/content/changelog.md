@@ -8,6 +8,21 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.20 (2020-03-20)
+
+This release is fully backward compatible with 0.20.19.
+
+## Enhancements
+
+* [#3167](https://github.com/http4s/http4s/pull/3167): Add `MetricsOps.classifierFMethodWithOptionallyExcludedPath`.
+
+## Dependency updates
+
+* argonaut-6.2.5
+* jetty-9.4.27.v20200227
+* metrics-4.1.5 (Dropwizard)
+* tomcat-9.0.33
+
 # v0.21.1 (2020-02-13)
 
 This release is fully backward compatible with v0.21.0, and includes all the changes from v0.20.18.
