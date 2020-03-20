@@ -129,7 +129,7 @@ package object internal {
     }
 
   // Adapted from https://github.com/typelevel/cats-effect/issues/160#issue-306054982
-  @deprecated("use `fromCompletionStage`")
+  @deprecated("Use `fromCompletionStage`", since = "0.21.2")
   private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(
       implicit F: Concurrent[F]): F[A] =
     fcf.flatMap { cf =>
