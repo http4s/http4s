@@ -8,6 +8,12 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.2 (2020-03-20)
+
+## Noteworthy
+
+* [#3253](https://github.com/http4s/http4s/pull/3253): Preparation for Dotty support. Should be invisible to end users, but calling out because it touches a lot. 
+
 # v0.20.20 (2020-03-20)
 
 This release is fully backward compatible with 0.20.19.
