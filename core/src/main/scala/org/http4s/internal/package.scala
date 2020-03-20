@@ -1,14 +1,10 @@
 package org.http4s
 
-import java.util.concurrent.{
-  CancellationException,
-  CompletableFuture,
-  CompletionException,
-  CompletionStage
-}
+import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException, CompletionStage}
+import java.util.function.BiFunction
 
 import cats.effect.implicits._
-import cats.effect.{Async, ConcurrentEffect, ContextShift, Effect, IO}
+import cats.effect.{Async, Concurrent, ConcurrentEffect, ContextShift, Effect, IO}
 import cats.implicits._
 import org.http4s.util.execution.direct
 import org.log4s.Logger
@@ -129,6 +125,21 @@ package object internal {
     }
 
   // Adapted from https://github.com/typelevel/cats-effect/issues/160#issue-306054982
+  @deprecated("use `fromCompletionStage`")
+  private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(
+    implicit F: Concurrent[F]): F[A] =
+    fcf.flatMap { cf =>
+      F.cancelable { cb =>
+        cf.handle[Unit]((result, err) => err match {
+          case null => cb(Right(result))
+          case _: CancellationException => ()
+          case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
+          case ex => cb(Left(ex))
+        })
+        F.delay { cf.cancel(true); () }
+      }
+    }
+
   private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
       fcs: F[CF[A]])(implicit F: Async[F], CS: ContextShift[F]): F[A] =
     fcs.flatMap { cs =>
