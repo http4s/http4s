@@ -16,6 +16,13 @@ This release is fully backward compatible with 0.20.19.
 
 * [#3167](https://github.com/http4s/http4s/pull/3167): Add `MetricsOps.classifierFMethodWithOptionallyExcludedPath`.
 
+## Dependency updates
+
+* argonaut-6.2.5
+* jetty-9.4.27.v20200227
+* metrics-4.1.5 (Dropwizard)
+* tomcat-9.0.33
+
 # v0.20.19 (2020-02-13)
 
 This release is fully backward compatible with 0.20.18.
