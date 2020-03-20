@@ -30,6 +30,13 @@ This release is fully backward compatible with 0.18.25.
   * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
   * Request path segments are now percent-decoded to support resources with reserved characters in the name.
 
+## Dependency updates
+
+* argonaut-6.2.5
+* jetty-9.4.27.v20200227
+* metrics-4.1.5 (Dropwizard)
+* tomcat-9.0.33
+
 # v0.20.19 (2020-02-13)
 
 This release is fully backward compatible with 0.20.18.
