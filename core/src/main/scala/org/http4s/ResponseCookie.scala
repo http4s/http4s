@@ -102,7 +102,7 @@ final case class ResponseCookie(
     maxAge: Option[Long] = None,
     domain: Option[String] = None,
     path: Option[String] = None,
-    sameSite: Option[SameSite] = Some(SameSite.Lax),
+    sameSite: Option[SameSite] = None,
     secure: Boolean = false,
     httpOnly: Boolean = false,
     extension: Option[String] = None
