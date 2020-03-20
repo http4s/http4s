@@ -14,6 +14,10 @@ it.
 
 * [#3253](https://github.com/http4s/http4s/pull/3253): Preparation for Dotty support. Should be invisible to end users, but calling out because it touches a lot. 
 
+## Dependency updates
+
+* cats-2.1.1
+
 # v0.20.20 (2020-03-20)
 
 This release is fully backward compatible with 0.20.19.
