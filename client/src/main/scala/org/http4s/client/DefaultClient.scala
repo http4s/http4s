@@ -45,7 +45,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * @param handle A function that maps a Throwable to an F[A]
     * @return The result of applying f to the response to req, while handling any raised errors
     */
-  def fetchAndRecoverWith[A](req: Request[F])(f: Response[F] => F[A])(handle: PartialFunction[Throwable, F[A]])(
+  def fetchAndRecoverWith[A](req: Request[F])(f: Response[F] => F[A])(
+      handle: PartialFunction[Throwable, F[A]])(
       implicit ev: MonadError[F, Throwable]
   ): F[A] =
     run(req)
