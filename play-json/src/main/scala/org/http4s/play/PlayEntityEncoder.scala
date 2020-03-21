@@ -8,7 +8,7 @@ import org.http4s.EntityEncoder
   */
 trait PlayEntityEncoder {
   implicit def playEntityEncoder[F[_], A: Writes]: EntityEncoder[F, A] =
-    jsonEncoderOf(EntityEncoder.stringEncoder[F], implicitly)
+    jsonEncoderOf[F, A]
 }
 
 object PlayEntityEncoder extends PlayEntityEncoder
