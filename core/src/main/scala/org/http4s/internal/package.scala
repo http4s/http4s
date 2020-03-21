@@ -145,8 +145,11 @@ package object internal {
       }
     }
 
-  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
-      fcs: F[CF[A]])(implicit F: Async[F], CS: ContextShift[F]): F[A] =
+  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](fcs: F[CF[A]])(
+      implicit
+      // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
+      F: Concurrent[F],
+      CS: ContextShift[F]): F[A] =
     fcs.flatMap { cs =>
       F.async[A] { cb =>
           cs.handle[Unit] { (result, err) =>
