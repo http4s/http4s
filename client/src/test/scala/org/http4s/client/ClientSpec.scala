@@ -81,7 +81,7 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
   "Client#fetchOrError" should {
     "return handle Throwable if error is raised due to HTTP Response's raised error" in {
       val c: Client[IO] = testClient(IO.raiseError(new TimeoutException("BOOM!")))
-      val result: IO[Int] = c.fetchOrError[Int](Request[IO]())(_ => IO.pure(42)) {
+      val result: IO[Int] = c.fetchAndRecoverWith[Int](Request[IO]())(_ => IO.pure(42)) {
         case e if e.getClass.getCanonicalName == "java.util.concurrent.TimeoutException" =>
           IO.pure(100)
         case e => IO.raiseError(e)
@@ -90,7 +90,7 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
     }
     "return handle Throwable if error is raised due to decoding failure" in {
       val c: Client[IO] = testClient(IO.pure(Response[IO]().withEntity[String]("foobar")))
-      val result: IO[Elem] = c.fetchOrError[Elem](Request[IO]()) { _.as[Elem] } {
+      val result: IO[Elem] = c.fetchAndRecoverWith[Elem](Request[IO]()) { _.as[Elem] } {
         case MalformedMessageBodyFailure(_, _) => IO.pure(<oops></oops>)
         case e => IO.raiseError(e)
       }
