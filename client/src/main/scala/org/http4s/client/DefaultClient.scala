@@ -50,7 +50,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   ): F[A] =
     run(req)
       .use(f)
-      .handleErrorWith(handle)
+      .recoverWith(handle)
 
   /**
     * Returns this client as a [[Kleisli]].  All connections created by this
