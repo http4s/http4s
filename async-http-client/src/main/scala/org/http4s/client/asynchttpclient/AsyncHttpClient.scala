@@ -83,11 +83,10 @@ object AsyncHttpClient {
         // backpressure is handled by requests to the reactive streams subscription
         StreamSubscriber[F, HttpResponseBodyPart]
           .map { subscriber =>
-            val body = subscriber.stream.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+            val body = subscriber
+              .stream(F.delay(publisher.subscribe(subscriber)))
+              .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
             response = response.copy(body = body)
-            // Run this before we return the response, lest we violate
-            // Rule 3.16 of the reactive streams spec.
-            publisher.subscribe(subscriber)
             // We have a fully formed response now.  Complete the
             // callback, rather than waiting for onComplete, or else we'll
             // buffer the entire response before we return it for
