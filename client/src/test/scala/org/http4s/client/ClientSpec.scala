@@ -94,5 +94,12 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
       }
       result.unsafeRunSync ==== <oops></oops>
     }
+    "raise a TimeoutException if it's not handled." in {
+      val c: Client[IO] = testClient(IO.raiseError(new TimeoutException("BOOM!")))
+      val result: IO[Int] = c.fetchAndRecoverWith[Int](Request[IO]())(_ => IO.pure(42)) {
+        case MalformedMessageBodyFailure(_, _) => IO.pure(42)
+      }
+      result.unsafeRunSync should throwA[TimeoutException]
+    }
   }
 }
