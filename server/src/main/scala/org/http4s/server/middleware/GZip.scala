@@ -5,6 +5,7 @@ package middleware
 import cats.Functor
 import cats.data.Kleisli
 import cats.implicits._
+import com.github.ghik.silencer.silent
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.Stream.chunk
 import fs2.compress.deflate
@@ -53,6 +54,7 @@ object GZip {
       case resp => resp // Don't touch it, Content-Encoding already set
     }
 
+  @silent("deprecated")
   private def zipResponse[F[_]: Functor](
       bufferSize: Int,
       level: Int,

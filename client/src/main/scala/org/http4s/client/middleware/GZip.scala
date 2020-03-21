@@ -3,6 +3,7 @@ package client
 package middleware
 
 import cats.effect.Bracket
+import com.github.ghik.silencer.silent
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
 
 /**
@@ -32,6 +33,7 @@ object GZip {
           req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
     }
 
+  @silent("deprecated")
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(
       implicit F: Bracket[F, Throwable]): Response[F] =
     response.headers.get(`Content-Encoding`) match {

@@ -40,6 +40,8 @@ object Http4sPlugin extends AutoPlugin {
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
 
+  val silencerVersion = "1.6.0"
+
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
@@ -76,6 +78,10 @@ object Http4sPlugin extends AutoPlugin {
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+
+    addCompilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
+
+    libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full,
 
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
@@ -206,7 +212,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.2"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.0.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.2.2"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.3.0"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "1.0.0"
