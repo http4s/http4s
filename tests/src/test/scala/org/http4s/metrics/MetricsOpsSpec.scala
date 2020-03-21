@@ -20,41 +20,39 @@ class MetricsOpsSpec extends Http4sSpec {
   "classifierFMethodWithOptionallyExcludedPath" should {
     "properly exclude UUIDs" in prop {
       (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
-        {
-          val request: Request[IO] = Request[IO](
-            method = method,
-            uri = Uri.unsafeFromString(s"/users/$uuid/comments")
+        val request: Request[IO] = Request[IO](
+          method = method,
+          uri = Uri.unsafeFromString(s"/users/$uuid/comments")
+        )
+
+        val excludeUUIDs: String => Boolean = { str: String =>
+          Either
+            .catchOnly[IllegalArgumentException](UUID.fromString(str))
+            .isRight
+        }
+
+        val classifier: Request[IO] => Option[String] =
+          classifierFMethodWithOptionallyExcludedPath(
+            exclude = excludeUUIDs,
+            excludedValue = excludedValue,
+            pathSeparator = separator
           )
 
-          val excludeUUIDs: String => Boolean = { str: String =>
-            Either
-              .catchOnly[IllegalArgumentException](UUID.fromString(str))
-              .isRight
-          }
+        val result: Option[String] =
+          classifier(request)
 
-          val classifier: Request[IO] => Option[String] =
-            classifierFMethodWithOptionallyExcludedPath(
-              exclude = excludeUUIDs,
-              excludedValue = excludedValue,
-              pathSeparator = separator
-            )
+        val expected: Option[String] =
+          Some(
+            method.name +
+              separator +
+              "users" +
+              separator +
+              excludedValue +
+              separator +
+              "comments"
+          )
 
-          val result: Option[String] =
-            classifier(request)
-
-          val expected: Option[String] =
-            Some(
-              method.name +
-                separator +
-                "users" +
-                separator +
-                excludedValue +
-                separator +
-                "comments"
-            )
-
-          result ==== expected
-        }
+        result ==== expected
     }
     "return '$method' if the path is '/'" in prop { method: Method =>
       val request: Request[IO] = Request[IO](
