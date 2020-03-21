@@ -10,6 +10,10 @@ it.
 
 # v0.21.2 (2020-03-20)
 
+## Bugfixes
+
+* [#3261](https://github.com/http4s/http4s/pull/3261): In async-http-client, fixed connection release when body isn't run, as well as thread affinity.
+
 ## Enhancements
 
 * [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware. 
