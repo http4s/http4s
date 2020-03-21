@@ -48,7 +48,7 @@ trait Client[F[_]] {
     * @param handle A function that maps a Throwable to an F[A]
     * @return The result of applying f to the response to req, while handling any raised errors
     */
-  def fetchAndRecoverWith[A](req: Request[F])(f: Response[F] => F[A])(handle: Throwable => F[A])(
+  def fetchAndRecoverWith[A](req: Request[F])(f: Response[F] => F[A])(handle: PartialFunction[Throwable, F[A]])(
       implicit ev: MonadError[F, Throwable]
   ): F[A]
 
