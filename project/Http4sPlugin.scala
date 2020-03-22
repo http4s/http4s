@@ -40,6 +40,8 @@ object Http4sPlugin extends AutoPlugin {
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
 
+  val CompileTime = config("CompileTime").hide
+
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
@@ -110,13 +112,16 @@ object Http4sPlugin extends AutoPlugin {
       name = "scala-reflect",
       revision = "2.12.*",
     ), // false positive on 2.12.10
+
+    ivyConfigurations += CompileTime,
+    unmanagedClasspath in Compile ++= update.value.select(configurationFilter("CompileTime")),
   )
 
   lazy val silencerSettings: Seq[Setting[_]] = {
     val silencerVersion = "1.6.0"
     Seq(
       addCompilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-      libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full,
+      libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % CompileTime cross CrossVersion.full,
       unusedCompileDependenciesFilter -= moduleFilter("com.github.ghik", name = "silencer-lib"),
     )
   }
