@@ -40,8 +40,6 @@ object Http4sPlugin extends AutoPlugin {
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
 
-  val silencerVersion = "1.6.0"
-
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
@@ -79,10 +77,6 @@ object Http4sPlugin extends AutoPlugin {
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 
-    addCompilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-
-    libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full,
-
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = http4sApiVersion.value
@@ -117,6 +111,14 @@ object Http4sPlugin extends AutoPlugin {
       revision = "2.12.*",
     ), // false positive on 2.12.10
   )
+
+  lazy val silencerSettings: Seq[Setting[_]] = {
+    val silencerVersion = "1.6.0"
+    Seq(
+      addCompilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
+      libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full,
+    )
+  }
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
