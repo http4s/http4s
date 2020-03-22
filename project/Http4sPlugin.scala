@@ -117,6 +117,7 @@ object Http4sPlugin extends AutoPlugin {
     Seq(
       addCompilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
       libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full,
+      unusedCompileDependenciesFilter -= moduleFilter("com.github.ghik", name = "silencer-lib"),
     )
   }
 
