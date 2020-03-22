@@ -41,7 +41,7 @@ trait Client[F[_]] {
   /** Submits a request, and provides a callback to process the response.
     * Note that all errors, e.g. decoding a payload, client times out, etc.
     *
-    * @param req An effect of the request to submit
+    * @param req The request to submit
     * @param f A callback for the response to req.  The underlying HTTP connection
     *          is disposed when the returned task completes.  Attempts to read the
     *          response body afterward will result in an error.
