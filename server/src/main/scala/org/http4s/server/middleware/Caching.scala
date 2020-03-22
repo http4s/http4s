@@ -141,13 +141,7 @@ object Caching {
       methodToSetOn: Method => Boolean,
       statusToSetOn: Status => Boolean,
       http: Http[G, F]
-  ): Http[G, F] = {
-    val actualLifetime = lifetime match {
-      case finite: FiniteDuration => finite
-      case _ => 315360000.seconds // 10 years
-      // Http1 caches do not respect max-age headers, so to work globally it is recommended
-      // to explicitly set an Expire which requires some time interval to work
-    }
+  ): Http[G, F] =
     Kleisli { (req: Request[F]) =>
       for {
         resp <- http(req)
@@ -156,7 +150,6 @@ object Caching {
         } else resp.pure[G]
       } yield out
     }
-  }
 
   // Here as an optimization so we don't recreate durations
   // in cacheResponse #TeamStatic
