@@ -3,12 +3,14 @@ package server
 package staticcontent
 
 import cats.effect._
+import java.nio.file.Paths
 import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}
 import org.http4s.server.middleware.TranslateUri
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
   val config = ResourceService.Config[IO]("", executionContext = Http4sSpec.TestExecutionContext)
+  val defaultBase = getClass.getResource("/").getPath.toString
   val s = resourceService(config)
 
   "ResourceService" should {
@@ -17,28 +19,115 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
       val s2 = TranslateUri("/foo")(s)
 
       {
-        val req = Request[IO](uri = uri("foo/testresource.txt"))
+        val req = Request[IO](uri = uri("/foo/testresource.txt"))
         s2.orNotFound(req) must returnBody(testResource)
         s2.orNotFound(req) must returnStatus(Status.Ok)
       }
 
       {
-        val req = Request[IO](uri = uri("testresource.txt"))
+        val req = Request[IO](uri = uri("/testresource.txt"))
         s2.orNotFound(req) must returnStatus(Status.NotFound)
       }
     }
 
     "Serve available content" in {
-      val req = Request[IO](uri = Uri.fromString("testresource.txt").yolo)
+      val req = Request[IO](uri = Uri.fromString("/testresource.txt").yolo)
       val rb = s.orNotFound(req)
 
       rb must returnBody(testResource)
       rb must returnStatus(Status.Ok)
     }
 
+    "Decodes path segments" in {
+      val req = Request[IO](uri = uri("/space+truckin%27.txt"))
+      s.orNotFound(req) must returnStatus(Status.Ok)
+    }
+
+    "Respect the path prefix" in {
+      val relativePath = "testresource.txt"
+      val s0 = resourceService(
+        ResourceService.Config[IO](
+          basePath = "",
+          pathPrefix = "/path-prefix"
+        ))
+      val file = Paths.get(defaultBase).resolve(relativePath).toFile
+      file.exists() must beTrue
+      val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
+      val req = Request[IO](uri = uri)
+      s0.orNotFound(req) must returnStatus(Status.Ok)
+    }
+
+    "Return a 400 if the request tries to escape the context" in {
+      val relativePath = "../testresource.txt"
+      val basePath = Paths.get(defaultBase).resolve("testDir")
+      val file = basePath.resolve(relativePath).toFile
+      file.exists() must beTrue
+
+      val uri = Uri.unsafeFromString("/" + relativePath)
+      val req = Request[IO](uri = uri)
+      val s0 = resourceService(
+        ResourceService.Config[IO](
+          basePath = "/testDir"
+        ))
+      s0.orNotFound(req) must returnStatus(Status.BadRequest)
+    }
+
+    "Return a 400 on path traversal, even if it's inside the context" in {
+      val relativePath = "testDir/../testresource.txt"
+      val file = Paths.get(defaultBase).resolve(relativePath).toFile
+      file.exists() must beTrue
+
+      val uri = Uri.unsafeFromString("/" + relativePath)
+      val req = Request[IO](uri = uri)
+      s.orNotFound(req) must returnStatus(Status.BadRequest)
+    }
+
+    "Return a 404 Not Found if the request tries to escape the context with a partial base path prefix match" in {
+      val relativePath = "Dir/partial-prefix.txt"
+      val file = Paths.get(defaultBase).resolve(relativePath).toFile
+      file.exists() must beTrue
+
+      val uri = Uri.unsafeFromString("/test" + relativePath)
+      val req = Request[IO](uri = uri)
+      val s0 = resourceService(
+        ResourceService.Config[IO](
+          basePath = ""
+        ))
+      s0.orNotFound(req) must returnStatus(Status.NotFound)
+    }
+
+    "Return a 404 Not Found if the request tries to escape the context with a partial path-prefix match" in {
+      val relativePath = "Dir/partial-prefix.txt"
+      val file = Paths.get(defaultBase).resolve(relativePath).toFile
+      file.exists() must beTrue
+
+      val uri = Uri.unsafeFromString("/test" + relativePath)
+      val req = Request[IO](uri = uri)
+      val s0 = resourceService(
+        ResourceService.Config[IO](
+          basePath = "",
+          pathPrefix = "/test"
+        ))
+      s0.orNotFound(req) must returnStatus(Status.NotFound)
+    }
+
+    "Return a 400 Not Found if the request tries to escape the context with /" in {
+      val absPath = Paths.get(defaultBase).resolve("testresource.txt")
+      val file = absPath.toFile
+      file.exists() must beTrue
+
+      val uri = Uri.unsafeFromString("///" + absPath)
+      val req = Request[IO](uri = uri)
+      val s0 = resourceService(
+        ResourceService.Config[IO](
+          basePath = "/testDir"
+        ))
+      s0.orNotFound(req) must returnStatus(Status.BadRequest)
+    }
+
     "Try to serve pre-gzipped content if asked to" in {
       val req = Request[IO](
-        uri = Uri.fromString("testresource.txt").yolo,
+        uri = Uri.fromString("/testresource.txt").yolo,
         headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
       )
       val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
@@ -51,7 +140,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Fallback to un-gzipped file if pre-gzipped version doesn't exist" in {
       val req = Request[IO](
-        uri = Uri.fromString("testresource2.txt").yolo,
+        uri = Uri.fromString("/testresource2.txt").yolo,
         headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
       )
       val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
@@ -63,15 +152,19 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
     }
 
     "Generate non on missing content" in {
-      val req = Request[IO](uri = Uri.fromString("testresource.txtt").yolo)
+      val req = Request[IO](uri = Uri.fromString("/testresource.txtt").yolo)
       s.orNotFound(req) must returnStatus(Status.NotFound)
     }
 
     "Not send unmodified files" in {
-      val req = Request[IO](uri = uri("testresource.txt"))
+      val req = Request[IO](uri = uri("/testresource.txt"))
         .putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
 
       runReq(req)._2.status must_== Status.NotModified
+    }
+
+    "doesn't crash on /" in {
+      s.orNotFound(Request[IO](uri = uri("/"))) must returnStatus(Status.NotFound)
     }
   }
 }
