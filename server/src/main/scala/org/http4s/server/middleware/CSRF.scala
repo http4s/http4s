@@ -365,7 +365,7 @@ object CSRF {
       httpOnly: Boolean,
       domain: Option[String] = None,
       path: Option[String] = None,
-      sameSite: SameSite = SameSite.Lax,
+      sameSite: Option[SameSite] = Some(SameSite.Lax),
       extension: Option[String] = None
   )
 
