@@ -118,10 +118,13 @@ object Http4sPlugin extends AutoPlugin {
   )
 
   lazy val silencerSettings: Seq[Setting[_]] = {
-    val silencerVersion = "1.6.0"
+    val SilencerVersion = "1.6.0"
     Seq(
-      addCompilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-      libraryDependencies += "com.github.ghik" % "silencer-lib" % silencerVersion % CompileTime cross CrossVersion.full,
+      libraryDependencies ++= Seq(
+        compilerPlugin(("com.github.ghik" % "silencer-plugin" % SilencerVersion).cross(CrossVersion.full)),
+        ("com.github.ghik" % "silencer-lib" % SilencerVersion % CompileTime).cross(CrossVersion.full),
+        ("com.github.ghik" % "silencer-lib" % SilencerVersion % Test).cross(CrossVersion.full),
+      ),
       unusedCompileDependenciesFilter -= moduleFilter("com.github.ghik", name = "silencer-lib"),
     )
   }
