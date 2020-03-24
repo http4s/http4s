@@ -8,6 +8,33 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.2
+
+This release is fully backward compatible with 0.21.2.
+
+## Security fixes
+* [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
+  * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
+  * Request path segments are now percent-decoded to support resources with reserved characters in the name.
+
+# v0.20.20
+
+This release is fully backward compatible with 0.18.25.
+
+## Security fixes
+* [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
+  * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
+  * Request path segments are now percent-decoded to support resources with reserved characters in the name.
+
+# v0.18.26
+
+This release is fully backward compatible with 0.18.25.
+
+## Security fixes
+* [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
+  * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
+  * Request path segments are now percent-decoded to support resources with reserved characters in the name.
+
 # v0.21.1 (2020-02-13)
 
 This release is fully backward compatible with v0.21.0, and includes all the changes from v0.20.18.
@@ -170,7 +197,7 @@ This release is fully compatible with 0.20.16.
 ## Dependency updates
 
 * simpleclient-0.8.1 (Prometheus)
-
+  
 # v0.18.25 (2020-01-21)
 
 ## Bug fixes

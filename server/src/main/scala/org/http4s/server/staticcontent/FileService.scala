@@ -52,7 +52,7 @@ object FileService {
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Sync[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
-    Try(Paths.get(config.systemPath)) match {
+    Try(Paths.get(config.systemPath).toRealPath()) match {
       case Success(rootPath) =>
         TranslateUri(config.pathPrefix)(Kleisli {
           case request =>
@@ -78,9 +78,14 @@ object FileService {
             }
         })
 
+      case Failure(_: NoSuchFileException) =>
+        logger.error(
+          s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none.")
+        Kleisli(_ => OptionT.none)
+
       case Failure(e) =>
         logger.error(e)(
-          s"Could not get root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail.")
+          s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500.")
         Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
     }
   }

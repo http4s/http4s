@@ -93,7 +93,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
       val req = Request[IO](uri = uri)
       val s0 = fileService(
         FileService.Config[IO](
-          systemPath = Paths.get(defaultSystemPath).resolve("/test").toString,
+          systemPath = Paths.get(defaultSystemPath).resolve("test").toString,
           blocker = testBlocker
         ))
       s0.orNotFound(req) must returnStatus(Status.NotFound)
@@ -189,6 +189,21 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
         routes.orNotFound(req) must returnValue(
           containsHeader(headers.`Content-Range`(SubRange(0, size - 1), Some(size))))
       }
+    }
+
+    "doesn't crash on /" in {
+      routes.orNotFound(Request[IO](uri = uri("/"))) must returnStatus(Status.NotFound)
+    }
+
+    "handle a relative system path" in {
+      val s = fileService(FileService.Config[IO](".", blocker = testBlocker))
+      Paths.get(".").resolve("build.sbt").toFile.exists() must beTrue
+      s.orNotFound(Request[IO](uri = uri("/build.sbt"))) must returnStatus(Status.Ok)
+    }
+
+    "404 if system path is not found" in {
+      val s = fileService(FileService.Config[IO]("./does-not-exist", blocker = testBlocker))
+      s.orNotFound(Request[IO](uri = uri("/build.sbt"))) must returnStatus(Status.NotFound)
     }
   }
 }
