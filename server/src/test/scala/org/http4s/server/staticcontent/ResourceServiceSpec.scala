@@ -71,7 +71,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
       val s0 = resourceService(
         ResourceService.Config[IO](
           basePath = "/testDir",
-          blockingExecutionContext = testBlockingExecutionContext,
+          blockingExecutionContext = testBlockingExecutionContext
         ))
       s0.orNotFound(req) must returnStatus(Status.BadRequest)
     }
