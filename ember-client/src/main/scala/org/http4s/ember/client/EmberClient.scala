@@ -4,10 +4,15 @@ import cats.effect._
 import org.http4s._
 import org.http4s.client._
 import io.chrisdavenport.keypool._
+import io.chrisdavenport.vault._
+import fs2.io.tls._
 
 final class EmberClient[F[_]: Bracket[?[_], Throwable]] private[client] (
     private val client: Client[F],
-    private val pool: KeyPool[F, RequestKey, (RequestKeySocket[F], F[Unit])]
+    private val pool: KeyPool[
+      F,
+      (RequestKey, Option[TLSParameters]),
+      (RequestKeySocket[F], F[Unit])]
 ) extends DefaultClient[F] {
 
   /**
@@ -17,7 +22,11 @@ final class EmberClient[F[_]: Bracket[?[_], Throwable]] private[client] (
     * The first element represents total connections in the pool, the second
     * is a mapping between the number of connections in the pool for each requestKey.
     */
-  def state: F[(Int, Map[RequestKey, Int])] = pool.state
+  def state: F[(Int, Map[(RequestKey, Option[TLSParameters]), Int])] = pool.state
 
   def run(req: Request[F]): Resource[F, Response[F]] = client.run(req)
+}
+
+object EmberClient {
+  val TLSParameters: Key[TLSParameters] = Key.newKey[IO, TLSParameters].unsafeRunSync
 }

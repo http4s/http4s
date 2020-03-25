@@ -9,7 +9,7 @@ import cats.implicits._
 import cats.effect._
 import scala.concurrent.duration._
 import org.http4s.headers.Connection
-import org.http4s.Response
+import org.http4s.{Response, Uri}
 import org.http4s.client._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
@@ -21,7 +21,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val tlsContextOpt: Option[TLSContext],
     private val sgOpt: Option[SocketGroup],
     val maxTotal: Int,
-    val maxPerKey: RequestKey => Int,
+    val maxPerKey: (RequestKey, Option[TLSParameters]) => Int,
     val idleTimeInPool: Duration,
     private val logger: Logger[F],
     val chunkSize: Int,
@@ -35,7 +35,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       tlsContextOpt: Option[TLSContext] = self.tlsContextOpt,
       sgOpt: Option[SocketGroup] = self.sgOpt,
       maxTotal: Int = self.maxTotal,
-      maxPerKey: RequestKey => Int = self.maxPerKey,
+      maxPerKey: (RequestKey, Option[TLSParameters]) => Int = self.maxPerKey,
       idleTimeInPool: Duration = self.idleTimeInPool,
       logger: Logger[F] = self.logger,
       chunkSize: Int = self.chunkSize,
@@ -66,7 +66,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withSocketGroup(sg: SocketGroup) = copy(sgOpt = sg.some)
 
   def withMaxTotal(maxTotal: Int) = copy(maxTotal = maxTotal)
-  def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
+  def withMaxPerKey(maxPerKey: (RequestKey, Option[TLSParameters]) => Int) =
+    copy(maxPerKey = maxPerKey)
   def withIdleTimeInPool(idleTimeInPool: Duration) = copy(idleTimeInPool = idleTimeInPool)
 
   def withLogger(logger: Logger[F]) = copy(logger = logger)
@@ -86,16 +87,18 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           .fold(TLSContext.system(blocker).attempt.map(_.toOption))(_.some.pure[F])
       )
       builder = KeyPoolBuilder
-        .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
-          { requestKey: RequestKey =>
-            org.http4s.ember.client.internal.ClientHelpers
-              .requestKeyToSocketWithKey[F](
-                requestKey,
-                tlsContextOptWithDefault,
-                sg,
-                additionalSocketOptions
-              )
-              .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
+        .apply[F, (RequestKey, Option[TLSParameters]), (RequestKeySocket[F], F[Unit])](
+          {
+            case (requestKey: RequestKey, tlsParamOpts: Option[TLSParameters]) =>
+              org.http4s.ember.client.internal.ClientHelpers
+                .requestKeyToSocketWithKey[F](
+                  requestKey,
+                  tlsParamOpts,
+                  tlsContextOptWithDefault,
+                  sg,
+                  additionalSocketOptions
+                )
+                .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
           }, {
             case (RequestKeySocket(socket, r), shutdown) =>
               logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
@@ -107,14 +110,19 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
         )
         .withDefaultReuseState(Reusable.DontReuse)
         .withIdleTimeAllowedInPool(idleTimeInPool)
-        .withMaxPerKey(maxPerKey)
+        .withMaxPerKey { case (key, opts) => maxPerKey(key, opts) }
         .withMaxTotal(maxTotal)
         .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
     } yield {
-      val client = Client[F](request =>
+      val client = Client[F] { request =>
+        val requestKey = RequestKey.fromRequest(request)
+        val tlsParamOpts = if (requestKey.scheme === Uri.Scheme.https) {
+          request.attributes.lookup(EmberClient.TLSParameters)
+        } else None
+
         for {
-          managed <- pool.take(RequestKey.fromRequest(request))
+          managed <- pool.take((requestKey, tlsParamOpts))
           _ <- Resource.liftF(
             pool.state.flatMap { poolState =>
               logger.trace(
@@ -148,7 +156,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               case Reusable.Reuse => resp.body.compile.drain.attempt.void
               case Reusable.DontReuse => Sync[F].unit
             })
-        } yield response)
+        } yield response
+      }
       new EmberClient[F](client, pool)
     }
 }
@@ -175,11 +184,17 @@ object EmberClientBuilder {
     val timeout: Duration = 60.seconds
 
     // Pool Settings
-    val maxPerKey = { _: RequestKey =>
+    def maxPerKey(requestKey: RequestKey, tlsParamOpts: Option[TLSParameters]) = {
+      void(requestKey, tlsParamOpts)
       100
     }
     val maxTotal = 100
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
+
+    private def void(args: Any*): Unit = {
+      val _ = args
+      ()
+    }
   }
 }
