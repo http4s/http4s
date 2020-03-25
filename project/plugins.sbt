@@ -11,7 +11,7 @@ addSbtPlugin("com.geirsson"               %  "sbt-ci-release"            % "1.5.
 addSbtPlugin("com.github.cb372"           %  "sbt-explicit-dependencies" % "0.2.12")
 addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.6")
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.5.0")
-addSbtPlugin("com.typesafe"               %  "sbt-mima-plugin"           % "0.6.4")
+addSbtPlugin("com.typesafe"               %  "sbt-mima-plugin"           % "0.7.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-ghpages"               % "0.6.3")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-twirl"                 % "1.5.0")
