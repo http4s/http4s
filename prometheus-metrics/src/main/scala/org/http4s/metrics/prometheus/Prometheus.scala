@@ -7,7 +7,7 @@ import io.prometheus.client._
 import org.http4s.{Method, Status}
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
-import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
+import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
 
 /**
   * [[MetricsOps]] algebra capable of recording Prometheus metrics
@@ -123,20 +123,39 @@ object Prometheus {
           elapsed: Long,
           terminationType: TerminationType,
           classifier: Option[String]): F[Unit] = terminationType match {
-        case Abnormal => recordAbnormal(elapsed, classifier)
-        case Error => recordError(elapsed, classifier)
+        case Abnormal(e) => recordAbnormal(elapsed, classifier, e)
+        case Error(e) => recordError(elapsed, classifier, e)
+        case Canceled => recordCanceled(elapsed, classifier)
         case Timeout => recordTimeout(elapsed, classifier)
       }
 
-      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+      private def recordCanceled(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
           .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
-      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+      private def recordAbnormal(
+          elapsed: Long,
+          classifier: Option[String],
+          cause: Throwable): F[Unit] = F.delay {
         metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Error))
+          .labels(
+            label(classifier),
+            AbnormalTermination.report(AbnormalTermination.Abnormal),
+            cause.getClass.getName)
+          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+      }
+
+      private def recordError(
+          elapsed: Long,
+          classifier: Option[String],
+          cause: Throwable): F[Unit] = F.delay {
+        metrics.abnormalTerminations
+          .labels(
+            label(classifier),
+            AbnormalTermination.report(AbnormalTermination.Error),
+            cause.getClass.getName)
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
@@ -253,9 +272,11 @@ private object AbnormalTermination {
   case object Abnormal extends AbnormalTermination
   case object Error extends AbnormalTermination
   case object Timeout extends AbnormalTermination
+  case object Canceled extends AbnormalTermination
   def report(t: AbnormalTermination): String = t match {
     case Abnormal => "abnormal"
     case Timeout => "timeout"
     case Error => "error"
+    case Canceled => "cancel"
   }
 }
