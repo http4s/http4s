@@ -25,6 +25,8 @@ object util {
     case GET -> Root / "abnormal-termination" =>
       Ok("200 OK").map(
         _.withBodyStream(Stream.raiseError[IO](new RuntimeException("Abnormal termination"))))
+    case GET -> Root / "never" =>
+      IO.never
     case _ =>
       NotFound("404 Not Found")
   }
@@ -105,6 +107,11 @@ object util {
           s"${prefix}_abnormal_terminations_count",
           Array("classifier", "termination_type", "cause"),
           Array(classifier, "abnormal", cause))
+      case "cancels" =>
+        registry.getSampleValue(
+          s"${prefix}_abnormal_terminations_count",
+          Array("classifier", "termination_type", "cause"),
+          Array(classifier, "cancel", cause))
     }
 
   object FakeClock {

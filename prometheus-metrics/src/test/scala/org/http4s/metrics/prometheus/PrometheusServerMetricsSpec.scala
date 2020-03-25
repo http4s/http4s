@@ -10,6 +10,7 @@ import org.http4s.metrics.prometheus.util._
 import org.http4s.server.middleware.Metrics
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.execute.AsResult
+import scala.concurrent.duration._
 
 class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   private val testRoutes = HttpRoutes.of[IO](stub)
@@ -149,6 +150,20 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
           count(registry, "5xx_total_duration", "server") must beEqualTo(0.1)
         }
     }
+
+    "register a cancel" in withMeteredRoutes {
+      case (registry, routes) =>
+        val req = Request[IO](method = GET, uri = uri"/never")
+
+        for {
+          resp <- routes.run(req).timeout(10.millis).attempt
+        } yield {
+          resp must beLeft
+          count(registry, "cancels", "server") must beEqualTo(1)
+          count(registry, "active_requests", "server") must beEqualTo(0)
+        }
+    }
+
 
     "register an abnormal termination" in withMeteredRoutes {
       case (registry, routes) =>

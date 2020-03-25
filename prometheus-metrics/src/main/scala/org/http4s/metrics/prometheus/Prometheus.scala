@@ -133,7 +133,7 @@ object Prometheus {
         metrics.abnormalTerminations
           .labels(
             label(classifier),
-            AbnormalTermination.report(AbnormalTermination.Abnormal),
+            AbnormalTermination.report(AbnormalTermination.Canceled),
             label(Option.empty))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
