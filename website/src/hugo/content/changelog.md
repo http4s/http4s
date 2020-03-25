@@ -10,12 +10,20 @@ it.
 
 # v0.21.2 (2020-03-24)
 
-This release is fully backward compatible with 0.21.2.
+This release is fully backward compatible with 0.21.1.
 
 ## Security fixes
 * [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
   * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
   * Request path segments are now percent-decoded to support resources with reserved characters in the name.
+
+## Bug fixes
+
+* [#3261](https://github.com/http4s/http4s/pull/3261): In async-http-client, fixed connection release when body isn't run, as well as thread affinity.
+
+## Enhancements
+
+* [#3253](https://github.com/http4s/http4s/pull/3253): Preparation for Dotty support. Should be invisible to end users, but calling out because it touches a lot.
 
 # v0.20.20 (2020-03-24)
 
