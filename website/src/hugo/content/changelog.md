@@ -27,7 +27,7 @@ This release is fully backward compatible with 0.21.1.
 
 # v0.20.20 (2020-03-24)
 
-This release is fully backward compatible with 0.18.25.
+This release is fully backward compatible with 0.20.19.
 
 ## Security fixes
 * [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
