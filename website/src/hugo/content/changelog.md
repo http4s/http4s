@@ -8,6 +8,17 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.21 (2020-03-25)
+
+This release is fully backward compatible with 0.20.20.
+
+## Dependency updates
+
+* argonaut-6.2.5
+* jetty-9.4.27.v20200227
+* metrics-4.1.5 (Dropwizard)
+* tomcat-9.0.33
+
 # v0.21.2 (2020-03-24)
 
 This release is fully backward compatible with 0.21.1.
