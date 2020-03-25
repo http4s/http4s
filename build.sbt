@@ -63,6 +63,14 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers"
   )
+  .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
+  .settings(BuildInfoPlugin.buildInfoDefaultSettings)
+  .settings(
+    buildInfoKeys := Seq[BuildInfoKey](
+      resourceDirectory in Test,
+    ),
+    buildInfoPackage := "org.http4s.server.test"
+  )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 lazy val serverMetrics = libraryProject("server-metrics")
