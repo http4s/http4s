@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.2
+# v0.21.2 (2020-03-24)
 
 This release is fully backward compatible with 0.21.2.
 
@@ -17,7 +17,7 @@ This release is fully backward compatible with 0.21.2.
   * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
   * Request path segments are now percent-decoded to support resources with reserved characters in the name.
 
-# v0.20.20
+# v0.20.20 (2020-03-24)
 
 This release is fully backward compatible with 0.18.25.
 
@@ -26,7 +26,11 @@ This release is fully backward compatible with 0.18.25.
   * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
   * Request path segments are now percent-decoded to support resources with reserved characters in the name.
 
-# v0.18.26
+## Enhancements
+
+* [#3167](https://github.com/http4s/http4s/pull/3167): Add `MetricsOps.classifierFMethodWithOptionallyExcludedPath`.name.
+
+# v0.18.26 (2020-03-24)
 
 This release is fully backward compatible with 0.18.25.
 
