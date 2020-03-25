@@ -30,7 +30,7 @@ class TransferEncodingSpec extends HeaderLaws {
 
   "hasChunked" should {
     "detect chunked" in {
-      forAll { t: `Transfer-Encoding` =>
+      forAll { (t: `Transfer-Encoding`) =>
         t.hasChunked must_== (t.values.contains_(TransferCoding.chunked))
       }
     }

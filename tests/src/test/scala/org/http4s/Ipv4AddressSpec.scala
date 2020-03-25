@@ -20,19 +20,19 @@ class Ipv4AddressSpec extends Http4sSpec {
   }
 
   "fromInet4Address" should {
-    "round trip with toInet4Address" in prop { ipv4: Ipv4Address =>
+    "round trip with toInet4Address" in prop { (ipv4: Ipv4Address) =>
       Ipv4Address.fromInet4Address(ipv4.toInet4Address) must_== ipv4
     }
   }
 
   "fromByteArray" should {
-    "round trip with toByteArray" in prop { ipv4: Ipv4Address =>
+    "round trip with toByteArray" in prop { (ipv4: Ipv4Address) =>
       Ipv4Address.fromByteArray(ipv4.toByteArray) must_== Right(ipv4)
     }
   }
 
   "compare" should {
-    "be consistent with unsigned int" in prop { xs: List[Ipv4Address] =>
+    "be consistent with unsigned int" in prop { (xs: List[Ipv4Address]) =>
       def tupled(a: Ipv4Address) = (a.a, a.b, a.c, a.d)
       xs.sorted.map(tupled) must_== xs.map(tupled).sorted
     }

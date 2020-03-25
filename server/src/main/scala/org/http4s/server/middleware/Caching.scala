@@ -23,7 +23,7 @@ object Caching {
     */
   def `no-store`[G[_]: Monad: Clock, F[_], A](
       http: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
-    Kleisli { a: A =>
+    Kleisli { (a: A) =>
       for {
         resp <- http(a)
         out <- `no-store-response`[G](resp)
@@ -142,7 +142,7 @@ object Caching {
       statusToSetOn: Status => Boolean,
       http: Http[G, F]
   ): Http[G, F] =
-    Kleisli { req: Request[F] =>
+    Kleisli { (req: Request[F]) =>
       for {
         resp <- http(req)
         out <- if (methodToSetOn(req.method) && statusToSetOn(resp.status)) {

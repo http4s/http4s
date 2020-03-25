@@ -217,7 +217,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     */
   def validate(predicate: Request[G] => Boolean = _.method.isSafe)
       : Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
-    Kleisli { r: Request[G] =>
+    Kleisli { (r: Request[G]) =>
       if (predicate(r)) validate(r, http(r)) else checkCSRF(r, http(r))
     }
   }

@@ -455,8 +455,8 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
 //      Eq.by[EntityDecoder[IO, A], (Message[IO], Boolean) => DecodeResult[IO, A]](_.decode)
 //
 //    checkAll(
-//      "SemigroupK[EntityDecoder[IO, ?]]",
-//      SemigroupKTests[EntityDecoder[IO, ?]]
+//      "SemigroupK[EntityDecoder[IO, *]]",
+//      SemigroupKTests[EntityDecoder[IO, *]]
 //        .semigroupK[String])(Parameters(minTestsOk = 20, maxSize = 10))
 //  }
 }

@@ -18,7 +18,10 @@ class HttpMethodOverriderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   private def headerOverrideStrategy[F[_], G[_]] =
     HeaderOverrideStrategy[F, G](CaseInsensitiveString(overrideHeader))
   private def queryOverrideStrategy[F[_], G[_]] = QueryOverrideStrategy[F, G](overrideParam)
-  private val formOverrideStrategy = FormOverrideStrategy(overrideParam, λ[IO ~> IO](i => i))
+  private val formOverrideStrategy = FormOverrideStrategy(
+    overrideParam,
+    new (IO ~> IO) { def apply[A](i: IO[A]): IO[A] = i }
+  )
 
   private def postHeaderOverriderConfig[F[_], G[_]] = defaultConfig[F, G]
   private def postQueryOverriderConfig[F[_], G[_]] =

@@ -32,7 +32,7 @@ private[parser] trait CacheControlHeader {
   private class CacheControlParser(input: ParserInput)
       extends Http4sHeaderParser[`Cache-Control`](input) {
     def entry: Rule1[`Cache-Control`] = rule {
-      oneOrMore(CacheDirective).separatedBy(ListSep) ~ EOI ~> { xs: Seq[CacheDirective] =>
+      oneOrMore(CacheDirective).separatedBy(ListSep) ~ EOI ~> { (xs: Seq[CacheDirective]) =>
         `Cache-Control`(xs.head, xs.tail: _*)
       }
     }
@@ -63,7 +63,7 @@ private[parser] trait CacheControlHeader {
       oneOrMore(QuotedString).separatedBy(ListSep)
     }
     def DeltaSeconds: Rule1[Duration] = rule {
-      capture(oneOrMore(Digit)) ~> { s: String =>
+      capture(oneOrMore(Digit)) ~> { (s: String) =>
         Duration(s.toLong, TimeUnit.SECONDS)
       }
     }

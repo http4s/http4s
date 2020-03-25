@@ -79,7 +79,7 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     "return 200 for a matched and authenticated route" in {
       val userId: User = 42
 
-      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+      val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
         Kleisli.pure(userId)
 
       val authedRoutes: AuthedRoutes[User, IO] =
@@ -97,7 +97,7 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     "return 404 for an unmatched but authenticated route" in {
       val userId: User = 42
 
-      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+      val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
         Kleisli.pure(userId)
 
       val authedRoutes: AuthedRoutes[User, IO] =
@@ -113,7 +113,7 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "return 401 for a matched, but unauthenticated route" in {
-      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+      val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
         Kleisli.liftF(OptionT.none)
 
       val authedRoutes: AuthedRoutes[User, IO] =
@@ -129,7 +129,7 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "return 401 for an unmatched, unauthenticated route" in {
-      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+      val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
         Kleisli.liftF(OptionT.none)
 
       val authedRoutes: AuthedRoutes[User, IO] =
@@ -147,7 +147,7 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     "compose authedRoutesand not fall through" in {
       val userId: User = 42
 
-      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+      val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
         Kleisli.pure(userId)
 
       val authedRoutes1: AuthedRoutes[User, IO] =
@@ -169,7 +169,7 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "consume the entire request for an unauthenticated route for service composition" in {
-      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+      val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
         Kleisli.liftF(OptionT.none)
 
       val authedRoutes: AuthedRoutes[User, IO] =
@@ -190,7 +190,7 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "not consume the entire request when using fall through" in {
-      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+      val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
         Kleisli.liftF(OptionT.none)
 
       val authedRoutes: AuthedRoutes[User, IO] =

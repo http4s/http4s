@@ -10,7 +10,7 @@ import org.scalacheck.{Arbitrary, Gen, Prop}
 class CaseInsensitiveStringSpec extends Http4sSpec {
   "equals" should {
     "be consistent with equalsIgnoreCase of the values" in {
-      prop { s: String =>
+      prop { (s: String) =>
         val lc = s.toLowerCase(Locale.ROOT)
         s.equalsIgnoreCase(lc) == (s.ci == lc.ci)
       }
@@ -27,7 +27,7 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
 
   "hashCode" should {
     "be consistent with equality" in {
-      prop { s: String =>
+      prop { (s: String) =>
         val lc = s.toUpperCase(Locale.ROOT)
         (s.ci == lc.ci) ==> (s.ci.## == lc.ci.##)
       }
@@ -55,7 +55,7 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
 
   "toString" should {
     "return the original as its toString" in {
-      prop { s: String =>
+      prop { (s: String) =>
         s.ci.toString.equals(s)
       }
     }
@@ -63,7 +63,7 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
 
   "length" should {
     "be consistent with the orignal's length" in {
-      prop { s: String =>
+      prop { (s: String) =>
         s.ci.length.equals(s.length)
       }
     }
@@ -99,7 +99,7 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
   checkAll("order", OrderTests[CaseInsensitiveString].order)
 
   "Show[CaseInsensitiveString]" should {
-    "be consistent with toString" in prop { s: CaseInsensitiveString =>
+    "be consistent with toString" in prop { (s: CaseInsensitiveString) =>
       Show[CaseInsensitiveString].show(s) must_== s.toString
     }
   }

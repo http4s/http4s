@@ -191,7 +191,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
       val req = Request[IO]().withEntity(Json.fromDoubleOrNull(157))
       val body = req
-        .decode { json: Json =>
+        .decode { (json: Json) =>
           Response[IO](Ok)
             .withEntity(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
             .pure[IO]

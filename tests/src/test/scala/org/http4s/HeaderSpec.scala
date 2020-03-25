@@ -62,7 +62,7 @@ class HeaderSpec extends Http4sSpec {
   }
 
   "rendered length" should {
-    "is rendered length including \\r\\n" in prop { h: Header =>
+    "is rendered length including \\r\\n" in prop { (h: Header) =>
       h.render(new StringWriter << "\r\n")
         .result
         .getBytes(ISO_8859_1)

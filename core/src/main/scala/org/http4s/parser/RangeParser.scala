@@ -30,7 +30,7 @@ private[parser] trait RangeParser {
       }
 
       def len: Rule1[Option[Long]] = rule {
-        ('*' ~ push(None)) | (capture(oneOrMore(Digit)) ~> { s: String =>
+        ('*' ~ push(None)) | (capture(oneOrMore(Digit)) ~> { (s: String) =>
           Some(s.toLong)
         })
       }
@@ -56,7 +56,7 @@ private[parser] trait RangeParser {
 
     def RangeUnitsDef: Rule1[List[RangeUnit]] = rule {
       NoRangeUnitsDef | zeroOrMore(RangeUnit).separatedBy(ListSep) ~> {
-        rangeUnits: collection.Seq[RangeUnit] =>
+        (rangeUnits: collection.Seq[RangeUnit]) =>
           rangeUnits.toList
       }
     }
@@ -68,7 +68,7 @@ private[parser] trait RangeParser {
     /* 3.12 Range Units http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html */
 
     def RangeUnit: Rule1[RangeUnit] = rule {
-      Token ~> { s: String =>
+      Token ~> { (s: String) =>
         org.http4s.RangeUnit(s)
       }
     }

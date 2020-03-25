@@ -90,7 +90,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
       def getBody(body: EntityBody[IO]): IO[Array[Byte]] = body.compile.to(Array)
       val req = Request[IO]().withEntity(jNumberOrNull(157))
       req
-        .decode { json: Json =>
+        .decode { (json: Json) =>
           Response[IO](Ok).withEntity(json.number.flatMap(_.toLong).getOrElse(0L).toString).pure[IO]
         }
         .map(_.body)

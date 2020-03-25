@@ -9,7 +9,7 @@ class UnexpectedStatusSpec extends Http4sSpec {
     }
 
     "not return null" in {
-      prop { status: Status =>
+      prop { (status: Status) =>
         val e = UnexpectedStatus(status)
         e.getMessage() must not beNull
       }

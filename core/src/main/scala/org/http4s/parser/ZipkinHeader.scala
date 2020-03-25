@@ -29,7 +29,7 @@ private[parser] trait ZipkinHeader {
   def X_B3_SPANID(value: String): ParseResult[`X-B3-SpanId`] =
     new Http4sHeaderParser[`X-B3-SpanId`](value) {
       def entry = rule {
-        capture(16.times(HexDigit)) ~ EOL ~> { s: String =>
+        capture(16.times(HexDigit)) ~ EOL ~> { (s: String) =>
           `X-B3-SpanId`(idStringToLong(s))
         }
       }
@@ -38,7 +38,7 @@ private[parser] trait ZipkinHeader {
   def X_B3_PARENTSPANID(value: String): ParseResult[`X-B3-ParentSpanId`] =
     new Http4sHeaderParser[`X-B3-ParentSpanId`](value) {
       def entry = rule {
-        capture(16.times(HexDigit)) ~ EOL ~> { s: String =>
+        capture(16.times(HexDigit)) ~ EOL ~> { (s: String) =>
           `X-B3-ParentSpanId`(idStringToLong(s))
         }
       }
@@ -47,7 +47,7 @@ private[parser] trait ZipkinHeader {
   def X_B3_FLAGS(value: String): ParseResult[`X-B3-Flags`] =
     new Http4sHeaderParser[`X-B3-Flags`](value) {
       def entry = rule {
-        Digits ~ EOL ~> { s: String =>
+        Digits ~ EOL ~> { (s: String) =>
           `X-B3-Flags`.fromLong(s.toLong)
         }
       }
@@ -57,7 +57,7 @@ private[parser] trait ZipkinHeader {
     new Http4sHeaderParser[`X-B3-Sampled`](value) {
       def entry = rule {
         capture("0" | "1") ~!~
-          EOL ~> { s: String =>
+          EOL ~> { (s: String) =>
           `X-B3-Sampled`(s == "1")
         }
       }

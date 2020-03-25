@@ -31,7 +31,7 @@ private[parser] trait AuthorizationHeader {
   private class AuthorizationParser(input: ParserInput)
       extends Http4sHeaderParser[Authorization](input) {
     def entry: Rule1[Authorization] = rule {
-      CredentialDef ~ EOI ~> { creds: Credentials =>
+      CredentialDef ~ EOI ~> { (creds: Credentials) =>
         Authorization(creds)
       }
     }
@@ -55,7 +55,7 @@ private[parser] trait AuthorizationHeader {
     }
 
     def CredentialParams: Rule1[NonEmptyList[(String, String)]] = rule {
-      oneOrMore(AuthParam).separatedBy(ListSep) ~> { params: collection.Seq[(String, String)] =>
+      oneOrMore(AuthParam).separatedBy(ListSep) ~> { (params: collection.Seq[(String, String)]) =>
         NonEmptyList(params.head, params.tail.toList)
       }
     }
