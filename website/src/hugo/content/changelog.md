@@ -16,6 +16,11 @@ This release is fully backward compatible with 0.21.2.
 
 * [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware. 
 
+## Dependency updates
+
+* cats-2.1.1
+* okhttp-4.4.1
+
 # v0.20.21 (2020-03-25)
 
 This release is fully backward compatible with 0.20.20.
