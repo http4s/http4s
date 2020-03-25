@@ -131,7 +131,10 @@ object Prometheus {
 
       private def recordCanceled(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
+          .labels(
+            label(classifier),
+            AbnormalTermination.report(AbnormalTermination.Abnormal),
+            label(Option.empty))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
@@ -143,7 +146,7 @@ object Prometheus {
           .labels(
             label(classifier),
             AbnormalTermination.report(AbnormalTermination.Abnormal),
-            cause.getClass.getName)
+            label(Option(cause.getClass.getName)))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
@@ -155,17 +158,20 @@ object Prometheus {
           .labels(
             label(classifier),
             AbnormalTermination.report(AbnormalTermination.Error),
-            cause.getClass.getName)
+            label(Option(cause.getClass.getName)))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
       private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
         metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Timeout))
+          .labels(
+            label(classifier),
+            AbnormalTermination.report(AbnormalTermination.Timeout),
+            label(Option.empty))
           .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
       }
 
-      private def label(classifier: Option[String]): String = classifier.getOrElse("")
+      private def label(value: Option[String]): String = value.getOrElse("")
 
       private def reportStatus(status: Status): String =
         status.code match {
@@ -231,7 +237,7 @@ object Prometheus {
         .build()
         .name(prefix + "_" + "abnormal_terminations")
         .help("Total Abnormal Terminations.")
-        .labelNames("classifier", "termination_type")
+        .labelNames("classifier", "termination_type", "cause")
         .create(),
       registry
     )

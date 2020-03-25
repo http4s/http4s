@@ -143,7 +143,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         } yield {
           resp must beLeft
 
-          count(registry, "errors", "server") must beEqualTo(1)
+          count(registry, "errors", "server", cause = "java.io.IOException") must beEqualTo(1)
           count(registry, "active_requests", "server") must beEqualTo(0)
           count(registry, "5xx_headers_duration", "server") must beEqualTo(0.05)
           count(registry, "5xx_total_duration", "server") must beEqualTo(0.1)
@@ -160,7 +160,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
           resp must haveStatus(Status.Ok)
           resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
 
-          count(registry, "abnormal_terminations", "server") must beEqualTo(1)
+          count(registry, "abnormal_terminations", "server", cause = "java.lang.RuntimeException") must beEqualTo(1)
           count(registry, "active_requests", "server") must beEqualTo(0)
           count(registry, "2xx_headers_duration", "server") must beEqualTo(0.05)
           count(registry, "2xx_total_duration", "server") must beEqualTo(0.1)

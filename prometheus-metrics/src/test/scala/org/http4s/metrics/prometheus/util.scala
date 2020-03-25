@@ -34,7 +34,8 @@ object util {
       name: String,
       prefix: String,
       method: String = "get",
-      classifier: String = ""): Double =
+      classifier: String = "",
+      cause: String = ""): Double =
     name match {
       case "active_requests" =>
         registry.getSampleValue(
@@ -92,18 +93,18 @@ object util {
       case "errors" =>
         registry.getSampleValue(
           s"${prefix}_abnormal_terminations_count",
-          Array("classifier", "termination_type"),
-          Array(classifier, "error"))
+          Array("classifier", "termination_type", "cause"),
+          Array(classifier, "error", cause))
       case "timeouts" =>
         registry.getSampleValue(
           s"${prefix}_abnormal_terminations_count",
-          Array("classifier", "termination_type"),
-          Array(classifier, "timeout"))
+          Array("classifier", "termination_type", "cause"),
+          Array(classifier, "timeout", cause))
       case "abnormal_terminations" =>
         registry.getSampleValue(
           s"${prefix}_abnormal_terminations_count",
-          Array("classifier", "termination_type"),
-          Array(classifier, "abnormal"))
+          Array("classifier", "termination_type", "cause"),
+          Array(classifier, "abnormal", cause))
     }
 
   object FakeClock {
