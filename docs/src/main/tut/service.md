@@ -23,7 +23,8 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-client" % http4sVersion
 )
 
-scalacOptions ++= Seq("-Ypartial-unification")
+// Uncomment if you're using Scala 2.12.x
+// scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
 This tutorial is compiled as part of the build using [tut].  Each page
