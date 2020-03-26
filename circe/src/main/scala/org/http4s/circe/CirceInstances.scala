@@ -12,8 +12,9 @@ import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
+import org.http4s.implicits._
 
-trait CirceInstances extends JawnInstances {
+trait CirceInstances extends JawnInstances { self => 
   private val circeSupportParser =
     new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
   import circeSupportParser.facade
@@ -30,9 +31,12 @@ trait CirceInstances extends JawnInstances {
     this.jawnDecoder[F, Json]
 
   def jsonDecoderByteBuffer[F[_]: Sync]: EntityDecoder[F, Json] =
-    EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
+    new EntityDecoder.DecodeByMediaRange[F, Json](MediaType.application.json) {
+      def decodeForall[M[_[_]]: Media](m: M[F]): org.http4s.DecodeResult[F,Json] = 
+        jsonDecoderByteBufferImpl(m)
+    }
 
-  private def jsonDecoderByteBufferImpl[F[_]: Sync](m: Media[F]): DecodeResult[F, Json] =
+  private def jsonDecoderByteBufferImpl[M[_[_]]: Media, F[_]: Sync](m: M[F]): DecodeResult[F, Json] =
     EntityDecoder.collectBinary(m).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining)
@@ -49,12 +53,13 @@ trait CirceInstances extends JawnInstances {
       cutoff: Long,
       r1: MediaRange,
       rs: MediaRange*): EntityDecoder[F, Json] =
-    EntityDecoder.decodeBy(r1, rs: _*) { msg =>
-      msg.contentLength match {
-        case Some(contentLength) if contentLength < cutoff =>
-          jsonDecoderByteBufferImpl[F](msg)
-        case _ => this.jawnDecoderImpl[F, Json](msg)
-      }
+    new EntityDecoder.DecodeByMediaRange[F, Json](r1, rs:_*) {
+      def decodeForall[M[_[_]]: Media](m: M[F]): org.http4s.DecodeResult[F,Json] = 
+        m.contentLength match {
+          case Some(contentLength) if contentLength < cutoff =>
+            jsonDecoderByteBufferImpl(m)
+          case _ => self.jawnDecoderImpl(m)
+        }
     }
 
   def jsonOf[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
@@ -135,7 +140,7 @@ trait CirceInstances extends JawnInstances {
       Uri.fromString(str).leftMap(_ => "Uri")
     }
 
-  implicit final def toMessageSynax[F[_]](req: Message[F]): CirceInstances.MessageSyntax[F] =
+  implicit final def toMessageSynax[M[_[_]]: Media, F[_]](req: M[F]): CirceInstances.MessageSyntax[M, F] =
     new CirceInstances.MessageSyntax(req)
 }
 
@@ -221,7 +226,7 @@ object CirceInstances {
 
   // Extension methods.
 
-  private[circe] final class MessageSyntax[F[_]](private val req: Message[F]) extends AnyVal {
+  private[circe] final class MessageSyntax[M[_[_]]: Media, F[_]](private val req: M[F]) {
     def asJson(implicit F: JsonDecoder[F]): F[Json] =
       F.asJson(req)
 
