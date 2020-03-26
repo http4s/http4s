@@ -10,6 +10,7 @@ import cats.implicits._
 import fs2._
 import org.http4s.headers._
 import scala.collection.mutable.ListBuffer
+import org.http4s.implicits._
 
 object ChunkAggregator {
   def apply[F[_]: FlatMap, G[_]: Sync, A](f: G ~> F)(

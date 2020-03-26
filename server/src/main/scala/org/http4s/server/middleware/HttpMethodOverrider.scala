@@ -12,6 +12,7 @@ import cats.{Monad, ~>}
 import io.chrisdavenport.vault.Key
 import org.http4s.Http
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.implicits._
 
 object HttpMethodOverrider {
 

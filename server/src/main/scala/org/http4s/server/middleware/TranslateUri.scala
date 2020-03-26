@@ -3,6 +3,7 @@ package server.middleware
 
 import cats.data.Kleisli
 import cats.{Functor, MonoidK}
+import org.http4s.implicits._
 
 /** Removes the given prefix from the beginning of the path of the [[Request]].
   */

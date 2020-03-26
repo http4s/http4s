@@ -8,6 +8,7 @@ import cats.implicits._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
+import org.http4s.implicits._
 
 /**
   * Simple Middleware for Logging Requests As They Are Processed
@@ -27,7 +28,7 @@ object RequestLogger {
     Client { req =>
       if (!logBody)
         Resource.liftF(Logger
-          .logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(log(_))) *> client
+          .logMessage(req)(logHeaders, logBody, redactHeadersWhen)(log(_))) *> client
           .run(req)
       else
         Resource.suspend {
@@ -42,7 +43,7 @@ object RequestLogger {
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s))))
                 .onFinalizeWeak(
-                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                  Logger.logMessage(req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
                     redactHeadersWhen)(log(_))

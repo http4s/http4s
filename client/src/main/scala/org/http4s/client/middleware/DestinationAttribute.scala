@@ -4,6 +4,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.client.Client
 import io.chrisdavenport.vault._
+import org.http4s.implicits._
 
 /**
   * Client middleware that sets the destination attribute of every request to the specified value.

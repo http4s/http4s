@@ -4,6 +4,7 @@ package server
 import cats._
 import cats.data.Kleisli
 import cats.syntax.semigroupk._
+import org.http4s.implicits._
 
 object Router {
 

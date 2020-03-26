@@ -8,6 +8,7 @@ import cats.implicits._
 import org.http4s.util.CaseInsensitiveString
 
 import scala.concurrent.duration._
+import org.http4s.implicits._
 
 object ResponseTiming {
 

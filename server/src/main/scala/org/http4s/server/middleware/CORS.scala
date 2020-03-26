@@ -10,6 +10,7 @@ import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 import scala.concurrent.duration._
+import org.http4s.implicits._
 
 /**
   * CORS middleware config options.

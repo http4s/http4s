@@ -18,6 +18,7 @@ import org.http4s.util.CaseInsensitiveString
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
 import scala.util.control.NoStackTrace
+import org.http4s.implicits._
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)

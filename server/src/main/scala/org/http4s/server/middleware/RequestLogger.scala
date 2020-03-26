@@ -13,6 +13,7 @@ import fs2.{Chunk, Stream}
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 import cats.effect.Sync._
+import org.http4s.implicits._
 
 /**
   * Simple Middleware for Logging Requests As They Are Processed
@@ -36,7 +37,7 @@ object RequestLogger {
     Kleisli { req =>
       if (!logBody) {
         def logAct =
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(log)
+          Logger.logMessage(req)(logHeaders, logBody, redactHeadersWhen)(log)
         // This construction will log on Any Error/Cancellation
         // The Completed Case is Unit, as we rely on the semantics of G
         // As None Is Successful, but we oly want to log on Some
@@ -60,7 +61,7 @@ object RequestLogger {
                 .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
             )
             def logRequest: F[Unit] =
-              Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+              Logger.logMessage(req.withBodyStream(newBody))(
                 logHeaders,
                 logBody,
                 redactHeadersWhen

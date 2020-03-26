@@ -11,7 +11,7 @@ trait MessageSyntax{
 
     def httpVersion: HttpVersion = M.httpVersion(m)
 
-    def body: EntityBody[F] = M.body(m)
+    def attributes: Vault = M.attributes(m)
 
     def withHttpVersion(httpVersion: HttpVersion): M[F] =
       M.withHttpVersion(m, httpVersion)

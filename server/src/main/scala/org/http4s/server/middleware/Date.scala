@@ -7,6 +7,7 @@ import cats.effect._
 
 import org.http4s._
 import org.http4s.headers.{Date => HDate}
+import org.http4s.implicits._
 
 /**
   * Date Middleware, adds the Date Header to All Responses generated

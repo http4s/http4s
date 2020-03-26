@@ -6,6 +6,7 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.implicits._
 
 /**
   * Simple Middleware for Logging All Requests and Responses
@@ -23,11 +24,11 @@ object Logger {
       )
     )
 
-  def logMessage[F[_], A <: Message[F]](message: A)(
+  def logMessage[M[_[_]], F[_]](message: M[F])(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
+      log: String => F[Unit])(implicit F: Sync[F], M: Message[M]): F[Unit] = {
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
     val isJson = message.contentType.exists(mT =>

@@ -13,6 +13,7 @@ import cats.implicits._
 import fs2.{Chunk, Stream}
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
+import org.http4s.implicits._
 
 /**
   * Simple middleware for logging responses as they are processed
@@ -36,7 +37,7 @@ object ResponseLogger {
           val out =
             if (!logBody)
               Logger
-                .logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(log)
+                .logMessage(response)(logHeaders, logBody, redactHeadersWhen)(log)
                 .as(response)
             else
               Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
@@ -50,7 +51,7 @@ object ResponseLogger {
                   // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                     .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
                     .onFinalizeWeak {
-                      Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
+                      Logger.logMessage(response.withBodyStream(newBody))(
                         logHeaders,
                         logBody,
                         redactHeadersWhen)(log)

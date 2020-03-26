@@ -6,6 +6,7 @@ import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import cats.~>
+import org.http4s.implicits._
 
 /** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the
   * request query params.

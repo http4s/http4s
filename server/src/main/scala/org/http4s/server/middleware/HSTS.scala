@@ -7,6 +7,7 @@ import cats.data.Kleisli
 import org.http4s.headers.`Strict-Transport-Security`
 
 import scala.concurrent.duration._
+import org.http4s.implicits._
 
 /** [[Middleware]] to add HTTP Strict Transport Security (HSTS) support adding
   * the Strict Transport Security headers

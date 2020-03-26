@@ -8,6 +8,7 @@ import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import _root_.io.chrisdavenport.vault._
+import org.http4s.implicits._
 
 /**
   * Client middleware to follow redirect responses.
