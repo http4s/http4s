@@ -751,23 +751,23 @@ private[http4s] trait ArbitraryInstances {
       hs <- getArbitrary[Headers]
     } yield EntityEncoder.encodeBy(hs)(f))
 
-  implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](
-      implicit
-      F: Effect[F],
-      g: Arbitrary[DecodeResult[F, A]]) =
-    Arbitrary(for {
-      f <- getArbitrary[(Media[F], Boolean) => DecodeResult[F, A]]
-      mrs <- getArbitrary[Set[MediaRange]]
-    } yield new EntityDecoder[F, A] {
-      def decode(m: Media[F], strict: Boolean): DecodeResult[F, A] = f(m, strict)
-      def consumes = mrs
-    })
+  // implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](
+  //     implicit
+  //     F: Effect[F],
+  //     g: Arbitrary[DecodeResult[F, A]]) =
+  //   Arbitrary(for {
+  //     f <- getArbitrary[(Media[F], Boolean) => DecodeResult[F, A]]
+  //     mrs <- getArbitrary[Set[MediaRange]]
+  //   } yield new EntityDecoder[F, A] {
+  //     def decode(m: Media[F], strict: Boolean): DecodeResult[F, A] = f(m, strict)
+  //     def consumes = mrs
+  //   })
 
-  implicit def http4sTestingCogenForMedia[F[_]](implicit F: Effect[F]): Cogen[Media[F]] =
-    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
+  // implicit def http4sTestingCogenForMedia[F[_]](implicit F: Effect[F]): Cogen[Media[F]] =
+  //   Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
-  implicit def http4sTestingCogenForMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
-    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
+  // implicit def http4sTestingCogenForMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
+  //   Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
   implicit def http4sTestingCogenForHeaders: Cogen[Headers] =
     Cogen[List[Header]].contramap(_.toList)
@@ -819,9 +819,9 @@ private[http4s] trait ArbitraryInstances {
       }
     }
 
-  private[http4s] implicit def http4sTestingArbitraryForMessage[F[_]]: Arbitrary[Message[F]] =
-    // TODO this is bad because the underlying generators are bad
-    Arbitrary(Gen.oneOf(getArbitrary[Request[F]], getArbitrary[Response[F]]))
+  // private[http4s] implicit def http4sTestingArbitraryForMessage[F[_]]: Arbitrary[Message[F]] =
+  //   // TODO this is bad because the underlying generators are bad
+  //   Arbitrary(Gen.oneOf(getArbitrary[Request[F]], getArbitrary[Response[F]]))
 
   private[http4s] implicit def http4sTestingArbitraryForRequest[F[_]]: Arbitrary[Request[F]] =
     Arbitrary {

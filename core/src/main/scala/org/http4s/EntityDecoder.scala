@@ -22,7 +22,7 @@ import scala.annotation.implicitNotFound
 trait EntityDecoder[F[_], T] { self =>
 
   /** Attempt to decode the body of the [[Message]] */
-  def decode(m: Media[F], strict: Boolean): DecodeResult[F, T]
+  def decode[M[_[_]]: Media](m: M[F], strict: Boolean): DecodeResult[F, T]
 
   /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]
@@ -31,13 +31,13 @@ trait EntityDecoder[F[_], T] { self =>
   def map[T2](f: T => T2)(implicit F: Functor[F]): EntityDecoder[F, T2] = new EntityDecoder[F, T2] {
     override def consumes: Set[MediaRange] = self.consumes
 
-    override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T2] =
+    def decode[M[_[_]]: Media](m: M[F], strict: Boolean): DecodeResult[F, T2] = 
       self.decode(m, strict).map(f)
   }
 
   def flatMapR[T2](f: T => DecodeResult[F, T2])(implicit F: Monad[F]): EntityDecoder[F, T2] =
     new EntityDecoder[F, T2] {
-      override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T2] =
+      override def decode[M[_[_]]: Media](m: M[F], strict: Boolean): DecodeResult[F, T2] = 
         self.decode(m, strict).flatMap(f)
 
       override def consumes: Set[MediaRange] = self.consumes
@@ -66,7 +66,7 @@ trait EntityDecoder[F[_], T] { self =>
     new EntityDecoder[F, T2] {
       override def consumes: Set[MediaRange] = self.consumes
 
-      override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T2] =
+      override def decode[M[_[_]]: Media](m: M[F], strict: Boolean): DecodeResult[F, T2] = 
         self.decode(m, strict).transform(t)
     }
 
@@ -82,7 +82,7 @@ trait EntityDecoder[F[_], T] { self =>
     new EntityDecoder[F, T2] {
       override def consumes: Set[MediaRange] = self.consumes
 
-      override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T2] =
+      override def decode[M[_[_]]: Media](m: M[F], strict: Boolean): DecodeResult[F, T2] = 
         DecodeResult(
           F.flatMap(self.decode(m, strict).value)(r => f(r).value)
         )
@@ -122,8 +122,8 @@ object EntityDecoder {
       override def combineK[T](
           a: EntityDecoder[F, T],
           b: EntityDecoder[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
-        override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] = {
-          val mediaType = m.contentType.fold(UndefinedMediaType)(_.mediaType)
+        override def decode[M[_[_]]: Media](m: M[F], strict: Boolean): DecodeResult[F, T] = {
+          val mediaType = Media[M].contentType(m).fold(UndefinedMediaType)(_.mediaType)
 
           if (a.matchesMediaType(mediaType))
             a.decode(m, strict)
@@ -150,44 +150,52 @@ object EntityDecoder {
     * that recoverable errors are returned as a
     * [[DecodeResult.failure]], or that system errors are raised in `F`.
     */
-  def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
-      f: Media[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
-    override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
+  // def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
+  //     f: M[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new
+      
+  abstract class DecodeByMediaRange[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*) extends EntityDecoder[F, T] {
+
+    def decodeForall[M[_[_]]: Media](m: M[F]): DecodeResult[F, T]
+
+    final def decode[M[_[_]]: Media](m: M[F], strict: Boolean): DecodeResult[F, T] = 
       if (strict) {
-        m.contentType match {
-          case Some(c) if matchesMediaType(c.mediaType) => f(m)
+        Media[M].contentType(m) match {
+          case Some(c) if matchesMediaType(c.mediaType) => decodeForall(m)
           case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
-          case None if matchesMediaType(UndefinedMediaType) => f(m)
+          case None if matchesMediaType(UndefinedMediaType) => decodeForall(m)
           case None => DecodeResult.failure(MediaTypeMissing(consumes))
         }
       } else {
-        f(m)
+        decodeForall(m)
       }
 
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
   }
 
   /** Helper method which simply gathers the body into a single Chunk */
-  def collectBinary[F[_]: Sync](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(m.body.chunks.compile.toVector.map(Chunk.concatBytes))
+  def collectBinary[M[_[_]]: Media, F[_]: Sync](m: M[F]): DecodeResult[F, Chunk[Byte]] =
+    DecodeResult.success(Media[M].body(m).chunks.compile.toVector.map(Chunk.concatBytes))
 
   /** Decodes a message to a String */
-  def decodeString[F[_]](
-      m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
-    m.bodyAsText.compile.foldMonoid
+  def decodeString[M[_[_]]: Media, F[_]](
+      m: M[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
+    Media[M].bodyAsText(m).compile.foldMonoid
 
   /////////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
   def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
-      override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(m.body.compile.drain *> F.raiseError(t))
+      override def decode[M[_[_]]: Media](m: M[F], strict: Boolean): DecodeResult[F, T] =
+        DecodeResult(Media[M].body(m).compile.drain *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 
   implicit def binary[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
+    new EntityDecoder.DecodeByMediaRange[F, Chunk[Byte]](MediaRange.`*/*`){
+      def decodeForall[M[_[_]]: Media](m: M[F]): org.http4s.DecodeResult[F,Chunk[Byte]] = 
+        collectBinary(m)
+    }
 
   @deprecated("Use `binary` instead", "0.19.0-M2")
   def binaryChunk[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
@@ -199,9 +207,11 @@ object EntityDecoder {
   implicit def text[F[_]](
       implicit F: Sync[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
-    EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
-      collectBinary(msg).map(chunk =>
-        new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
+    new EntityDecoder.DecodeByMediaRange[F, String](MediaRange.`text/*`){
+      def decodeForall[M[_[_]]: Media](m: M[F]): org.http4s.DecodeResult[F,String] = 
+        collectBinary(m).map(chunk =>
+          new String(chunk.toArray, Media[M].charset(m).getOrElse(defaultCharset).nioCharset))
+    }
 
   implicit def charArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
@@ -210,17 +220,21 @@ object EntityDecoder {
   def binFile[F[_]](file: File, blocker: Blocker)(
       implicit F: Sync[F],
       cs: ContextShift[F]): EntityDecoder[F, File] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = writeAll[F](file.toPath, blocker)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
+    new EntityDecoder.DecodeByMediaRange[F, File](MediaRange.`*/*`) {
+      def decodeForall[M[_[_]]: Media](m: M[F]): org.http4s.DecodeResult[F,File] = {
+        val pipe = writeAll[F](file.toPath, blocker)
+        DecodeResult.success(Media[M].body(m).through(pipe).compile.drain).map(_ => file)
+      }
     }
 
   def textFile[F[_]](file: File, blocker: Blocker)(
       implicit F: Sync[F],
       cs: ContextShift[F]): EntityDecoder[F, File] =
-    EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = writeAll[F](file.toPath, blocker)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
+    new EntityDecoder.DecodeByMediaRange[F, File](MediaRange.`text/*`) {
+      def decodeForall[M[_[_]]: Media](m: M[F]): org.http4s.DecodeResult[F,File] = {
+        val pipe = writeAll[F](file.toPath, blocker)
+        DecodeResult.success(Media[M].body(m).through(pipe).compile.drain).map(_ => file)
+      }
     }
 
   implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
@@ -228,7 +242,9 @@ object EntityDecoder {
 
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      DecodeResult.success(msg.body.drain.compile.drain)
+    new EntityDecoder.DecodeByMediaRange[F, Unit](MediaRange.`*/*`) {
+      def decodeForall[M[_[_]]: Media](m: M[F]): org.http4s.DecodeResult[F,Unit] = {
+        DecodeResult.success(Media[M].body(m).drain.compile.drain)
+      }
     }
 }

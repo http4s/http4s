@@ -13,3 +13,5 @@ trait AllSyntax
     with NonEmptyListSyntax
     with StringSyntax
     with LiteralsSyntax
+    with MediaSyntax
+    with MessageSyntax

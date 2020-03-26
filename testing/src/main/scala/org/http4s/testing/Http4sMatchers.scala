@@ -7,6 +7,7 @@ import cats.implicits._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.specs2.matcher._
+import org.http4s.implicits._
 
 @deprecated(
   "Discontinued. Inherits from vendored `RunTimedMatchers` that are now provided by specs-cats. The matchers that require them block threads and are disrecommended. What's left is insubstantial.",
@@ -22,23 +23,24 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       runAwait(r).aka("the returned")
     }
 
-  def haveBody[A](a: ValueCheck[A])(
+  def haveBody[M[_[_]]: Message, A](a: ValueCheck[A])(
       implicit F: MonadError[F, Throwable],
-      ee: EntityDecoder[F, A]): Matcher[Message[F]] =
-    returnValue(a) ^^ { (m: Message[F]) =>
+      ee: EntityDecoder[F, A]): Matcher[M[F]] =
+    returnValue(a) ^^ { (m: M[F]) =>
       m.as[A].aka("the message body")
     }
 
-  def returnBody[A](a: ValueCheck[A])(
-      implicit F: MonadError[F, Throwable],
-      ee: EntityDecoder[F, A]): Matcher[F[Message[F]]] =
-    returnValue(a) ^^ { (m: F[Message[F]]) =>
-      m.flatMap(_.as[A]).aka("the returned message body")
-    }
+  // def returnBody[M[_[_]]: Message, A](a: ValueCheck[A])(
+  //     implicit F: MonadError[F, Throwable],
+  //     ee: EntityDecoder[F, A]
+  // ): Matcher[F[M[F]]] =
+  //   returnValue(a) ^^ { (m: F[M[F]]) =>
+  //     m.flatMap(_.as[A]).aka("the returned message body")
+  //   }
 
-  def haveHeaders(a: Headers): Matcher[Message[F]] =
-    be_===(a) ^^ { (m: Message[F]) =>
-      m.headers.aka("the headers")
+  def haveHeaders[M[_[_]]: Message](a: Headers): Matcher[M[F]] =
+    be_===(a) ^^ { (m: M[F]) =>
+      Message[M].headers(m).aka("the headers")
     }
 
   def containsHeader(h: Header): Matcher[Message[F]] =
