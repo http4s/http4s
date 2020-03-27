@@ -148,7 +148,8 @@ class CORSSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val cors = CORS.httpApp(routes.orNotFound)
       val req = buildRequest("/foo")
 
-      cors.run(req)
+      cors
+        .run(req)
         .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
         .unsafeRunSync()
     }
