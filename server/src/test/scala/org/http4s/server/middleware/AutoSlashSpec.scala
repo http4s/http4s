@@ -63,7 +63,11 @@ class AutoSlashSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
     "Be created via httpApp constructor" in {
       val req = Request[IO](uri = uri("/ping/"))
-      val httpApp: HttpApp[IO] = HttpApp(route.orNotFound.run)
+      val httpApp: HttpApp[IO] = HttpApp { r =>
+        import org.http4s.dsl.io._
+        if (r.pathInfo == "/ping") Ok()
+        else throw new Exception("Cannot handle request!")
+      }
 
       implicit val invalidMonoidKIO: MonoidK[IO] = new MonoidK[IO] {
         def combineK[A](x: IO[A], y: IO[A]): IO[A] = IO.ioSemigroupK.combineK[A](x, y)
