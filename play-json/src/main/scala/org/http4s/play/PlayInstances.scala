@@ -8,11 +8,12 @@ import org.http4s.{
   EntityDecoder,
   EntityEncoder,
   InvalidMessageBodyFailure,
+  Media,
   MediaType,
-  Message,
   Uri,
   jawn
 }
+import org.http4s.implicits._
 import org.typelevel.jawn.support.play.Parser.facade
 import play.api.libs.json._
 
@@ -58,8 +59,8 @@ trait PlayInstances {
         )
     }
 
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+  implicit class MessageSyntax[M[_[_]]: Media, F[_]: Sync](private val m: M[F]) {
     def decodeJson[A: Reads]: F[A] =
-      self.as(implicitly, jsonOf[F, A])
+      m.as(implicitly, jsonOf[F, A])
   }
 }
