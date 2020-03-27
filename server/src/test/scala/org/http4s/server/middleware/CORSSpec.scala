@@ -158,5 +158,25 @@ class CORSSpec extends Http4sSpec {
         }
         .unsafeRunSync()
     }
+
+    "Be created via httpRoutes constructor" in {
+      val cors = CORS.httpRoutes(routes)
+      val req = buildRequest("/foo")
+
+      cors
+        .orNotFound(req)
+        .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
+        .unsafeRunSync()
+    }
+
+    "Be created via httpApp constructor" in {
+      val cors = CORS.httpApp(routes.orNotFound)
+      val req = buildRequest("/foo")
+
+      cors
+        .run(req)
+        .map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true"))
+        .unsafeRunSync()
+    }
   }
 }

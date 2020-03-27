@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import cats._
+import cats.{Applicative, Monad}
 import cats.data.Kleisli
 import cats.implicits._
 import org.http4s.Method.OPTIONS
@@ -109,4 +109,10 @@ object CORS {
           http(req)
       }
     }
+
+  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(httpRoutes)
+
+  def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
+    apply(httpApp)
 }
