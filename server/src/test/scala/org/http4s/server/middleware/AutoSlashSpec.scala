@@ -18,7 +18,6 @@ class AutoSlashSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
   }
 
-
   "AutoSlash" should {
     "Auto remove a trailing slash" in {
       val req = Request[IO](uri = uri("/ping/"))
