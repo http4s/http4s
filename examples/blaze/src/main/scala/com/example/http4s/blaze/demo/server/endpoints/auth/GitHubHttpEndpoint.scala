@@ -7,6 +7,7 @@ import com.example.http4s.blaze.demo.server.endpoints.ApiVersion
 import com.example.http4s.blaze.demo.server.service.GitHubService
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
+import org.http4s.implicits._
 
 class GitHubHttpEndpoint[F[_]](gitHubService: GitHubService[F])(implicit F: Sync[F])
     extends Http4sDsl[F] {

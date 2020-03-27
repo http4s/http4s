@@ -9,6 +9,7 @@ import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.{Header, Request, Uri}
+import org.http4s.implicits._
 
 // See: https://developer.github.com/apps/building-oauth-apps/authorization-options-for-oauth-apps/#web-application-flow
 class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {

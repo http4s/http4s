@@ -16,7 +16,7 @@ import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.syntax.string._
+import org.http4s.implicits._
 import org.http4s.util.StringWriter
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}

@@ -11,6 +11,7 @@ import scala.concurrent.duration._
 import org.http4s.headers.Connection
 import org.http4s.Response
 import org.http4s.client._
+import org.http4s.implicits._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._

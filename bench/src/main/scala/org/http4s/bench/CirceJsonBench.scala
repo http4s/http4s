@@ -7,6 +7,7 @@ import cats.effect.IO
 import io.circe._
 import io.circe.parser._
 import org.http4s.circe._
+import org.http4s.implicits._
 import org.openjdk.jmh.annotations._
 
 // sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.CirceJsonBench"

@@ -10,6 +10,7 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
+import org.http4s.implicits._
 import scala.concurrent.ExecutionContext.global
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {

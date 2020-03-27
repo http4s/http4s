@@ -11,7 +11,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.syntax.string._
+import org.http4s.implicits._
 import org.http4s.websocket.WebSocketHandshake
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

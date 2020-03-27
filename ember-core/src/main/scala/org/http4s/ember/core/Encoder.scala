@@ -3,6 +3,7 @@ package org.http4s.ember.core
 import cats.effect._
 import fs2._
 import org.http4s._
+import org.http4s.implicits._
 import cats.implicits._
 import Shared._
 
