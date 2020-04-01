@@ -4,7 +4,7 @@ package server
 import java.net.{Inet4Address, Inet6Address, InetSocketAddress}
 import org.log4s.getLogger
 
-abstract class Server[F[_]] {
+abstract class Server {
   private[this] val logger = getLogger
 
   def address: InetSocketAddress

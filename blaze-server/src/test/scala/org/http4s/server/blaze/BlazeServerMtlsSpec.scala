@@ -63,7 +63,7 @@ class BlazeServerMtlsSpec extends Http4sSpec {
     case _ => NotFound()
   }
 
-  def serverR(sslParameters: SSLParameters): Resource[IO, Server[IO]] =
+  def serverR(sslParameters: SSLParameters): Resource[IO, Server] =
     builder
       .bindAny()
       .withSslContextAndParameters(sslContext, sslParameters)

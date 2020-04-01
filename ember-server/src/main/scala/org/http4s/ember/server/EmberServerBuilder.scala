@@ -87,7 +87,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]) = copy(logger = l)
 
-  def build: Resource[F, Server[F]] =
+  def build: Resource[F, Server] =
     for {
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
@@ -116,7 +116,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               .drain
           )
           .as(
-            new Server[F] {
+            new Server {
               def address: InetSocketAddress = bindAddress
               def isSecure: Boolean = false
             }

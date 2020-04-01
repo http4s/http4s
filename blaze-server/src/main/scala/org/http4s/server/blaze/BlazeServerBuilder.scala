@@ -93,7 +93,7 @@ class BlazeServerBuilder[F[_]](
     val channelOptions: ChannelOptions
 )(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends ServerBuilder[F]
-    with BlazeBackendBuilder[Server[F]] {
+    with BlazeBackendBuilder[Server] {
   type Self = BlazeServerBuilder[F]
 
   private[this] val logger = getLogger
@@ -318,7 +318,7 @@ class BlazeServerBuilder[F[_]](
     }
   }
 
-  def resource: Resource[F, Server[F]] = tickWheelResource.flatMap { scheduler =>
+  def resource: Resource[F, Server] = tickWheelResource.flatMap { scheduler =>
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
       else address
@@ -341,7 +341,7 @@ class BlazeServerBuilder[F[_]](
         } yield factory.bind(address, pipelineFactory(scheduler, engineCfg)).get
       )(serverChannel => F.delay { serverChannel.close() })
 
-    def logStart(server: Server[F]): Resource[F, Unit] =
+    def logStart(server: Server): Resource[F, Unit] =
       Resource.liftF(F.delay {
         Option(banner)
           .filter(_.nonEmpty)
@@ -355,8 +355,8 @@ class BlazeServerBuilder[F[_]](
     Resource.liftF(verifyTimeoutRelations()) >>
       mkFactory
         .flatMap(mkServerChannel)
-        .map[F, Server[F]] { serverChannel =>
-          new Server[F] {
+        .map[F, Server] { serverChannel =>
+          new Server {
             val address: InetSocketAddress =
               serverChannel.socketAddress
 

@@ -162,7 +162,7 @@ class BlazeBuilder[F[_]](
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  def resource: Resource[F, Server[F]] = {
+  def resource: Resource[F, Server] = {
     val httpApp = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
     var b = BlazeServerBuilder[F]
       .bindSocketAddress(socketAddress)
