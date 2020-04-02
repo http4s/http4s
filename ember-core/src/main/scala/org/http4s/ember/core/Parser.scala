@@ -180,13 +180,14 @@ private[ember] object Parser {
 
   object Response {
     def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(
-        logger: Logger[F]): F[Response[F]] =
+        logger: Logger[F]): Resource[F, Response[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
         .evalMap {
           case (bv, body) => headerBlobByteVectorToResponse[F](bv, body, maxHeaderLength)(logger)
         }
         .take(1)
         .compile
+        .resource
         .lastOrError
 
     private def headerBlobByteVectorToResponse[F[_]](
