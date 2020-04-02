@@ -8,9 +8,20 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.20.21 (2020-04-02)
+
+This release is fully backward compatible with 0.20.20.
+
+## Dependency updates
+
+* argonaut-6.2.5
+* jetty-9.4.27.v20200227
+* metrics-4.1.5 (Dropwizard)
+* tomcat-9.0.33
+
 # v0.20.20 (2020-03-24)
 
-This release is fully backward compatible with 0.18.25.
+This release is fully backward compatible with 0.20.19.
 
 ## Security fixes
 * [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
