@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.3 (2020-03-25)
+# v0.21.3 (2020-04.02)
 
 This release is fully backward compatible with 0.21.2.
 
@@ -26,7 +26,7 @@ This release is fully backward compatible with 0.21.2.
 * cats-2.1.1
 * okhttp-4.4.1
 
-# v0.20.21 (2020-03-25)
+# v0.20.21 (2020-04-02)
 
 This release is fully backward compatible with 0.20.20.
 
