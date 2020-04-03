@@ -8,6 +8,35 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.3 (2020-04.02)
+
+This release is fully backward compatible with 0.21.2.
+
+# Bugfixes
+
+* [#3245](https://github.com/http4s/http4s/pull/3245): Write ember-client request to socket before reading response
+
+## Enhancements
+
+* [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware. 
+* [#3155](https://github.com/http4s/http4s/pull/3155): Internal `j.u.c.CompletionStage` conversions.
+
+## Dependency updates
+
+* cats-2.1.1
+* okhttp-4.4.1
+
+# v0.20.21 (2020-04-02)
+
+This release is fully backward compatible with 0.20.20.
+
+## Dependency updates
+
+* argonaut-6.2.5
+* jetty-9.4.27.v20200227
+* metrics-4.1.5 (Dropwizard)
+* tomcat-9.0.33
+
 # v0.21.2 (2020-03-24)
 
 This release is fully backward compatible with 0.21.1.
