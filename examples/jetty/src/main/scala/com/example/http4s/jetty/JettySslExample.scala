@@ -23,7 +23,7 @@ object JettySslExampleApp {
         .withSslContext(sslCtx)
     }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
     for {
       blocker <- Blocker[F]
       b <- Resource.liftF(builder[F](blocker))

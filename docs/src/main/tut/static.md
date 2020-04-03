@@ -30,7 +30,7 @@ object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
-  val app: Resource[IO, Server[IO]] =
+  val app: Resource[IO, Server] =
     for {
       blocker <- Blocker[IO]
       server <- BlazeServerBuilder[IO]

@@ -163,7 +163,7 @@ sealed class TomcatBuilder[F[_]] private (
   def withClassloader(classloader: ClassLoader): Self =
     copy(classloader = Some(classloader))
 
-  override def resource: Resource[F, Server[F]] =
+  override def resource: Resource[F, Server] =
     Resource(F.delay {
       val tomcat = new Tomcat
       val cl = classloader.getOrElse(getClass.getClassLoader)
@@ -197,7 +197,7 @@ sealed class TomcatBuilder[F[_]] private (
 
       tomcat.start()
 
-      val server = new Server[F] {
+      val server = new Server {
         lazy val address: InetSocketAddress = {
           val host = socketAddress.getHostString
           val port = tomcat.getConnector.getLocalPort

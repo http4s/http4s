@@ -172,7 +172,7 @@ sealed class JettyBuilder[F[_]] private (
         new ServerConnector(jetty)
     }
 
-  def resource: Resource[F, Server[F]] =
+  def resource: Resource[F, Server] =
     Resource(F.delay {
       val jetty = new JServer(threadPool)
 
@@ -203,7 +203,7 @@ sealed class JettyBuilder[F[_]] private (
 
       jetty.start()
 
-      val server = new Server[F] {
+      val server = new Server {
         lazy val address: InetSocketAddress = {
           val host = socketAddress.getHostString
           val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
