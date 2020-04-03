@@ -66,7 +66,7 @@ class JettyScaffold private (num: Int, secure: Boolean) {
       server.start()
 
       val address = new InetSocketAddress(
-        InetAddress.getLocalHost(),
+        InetAddress.getLocalHost.getCanonicalHostName,
         server.getConnectors.head.asInstanceOf[ServerConnector].getLocalPort)
 
       (address, server)
