@@ -9,7 +9,7 @@ on:
 env:
   CI: true
   HUGO_VERSION: 0.26
-  SCALA_VERSION: 2.12.10
+  SCALA_VERSION: 2.12.11
 jobs:
   release:
     name: Release
