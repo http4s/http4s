@@ -8,7 +8,7 @@ import cats.effect.testing.specs2.CatsEffect
 import cats.implicits._
 import fs2._
 import fs2.Stream._
-import fs2.compress.deflate
+import fs2.compression.deflate
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}

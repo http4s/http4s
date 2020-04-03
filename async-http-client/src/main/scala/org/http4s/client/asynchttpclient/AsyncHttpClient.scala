@@ -86,11 +86,12 @@ object AsyncHttpClient {
 
           subscribeF = F.delay(publisher.subscribe(subscriber))
           bodyDisposal <- Ref.of[F, F[Unit]] {
-            subscribeF >> subscriber.stream.take(0).compile.drain
+            subscriber.stream(subscribeF).take(0).compile.drain
           }
 
-          body = Stream.eval(F.uncancelable(bodyDisposal.set(F.unit) >> subscribeF)) >>
-            subscriber.stream.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+          body = subscriber
+            .stream(bodyDisposal.set(F.unit) >> subscribeF)
+            .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
 
           responseWithBody = response.copy(body = body)
 
