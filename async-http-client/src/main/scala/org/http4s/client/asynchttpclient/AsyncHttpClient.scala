@@ -89,8 +89,9 @@ object AsyncHttpClient {
             subscriber.stream(subscribeF).take(0).compile.drain
           }
 
-          body = subscriber.stream(
-            bodyDisposal.set(F.unit) >> subscribeF).flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+          body = subscriber
+            .stream(bodyDisposal.set(F.unit) >> subscribeF)
+            .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
 
           responseWithBody = response.copy(body = body)
 
