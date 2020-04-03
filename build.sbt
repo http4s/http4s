@@ -116,6 +116,7 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers"
   )
+  .settings(silencerSettings)
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
@@ -147,6 +148,7 @@ lazy val client = libraryProject("client")
     description := "Base library for building http4s clients",
     libraryDependencies += jettyServlet % "test"
   )
+  .settings(silencerSettings)
   .dependsOn(
     core,
     testing % "test->test",

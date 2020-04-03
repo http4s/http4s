@@ -40,6 +40,8 @@ object Http4sPlugin extends AutoPlugin {
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
 
+  val CompileTime = config("CompileTime").hide
+
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
@@ -110,7 +112,22 @@ object Http4sPlugin extends AutoPlugin {
       name = "scala-reflect",
       revision = "2.12.*",
     ), // false positive on 2.12.10
+
+    ivyConfigurations += CompileTime,
+    unmanagedClasspath in Compile ++= update.value.select(configurationFilter("CompileTime")),
   )
+
+  lazy val silencerSettings: Seq[Setting[_]] = {
+    val SilencerVersion = "1.6.0"
+    Seq(
+      libraryDependencies ++= Seq(
+        compilerPlugin(("com.github.ghik" % "silencer-plugin" % SilencerVersion).cross(CrossVersion.full)),
+        ("com.github.ghik" % "silencer-lib" % SilencerVersion % CompileTime).cross(CrossVersion.full),
+        ("com.github.ghik" % "silencer-lib" % SilencerVersion % Test).cross(CrossVersion.full),
+      ),
+      unusedCompileDependenciesFilter -= moduleFilter("com.github.ghik", name = "silencer-lib"),
+    )
+  }
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
@@ -192,7 +209,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.11"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.1"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "2.1.1"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.1.1"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "2.1.2"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % "0.4.0"
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
@@ -206,7 +223,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.1.5"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % "1.1.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.2.2"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "2.3.0"
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "1.0.0"
