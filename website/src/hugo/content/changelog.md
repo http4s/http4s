@@ -278,7 +278,7 @@ This release is fully compatible with 0.20.16.
 * fs2-2.2.0
 * jawn-1.0.0
 * jawn-fs2-1.0.0-RC2
-* okhttp-4.3.1
+* okhttp-4.5.0
 * play-json-2.8.1
 * scalacheck-1.14.3
 * scalatags-0.8.4
