@@ -27,6 +27,9 @@ title: Adopters
 [Quantiply](https://www.quantiply.com)
 : Uses http4s to power the critical data APIs.
 
+[MYOB](https://myob.com)
+: Uses http4s for some API and Web services.
+
 [Netflix](https://www.netflix.com)
 : Uses http4s for internal tools.
 
