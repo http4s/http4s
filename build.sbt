@@ -260,7 +260,8 @@ lazy val jetty = libraryProject("jetty")
   .settings(
     description := "Jetty implementation for http4s servers",
     libraryDependencies ++= Seq(
-      jettyServlet
+      jettyServlet,
+      jettyHttp2Server
     )
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
