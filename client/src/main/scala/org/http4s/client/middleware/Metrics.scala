@@ -44,35 +44,38 @@ object Metrics {
       ops: MetricsOps[F],
       classifierF: Request[F] => Option[String])(
       req: Request[F])(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
-    (for {
+    for {
       statusRef <- Resource.liftF(Ref.of[F, Option[Status]](None))
       start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
-      _ <- Resource.make(ops.increaseActiveRequests(classifierF(req)))(_ =>
-        ops.decreaseActiveRequests(classifierF(req)))
-      _ <- Resource.make(F.unit) { _ =>
-        clock
-          .monotonic(TimeUnit.NANOSECONDS)
-          .flatMap(now =>
-            statusRef.get.flatMap(oStatus =>
-              oStatus.traverse_(status =>
-                ops.recordTotalTime(req.method, status, now - start, classifierF(req)))))
-      }
-      resp <- client.run(req)
-      _ <- Resource.liftF(statusRef.set(Some(resp.status)))
-      end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
-      _ <- Resource.liftF(ops.recordHeadersTime(req.method, end - start, classifierF(req)))
-    } yield resp)
-      .handleErrorWith { (e: Throwable) =>
+      resp <- (for {
+        _ <- Resource.make(ops.increaseActiveRequests(classifierF(req)))(_ =>
+          ops.decreaseActiveRequests(classifierF(req)))
+        _ <- Resource.make(F.unit) { _ =>
+          clock
+            .monotonic(TimeUnit.NANOSECONDS)
+            .flatMap(now =>
+              statusRef.get.flatMap(oStatus =>
+                oStatus.traverse_(status =>
+                  ops.recordTotalTime(req.method, status, now - start, classifierF(req)))))
+        }
+        resp <- client.run(req)
+        _ <- Resource.liftF(statusRef.set(Some(resp.status)))
+        end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
+        _ <- Resource.liftF(ops.recordHeadersTime(req.method, end - start, classifierF(req)))
+      } yield resp).handleErrorWith { e: Throwable =>
         Resource.liftF[F, Response[F]](
-          registerError(ops, classifierF(req))(e) *> F.raiseError[Response[F]](e)
-        )
+          clock
+            .monotonic(TimeUnit.NANOSECONDS)
+            .flatMap(now =>
+              registerError(now - start, ops, classifierF(req))(e) *> F.raiseError[Response[F]](e)))
       }
+    } yield resp
 
-  private def registerError[F[_]](ops: MetricsOps[F], classifier: Option[String])(
+  private def registerError[F[_]](duration: Long, ops: MetricsOps[F], classifier: Option[String])(
       e: Throwable): F[Unit] =
     if (e.isInstanceOf[TimeoutException]) {
-      ops.recordAbnormalTermination(1, Timeout, classifier)
+      ops.recordAbnormalTermination(duration, Timeout, classifier)
     } else {
-      ops.recordAbnormalTermination(1, Error, classifier)
+      ops.recordAbnormalTermination(duration, Error, classifier)
     }
 }
