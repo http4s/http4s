@@ -26,4 +26,10 @@ object Date {
 
       } yield resp.putHeaders(header)
     }
+
+  def httpRoutes[F[_]: Monad: Clock](routes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(routes)
+
+  def httpApp[F[_]: Monad: Clock](app: HttpApp[F]): HttpApp[F] =
+    apply(app)
 }
