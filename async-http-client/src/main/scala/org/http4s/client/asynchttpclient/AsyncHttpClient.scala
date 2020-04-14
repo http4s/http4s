@@ -88,8 +88,9 @@ object AsyncHttpClient {
           subscriber <- StreamSubscriber[F, HttpResponseBodyPart]
 
           subscribeF = F.delay(publisher.subscribe(subscriber))
+
           bodyDisposal <- Ref.of[F, F[Unit]] {
-            subscriber.stream(subscribeF).take(0).compile.drain
+            subscriber.stream(subscribeF).pull.uncons.void.stream.compile.drain
           }
 
           body = subscriber
