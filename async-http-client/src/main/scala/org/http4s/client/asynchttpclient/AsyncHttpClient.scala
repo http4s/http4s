@@ -79,9 +79,12 @@ object AsyncHttpClient {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
       val dispose = F.delay { state = State.ABORT }
+      val onStreamCalled = Ref.unsafe[F, Boolean](false)
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         val eff = for {
+          _ <- onStreamCalled.set(true)
+
           subscriber <- StreamSubscriber[F, HttpResponseBodyPart]
 
           subscribeF = F.delay(publisher.subscribe(subscriber))
@@ -122,9 +125,13 @@ object AsyncHttpClient {
       override def onThrowable(throwable: Throwable): Unit =
         invokeCallback(logger)(cb(Left(throwable)))
 
-      // it's okay to invoke this repeatedly since repeated async callbacks are dropped by law
       override def onCompleted(): Unit =
-        invokeCallback(logger)(cb(Right(response -> dispose)))
+        onStreamCalled.get
+          .ifM(
+            F.unit,
+            F.delay(invokeCallback(logger)(cb(Right(response -> dispose)))))
+          .runAsync(_ => IO.unit)
+          .unsafeRunSync()
     }
 
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
