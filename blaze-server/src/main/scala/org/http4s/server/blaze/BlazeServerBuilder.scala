@@ -380,10 +380,10 @@ class BlazeServerBuilder[F[_]](
 }
 
 object BlazeServerBuilder {
-  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
+  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F], executionContext: ExecutionContext): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.SocketAddress,
-      executionContext = ExecutionContext.global,
+      executionContext = executionContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,
       isNio2 = false,

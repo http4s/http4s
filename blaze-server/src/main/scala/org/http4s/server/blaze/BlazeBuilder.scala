@@ -164,9 +164,8 @@ class BlazeBuilder[F[_]](
 
   def resource: Resource[F, Server] = {
     val httpApp = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
-    var b = BlazeServerBuilder[F]
+    var b = BlazeServerBuilder.apply(F, timer, executionContext)
       .bindSocketAddress(socketAddress)
-      .withExecutionContext(executionContext)
       .withIdleTimeout(idleTimeout)
       .withNio2(isNio2)
       .withConnectorPoolSize(connectorPoolSize)
@@ -223,10 +222,10 @@ class BlazeBuilder[F[_]](
 
 @deprecated("Use BlazeServerBuilder instead", "0.20.0-RC1")
 object BlazeBuilder {
-  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeBuilder[F] =
+  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F], executionContext: ExecutionContext): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
-      executionContext = ExecutionContext.global,
+      executionContext = executionContext,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
       isNio2 = false,
       connectorPoolSize = channel.DefaultPoolSize,
