@@ -16,8 +16,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   /** Submits a request, and provides a callback to process the response.
     *
     * @param req The request to submit
-    * @param f   A callback for the response to req.  The underlying HTTP connection
-    *            is disposed when the returned task completes.  Attempts to read the
+    * @param f   A callback for the response to req. Attempts to read the
     *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
@@ -27,8 +26,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   /** Submits a request, and provides a callback to process the response.
     *
     * @param req An effect of the request to submit
-    * @param f A callback for the response to req.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
+    * @param f A callback for the response to req. Attempts to read the
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
@@ -36,8 +34,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     req.flatMap(fetch(_)(f))
 
   /**
-    * Returns this client as a [[Kleisli]].  All connections created by this
-    * service are disposed on completion of callback task f.
+    * Returns this client as a [[Kleisli]].
     *
     * This method effectively reverses the arguments to `fetch`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
@@ -55,9 +52,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
+    * This is intended for use in proxy servers.
     */
   def toHttpApp: HttpApp[F] = Kleisli { req =>
     run(req).allocated.map {
@@ -71,9 +66,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * responsibility of callers of this service to run the response
     * body to dispose of the underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
+    * This is intended for use in proxy servers.
     */
   @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
   def toHttpService: HttpService[F] =
@@ -104,8 +97,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
-    * status code is returned.  The underlying HTTP connection is closed at the
-    * completion of the decoding.
+    * status code is returned.
     */
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(req)(defaultOnError)
@@ -123,8 +115,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
 
   /**
     * Submits a GET request to the specified URI and decodes the response on
-    * success.  On failure, the status code is returned.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
+    * success.  On failure, the status code is returned.
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(uri)(defaultOnError)
@@ -135,8 +126,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
 
   /**
     * Submits a GET request to the URI specified by the String and decodes the
-    * response on success.  On failure, the status code is returned.  The
-    * underlying HTTP connection is closed at the completion of the decoding.
+    * response on success.  On failure, the status code is returned.
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(s)(defaultOnError)
@@ -164,8 +154,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
 
   /**
     * Submits a request and decodes the response, regardless of the status code.
-    * The underlying HTTP connection is closed at the completion of the
-    * decoding.
     */
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
@@ -179,8 +167,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
 
   /**
     * Submits a request and decodes the response, regardless of the status code.
-    * The underlying HTTP connection is closed at the completion of the
-    * decoding.
     */
   def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
     req.flatMap(fetchAs(_)(d))
@@ -218,8 +204,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   /** Submits a GET request, and provides a callback to process the response.
     *
     * @param uri The URI to GET
-    * @param f A callback for the response to a GET on uri.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
+    * @param f A callback for the response to a GET on uri. Attempts to read the
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
@@ -228,15 +213,13 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
-    * status code is returned.  The underlying HTTP connection is closed at the
-    * completion of the decoding.
+    * status code is returned.
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => get(uri)(f))
 
   /**
-    * Submits a GET request and decodes the response.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
+    * Submits a GET request and decodes the response.
     */
   @deprecated("Use expect", "0.14")
   def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
