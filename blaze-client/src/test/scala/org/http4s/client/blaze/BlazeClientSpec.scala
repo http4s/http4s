@@ -135,7 +135,7 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             .unsafeRunTimed(timeout) must beSome(true)
         }
 
-        "behave and not deadlock on failures with parTraverse" in {
+        "behave and not deadlock on failures with parTraverse" in skipOnCi {
           mkClient(3)
             .use { client =>
               val failedHosts = addresses.map { address =>
@@ -173,7 +173,7 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             .unsafeRunTimed(timeout) must beSome(true)
         }
 
-        "behave and not deadlock on failures with parSequence" in {
+        "behave and not deadlock on failures with parSequence" in skipOnCi {
           mkClient(3)
             .use { client =>
               val failedHosts = addresses.map { address =>

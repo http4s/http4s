@@ -73,7 +73,7 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
     }
 
     // this is a regression test for https://github.com/http4s/http4s/issues/2962
-    "fail expired connections and then wake up a non-expired waiting connection on release" in {
+    "fail expired connections and then wake up a non-expired waiting connection on release" in skipOnCi {
       val timeout = 50.milliseconds
       (for {
         pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 3, requestTimeout = timeout)
