@@ -1,7 +1,6 @@
 package com.example.http4s.blaze
 
 import cats.effect._
-import cats.implicits._
 import com.codahale.metrics.{Timer => _, _}
 import com.example.http4s.ExampleService
 import org.http4s.HttpApp

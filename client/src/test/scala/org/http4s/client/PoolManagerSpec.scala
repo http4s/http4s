@@ -1,7 +1,6 @@
 package org.http4s
 package client
 
-import cats.implicits._
 import cats.effect._
 import fs2.Stream
 import scala.concurrent.duration._
