@@ -127,7 +127,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
             e must beAnInstanceOf[IOException]
           }
 
-          count(registry, "errors", "client") must beEqualTo(1)
+          count(registry, "errors", "client", cause = "java.io.IOException") must beEqualTo(1)
           count(registry, "active_requests", "client") must beEqualTo(0)
         }
     }

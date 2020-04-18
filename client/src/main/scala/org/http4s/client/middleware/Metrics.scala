@@ -92,7 +92,7 @@ object Metrics {
         if (e.isInstanceOf[TimeoutException]) {
           ops.recordAbnormalTermination(now - start, Timeout, classifier)
         } else {
-          ops.recordAbnormalTermination(now - start, Error, classifier)
+          ops.recordAbnormalTermination(now - start, Error(e), classifier)
         }
       }
 }

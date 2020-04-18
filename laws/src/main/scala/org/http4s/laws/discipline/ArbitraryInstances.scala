@@ -224,10 +224,6 @@ private[http4s] trait ArbitraryInstances {
       1 -> const(CharsetRange.`*`)
     )
 
-  @deprecated("Use genCharsetRangeNoQuality. This one may cause deadlocks.", "0.15.7")
-  val charsetRangesNoQuality: Gen[CharsetRange] =
-    genCharsetRangeNoQuality
-
   implicit val http4sTestingArbitraryForAcceptCharset: Arbitrary[`Accept-Charset`] =
     Arbitrary {
       for {

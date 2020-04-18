@@ -143,10 +143,13 @@ sealed trait TerminationType
 object TerminationType {
 
   /** Signals just a generic abnormal termination */
-  case object Abnormal extends TerminationType
+  case class Abnormal(rootCause: Throwable) extends TerminationType
+
+  /** Signals cancelation */
+  case object Canceled extends TerminationType
 
   /** Signals an abnormal termination due to an error processing the request, either at the server or client side */
-  case object Error extends TerminationType
+  case class Error(rootCause: Throwable) extends TerminationType
 
   /** Signals a client timing out during a request */
   case object Timeout extends TerminationType
