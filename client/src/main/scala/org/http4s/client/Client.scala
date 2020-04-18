@@ -8,8 +8,11 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import java.io.IOException
+
+import org.http4s.client.pagination.ClientPaginationStrategy
 import org.http4s.headers.Host
 import org.http4s.syntax.kleisli._
+
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
@@ -197,6 +200,9 @@ trait Client[F[_]] {
         req.mapK(gK)
       ).mapK(fk)
         .map(_.mapK(fk)))
+
+  def paginated[T, O](request: Request[F])(
+      implicit S: ClientPaginationStrategy[F, T, O]): Stream[F, O]
 }
 
 object Client {
