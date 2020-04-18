@@ -5,6 +5,7 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 import org.http4s.server.blaze.BlazeServerBuilder
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object BlazeSslExampleWithRedirect extends IOApp {
   import BlazeSslExampleWithRedirectApp._

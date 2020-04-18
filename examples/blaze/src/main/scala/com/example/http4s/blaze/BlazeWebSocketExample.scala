@@ -12,6 +12,7 @@ import org.http4s.server.websocket._
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object BlazeWebSocketExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =

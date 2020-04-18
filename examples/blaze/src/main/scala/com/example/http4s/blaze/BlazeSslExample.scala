@@ -5,6 +5,7 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.server.Server
 import org.http4s.server.blaze.BlazeServerBuilder
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object BlazeSslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =

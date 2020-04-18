@@ -10,6 +10,7 @@ import org.http4s.metrics.dropwizard._
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.Metrics
 import org.http4s.server.{HttpMiddleware, Router, Server}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class BlazeMetricsExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
