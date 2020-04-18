@@ -1,7 +1,6 @@
 package com.example.http4s.tomcat
 
 import cats.effect._
-import cats.implicits._
 import com.example.http4s.ssl
 import org.http4s.server.Server
 import org.http4s.server.tomcat.TomcatBuilder

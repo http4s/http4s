@@ -1,7 +1,6 @@
 package com.example.http4s.blaze.demo.client
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
-import cats.syntax.functor._
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import java.net.URL

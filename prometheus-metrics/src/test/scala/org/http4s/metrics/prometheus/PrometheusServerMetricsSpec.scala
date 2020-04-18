@@ -1,7 +1,6 @@
 package org.http4s.metrics.prometheus
 
 import cats.effect.{Clock, IO, Resource}
-import cats.syntax.functor._
 import io.prometheus.client.CollectorRegistry
 import org.http4s.{Http4sSpec, HttpApp, HttpRoutes, Request, Status}
 import org.http4s.Method.GET
