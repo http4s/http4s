@@ -211,10 +211,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def successful(req: F[Request[F]]): F[Boolean] =
     req.flatMap(successful)
 
-  @deprecated("Use expect", "0.14")
-  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
-    fetchAs(req)(d)
-
   /** Submits a GET request, and provides a callback to process the response.
     *
     * @param uri The URI to GET
@@ -233,22 +229,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => get(uri)(f))
-
-  /**
-    * Submits a GET request and decodes the response.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
-    */
-  @deprecated("Use expect", "0.14")
-  def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    fetchAs(Request[F](Method.GET, uri))(d)
-
-  @deprecated("Use expect", "0.14")
-  def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
-
-  @deprecated("Use expect", "0.14")
-  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T] =
-    fetchAs(req)
 
   private def defaultOnError(resp: Response[F])(implicit F: Applicative[F]): F[Throwable] =
     F.pure(UnexpectedStatus(resp.status))

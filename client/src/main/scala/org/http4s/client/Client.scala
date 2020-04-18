@@ -155,9 +155,6 @@ trait Client[F[_]] {
     * successful */
   def successful(req: F[Request[F]]): F[Boolean]
 
-  @deprecated("Use expect", "0.14")
-  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
-
   /** Submits a GET request, and provides a callback to process the response.
     *
     * @param uri The URI to GET
@@ -174,19 +171,6 @@ trait Client[F[_]] {
     * completion of the decoding.
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
-
-  /**
-    * Submits a GET request and decodes the response.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
-    */
-  @deprecated("Use expect", "0.14")
-  def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
-
-  @deprecated("Use expect", "0.14")
-  def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
-
-  @deprecated("Use expect", "0.14")
-  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T]
 
   /**
     * Translates the effect type of this client from F to G
