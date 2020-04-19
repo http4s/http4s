@@ -128,9 +128,7 @@ object AsyncHttpClient {
 
       override def onCompleted(): Unit =
         onStreamCalled.get
-          .ifM(
-            F.unit,
-            F.delay(invokeCallback(logger)(cb(Right(response -> dispose)))))
+          .ifM(F.unit, F.delay(invokeCallback(logger)(cb(Right(response -> dispose)))))
           .runAsync(_ => IO.unit)
           .unsafeRunSync()
     }
