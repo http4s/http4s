@@ -304,7 +304,7 @@ class BlazeClientSpec extends Http4sSpec {
             .attempt must_== Some(Right(Status.Ok))
         }
 
-        "call a second host after reusing connections on a first" in {
+        "call a second host after reusing connections on a first" in skipOnCi {
           // https://github.com/http4s/http4s/pull/2546
           mkClient(maxConnectionsPerRequestKey = Int.MaxValue, maxTotalConnections = 5)
             .use { client =>
