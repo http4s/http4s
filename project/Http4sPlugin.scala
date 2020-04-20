@@ -205,12 +205,6 @@ object Http4sPlugin extends AutoPlugin {
 
 
   object V { // Dependency versions
-    private def priorTo2_13(scalaVersion: String): Boolean =
-      CrossVersion.partialVersion(scalaVersion) match {
-        case Some((2, minor)) if minor < 13 => true
-        case _                              => false
-      }
-
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
