@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets
 import cats.implicits._
 import org.http4s.headers._
 import org.log4s.getLogger
+import org.http4s.implicits._
 
 /** Middleware to support wrapping json responses in jsonp.
   *

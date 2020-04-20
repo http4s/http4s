@@ -7,6 +7,7 @@ import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot._
 import java.io.StringWriter
 import org.http4s._
+import org.http4s.implicits._
 
 /*
  * PrometheusExportService Contains an HttpService

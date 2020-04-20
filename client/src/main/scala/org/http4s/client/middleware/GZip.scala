@@ -5,6 +5,7 @@ package middleware
 import cats.effect.Bracket
 import com.github.ghik.silencer.silent
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
+import org.http4s.implicits._
 
 /**
   * Client middleware for enabling gzip.

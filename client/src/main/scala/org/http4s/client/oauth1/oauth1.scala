@@ -18,10 +18,10 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Version
 }
 import org.http4s.headers.Authorization
-import org.http4s.syntax.string._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
+import org.http4s.implicits._
 
 /** Basic OAuth1 message signing support
   *

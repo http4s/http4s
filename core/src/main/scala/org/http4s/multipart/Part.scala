@@ -10,16 +10,21 @@ import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 
-final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
+final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]){
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
   def filename: Option[String] =
     headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
 
-  override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
+  def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }
 
 object Part {
   private val ChunkSize = 8192
+
+  val media: Media[Part] = new Media[Part]{
+    def body[F[_]](media: org.http4s.multipart.Part[F]): org.http4s.EntityBody[F] = media.body
+    def headers[F[_]](media: org.http4s.multipart.Part[F]): org.http4s.Headers = media.headers
+  }
 
   @deprecated(
     """Empty parts are not allowed by the multipart spec, see: https://tools.ietf.org/html/rfc7578#section-4.2

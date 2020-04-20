@@ -13,6 +13,7 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
+import org.http4s.implicits._
 
 abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(
     implicit F: Effect[F])

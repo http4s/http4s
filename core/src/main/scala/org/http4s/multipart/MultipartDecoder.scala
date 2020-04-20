@@ -6,25 +6,27 @@ import cats.implicits._
 
 private[http4s] object MultipartDecoder {
   def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
-        case Some(boundary) =>
-          DecodeResult {
-            msg.body
-              .through(MultipartParser.parseToPartsStream[F](Boundary(boundary)))
-              .compile
-              .toVector
-              .map[Either[DecodeFailure, Multipart[F]]](parts =>
-                Right(Multipart(parts, Boundary(boundary))))
-              .handleError {
-                case e: InvalidMessageBodyFailure => Left(e)
-                case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
-              }
-          }
-        case None =>
-          DecodeResult.failure(
-            InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
-      }
+    new EntityDecoder.DecodeByMediaRange[F, Multipart[F]](MediaRange.`multipart/*`) {
+      def decodeForall[M[_[_]]: Media](m: M[F]): DecodeResult[F, Multipart[F]] = {
+        Media[M].contentType(m).flatMap(_.mediaType.extensions.get("boundary")) match {
+          case Some(boundary) =>
+            DecodeResult {
+              Media[M].body(m)
+                .through(MultipartParser.parseToPartsStream[F](Boundary(boundary)))
+                .compile
+                .toVector
+                .map[Either[DecodeFailure, Multipart[F]]](parts =>
+                  Right(Multipart(parts, Boundary(boundary))))
+                .handleError {
+                  case e: InvalidMessageBodyFailure => Left(e)
+                  case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
+                }
+            }
+          case None =>
+            DecodeResult.failure(
+              InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
+        }
+        }
     }
 
   /** Multipart decoder that streams all parts past a threshold
@@ -59,31 +61,33 @@ private[http4s] object MultipartDecoder {
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
-        case Some(boundary) =>
-          DecodeResult {
-            msg.body
-              .through(
-                MultipartParser.parseToPartsStreamedFile[F](
-                  Boundary(boundary),
-                  blocker,
-                  headerLimit,
-                  maxSizeBeforeWrite,
-                  maxParts,
-                  failOnLimit))
-              .compile
-              .toVector
-              .map[Either[DecodeFailure, Multipart[F]]](parts =>
-                Right(Multipart(parts, Boundary(boundary))))
-              .handleError {
-                case e: InvalidMessageBodyFailure => Left(e)
-                case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
-              }
-          }
-        case None =>
-          DecodeResult.failure(
-            InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
+    new EntityDecoder.DecodeByMediaRange[F, Multipart[F]](MediaRange.`multipart/*`) {
+      def decodeForall[M[_[_]]: Media](m: M[F]): DecodeResult[F, Multipart[F]] = {
+        Media[M].contentType(m).flatMap(_.mediaType.extensions.get("boundary")) match {
+          case Some(boundary) =>
+            DecodeResult {
+              Media[M].body(m)
+                .through(
+                  MultipartParser.parseToPartsStreamedFile[F](
+                    Boundary(boundary),
+                    blocker,
+                    headerLimit,
+                    maxSizeBeforeWrite,
+                    maxParts,
+                    failOnLimit))
+                .compile
+                .toVector
+                .map[Either[DecodeFailure, Multipart[F]]](parts =>
+                  Right(Multipart(parts, Boundary(boundary))))
+                .handleError {
+                  case e: InvalidMessageBodyFailure => Left(e)
+                  case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
+                }
+            }
+          case None =>
+            DecodeResult.failure(
+              InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
       }
     }
+  }
 }

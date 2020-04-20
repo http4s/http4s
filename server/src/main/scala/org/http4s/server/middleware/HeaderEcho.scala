@@ -5,6 +5,7 @@ import cats.data.Kleisli
 import org.http4s._
 import cats.implicits._
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.implicits._
 
 object HeaderEcho {
 

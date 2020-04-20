@@ -6,6 +6,7 @@ import cats.Applicative
 import cats.data.Kleisli
 import org.http4s.Status.{BadRequest, NotFound}
 import org.http4s.headers.Host
+import org.http4s.implicits._
 
 /** Middleware for virtual host mapping
   *

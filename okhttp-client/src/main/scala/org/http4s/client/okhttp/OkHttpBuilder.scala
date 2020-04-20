@@ -22,6 +22,7 @@ import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Stat
 import org.http4s.client.Client
 import org.http4s.internal.{BackendBuilder, invokeCallback}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.http4s.implicits._
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal

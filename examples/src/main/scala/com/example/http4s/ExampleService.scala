@@ -14,6 +14,7 @@ import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
 import org.http4s.twirl._
+import org.http4s.implicits._
 import org.http4s._
 import scala.concurrent.duration._
 

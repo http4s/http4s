@@ -7,6 +7,7 @@ import cats.data.Kleisli
 import fs2._
 
 import scala.util.control.NoStackTrace
+import org.http4s.implicits._
 
 object EntityLimiter {
   final case class EntityTooLarge(limit: Long) extends Exception with NoStackTrace

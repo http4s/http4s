@@ -7,6 +7,7 @@ import org.http4s.headers.`Content-Type`
 import org.json4s._
 import org.json4s.JsonAST.JValue
 import org.typelevel.jawn.support.json4s.Parser
+import org.http4s.implicits._
 
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
 
@@ -75,7 +76,7 @@ trait Json4sInstances[J] {
         JString(uri.toString)
     }
 
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+  implicit class MessageSyntax[M[_[_]]: Media, F[_]: Sync](private val self: M[F]) {
     def decodeJson[A](implicit decoder: Reader[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
   }

@@ -9,6 +9,7 @@ import org.http4s.headers.`Content-Type`
 import jawn.JawnInstances
 import org.typelevel.jawn.ParseException
 import org.http4s.argonaut.ArgonautInstances.DecodeFailureMessage
+import org.http4s.implicits._
 
 trait ArgonautInstances extends JawnInstances {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
@@ -55,9 +56,9 @@ trait ArgonautInstances extends JawnInstances {
             .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok))
   )
 
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+  implicit class MessageSyntax[M[_[_]]: Media, F[_]: Sync](private val m: M[F]) {
     def decodeJson[A](implicit decoder: DecodeJson[A]): F[A] =
-      self.as(implicitly, jsonOf[F, A])
+      m.as(implicitly, jsonOf[F, A])
   }
 }
 

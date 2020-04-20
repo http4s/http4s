@@ -8,6 +8,7 @@ import cats.implicits._
 import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.implicits._
 
 private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
     extends Client[F] {

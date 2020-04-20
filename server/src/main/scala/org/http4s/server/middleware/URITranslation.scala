@@ -4,6 +4,7 @@ package middleware
 
 import cats.Functor
 import cats.data.Kleisli
+import org.http4s.implicits._
 
 @deprecated("Use org.http4s.server.middleware.TranslateUri instead", since = "0.18.16")
 object URITranslation {

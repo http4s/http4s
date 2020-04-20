@@ -40,8 +40,10 @@ final case class ParseFailure(sanitized: String, details: String)
   def cause: Option[Throwable] = None
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
-    Response(Status.BadRequest, httpVersion)
-      .withEntity(sanitized)(EntityEncoder.stringEncoder[F])
+    Message[Response].withEntity(
+      Response(Status.BadRequest, httpVersion),
+      sanitized
+    )(EntityEncoder.stringEncoder[F])
 }
 
 object ParseFailure {
@@ -83,8 +85,10 @@ final case class MalformedMessageBodyFailure(details: String, cause: Option[Thro
     s"Malformed message body: $details"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
-    Response(Status.BadRequest, httpVersion)
-      .withEntity(s"The request body was malformed.")(EntityEncoder.stringEncoder[F])
+    Message[Response].withEntity(
+      Response(Status.BadRequest, httpVersion),
+      s"The request body was malformed."
+    )(EntityEncoder.stringEncoder[F])
 }
 
 /** Indicates a semantic error decoding the body of an HTTP [[Message]]. */
@@ -94,8 +98,10 @@ final case class InvalidMessageBodyFailure(details: String, cause: Option[Throwa
     s"Invalid message body: $details"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
-    Response(Status.UnprocessableEntity, httpVersion)
-      .withEntity(s"The request body was invalid.")(EntityEncoder.stringEncoder[F])
+    Message[Response].withEntity(
+      Response(Status.UnprocessableEntity, httpVersion),
+      s"The request body was invalid."
+    )(EntityEncoder.stringEncoder[F])
 }
 
 /** Indicates that a [[Message]] came with no supported [[MediaType]]. */
@@ -109,8 +115,10 @@ sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoS
   protected def responseMsg: String = s"$sanitizedResponsePrefix. $expectedMsg"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
-    Response(Status.UnsupportedMediaType, httpVersion)
-      .withEntity(responseMsg)(EntityEncoder.stringEncoder[F])
+    Message[Response].withEntity(
+      Response(Status.UnsupportedMediaType, httpVersion),
+      responseMsg
+    )(EntityEncoder.stringEncoder[F])
 }
 
 /** Indicates that a [[Message]] attempting to be decoded has no [[MediaType]] and no

@@ -8,6 +8,7 @@ import org.http4s._
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.{Date => HDate, _}
 import scala.concurrent.duration._
+import org.http4s.implicits._
 
 /**
   * Caching contains middlewares to support caching functionality.

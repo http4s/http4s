@@ -23,6 +23,7 @@ import org.reactivestreams.Publisher
 import _root_.io.netty.handler.codec.http.cookie.Cookie
 import org.asynchttpclient.uri.Uri
 import org.asynchttpclient.cookie.CookieStore
+import org.http4s.implicits._
 
 object AsyncHttpClient {
   private[this] val logger = getLogger

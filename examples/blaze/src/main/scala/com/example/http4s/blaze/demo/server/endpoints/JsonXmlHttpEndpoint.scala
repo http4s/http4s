@@ -8,6 +8,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 
 import scala.xml._
+import org.http4s.implicits._
 
 // Docs: http://http4s.org/v0.18/entity/
 class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {

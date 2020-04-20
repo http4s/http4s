@@ -11,6 +11,7 @@ import org.http4s.headers.`Content-Type`
 
 import scala.util.control.NonFatal
 import scala.xml.{Elem, InputSource, SAXParseException, XML}
+import org.http4s.implicits._
 
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory
@@ -31,8 +32,10 @@ trait ElemInstances {
     */
   implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
-    decodeBy(MediaType.text.xml, MediaType.text.html, MediaType.application.xml) { msg =>
-      collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>
+    new DecodeByMediaRange[F, Elem](MediaType.text.xml, MediaType.text.html, MediaType.application.xml) {
+
+      def decodeForall[M[_[_]]: Media](msg: M[F]): DecodeResult[F,Elem] = 
+        collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>
         val source = new InputSource(
           new StringReader(
             new String(chunk.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))

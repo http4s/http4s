@@ -7,6 +7,7 @@ import cats.syntax.functor._
 import fs2.{Chunk, Stream}
 import java.util.concurrent.ConcurrentHashMap
 import org.log4s.getLogger
+import org.http4s.implicits._
 
 /** [[CacheStrategy]] that will cache __all__ [[Response]] bodies in local memory
   *

@@ -8,6 +8,7 @@ import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.json.MetricsModule
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.concurrent.TimeUnit
+import org.http4s.implicits._
 
 package object dropwizard {
   private val defaultMapper = {

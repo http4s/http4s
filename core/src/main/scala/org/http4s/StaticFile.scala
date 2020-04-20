@@ -52,7 +52,12 @@ object StaticFile {
         val contentType = nameToContentType(normalizedName)
         val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
 
-        fromURL(url, blocker, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
+        fromURL(url, blocker, req).map(m => 
+          Message[Response].putHeaders(
+            Message[Response].removeHeader(m, `Content-Type`),
+            headers: _*
+          )
+        )
       }
       .orElse(getResource(normalizedName)
         .flatMap(fromURL(_, blocker, req)))

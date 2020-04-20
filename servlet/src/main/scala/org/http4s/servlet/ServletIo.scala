@@ -11,6 +11,7 @@ import org.http4s.util.bug
 import org.http4s.util.execution.trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
+import org.http4s.implicits._
 
 /**
   * Determines the mode of I/O used for reading request bodies and writing response bodies.

@@ -5,6 +5,7 @@ import cats.implicits._
 import fs2.{Pipe, Stream}
 import org.http4s.websocket.{WebSocket, WebSocketContext, WebSocketFrame}
 import org.http4s.{Headers, Response, Status}
+import org.http4s.implicits._
 
 /**
   * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the

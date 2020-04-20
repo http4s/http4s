@@ -14,6 +14,7 @@ import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
 import scala.util.control.NoStackTrace
 import scala.util.{Failure, Success, Try}
+import org.http4s.implicits._
 
 object FileService {
   private[this] val logger = getLogger

@@ -9,8 +9,8 @@ import cats.implicits._
 import fs2._
 import java.io.IOException
 import org.http4s.headers.Host
-import org.http4s.syntax.kleisli._
 import scala.util.control.NoStackTrace
+import org.http4s.implicits._
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
 trait Client[F[_]] {

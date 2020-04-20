@@ -94,11 +94,12 @@ object UrlForm {
   implicit def entityDecoder[F[_]](
       implicit F: Sync[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
-    EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
+    new EntityDecoder.DecodeByMediaRange[F, UrlForm](MediaType.application.`x-www-form-urlencoded`) {
+      def decodeForall[M[_[_]]: Media](m: M[F]): DecodeResult[F, UrlForm] = 
       DecodeResult(
         EntityDecoder
           .decodeString(m)
-          .map(decodeString(m.charset.getOrElse(defaultCharset)))
+          .map(decodeString(Media[M].charset(m).getOrElse(defaultCharset)))
       )
     }
 

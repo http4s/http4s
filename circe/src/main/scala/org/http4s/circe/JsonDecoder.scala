@@ -2,6 +2,7 @@ package org.http4s.circe
 
 import cats.effect.Sync
 import org.http4s._
+import org.http4s.implicits._
 import io.circe._
 
 /**
@@ -11,15 +12,15 @@ import io.circe._
   * needing to be aware of the strong constraint.
  **/
 trait JsonDecoder[F[_]] {
-  def asJson(m: Message[F]): F[Json]
-  def asJsonDecode[A: Decoder](m: Message[F]): F[A]
+  def asJson[M[_[_]]: Media](m: M[F]): F[Json]
+  def asJsonDecode[M[_[_]]: Media, A: Decoder](m: M[F]): F[A]
 }
 
 object JsonDecoder {
   def apply[F[_]](implicit ev: JsonDecoder[F]): JsonDecoder[F] = ev
 
   implicit def impl[F[_]: Sync]: JsonDecoder[F] = new JsonDecoder[F] {
-    def asJson(m: Message[F]): F[Json] = m.as[Json]
-    def asJsonDecode[A: Decoder](m: Message[F]): F[A] = m.decodeJson
+    def asJson[M[_[_]]: Media](m: M[F]): F[Json] = m.as[Json]
+    def asJsonDecode[M[_[_]]: Media, A: Decoder](m: M[F]): F[A] = m.decodeJson
   }
 }

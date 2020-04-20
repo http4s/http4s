@@ -6,10 +6,14 @@ import cats.implicits._
 import fs2.Stream
 import org.typelevel.jawn.{AsyncParser, Facade, ParseException}
 import jawnfs2._
+import org.http4s.implicits._
 
 trait JawnInstances {
   def jawnDecoder[F[_]: Sync, J: Facade]: EntityDecoder[F, J] =
-    EntityDecoder.decodeBy(MediaType.application.json)(jawnDecoderImpl[F, J])
+    new EntityDecoder.DecodeByMediaRange[F, J](MediaType.application.json){
+      def decodeForall[M[_[_]]: Media](m: M[F]): org.http4s.DecodeResult[F,J] = 
+        jawnDecoderImpl(m)
+    }
 
   protected def jawnParseExceptionMessage: ParseException => DecodeFailure =
     JawnInstances.defaultJawnParseExceptionMessage
@@ -17,7 +21,7 @@ trait JawnInstances {
     JawnInstances.defaultJawnEmptyBodyMessage
 
   // some decoders may reuse it and avoid extra content negotiation
-  private[http4s] def jawnDecoderImpl[F[_]: Sync, J: Facade](m: Media[F]): DecodeResult[F, J] =
+  private[http4s] def jawnDecoderImpl[M[_[_]]: Media, F[_]: Sync, J: Facade](m: M[F]): DecodeResult[F, J] =
     DecodeResult {
       m.body.chunks
         .parseJson(AsyncParser.SingleValue)

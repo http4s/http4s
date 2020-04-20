@@ -11,6 +11,7 @@ import cats.effect.Sync._
 import fs2.Stream
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
+import org.http4s.implicits._
 
 /**
   * Simple Middleware for Logging All Requests and Responses
@@ -49,7 +50,7 @@ object Logger {
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def logMessage[F[_], A <: Message[F]](message: A)(
+  def logMessage[M[_[_]]: Message, F[_]](message: M[F])(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(

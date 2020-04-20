@@ -13,6 +13,7 @@ import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blazecore.util._
 import org.http4s.headers._
+import org.http4s.implicits._
 import org.http4s.util.{StringWriter, Writer}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -49,8 +50,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     }
 
   /** Get the proper body encoder based on the message headers */
-  final protected def getEncoder(
-      msg: Message[F],
+  final protected def getEncoder[M[_[_]]: Message](
+      msg: M[F],
       rr: StringWriter,
       minor: Int,
       closeOnFinish: Boolean): Http1Writer[F] = {
