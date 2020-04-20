@@ -99,10 +99,8 @@ object AsyncHttpClient {
 
           responseWithBody = response.copy(body = body)
 
-          // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
-          fiber <- F.start(
-            F.delay(cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten)))))
-          _ <- fiber.join
+          _ <- invokeCallbackF[F](
+            cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
         } yield ()
 
         eff.runAsync(_ => IO.unit).unsafeRunSync()
@@ -128,10 +126,14 @@ object AsyncHttpClient {
 
       override def onCompleted(): Unit =
         onStreamCalled.get
-          .ifM(F.unit, F.delay(invokeCallback(logger)(cb(Right(response -> dispose)))))
+          .ifM(ifTrue = F.unit, ifFalse = invokeCallbackF[F](cb(Right(response -> dispose))))
           .runAsync(_ => IO.unit)
           .unsafeRunSync()
     }
+
+  // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
+  private def invokeCallbackF[F[_]](invoked: => Unit)(implicit F: Concurrent[F]): F[Unit] =
+    F.start(F.delay(invoked)).flatMap(_.join)
 
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
