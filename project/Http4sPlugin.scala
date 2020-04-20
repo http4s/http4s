@@ -287,7 +287,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % V.jsp // YourKit hack
-  lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % "0.2.0"
+  lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % V.keypool
   lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % V.log4cats
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % V.log4cats
