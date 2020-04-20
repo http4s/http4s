@@ -354,10 +354,9 @@ lazy val playJson = libraryProject("play-json")
 lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
-    libraryDependencies ++= scalaVersion(VersionNumber(_).numbers match {
-      case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sPlugin.scalaXml)
-      case _ => Seq.empty
-    }).value,
+    libraryDependencies ++= Seq(
+      Http4sPlugin.scalaXml
+    ),
   )
   .dependsOn(core, testing % "test->test")
 
