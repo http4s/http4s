@@ -12,13 +12,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: [adopt@1.8, adopt@1.11]
+        java: [adopt@1.8, adopt@1.11, adopt@1.14]
         scala: [2.11.12, 2.12.11]
     env:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:
       - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v5
+      - uses: olafurpg/setup-scala@v7
         with:
           java-version: ${{ matrix.java }}
       - name: Cache Coursier
