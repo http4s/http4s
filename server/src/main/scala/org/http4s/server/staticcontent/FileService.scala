@@ -6,7 +6,7 @@ import cats.data._
 import cats.effect._
 import cats.implicits._
 import java.io.File
-import java.nio.file.{LinkOption, Paths}
+import java.nio.file.{LinkOption, Path, Paths}
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
@@ -58,7 +58,8 @@ object FileService {
       case Success(rootPath) =>
         TranslateUri(config.pathPrefix)(Kleisli {
           case request =>
-            request.pathInfo.split("/") match {
+            def resolvedPath: OptionT[F, Path] = request.pathInfo.split("/") match {
+              case Array() => OptionT.some(rootPath)
               case Array(head, segments @ _*) if head.isEmpty =>
                 OptionT
                   .liftF(F.catchNonFatal {
@@ -68,16 +69,17 @@ object FileService {
                         path.resolve(Uri.decode(segment, plusIsSpace = true))
                     }
                   })
-                  .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
-                  .collect { case path if path.startsWith(rootPath) => path.toFile }
-                  .flatMap(f => config.pathCollector(f, config, request))
-                  .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-                  .recoverWith {
-                    case _: NoSuchFileException => OptionT.none
-                    case BadTraversal => OptionT.some(Response(Status.BadRequest))
-                  }
               case _ => OptionT.none
             }
+            resolvedPath
+              .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
+              .collect { case path if path.startsWith(rootPath) => path.toFile }
+              .flatMap(f => config.pathCollector(f, config, request))
+              .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+              .recoverWith {
+                case _: NoSuchFileException => OptionT.none
+                case BadTraversal => OptionT.some(Response(Status.BadRequest))
+              }
         })
 
       case Failure(_: NoSuchFileException) =>
