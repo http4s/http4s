@@ -7,13 +7,15 @@ import fs2._
 import fs2.Stream._
 import java.nio.ByteBuffer
 import java.time.Instant
+
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blazecore.util._
 import org.http4s.headers._
-import org.http4s.util.{StringWriter, Writer}
+import org.http4s.util.{Renderer, StringWriter, Writer}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -244,6 +246,20 @@ object Http1Stage {
 
   private val CachedEmptyBody = EmptyBody -> CachedEmptyBufferThunk
 
+  // Building the current Date header value each time is expensive, so we cache it for the current second
+  private var currentEpoch: Long = _
+  private var cachedString: String = _
+
+  private def currentDate: String = {
+    val now = Instant.now()
+    val epochSecond = now.getEpochSecond
+    if (epochSecond != currentEpoch) {
+      currentEpoch = epochSecond
+      cachedString = Renderer.renderString(now)
+    }
+    cachedString
+  }
+
   private def futureBufferThunk(buffer: ByteBuffer): () => Future[ByteBuffer] =
     if (buffer.hasRemaining) { () =>
       Future.successful(buffer)
@@ -264,7 +280,7 @@ object Http1Stage {
     }
 
     if (isServer && !dateEncoded) {
-      rr << Date.name << ": " << Instant.now << "\r\n"
+      rr << Date.name << ": " << currentDate << "\r\n"
     }
     ()
   }
