@@ -6,6 +6,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
 import cats.implicits._
 import java.nio.file.{Path, Paths}
+import org.http4s.internal.CollectionCompat.CollectionConverters
 import scala.util.control.NoStackTrace
 
 /**
@@ -94,24 +95,12 @@ object WebjarService {
     if (count > 2) {
       val library = p.getName(0).toString
       val version = p.getName(1).toString
-      val asset = asScalaIterator(p.subpath(2, count).iterator()).mkString("/")
+      val asset = CollectionConverters.asScalaIterator(p.subpath(2, count).iterator()).mkString("/")
       Some(WebjarAsset(library, version, asset))
     } else {
       None
     }
   }
-
-  /** Creates a scala.Iterator from a java.util.Iterator.
-    *
-    * We're not using scala.jdk.CollectionConverters (which was added in 2.13)
-    * or scala.collection.convert.ImplicitConversion (which was deprecated in 2.13)
-    * to ease cross-building against multiple Scala versions.
-    */
-  private def asScalaIterator[A](underlying: java.util.Iterator[A]): Iterator[A] =
-    new Iterator[A] {
-      override def hasNext: Boolean = underlying.hasNext
-      override def next(): A = underlying.next()
-    }
 
   /**
     * Returns an asset that matched the request if it's found in the webjar path
