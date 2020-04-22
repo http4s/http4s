@@ -43,7 +43,8 @@ class QueryParserSpec extends Http4sSpec {
 //    }
 
     "Allow ';' seperators" in {
-      parseQueryString("a=b;c") must beRight(Query("a" -> Some("b"), "c" -> None))
+      new QueryParser(Codec.UTF8, colonSeparators = true)
+        .decode(CharBuffer.wrap("a=b;c"), true) must beRight(Query("a" -> Some("b"), "c" -> None))
     }
 
     "Allow PHP-style [] in keys" in {

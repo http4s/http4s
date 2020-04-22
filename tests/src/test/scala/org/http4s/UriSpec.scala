@@ -328,6 +328,11 @@ http://example.org/a file
       Uri(query = Query.fromString("param1=test")).toString must_== ("?param1=test")
     }
 
+    "parse and render a uri with semicolon-in-qp-correctly" in {
+      val uri = uri"http://domain.com/path?param1=asd;fgh"
+      uri.renderString must_== "http://domain.com/path?param1=asd%3Bfgh"
+    }
+
     "render a query string with multiple value in a param" in {
       Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_== ("?param1=3&param2=2&param2=foo")
     }
