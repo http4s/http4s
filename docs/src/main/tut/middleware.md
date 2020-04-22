@@ -206,16 +206,16 @@ import org.http4s.server.middleware.Metrics
 ```tut:book
 implicit val clock = Clock.create[IO]
 
-def meteredRouter(routes: HttpRoutes[IO]): Resource[IO, HttpRoutes[IO]] =
+val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   for {
-    registry <- Prometheus.collectorRegistry[IO]
-    metrics <- Prometheus.metricsOps[IO](registry, "server")
     metricsSvc <- PrometheusExportService.build[IO]
+    metrics <- Prometheus.metricsOps[IO](metricsSvc.collectorRegistry, "server")
     router = Router[IO](
-      "/api" -> Metrics[IO](metrics)(routes),
+      "/api" -> Metrics[IO](metrics)(apiService),
       "/" -> metricsSvc.routes
     )
   } yield router
+  
 ```
 
 [service]: ../service
