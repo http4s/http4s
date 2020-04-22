@@ -6,7 +6,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
 import cats.implicits._
 import java.nio.file.{Path, Paths}
-import org.http4s.internal.CollectionCompat.CollectionConverters.asScalaIterator
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import scala.util.control.NoStackTrace
 
 /**
@@ -95,7 +95,7 @@ object WebjarService {
     if (count > 2) {
       val library = p.getName(0).toString
       val version = p.getName(1).toString
-      val asset = asScalaIterator(p.subpath(2, count).iterator()).mkString("/")
+      val asset = p.subpath(2, count).iterator().asScala.mkString("/")
       Some(WebjarAsset(library, version, asset))
     } else {
       None
