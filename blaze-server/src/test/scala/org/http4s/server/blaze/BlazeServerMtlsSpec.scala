@@ -12,6 +12,7 @@ import org.http4s.{Http4sSpec, HttpApp}
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.Try
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Test cases for mTLS support in blaze server
@@ -27,9 +28,8 @@ class BlazeServerMtlsSpec extends Http4sSpec {
   }
 
   def builder: BlazeServerBuilder[IO] =
-    BlazeServerBuilder[IO]
+    BlazeServerBuilder[IO](global)
       .withResponseHeaderTimeout(1.second)
-      .withExecutionContext(testExecutionContext)
 
   val service: HttpApp[IO] = HttpApp {
     case req @ GET -> Root / "dummy" =>

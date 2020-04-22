@@ -18,7 +18,7 @@ object BlazeSslExampleApp {
 
   def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: F[BlazeServerBuilder[F]] =
     context.map { sslContext =>
-      BlazeServerBuilder[F]
+      BlazeServerBuilder[F](global)
         .bindHttp(8443)
         .withSslContext(sslContext)
     }

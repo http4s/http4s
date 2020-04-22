@@ -188,6 +188,7 @@ class BlazeServerBuilder[F[_]](
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
+  @deprecated("Use BlazeServerBuilder.apply with explicit executionContext instead", "0.20.22")
   def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
     copy(executionContext = executionContext)
 
@@ -380,10 +381,32 @@ class BlazeServerBuilder[F[_]](
 }
 
 object BlazeServerBuilder {
-  def apply[F[_]](
+  @deprecated("Use BlazeServerBuilder.apply with explicit executionContext instead", "0.20.22")
+  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
+    new BlazeServerBuilder(
+      socketAddress = defaults.SocketAddress,
+      executionContext = ExecutionContext.global,
+      responseHeaderTimeout = defaults.ResponseTimeout,
+      idleTimeout = defaults.IdleTimeout,
+      isNio2 = false,
+      connectorPoolSize = DefaultPoolSize,
+      bufferSize = 64 * 1024,
+      selectorThreadFactory = defaultThreadSelectorFactory,
+      enableWebSockets = true,
+      sslConfig = new NoSsl[F](),
+      isHttp2Enabled = false,
+      maxRequestLineLen = 4 * 1024,
+      maxHeadersLen = 40 * 1024,
+      chunkBufferMaxSize = 1024 * 1024,
+      httpApp = defaultApp[F],
+      serviceErrorHandler = DefaultServiceErrorHandler[F],
+      banner = defaults.Banner,
+      channelOptions = ChannelOptions(Vector.empty)
+    )
+
+  def apply[F[_]](executionContext: ExecutionContext)(
       implicit F: ConcurrentEffect[F],
-      timer: Timer[F],
-      executionContext: ExecutionContext): BlazeServerBuilder[F] =
+      timer: Timer[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.SocketAddress,
       executionContext = executionContext,

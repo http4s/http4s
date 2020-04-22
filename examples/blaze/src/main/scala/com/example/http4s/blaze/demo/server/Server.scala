@@ -29,7 +29,7 @@ object HttpServer {
       blocker <- Stream.resource(Blocker[F])
       client <- BlazeClientBuilder[F](global).stream
       ctx <- Stream(new Module[F](client, blocker))
-      exitCode <- BlazeServerBuilder[F]
+      exitCode <- BlazeServerBuilder[F](global)
         .bindHttp(8080)
         .withHttpApp(httpApp(ctx))
         .serve

@@ -31,7 +31,7 @@ object BlazeMetricsExampleApp {
     for {
       blocker <- Blocker[F]
       app = httpApp[F](blocker)
-      server <- BlazeServerBuilder[F]
+      server <- BlazeServerBuilder[F](global)
         .bindHttp(8080)
         .withHttpApp(app)
         .resource
