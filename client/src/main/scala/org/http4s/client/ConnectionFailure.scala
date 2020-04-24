@@ -12,7 +12,7 @@ class ConnectionFailure(
     val cause: Throwable)
     extends IOException(cause) {
   override def getMessage(): String =
-    s"Error connecting to $requestKey using address $upstream (unresolved: ${upstream.isUnresolved})"
+    s"Error connecting to $requestKey using address ${upstream.getHostString}:${upstream.getPort} (unresolved: ${upstream.isUnresolved})"
 }
 
 object ConnectionFailure {
