@@ -47,12 +47,14 @@ implicit val timer: Timer[IO] = IO.timer(global)
 Finish setting up our server:
 
 ```tut:book
+import scala.concurrent.ExecutionContext.global
+
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }.orNotFound
 
-val server = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(app).resource
+val server = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(app).resource
 ```
 
 We'll start the server in the background.  The `IO.never` keeps it
