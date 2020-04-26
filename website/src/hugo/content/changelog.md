@@ -10,6 +10,8 @@ it.
 
 # v0.21.4 (unreleased)
 
+This release is fully backward compatible with 0.21.3.  
+
 ## Bugfixes
 
 * [#3338](https://github.com/http4s/http4s/pull/3338): Avoid incorrectly responding with an empty body in http4s-async-http-client
