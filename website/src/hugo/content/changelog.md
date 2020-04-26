@@ -23,6 +23,7 @@ It is the final planned release in the 0.20.x series.
 * [#3333](https://github.com/http4s/http4s/pull/3333): Add Http2c support to jetty-server
 * [#3327](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `Date` middleware
 * [#3381](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `CORS` middleware
+* [#3298](https://github.com/http4s/http4s/pull/3298): In `Logger` client and server middlewares, detect any media types ending in `+json` as non-binary
 
 ## Build improvements
 
