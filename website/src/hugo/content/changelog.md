@@ -8,6 +8,34 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M1 (unreleased)
+
+This is the first milestone release in the 1.x series.
+It is not binary compatible with prior releases.
+
+## Breaking changes
+
+* [#3174](https://github.com/http4s/http4s/pull/3174): Drop http4s-prometheus dependency on http4s-dsl
+* [#2615](https://github.com/http4s/http4s/pull/2615): Model the `Server` header
+* [#3206](https://github.com/http4s/http4s/pull/2615): Model the `Content-Location` header
+* [#3264](https://github.com/http4s/http4s/pull/3264): Remove unused `EntityEncoder` argument in `PlayInstances`.
+* [#3257](https://github.com/http4s/http4s/pull/3257): Make `SameSite` cookie attribute optional
+* [#3291](https://github.com/http4s/http4s/pull/3291): Remove unused `F[_]` parameter from `Server`
+* [#3241](https://github.com/http4s/http4s/pull/3241): Port all macros to blackbox in anticipation of Dotty support
+* [#3287](https://github.com/http4s/http4s/pull/3287): Treat all media types ending in `+json` as JSON in server `Logger` middleware
+* [#3323](https://github.com/http4s/http4s/pull/3323): Drop deprecated `ArbitraryInstances#charsetRangesNoQuality`
+* [#3322](https://github.com/http4s/http4s/pull/3322): Drop deprecated `getAs` and `prepAs` methods from `Client`
+* [#3371](https://github.com/http4s/http4s/pull/3271): In http4s-metrics, add `rootCause` field to `TerminationType.Abnormal` and `TerminationType.Error`.  Add `TerminationType.Canceled`
+* [#3335](https://github.com/http4s/http4s/pull/3335): Remove unused `Bracket` instance in `Client#translate`
+
+## Enhancements
+
+* [#3320](https://github.com/http4s/http4s/pull/3320): Reimplement `Media#as` with `F.rethrow`
+
+## Dependency updates
+
+* async-http-client-2.11.0
+
 # v0.21.4 (unreleased)
 
 This release is fully backward compatible with 0.21.3.  
@@ -67,7 +95,7 @@ This release is fully backward compatible with 0.21.2.
 
 # Bugfixes
 
-* [#3245](https://github.com/http4s/http4s/pull/3245): Write ember-client request to socket before reading response
+* [#3243](https://github.com/http4s/http4s/pull/3243): Write ember-client request to socket before reading response
 
 ## Enhancements
 
