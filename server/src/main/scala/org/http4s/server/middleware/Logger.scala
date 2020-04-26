@@ -18,13 +18,13 @@ import org.log4s.getLogger
 object Logger {
   private[this] val logger = getLogger
 
-  def apply[G[_]: Bracket[?[_], Throwable], F[_]: Concurrent](
+  def apply[G[_], F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: Bracket[G, Throwable], F: Concurrent[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       Sync[F].delay(logger.info(s))
     }
@@ -57,7 +57,7 @@ object Logger {
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
     val isJson = message.contentType.exists(mT =>
-      mT.mediaType == MediaType.application.json || mT.mediaType == MediaType.application.`vnd.hal+json`)
+      mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json"))
 
     val isText = !isBinary || isJson
 

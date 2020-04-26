@@ -28,7 +28,7 @@ private[parser] trait WwwAuthenticateHeader {
   private class WWWAuthenticateParser(input: ParserInput)
       extends ChallengeParser[`WWW-Authenticate`](input) {
     def entry: Rule1[`WWW-Authenticate`] = rule {
-      oneOrMore(ChallengeRule).separatedBy(ListSep) ~ EOI ~> { xs: Seq[Challenge] =>
+      oneOrMore(ChallengeRule).separatedBy(ListSep) ~ EOI ~> { (xs: Seq[Challenge]) =>
         `WWW-Authenticate`(xs.head, xs.tail: _*)
       }
     }

@@ -1,7 +1,6 @@
 package com.example.http4s.blaze
 
 import cats.effect._
-import cats.implicits._
 import io.circe.generic.auto._
 import org.http4s.Uri
 import org.http4s.Status.{NotFound, Successful}

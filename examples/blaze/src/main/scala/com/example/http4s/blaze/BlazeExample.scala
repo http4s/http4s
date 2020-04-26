@@ -1,7 +1,6 @@
 package com.example.http4s.blaze
 
 import cats.effect._
-import cats.implicits._
 import com.example.http4s.ExampleService
 import org.http4s.HttpApp
 import org.http4s.server.{Router, Server}
@@ -19,7 +18,7 @@ object BlazeExampleApp {
       "/http4s" -> ExampleService[F](blocker).routes
     ).orNotFound
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
     for {
       blocker <- Blocker[F]
       app = httpApp[F](blocker)

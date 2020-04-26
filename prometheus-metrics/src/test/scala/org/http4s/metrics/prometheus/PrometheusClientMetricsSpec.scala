@@ -1,7 +1,6 @@
 package org.http4s.metrics.prometheus
 
 import cats.effect.{Clock, IO, Resource}
-import cats.syntax.functor._
 import io.prometheus.client.CollectorRegistry
 import java.io.IOException
 import java.util.concurrent.TimeoutException
@@ -35,7 +34,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("bad-request").attempt
         } yield {
-          resp must beLeft { e: Throwable =>
+          resp must beLeft { (e: Throwable) =>
             e must beLike { case UnexpectedStatus(Status.BadRequest) => ok }
           }
 
@@ -51,7 +50,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("internal-server-error").attempt
         } yield {
-          resp must beLeft { e: Throwable =>
+          resp must beLeft { (e: Throwable) =>
             e must beLike { case UnexpectedStatus(Status.InternalServerError) => ok }
           }
 
@@ -123,11 +122,11 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("error").attempt
         } yield {
-          resp must beLeft { e: Throwable =>
+          resp must beLeft { (e: Throwable) =>
             e must beAnInstanceOf[IOException]
           }
 
-          count(registry, "errors", "client") must beEqualTo(1)
+          count(registry, "errors", "client", cause = "java.io.IOException") must beEqualTo(1)
           count(registry, "active_requests", "client") must beEqualTo(0)
         }
     }
@@ -137,7 +136,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("timeout").attempt
         } yield {
-          resp must beLeft { e: Throwable =>
+          resp must beLeft { (e: Throwable) =>
             e must beAnInstanceOf[TimeoutException]
           }
 

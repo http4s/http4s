@@ -149,7 +149,7 @@ class BlazeBuilder[F[_]](
       else {
         val newCaret = (if (prefix.startsWith("/")) 0 else 1) + prefix.length
 
-        service.local { req: Request[F] =>
+        service.local { (req: Request[F]) =>
           req.withAttribute(Request.Keys.PathInfoCaret, newCaret)
         }
       }
@@ -162,7 +162,7 @@ class BlazeBuilder[F[_]](
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  def resource: Resource[F, Server[F]] = {
+  def resource: Resource[F, Server] = {
     val httpApp = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
     var b = BlazeServerBuilder[F]
       .bindSocketAddress(socketAddress)

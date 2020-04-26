@@ -23,7 +23,8 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-client" % http4sVersion
 )
 
-scalacOptions ++= Seq("-Ypartial-unification")
+// Uncomment if you're using Scala 2.12.x
+// scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
 This tutorial is compiled as part of the build using [tut].  Each page
@@ -37,7 +38,7 @@ $ sbt console
 ## Your first service
 
 An `HttpRoutes[F]` is a simple alias for
-`Kleisli[OptionT[F, ?], Request, Response]`.  If that's meaningful to you,
+`Kleisli[OptionT[F, *], Request, Response]`.  If that's meaningful to you,
 great.  If not, don't panic: `Kleisli` is just a convenient wrapper
 around a `Request => F[Response]`, and `F` is an effectful
 operation.  We'll teach you what you need to know as we go, or if you

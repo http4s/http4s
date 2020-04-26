@@ -3,7 +3,6 @@ package server
 package blaze
 
 import cats.effect._
-import cats.implicits._
 import fs2.Stream._
 import org.http4s.implicits._
 import org.http4s.Charset._

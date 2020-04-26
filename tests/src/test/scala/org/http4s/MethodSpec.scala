@@ -15,13 +15,13 @@ class MethodSpec extends Http4sSpec {
   }
 
   "only tokens are valid methods" in {
-    prop { s: String =>
+    prop { (s: String) =>
       fromString(s).isRight must_== Rfc2616BasicRules.isToken(s)
     }
   }
 
   "name is case sensitive" in {
-    prop { m: Method =>
+    prop { (m: Method) =>
       val upper = m.name.toUpperCase(Locale.ROOT)
       val lower = m.name.toLowerCase(Locale.ROOT)
       (upper != lower) ==> { fromString(upper) must_!= fromString(lower) }
@@ -31,7 +31,7 @@ class MethodSpec extends Http4sSpec {
   checkAll("Method", EqTests[Method].eqv)
 
   "methods are equal by name" in {
-    prop { m: Method =>
+    prop { (m: Method) =>
       Method.fromString(m.name) must beRight(m)
     }
   }

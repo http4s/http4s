@@ -74,7 +74,7 @@ class ServerSentEventSpec extends Http4sSpec {
   }
 
   "encode" should {
-    "be consistent with decode" in prop { sses: Vector[ServerSentEvent] =>
+    "be consistent with decode" in prop { (sses: Vector[ServerSentEvent]) =>
       val roundTrip = Stream
         .emits(sses)
         .covary[IO]

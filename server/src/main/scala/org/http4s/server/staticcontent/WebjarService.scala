@@ -4,6 +4,9 @@ package staticcontent
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
+import cats.implicits._
+import java.nio.file.{Path, Paths}
+import scala.util.control.NoStackTrace
 
 /**
   * Constructs new services to serve assets from Webjars
@@ -52,32 +55,63 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpRoutes
     */
-  def apply[F[_]: Sync: ContextShift](config: Config[F]): HttpRoutes[F] = Kleisli {
-    // Intercepts the routes that match webjar asset names
-    case request if request.method == Method.GET =>
-      val uri = Uri.removeDotSegments(request.pathInfo)
-      toWebjarAsset(uri) match {
-        case Some(asset) if config.filter(asset) =>
-          serveWebjarAsset(config, request)(asset)
-        case _ => OptionT.none
-      }
-    case _ => OptionT.none
+  def apply[F[_]](config: Config[F])(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
+    object BadTraversal extends Exception with NoStackTrace
+    val Root = Paths.get("")
+    Kleisli {
+      // Intercepts the routes that match webjar asset names
+      case request if request.method == Method.GET =>
+        request.pathInfo.split("/") match {
+          case Array(head, segments @ _*) if head.isEmpty =>
+            OptionT
+              .liftF(F.catchNonFatal {
+                segments.foldLeft(Root) {
+                  case (_, "" | "." | "..") => throw BadTraversal
+                  case (path, segment) =>
+                    path.resolve(Uri.decode(segment, plusIsSpace = true))
+                }
+              })
+              .subflatMap(toWebjarAsset)
+              .filter(config.filter)
+              .flatMap(serveWebjarAsset(config, request)(_))
+              .recover {
+                case BadTraversal => Response(Status.BadRequest)
+              }
+          case _ => OptionT.none
+        }
+      case _ => OptionT.none
+    }
   }
 
   /**
     * Returns an Option(WebjarAsset) for a Request, or None if it couldn't be mapped
     *
-    * @param subPath The request path without the prefix
+    * @param p The request path without the prefix
     * @return The WebjarAsset, or None if it couldn't be mapped
     */
-  private def toWebjarAsset(subPath: String): Option[WebjarAsset] =
-    Option(subPath)
-      .map(_.split("/", 4))
-      .collect {
-        case Array("", library, version, asset)
-            if library.nonEmpty && version.nonEmpty && asset.nonEmpty =>
-          WebjarAsset(library, version, asset)
-      }
+  private def toWebjarAsset(p: Path): Option[WebjarAsset] = {
+    val count = p.getNameCount
+    if (count > 2) {
+      val library = p.getName(0).toString
+      val version = p.getName(1).toString
+      val asset = asScalaIterator(p.subpath(2, count).iterator()).mkString("/")
+      Some(WebjarAsset(library, version, asset))
+    } else {
+      None
+    }
+  }
+
+  /** Creates a scala.Iterator from a java.util.Iterator.
+    *
+    * We're not using scala.jdk.CollectionConverters (which was added in 2.13)
+    * or scala.collection.convert.ImplicitConversion (which was deprecated in 2.13)
+    * to ease cross-building against multiple Scala versions.
+    */
+  private def asScalaIterator[A](underlying: java.util.Iterator[A]): Iterator[A] =
+    new Iterator[A] {
+      override def hasNext: Boolean = underlying.hasNext
+      override def next(): A = underlying.next()
+    }
 
   /**
     * Returns an asset that matched the request if it's found in the webjar path

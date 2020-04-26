@@ -83,15 +83,6 @@ lazy val core = libraryProject("core")
       scalaReflect(scalaVersion.value) % Provided,
       vault,
     ),
-    unmanagedSourceDirectories in Compile ++= {
-      (unmanagedSourceDirectories in Compile).value.map { dir =>
-        val sv = scalaVersion.value
-        CrossVersion.partialVersion(sv) match {
-          case Some((2, 13)) => file(dir.getPath ++ "-2.13")
-          case _             => file(dir.getPath ++ "-2.12")
-        }
-      }
-    },
   )
 
 lazy val laws = libraryProject("laws")
@@ -125,6 +116,15 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers"
   )
+  .settings(silencerSettings)
+  .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
+  .settings(BuildInfoPlugin.buildInfoDefaultSettings)
+  .settings(
+    buildInfoKeys := Seq[BuildInfoKey](
+      resourceDirectory in Test,
+    ),
+    buildInfoPackage := "org.http4s.server.test"
+  )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
@@ -148,6 +148,7 @@ lazy val client = libraryProject("client")
     description := "Base library for building http4s clients",
     libraryDependencies += jettyServlet % "test"
   )
+  .settings(silencerSettings)
   .dependsOn(
     core,
     testing % "test->test",
@@ -259,7 +260,8 @@ lazy val jetty = libraryProject("jetty")
   .settings(
     description := "Jetty implementation for http4s servers",
     libraryDependencies ++= Seq(
-      jettyServlet
+      jettyServlet,
+      jettyHttp2Server
     )
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
@@ -353,10 +355,9 @@ lazy val playJson = libraryProject("play-json")
 lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
-    libraryDependencies ++= scalaVersion(VersionNumber(_).numbers match {
-      case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sPlugin.scalaXml)
-      case _ => Seq.empty
-    }).value,
+    libraryDependencies ++= Seq(
+      Http4sPlugin.scalaXml
+    ),
   )
   .dependsOn(core, testing % "test->test")
 

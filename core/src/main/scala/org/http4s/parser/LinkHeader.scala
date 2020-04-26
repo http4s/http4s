@@ -18,7 +18,7 @@ private[parser] trait LinkHeader {
     override def charset: java.nio.charset.Charset = StandardCharsets.ISO_8859_1
 
     def entry: Rule1[Link] = rule {
-      oneOrMore(LinkValueWithAttr).separatedBy(ListSep) ~> { links: Seq[LinkValue] =>
+      oneOrMore(LinkValueWithAttr).separatedBy(ListSep) ~> { (links: Seq[LinkValue]) =>
         Link(links.head, links.tail: _*)
       }
     }
@@ -29,7 +29,7 @@ private[parser] trait LinkHeader {
 
     def LinkValue: Rule1[LinkValue] = rule {
       // https://tools.ietf.org/html/rfc3986#section-4.1
-      (AbsoluteUri | RelativeRef) ~> { a: Uri =>
+      (AbsoluteUri | RelativeRef) ~> { (a: Uri) =>
         headers.LinkValue(a)
       }
     }

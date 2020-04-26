@@ -291,7 +291,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
 
       "Support trailer headers" in {
-        val hs: IO[Headers] = bracketResponse(req, resp) { response: Response[IO] =>
+        val hs: IO[Headers] = bracketResponse(req, resp) { (response: Response[IO]) =>
           for {
             _ <- response.as[String]
             hs <- response.trailerHeaders
@@ -302,7 +302,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       }
 
       "Fail to get trailers before they are complete" in {
-        val hs: IO[Headers] = bracketResponse(req, resp) { response: Response[IO] =>
+        val hs: IO[Headers] = bracketResponse(req, resp) { (response: Response[IO]) =>
           for {
             //body  <- response.as[String]
             hs <- response.trailerHeaders

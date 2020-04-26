@@ -36,7 +36,7 @@ Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
 ```tut:book
-def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { req: Request[IO] =>
+def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
   service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)
@@ -197,19 +197,25 @@ We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
 ```tut:silent
-import cats.effect.{Resource, IO}
+import cats.effect.{Clock, IO, Resource}
+import org.http4s.HttpRoutes
+import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
+import org.http4s.server.Router
 import org.http4s.server.middleware.Metrics
-import org.http4s.metrics.prometheus.Prometheus
-import io.prometheus.client.CollectorRegistry
 ```
 ```tut:book
 implicit val clock = Clock.create[IO]
 
-val meteredRoutes: Resource[IO, HttpRoutes[IO]] =
+val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   for {
-    registry <- Prometheus.collectorRegistry[IO]
-    metrics <- Prometheus.metricsOps[IO](registry, "server")
-  } yield Metrics[IO](metrics)(apiService)
+    metricsSvc <- PrometheusExportService.build[IO]
+    metrics <- Prometheus.metricsOps[IO](metricsSvc.collectorRegistry, "server")
+    router = Router[IO](
+      "/api" -> Metrics[IO](metrics)(apiService),
+      "/" -> metricsSvc.routes
+    )
+  } yield router
+  
 ```
 
 [service]: ../service

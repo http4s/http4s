@@ -12,7 +12,7 @@ import org.http4s.internal.BackendBuilder
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
 
-trait ServerBuilder[F[_]] extends BackendBuilder[F, Server[F]] {
+trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   type Self <: ServerBuilder[F]
 
   protected implicit def F: Concurrent[F]
@@ -36,7 +36,7 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server[F]] {
   /** Returns a Server resource.  The resource is not acquired until the
     * server is started and ready to accept requests.
     */
-  def resource: Resource[F, Server[F]]
+  def resource: Resource[F, Server]
 
   /**
     * Runs the server as a process that never emits.  Useful for a server

@@ -18,7 +18,7 @@ object TranslateUri {
 
       val newCaret = slashedPrefix.length
 
-      Kleisli { req: Request[G] =>
+      Kleisli { (req: Request[G]) =>
         val shouldTranslate =
           req.pathInfo.startsWith(unslashedPrefix) || req.pathInfo.startsWith(slashedPrefix)
 

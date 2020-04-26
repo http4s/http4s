@@ -8,6 +8,74 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.3 (2020-04.02)
+
+This release is fully backward compatible with 0.21.2.
+
+# Bugfixes
+
+* [#3245](https://github.com/http4s/http4s/pull/3245): Write ember-client request to socket before reading response
+
+## Enhancements
+
+* [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware. 
+* [#3155](https://github.com/http4s/http4s/pull/3155): Internal `j.u.c.CompletionStage` conversions.
+
+## Dependency updates
+
+* cats-2.1.1
+* okhttp-4.4.1
+
+# v0.20.21 (2020-04-02)
+
+This release is fully backward compatible with 0.20.20.
+
+## Dependency updates
+
+* argonaut-6.2.5
+* jetty-9.4.27.v20200227
+* metrics-4.1.5 (Dropwizard)
+* tomcat-9.0.33
+
+# v0.21.2 (2020-03-24)
+
+This release is fully backward compatible with 0.21.1.
+
+## Security fixes
+* [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
+  * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
+  * Request path segments are now percent-decoded to support resources with reserved characters in the name.
+
+## Bug fixes
+
+* [#3261](https://github.com/http4s/http4s/pull/3261): In async-http-client, fixed connection release when body isn't run, as well as thread affinity.
+
+## Enhancements
+
+* [#3253](https://github.com/http4s/http4s/pull/3253): Preparation for Dotty support. Should be invisible to end users, but calling out because it touches a lot.
+
+# v0.20.20 (2020-03-24)
+
+This release is fully backward compatible with 0.20.19.
+
+## Security fixes
+* [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
+  * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
+  * Request path segments are now percent-decoded to support resources with reserved characters in the name.
+
+## Enhancements
+
+* [#3167](https://github.com/http4s/http4s/pull/3167): Add `MetricsOps.classifierFMethodWithOptionallyExcludedPath`.name.
+
+# v0.18.26 (2020-03-24)
+
+This release is fully backward compatible with 0.18.25.
+
+## Security fixes
+* [GHSA-66q9-f7ff-mmx6](https://github.com/http4s/http4s/security/advisories/GHSA-66q9-f7ff-mmx6): Fixes a local file inclusion vulnerability in `FileService`, `ResourceService`, and `WebjarService`.
+  * Request paths with `.`, `..`, or empty segments will now return a 400 in all three services.  Combinations of these could formerly be used to escape the configured roots and expose arbitrary local resources.
+  * Request path segments are now percent-decoded to support resources with reserved characters in the name.
+
 # v0.21.1 (2020-02-13)
 
 This release is fully backward compatible with v0.21.0, and includes all the changes from v0.20.18.
@@ -138,7 +206,7 @@ This release is binary incompatible with 0.21.0-RC2, but should be source compat
 
 ### Binary and source
 
-* [#3110](https://github.com/http4s/http4s/pull/3098): Change `MessageFailure#toHttpResponse` to return a `Response[F]` instead of an `F[Response[F]]`, and relax constraints accordingly. Drops the `inHttpResponse` method.
+* [#3110](https://github.com/http4s/http4s/pull/3110): Change `MessageFailure#toHttpResponse` to return a `Response[F]` instead of an `F[Response[F]]`, and relax constraints accordingly. Drops the `inHttpResponse` method.
 * [#3107](https://github.com/http4s/http4s/pull/3107): Add `covary[F[_]]` method to `Media` types.  Should not break your source unless you have your own `Media` subclass, which you shouldn't.
 
 ### Binary only
@@ -170,7 +238,7 @@ This release is fully compatible with 0.20.16.
 ## Dependency updates
 
 * simpleclient-0.8.1 (Prometheus)
-
+  
 # v0.18.25 (2020-01-21)
 
 ## Bug fixes

@@ -121,31 +121,31 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   // scalastyle:on magic.number
 
   def Digit1: Rule1[Int] = rule {
-    capture(Digit) ~> { s: String =>
+    capture(Digit) ~> { (s: String) =>
       s.toInt
     }
   }
 
   def Digit2: Rule1[Int] = rule {
-    capture(Digit ~ Digit) ~> { s: String =>
+    capture(Digit ~ Digit) ~> { (s: String) =>
       s.toInt
     }
   }
 
   def Digit3: Rule1[Int] = rule {
-    capture(Digit ~ Digit ~ Digit) ~> { s: String =>
+    capture(Digit ~ Digit ~ Digit) ~> { (s: String) =>
       s.toInt
     }
   }
 
   def Digit4: Rule1[Int] = rule {
-    capture(Digit ~ Digit ~ Digit ~ Digit) ~> { s: String =>
+    capture(Digit ~ Digit ~ Digit ~ Digit) ~> { (s: String) =>
       s.toInt
     }
   }
 
   def NegDigit1: Rule1[Int] = rule {
-    "-" ~ capture(Digit) ~> { s: String =>
+    "-" ~ capture(Digit) ~> { (s: String) =>
       s.toInt
     }
   }

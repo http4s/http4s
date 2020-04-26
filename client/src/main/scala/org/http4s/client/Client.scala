@@ -155,9 +155,6 @@ trait Client[F[_]] {
     * successful */
   def successful(req: F[Request[F]]): F[Boolean]
 
-  @deprecated("Use expect", "0.14")
-  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
-
   /** Submits a GET request, and provides a callback to process the response.
     *
     * @param uri The URI to GET
@@ -176,22 +173,9 @@ trait Client[F[_]] {
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
   /**
-    * Submits a GET request and decodes the response.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
-    */
-  @deprecated("Use expect", "0.14")
-  def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
-
-  @deprecated("Use expect", "0.14")
-  def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
-
-  @deprecated("Use expect", "0.14")
-  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T]
-
-  /**
     * Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(implicit b: Bracket[F, Throwable]): Client[G] =
+  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
@@ -220,7 +204,7 @@ object Client {
     * @param app the [[HttpApp]] to respond to requests to this client
     */
   def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Sync[F]): Client[F] =
-    Client { req: Request[F] =>
+    Client { (req: Request[F]) =>
       Resource.suspend {
         Ref[F].of(false).map { disposed =>
           def go(stream: Stream[F, Byte]): Pull[F, Byte, Unit] =

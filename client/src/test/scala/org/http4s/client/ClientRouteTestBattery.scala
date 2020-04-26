@@ -67,7 +67,7 @@ abstract class ClientRouteTestBattery(name: String)
         "Repeat a simple request" in {
           val path = GetRoutes.SimplePath
 
-          def fetchBody = client.toKleisli(_.as[String]).local { uri: Uri =>
+          def fetchBody = client.toKleisli(_.as[String]).local { (uri: Uri) =>
             Request(uri = uri)
           }
 

@@ -70,5 +70,25 @@ class DateSpec extends Http4sSpec with CatsIO {
         }
       }
     }
+
+    "be created via httpRoutes constructor" in {
+      val httpRoute = Date.httpRoutes(service)
+
+      for {
+        response <- httpRoute(req).value
+      } yield {
+        response.flatMap(_.headers.get(HDate)) must beSome
+      }
+    }
+
+    "be created via httpApp constructor" in {
+      val httpApp = Date.httpApp(service.orNotFound)
+
+      for {
+        response <- httpApp(req)
+      } yield {
+        response.headers.get(HDate) must beSome
+      }
+    }
   }
 }

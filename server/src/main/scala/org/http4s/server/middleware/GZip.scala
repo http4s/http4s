@@ -25,7 +25,7 @@ object GZip {
       level: Int = Deflater.DEFAULT_COMPRESSION,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
   ): Http[F, G] =
-    Kleisli { req: Request[G] =>
+    Kleisli { (req: Request[G]) =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
           http(req).map(zipOrPass(_, bufferSize, level, isZippable))

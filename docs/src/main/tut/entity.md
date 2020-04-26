@@ -57,12 +57,12 @@ case class Video(body: String) extends Resp
 
 ```tut:book
 val response = Ok("").map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
-val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { m: Media[IO] =>
+val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { (m: Media[IO]) =>
   EitherT {
     m.as[String].map(s => Audio(s).asRight[DecodeFailure])
   }
 }
-val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { m: Media[IO] =>
+val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { (m: Media[IO]) =>
   EitherT {
     m.as[String].map(s => Video(s).asRight[DecodeFailure])
   }

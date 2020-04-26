@@ -2,7 +2,6 @@ package com.example.http4s
 package jetty
 
 import cats.effect._
-import cats.implicits._
 import com.codahale.metrics.MetricRegistry
 import org.http4s.metrics.dropwizard._
 import org.http4s.server.{HttpMiddleware, Server}
@@ -26,7 +25,7 @@ object JettyExampleApp {
       .mountFilter(NoneShallPass, "/black-knight/*")
   }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
     for {
       blocker <- Blocker[F]
       server <- builder[F](blocker).resource

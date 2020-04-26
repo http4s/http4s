@@ -25,7 +25,7 @@ object ContextRoutes {
     *
     * @tparam F the base effect of the [[ContextRoutes]]
     * @param pf the partial function to lift
-    * @return An [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, ?]`
+    * @return An [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def of[T, F[_]](pf: PartialFunction[ContextRequest[F, T], F[Response[F]]])(
@@ -39,7 +39,7 @@ object ContextRoutes {
     *
     * @tparam F the base effect of the [[ContextRoutes]]
     * @param pf the partial function to lift
-    * @return A [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, ?]`
+    * @return A [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def strict[T, F[_]: Applicative](

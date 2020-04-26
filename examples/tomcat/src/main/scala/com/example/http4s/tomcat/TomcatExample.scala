@@ -1,7 +1,6 @@
 package com.example.http4s.tomcat
 
 import cats.effect._
-import cats.implicits._
 import com.codahale.metrics.MetricRegistry
 import com.example.http4s.ExampleService
 import org.http4s.metrics.dropwizard.Dropwizard
@@ -27,7 +26,7 @@ object TomcatExampleApp {
       .mountFilter(NoneShallPass, "/black-knight/*")
   }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
+  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
     for {
       blocker <- Blocker[F]
       server <- builder[F](blocker).resource

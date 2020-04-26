@@ -3,10 +3,11 @@ package org.http4s.metrics.dropwizard
 import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
 import java.util.concurrent.TimeUnit
+
 import org.http4s.{Method, Status}
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
-import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
+import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
 
 /**
   * [[MetricsOps]] algebra capable of recording Dropwizard metrics
@@ -101,9 +102,16 @@ object Dropwizard {
           elapsed: Long,
           terminationType: TerminationType,
           classifier: Option[String]): F[Unit] = terminationType match {
-        case Abnormal => recordAbnormal(elapsed, classifier)
-        case Error => recordError(elapsed, classifier)
+        case Abnormal(_) => recordAbnormal(elapsed, classifier)
+        case Error(_) => recordError(elapsed, classifier)
+        case Canceled => recordCanceled(elapsed, classifier)
         case Timeout => recordTimeout(elapsed, classifier)
+      }
+
+      private def recordCanceled(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
+        registry
+          .timer(s"${namespace(prefix, classifier)}.canceled")
+          .update(elapsed, TimeUnit.NANOSECONDS)
       }
 
       private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {

@@ -124,7 +124,7 @@ object HttpMethodOverrider {
       case None => processRequestWithOriginalMethod(req)
     }
 
-    Kleisli { req: Request[G] =>
+    Kleisli { (req: Request[G]) =>
       config.overridableMethods
         .contains(req.method)
         .guard[Option]

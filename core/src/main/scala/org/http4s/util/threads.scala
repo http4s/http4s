@@ -44,18 +44,6 @@ object threads {
       }
     }
 
-  @deprecated("Use newDaemonPool instead", "0.15.7")
-  private[http4s] def newDefaultFixedThreadPool(
-      n: Int,
-      threadFactory: ThreadFactory): ExecutorService =
-    new ThreadPoolExecutor(
-      n,
-      n,
-      0L,
-      TimeUnit.MILLISECONDS,
-      new LinkedBlockingQueue[Runnable],
-      threadFactory)
-
   private[http4s] def newDaemonPool(
       name: String,
       min: Int = 4,

@@ -79,15 +79,15 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Client[F]] =
     for {
-      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, ?]])
-      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, ?]])
+      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
+      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
       tlsContextOptWithDefault <- Resource.liftF(
         tlsContextOpt
           .fold(TLSContext.system(blocker).attempt.map(_.toOption))(_.some.pure[F])
       )
       builder = KeyPoolBuilder
         .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
-          { requestKey: RequestKey =>
+          { (requestKey: RequestKey) =>
             org.http4s.ember.client.internal.ClientHelpers
               .requestKeyToSocketWithKey[F](
                 requestKey,
@@ -175,7 +175,7 @@ object EmberClientBuilder {
     val timeout: Duration = 60.seconds
 
     // Pool Settings
-    val maxPerKey = { _: RequestKey =>
+    val maxPerKey = { (_: RequestKey) =>
       100
     }
     val maxTotal = 100

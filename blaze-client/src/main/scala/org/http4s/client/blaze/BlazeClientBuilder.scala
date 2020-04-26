@@ -169,7 +169,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     copy(executionContext = executionContext)
 
   def withScheduler(scheduler: TickWheelExecutor): BlazeClientBuilder[F] =
-    copy(scheduler = scheduler.pure[Resource[F, ?]])
+    copy(scheduler = scheduler.pure[Resource[F, *]])
 
   def withAsynchronousChannelGroupOption(
       asynchronousChannelGroup: Option[AsynchronousChannelGroup]): BlazeClientBuilder[F] =

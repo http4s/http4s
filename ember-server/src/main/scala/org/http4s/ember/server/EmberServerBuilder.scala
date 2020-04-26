@@ -87,10 +87,10 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]) = copy(logger = l)
 
-  def build: Resource[F, Server[F]] =
+  def build: Resource[F, Server] =
     for {
-      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, ?]])
-      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, ?]])
+      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
+      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
       shutdownSignal <- Resource.liftF(SignallingRef[F, Boolean](false))
       out <- Resource.make(
@@ -116,7 +116,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               .drain
           )
           .as(
-            new Server[F] {
+            new Server {
               def address: InetSocketAddress = bindAddress
               def isSecure: Boolean = false
             }
@@ -150,7 +150,7 @@ object EmberServerBuilder {
     val port: Int = 8000
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
-    def onError[F[_]]: Throwable => Response[F] = { _: Throwable =>
+    def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
       Response[F](Status.InternalServerError)
     }
     def onWriteFailure[F[_]: Applicative]

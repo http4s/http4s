@@ -5,7 +5,7 @@ title: The http4s DSL
 ---
 
 Recall from earlier that an `HttpRoutes[F]` is just a type alias for
-`Kleisli[OptionT[F, ?], Request[F], Response[F]]`.  This provides a minimal
+`Kleisli[OptionT[F, *], Request[F], Response[F]]`.  This provides a minimal
 foundation for declaring services and executing them on blaze or a
 servlet container.  While this foundation is composable, it is not
 highly productive.  Most service authors will seek a higher level DSL.

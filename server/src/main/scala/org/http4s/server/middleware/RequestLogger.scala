@@ -30,7 +30,7 @@ object RequestLogger {
       implicit F: Concurrent[F],
       G: Bracket[G, Throwable]
   ): Http[G, F] = {
-    val log = logAction.fold({ s: String =>
+    val log = logAction.fold({ (s: String) =>
       Sync[F].delay(logger.info(s))
     })(identity)
     Kleisli { req =>

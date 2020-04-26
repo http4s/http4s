@@ -579,7 +579,7 @@ object Response {
 
   def notFoundFor[F[_]: Applicative](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Response(Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
+    Response[F](Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
 
   def timeout[F[_]]: Response[F] =
     Response[F](Status.ServiceUnavailable).withEntity("Response timed out")

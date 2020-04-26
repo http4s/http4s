@@ -93,7 +93,7 @@ trait Http4sSpec
     }
   }
 
-  def beStatus(status: Status): Matcher[Response[IO]] = { resp: Response[IO] =>
+  def beStatus(status: Status): Matcher[Response[IO]] = { (resp: Response[IO]) =>
     (resp.status == status) -> s" doesn't have status $status"
   }
 
