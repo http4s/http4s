@@ -186,6 +186,7 @@ sealed class JettyBuilder[F[_]] private (
       case Some(sslContextFactory) =>
         if (supportHttp2) logger.warn("JettyBuilder does not support HTTP/2 with SSL at the moment")
         new ServerConnector(jetty, sslContextFactory)
+
       case None if !supportHttp2 =>
         new ServerConnector(jetty)
 
