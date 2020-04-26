@@ -188,7 +188,6 @@ class BlazeServerBuilder[F[_]](
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-  @deprecated("Use BlazeServerBuilder.apply with explicit executionContext instead", "0.20.22")
   def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
     copy(executionContext = executionContext)
 

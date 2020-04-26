@@ -164,9 +164,9 @@ class BlazeBuilder[F[_]](
 
   def resource: Resource[F, Server] = {
     val httpApp = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
-    var b = BlazeServerBuilder
-      .apply[F]
+    var b = BlazeServerBuilder[F]
       .bindSocketAddress(socketAddress)
+      .withExecutionContext(executionContext)
       .withIdleTimeout(idleTimeout)
       .withNio2(isNio2)
       .withConnectorPoolSize(connectorPoolSize)
