@@ -8,6 +8,29 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.4 (unreleased)
+
+## Bugfixes
+
+* [#3338](https://github.com/http4s/http4s/pull/3338): Avoid incorrectly responding with an empty body in http4s-async-http-client
+
+## Enhancements
+
+* [#3303](https://github.com/http4s/http4s/pull/3303): In blaze, cache `Date` header value 
+* [#3350](https://github.com/http4s/http4s/pull/3350): Use stable host address in `ConnectionFailure` message. Makes code more portable post-JDK11.
+
+## Documentation
+
+* [#3279](https://github.com/http4s/http4s/pull/3279): Improve Prometheus middleware usage example #3279
+
+## Depedency updates
+
+* fs2-2.3.0
+* okhttp-4.5.0
+* scalafix-0.9.12
+* scala-xml-1.3.0
+* specs2-4.9.3
+
 # v0.20.22 (unreleased)
 
 This release is fully backward compatible with 0.20.21.  
