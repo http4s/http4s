@@ -183,6 +183,7 @@ sealed class JettyBuilder[F[_]] private (
         httpsConnector(sslContextFactory)
 
       case Some(SSLContextBits(sslContext, clientAuth)) =>
+        if (supportHttp2) logger.warn("JettyBuilder does not support HTTP/2 with SSL at the moment")
         val sslContextFactory = new SslContextFactory.Server()
         sslContextFactory.setSslContext(sslContext)
         updateClientAuth(sslContextFactory, clientAuth)
