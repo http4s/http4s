@@ -127,12 +127,13 @@ import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
 import org.http4s.server.Router
+import scala.concurrent.ExecutionContext.global
 ```
 
 ```tut:book
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
-val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp)
+val serverBuilder = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(httpApp)
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
