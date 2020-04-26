@@ -1,7 +1,6 @@
 package org.http4s.metrics.prometheus
 
 import cats.effect.{Clock, IO, Resource}
-import cats.syntax.functor._
 import io.prometheus.client.CollectorRegistry
 import java.io.IOException
 import java.util.concurrent.TimeoutException
@@ -127,7 +126,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
             e must beAnInstanceOf[IOException]
           }
 
-          count(registry, "errors", "client") must beEqualTo(1)
+          count(registry, "errors", "client", cause = "java.io.IOException") must beEqualTo(1)
           count(registry, "active_requests", "client") must beEqualTo(0)
         }
     }

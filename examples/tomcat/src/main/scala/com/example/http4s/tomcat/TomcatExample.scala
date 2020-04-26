@@ -1,7 +1,6 @@
 package com.example.http4s.tomcat
 
 import cats.effect._
-import cats.implicits._
 import com.codahale.metrics.MetricRegistry
 import com.example.http4s.ExampleService
 import org.http4s.metrics.dropwizard.Dropwizard

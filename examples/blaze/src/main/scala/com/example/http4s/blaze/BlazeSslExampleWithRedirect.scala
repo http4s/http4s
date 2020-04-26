@@ -2,7 +2,6 @@ package com.example.http4s
 package blaze
 
 import cats.effect._
-import cats.implicits._
 import fs2._
 import org.http4s.server.blaze.BlazeServerBuilder
 

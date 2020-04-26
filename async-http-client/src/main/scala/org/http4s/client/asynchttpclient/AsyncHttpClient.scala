@@ -76,14 +76,18 @@ object AsyncHttpClient {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
       val dispose = F.delay { state = State.ABORT }
+      val onStreamCalled = Ref.unsafe[F, Boolean](false)
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         val eff = for {
+          _ <- onStreamCalled.set(true)
+
           subscriber <- StreamSubscriber[F, HttpResponseBodyPart]
 
           subscribeF = F.delay(publisher.subscribe(subscriber))
+
           bodyDisposal <- Ref.of[F, F[Unit]] {
-            subscriber.stream(subscribeF).take(0).compile.drain
+            subscriber.stream(subscribeF).pull.uncons.void.stream.compile.drain
           }
 
           body = subscriber
@@ -92,10 +96,8 @@ object AsyncHttpClient {
 
           responseWithBody = response.copy(body = body)
 
-          // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
-          fiber <- F.start(
-            F.delay(cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten)))))
-          _ <- fiber.join
+          _ <- invokeCallbackF[F](
+            cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
         } yield ()
 
         eff.runAsync(_ => IO.unit).unsafeRunSync()
@@ -119,10 +121,16 @@ object AsyncHttpClient {
       override def onThrowable(throwable: Throwable): Unit =
         invokeCallback(logger)(cb(Left(throwable)))
 
-      // it's okay to invoke this repeatedly since repeated async callbacks are dropped by law
       override def onCompleted(): Unit =
-        invokeCallback(logger)(cb(Right(response -> dispose)))
+        onStreamCalled.get
+          .ifM(ifTrue = F.unit, ifFalse = invokeCallbackF[F](cb(Right(response -> dispose))))
+          .runAsync(_ => IO.unit)
+          .unsafeRunSync()
     }
+
+  // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
+  private def invokeCallbackF[F[_]](invoked: => Unit)(implicit F: Concurrent[F]): F[Unit] =
+    F.start(F.delay(invoked)).flatMap(_.join)
 
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders

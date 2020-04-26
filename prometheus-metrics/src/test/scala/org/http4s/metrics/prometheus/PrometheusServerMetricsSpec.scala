@@ -1,7 +1,6 @@
 package org.http4s.metrics.prometheus
 
 import cats.effect.{Clock, IO, Resource}
-import cats.syntax.functor._
 import io.prometheus.client.CollectorRegistry
 import org.http4s.{Http4sSpec, HttpApp, HttpRoutes, Request, Status}
 import org.http4s.Method.GET
@@ -10,6 +9,7 @@ import org.http4s.metrics.prometheus.util._
 import org.http4s.server.middleware.Metrics
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.execute.AsResult
+import scala.concurrent.duration._
 
 class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   private val testRoutes = HttpRoutes.of[IO](stub)
@@ -143,10 +143,23 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         } yield {
           resp must beLeft
 
-          count(registry, "errors", "server") must beEqualTo(1)
+          count(registry, "errors", "server", cause = "java.io.IOException") must beEqualTo(1)
           count(registry, "active_requests", "server") must beEqualTo(0)
           count(registry, "5xx_headers_duration", "server") must beEqualTo(0.05)
           count(registry, "5xx_total_duration", "server") must beEqualTo(0.1)
+        }
+    }
+
+    "register a cancel" in withMeteredRoutes {
+      case (registry, routes) =>
+        val req = Request[IO](method = GET, uri = uri"/never")
+
+        for {
+          resp <- routes.run(req).timeout(10.millis).attempt
+        } yield {
+          resp must beLeft
+          count(registry, "cancels", "server") must beEqualTo(1)
+          count(registry, "active_requests", "server") must beEqualTo(0)
         }
     }
 
@@ -160,7 +173,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
           resp must haveStatus(Status.Ok)
           resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
 
-          count(registry, "abnormal_terminations", "server") must beEqualTo(1)
+          count(registry, "abnormal_terminations", "server", cause = "java.lang.RuntimeException") must beEqualTo(
+            1)
           count(registry, "active_requests", "server") must beEqualTo(0)
           count(registry, "2xx_headers_duration", "server") must beEqualTo(0.05)
           count(registry, "2xx_total_duration", "server") must beEqualTo(0.1)

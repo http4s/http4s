@@ -2,7 +2,6 @@ package com.example.http4s.blaze.demo.client
 
 import cats.effect.{ConcurrentEffect, ExitCode, IO, IOApp}
 import com.example.http4s.blaze.demo.StreamUtils
-import cats.implicits._
 import io.circe.Json
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.{Request, Uri}

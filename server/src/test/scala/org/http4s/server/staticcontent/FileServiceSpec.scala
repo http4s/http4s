@@ -139,6 +139,26 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
       routes.orNotFound(req) must returnBody(bytes)
     }
 
+    "Return index.html if request points to ''" in {
+      val path = Paths.get(defaultSystemPath).resolve("testDir/").toAbsolutePath.toString
+      val s0 = fileService(FileService.Config[IO](systemPath = path, blocker = testBlocker))
+      val req = Request[IO](uri = uri(""))
+      val rb = s0.orNotFound(req).unsafeRunSync()
+
+      rb.as[String] must returnValue("<html>Hello!</html>")
+      rb.status must_== Status.Ok
+    }
+
+    "Return index.html if request points to '/'" in {
+      val path = Paths.get(defaultSystemPath).resolve("testDir/").toAbsolutePath.toString
+      val s0 = fileService(FileService.Config[IO](systemPath = path, blocker = testBlocker))
+      val req = Request[IO](uri = uri("/"))
+      val rb = s0.orNotFound(req).unsafeRunSync()
+
+      rb.as[String] must returnValue("<html>Hello!</html>")
+      rb.status must_== Status.Ok
+    }
+
     "Return index.html if request points to a directory" in {
       val req = Request[IO](uri = uri("/testDir/"))
       val rb = runReq(req)

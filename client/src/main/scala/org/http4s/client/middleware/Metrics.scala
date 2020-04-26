@@ -44,9 +44,28 @@ object Metrics {
       ops: MetricsOps[F],
       classifierF: Request[F] => Option[String])(
       req: Request[F])(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
-    (for {
+    for {
       statusRef <- Resource.liftF(Ref.of[F, Option[Status]](None))
       start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
+      resp <- executeRequestAndRecordMetrics(
+        client,
+        ops,
+        classifierF,
+        req,
+        statusRef,
+        start
+      )
+    } yield resp
+
+  private def executeRequestAndRecordMetrics[F[_]](
+      client: Client[F],
+      ops: MetricsOps[F],
+      classifierF: Request[F] => Option[String],
+      req: Request[F],
+      statusRef: Ref[F, Option[Status]],
+      start: Long
+  )(implicit F: Sync[F], clock: Clock[F]): Resource[F, Response[F]] =
+    (for {
       _ <- Resource.make(ops.increaseActiveRequests(classifierF(req)))(_ =>
         ops.decreaseActiveRequests(classifierF(req)))
       _ <- Resource.make(F.unit) { _ =>
@@ -61,18 +80,19 @@ object Metrics {
       _ <- Resource.liftF(statusRef.set(Some(resp.status)))
       end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
       _ <- Resource.liftF(ops.recordHeadersTime(req.method, end - start, classifierF(req)))
-    } yield resp)
-      .handleErrorWith { (e: Throwable) =>
-        Resource.liftF[F, Response[F]](
-          registerError(ops, classifierF(req))(e) *> F.raiseError[Response[F]](e)
-        )
-      }
-
-  private def registerError[F[_]](ops: MetricsOps[F], classifier: Option[String])(
-      e: Throwable): F[Unit] =
-    if (e.isInstanceOf[TimeoutException]) {
-      ops.recordAbnormalTermination(1, Timeout, classifier)
-    } else {
-      ops.recordAbnormalTermination(1, Error, classifier)
+    } yield resp).handleErrorWith { e: Throwable =>
+      Resource.liftF(registerError(start, ops, classifierF(req))(e) *> F.raiseError[Response[F]](e))
     }
+
+  private def registerError[F[_]](start: Long, ops: MetricsOps[F], classifier: Option[String])(
+      e: Throwable)(implicit F: Sync[F], clock: Clock[F]): F[Unit] =
+    clock
+      .monotonic(TimeUnit.NANOSECONDS)
+      .flatMap { now =>
+        if (e.isInstanceOf[TimeoutException]) {
+          ops.recordAbnormalTermination(now - start, Timeout, classifier)
+        } else {
+          ops.recordAbnormalTermination(now - start, Error(e), classifier)
+        }
+      }
 }

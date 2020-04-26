@@ -1,7 +1,6 @@
 package org.http4s
 
 import cats.MonadError
-import cats.implicits._
 import fs2.Stream
 import fs2.text.utf8Decode
 import org.http4s.headers._
@@ -50,8 +49,7 @@ trait Media[F[_]] {
     * @return the effect which will generate the A
     */
   final def as[A](implicit F: MonadError[F, Throwable], decoder: EntityDecoder[F, A]): F[A] =
-    // n.b. this will be better with redeem in Cats-2.0
-    attemptAs.leftWiden[Throwable].rethrowT
+    F.rethrow(attemptAs.value)
 }
 
 object Media {
