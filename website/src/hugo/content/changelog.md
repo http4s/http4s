@@ -25,6 +25,10 @@ It is the final planned release in the 0.20.x series.
 * [#3381](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `CORS` middleware
 * [#3298](https://github.com/http4s/http4s/pull/3298): In `Logger` client and server middlewares, detect any media types ending in `+json` as non-binary
 
+## Deprecations
+
+* [#3330](https://github.com/http4s/http4s/pull/3330): Deprecate `BlazeServerBuilder#apply()` in favor of passing an `ExecutionContext` explicitly.  Formerly, `ExecutionContext.global` was referenced by the default builder, and would spin up its thread pool even if the app never used the global execution context.
+
 ## Backports
 
 These appeared in previous releases, but have been backported to 0.20.x
