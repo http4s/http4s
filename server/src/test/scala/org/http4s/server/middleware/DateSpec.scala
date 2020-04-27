@@ -1,8 +1,8 @@
 package org.http4s.server.middleware
 
+import cats.data.OptionT
 import cats.implicits._
 import cats.effect._
-import cats.data.OptionT
 import org.http4s._
 import org.http4s.headers.{Date => HDate}
 import cats.effect.testing.specs2.CatsIO
@@ -68,6 +68,26 @@ class DateSpec extends Http4sSpec with CatsIO {
             val diff = now - date.date.epochSecond
             now must_=== diff
         }
+      }
+    }
+
+    "be created via httpRoutes constructor" in {
+      val httpRoute = Date.httpRoutes(service)
+
+      for {
+        response <- httpRoute(req).value
+      } yield {
+        response.flatMap(_.headers.get(HDate)) must beSome
+      }
+    }
+
+    "be created via httpApp constructor" in {
+      val httpApp = Date.httpApp(service.orNotFound)
+
+      for {
+        response <- httpApp(req)
+      } yield {
+        response.headers.get(HDate) must beSome
       }
     }
   }

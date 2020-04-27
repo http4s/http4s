@@ -9,7 +9,13 @@ import java.util
 import javax.net.ssl.{SSLContext, SSLParameters}
 import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
-import org.eclipse.jetty.server.{ServerConnector, Server => JServer}
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory
+import org.eclipse.jetty.server.{
+  ServerConnector,
+  HttpConfiguration,
+  HttpConnectionFactory,
+  Server => JServer
+}
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.component.{AbstractLifeCycle, LifeCycle}
@@ -33,6 +39,7 @@ sealed class JettyBuilder[F[_]] private (
     sslConfig: SslConfig,
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
+    supportHttp2: Boolean,
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
@@ -51,6 +58,7 @@ sealed class JettyBuilder[F[_]] private (
       sslConfig: SslConfig = sslConfig,
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
+      supportHttp2: Boolean = supportHttp2,
       banner: immutable.Seq[String] = banner
   ): Self =
     new JettyBuilder(
@@ -63,6 +71,7 @@ sealed class JettyBuilder[F[_]] private (
       sslConfig,
       mounts,
       serviceErrorHandler,
+      supportHttp2,
       banner)
 
   @deprecated(
@@ -161,15 +170,31 @@ sealed class JettyBuilder[F[_]] private (
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
 
+  /** Enables HTTP/2 connection upgrade over plain text (no TLS).
+    * See https://webtide.com/introduction-to-http2-in-jetty */
+  def withHttp2c: Self =
+    copy(supportHttp2 = true)
+
+  def withoutHttp2c: Self =
+    copy(supportHttp2 = false)
+
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
   private def getConnector(jetty: JServer): ServerConnector =
     sslConfig.makeSslContextFactory match {
       case Some(sslContextFactory) =>
+        if (supportHttp2) logger.warn("JettyBuilder does not support HTTP/2 with SSL at the moment")
         new ServerConnector(jetty, sslContextFactory)
-      case None =>
+
+      case None if !supportHttp2 =>
         new ServerConnector(jetty)
+
+      case None if supportHttp2 =>
+        val config = new HttpConfiguration()
+        val http1 = new HttpConnectionFactory(config)
+        val http2c = new HTTP2CServerConnectionFactory(config)
+        new ServerConnector(jetty, http1, http2c)
     }
 
   def resource: Resource[F, Server[F]] =
@@ -243,6 +268,7 @@ object JettyBuilder {
     sslConfig = NoSsl,
     mounts = Vector.empty,
     serviceErrorHandler = DefaultServiceErrorHandler,
+    supportHttp2 = false,
     banner = defaults.Banner
   )
 

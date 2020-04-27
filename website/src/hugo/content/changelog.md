@@ -8,7 +8,71 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.3 (2020-04.02)
+# v0.21.4 (unreleased)
+
+This release is fully backward compatible with 0.21.3.  
+
+## Bugfixes
+
+* [#3338](https://github.com/http4s/http4s/pull/3338): Avoid incorrectly responding with an empty body in http4s-async-http-client
+
+## Enhancements
+
+* [#3303](https://github.com/http4s/http4s/pull/3303): In blaze, cache `Date` header value 
+* [#3350](https://github.com/http4s/http4s/pull/3350): Use stable host address in `ConnectionFailure` message. Makes code more portable post-JDK11.
+
+## Documentation
+
+* [#3279](https://github.com/http4s/http4s/pull/3279): Improve Prometheus middleware usage example #3279
+
+## Depedency updates
+
+* fs2-2.3.0
+* okhttp-4.5.0
+* scalafix-0.9.12
+* scala-xml-1.3.0
+* specs2-4.9.3
+
+# v0.20.22 (unreleased)
+
+This release is fully backward compatible with 0.20.21.  
+It is the final planned release in the 0.20.x series.
+
+## Bugfixes
+
+* [#3326](https://github.com/http4s/http4s/pull/3326): In `WebjarService`, do not use OS-specific directory separators
+* [#3331](https://github.com/http4s/http4s/pull/3326): In `FileService`, serve index.html if request points to directory
+
+## Enhancements
+
+* [#3333](https://github.com/http4s/http4s/pull/3333): Add Http2c support to jetty-server
+* [#3327](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `Date` middleware
+* [#3381](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `CORS` middleware
+* [#3298](https://github.com/http4s/http4s/pull/3298): In `Logger` client and server middlewares, detect any media types ending in `+json` as non-binary
+
+## Backports
+
+These appeared in previous releases, but have been backported to 0.20.x
+
+* [#2591](https://github.com/http4s/http4s/pull/2591): Change literal interpolator macros to use unsafe methods to avoid triggering Wartremover's EitherProjectionPartial warning
+* [#3115](https://github.com/http4s/http4s/pull/3115): Drop UTF-8 BOM when decoding
+* [#3148](https://github.com/http4s/http4s/pull/3148): Add `HttpRoutes.strict`
+* [#3185](https://github.com/http4s/http4s/pull/3185): In blaze, recover `EOF` on `bodyEncoder.write` to close connection
+* [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware
+
+## Build improvements
+
+* Start testing on JDK14
+
+## Depedency updates
+
+* blaze-0.14.12
+* metrics-4.1.6
+* jetty-9.4.28.v20200408
+* scala-2.12.11
+* tomcat-9.0.34
+
+# v0.21.3 (2020-04-02)
 
 This release is fully backward compatible with 0.21.2.
 
