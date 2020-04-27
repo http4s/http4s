@@ -30,6 +30,7 @@ trait Client[F[_]] {
     *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
+  @deprecated("Use run(req).use(f)", "0.21.5")
   def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A]
 
   /** Submits a request, and provides a callback to process the response.
@@ -40,13 +41,14 @@ trait Client[F[_]] {
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
+  @deprecated("Use req.flatMap(run(_).use(f))", "0.21.5")
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
 
   /**
     * Returns this client as a [[Kleisli]].  All connections created by this
     * service are disposed on completion of callback task f.
     *
-    * This method effectively reverses the arguments to `fetch`, and is
+    * This method effectively reverses the arguments to `run` followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
@@ -60,7 +62,7 @@ trait Client[F[_]] {
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
+    * This is intended for use in proxy servers.  `run`, `fetchAs`,
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
@@ -71,7 +73,7 @@ trait Client[F[_]] {
     * responsibility of callers of this service to run the response
     * body to dispose of the underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
+    * This is intended for use in proxy servers. `run`, `fetchAs`,
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
