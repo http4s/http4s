@@ -24,10 +24,11 @@ import cats.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.staticcontent._
 import org.http4s.syntax.kleisli._
+import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO]
+    BlazeServerBuilder[IO](global)
       .bindHttp(8080)
       .withHttpApp(fileService[IO](FileService.Config(".")).orNotFound)
       .serve

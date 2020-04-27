@@ -131,7 +131,7 @@ import org.http4s.server.Router
 ```tut:book
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
-val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp)
+val serverBuilder = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(httpApp)
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
@@ -180,6 +180,7 @@ import org.http4s.syntax._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze._
+import scala.concurrent.ExecutionContext.global
 ```
 
 ```tut:book
@@ -191,7 +192,7 @@ object Main extends IOApp {
   }.orNotFound
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO]
+    BlazeServerBuilder[IO](global)
       .bindHttp(8080, "localhost")
       .withHttpApp(helloWorldService)
       .serve
@@ -204,10 +205,12 @@ object Main extends IOApp {
 You may also create the server within an `IOApp` using resource:
 
 ```tut:book
+import scala.concurrent.ExecutionContext.global
+
 object MainWithResource extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO]
+    BlazeServerBuilder[IO](global)
       .bindHttp(8080, "localhost")
       .withHttpApp(Main.helloWorldService)
       .resource

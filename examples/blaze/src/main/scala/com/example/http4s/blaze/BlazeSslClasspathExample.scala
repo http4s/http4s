@@ -5,6 +5,7 @@ import cats.implicits._
 import com.example.http4s.ssl
 import fs2._
 import org.http4s.server.blaze.BlazeServerBuilder
+import scala.concurrent.ExecutionContext.global
 
 object BlazeSslClasspathExample extends IOApp {
 
@@ -19,7 +20,7 @@ object BlazeSslClasspathExampleApp {
     for {
       context <- Stream.eval(
         ssl.loadContextFromClasspath[F](ssl.keystorePassword, ssl.keyManagerPassword))
-      exitCode <- BlazeServerBuilder[F]
+      exitCode <- BlazeServerBuilder[F](global)
         .bindHttp(8443)
         .withSSLContext(context)
         .withHttpApp(BlazeExampleApp.httpApp[F])

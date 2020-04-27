@@ -8,6 +8,7 @@ import org.http4s.HttpApp
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
+import scala.concurrent.ExecutionContext.global
 
 object BlazeExample extends IOApp {
 
@@ -24,9 +25,8 @@ object BlazeExampleApp {
     ).orNotFound
 
   def stream[F[_]: ConcurrentEffect: Timer: ContextShift]: Stream[F, ExitCode] =
-    BlazeServerBuilder[F]
+    BlazeServerBuilder[F](global)
       .bindHttp(8080)
       .withHttpApp(httpApp[F])
       .serve
-
 }

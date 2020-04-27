@@ -9,6 +9,7 @@ import org.http4s.metrics.dropwizard._
 import org.http4s.server.{HttpMiddleware, Router}
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.Metrics
+import scala.concurrent.ExecutionContext.global
 
 class BlazeMetricsExample(implicit timer: Timer[IO], ctx: ContextShift[IO])
     extends BlazeMetricsExampleApp[IO]
@@ -28,7 +29,7 @@ class BlazeMetricsExampleApp[F[_]: ConcurrentEffect: ContextShift: Timer] {
     ).orNotFound
 
   def stream: fs2.Stream[F, ExitCode] =
-    BlazeServerBuilder[F]
+    BlazeServerBuilder[F](global)
       .bindHttp(8080)
       .withHttpApp(app)
       .serve
