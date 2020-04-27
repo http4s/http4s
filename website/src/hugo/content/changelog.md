@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.20.22 (unreleased)
+# v0.20.22 (2020-04-27)
 
 This release is fully backward compatible with 0.20.21.  
 It is the final planned release in the 0.20.x series.
