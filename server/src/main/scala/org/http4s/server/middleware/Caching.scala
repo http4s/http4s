@@ -204,5 +204,4 @@ object Caching {
   trait PartiallyAppliedNoStoreCache[G[_]] {
     def apply[F[_]](resp: Response[F])(implicit M: Monad[G], C: Clock[G]): G[Response[F]]
   }
-
 }
