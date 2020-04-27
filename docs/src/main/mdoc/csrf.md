@@ -18,18 +18,17 @@ libraryDependencies ++= Seq(
 
 And we need some imports.
 
-```tut:silent
-  import cats.effect._
-  import org.http4s._
-  import org.http4s.dsl.io._
-  import org.http4s.implicits._
-  import org.http4s.headers.Referer
-  import org.http4s.server.middleware._
+```scala mdoc:silent
+import cats.effect._
+import org.http4s._
+import org.http4s.dsl.io._
+import org.http4s.implicits._
+import org.http4s.server.middleware._
 ```
 
 Let's start by making a simple service.
 
-```tut:book
+```scala mdoc
 val service = HttpRoutes.of[IO] {
   case _ =>
     Ok()
@@ -42,7 +41,7 @@ service.orNotFound(request).unsafeRunSync
 
 That didn't do all that much. Lets build out our CSRF Middleware by creating a `CSRFBuilder`
 
-```tut:silent
+```scala mdoc:silent
 val cookieName = "csrf-token"
 val key  = CSRF.generateSigningKey[IO].unsafeRunSync
 val defaultOriginCheck: Request[IO] => Boolean =
@@ -53,12 +52,12 @@ val csrfBuilder = CSRF[IO,IO](key, defaultOriginCheck)
 More info on what is possible in the [CSRFBuilder] Docs,
 but we will create a fairly simple CSRF Middleware in our example.
 
-```tut:book
+```scala mdoc
 val csrf = csrfBuilder.withCookieName(cookieName).withCookieDomain(Some("localhost")).withCookiePath(Some("/")).build
 ```
 
 Now we need to wrap this around our service! We're gonna start with a safe call
-```tut:book
+```scala mdoc
 val dummyRequest: Request[IO] =
     Request[IO](method = Method.GET).putHeaders(Header("Origin", "http://localhost"))
 val resp = csrf.validate()(service.orNotFound)(dummyRequest).unsafeRunSync()
@@ -76,14 +75,14 @@ Unsafe requests (like POST) require us to send the CSRF token in the `X-Csrf-Tok
 header (this is the default name, but it can be changed), so we are going to get the value
 and send it up in our POST. I've also added the response cookie as a RequestCookie, normally
 the browser would send this up with our request, but I needed to do it manually for the purpose of this demo.
-```tut:book
+```scala mdoc
 val cookie = resp.cookies.head
 val dummyPostRequest: Request[IO] =
     Request[IO](method = Method.POST).putHeaders(
       Header("Origin", "http://localhost"),
       Header("X-Csrf-Token", cookie.content)
     ).addCookie(RequestCookie(cookie.name,cookie.content))
-val resp = csrf.validate()(service.orNotFound)(dummyPostRequest).unsafeRunSync()
+val validateResp = csrf.validate()(service.orNotFound)(dummyPostRequest).unsafeRunSync()
 ```
 
 [Middleware]: ../middleware

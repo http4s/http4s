@@ -18,9 +18,8 @@ The service will automatically serve index.html if the request path is not a fil
 remove dot segments, to prevent attackers from reading files not contained in the directory
 being served.
 
-```tut:book
+```scala mdoc
 import cats.effect._
-import cats.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
@@ -43,7 +42,7 @@ object SimpleHttpServer extends IOApp {
 ```
 
 Static content services can be composed into a larger application by using a `Router`:
-```tut:book:nofail
+```scala
 val httpApp: HttpApp[IO] =
     Router(
       "api"    -> anotherService,
@@ -70,7 +69,7 @@ own by lifting an execution context or an executor service.
 For now, we will lift an executor service, since using `Resource` in a `tut` 
 example is not feasible.
 
-```tut:silent
+```scala mdoc:silent:nest
 import java.util.concurrent._
 
 val blockingPool = Executors.newFixedThreadPool(4)
@@ -80,7 +79,7 @@ val blocker = Blocker.liftExecutorService(blockingPool)
 It also needs a main thread pool to shift back to.  This is provided when
 we're in IOApp, but you'll need one if you're following along in a REPL:
 
-```tut:silent
+```scala mdoc:silent:nest
 import scala.concurrent.ExecutionContext
 
 implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -89,12 +88,12 @@ implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 In a production application, `ContextShift[IO]` will be supplied by `IOApp`
 and the blocker would be created at app startup, using the `Resource` approach.
 
-```tut:silent
+```scala mdoc:silent:nest
 val routes = fileService[IO](FileService.Config(".", blocker))
 ```
 
 For custom behaviour, `StaticFile.fromFile` can also be used directly in a route, to respond with a file:
-```tut:silent
+```scala mdoc:silent:nest
 import org.http4s._
 import org.http4s.dsl.io._
 import java.io.File
@@ -111,14 +110,14 @@ val routes = HttpRoutes.of[IO] {
 For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:
 
-```tut:book
+```scala mdoc:nest
 val routes = resourceService[IO](ResourceService.Config("/assets", blocker))
 ```
 
 For custom behaviour, `StaticFile.fromResource` can be used. In this example,
 only files matching a list of extensions are served. Append to the `List` as needed.
 
-```tut:book
+```scala mdoc:nest
 def static(file: String, blocker: Blocker, request: Request[IO]) =
   StaticFile.fromResource("/" + file, blocker, Some(request)).getOrElseF(NotFound())
 
@@ -133,7 +132,7 @@ val routes = HttpRoutes.of[IO] {
 A special service exists to load files from [WebJars](http://www.webjars.org). Add your WebJar to the
 class path, as you usually would:
 
-```tut:book:nofail
+```scala
 libraryDependencies ++= Seq(
   "org.webjars" % "jquery" % "3.1.1-1"
 )
@@ -141,12 +140,12 @@ libraryDependencies ++= Seq(
 
 Then, mount the `WebjarService` like any other service:
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.server.staticcontent.webjarService
 import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 ```
 
-```tut:book
+```scala mdoc
 // only allow js assets
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
@@ -159,7 +158,7 @@ val webjars: HttpRoutes[IO] = webjarService(
 )
 ```
 
-```tut:silent
+```scala mdoc:silent
 blockingPool.shutdown()
 ```
 
