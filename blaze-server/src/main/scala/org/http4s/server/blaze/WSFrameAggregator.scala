@@ -2,15 +2,15 @@ package org.http4s.server.blaze
 
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.Execution._
-import org.http4s.util
-import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
 import java.net.ProtocolException
+import org.http4s.internal.bug
 import org.http4s.server.blaze.WSFrameAggregator.Accumulator
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 import scodec.bits.ByteVector
 
 private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame] {
@@ -100,7 +100,7 @@ private object WSFrameAggregator {
       if (queue.isEmpty) frame match {
         case _: Text | _: Binary => // nop
         case f =>
-          throw util.bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
+          throw bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
       }
       size += frame.length
       queue += frame
@@ -113,7 +113,7 @@ private object WSFrameAggregator {
         case _: Binary => false
         case f =>
           // shouldn't happen as it's guarded for in `append`
-          val e = util.bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
+          val e = bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
           throw e
       }
 

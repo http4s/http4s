@@ -71,9 +71,8 @@ package object util {
   }
 
   /** Constructs an assertion error with a reference back to our issue tracker. Use only with head hung low. */
-  def bug(message: String): AssertionError =
-    new AssertionError(
-      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+  @deprecated("For internal use only. Will be removed from public API.", "0.20.22")
+  def bug(message: String): AssertionError = org.http4s.internal.bug(message)
 
   @deprecated("Moved to org.http4s.syntax.StringOps", "0.16")
   type CaseInsensitiveStringOps = org.http4s.syntax.StringOps
