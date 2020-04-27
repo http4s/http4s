@@ -7,8 +7,7 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.syntax.kleisli._
 import org.http4s.server.blaze.BlazeServerBuilder
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.global
 
 object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =

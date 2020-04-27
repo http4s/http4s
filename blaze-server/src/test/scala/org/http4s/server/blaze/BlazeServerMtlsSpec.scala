@@ -12,7 +12,7 @@ import org.http4s.{Http4sSpec, HttpApp}
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.Try
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.global
 
 /**
   * Test cases for mTLS support in blaze server

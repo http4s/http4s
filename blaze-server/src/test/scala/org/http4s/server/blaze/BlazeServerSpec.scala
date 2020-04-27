@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 import scala.io.Source
 import org.specs2.execute.Result
 import org.http4s.multipart.Multipart
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.global
 
 class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   def builder =
