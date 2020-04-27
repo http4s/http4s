@@ -18,7 +18,7 @@
  */
 package org.http4s
 
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
@@ -252,7 +252,7 @@ object MediaType extends MimeDB {
     * verification of literals, call [[#mediaType]].
     */
   def unsafeParse(s: String): MediaType =
-    parse(s).valueOr(throw _)
+    parse(s).fold(throw _, identity)
 
   private[http4s] trait MediaTypeParser extends MediaParser {
     def MediaTypeFull: Rule1[MediaType] = rule {
