@@ -63,7 +63,7 @@ bases its codecs on runtime reflection.
 
 Let's create a function to produce a simple JSON greeting with circe. First, the imports:
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect._
 import io.circe._
 import io.circe.literal._
@@ -74,7 +74,7 @@ import org.http4s.implicits._
 
 Then the actual code:
 
-```tut:book
+```scala mdoc
 def hello(name: String): Json =
   json"""{"hello": $name}"""
 
@@ -83,7 +83,7 @@ val greeting = hello("world")
 
 We now have a JSON value, but we don't have enough to render it:
 
-```tut:fail
+```scala mdoc:fail
 Ok(greeting).unsafeRunSync
 ```
 
@@ -92,23 +92,22 @@ To encode a Scala value of type `A` into an entity, we need an
 `org.http4s.circe` object, which gives us exactly this for an
 `io.circe.Json` value:
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.circe._
 ```
 
-```tut:book
+```scala mdoc
 Ok(greeting).unsafeRunSync
 ```
 
 The same `EntityEncoder[Json]` we use on server responses is also
 useful on client requests:
 
-```tut:silent
-import org.http4s.client._
+```scala mdoc:silent
 import org.http4s.client.dsl.io._
 ```
 
-```tut:book
+```scala mdoc
 POST(json"""{"name": "Alice"}""", uri"/hello").unsafeRunSync
 ```
 
@@ -120,7 +119,7 @@ of the world.
 
 Let's define a couple case classes:
 
-```tut:silent
+```scala mdoc:silent
 case class Hello(name: String)
 case class User(name: String)
 ```
@@ -129,18 +128,18 @@ To transform a value of type `A` into `Json`, circe uses an
 `io.circe.Encoder[A]`.  With circe's syntax, we can convert any value
 to JSON as long as an implicit `Encoder` is in scope:
 
-```tut:silent
+```scala mdoc:silent
 import io.circe.syntax._
 ```
 
-```tut:fail
+```scala mdoc:fail
 Hello("Alice").asJson
 ```
 
 Oops!  We haven't told Circe how we want to encode our case class.
 Let's provide an encoder:
 
-```tut:book
+```scala mdoc
 implicit val HelloEncoder: Encoder[Hello] =
   Encoder.instance { (hello: Hello) =>
     json"""{"hello": ${hello.name}}"""
@@ -153,25 +152,25 @@ That was easy, but gets tedious for applications dealing in lots of
 types.  Fortunately, circe can automatically derive an encoder for us,
 using the field names of the case class as key names in a JSON object:
 
-```tut:silent
+```scala mdoc:silent
 import io.circe.generic.auto._
 ```
 
-```tut:book
+```scala mdoc
 User("Alice").asJson
 ```
 
 Equipped with an `Encoder` and `.asJson`, we can send JSON in requests
 and responses for our case classes:
 
-```tut:book
+```scala mdoc
 Ok(Hello("Alice").asJson).unsafeRunSync
 POST(User("Bob").asJson, uri"/hello").unsafeRunSync
 ```
 
 If within some route we serve json only, we can use:
 
-```tut:silent
+```scala mdoc:silent
 {
 import org.http4s.circe.CirceEntityEncoder._
 }
@@ -190,7 +189,7 @@ The `org.http4s.circe._` package provides an implicit
 `EntityDecoder[Json]`.  This makes it very easy to decode a request or
 response body to JSON using the [`as` syntax]:
 
-```tut:book
+```scala mdoc
 Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync
 POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[Json]).unsafeRunSync
 ```
@@ -206,7 +205,7 @@ http4s-circe provides the `jsonOf` function to make the connection all
 the way from HTTP to your type `A`.  Specifically, `jsonOf[A]` takes
 an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 
-```tut:book
+```scala mdoc
 implicit val userDecoder = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync
 
@@ -216,7 +215,7 @@ POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[User]).unsafeRunSync
 If we are always decoding from JSON to a typed model, we can use
 the following import:
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.circe.CirceEntityDecoder._
 ```
 
@@ -229,7 +228,7 @@ from JSON (even if it is XML or plain text, for instance).
 For more convenience there is import combining both encoding 
 and decoding derivation: 
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.circe.CirceEntityCodec._
 ```
 
@@ -240,10 +239,9 @@ import org.http4s.circe.CirceEntityCodec._
 Our hello world service will parse a `User` from a request and offer a
 proper greeting.
 
-```tut:silent:reset
+```scala mdoc:silent:reset
 import cats.effect._
 
-import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
 
@@ -257,6 +255,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 case class User(name: String)
 case class Hello(greeting: String)
 
+// Needed by `BlazeServerBuilder`. Provided by `IOApp`.
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
+
 implicit val decoder = jsonOf[IO, User]
 
 val jsonApp = HttpRoutes.of[IO] {
@@ -269,10 +271,6 @@ val jsonApp = HttpRoutes.of[IO] {
     } yield (resp)
 }.orNotFound
 
-// Needed by `BlazeServerBuilder`. Provided by `IOApp`.
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
-implicit val timer: Timer[IO] = IO.timer(global)
-
 import org.http4s.server.blaze._
 val server = BlazeServerBuilder[IO].bindHttp(8080).withHttpApp(jsonApp).resource
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
@@ -282,11 +280,9 @@ val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 
 Now let's make a client for the service above:
 
-```tut:silent
-import org.http4s.client._
+```scala mdoc:silent
 import org.http4s.client.dsl.io._
 import org.http4s.client.blaze._
-import org.http4s.Method._
 import cats.effect.IO
 import io.circe.generic.auto._
 import fs2.Stream
@@ -306,14 +302,14 @@ def helloClient(name: String): Stream[IO, Hello] = {
 Finally, we post `User("Alice")` to our Hello service and expect
 `Hello("Alice")` back:
 
-```tut:book
+```scala mdoc
 val helloAlice = helloClient("Alice")
 helloAlice.compile.last.unsafeRunSync
 ```
 
 Finally, shut down our example server.
 
-```tut:silent
+```scala mdoc:silent
 fiber.cancel.unsafeRunSync()
 ```
 

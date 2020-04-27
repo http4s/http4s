@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
 ```
 and some imports.
 
-```tut:silent
+```scala mdoc:silent
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
@@ -35,7 +35,7 @@ import org.http4s.implicits._
 Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
-```tut:book
+```scala mdoc
 def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
   service(req).map {
     case Status.Successful(resp) =>
@@ -56,7 +56,7 @@ is implemented as a [`Kleisli`], which is just a function at heart, we can test 
 service without a server. Because an `HttpService[F]` returns a `F[Response[F]]`,
 we need to call `unsafeRunSync` on the result of the function to extract the `Response[F]`.
 
-```tut:book
+```scala mdoc
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "bad" =>
     BadRequest()
@@ -73,7 +73,7 @@ service.orNotFound(badRequest).unsafeRunSync
 
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
 
-```tut:book
+```scala mdoc
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 
 wrappedService.orNotFound(goodRequest).unsafeRunSync
@@ -85,7 +85,7 @@ Note that the successful response has your header added to it.
 If you intend to use you middleware in multiple places,  you may want to implement
 it as an `object` and use the `apply` method.
 
-```tut:book
+```scala mdoc
 object MyMiddle {
   def addHeader(resp: Response[IO], header: Header) =
     resp match {
@@ -119,7 +119,7 @@ Because middleware returns a `Service`, you can compose services wrapped in
 middleware with other, unwrapped, services, or services wrapped in other middleware.
 You can also wrap a single service in multiple layers of middleware. For example:
 
-```tut:book
+```scala mdoc
 val apiService = HttpRoutes.of[IO] {
   case GET -> Root / "api" =>
     Ok()
@@ -170,12 +170,12 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.server.middleware.Metrics
 import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
-```tut:book
+```scala mdoc
 implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 
@@ -196,14 +196,14 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect.{Clock, IO, Resource}
 import org.http4s.HttpRoutes
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.server.Router
 import org.http4s.server.middleware.Metrics
 ```
-```tut:book
+```scala mdoc:nest
 implicit val clock = Clock.create[IO]
 
 val meteredRouter: Resource[IO, HttpRoutes[IO]] =
