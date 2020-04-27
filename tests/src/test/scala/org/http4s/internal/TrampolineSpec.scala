@@ -1,5 +1,5 @@
 package org.http4s
-package util
+package internal
 
 import org.http4s.testing.ErrorReporting._
 import org.specs2.mutable.Specification
@@ -84,7 +84,7 @@ abstract class ExecutionSpec extends Specification {
 }
 
 class TrampolineSpec extends ExecutionSpec {
-  def ec = execution.trampoline
+  def ec = Trampoline
   def ecName = "trampoline"
 
   "trampoline" should {
@@ -104,9 +104,4 @@ class TrampolineSpec extends ExecutionSpec {
       (i must be).equalTo(iterations)
     }
   }
-}
-
-class DirectSpec extends ExecutionSpec {
-  def ec = execution.direct
-  def ecName = "direct"
 }
