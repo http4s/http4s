@@ -56,7 +56,7 @@ sealed class JettyBuilder[F[_]] private (
       asyncTimeout: Duration,
       shutdownTimeout: Duration,
       servletIo: ServletIo[F],
-      sslBits: Option[SSLConfig],
+      sslConfig: SslConfig,
       mounts: Vector[Mount[F]],
       serviceErrorHandler: ServiceErrorHandler[F],
       banner: immutable.Seq[String]
@@ -67,7 +67,7 @@ sealed class JettyBuilder[F[_]] private (
     asyncTimeout = asyncTimeout,
     shutdownTimeout = shutdownTimeout,
     servletIo = servletIo,
-    sslBits = sslBits,
+    sslConfig = sslConfig,
     mounts = mounts,
     serviceErrorHandler = serviceErrorHandler,
     supportHttp2 = false,
