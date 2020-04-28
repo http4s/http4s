@@ -52,7 +52,7 @@ This release is fully backward compatible with 0.21.3.
 
 * [#3279](https://github.com/http4s/http4s/pull/3279): Improve Prometheus middleware usage example #3279
 
-## Depedency updates
+## Dependency updates
 
 * fs2-2.3.0
 * okhttp-4.5.0
@@ -91,7 +91,7 @@ These appeared in previous releases, but have been backported to 0.20.x
 
 * Start testing on JDK14
 
-## Depedency updates
+## Dependency updates
 
 * blaze-0.14.12
 * metrics-4.1.6
@@ -726,7 +726,7 @@ Cursed release.  Sonatype staging repo closed in flight.
 * [#2574](https://github.com/http4s/http4s/pull/2574): Refactor `FollowRedirect`
 * [#2648](https://github.com/http4s/http4s/pull/2648): Move `mimedb-generator` from a project to an internal SBT plugin. Run with `core/generateMimeDb`.
 
-## Depedency updates
+## Dependency updates
 * cats-2.0.0-M4
 * cats-effect-2.0.0-M4
 * circe-0.12.0-M3
