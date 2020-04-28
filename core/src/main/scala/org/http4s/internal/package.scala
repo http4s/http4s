@@ -179,4 +179,8 @@ package object internal {
       .unsafeRunSync()
     cf
   }
+
+  private[http4s] def bug(message: String): AssertionError =
+    new AssertionError(
+      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
 }

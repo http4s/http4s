@@ -2,6 +2,7 @@ package org.http4s.client.blaze
 
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.Execution
+import org.http4s.internal.bug
 import scala.concurrent.Future
 
 /** Stage that buffers read requests in order to eagerly detect connection close events.
@@ -54,7 +55,7 @@ private[blaze] final class ReadBufferStage[T] extends MidStage[T, T] {
       buffered = channelRead()
     } else {
       val msg = "Tried to schedule a read when one is already pending"
-      val ex = org.http4s.util.bug(msg)
+      val ex = bug(msg)
       // This should never happen, but if it does, lets scream about it
       logger.error(ex)(msg)
       throw ex

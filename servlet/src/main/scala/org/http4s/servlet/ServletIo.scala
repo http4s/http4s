@@ -7,8 +7,8 @@ import fs2._
 import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{ReadListener, WriteListener}
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import org.http4s.internal.bug
 import org.http4s.internal.Trampoline
-import org.http4s.util.bug
 import org.log4s.getLogger
 import scala.annotation.tailrec
 

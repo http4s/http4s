@@ -6,9 +6,10 @@ import com.example.http4s.ExampleService
 import org.http4s.HttpApp
 import org.http4s.implicits._
 import org.http4s.metrics.dropwizard._
+import org.http4s.server.{HttpMiddleware, Router, Server}
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.Metrics
-import org.http4s.server.{HttpMiddleware, Router, Server}
+import scala.concurrent.ExecutionContext.global
 
 class BlazeMetricsExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -29,7 +30,7 @@ object BlazeMetricsExampleApp {
     for {
       blocker <- Blocker[F]
       app = httpApp[F](blocker)
-      server <- BlazeServerBuilder[F]
+      server <- BlazeServerBuilder[F](global)
         .bindHttp(8080)
         .withHttpApp(app)
         .resource
