@@ -41,7 +41,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
         meteredClient.expect[String]("bad-request").attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
-        e must beLike { case UnexpectedStatus(Status(400)) => ok }
+        e must beLike { case UnexpectedStatus(Status(400), _, _) => ok }
       }
       count(registry, Timer("client.default.4xx-responses")) must beEqualTo(1)
       count(registry, Counter("client.default.active-requests")) must beEqualTo(0)
@@ -58,7 +58,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
         meteredClient.expect[String]("internal-server-error").attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
-        e must beLike { case UnexpectedStatus(Status(500)) => ok }
+        e must beLike { case UnexpectedStatus(Status(500), _, _) => ok }
       }
       count(registry, Timer("client.default.5xx-responses")) must beEqualTo(1)
       count(registry, Counter("client.default.active-requests")) must beEqualTo(0)
