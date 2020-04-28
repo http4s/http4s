@@ -82,7 +82,7 @@ trait Client[F[_]] {
   @deprecated("Use `Stream.eval(req).flatMap(client.stream).flatMap(f)`", "0.19.0-M4")
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
-  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
+  def expectOr[A](req: Request[F])(onError: (Request[F], Response[F]) => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A]
 
   /**
@@ -92,12 +92,12 @@ trait Client[F[_]] {
     */
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(
+  def expectOr[A](req: F[Request[F]])(onError: (Request[F], Response[F]) => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A]
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(
+  def expectOr[A](uri: Uri)(onError: (Request[F], Response[F]) => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A]
 
   /**
@@ -107,7 +107,7 @@ trait Client[F[_]] {
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(
+  def expectOr[A](s: String)(onError: (Request[F], Response[F]) => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A]
 
   /**
@@ -117,7 +117,7 @@ trait Client[F[_]] {
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
+  def expectOptionOr[A](req: Request[F])(onError: (Request[F], Response[F]) => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[Option[A]]
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
@@ -236,6 +236,9 @@ object Client {
     }
 }
 
-final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace {
-  override def getMessage: String = s"unexpected HTTP status: $status"
+final case class UnexpectedStatus(status: Status, originalRequest: Uri, method: Method)
+    extends RuntimeException
+    with NoStackTrace {
+  override def getMessage: String =
+    s"unexpected HTTP status: $status for request $method $originalRequest"
 }
