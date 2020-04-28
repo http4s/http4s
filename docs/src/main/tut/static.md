@@ -25,6 +25,7 @@ import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
 import org.http4s.syntax.kleisli._
+import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -33,7 +34,7 @@ object SimpleHttpServer extends IOApp {
   val app: Resource[IO, Server[IO]] =
     for {
       blocker <- Blocker[IO]
-      server <- BlazeServerBuilder[IO]
+      server <- BlazeServerBuilder[IO](global)
         .bindHttp(8080)
         .withHttpApp(fileService[IO](FileService.Config(".", blocker)).orNotFound)
         .resource

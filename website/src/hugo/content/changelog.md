@@ -33,10 +33,23 @@ This release is fully backward compatible with 0.21.3.
 * scala-xml-1.3.0
 * specs2-4.9.3
 
-# v0.20.22 (unreleased)
+# v0.20.23 (2020-04-28)
 
-This release is fully backward compatible with 0.20.21.  
-It is the final planned release in the 0.20.x series.
+This release restores backward compatibility with the 0.20 series.
+This is the final planned release in the 0.20 series.
+
+## Compatibility
+
+* [#3362](https://github.com/http4s/http4s/pull/3362): Restores binary compatibility in http4s-jetty back to 0.20.21.
+
+# v0.20.22 (2020-04-28)
+
+This release is backward compatible with 0.20, except for http4s-jetty.
+This incompatibility will be corrected in 0.20.23.
+
+## Breaking changes
+
+* [#3333](https://github.com/http4s/http4s/pull/3333): Add Http2c support to jetty-server. This accidentally broke binary compatibility, and will be patched in v0.20.23.
 
 ## Bugfixes
 
@@ -45,10 +58,14 @@ It is the final planned release in the 0.20.x series.
 
 ## Enhancements
 
-* [#3333](https://github.com/http4s/http4s/pull/3333): Add Http2c support to jetty-server
 * [#3327](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `Date` middleware
 * [#3381](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `CORS` middleware
 * [#3298](https://github.com/http4s/http4s/pull/3298): In `Logger` client and server middlewares, detect any media types ending in `+json` as non-binary
+
+## Deprecations
+
+* [#3330](https://github.com/http4s/http4s/pull/3330): Deprecate `BlazeServerBuilder#apply()` in favor of passing an `ExecutionContext` explicitly.  Formerly, `ExecutionContext.global` was referenced by the default builder, and would spin up its thread pool even if the app never used the global execution context.
+* [#3361](https://github.com/http4s/http4s/pull/3361): Deprecate `org.http4s.util.bug`, which is for internal use only.
 
 ## Backports
 

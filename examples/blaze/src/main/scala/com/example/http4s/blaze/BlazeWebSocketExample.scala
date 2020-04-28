@@ -12,6 +12,7 @@ import org.http4s.server.websocket._
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.global
 
 object BlazeWebSocketExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -62,7 +63,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
   }
 
   def stream: Stream[F, ExitCode] =
-    BlazeServerBuilder[F]
+    BlazeServerBuilder[F](global)
       .bindHttp(8080)
       .withHttpApp(routes.orNotFound)
       .serve

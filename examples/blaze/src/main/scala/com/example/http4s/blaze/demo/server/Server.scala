@@ -7,7 +7,7 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext.global
 
 object Server extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -28,7 +28,7 @@ object HttpServer {
       blocker <- Stream.resource(Blocker[F])
       client <- BlazeClientBuilder[F](global).stream
       ctx <- Stream(new Module[F](client, blocker))
-      exitCode <- BlazeServerBuilder[F]
+      exitCode <- BlazeServerBuilder[F](global)
         .bindHttp(8080)
         .withHttpApp(httpApp(ctx))
         .serve

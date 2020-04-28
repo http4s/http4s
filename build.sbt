@@ -231,7 +231,6 @@ lazy val jettyClient = libraryProject("jetty-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient
     ),
-    mimaPreviousArtifacts := Set.empty // remove me once merged
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
