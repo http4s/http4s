@@ -6,7 +6,7 @@ title: Deployment
 
 ## Overview
 
-You've built and tested your service. How can we deploy it into production? One approach is to create an assembled `JAR` containing the service with all its dependencies. We can then execute it via `java -jar`. Another approach would be to create a native image binary via GRAAL. We will give each of these as examples below. 
+You've built and tested your service. How can we deploy it into production? One approach is to create an assembled `JAR` containing the service with all its dependencies. We can then execute it via `java -jar`. Another approach would be to create a native image binary via GraalVM. We will give each of these as examples below. 
 
 
 ### Assembled JAR
@@ -39,13 +39,13 @@ java -jar /path.to/project-assembly-0.0.1-SNAPSHOT.jar
 At this point you should see `http4s` start up. Regarding the artifact it might be a good idea to place it inside a `docker container` or create a service script via a `systemd unit` or similar.
 
 
-### GRAAL NATIVE IMAGE
+### Graal Native Image
 
 As an example of building a native image we will provide a reference for building a `static` native-image. Some explanation for building `static` is given at the end. But in short a `static` native-image should contain all the native libarary dependencies required to make a portable native binary.
 
 Why would we create such an image? Some advantages might be faster startup times or less memory usage than the JVM.
 
-#### Install GRAALVM and NATIVE IMAGE PLUGIN
+#### Install GraalVM and Native Image plugin
 
 The first step is to install the core `GraalVM` and `native-image` plugin. The core `GraalVM` release might be thought of as a replacement for the JVM. The `native-image` plugin is required to create the binary. You should be able to get the community edition builds from https://github.com/graalvm/graalvm-ce-builds/releases. 
 
@@ -71,19 +71,29 @@ OpenJDK Runtime Environment GraalVM CE 20.0.0 (build 11.0.6+9-jvmci-20.0-b02)
 OpenJDK 64-Bit Server VM GraalVM CE 20.0.0 (build 11.0.6+9-jvmci-20.0-b02, mixed mode, sharing)
 ```
 
+### Get or build a muslC bundle required to build a static image.
+
+To create a truly static native image we need to use muslC according to [issue] (https://github.com/oracle/graal/issues/1919#issuecomment-589085506) . Instructions and an example bundle are provided [here] (https://github.com/gradinac/musl-bundle-example). For the sake of our example we can download the resulting bundle for our build. We will need to use the path to the unpacked bundle as an argument to build the image.
+
+```
+> wget https://github.com/gradinac/musl-bundle-example/releases/download/v1.0/musl.tar.gz
+> tar -xf musl.tar.gz
+```
+
+### META-INF resources for reflection
+
+We need META-INF resources where we use reflection. In general reflection isn't used throughout http4s, however it is used by some of the logging dependencies. TODO: provide reference to template or simlar location for properties file...
+
 #### Build an assembled jar using GRAALVM
 
-After installing GRAALVM you should be able to build an assembled JAR. We can again use `SBT assembly` or your favorite build tool / plugin to create the assembled jar. The important thing is that we should be using the GRAALVM version of JAVA to do so.
+After installing the above dependencies you should build an assembled JAR. We can again use `sbt assembly` or your favorite build tool / plugin to create the assembled jar. The important thing is that we should be using the GraalVM version of JAVA to do so.
 
 #### Create the native image with the assembled JAR
 
-After we have built the assembled jar containing all our java dependencies, we use that jar to build our native image. We can do so with the following command:
-
-TODO: add instruction to obtain muslC
-TODO: provide META-INF resources required for building image
+After we have built the assembled JAR containing all our JAVA dependencies, we use that JAR to build our native image. In the command below we need to replace the muslC and assembly jar paths with the appropriate locations.
 
 ```
-native-image --initialize-at-build-time --static -H:UseMuslC="$PWD/muslC/bundle" --enable-http --enable-https --enable-all-security-services --verbose -jar ./target/scala-2.13/project-assembly-0.0.1-SNAPSHOT.jar projectBinaryImage
+> native-image --initialize-at-build-time --static -H:UseMuslC="/path.to/muslc.bundle" --enable-http --enable-https --enable-all-security-services --verbose -jar ./path.to.assembly.jar projectBinaryImage
 ```
 
 A breakout for the command parameters (image generation options) :
