@@ -113,6 +113,9 @@ package object internal {
   }
 
   // Adapted from https://github.com/typelevel/cats-effect/issues/199#issuecomment-401273282
+  @deprecated(
+    "Replaced by cats.effect.Async.fromFuture. You will need a ContextShift[F].",
+    "0.21.4")
   private[http4s] def fromFuture[F[_], A](f: F[Future[A]])(implicit F: Async[F]): F[A] =
     f.flatMap { future =>
       future.value match {
