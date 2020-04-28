@@ -8,9 +8,9 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.4 (unreleased)
+# v0.21.4 (2020-04-28)
 
-This release is fully backward compatible with 0.21.3.  
+This release is fully backward compatible with 0.21.3.
 
 ## Bugfixes
 
@@ -21,9 +21,13 @@ This release is fully backward compatible with 0.21.3.
 * [#3303](https://github.com/http4s/http4s/pull/3303): In blaze, cache `Date` header value 
 * [#3350](https://github.com/http4s/http4s/pull/3350): Use stable host address in `ConnectionFailure` message. Makes code more portable post-JDK11.
 
+## Deprecation
+
+* [#3361](https://github.com/http4s/http4s/pull/3361): Deprecate the `org.http4s.util.execution` package.
+
 ## Documentation
 
-* [#3279](https://github.com/http4s/http4s/pull/3279): Improve Prometheus middleware usage example #3279
+* [#3279](https://github.com/http4s/http4s/pull/3279): Improve Prometheus middleware usage example
 
 ## Depedency updates
 
