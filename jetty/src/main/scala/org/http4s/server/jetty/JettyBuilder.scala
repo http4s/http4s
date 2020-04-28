@@ -46,6 +46,32 @@ sealed class JettyBuilder[F[_]] private (
 
   private[this] val logger = getLogger
 
+  @deprecated("Retained for binary compatibility", "0.20.23")
+  private[JettyBuilder] def this(
+      socketAddress: InetSocketAddress,
+      threadPool: ThreadPool,
+      idleTimeout: Duration,
+      asyncTimeout: Duration,
+      shutdownTimeout: Duration,
+      servletIo: ServletIo[F],
+      sslBits: Option[SSLConfig],
+      mounts: Vector[Mount[F]],
+      serviceErrorHandler: ServiceErrorHandler[F],
+      banner: immutable.Seq[String]
+  )(implicit F: ConcurrentEffect[F]) = this(
+    socketAddress = socketAddress,
+    threadPool = threadPool,
+    idleTimeout = idleTimeout,
+    asyncTimeout = asyncTimeout,
+    shutdownTimeout = shutdownTimeout,
+    servletIo = servletIo,
+    sslBits = sslBits,
+    mounts = mounts,
+    serviceErrorHandler = serviceErrorHandler,
+    supportHttp2 = false,
+    banner = banner
+  )
+
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
       threadPool: ThreadPool = threadPool,
