@@ -41,8 +41,8 @@ title: Versions
   </thead>
   <tbody>
 	<tr>
-	  <td><a href="/v0.21">0.21.0-SNAPSHOT</a></td>
-	  <td class="text-center"><span class="badge badge-danger">Snapshots</span></td>
+	  <td><a href="/v0.21">{{% latestInSeries "0.20" %}}</a></td>
+	  <td class="text-center"><span class="badge badge-success">Stable</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
@@ -53,7 +53,7 @@ title: Versions
 	</tr>
 	<tr>
 	  <td><a href="/v0.20">{{% latestInSeries "0.20" %}}</a></td>
-	  <td class="text-center"><span class="badge badge-success">Stable</span></td>
+	  <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
