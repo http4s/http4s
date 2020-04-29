@@ -32,7 +32,4 @@ object AutoSlash {
 
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
-
-  def httpApp[F[_]: MonoidK: Functor](httpApp: HttpApp[F]): HttpApp[F] =
-    apply(httpApp)
 }

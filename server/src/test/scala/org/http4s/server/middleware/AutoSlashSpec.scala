@@ -1,8 +1,6 @@
 package org.http4s.server.middleware
 
-import cats.MonoidK
 import cats.effect._
-import org.http4s.HttpApp
 import org.http4s.Uri.uri
 import org.http4s.server.{MockRoute, Router}
 import org.http4s.testing.Http4sLegacyMatchersIO
@@ -59,22 +57,6 @@ class AutoSlashSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     "Be created via httpRoutes constructor" in {
       val req = Request[IO](uri = uri("/ping/"))
       AutoSlash.httpRoutes(route).orNotFound(req) must returnStatus(Status.Ok)
-    }
-
-    "Be created via httpApp constructor" in {
-      val req = Request[IO](uri = uri("/ping/"))
-      val httpApp: HttpApp[IO] = HttpApp { r =>
-        import org.http4s.dsl.io._
-        if (r.pathInfo == "/ping") Ok()
-        else throw new Exception("Cannot handle request!")
-      }
-
-      implicit val invalidMonoidKIO: MonoidK[IO] = new MonoidK[IO] {
-        def combineK[A](x: IO[A], y: IO[A]): IO[A] = IO.ioSemigroupK.combineK[A](x, y)
-        override def empty[A]: IO[A] = IO.raiseError(new Exception("error"))
-      }
-
-      AutoSlash.httpApp(httpApp).run(req) must returnStatus(Status.Ok)
     }
   }
 }
