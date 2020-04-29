@@ -1,7 +1,7 @@
 package org.http4s
 package server
 
-import cats.effect.{ContextShift, Sync}
+import cats.effect.{Blocker, ContextShift, Sync}
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s
@@ -12,16 +12,19 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  def resourceService[F[_]: Sync: ContextShift](config: ResourceService.Config[F]): HttpRoutes[F] =
-    ResourceService(config)
+  def resourceService[F[_]: Sync: ContextShift](
+      config: ResourceService.Config[F],
+      classLoader: Option[ClassLoader] = None): HttpRoutes[F] =
+    ResourceService(config, classLoader)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   def fileService[F[_]: Sync](config: FileService.Config[F]): HttpRoutes[F] =
     FileService(config)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */
-  def webjarService[F[_]: Sync: ContextShift](config: WebjarService.Config[F]): HttpRoutes[F] =
-    WebjarService(config)
+  def webjarService[F[_]: Sync: ContextShift](
+      blocker: Blocker): WebjarService.WebjarServiceBuilder[F] =
+    WebjarService(blocker)
 
   private[staticcontent] val AcceptRangeHeader = `Accept-Ranges`(RangeUnit.Bytes)
 

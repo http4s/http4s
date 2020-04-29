@@ -1,7 +1,7 @@
 package org.http4s
 package server
 package staticcontent
-
+import java.net.URL
 import cats.effect.IO
 import cats.effect._
 import java.nio.file.Paths
@@ -172,6 +172,31 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared with Http4
 
     "doesn't crash on /" in {
       routes.orNotFound(Request[IO](uri = uri("/"))) must returnStatus(Status.NotFound)
+    }
+
+    "Should respect the class loader passed on to it" in {
+      var mockedClassLoaderCallCount = 0
+      val realClassLoader = getClass.getClassLoader
+      val mockedClassLoader = new ClassLoader {
+        override def getResource(name: String): URL = {
+          mockedClassLoaderCallCount += 1
+          realClassLoader.getResource(name)
+        }
+      }
+      val relativePath = "testresource.txt"
+      val s0 = resourceService(
+        ResourceService.Config[IO](
+          basePath = "",
+          blocker = testBlocker,
+          pathPrefix = "/path-prefix"
+        ),
+        Some(mockedClassLoader))
+      val file = Paths.get(defaultBase).resolve(relativePath).toFile
+      file.exists() must beTrue
+      val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
+      val req = Request[IO](uri = uri)
+      s0.orNotFound(req) must returnStatus(Status.Ok)
+      mockedClassLoaderCallCount mustEqual 1
     }
   }
 }
