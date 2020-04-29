@@ -2,17 +2,23 @@ package org.http4s
 package server
 package staticcontent
 
+import java.net.URL
 import cats.effect.IO
 import cats.effect._
 import java.nio.file.Paths
 import org.http4s.Method.{GET, POST}
 import org.http4s.Uri.uri
-import org.http4s.server.staticcontent.WebjarService.Config
 import org.http4s.testing.Http4sLegacyMatchersIO
 
-object WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sLegacyMatchersIO {
+class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sLegacyMatchersIO {
   def routes: HttpRoutes[IO] =
-    webjarService(Config[IO](blocker = testBlocker))
+    webjarServiceBuilder[IO](testBlocker).toRoutes
+
+  def routes(classLoader: ClassLoader): HttpRoutes[IO] =
+    webjarServiceBuilder[IO](testBlocker)
+      .withClassLoader(Some(classLoader))
+      .toRoutes
+
   val defaultBase =
     test.BuildInfo.test_resourceDirectory.toPath.resolve("META-INF/resources/webjars").toString
 
@@ -91,6 +97,20 @@ object WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4s
     "Not match a request with POST" in {
       val req = Request[IO](POST, Uri(path = "/test-lib/1.0.0/testresource.txt"))
       routes.apply(req).value must returnValue(Option.empty[Response[IO]])
+    }
+    "Respects ClassLoader passed to it" in {
+      var mockedClassLoaderCallCount = 0
+      val realClassLoader = getClass.getClassLoader
+      val mockedClassLoader = new ClassLoader {
+        override def getResource(name: String): URL = {
+          mockedClassLoaderCallCount += 1
+          realClassLoader.getResource(name)
+        }
+      }
+
+      val req = Request[IO](uri = uri("/deep+purple/machine+head/space+truckin%27.txt"))
+      routes(mockedClassLoader).orNotFound(req) must returnStatus(Status.Ok)
+      mockedClassLoaderCallCount mustEqual 1
     }
   }
 }
