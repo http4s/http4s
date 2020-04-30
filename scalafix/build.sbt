@@ -1,5 +1,8 @@
 lazy val V = _root_.scalafix.sbt.BuildInfo
-lazy val outputVersion = "0.20.0"
+
+val inputVersion = "0.19.0"
+val outputVersion = "0.21.4"
+
 inThisBuild(
   List(
     organization := "org.http4s",
@@ -41,23 +44,21 @@ lazy val rules = project.settings(
   libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafixVersion
 )
 
+def http4sDependencies(version: String) = Seq(
+  "org.http4s" %% "http4s-blaze-client" % version,
+  "org.http4s" %% "http4s-blaze-server" % version,
+  "org.http4s" %% "http4s-dsl" % version
+)
+
 lazy val input = project.settings(
   skip in publish := true,
-  libraryDependencies ++= Seq(
-    "org.http4s" %% "http4s-blaze-client" % "0.18.21",
-    "org.http4s" %% "http4s-blaze-server" % "0.18.21",
-    "org.http4s" %% "http4s-dsl" % "0.18.21"
-  )
+  libraryDependencies ++= http4sDependencies(inputVersion)
 )
 
 lazy val output = project.settings(
   skip in publish := true,
   skip in compile := true,
-  libraryDependencies ++= Seq(
-    "org.http4s" %% "http4s-blaze-client" % outputVersion,
-    "org.http4s" %% "http4s-blaze-server" % outputVersion,
-    "org.http4s" %% "http4s-dsl" % outputVersion
-  )
+  libraryDependencies ++= http4sDependencies(outputVersion)
 )
 
 lazy val tests = project
