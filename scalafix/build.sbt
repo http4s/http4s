@@ -25,6 +25,7 @@ inThisBuild(
     scalaVersion := V.scala212,
     addCompilerPlugin(scalafixSemanticdb),
     scalacOptions ++= List(
+      "-language:higherKinds",
       "-Yrangepos"
     ),
     publishTo := {
