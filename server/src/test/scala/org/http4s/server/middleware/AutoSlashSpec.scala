@@ -1,10 +1,10 @@
 package org.http4s.server.middleware
 
 import cats.effect._
-import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
 import org.http4s.Uri.uri
 import org.http4s.server.{MockRoute, Router}
 import org.http4s.testing.Http4sLegacyMatchersIO
+import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
 
 class AutoSlashSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val route = MockRoute.route()
@@ -52,6 +52,11 @@ class AutoSlashSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val router = AutoSlash(Router("/public" -> pingRoutes))
       router.orNotFound(Request[IO](uri = uri("/public/ping"))) must returnStatus(Status.Ok)
       router.orNotFound(Request[IO](uri = uri("/public/ping/"))) must returnStatus(Status.Ok)
+    }
+
+    "Be created via httpRoutes constructor" in {
+      val req = Request[IO](uri = uri("/ping/"))
+      AutoSlash.httpRoutes(route).orNotFound(req) must returnStatus(Status.Ok)
     }
   }
 }
