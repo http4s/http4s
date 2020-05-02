@@ -88,7 +88,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream.eval(req).flatMap(stream).flatMap(f)
 
-  def expectOr[A](req: Request[F])(onError: (Request[F], Response[F]) => F[Throwable])(
+  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
@@ -98,7 +98,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
       case Successful(resp) =>
         d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
       case failedResponse =>
-        onError(req, failedResponse).flatMap(F.raiseError)
+        onError(failedResponse).flatMap(F.raiseError)
     }
   }
 
@@ -108,16 +108,16 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * completion of the decoding.
     */
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(req)(defaultOnError)
+    expectOr(req)(defaultOnError(req))
 
-  def expectOr[A](req: F[Request[F]])(onError: (Request[F], Response[F]) => F[Throwable])(
+  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A] =
     req.flatMap(expectOr(_)(onError))
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(req)(defaultOnError)
+    req.flatMap(req => expectOr(req)(defaultOnError(req)))
 
-  def expectOr[A](uri: Uri)(onError: (Request[F], Response[F]) => F[Throwable])(
+  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(Request[F](Method.GET, uri))(onError)
 
@@ -127,9 +127,9 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * connection is closed at the completion of the decoding.
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(uri)(defaultOnError)
+    expectOr(uri)(defaultOnError(Request[F](uri = uri)))
 
-  def expectOr[A](s: String)(onError: (Request[F], Response[F]) => F[Throwable])(
+  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => expectOr[A](uri)(onError))
 
@@ -139,9 +139,9 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * underlying HTTP connection is closed at the completion of the decoding.
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(s)(defaultOnError)
+    expectOr(s)(defaultOnError(Request[F](uri = Uri.unsafeFromString(s))))
 
-  def expectOptionOr[A](req: Request[F])(onError: (Request[F], Response[F]) => F[Throwable])(
+  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
       implicit d: EntityDecoder[F, A]): F[Option[A]] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
@@ -154,13 +154,13 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
         failedResponse.status match {
           case Status.NotFound => Option.empty[A].pure[F]
           case Status.Gone => Option.empty[A].pure[F]
-          case _ => onError(req, failedResponse).flatMap(F.raiseError)
+          case _ => onError(failedResponse).flatMap(F.raiseError)
         }
     }
   }
 
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]] =
-    expectOptionOr(req)(defaultOnError)
+    expectOptionOr(req)(defaultOnError(req))
 
   /**
     * Submits a request and decodes the response, regardless of the status code.
@@ -230,7 +230,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def get[A](s: String)(f: Response[F] => F[A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => get(uri)(f))
 
-  private def defaultOnError(req: Request[F], resp: Response[F])(
+  private def defaultOnError(req: Request[F])(resp: Response[F])(
       implicit F: Applicative[F]): F[Throwable] =
-    F.pure(UnexpectedStatus(resp.status, req.uri, req.method))
+    F.pure(UnexpectedStatus(resp.status, req.method, req.uri))
 }

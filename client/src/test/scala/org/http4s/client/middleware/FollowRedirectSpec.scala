@@ -88,7 +88,7 @@ class FollowRedirectSpec
               val body = resp.as[String]
               body.map(RedirectResponse(method, _))
             case resp =>
-              IO.raiseError(UnexpectedStatus(resp.status, req.uri, req.method))
+              IO.raiseError(UnexpectedStatus(resp.status, req.method, req.uri))
           }
           .attempt
           .unsafeRunSync() must beRight(response)
@@ -102,7 +102,7 @@ class FollowRedirectSpec
         PUT ! MovedPermanently ! "" ! true ! Right(RedirectResponse("PUT", "")) |
         PUT ! MovedPermanently ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
         PUT ! MovedPermanently ! "foo" ! false ! Left(
-          UnexpectedStatus(MovedPermanently, Uri.unsafeFromString("foo"), PUT)) |
+          UnexpectedStatus(MovedPermanently, PUT, Uri.unsafeFromString("foo"))) |
         GET ! Found ! "" ! true ! Right(RedirectResponse("GET", "")) |
         HEAD ! Found ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
         POST ! Found ! "foo" ! true ! Right(RedirectResponse("GET", "")) |
@@ -110,7 +110,7 @@ class FollowRedirectSpec
         PUT ! Found ! "" ! true ! Right(RedirectResponse("PUT", "")) |
         PUT ! Found ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
         PUT ! Found ! "foo" ! false ! Left(
-          UnexpectedStatus(Found, Uri.unsafeFromString("foo"), PUT)) |
+          UnexpectedStatus(Found, PUT, Uri.unsafeFromString("foo"))) |
         GET ! SeeOther ! "" ! true ! Right(RedirectResponse("GET", "")) |
         HEAD ! SeeOther ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
         POST ! SeeOther ! "foo" ! true ! Right(RedirectResponse("GET", "")) |
@@ -122,20 +122,20 @@ class FollowRedirectSpec
         HEAD ! TemporaryRedirect ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
         POST ! TemporaryRedirect ! "foo" ! true ! Right(RedirectResponse("POST", "foo")) |
         POST ! TemporaryRedirect ! "foo" ! false ! Left(
-          UnexpectedStatus(TemporaryRedirect, Uri.unsafeFromString("foo"), POST)) |
+          UnexpectedStatus(TemporaryRedirect, POST, Uri.unsafeFromString("foo"))) |
         PUT ! TemporaryRedirect ! "" ! true ! Right(RedirectResponse("PUT", "")) |
         PUT ! TemporaryRedirect ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
         PUT ! TemporaryRedirect ! "foo" ! false ! Left(
-          UnexpectedStatus(TemporaryRedirect, Uri.unsafeFromString("foo"), PUT)) |
+          UnexpectedStatus(TemporaryRedirect, PUT, Uri.unsafeFromString("foo"))) |
         GET ! PermanentRedirect ! "" ! true ! Right(RedirectResponse("GET", "")) |
         HEAD ! PermanentRedirect ! "" ! true ! Right(RedirectResponse("HEAD", "")) |
         POST ! PermanentRedirect ! "foo" ! true ! Right(RedirectResponse("POST", "foo")) |
         POST ! PermanentRedirect ! "foo" ! false ! Left(
-          UnexpectedStatus(PermanentRedirect, Uri.unsafeFromString("foo"), POST)) |
+          UnexpectedStatus(PermanentRedirect, POST, Uri.unsafeFromString("foo"))) |
         PUT ! PermanentRedirect ! "" ! true ! Right(RedirectResponse("PUT", "")) |
         PUT ! PermanentRedirect ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
         PUT ! PermanentRedirect ! "foo" ! false ! Left(
-          UnexpectedStatus(PermanentRedirect, Uri.unsafeFromString("foo"), PUT)) | {
+          UnexpectedStatus(PermanentRedirect, PUT, Uri.unsafeFromString("foo"))) | {
         (method, status, body, pure, response) =>
           doIt(method, status, body, pure, response)
       }

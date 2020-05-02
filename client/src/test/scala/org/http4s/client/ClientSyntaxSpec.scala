@@ -148,7 +148,7 @@ class ClientSyntaxSpec
     }
 
     "fetch Uris with expectOr" in {
-      client.expectOr[String](req.uri) { (_, _) =>
+      client.expectOr[String](req.uri) { _ =>
         IO.pure(SadTrombone)
       } must returnValue("hello")
     }
@@ -158,7 +158,7 @@ class ClientSyntaxSpec
     }
 
     "fetch requests with expectOr" in {
-      client.expectOr[String](req) { (_, _) =>
+      client.expectOr[String](req) { _ =>
         IO.pure(SadTrombone)
       } must returnValue("hello")
     }
@@ -168,7 +168,7 @@ class ClientSyntaxSpec
     }
 
     "fetch request tasks with expectOr" in {
-      client.expectOr[String](IO.pure(req)) { (_, _) =>
+      client.expectOr[String](IO.pure(req)) { _ =>
         IO.pure(SadTrombone)
       } must returnValue("hello")
     }
@@ -210,14 +210,15 @@ class ClientSyntaxSpec
         Left(
           UnexpectedStatus(
             Status.InternalServerError,
-            Uri.unsafeFromString("http://www.foo.com/status/500"),
-            Method.GET)))
+            Method.GET,
+            Uri.unsafeFromString("http://www.foo.com/status/500")
+          )))
     }
 
     "handle an unexpected status when calling a URI with expectOr" in {
       case class Boom(status: Status, body: String) extends Exception
       client
-        .expectOr[String](uri("http://www.foo.com/status/500")) { (_, resp) =>
+        .expectOr[String](uri("http://www.foo.com/status/500")) { resp =>
           resp.as[String].map(Boom(resp.status, _))
         }
         .attempt must returnValue(Left(Boom(InternalServerError, "Oops")))
