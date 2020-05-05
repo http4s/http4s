@@ -12,6 +12,8 @@ import cats.syntax.flatMap._
 import fs2.{
   Chunk, Stream
 }
+import cats.Functor
+import com.twitter.util.Promise
 
 object Finagle {
 
@@ -27,21 +29,22 @@ object Finagle {
   def resource[F[_]](dest: String)(
     implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = mkResource(Http.newService(dest))
 
+  def serve[F[_]:Functor: Effect](route: HttpApp[F]): Service[Req,Resp] = new Service[Req,Resp] {
+    def apply(req: Req) = toFuture(route.dimap(fromFinagleReq[F])(toFinagleResp[F]).run(req))
+  }
   def mkResource[F[_]](svc: Service[Req, Resp])(
     implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
     Resource.make(F.delay(svc)){_ => F.delay(())}
     .flatMap(svc => Resource.liftF(allocate(svc)))
   }
+  def fromFinagleReq[F[_]](req: Req): Request[F] = ???
+  def toFinagleResp[F[_]](resp: Response[F]): Resp = ???
   def toFinagleReq[F[_]](req: Request[F])(implicit F: ConcurrentEffect[F]):F[Req] = {
     val method = Method(req.method.name)
     val reqheaders = req.headers.toList.map(h => (h.name.toString, h.value)).toMap
-    val reqBuilder = RequestBuilder().url(req.uri.toString)
-    .addHeaders(reqheaders)
-    (method, req.headers) match {
-      case (Method.Get, _) =>
-        F.delay(reqBuilder.buildGet)
-      case (method, _) if req.isChunked =>
-        val request = reqBuilder.build(method, None)
+    val reqBuilder = RequestBuilder().url(req.uri.toString).addHeaders(reqheaders)
+    if (req.isChunked) {
+      val request = reqBuilder.build(method, None)
         request.headerMap.remove("Transfer-Encoding")
         val writer = request.chunkWriter
         request.setChunked(true)
@@ -50,9 +53,10 @@ object Finagle {
           toF(out)
         }.compile.drain.map(_ => toF((writer.close())))
         ConcurrentEffect[F].runCancelable(bodyUpdate)(_=>IO.unit).to[F].as(request)
-      case (method, _) =>
+    }else{
         req.as[Array[Byte]].map{b=>
-          reqBuilder.build(method, Some(Buf.ByteArray.Owned(b)))
+          val body = if (b.isEmpty) None else Some(Buf.ByteArray.Owned(b))
+          reqBuilder.build(method, body)
         }
     }
   }
@@ -74,5 +78,13 @@ object Finagle {
       case Throw(exception) => cb(Left(exception))
     }
     ()
+  }
+  def toFuture[F[_]: Effect, A](f: F[A]): Future[A] = {
+    val promise: Promise[A] = Promise()
+    Effect[F].runAsync(f) {
+      case Right(value)    => IO(promise.setValue(value))
+      case Left(exception) => IO(promise.setException(exception))
+    }.unsafeRunSync()
+    promise
   }
 }
