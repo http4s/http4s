@@ -41,7 +41,9 @@ At this point you should see `http4s` start up. Regarding the artifact it might 
 
 ### Graal Native Image
 
-As an example of building a native image we will provide a reference for building a `static` native-image. Some explanation for building `static` is given at the end. But in short a `static` native-image should contain all the native libarary dependencies required to make a portable native binary.
+We provide an outline for building a `static` native-image below. Furthermore the [http4s gitter8 template](https://github.com/http4s/http4s.g8) can be used to build a native-image in conjunction with this guide. 
+
+Some explanation for building `static` is given at the end. But in short a `static` native-image should contain all the native libarary dependencies required to make a portable native binary.
 
 Why would we create such an image? Some advantages might be faster startup times or less memory usage than the JVM.
 
@@ -73,7 +75,7 @@ OpenJDK 64-Bit Server VM GraalVM CE 20.0.0 (build 11.0.6+9-jvmci-20.0-b02, mixed
 
 ### Get or build a muslC bundle required to build a static image.
 
-To create a truly static native image we need to use muslC according to [issue] (https://github.com/oracle/graal/issues/1919#issuecomment-589085506) . Instructions and an example bundle are provided [here] (https://github.com/gradinac/musl-bundle-example). For the sake of our example we can download the resulting bundle for our build. We will need to use the path to the unpacked bundle as an argument to build the image.
+To create a truly static native image we need to use muslC according to [issue](https://github.com/oracle/graal/issues/1919#issuecomment-589085506) . Instructions and an example bundle are provided [here](https://github.com/gradinac/musl-bundle-example). For the sake of our example we can download the resulting bundle for our build. We will need to use the path to the unpacked bundle as an argument to build the image.
 
 ```
 > wget https://github.com/gradinac/musl-bundle-example/releases/download/v1.0/musl.tar.gz
@@ -82,7 +84,7 @@ To create a truly static native image we need to use muslC according to [issue] 
 
 ### META-INF resources for reflection
 
-We need META-INF resources where we use reflection. In general reflection isn't used throughout http4s, however it is used by some of the logging dependencies. TODO: provide reference to template or simlar location for properties file...
+We need META-INF resources where we use reflection. In general reflection isn't used throughout http4s, however it is used by some of the logging dependencies. We've provided a native image example in the [http4s gitter8 template](https://github.com/http4s/http4s.g8)
 
 #### Build an assembled jar using GRAALVM
 
@@ -93,8 +95,10 @@ After installing the above dependencies you should build an assembled JAR. We ca
 After we have built the assembled JAR containing all our JAVA dependencies, we use that JAR to build our native image. In the command below we need to replace the muslC and assembly jar paths with the appropriate locations.
 
 ```
-> native-image --initialize-at-build-time --static -H:UseMuslC="/path.to/muslc.bundle" --enable-http --enable-https --enable-all-security-services --verbose -jar ./path.to.assembly.jar projectBinaryImage
+native-image --static -H:+ReportExceptionStackTraces -H:UseMuslC="/path.to/muslC" --allow-incomplete-classpath --no-fallback --initialize-at-build-time --enable-http --enable-https --enable-all-security-services --verbose -jar "./path.to.assembly.jar" projectBinaryImage
 ```
+
+https://github.com/http4s/http4s.g8
 
 A breakout for the command parameters (image generation options) :
 
