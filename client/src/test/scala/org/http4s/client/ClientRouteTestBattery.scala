@@ -40,8 +40,9 @@ abstract class ClientRouteTestBattery(name: String)
   }
 
   withResource(JettyScaffold[IO](1, false, testServlet)) { jetty =>
+    address = jetty.addresses.head
     withResource(clientResource) { client =>
-      val address = jetty.addresses.head
+      
 
       Fragments.foreach(GetRoutes.getPaths.toSeq) {
         case (path, expected) =>

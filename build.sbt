@@ -25,6 +25,7 @@ lazy val modules: List[ProjectReference] = List(
   asyncHttpClient,
   jettyClient,
   okHttpClient,
+  finagleClient,
   servlet,
   jetty,
   tomcat,
@@ -240,6 +241,15 @@ lazy val okHttpClient = libraryProject("okhttp-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.okhttp
     ),
+  )
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+
+lazy val finagleClient = libraryProject("finagle-client")
+  .settings(
+    description := "finagle http client implementation for http4s clients",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.finagle
+    )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 

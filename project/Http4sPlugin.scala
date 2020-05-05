@@ -309,4 +309,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % V.treehugger
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % V.twirl
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % V.vault
+    lazy val finagle                  = "com.twitter" %% "finagle-http" % "20.4.1"
 }
