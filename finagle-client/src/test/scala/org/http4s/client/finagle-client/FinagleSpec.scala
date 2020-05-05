@@ -5,6 +5,5 @@ package finagle
 import cats.effect.IO
 
 class FinagleSpec extends ClientRouteTestBattery("FinagleClient") {
-  override def clientResource = Finagle.resource[IO](s"${address.getHostName}:${address.getPort}")
-  // override def clientResourceGen = Finagle.resource[IO] _
+  override def clientResource = Finagle.mkClient[IO](s"${address.getHostName}:${address.getPort}")
 }

@@ -26,12 +26,13 @@ object Finagle {
          }yield resp).map(toHttp4sResp)
         })
 
-  def resource[F[_]](dest: String)(
+  def mkClient[F[_]](dest: String)(
     implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = mkResource(Http.newService(dest))
 
-  def serve[F[_]:Functor: Effect](route: HttpApp[F]): Service[Req,Resp] = new Service[Req,Resp] {
+  def mkService[F[_]:Functor: Effect](route: HttpApp[F]): Service[Req,Resp] = new Service[Req,Resp] {
     def apply(req: Req) = toFuture(route.dimap(fromFinagleReq[F])(toFinagleResp[F]).run(req))
   }
+
   def mkResource[F[_]](svc: Service[Req, Resp])(
     implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
     Resource.make(F.delay(svc)){_ => F.delay(())}
