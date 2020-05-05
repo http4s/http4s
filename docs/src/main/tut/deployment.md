@@ -98,8 +98,6 @@ After we have built the assembled JAR containing all our JAVA dependencies, we u
 native-image --static -H:+ReportExceptionStackTraces -H:UseMuslC="/path.to/muslC" --allow-incomplete-classpath --no-fallback --initialize-at-build-time --enable-http --enable-https --enable-all-security-services --verbose -jar "./path.to.assembly.jar" projectBinaryImage
 ```
 
-https://github.com/http4s/http4s.g8
-
 A breakout for the command parameters (image generation options) :
 
 `-H:UseMuslC` to fix DNS and related segfaults and build a true static image that doesn't depend on linked libraries. 
@@ -110,7 +108,7 @@ A breakout for the command parameters (image generation options) :
 
 `--enable-all-security-services` will likely be required to make or receive https requests.
 
-Additional image generation options are found in the native image reference: https://www.graalvm.org/docs/reference-manual/native-image/
+Additional image generation options are found in the [native image reference](https://www.graalvm.org/docs/reference-manual/native-image/)
 
 
 #### Execute the native image
