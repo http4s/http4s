@@ -12,6 +12,7 @@ import cats.syntax.flatMap._
 import fs2.{
   Chunk, Stream
 }
+
 object Finagle {
 
   def allocate[F[_]](svc: Service[Req, Resp])(
@@ -44,25 +45,15 @@ object Finagle {
         request.headerMap.remove("Transfer-Encoding")
         val writer = request.chunkWriter
         request.setChunked(true)
-        val bodyUpdate = req.body.chunkN(1).map(_.toArray).evalMap{ a=>
+        val bodyUpdate = req.body.chunks.map(_.toArray).evalMap{ a=>
           val out = (writer.write(com.twitter.finagle.http.Chunk.fromByteArray(a)))
           toF(out)
         }.compile.drain.map(_ => toF((writer.close())))
-        ConcurrentEffect[F].runCancelable(bodyUpdate)(_=>IO.unit).unsafeRunSync
-        F.delay{request}
-      case (Method.Post, _) if reqheaders.get("Content-Type").map{v =>
-        v.take(19) == ("multipart/form-data")}.getOrElse(false) =>
-                req.as[Array[Byte]].map{_=>
-                  reqBuilder
-            .addFormElement(("text","This is text."))
-            .buildFormPost(true)
-                }
-
-      case (Method.Post, _) =>
+        ConcurrentEffect[F].runCancelable(bodyUpdate)(_=>IO.unit).to[F].as(request)
+      case (method, _) =>
         req.as[Array[Byte]].map{b=>
-          reqBuilder.buildPost(Buf.ByteArray.Owned(b))
+          reqBuilder.build(method, Some(Buf.ByteArray.Owned(b)))
         }
-      case (m, _) =>  F.delay(reqBuilder.build(m, None))
     }
   }
 
