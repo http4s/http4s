@@ -4,7 +4,6 @@ package finagle
 import client._
 import cats.effect._
 import cats.syntax.functor._
-import cats.syntax.apply._
 import com.twitter.finagle.{Http, Service}
 import com.twitter.finagle.http.{Request => Req, Response => Resp, Method, RequestBuilder}
 import com.twitter.util.{Future, Return, Throw}
@@ -13,7 +12,6 @@ import cats.syntax.flatMap._
 import fs2.{Chunk, Stream}
 import cats.Functor
 import com.twitter.util.Promise
-import cats.Applicative
 
 object Finagle {
 
@@ -72,7 +70,7 @@ object Finagle {
         .map(finagleResp.content = _)
         .void
     }
-    writeBody *> Applicative[F].pure(finagleResp)
+    writeBody.as(finagleResp)
   }
 
   private def toFinagleReq[F[_]](req: Request[F])(implicit F: Concurrent[F]): F[Req] = {
@@ -83,8 +81,7 @@ object Finagle {
       val request = reqBuilder.build(method, None)
       request.headerMap.remove("Transfer-Encoding")
       request.setChunked(true)
-      Concurrent[F].start(streamBody(req.body, request.writer).compile.drain) *>
-        Applicative[F].pure(request)
+      Concurrent[F].start(streamBody(req.body, request.writer).compile.drain).as(request)
     } else {
       req.as[Array[Byte]].map { b =>
         val body = if (b.isEmpty) None else Some(Buf.ByteArray.Owned(b))

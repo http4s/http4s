@@ -219,6 +219,7 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.0"
     val dropwizardMetrics = "4.1.7"
+    val finagle = "20.4.1"
     val fs2 = "2.3.0"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
@@ -266,6 +267,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % V.disciplineSpecs2
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % V.dropwizardMetrics
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % V.dropwizardMetrics
+  lazy val finagle                          = "com.twitter"            %% "finagle-http"              % V.finagle
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
@@ -309,5 +311,4 @@ object Http4sPlugin extends AutoPlugin {
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % V.treehugger
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % V.twirl
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % V.vault
-    lazy val finagle                  = "com.twitter" %% "finagle-http" % "20.4.1"
 }

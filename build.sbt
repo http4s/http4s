@@ -246,8 +246,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
 
 lazy val finagle = libraryProject("finagle")
   .settings(
-  version := "0.21.0",
-    description := "finagle http client implementation for http4s clients",
+    description := "finagle client and server implementation for http4s",
     libraryDependencies ++= Seq(
       Http4sPlugin.finagle
     )
