@@ -3,7 +3,6 @@ package org.http4s.ember.client
 import io.chrisdavenport.keypool._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import org.http4s.client._
 import cats._
 import cats.implicits._
 import cats.effect._

@@ -32,7 +32,7 @@ private[argonaut] object Parser extends SupportParser[Json] {
         val vs = mutable.ListBuffer.empty[Json]
         def add(s: CharSequence): Unit = { vs += jstring(s); () }
         def add(v: Json): Unit = { vs += v; () }
-        def finish: Json = Json.jArray(vs.toList)
+        def finish(): Json = Json.jArray(vs.toList)
         def isObj: Boolean = false
       }
 
@@ -46,7 +46,7 @@ private[argonaut] object Parser extends SupportParser[Json] {
             vs = vs + (key, jstring(s)); key = null
           }
         def add(v: Json): Unit = { vs = vs + (key, v); key = null }
-        def finish = Json.jObject(vs)
+        def finish() = Json.jObject(vs)
         def isObj = true
       }
     }

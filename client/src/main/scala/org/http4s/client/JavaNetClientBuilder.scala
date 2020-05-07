@@ -12,7 +12,6 @@ import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, blocking}
-import scala.concurrent.duration._
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *

@@ -26,7 +26,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
   val tickWheel = new TickWheelExecutor()
 
-  def afterAll = tickWheel.shutdown()
+  def afterAll() = tickWheel.shutdown()
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
