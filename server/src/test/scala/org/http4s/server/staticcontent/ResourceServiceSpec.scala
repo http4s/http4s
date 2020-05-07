@@ -3,7 +3,6 @@ package server
 package staticcontent
 
 import cats.effect.IO
-import cats.effect._
 import java.nio.file.Paths
 import org.http4s.Uri.uri
 import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}

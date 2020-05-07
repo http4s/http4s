@@ -414,7 +414,7 @@ object MultipartParserSpec extends Specification {
                   |""".stripMargin,
               """bar
                   |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
-            ).map(_.replaceAllLiterally("\n", "\r\n"))
+            ).map(_.replace("\n", "\r\n"))
               .map(str => Chunk.bytes(str.getBytes(StandardCharsets.UTF_8))))
             .flatMap(Stream.chunk)
             .covary[IO]
@@ -448,7 +448,7 @@ object MultipartParserSpec extends Specification {
               |Content-Disposition: form-data; name="foo"
               |
               |bar
-              |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin.replaceAllLiterally("\n", "\r\n")
+              |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin.replace("\n", "\r\n")
 
           val unprocessed = jumble(unprocessedInput)
 

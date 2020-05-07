@@ -125,7 +125,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           |Hello world!
           |0
           |
-          |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
+          |""".stripMargin.replace("\n", "\r\n"))
     }
 
     "Write two strict chunks" in {
@@ -140,7 +140,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           |Hello world!
           |0
           |
-          |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
+          |""".stripMargin.replace("\n", "\r\n"))
     }
 
     "Write an effectful chunk" in {
@@ -157,7 +157,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           |Hello world!
           |0
           |
-          |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
+          |""".stripMargin.replace("\n", "\r\n"))
     }
 
     "Write two effectful chunks" in {
@@ -172,7 +172,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           |Hello world!
           |0
           |
-          |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
+          |""".stripMargin.replace("\n", "\r\n"))
     }
 
     "Elide empty chunks" in {
@@ -187,7 +187,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           |Hello world!
           |0
           |
-          |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
+          |""".stripMargin.replace("\n", "\r\n"))
     }
 
     "Write a body that fails and falls back" in {
@@ -203,7 +203,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           |Hello world!
           |0
           |
-          |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
+          |""".stripMargin.replace("\n", "\r\n"))
     }
 
     "execute cleanup" in (for {
@@ -217,7 +217,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           |Hello world!
           |0
           |
-          |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
+          |""".stripMargin.replace("\n", "\r\n"))
       _ <- clean.get.map(_ must beTrue)
       _ <- clean.set(false)
       p2 = eval(IO.raiseError(new RuntimeException("asdf"))).onFinalizeWeak(clean.set(true))
@@ -291,7 +291,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           |0
           |X-Trailer: trailer header value
           |
-          |""".stripMargin.replaceAllLiterally("\n", "\r\n"))
+          |""".stripMargin.replace("\n", "\r\n"))
     }
   }
 }
