@@ -27,8 +27,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = MimaPlugin && ScalafmtPlugin
 
-  val scala_213 = "2.13.1"
-  val scala_212 = "2.12.10"
+  val scala_213 = "2.13.2"
+  val scala_212 = "2.12.11"
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
