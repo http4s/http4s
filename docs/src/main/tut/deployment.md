@@ -28,7 +28,7 @@ Then as long as we have a `main` method in our project:
 sbt assembly
 ```
 
-should build our "fat" assembly jar. We should see the path of the assembly from the sbt log. For example `project/target/scala-2.13/project-assembly-0.0.1-SNAPSHOT.jar`
+should build our "fat" assembly jar. We should see the path of the assembly from the sbt log. For example `target/scala-2.13/project-assembly-0.0.1-SNAPSHOT.jar`
 
 Finally we can execute the jar with 
 
@@ -79,6 +79,7 @@ To create a truly static native image we [need to use muslC](https://github.com/
 
 ```sh
 wget https://github.com/gradinac/musl-bundle-example/releases/download/v1.0/musl.tar.gz -O - | tar -xz
+```
 
 ### META-INF resources for reflection
 
@@ -124,20 +125,4 @@ At this point we may want to package the binary in a docker container, integrate
 As an alternative to executing via the JVM, GraalVM's native-image allows us to execute as a native binary. For example, in Linux environments this might be known as an `ELF` format. There are a number of ways to generate a native image, be it dynamic or static. 
 
 A dynamic image is less portable because it depends on shared libary files on each Linux host. Then similar to creating an assembly JAR containing all our Java dependencies, when we build a static native image, we build
-a more portable assembly including all the dependencies to run our binary across multiple platforms. For example we could expect a static ELF-64 binary to work across multiple linux distributions of different versions for the same architecture. 
-
-
-
-[service]: ../service
-[entity]: ../entity
-[json]: ../json
-[`ContextShift`]: https://typelevel.org/cats-effect/datatypes/contextshift.html
-[`ConcurrentEffect`]: https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html
-[`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html
-[middleware]: ../middleware
-[Follow Redirect]: ../api/org/http4s/client/middleware/FollowRedirect$
-[Retry]: ../api/org/http4s/client/middleware/Retry$
-[Metrics]: ../api/org/http4s/client/middleware/Metrics$
-[Request Logger]: ../api/org/http4s/client/middleware/RequestLogger$
-[Response Logger]: ../api/org/http4s/client/middleware/ResponseLogger$
-[Logger]: ../api/org/http4s/client/middleware/Logger$
+a more portable assembly including all the dependencies to run our binary across multiple platforms. For example we could expect a static ELF-64 binary to work across multiple linux distributions of different versions for the same architecture.
