@@ -6,7 +6,7 @@ title: Deployment
 
 ## Overview
 
-You've built and tested your service. How can we deploy it into production? One approach is to create an assembled JAR containing the service with all its dependencies. We can then execute it via `java -jar`. Another approach would be to create a native image binary via GraalVM. We will give each of these as examples below. 
+You've built and tested your service. How can we deploy it into production? One approach is to create an assembled JAR containing the service with all its dependencies. We can then execute it via `java -jar`. Another approach would be to create a native image binary via [GraalVM](https://www.graalvm.org/). We will give each of these as examples below. 
 
 
 ### Assembled JAR
