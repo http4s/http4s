@@ -2,10 +2,6 @@
  * Copyright 2013-2020 http4s.org
  *
  * SPDX-License-Identifier: Apache-2.0
- *
- * Based on https://github.com/functional-streams-for-scala/fs2/blob/14d20f6f259d04df410dc3b1046bc843a19d73e5/io/src/main/scala/fs2/io/io.scala
- * Copyright (c) 2013 Paul Chiusano, and respective contributors
- * See licenses/LICENSE_fs2
  */
 
 package org.http4s

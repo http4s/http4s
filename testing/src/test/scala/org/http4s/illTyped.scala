@@ -2,9 +2,6 @@
  * Copyright 2013-2020 http4s.org
  *
  * SPDX-License-Identifier: Apache-2.0
- *
- * Based on https://raw.githubusercontent.com/milessabin/shapeless/ab081796c183530efdd8b29dab8fee1fee7c61f9/core/src/main/scala/shapeless/test/typechecking.scala
- * Copyright (c) 2013-16 Miles Sabin
  */
 
 package org.http4s
