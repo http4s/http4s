@@ -59,7 +59,7 @@ object Finagle {
     val status = Status(resp.status.code)
     val headers = resp.headers.toList.map(h => (h.name.toString, h.value))
     val finagleResp = Resp(status)
-    finagleResp.headerMap.addAll(headers)
+    headers.foreach { case (k, v) => finagleResp.headerMap.add(k, v) }
     val writeBody = if (resp.isChunked) {
       finagleResp.setChunked(true)
       Concurrent[F].start(streamBody(resp.body, finagleResp.writer).compile.drain).void
