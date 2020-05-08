@@ -21,13 +21,12 @@ object `Strict-Transport-Security`
       maxAge: Long,
       includeSubDomains: Boolean = true,
       preload: Boolean = false): ParseResult[`Strict-Transport-Security`] =
-    if (maxAge >= 0) {
+    if (maxAge >= 0)
       ParseResult.success(new StrictTransportSecurityImpl(maxAge, includeSubDomains, preload))
-    } else {
+    else
       ParseResult.fail(
         "Invalid maxAge value",
         s"Strict-Transport-Security param $maxAge must be more or equal to 0 seconds")
-    }
 
   def unsafeFromDuration(
       maxAge: FiniteDuration,

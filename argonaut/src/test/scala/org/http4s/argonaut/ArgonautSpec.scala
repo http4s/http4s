@@ -52,7 +52,8 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
     }
 
     "write JSON according to explicit printer" in {
-      writeToString(json)(jsonEncoderWithPrettyParams(PrettyParams.spaces2)) must_== ("""{
+      writeToString(json)(
+        jsonEncoderWithPrettyParams(PrettyParams.spaces2)) must_== ("""{
                                                                                         |  "test" : "ArgonautSupport"
                                                                                         |}""".stripMargin)
     }
@@ -102,8 +103,9 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
   "jsonOf" should {
     "decode JSON from an Argonaut decoder" in {
       jsonOf[IO, Foo]
-        .decode(Request[IO]().withEntity(jObjectFields("bar" -> jNumberOrNull(42))), strict = true) must returnRight(
-        Foo(42))
+        .decode(
+          Request[IO]().withEntity(jObjectFields("bar" -> jNumberOrNull(42))),
+          strict = true) must returnRight(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514

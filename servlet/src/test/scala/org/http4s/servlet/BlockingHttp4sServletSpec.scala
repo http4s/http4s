@@ -70,7 +70,7 @@ class BlockingHttp4sServletSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   )
 
   lazy val serverPortR = Resource
-    .make(IO { new Server })(server => IO { server.stop() })
+    .make(IO(new Server))(server => IO(server.stop()))
     .evalMap { server =>
       IO {
         val connector =

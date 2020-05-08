@@ -71,16 +71,16 @@ class Http1ClientStageSpec extends Http4sSpec {
       d <- Deferred[IO, Unit]
       _ <- IO(LeafBuilder(stage).base(h))
       _ <- (d.get >> Stream
-        .emits(resp.toList)
-        .map { c =>
-          val b = ByteBuffer.allocate(1)
-          b.put(c.toByte).flip()
-          b
-        }
-        .noneTerminate
-        .through(q.enqueue)
-        .compile
-        .drain).start
+          .emits(resp.toList)
+          .map { c =>
+            val b = ByteBuffer.allocate(1)
+            b.put(c.toByte).flip()
+            b
+          }
+          .noneTerminate
+          .through(q.enqueue)
+          .compile
+          .drain).start
       req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(())))
       response <- stage.runRequest(req0, IO.never)
       result <- response.as[String]
@@ -131,9 +131,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         tail
           .runRequest(FooRequest, IO.never)
           .unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
-      } finally {
-        tail.shutdown()
-      }
+      } finally tail.shutdown()
     }
 
     "Reset correctly" in {
@@ -149,9 +147,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         tail.shutdown()
 
         result.headers.size must_== 1
-      } finally {
-        tail.shutdown()
-      }
+      } finally tail.shutdown()
     }
 
     "Alert the user if the body is to short" in {
@@ -165,9 +161,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         val result = tail.runRequest(FooRequest, IO.never).unsafeRunSync()
 
         result.body.compile.drain.unsafeRunSync() must throwA[InvalidBodyException]
-      } finally {
-        tail.shutdown()
-      }
+      } finally tail.shutdown()
     }
 
     "Interpret a lack of length with a EOF as a valid message" in {
@@ -227,9 +221,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
         requestLines.find(_.startsWith("User-Agent")) must beNone
         response must_== "done"
-      } finally {
-        tail.shutdown()
-      }
+      } finally tail.shutdown()
     }
 
     // TODO fs2 port - Currently is elevating the http version to 1.1 causing this test to fail
@@ -274,9 +266,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         response.body.compile.toVector
           .unsafeRunSync()
           .foldLeft(0L)((long, _) => long + 1L) must_== 0L
-      } finally {
-        tail.shutdown()
-      }
+      } finally tail.shutdown()
     }
 
     {

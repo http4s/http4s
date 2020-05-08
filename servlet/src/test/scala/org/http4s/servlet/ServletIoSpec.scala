@@ -50,9 +50,8 @@ class ServletIoSpec extends Http4sSpec {
 
     override def read(): Int = {
       val result = in.read()
-      if (in.available() == 0) {
+      if (in.available() == 0)
         readListener.onAllDataRead()
-      }
       result
     }
   }

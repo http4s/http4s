@@ -82,27 +82,30 @@ object Prometheus {
       metrics: MetricsCollection
   )(implicit F: Sync[F]): MetricsOps[F] =
     new MetricsOps[F] {
-      override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
-        metrics.activeRequests
-          .labels(label(classifier))
-          .inc()
-      }
+      override def increaseActiveRequests(classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.activeRequests
+            .labels(label(classifier))
+            .inc()
+        }
 
-      override def decreaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
-        metrics.activeRequests
-          .labels(label(classifier))
-          .dec()
-      }
+      override def decreaseActiveRequests(classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.activeRequests
+            .labels(label(classifier))
+            .dec()
+        }
 
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
           classifier: Option[String]
-      ): F[Unit] = F.delay {
-        metrics.responseDuration
-          .labels(label(classifier), reportMethod(method), Phase.report(Phase.Headers))
-          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-      }
+      ): F[Unit] =
+        F.delay {
+          metrics.responseDuration
+            .labels(label(classifier), reportMethod(method), Phase.report(Phase.Headers))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
 
       override def recordTotalTime(
           method: Method,
@@ -122,29 +125,33 @@ object Prometheus {
       override def recordAbnormalTermination(
           elapsed: Long,
           terminationType: TerminationType,
-          classifier: Option[String]): F[Unit] = terminationType match {
-        case Abnormal => recordAbnormal(elapsed, classifier)
-        case Error => recordError(elapsed, classifier)
-        case Timeout => recordTimeout(elapsed, classifier)
-      }
+          classifier: Option[String]): F[Unit] =
+        terminationType match {
+          case Abnormal => recordAbnormal(elapsed, classifier)
+          case Error => recordError(elapsed, classifier)
+          case Timeout => recordTimeout(elapsed, classifier)
+        }
 
-      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
-          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-      }
+      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.abnormalTerminations
+            .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
 
-      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Error))
-          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-      }
+      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.abnormalTerminations
+            .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Error))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
 
-      private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Timeout))
-          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-      }
+      private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.abnormalTerminations
+            .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Timeout))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
 
       private def label(classifier: Option[String]): String = classifier.getOrElse("")
 
@@ -157,18 +164,19 @@ object Prometheus {
           case _ => "5xx"
         }
 
-      private def reportMethod(m: Method): String = m match {
-        case Method.GET => "get"
-        case Method.PUT => "put"
-        case Method.POST => "post"
-        case Method.HEAD => "head"
-        case Method.MOVE => "move"
-        case Method.OPTIONS => "options"
-        case Method.TRACE => "trace"
-        case Method.CONNECT => "connect"
-        case Method.DELETE => "delete"
-        case _ => "other"
-      }
+      private def reportMethod(m: Method): String =
+        m match {
+          case Method.GET => "get"
+          case Method.PUT => "put"
+          case Method.POST => "post"
+          case Method.HEAD => "head"
+          case Method.MOVE => "move"
+          case Method.OPTIONS => "options"
+          case Method.TRACE => "trace"
+          case Method.CONNECT => "connect"
+          case Method.DELETE => "delete"
+          case _ => "other"
+        }
     }
 
   private def createMetricsCollection[F[_]: Sync](
@@ -242,10 +250,11 @@ private sealed trait Phase
 private object Phase {
   case object Headers extends Phase
   case object Body extends Phase
-  def report(s: Phase): String = s match {
-    case Headers => "headers"
-    case Body => "body"
-  }
+  def report(s: Phase): String =
+    s match {
+      case Headers => "headers"
+      case Body => "body"
+    }
 }
 
 private sealed trait AbnormalTermination
@@ -253,9 +262,10 @@ private object AbnormalTermination {
   case object Abnormal extends AbnormalTermination
   case object Error extends AbnormalTermination
   case object Timeout extends AbnormalTermination
-  def report(t: AbnormalTermination): String = t match {
-    case Abnormal => "abnormal"
-    case Timeout => "timeout"
-    case Error => "error"
-  }
+  def report(t: AbnormalTermination): String =
+    t match {
+      case Abnormal => "abnormal"
+      case Timeout => "timeout"
+      case Error => "error"
+    }
 }

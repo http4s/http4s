@@ -20,9 +20,10 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
 
 final case class `If-None-Match`(tags: Option[NonEmptyList[ETag.EntityTag]]) extends Header.Parsed {
   override def key: `If-None-Match`.type = `If-None-Match`
-  override def value: String = tags match {
-    case None => "*"
-    case Some(tags) => tags.mkString_("", ",", "")
-  }
+  override def value: String =
+    tags match {
+      case None => "*"
+      case Some(tags) => tags.mkString_("", ",", "")
+    }
   override def renderValue(writer: Writer): writer.type = writer.append(value)
 }

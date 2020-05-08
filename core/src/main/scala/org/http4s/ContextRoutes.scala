@@ -15,8 +15,8 @@ object ContextRoutes {
     * @param run the function to lift
     * @return an [[ContextRoutes]] that wraps `run`
     */
-  def apply[T, F[_]](run: ContextRequest[F, T] => OptionT[F, Response[F]])(
-      implicit F: Defer[F]): ContextRoutes[T, F] =
+  def apply[T, F[_]](run: ContextRequest[F, T] => OptionT[F, Response[F]])(implicit
+      F: Defer[F]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(run(req).value)))
 
   /** Lifts a partial function into an [[ContextRoutes]].  The application of the
@@ -28,8 +28,8 @@ object ContextRoutes {
     * @return An [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def of[T, F[_]](pf: PartialFunction[ContextRequest[F, T], F[Response[F]]])(
-      implicit F: Defer[F],
+  def of[T, F[_]](pf: PartialFunction[ContextRequest[F, T], F[Response[F]]])(implicit
+      F: Defer[F],
       FA: Applicative[F]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(pf.lift(req).sequence)))
 

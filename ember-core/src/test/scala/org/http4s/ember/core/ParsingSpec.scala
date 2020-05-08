@@ -127,14 +127,13 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
           |""".stripMargin
 
       (for {
-        parsed <- Parser.Response
-          .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw))(logger)
-          .use { resp =>
-            resp.body.through(text.utf8Decode).compile.string
-          }
-      } yield {
-        parsed must_== "{}"
-      }).unsafeRunSync()
+        parsed <-
+          Parser.Response
+            .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw))(logger)
+            .use { resp =>
+              resp.body.through(text.utf8Decode).compile.string
+            }
+      } yield parsed must_== "{}").unsafeRunSync()
     }
 
   }

@@ -56,8 +56,8 @@ object VirtualHost {
       h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port))
   }
 
-  def apply[F[_], G[_]](first: HostService[F, G], rest: HostService[F, G]*)(
-      implicit F: Applicative[F],
+  def apply[F[_], G[_]](first: HostService[F, G], rest: HostService[F, G]*)(implicit
+      F: Applicative[F],
       W: EntityEncoder[G, String]): Http[F, G] =
     Kleisli { req =>
       req.headers

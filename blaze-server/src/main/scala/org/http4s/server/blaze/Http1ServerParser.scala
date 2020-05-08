@@ -35,18 +35,18 @@ private[blaze] final class Http1ServerParser[F[_]](
     val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
 
     val attrsWithTrailers =
-      if (minorVersion() == 1 && isChunked) {
+      if (minorVersion() == 1 && isChunked)
         attrs.insert(
           Message.Keys.TrailerHeaders[F],
           F.suspend[Headers] {
-            if (!contentComplete()) {
+            if (!contentComplete())
               F.raiseError(
                 new IllegalStateException(
                   "Attempted to collect trailers before the body was complete."))
-            } else F.pure(Headers(headers.result()))
+            else F.pure(Headers(headers.result()))
           }
         )
-      } else attrs // Won't have trailers without a chunked body
+      else attrs // Won't have trailers without a chunked body
 
     Method
       .fromString(this.method)

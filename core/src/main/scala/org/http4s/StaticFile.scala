@@ -58,8 +58,8 @@ object StaticFile {
         .flatMap(fromURL(_, blocker, req)))
   }
 
-  def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(
-      implicit F: Sync[F],
+  def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(implicit
+      F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT.liftF(F.delay {
       val urlConn = url.openConnection
@@ -119,8 +119,8 @@ object StaticFile {
       buffsize: Int,
       blocker: Blocker,
       req: Option[Request[F]],
-      etagCalculator: File => F[String])(
-      implicit F: Sync[F],
+      etagCalculator: File => F[String])(implicit
+      F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
@@ -151,9 +151,8 @@ object StaticFile {
             logger.trace(s"Static file generated response: $r")
             Some(r)
           }
-        } else {
+        } else
           None
-        }
       }
     } yield res)
 

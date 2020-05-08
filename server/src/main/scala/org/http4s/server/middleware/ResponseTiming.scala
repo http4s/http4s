@@ -25,8 +25,8 @@ object ResponseTiming {
   def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
-      headerName: CaseInsensitiveString = CaseInsensitiveString("X-Response-Time"))(
-      implicit F: Sync[F],
+      headerName: CaseInsensitiveString = CaseInsensitiveString("X-Response-Time"))(implicit
+      F: Sync[F],
       clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
       for {

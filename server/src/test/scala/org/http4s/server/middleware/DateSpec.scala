@@ -25,12 +25,10 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- testService(req).value
         now <- HttpDate.current[IO]
-      } yield {
-        out.flatMap(_.headers.get(HDate)) must beSome.like {
-          case date =>
-            val diff = now.epochSecond - date.date.epochSecond
-            diff must be_<=(2L)
-        }
+      } yield out.flatMap(_.headers.get(HDate)) must beSome.like {
+        case date =>
+          val diff = now.epochSecond - date.date.epochSecond
+          diff must be_<=(2L)
       }
     }
 
@@ -38,12 +36,10 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- testApp(req)
         now <- HttpDate.current[IO]
-      } yield {
-        out.headers.get(HDate) must beSome.like {
-          case date =>
-            val diff = now.epochSecond - date.date.epochSecond
-            diff must be_<=(2L)
-        }
+      } yield out.headers.get(HDate) must beSome.like {
+        case date =>
+          val diff = now.epochSecond - date.date.epochSecond
+          diff must be_<=(2L)
       }
     }
 
@@ -61,13 +57,11 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- test(req)
         nowD <- HttpDate.current[IO]
-      } yield {
-        out.headers.get(HDate) must beSome.like {
-          case date =>
-            val now = nowD.epochSecond
-            val diff = now - date.date.epochSecond
-            now must_=== diff
-        }
+      } yield out.headers.get(HDate) must beSome.like {
+        case date =>
+          val now = nowD.epochSecond
+          val diff = now - date.date.epochSecond
+          now must_=== diff
       }
     }
 
@@ -76,9 +70,7 @@ class DateSpec extends Http4sSpec with CatsIO {
 
       for {
         response <- httpRoute(req).value
-      } yield {
-        response.flatMap(_.headers.get(HDate)) must beSome
-      }
+      } yield response.flatMap(_.headers.get(HDate)) must beSome
     }
 
     "be created via httpApp constructor" in {
@@ -86,9 +78,7 @@ class DateSpec extends Http4sSpec with CatsIO {
 
       for {
         response <- httpApp(req)
-      } yield {
-        response.headers.get(HDate) must beSome
-      }
+      } yield response.headers.get(HDate) must beSome
     }
   }
 }

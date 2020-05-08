@@ -97,9 +97,8 @@ object WebjarService {
       val version = p.getName(1).toString
       val asset = p.subpath(2, count).iterator().asScala.mkString("/")
       Some(WebjarAsset(library, version, asset))
-    } else {
+    } else
       None
-    }
   }
 
   /**

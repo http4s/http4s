@@ -66,7 +66,8 @@ class EntityEncoderSpec extends Http4sSpec {
 
     "render input streams" in {
       val inputStream = new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8))
-      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder(testBlocker)) must_== "input stream"
+      writeToString(IO(inputStream))(
+        EntityEncoder.inputStreamEncoder(testBlocker)) must_== "input stream"
     }
 
     "render readers" in {
@@ -80,13 +81,15 @@ class EntityEncoderSpec extends Http4sSpec {
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder(testBlocker)) must_== longString
+      writeToString[IO[Reader]](IO(reader))(
+        EntityEncoder.readerEncoder(testBlocker)) must_== longString
     }
 
     "render readers with UTF chars" in {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder(testBlocker)) must_== utfString
+      writeToString[IO[Reader]](IO(reader))(
+        EntityEncoder.readerEncoder(testBlocker)) must_== utfString
     }
 
     "give the content type" in {

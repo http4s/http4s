@@ -12,10 +12,11 @@ abstract class UriHeaderParser[A <: Header](value: String)
   // Implementors should build a Header out of the uri
   def fromUri(uri: Uri): A
 
-  def entry: Rule1[A] = rule {
-    // https://tools.ietf.org/html/rfc3986#section-4.1
-    (AbsoluteUri | RelativeRef) ~> { (a: Uri) =>
-      fromUri(a)
+  def entry: Rule1[A] =
+    rule {
+      // https://tools.ietf.org/html/rfc3986#section-4.1
+      (AbsoluteUri | RelativeRef) ~> { (a: Uri) =>
+        fromUri(a)
+      }
     }
-  }
 }

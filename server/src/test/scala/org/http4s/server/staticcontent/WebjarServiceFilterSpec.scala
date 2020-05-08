@@ -6,13 +6,14 @@ import org.http4s.Method.GET
 import org.http4s.server.staticcontent.WebjarService.Config
 
 object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
-  def routes: HttpRoutes[IO] = webjarService(
-    Config(
-      filter = (webjar) =>
-        webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt",
-      blocker = testBlocker
+  def routes: HttpRoutes[IO] =
+    webjarService(
+      Config(
+        filter = webjar =>
+          webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt",
+        blocker = testBlocker
+      )
     )
-  )
 
   "The WebjarService" should {
     "Return a 200 Ok file" in {

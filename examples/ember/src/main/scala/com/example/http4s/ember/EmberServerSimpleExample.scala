@@ -17,12 +17,13 @@ object EmberServerSimpleExample extends IOApp {
     val port = 8080
     for {
       // Server Level Resources Here
-      server <- EmberServerBuilder
-        .default[IO]
-        .withHost(host)
-        .withPort(port)
-        .withHttpApp(service[IO])
-        .build
+      server <-
+        EmberServerBuilder
+          .default[IO]
+          .withHost(host)
+          .withPort(port)
+          .withHttpApp(service[IO])
+          .build
     } yield server
   }.use(server =>
     IO.delay(println(s"Server Has Started at ${server.address}")) >>

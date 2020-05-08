@@ -13,19 +13,18 @@ import cats.implicits._
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-  def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(
-      implicit F: MonoidK[F],
+  def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(implicit
+      F: MonoidK[F],
       G: Functor[G]): Kleisli[F, Request[G], B] = {
     val _ = G // for binary compatibility in 0.20, remove on master
     Kleisli { req =>
       http(req) <+> {
         val pathInfo = req.pathInfo
 
-        if (pathInfo.isEmpty || pathInfo.charAt(pathInfo.length - 1) != '/') {
+        if (pathInfo.isEmpty || pathInfo.charAt(pathInfo.length - 1) != '/')
           F.empty
-        } else {
+        else
           http.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
-        }
       }
     }
   }

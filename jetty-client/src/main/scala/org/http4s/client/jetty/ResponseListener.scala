@@ -45,7 +45,7 @@ private[jetty] final case class ResponseListener[F[_]](
           }
         ))
       }
-      .leftMap(t => { abort(t, response); t })
+      .leftMap { t => abort(t, response); t }
 
     invokeCallback(logger)(cb(r))
   }
@@ -111,8 +111,8 @@ private[jetty] object ResponseListener {
 
   private val logger = getLogger
 
-  def apply[F[_]](cb: Callback[Resource[F, Response[F]]])(
-      implicit F: ConcurrentEffect[F]): F[ResponseListener[F]] =
+  def apply[F[_]](cb: Callback[Resource[F, Response[F]]])(implicit
+      F: ConcurrentEffect[F]): F[ResponseListener[F]] =
     Queue
       .synchronous[F, Item]
       .map(q => ResponseListener(q, cb))

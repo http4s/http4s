@@ -213,11 +213,18 @@ http://example.org/a file
     }
 
     "render URL with port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci), port = Some(80)))).toString must_== ("http://www.foo.com:80")
+      Uri(
+        Some(Scheme.http),
+        Some(
+          Authority(
+            host = RegName("www.foo.com".ci),
+            port = Some(80)))).toString must_== ("http://www.foo.com:80")
     }
 
     "render URL without port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci)))).toString must_== ("http://www.foo.com")
+      Uri(
+        Some(Scheme.http),
+        Some(Authority(host = RegName("www.foo.com".ci)))).toString must_== ("http://www.foo.com")
     }
 
     "render IPv4 URL with parameters" in {
@@ -225,15 +232,24 @@ http://example.org/a file
         Some(Scheme.http),
         Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
         "/c",
-        Query.fromPairs("GB" -> "object", "Class" -> "one")).toString must_== ("http://192.168.1.1:80/c?GB=object&Class=one")
+        Query.fromPairs(
+          "GB" -> "object",
+          "Class" -> "one")).toString must_== ("http://192.168.1.1:80/c?GB=object&Class=one")
     }
 
     "render IPv4 URL with port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1", port = Some(8080)))).toString must_== ("http://192.168.1.1:8080")
+      Uri(
+        Some(Scheme.http),
+        Some(
+          Authority(
+            host = ipv4"192.168.1.1",
+            port = Some(8080)))).toString must_== ("http://192.168.1.1:8080")
     }
 
     "render IPv4 URL without port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1"))).toString must_== ("http://192.168.1.1")
+      Uri(
+        Some(Scheme.http),
+        Some(Authority(host = ipv4"192.168.1.1"))).toString must_== ("http://192.168.1.1")
     }
 
     "render IPv6 URL with parameters" in {
@@ -241,17 +257,27 @@ http://example.org/a file
         Some(Scheme.http),
         Some(Authority(host = ipv6"2001:db8::7")),
         "/c",
-        Query.fromPairs("GB" -> "object", "Class" -> "one")).toString must_== ("http://[2001:db8::7]/c?GB=object&Class=one")
+        Query.fromPairs(
+          "GB" -> "object",
+          "Class" -> "one")).toString must_== ("http://[2001:db8::7]/c?GB=object&Class=one")
     }
 
     "render IPv6 URL with port" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344", port = Some(8080)))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")
+        Some(
+          Authority(
+            host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344",
+            port =
+              Some(8080)))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")
     }
 
     "render IPv6 URL without port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
+      Uri(
+        Some(Scheme.http),
+        Some(
+          Authority(host =
+            ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
     }
 
     "not append a '/' unless it's in the path" in {
@@ -259,7 +285,9 @@ http://example.org/a file
     }
 
     "render email address" in {
-      Uri(Some(scheme"mailto"), path = "John.Doe@example.com").toString must_== ("mailto:John.Doe@example.com")
+      Uri(
+        Some(scheme"mailto"),
+        path = "John.Doe@example.com").toString must_== ("mailto:John.Doe@example.com")
     }
 
     "render an URL with username and password" in {
@@ -306,7 +334,10 @@ http://example.org/a file
     }
 
     "render relative path with parameters" in {
-      Uri(path = "/foo/bar", query = Query.fromString("foo=bar&ding=dong")).toString must_== ("/foo/bar?foo=bar&ding=dong")
+      Uri(
+        path = "/foo/bar",
+        query =
+          Query.fromString("foo=bar&ding=dong")).toString must_== ("/foo/bar?foo=bar&ding=dong")
     }
 
     "render relative path with parameters and fragment" in {
@@ -329,7 +360,9 @@ http://example.org/a file
     }
 
     "render a query string with multiple value in a param" in {
-      Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_== ("?param1=3&param2=2&param2=foo")
+      Uri(query =
+        Query.fromString(
+          "param1=3&param2=2&param2=foo")).toString must_== ("?param1=3&param2=2&param2=foo")
     }
 
     "round trip over URI examples from wikipedia" in {
@@ -409,7 +442,9 @@ http://example.org/a file
       Uri(query = Query.fromString("param1")).multiParams must be_==(Map("param1" -> Nil))
     }
     "parse many parameter with value" in {
-      Uri(query = Query.fromString("param1=value&param2=value1&param2=value2&param3=value")).multiParams must_== (Map(
+      Uri(query =
+        Query.fromString(
+          "param1=value&param2=value1&param2=value2&param3=value")).multiParams must_== (Map(
         "param1" -> List("value"),
         "param2" -> List("value1", "value2"),
         "param3" -> List("value")))
@@ -432,10 +467,8 @@ http://example.org/a file
       i must be_==(Map("param1" -> "", "param2" -> ""))
     }
     "replace an existing parameter" in {
-      val i = Uri(query = Query.fromString("param=value")).params + (
-        (
-          "param",
-          Seq("value1", "value2")))
+      val i =
+        Uri(query = Query.fromString("param=value")).params + (("param", Seq("value1", "value2")))
       i must be_==(Map("param" -> Seq("value1", "value2")))
     }
     "replace an existing parameter with empty value" in {
@@ -660,21 +693,21 @@ http://example.org/a file
       Uri(query = Query.fromString("param1=value&param2=value")) ? "param3" must be_==(false)
     }
     "contains a parameter with many values" in {
-      Uri(query = Query.fromString("param1=value1&param1=value2&param1=value3")) ? "param1" must be_==(
-        true)
+      Uri(query =
+        Query.fromString("param1=value1&param1=value2&param1=value3")) ? "param1" must be_==(true)
     }
     "contains a parameter without a value" in {
       Uri(query = Query.fromString("param1")) ? "param1" must be_==(true)
     }
     "contains with many parameters" in {
-      Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param1" must be_==(
-        true)
-      Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param2" must be_==(
-        true)
+      Uri(query =
+        Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param1" must be_==(true)
+      Uri(query =
+        Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param2" must be_==(true)
       Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "" must be_==(
         true)
-      Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param3" must be_==(
-        false)
+      Uri(query =
+        Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param3" must be_==(false)
     }
     "remove a parameter if present" in {
       val u = Uri(query = Query.fromString("param1=value&param2=value")) -? ("param1")
@@ -698,7 +731,8 @@ http://example.org/a file
         Uri(query = Query.fromString("param1=newValue&param2=value")).multiParams)
     }
     "replace a parameter without a value" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")) +? ("param2")
+      val u =
+        Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")) +? ("param2")
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
@@ -1006,7 +1040,9 @@ http://example.org/a file
       decode("br%C3%BCcke", toSkip = CharPredicate("/?#")) must_== "brücke"
     }
     "handles mixed" in {
-      decode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = CharPredicate("/?#")) must_== "/ac%2Fdc/brücke%2342%3Fcheck"
+      decode(
+        "/ac%2Fdc/br%C3%BCcke%2342%3Fcheck",
+        toSkip = CharPredicate("/?#")) must_== "/ac%2Fdc/brücke%2342%3Fcheck"
     }
   }
   "The plusIsSpace flag" should {

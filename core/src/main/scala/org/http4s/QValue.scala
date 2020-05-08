@@ -89,9 +89,10 @@ object QValue {
     }.parse
 
   private[http4s] trait QValueParser extends AdditionalRules { self: PbParser =>
-    def QualityValue = rule { // QValue is already taken
-      ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
-    }
+    def QualityValue =
+      rule { // QValue is already taken
+        ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
+      }
   }
 
   /** Exists to support compile-time verified literals. Do not call directly. */

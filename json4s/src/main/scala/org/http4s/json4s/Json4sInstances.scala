@@ -31,8 +31,8 @@ trait Json4sInstances[J] {
     * Editorial: This is heavily dependent on reflection. This is more idiomatic json4s, but less
     * idiomatic http4s, than [[jsonOf]].
     */
-  def jsonExtract[F[_], A](
-      implicit F: Sync[F],
+  def jsonExtract[F[_], A](implicit
+      F: Sync[F],
       formats: Formats,
       manifest: Manifest[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>

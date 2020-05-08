@@ -17,18 +17,19 @@ object MultipartParserSpec extends Specification {
 
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
 
-  def ruinDelims(str: String) = augmentString(str).flatMap {
-    case '\n' => "\r\n"
-    case c => c.toString
-  }
+  def ruinDelims(str: String) =
+    augmentString(str).flatMap {
+      case '\n' => "\r\n"
+      case c => c.toString
+    }
 
   def jumble(str: String): Stream[IO, Byte] = {
     val rand = new scala.util.Random()
 
     def jumbleAccum(s: String, acc: Stream[IO, Byte]): Stream[IO, Byte] =
-      if (s.length <= 1) {
+      if (s.length <= 1)
         acc ++ Stream.chunk(Chunk.bytes(s.getBytes()))
-      } else {
+      else {
         val (l, r) = s.splitAt(rand.nextInt(s.length - 1) + 1)
         jumbleAccum(r, acc ++ Stream.chunk(Chunk.bytes(l.getBytes)))
       }
@@ -40,11 +41,11 @@ object MultipartParserSpec extends Specification {
       str: String,
       limit: Int = Int.MaxValue,
       charset: java.nio.charset.Charset = StandardCharsets.US_ASCII): Stream[IO, Byte] =
-    if (str.isEmpty) {
+    if (str.isEmpty)
       Stream.empty
-    } else if (str.length <= limit) {
+    else if (str.length <= limit)
       Stream.emits(str.getBytes(charset).toSeq)
-    } else {
+    else {
       val (front, back) = str.splitAt(limit)
       Stream.emits(front.getBytes(charset).toSeq) ++ unspool(back, limit, charset)
     }

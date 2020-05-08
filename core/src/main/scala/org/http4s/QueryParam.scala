@@ -24,9 +24,10 @@ object QueryParam {
   /** summon an implicit [[QueryParam]] */
   def apply[T](implicit ev: QueryParam[T]): QueryParam[T] = ev
 
-  def fromKey[T](k: String): QueryParam[T] = new QueryParam[T] {
-    def key: QueryParameterKey = QueryParameterKey(k)
-  }
+  def fromKey[T](k: String): QueryParam[T] =
+    new QueryParam[T] {
+      def key: QueryParameterKey = QueryParameterKey(k)
+    }
 }
 
 trait QueryParamKeyLike[T] {
@@ -96,8 +97,8 @@ object QueryParamEncoder {
     }
 
   @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
-  def encodeBy[T, U](f: T => U)(
-      implicit qpe: QueryParamEncoder[U]
+  def encodeBy[T, U](f: T => U)(implicit
+      qpe: QueryParamEncoder[U]
   ): QueryParamEncoder[T] =
     qpe.contramap(f)
 
@@ -105,8 +106,8 @@ object QueryParamEncoder {
   def encode[T](f: T => String): QueryParamEncoder[T] =
     stringQueryParamEncoder.contramap(f)
 
-  def fromShow[T](
-      implicit sh: Show[T]
+  def fromShow[T](implicit
+      sh: Show[T]
   ): QueryParamEncoder[T] =
     stringQueryParamEncoder.contramap(sh.show)
 
@@ -206,8 +207,8 @@ object QueryParamDecoder {
     }
 
   @deprecated("Use QueryParamDecoder[T].map(f)", "0.16")
-  def decodeBy[U, T](f: T => U)(
-      implicit qpd: QueryParamDecoder[T]
+  def decodeBy[U, T](f: T => U)(implicit
+      qpd: QueryParamDecoder[T]
   ): QueryParamDecoder[U] =
     qpd.map(f)
 

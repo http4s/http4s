@@ -60,13 +60,12 @@ object FollowRedirect {
           req
 
       def propagateCookies(req: Request[F]): Request[F] =
-        if (req.uri.authority == nextUri.authority) {
+        if (req.uri.authority == nextUri.authority)
           cookies.foldLeft(req) {
             case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
           }
-        } else {
+        else
           req
-        }
 
       def clearBodyFromGetHead(req: Request[F]): Request[F] =
         method match {

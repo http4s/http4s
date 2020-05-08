@@ -14,10 +14,11 @@ sealed abstract class CharsetRange extends HasQValue with Renderable {
     *
     * @since 0.16.1
     */
-  final def matches(charset: Charset): Boolean = this match {
-    case CharsetRange.`*`(_) => true
-    case CharsetRange.Atom(cs, _) => charset == cs
-  }
+  final def matches(charset: Charset): Boolean =
+    this match {
+      case CharsetRange.`*`(_) => true
+      case CharsetRange.Atom(cs, _) => charset == cs
+    }
 }
 
 object CharsetRange {

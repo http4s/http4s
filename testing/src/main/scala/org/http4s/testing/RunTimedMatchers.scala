@@ -42,13 +42,14 @@ trait RunTimedMatchers[F[_]] {
       duration: Option[FiniteDuration]
   ) extends Matcher[F[T]] {
     override final def apply[S <: F[T]](expected: Expectable[S]): MatchResult[S] = {
-      def checkOrFail[A](res: Either[Throwable, T]): MatchResult[S] = res match {
-        case Left(error) =>
-          val message = s"an exception was thrown ${error.getMessage.notNull}"
-          result(false, message, message, expected)
-        case Right(actual) =>
-          result(check.check(actual), expected)
-      }
+      def checkOrFail[A](res: Either[Throwable, T]): MatchResult[S] =
+        res match {
+          case Left(error) =>
+            val message = s"an exception was thrown ${error.getMessage.notNull}"
+            result(false, message, message, expected)
+          case Right(actual) =>
+            result(check.check(actual), expected)
+        }
 
       val theAttempt = F.attempt(expected.value)
       duration match {

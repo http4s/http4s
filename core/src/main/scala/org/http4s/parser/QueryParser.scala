@@ -81,7 +81,7 @@ private[http4s] class QueryParser(
             valAcc.clear()
           }
 
-        case c if (qChars.contains(c.toInt)) => valAcc.append(c)
+        case c if qChars.contains(c.toInt) => valAcc.append(c)
 
         case c => error = s"Invalid char while splitting key/value pairs: '$c'"
       }

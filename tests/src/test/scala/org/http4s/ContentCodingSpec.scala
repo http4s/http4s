@@ -72,7 +72,8 @@ class ContentCodingSpec extends Http4sSpec {
   "render" should {
     "return coding and quality" in
       prop { (s: ContentCoding) =>
-        Renderer.renderString(s) must_== s"${s.coding.toLowerCase}${Renderer.renderString(s.qValue)}"
+        Renderer
+          .renderString(s) must_== s"${s.coding.toLowerCase}${Renderer.renderString(s.qValue)}"
       }
   }
 

@@ -28,9 +28,8 @@ class FollowRedirectSpec
         if (iteration < 3) {
           val uri = Uri.unsafeFromString(s"/loop/${iteration + 1}")
           MovedPermanently(Location(uri)).map(_.withEntity(iteration.toString))
-        } else {
+        } else
           Ok(iteration.toString)
-        }
 
       case req @ _ -> Root / "ok" =>
         Ok(

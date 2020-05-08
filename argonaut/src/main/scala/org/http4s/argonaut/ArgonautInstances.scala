@@ -41,8 +41,8 @@ trait ArgonautInstances extends JawnInstances {
   def jsonEncoderOf[F[_], A](implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrettyParams)
 
-  def jsonEncoderWithPrinterOf[F[_], A](prettyParams: PrettyParams)(
-      implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
+  def jsonEncoderWithPrinterOf[F[_], A](prettyParams: PrettyParams)(implicit
+      encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrettyParams[F](prettyParams).contramap[A](encoder.encode)
 
   implicit val uriCodec: CodecJson[Uri] = CodecJson(
@@ -94,14 +94,15 @@ sealed abstract case class ArgonautInstancesBuilder private[argonaut] (
       jawnParseExceptionMessage,
       jawnEmptyBodyMessage) {}
 
-  def build: ArgonautInstances = new ArgonautInstances {
-    override val defaultPrettyParams: PrettyParams = self.defaultPrettyParams
-    override val jsonDecodeError: (Json, String, CursorHistory) => DecodeFailure =
-      self.jsonDecodeError
-    override val jawnParseExceptionMessage: ParseException => DecodeFailure =
-      self.jawnParseExceptionMessage
-    override val jawnEmptyBodyMessage: DecodeFailure = self.jawnEmptyBodyMessage
-  }
+  def build: ArgonautInstances =
+    new ArgonautInstances {
+      override val defaultPrettyParams: PrettyParams = self.defaultPrettyParams
+      override val jsonDecodeError: (Json, String, CursorHistory) => DecodeFailure =
+        self.jsonDecodeError
+      override val jawnParseExceptionMessage: ParseException => DecodeFailure =
+        self.jawnParseExceptionMessage
+      override val jawnEmptyBodyMessage: DecodeFailure = self.jawnEmptyBodyMessage
+    }
 }
 
 object ArgonautInstances {

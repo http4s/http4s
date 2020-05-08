@@ -41,19 +41,19 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
       qValue.isAcceptable && encoding.qValue.isAcceptable
 
   def matches(encoding: ContentCoding): Boolean =
-    (this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding))
+    this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding)
 
-  override def equals(o: Any) = o match {
-    case that: ContentCoding =>
-      this.coding.equalsIgnoreCase(that.coding) && this.qValue === that.qValue
-    case _ => false
-  }
+  override def equals(o: Any) =
+    o match {
+      case that: ContentCoding =>
+        this.coding.equalsIgnoreCase(that.coding) && this.qValue === that.qValue
+      case _ => false
+    }
 
   private[this] var hash = 0
   override def hashCode(): Int = {
-    if (hash == 0) {
+    if (hash == 0)
       hash = MurmurHash3.mixLast(coding.toLowerCase.##, qValue.##)
-    }
     hash
   }
 
@@ -105,18 +105,20 @@ object ContentCoding {
 
   private[http4s] trait ContentCodingParser extends QValueParser { self: PbParser =>
 
-    def EncodingRangeDecl: Rule1[ContentCoding] = rule {
-      (ContentCodingToken ~ QualityValue) ~> { (coding: ContentCoding, q: QValue) =>
-        if (q === org.http4s.QValue.One) coding
-        else coding.withQValue(q)
+    def EncodingRangeDecl: Rule1[ContentCoding] =
+      rule {
+        (ContentCodingToken ~ QualityValue) ~> { (coding: ContentCoding, q: QValue) =>
+          if (q === org.http4s.QValue.One) coding
+          else coding.withQValue(q)
+        }
       }
-    }
 
-    private def ContentCodingToken: Rule1[ContentCoding] = rule {
-      Token ~> { (s: String) =>
-        ContentCoding.standard.getOrElse(s, new ContentCoding(s))
+    private def ContentCodingToken: Rule1[ContentCoding] =
+      rule {
+        Token ~> { (s: String) =>
+          ContentCoding.standard.getOrElse(s, new ContentCoding(s))
+        }
       }
-    }
   }
 
   implicit val http4sOrderForContentCoding: Order[ContentCoding] =

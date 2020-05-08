@@ -59,11 +59,10 @@ private[blaze] final class BlazeHttp1ClientParser(
       majorversion: Int,
       minorversion: Int): Unit = {
     status = Status.fromIntAndReason(code, reason).valueOr(throw _)
-    httpVersion = {
+    httpVersion =
       if (majorversion == 1 && minorversion == 1) HttpVersion.`HTTP/1.1`
       else if (majorversion == 1 && minorversion == 0) HttpVersion.`HTTP/1.0`
       else HttpVersion.fromVersion(majorversion, minorversion).getOrElse(HttpVersion.`HTTP/1.0`)
-    }
   }
 
   override protected def headerComplete(name: String, value: String): Boolean = {
