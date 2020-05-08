@@ -1,8 +1,13 @@
 /*
- * Forked from https://raw.githubusercontent.com/non/jawn/v0.8.4/support/argonaut/src/main/scala/Parser.scala
- * Licensed under MIT License, Copyright Erik Osheim, 2012-2015.
- * https://github.com/non/jawn#copyright-and-license
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/typelevel/jawn/blob/v0.8.4/parser/src/main/scala/jawn/Parser.scala
+ * Copyright Erik Osheim, 2012-2015
+ * See licenses/LICENSE_jawn
  */
+
 package org.http4s.argonaut
 
 import _root_.argonaut._

@@ -69,8 +69,7 @@ Licensed under Apache License 2.0 (see LICENSE)
 
 This software contains portions of code derived from specs2
 https://github.com/etorreborre/specs2
-Copyright (C) 2011-2012 spray.io
-Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
+Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
 Licensed under MIT license (see licenses/LICENSE_specs2)
 
 This software contains portions of code derived from spray
