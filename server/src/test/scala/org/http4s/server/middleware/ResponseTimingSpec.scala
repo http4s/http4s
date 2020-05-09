@@ -5,7 +5,7 @@ import cats.effect._
 import cats.effect.concurrent.Ref
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 
 import scala.concurrent.duration.TimeUnit
 
@@ -27,7 +27,7 @@ class ResponseTimingSpec extends Http4sSpec {
       val res = app(req)
 
       val header = res
-        .map(_.headers.find(_.name == CaseInsensitiveString("X-Response-Time")))
+        .map(_.headers.find(_.name == CIString("X-Response-Time")))
         .unsafeRunSync()
 
       header.nonEmpty must_== true

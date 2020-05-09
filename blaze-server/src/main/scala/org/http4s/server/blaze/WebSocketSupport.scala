@@ -2,6 +2,7 @@ package org.http4s.server.blaze
 
 import cats.effect._
 import cats.implicits._
+import com.rossabaker.ci.CIString
 import fs2.concurrent.SignallingRef
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
@@ -11,7 +12,6 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.syntax.string._
 import org.http4s.websocket.WebSocketHandshake
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -38,7 +38,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 wsContext.failureResponse
                   .map(
                     _.withHeaders(
-                      Connection("close".ci),
+                      Connection(CIString("close")),
                       Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
                     ))
               } {

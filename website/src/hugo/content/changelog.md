@@ -1837,7 +1837,7 @@ This release is identical to v0.19.0-M4.  We mistagged it.  Please proceed to th
   implementors, with more to follow.  Added an `HttpCodecLaws` to http4s-testing.
 * `Uri.Scheme` is now its own type instead of a type alias.
 * `TransferCoding` is no longer a case class. Its `coding` member is now a
-  `String`, not a `CaseInsensitiveString`. Its companion is no longer a
+  `String`, not a `CIString`. Its companion is no longer a
   `Registry`.
 * Introduced `org.http4s.syntax.literals`, which contains a `StringContext` forAll
   safely constructing a `Uri.Scheme`.  More will follow.
@@ -2185,7 +2185,7 @@ Several dependencies are upgraded:
 * Overload `client.fetchAs` and `client.streaming` to accept a `Task[Request]`
 * Replace `Instant` with `HttpDate` to avoid silent truncation and constrain
   to dates that are legally renderable in HTTP.
-* Fix bug in hash code of `CaseInsensitiveString`
+* Fix bug in hash code of `CIString`
 * Update `request.pathInfo` when changing `request.withUri`. To keep these
   values in sync, `request.copy` has been deprecated, but copy constructors
   based on `with` have been added.
@@ -2202,7 +2202,7 @@ Several dependencies are upgraded:
   backends
 * Fix `Part.name` to return the name from the `Content-Disposition` header
   instead of the name _of_ the `Content-Disposition` header. Accordingly, it is
-  no longer a `CaseInsensitiveString`
+  no longer a `CIString`
 * `Request.toString` and `Response.toString` now redact sensitive headers. A
   method to redact arbitrary headers is added to `Headers`.
 * `Retry-After` is now modeled as a `Either[HttpDate, Long]` to reflect either
@@ -2363,7 +2363,7 @@ Several dependencies are upgraded:
 * Use `SSLContext.getDefault` by default in blaze-client.  Use
   `BlazeServerConfig.insecure` to ignore certificate validity.  But
   please don't.
-* Move `CaseInsensitiveString` syntax to `org.http4s.syntax`.
+* Move `CIString` syntax to `org.http4s.syntax`.
 * Bundle an internal version of parboiled2.  This decouples core from
   shapeless, allowing applications to use their preferred version of
   shapeless.

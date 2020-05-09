@@ -7,7 +7,7 @@ import cats.data.Kleisli
 import cats.implicits._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 import org.log4s.getLogger
 import scala.concurrent.duration._
 
@@ -55,7 +55,7 @@ object CORS {
           config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
 
       def varyHeader(response: Response[G]): Response[G] =
-        response.headers.get(CaseInsensitiveString("Vary")) match {
+        response.headers.get(CIString("Vary")) match {
           case None => response.putHeaders(defaultVaryHeader)
           case _ => response
         }

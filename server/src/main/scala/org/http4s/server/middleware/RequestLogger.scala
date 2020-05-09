@@ -10,7 +10,7 @@ import cats.effect.implicits._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2.{Chunk, Stream}
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 import org.log4s.getLogger
 import cats.effect.Sync._
 
@@ -24,7 +24,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(http: Http[G, F])(
       implicit F: Concurrent[F],
@@ -81,7 +81,7 @@ object RequestLogger {
   def httpApp[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
@@ -89,7 +89,7 @@ object RequestLogger {
   def httpRoutes[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)

@@ -1,9 +1,9 @@
 package org.http4s
 package parser
 
+import com.rossabaker.ci.CIString
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective.{`max-age`, `max-stale`, `min-fresh`, `private`, `s-maxage`, _}
-import org.http4s.syntax.string._
 import org.specs2.mutable.Specification
 import scala.concurrent.duration._
 
@@ -27,7 +27,11 @@ class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Cont
     `stale-while-revalidate`(4.seconds))
 
   val strdirectives =
-    List(`private`("Foo".ci :: Nil), `private`(Nil), `no-cache`("Foo".ci :: Nil), `no-cache`())
+    List(
+      `private`(CIString("Foo") :: Nil),
+      `private`(Nil),
+      `no-cache`(CIString("Foo") :: Nil),
+      `no-cache`())
 
   val others = List(
     `max-stale`(None),

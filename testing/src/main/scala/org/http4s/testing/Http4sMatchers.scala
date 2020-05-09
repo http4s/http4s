@@ -5,7 +5,7 @@ import cats.MonadError
 import cats.data.EitherT
 import cats.implicits._
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 import org.specs2.matcher._
 
 @deprecated(
@@ -46,7 +46,7 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       m.headers.get(h.name).map(_.value).aka("the particular header")
     }
 
-  def doesntContainHeader(h: CaseInsensitiveString): Matcher[Message[F]] =
+  def doesntContainHeader(h: CIString): Matcher[Message[F]] =
     beNone ^^ { (m: Message[F]) =>
       m.headers.get(h).aka("the particular header")
     }

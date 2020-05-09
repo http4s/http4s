@@ -1,11 +1,12 @@
 package org
 
 import cats.data.{EitherT, Kleisli, OptionT}
+import com.rossabaker.ci.CIString
 import fs2.Stream
 
 package object http4s { // scalastyle:ignore
 
-  type AuthScheme = util.CaseInsensitiveString
+  type AuthScheme = CIString
 
   type EntityBody[+F[_]] = Stream[F, Byte]
 

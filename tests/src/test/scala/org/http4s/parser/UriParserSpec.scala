@@ -1,8 +1,8 @@
 package org.http4s.parser
 
 import cats.implicits._
+import com.rossabaker.ci.CIString
 import java.nio.charset.{StandardCharsets, Charset => NioCharset}
-
 import org.http4s.Uri.Scheme.https
 import org.http4s._
 import org.http4s.Uri._
@@ -57,13 +57,19 @@ class UriParserSpec extends Http4sSpec {
       val portExamples: Seq[(String, Uri)] = Seq(
         (
           "http://foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = None)))),
+          Uri(
+            Some(Scheme.http),
+            Some(Authority(host = RegName(CIString("foo.com")), port = None)))),
         (
           "http://foo.com:",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = None)))),
+          Uri(
+            Some(Scheme.http),
+            Some(Authority(host = RegName(CIString("foo.com")), port = None)))),
         (
           "http://foo.com:80",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = Some(80)))))
+          Uri(
+            Some(Scheme.http),
+            Some(Authority(host = RegName(CIString("foo.com")), port = Some(80)))))
       )
 
       check(portExamples)
@@ -73,12 +79,12 @@ class UriParserSpec extends Http4sSpec {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com")))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = RegName("www.foo.com".ci))),
+            Some(Authority(host = RegName(CIString("www.foo.com")))),
             "/foo",
             Query.fromPairs("bar" -> "baz"))),
         ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
@@ -119,7 +125,7 @@ class UriParserSpec extends Http4sSpec {
       u must beRight(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = RegName("foo.bar".ci))),
+          Some(Authority(host = RegName(CIString("foo.bar")))),
           "/foo",
           Query.empty,
           Some("Examples")))
@@ -130,7 +136,7 @@ class UriParserSpec extends Http4sSpec {
       u must beRight(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = RegName("foo.bar".ci))),
+          Some(Authority(host = RegName(CIString("foo.bar")))),
           "/foo",
           Query.fromPairs("bar" -> "baz"),
           Some("Example-Fragment")))
@@ -211,12 +217,12 @@ class UriParserSpec extends Http4sSpec {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com")))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = RegName("www.foo.com".ci))),
+            Some(Authority(host = RegName(CIString("www.foo.com")))),
             "/foo",
             Query.fromPairs("bar" -> "baz"))),
         ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
@@ -282,7 +288,7 @@ class UriParserSpec extends Http4sSpec {
     "parse valid URIs" in {
       uri"https://http4s.org" must_== Uri(
         scheme = Option(https),
-        authority = Option(Uri.Authority(host = RegName("http4s.org".ci))))
+        authority = Option(Uri.Authority(host = RegName(CIString("http4s.org")))))
     }
 
     "reject invalid URIs" in {

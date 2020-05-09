@@ -11,7 +11,7 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Timestamp,
   Version
 }
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 import org.specs2.mutable.Specification
 
 class OAuthTest extends Specification {
@@ -68,7 +68,7 @@ class OAuthTest extends Specification {
       val auth =
         oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
       val creds = auth.credentials
-      creds.authScheme must_== CaseInsensitiveString("OAuth")
+      creds.authScheme must_== CIString("OAuth")
     }
 
     "generate a Authorization header with config" in {
@@ -90,7 +90,7 @@ class OAuthTest extends Specification {
           )
           .unsafeRunSync()
       val creds = auth.credentials
-      creds.authScheme must_== CaseInsensitiveString("OAuth")
+      creds.authScheme must_== CIString("OAuth")
     }
   }
 

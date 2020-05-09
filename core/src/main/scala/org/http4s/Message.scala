@@ -12,7 +12,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.log4s.getLogger
 import _root_.io.chrisdavenport.vault._
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 
 import scala.util.hashing.MurmurHash3
 
@@ -279,9 +279,7 @@ final class Request[F[_]](
     * Supported cURL-Parameters are: -X, -H
     *
     */
-  def asCurl(
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
-      : String = {
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
 
     /*
      * escapes characters that are used in the curl-command, such as '
@@ -347,7 +345,7 @@ final class Request[F[_]](
       .fold(putHeaders(Cookie(NonEmptyList.of(cookie)))) { preExistingCookie =>
         removeHeader(Cookie).putHeaders(
           Header(
-            Cookie.name.value,
+            Cookie.name.toString,
             s"${preExistingCookie.value}; ${cookie.name}=${cookie.content}"))
       }
 

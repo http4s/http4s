@@ -19,12 +19,12 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
+import com.rossabaker.ci.CIString
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
-import org.http4s.syntax.string._
 
 /**
   * parser rules for all headers that can be parsed with one simple rule
@@ -48,7 +48,7 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[Connection](value) {
       def entry = rule(
         oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[String]) =>
-          Connection(xs.head.ci, xs.tail.map(_.ci): _*)
+          Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
         }
       )
     }.parse

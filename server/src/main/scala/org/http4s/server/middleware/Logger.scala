@@ -9,7 +9,7 @@ import cats.data.OptionT
 import cats.effect.{Bracket, Concurrent, Sync}
 import cats.effect.Sync._
 import fs2.Stream
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 import org.log4s.getLogger
 
 /**
@@ -22,7 +22,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(http: Http[G, F])(implicit G: Bracket[G, Throwable], F: Concurrent[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
@@ -36,7 +36,7 @@ object Logger {
   def httpApp[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
@@ -44,7 +44,7 @@ object Logger {
   def httpRoutes[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
@@ -52,7 +52,7 @@ object Logger {
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)

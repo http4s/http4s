@@ -11,7 +11,7 @@ import cats.effect.Sync._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2.{Chunk, Stream}
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 import org.log4s.getLogger
 
 /**
@@ -24,7 +24,7 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(http: Kleisli[G, A, Response[F]])(
       implicit G: Bracket[G, Throwable],
       F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
@@ -70,7 +70,7 @@ object ResponseLogger {
   def httpApp[F[_]: Concurrent, A](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
       httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
@@ -78,7 +78,7 @@ object ResponseLogger {
   def httpRoutes[F[_]: Concurrent, A](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None)(
       httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)

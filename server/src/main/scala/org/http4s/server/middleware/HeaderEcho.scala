@@ -4,7 +4,7 @@ import cats.Functor
 import cats.data.Kleisli
 import org.http4s._
 import cats.implicits._
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 
 object HeaderEcho {
 
@@ -14,7 +14,7 @@ object HeaderEcho {
     * @param echoHeadersWhen the function that selects which headers to echo on the response
     * @param http [[Http]] to transform
     */
-  def apply[F[_]: Functor, G[_]](echoHeadersWhen: CaseInsensitiveString => Boolean)(
+  def apply[F[_]: Functor, G[_]](echoHeadersWhen: CIString => Boolean)(
       http: Http[F, G]): Http[F, G] =
     Kleisli { (req: Request[G]) =>
       val headersToEcho = req.headers.filter(h => echoHeadersWhen(h.name))

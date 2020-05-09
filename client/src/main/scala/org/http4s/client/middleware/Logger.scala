@@ -5,7 +5,7 @@ package middleware
 import cats.effect._
 import cats.implicits._
 import fs2._
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 
 /**
   * Simple Middleware for Logging All Requests and Responses
@@ -14,7 +14,7 @@ object Logger {
   def apply[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F]): Client[F] =
     ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
@@ -26,7 +26,7 @@ object Logger {
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)

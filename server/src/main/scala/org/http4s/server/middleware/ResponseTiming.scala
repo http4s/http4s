@@ -5,7 +5,7 @@ package middleware
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 
 import scala.concurrent.duration._
 
@@ -25,7 +25,7 @@ object ResponseTiming {
   def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
-      headerName: CaseInsensitiveString = CaseInsensitiveString("X-Response-Time"))(
+      headerName: CIString = CIString("X-Response-Time"))(
       implicit F: Sync[F],
       clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
@@ -33,7 +33,7 @@ object ResponseTiming {
         before <- clock.monotonic(timeUnit)
         resp <- http(req)
         after <- clock.monotonic(timeUnit)
-        header = Header(headerName.value, s"${after - before}")
+        header = Header(headerName.toString, s"${after - before}")
       } yield resp.putHeaders(header)
     }
 }

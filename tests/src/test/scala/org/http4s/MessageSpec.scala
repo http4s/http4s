@@ -2,9 +2,9 @@ package org.http4s
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import com.rossabaker.ci.CIString
 import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
-
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.testing.Http4sLegacyMatchersIO
 import _root_.io.chrisdavenport.vault._
@@ -64,7 +64,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Request(Method.GET)
           .addCookie(RequestCookie("token", "value"))
           .headers
-          .get("Cookie".ci)
+          .get(CIString("Cookie"))
           .map(_.value) must beSome("token=value")
       }
 
@@ -73,7 +73,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
           .addCookie(RequestCookie("token1", "value1"))
           .addCookie(RequestCookie("token2", "value2"))
           .headers
-          .get("Cookie".ci)
+          .get(CIString("Cookie"))
           .map(_.value) must beSome("token1=value1; token2=value2")
       }
 
@@ -81,7 +81,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Request(Method.GET)
           .addCookie("token", "value")
           .headers
-          .get("Cookie".ci)
+          .get(CIString("Cookie"))
           .map(_.value) must beSome("token=value")
       }
 
@@ -90,7 +90,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
           .addCookie("token1", "value1")
           .addCookie("token2", "value2")
           .headers
-          .get("Cookie".ci)
+          .get(CIString("Cookie"))
           .map(_.value) must beSome("token1=value1; token2=value2")
       }
     }

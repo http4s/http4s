@@ -5,6 +5,7 @@ package middleware
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.implicits._
+import com.rossabaker.ci.CIString
 import fs2._
 import java.util.concurrent.atomic._
 import org.http4s.Uri.uri
@@ -84,7 +85,7 @@ class FollowRedirectSpec
         client
           .fetch(req) {
             case Ok(resp) =>
-              val method = resp.headers.get("X-Original-Method".ci).fold("")(_.value)
+              val method = resp.headers.get(CIString("X-Original-Method")).fold("")(_.toString)
               val body = resp.as[String]
               body.map(RedirectResponse(method, _))
             case resp =>
@@ -141,7 +142,7 @@ class FollowRedirectSpec
       client
         .fetch(req) {
           case Ok(resp) =>
-            resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[IO]
+            resp.headers.get(CIString("X-Original-Content-Length")).map(_.value).pure[IO]
         }
         .unsafeRunSync()
         .get must be("0")
@@ -190,7 +191,7 @@ class FollowRedirectSpec
         Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
-          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+          resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
       } must returnValue(Some(""))
     }
 
@@ -201,7 +202,7 @@ class FollowRedirectSpec
         Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
-          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+          resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
       } must returnValue(Some("Bearer s3cr3t"))
     }
 

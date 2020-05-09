@@ -1,6 +1,7 @@
 package org.http4s
 
 import cats.ApplicativeError
+import com.rossabaker.ci.CIString
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.StandardCharsets
@@ -106,4 +107,9 @@ package object util {
     }
     h
   }
+
+  @deprecated("Replaced by com.rossabaker.ci.CIString", "1.0.0-M1")
+  type CaseInsensitiveString = CIString
+  @deprecated("Replaced by com.rossabaker.ci.CIString", "1.0.0-M1")
+  val CaseInsensitiveString = CIString
 }

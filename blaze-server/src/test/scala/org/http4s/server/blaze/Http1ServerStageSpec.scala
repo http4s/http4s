@@ -6,6 +6,7 @@ import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import cats.implicits._
+import com.rossabaker.ci.CIString
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H}
@@ -126,7 +127,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
         .map {
           case (s, h, r) =>
             val close = h.exists { h =>
-              h.toRaw.name == "connection".ci && h.toRaw.value == "close"
+              h.toRaw.name == CIString("connection") && h.toRaw.value == "close"
             }
             (s, close, r)
         }

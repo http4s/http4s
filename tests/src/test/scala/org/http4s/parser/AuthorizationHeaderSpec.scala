@@ -2,6 +2,7 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
+import com.rossabaker.ci.CIString
 import org.http4s.headers.Authorization
 
 class AuthorizationHeaderSpec extends Http4sSpec {
@@ -23,9 +24,9 @@ class AuthorizationHeaderSpec extends Http4sSpec {
     }
 
     "Parse a KeyValueCredentials header" in {
-      val scheme = "foo"
+      val scheme = CIString("foo")
       val params = NonEmptyList("abc" -> "123", Nil)
-      val h = Authorization(Credentials.AuthParams(scheme.ci, params))
+      val h = Authorization(Credentials.AuthParams(scheme, params))
       hparse(h.value) must beRight(h)
     }
   }

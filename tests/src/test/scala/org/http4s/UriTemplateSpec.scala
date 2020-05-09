@@ -1,5 +1,6 @@
 package org.http4s
 
+import com.rossabaker.ci.CIString
 import org.http4s.Uri.{Authority, RegName, Scheme, UserInfo}
 import org.http4s.UriTemplate._
 
@@ -207,7 +208,7 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "render http://www.foo.com:80" in {
       val scheme = Some(Scheme.http)
-      val host = RegName("www.foo.com".ci)
+      val host = RegName(CIString("www.foo.com"))
       val authority = Some(Authority(host = host, port = Some(80)))
       val path = Nil
       val query = Nil
@@ -215,7 +216,7 @@ class UriTemplateSpec extends Http4sSpec {
         equalTo("http://www.foo.com:80")
     }
     "render http://www.foo.com" in {
-      UriTemplate(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci)))).toString must
+      UriTemplate(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com"))))).toString must
         equalTo("http://www.foo.com")
     }
     "render http://192.168.1.1" in {
@@ -453,7 +454,7 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "convert http://www.foo.com:80 to Uri" in {
       val scheme = Some(Scheme.http)
-      val host = RegName("www.foo.com".ci)
+      val host = RegName(CIString("www.foo.com"))
       val authority = Some(Authority(host = host, port = Some(80)))
       val path = Nil
       UriTemplate(scheme, authority, path).toUriIfPossible.get must
@@ -461,9 +462,9 @@ class UriTemplateSpec extends Http4sSpec {
     }
     "convert http://www.foo.com to Uri" in {
       val scheme = Some(Scheme.http)
-      val host = RegName("www.foo.com".ci)
+      val host = RegName(CIString("www.foo.com"))
       val authority = Some(Authority(host = host))
-      UriTemplate(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci)))).toUriIfPossible.get must
+      UriTemplate(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com"))))).toUriIfPossible.get must
         equalTo(Uri(scheme, authority))
     }
     "convert http://192.168.1.1 to Uri" in {

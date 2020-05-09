@@ -6,6 +6,7 @@ package authentication
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
+import com.rossabaker.ci.CIString
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
@@ -159,7 +160,7 @@ class AuthenticationSpec extends Http4sSpec {
         "response" -> response,
         "method" -> method
       )
-      val header = Authorization(Credentials.AuthParams("Digest".ci, params))
+      val header = Authorization(Credentials.AuthParams(CIString("Digest"), params))
 
       val req2 = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
       val res2 = digest(req2).unsafeRunSync
@@ -261,7 +262,7 @@ class AuthenticationSpec extends Http4sSpec {
       val result = (0 to params.size).map { i =>
         val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
         val header = Authorization(
-          Credentials.AuthParams("Digest".ci, invalidParams.head, invalidParams.tail: _*))
+          Credentials.AuthParams(CIString("Digest"), invalidParams.head, invalidParams.tail: _*))
         val req = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
         val res = digestAuthService.orNotFound(req).unsafeRunSync
 

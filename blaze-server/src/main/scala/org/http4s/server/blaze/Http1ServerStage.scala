@@ -4,6 +4,7 @@ package blaze
 
 import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
 import cats.implicits._
+import com.rossabaker.ci.CIString
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
@@ -16,7 +17,6 @@ import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -311,7 +311,7 @@ private[blaze] class Http1ServerStage[F[_]](
       req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .withHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection(CIString("close")), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -323,7 +323,7 @@ private[blaze] class Http1ServerStage[F[_]](
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .withHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection(CIString("close")), `Content-Length`.zero)
     renderResponse(req, resp, bodyCleanup) // will terminate the connection due to connection: close header
   }
 

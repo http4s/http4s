@@ -75,6 +75,7 @@ lazy val core = libraryProject("core")
     resolvers += "Sonatype OSS Snapshots".at(
       "https://oss.sonatype.org/content/repositories/snapshots"),
     libraryDependencies ++= Seq(
+      caseInsensitive,
       cats,
       catsEffect,
       fs2Io,
@@ -89,6 +90,7 @@ lazy val laws = libraryProject("laws")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
+      caseInsensitiveTesting,
       catsEffectLaws,
     ),
   )

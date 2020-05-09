@@ -30,7 +30,7 @@ object GZip {
         req
       case _ =>
         req.withHeaders(
-          req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
+          req.headers ++ Headers.of(Header(`Accept-Encoding`.name.toString, supportedCompressions)))
     }
 
   @silent("deprecated")

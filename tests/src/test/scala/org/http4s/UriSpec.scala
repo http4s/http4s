@@ -2,6 +2,7 @@ package org.http4s
 
 import cats.implicits._
 import cats.kernel.laws.discipline.EqTests
+import com.rossabaker.ci.CIString
 import java.nio.file.Paths
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.Uri._
@@ -207,17 +208,19 @@ http://example.org/a file
     "render URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = RegName("www.foo.com".ci))),
+        Some(Authority(host = RegName(CIString("www.foo.com")))),
         "/foo",
         Query.fromPairs("bar" -> "baz")).toString must_== ("http://www.foo.com/foo?bar=baz")
     }
 
     "render URL with port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci), port = Some(80)))).toString must_== ("http://www.foo.com:80")
+      Uri(
+        Some(Scheme.http),
+        Some(Authority(host = RegName(CIString("www.foo.com")), port = Some(80)))).toString must_== ("http://www.foo.com:80")
     }
 
     "render URL without port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci)))).toString must_== ("http://www.foo.com")
+      Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com"))))).toString must_== ("http://www.foo.com")
     }
 
     "render IPv4 URL with parameters" in {

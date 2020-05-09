@@ -2,9 +2,9 @@ package org.http4s
 
 import cats.{Eq, Eval, Foldable, Monoid, Show}
 import cats.implicits._
+import com.rossabaker.ci.CIString
 import org.http4s.headers.`Set-Cookie`
-import org.http4s.syntax.string._
-import org.http4s.util.CaseInsensitiveString
+import com.rossabaker.ci.CIString
 import scala.collection.mutable.ListBuffer
 
 /** A collection of HTTP Headers */
@@ -23,7 +23,7 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
     *
     * @param key [[HeaderKey.Extractable]] that can identify the required header
     * @return a scala.Option possibly containing the resulting header of type key.HeaderT
-    * @see [[Header]] object and get([[org.http4s.util.CaseInsensitiveString]])
+    * @see [[Header]] object and get([[com.rossabaker.ci.CIString]])
     */
   def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
 
@@ -39,7 +39,7 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
     * @param key name of the header to find
     * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
     */
-  def get(key: CaseInsensitiveString): Option[Header] = headers.find(_.name == key)
+  def get(key: CIString): Option[Header] = headers.find(_.name == key)
 
   /** Make a new collection adding the specified headers, replacing existing headers of singleton type
     * The passed headers are assumed to contain no duplicate Singleton headers.
@@ -111,7 +111,7 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
     filterNot(h => Headers.PayloadHeaderKeys(h.name))
 
   def redactSensitive(
-      redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains): Headers =
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): Headers =
     Headers(headers.map {
       case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
       case h => h
@@ -163,15 +163,15 @@ object Headers {
   }
 
   private val PayloadHeaderKeys = Set(
-    "Content-Length".ci,
-    "Content-Range".ci,
-    "Trailer".ci,
-    "Transfer-Encoding".ci
+    CIString("Content-Length"),
+    CIString("Content-Range"),
+    CIString("Trailer"),
+    CIString("Transfer-Encoding")
   )
 
   val SensitiveHeaders = Set(
-    "Authorization".ci,
-    "Cookie".ci,
-    "Set-Cookie".ci
+    CIString("Authorization"),
+    CIString("Cookie"),
+    CIString("Set-Cookie")
   )
 }

@@ -5,6 +5,7 @@ package blaze
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import cats.implicits._
+import com.rossabaker.ci.CIString
 import fs2.Stream
 import fs2.concurrent.Queue
 import java.nio.ByteBuffer
@@ -205,7 +206,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Use User-Agent header provided in Request" in skipOnCi {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.withHeaders(Header.Raw("User-Agent".ci, "myagent"))
+      val req = FooRequest.withHeaders(Header.Raw(CIString("User-Agent"), "myagent"))
 
       val (request, response) = getSubmission(req, resp).unsafeRunSync()
 
