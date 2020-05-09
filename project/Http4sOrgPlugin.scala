@@ -5,16 +5,19 @@ import sbt._
 import sbt.Keys._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import _root_.io.chrisdavenport.sbtmimaversioncheck.MimaVersionCheck
 
 object Http4sOrgPlugin extends AutoPlugin {
   object autoImport
 
   import autoImport._
 
+  override def trigger = allRequirements
+
+  override def requires = MimaVersionCheck
+
   override lazy val projectSettings: Seq[Setting[_]] =
     Seq(
       organization := "org.http4s"
     )
-
-  override def trigger = allRequirements
 }

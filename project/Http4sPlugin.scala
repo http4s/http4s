@@ -3,9 +3,6 @@ package org.http4s.build
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleResultTypeProblem, ProblemFilters}
-import com.typesafe.tools.mima.plugin.MimaPlugin
-import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import java.lang.{Runtime => JRuntime}
 import org.scalafmt.sbt.ScalafmtPlugin
@@ -16,7 +13,6 @@ import sbt._
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
-    val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
     val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
@@ -25,7 +21,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  override def requires = Http4sOrgPlugin && MimaPlugin && ScalafmtPlugin
+  override def requires = Http4sOrgPlugin && ScalafmtPlugin
 
   val scala_213 = "2.13.2"
   val scala_212 = "2.12.11"
@@ -57,24 +53,6 @@ object Http4sPlugin extends AutoPlugin {
           Seq.empty
       },
     },
-
-    http4sMimaVersion := {
-      version.value match {
-        case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
-          Some(s"$major.$minor.${patch.toInt - 1}")
-        case _ =>
-          None
-      }
-    },
-    mimaFailOnProblem := http4sMimaVersion.value.isDefined,
-    mimaFailOnNoPrevious := false,
-    mimaPreviousArtifacts := (http4sMimaVersion.value.map {
-      organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
-    }).toSet,
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-    ),
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
