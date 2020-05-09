@@ -144,22 +144,10 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
-  def addAlpnPath(attList: Keys.Classpath): Seq[String] = {
-    for {
-      file <- attList.map(_.data)
-      path = file.getAbsolutePath if path.contains("jetty") && path.contains("alpn-boot")
-    } yield {
-      println(s"Adding Alpn classes to boot classpath: $path")
-      "-Xbootclasspath/p:" + path
-    }
-  }
-
-
   object V { // Dependency versions
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val alpn = "8.1.13.v20181017"
     val argonaut = "6.2.5"
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.12"
@@ -198,7 +186,6 @@ object Http4sPlugin extends AutoPlugin {
     val vault = "2.0.0"
   }
 
-  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % V.alpn
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % V.blaze

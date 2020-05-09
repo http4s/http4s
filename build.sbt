@@ -514,15 +514,14 @@ lazy val examples = http4sProject("examples")
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
+  .enablePlugins(AlpnBootPlugin)
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",
     fork := true,
     libraryDependencies ++= Seq(
-      alpnBoot % Runtime,
       circeGeneric,
     ),
-    run / javaOptions ++= addAlpnPath((Runtime / managedClasspath).value)
   )
   .dependsOn(blazeServer, blazeClient)
 
