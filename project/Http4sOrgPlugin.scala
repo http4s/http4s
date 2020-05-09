@@ -1,7 +1,10 @@
+// To be spun off into sbt-http4s-org
 package org.http4s.build
 
 import sbt._
 import sbt.Keys._
+
+import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 
 object Http4sOrgPlugin extends AutoPlugin {
   object autoImport

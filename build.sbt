@@ -1,4 +1,5 @@
 import com.typesafe.tools.mima.core._
+import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.build.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -380,6 +381,8 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser,
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.openjdk.jmh"),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "pl.project13.scala", name = "sbt-jmh-extras"),
   )
   .dependsOn(core, circe)
 
@@ -493,7 +496,7 @@ lazy val examples = http4sProject("examples")
   .settings(
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
-      circeGeneric,
+      circeGeneric % Runtime,
       logbackClassic % "runtime",
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     ),
@@ -507,7 +510,10 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(
     description := "Examples of http4s server and clients on blaze",
     fork := true,
-    libraryDependencies ++= Seq(alpnBoot, dropwizardMetricsJson),
+    libraryDependencies ++= Seq(
+      alpnBoot % Runtime,
+      circeGeneric,
+    ),
     run / javaOptions ++= addAlpnPath((Runtime / managedClasspath).value)
   )
   .dependsOn(blazeServer, blazeClient)

@@ -1,11 +1,10 @@
+// To be spun off into sbt-http4s-org
 package org.http4s.build
 
-import com.jsuereth.sbtpgp.PgpKeys.{publishLocalSigned, publishSigned}
 import com.typesafe.tools.mima.plugin.MimaPlugin
-import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
-import explicitdeps.ExplicitDepsPlugin.autoImport._
+import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport.mimaPreviousArtifacts
 import sbt._
-import Keys._
+import sbt.Keys._
 
 object PrivateProjectPlugin extends AutoPlugin {
   override def trigger = noTrigger
@@ -15,21 +14,6 @@ object PrivateProjectPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] =
     Seq(
       publish / skip := true,
-      publish := (()),
-      publishSigned := (()),
-      publishLocal := (()),
-      publishLocalSigned := (()),
-      publishArtifact := false,
-      publishTo := None,
-      Test / publishArtifact := false,
-      Test / packageBin / publishArtifact := false,
-      Test / packageDoc / publishArtifact := false,
-      Test / packageSrc / publishArtifact := false,
-      Compile / publishArtifact := false,
-      Compile / packageBin / publishArtifact := false,
-      Compile / packageDoc / publishArtifact := false,
-      Compile / packageSrc / publishArtifact := false,
       mimaPreviousArtifacts := Set.empty,
-      unusedCompileDependenciesTest := (()),
     )
 }
