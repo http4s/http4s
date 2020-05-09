@@ -25,7 +25,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  override def requires = MimaPlugin && ScalafmtPlugin
+  override def requires = Http4sOrgPlugin && MimaPlugin && ScalafmtPlugin
 
   val scala_213 = "2.13.2"
   val scala_212 = "2.12.11"
