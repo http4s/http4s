@@ -196,10 +196,6 @@ lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze,
-    mimaBinaryIssueFilters ++= List(
-      // Private API
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blazecore.ResponseHeaderTimeoutStage.this")
-    ),
   )
   .dependsOn(core, testing % "test->test")
 
