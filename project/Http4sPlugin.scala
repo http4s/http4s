@@ -18,7 +18,6 @@ object Http4sPlugin extends AutoPlugin {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
-    val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
   }
   import autoImport._
