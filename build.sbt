@@ -5,7 +5,6 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 // Global settings
 ThisBuild / organization := "org.http4s"
 ThisBuild / scalaVersion := scala_213
-Global / cancelable := true
 
 lazy val modules: List[ProjectReference] = List(
   core,
