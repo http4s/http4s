@@ -7,6 +7,7 @@ import sbt.Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import java.lang.{Runtime => JRuntime}
 import _root_.io.chrisdavenport.sbtmimaversioncheck.MimaVersionCheck
+import org.scalafmt.sbt.ScalafmtPlugin
 
 object Http4sOrgPlugin extends AutoPlugin {
   object autoImport
@@ -15,7 +16,7 @@ object Http4sOrgPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  override def requires = MimaVersionCheck
+  override def requires = MimaVersionCheck && ScalafmtPlugin
 
   override lazy val projectSettings: Seq[Setting[_]] =
     Seq(

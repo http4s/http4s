@@ -4,8 +4,6 @@ import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. Upd
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
-import org.scalafmt.sbt.ScalafmtPlugin
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
@@ -20,7 +18,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  override def requires = Http4sOrgPlugin && ScalafmtPlugin
+  override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.2"
   val scala_212 = "2.12.11"
