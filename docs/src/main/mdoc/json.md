@@ -248,6 +248,7 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
+import org.http4s.server.blaze._
 import org.http4s.implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -270,9 +271,6 @@ val jsonApp = HttpRoutes.of[IO] {
 	  resp <- Ok(Hello(user.name).asJson)
     } yield (resp)
 }.orNotFound
-
-import org.http4s.server.blaze._
-import scala.concurrent.ExecutionContext.global
 
 val server = BlazeServerBuilder[IO](global).bindHttp(8080).withHttpApp(jsonApp).resource
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
