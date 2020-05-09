@@ -8,13 +8,125 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.3 (2020-04.02)
+# v1.0.0-M1 (unreleased)
+
+This is the first milestone release in the 1.x series.
+It is not binary compatible with prior releases.
+
+## Breaking changes
+
+* [#3174](https://github.com/http4s/http4s/pull/3174): Drop http4s-prometheus dependency on http4s-dsl
+* [#2615](https://github.com/http4s/http4s/pull/2615): Model the `Server` header
+* [#3206](https://github.com/http4s/http4s/pull/2615): Model the `Content-Location` header
+* [#3264](https://github.com/http4s/http4s/pull/3264): Remove unused `EntityEncoder` argument in `PlayInstances`.
+* [#3257](https://github.com/http4s/http4s/pull/3257): Make `SameSite` cookie attribute optional
+* [#3291](https://github.com/http4s/http4s/pull/3291): Remove unused `F[_]` parameter from `Server`
+* [#3241](https://github.com/http4s/http4s/pull/3241): Port all macros to blackbox in anticipation of Dotty support
+* [#3323](https://github.com/http4s/http4s/pull/3323): Drop deprecated `ArbitraryInstances#charsetRangesNoQuality`
+* [#3322](https://github.com/http4s/http4s/pull/3322): Drop deprecated `getAs` and `prepAs` methods from `Client`
+* [#3371](https://github.com/http4s/http4s/pull/3271): In http4s-metrics, add `rootCause` field to `TerminationType.Abnormal` and `TerminationType.Error`.  Add `TerminationType.Canceled`
+* [#3335](https://github.com/http4s/http4s/pull/3335): Remove unused `Bracket` instance in `Client#translate`
+
+## Enhancements
+
+* [#3320](https://github.com/http4s/http4s/pull/3320): Reimplement `Media#as` with `F.rethrow`
+
+## Dependency updates
+
+* async-http-client-2.11.0
+
+# v0.21.4 (2020-04-28)
+
+This release is fully backward compatible with 0.21.3.
+
+## Bugfixes
+
+* [#3338](https://github.com/http4s/http4s/pull/3338): Avoid incorrectly responding with an empty body in http4s-async-http-client
+
+## Enhancements
+
+* [#3303](https://github.com/http4s/http4s/pull/3303): In blaze, cache `Date` header value 
+* [#3350](https://github.com/http4s/http4s/pull/3350): Use stable host address in `ConnectionFailure` message. Makes code more portable post-JDK11.
+
+## Deprecation
+
+* [#3361](https://github.com/http4s/http4s/pull/3361): Deprecate the `org.http4s.util.execution` package.
+
+## Documentation
+
+* [#3279](https://github.com/http4s/http4s/pull/3279): Improve Prometheus middleware usage example
+
+## Dependency updates
+
+* fs2-2.3.0
+* okhttp-4.5.0
+* scalafix-0.9.12
+* scala-xml-1.3.0
+* specs2-4.9.3
+
+# v0.20.23 (2020-04-28)
+
+This release restores backward compatibility with the 0.20 series.
+This is the final planned release in the 0.20 series.
+
+## Compatibility
+
+* [#3362](https://github.com/http4s/http4s/pull/3362): Restores binary compatibility in http4s-jetty back to 0.20.21.
+
+# v0.20.22 (2020-04-28)
+
+This release is backward compatible with 0.20, except for http4s-jetty.
+This incompatibility will be corrected in 0.20.23.
+
+## Breaking changes
+
+* [#3333](https://github.com/http4s/http4s/pull/3333): Add Http2c support to jetty-server. This accidentally broke binary compatibility, and will be patched in v0.20.23.
+
+## Bugfixes
+
+* [#3326](https://github.com/http4s/http4s/pull/3326): In `WebjarService`, do not use OS-specific directory separators
+* [#3331](https://github.com/http4s/http4s/pull/3326): In `FileService`, serve index.html if request points to directory
+
+## Enhancements
+
+* [#3327](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `Date` middleware
+* [#3381](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `CORS` middleware
+* [#3298](https://github.com/http4s/http4s/pull/3298): In `Logger` client and server middlewares, detect any media types ending in `+json` as non-binary
+
+## Deprecations
+
+* [#3330](https://github.com/http4s/http4s/pull/3330): Deprecate `BlazeServerBuilder#apply()` in favor of passing an `ExecutionContext` explicitly.  Formerly, `ExecutionContext.global` was referenced by the default builder, and would spin up its thread pool even if the app never used the global execution context.
+* [#3361](https://github.com/http4s/http4s/pull/3361): Deprecate `org.http4s.util.bug`, which is for internal use only.
+
+## Backports
+
+These appeared in previous releases, but have been backported to 0.20.x
+
+* [#2591](https://github.com/http4s/http4s/pull/2591): Change literal interpolator macros to use unsafe methods to avoid triggering Wartremover's EitherProjectionPartial warning
+* [#3115](https://github.com/http4s/http4s/pull/3115): Drop UTF-8 BOM when decoding
+* [#3148](https://github.com/http4s/http4s/pull/3148): Add `HttpRoutes.strict`
+* [#3185](https://github.com/http4s/http4s/pull/3185): In blaze, recover `EOF` on `bodyEncoder.write` to close connection
+* [#3196](https://github.com/http4s/http4s/pull/3196): Add convenience functions to `Caching` middleware
+
+## Build improvements
+
+* Start testing on JDK14
+
+## Dependency updates
+
+* blaze-0.14.12
+* metrics-4.1.6
+* jetty-9.4.28.v20200408
+* scala-2.12.11
+* tomcat-9.0.34
+
+# v0.21.3 (2020-04-02)
 
 This release is fully backward compatible with 0.21.2.
 
 # Bugfixes
 
-* [#3245](https://github.com/http4s/http4s/pull/3245): Write ember-client request to socket before reading response
+* [#3243](https://github.com/http4s/http4s/pull/3243): Write ember-client request to socket before reading response
 
 ## Enhancements
 
@@ -635,7 +747,7 @@ Cursed release.  Sonatype staging repo closed in flight.
 * [#2574](https://github.com/http4s/http4s/pull/2574): Refactor `FollowRedirect`
 * [#2648](https://github.com/http4s/http4s/pull/2648): Move `mimedb-generator` from a project to an internal SBT plugin. Run with `core/generateMimeDb`.
 
-## Depedency updates
+## Dependency updates
 * cats-2.0.0-M4
 * cats-effect-2.0.0-M4
 * circe-0.12.0-M3

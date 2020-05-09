@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Functor, MonoidK}
+import cats.{Functor, Monad, MonoidK}
 import cats.data.Kleisli
 import cats.implicits._
 
@@ -29,4 +29,7 @@ object AutoSlash {
       }
     }
   }
+
+  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(httpRoutes)
 }

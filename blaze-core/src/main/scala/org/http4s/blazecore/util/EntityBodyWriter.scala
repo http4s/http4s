@@ -5,7 +5,6 @@ package util
 import cats.effect._
 import cats.implicits._
 import fs2._
-import org.http4s.internal.fromFuture
 import scala.concurrent._
 
 private[http4s] trait EntityBodyWriter[F[_]] {
@@ -50,7 +49,7 @@ private[http4s] trait EntityBodyWriter[F[_]] {
     */
   def writeEntityBody(p: EntityBody[F]): F[Boolean] = {
     val writeBody: F[Unit] = p.through(writePipe).compile.drain
-    val writeBodyEnd: F[Boolean] = fromFuture(F.delay(writeEnd(Chunk.empty)))
+    val writeBodyEnd: F[Boolean] = fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
     writeBody *> writeBodyEnd
   }
 
@@ -61,9 +60,11 @@ private[http4s] trait EntityBodyWriter[F[_]] {
     */
   private def writePipe: Pipe[F, Byte, Unit] = { s =>
     val writeStream: Stream[F, Unit] =
-      s.chunks.evalMap(chunk => fromFuture(F.delay(writeBodyChunk(chunk, flush = false))))
+      s.chunks.evalMap(chunk => fromFutureNoShift(F.delay(writeBodyChunk(chunk, flush = false))))
     val errorStream: Throwable => Stream[F, Unit] = e =>
-      Stream.eval(fromFuture(F.delay(exceptionFlush()))).flatMap(_ => Stream.raiseError[F](e))
+      Stream
+        .eval(fromFutureNoShift(F.delay(exceptionFlush())))
+        .flatMap(_ => Stream.raiseError[F](e))
     writeStream.handleErrorWith(errorStream)
   }
 }

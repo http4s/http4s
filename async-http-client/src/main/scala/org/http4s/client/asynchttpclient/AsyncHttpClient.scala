@@ -17,6 +17,7 @@ import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStream
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.invokeCallback
+import org.http4s.internal.bug
 import org.http4s.util.threads._
 import org.log4s.getLogger
 import org.reactivestreams.Publisher
@@ -106,7 +107,7 @@ object AsyncHttpClient {
       }
 
       override def onBodyPartReceived(httpResponseBodyPart: HttpResponseBodyPart): State =
-        throw org.http4s.util.bug("Expected it to call onStream instead.")
+        throw bug("Expected it to call onStream instead.")
 
       override def onStatusReceived(status: HttpResponseStatus): State = {
         response = response.copy(status = getStatus(status))

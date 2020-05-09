@@ -274,7 +274,9 @@ implicit val cs: ContextShift[IO] = IO.contextShift(global)
 implicit val timer: Timer[IO] = IO.timer(global)
 
 import org.http4s.server.blaze._
-val server = BlazeServerBuilder[IO].bindHttp(8080).withHttpApp(jsonApp).resource
+import scala.concurrent.ExecutionContext.global
+
+val server = BlazeServerBuilder[IO](global).bindHttp(8080).withHttpApp(jsonApp).resource
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 

@@ -5,14 +5,13 @@ package util
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.internal.fromFuture
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
 import scala.concurrent._
 
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
   final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =
-    fromFuture(F.delay(writeHeaders(headerWriter))).attempt.flatMap {
+    fromFutureNoShift(F.delay(writeHeaders(headerWriter))).attempt.flatMap {
       case Right(()) =>
         writeEntityBody(body)
       case Left(t) =>
