@@ -496,7 +496,6 @@ lazy val examples = http4sProject("examples")
     libraryDependencies ++= Seq(
       circeGeneric,
       logbackClassic % "runtime",
-      jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     ),
     TwirlKeys.templateImports := Nil
   )
