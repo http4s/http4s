@@ -4,7 +4,6 @@ import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. Upd
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
-import java.lang.{Runtime => JRuntime}
 import org.scalafmt.sbt.ScalafmtPlugin
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbt.Keys._
@@ -42,15 +41,6 @@ object Http4sPlugin extends AutoPlugin {
 
     // https://github.com/tkawachi/sbt-doctest/issues/102
     Test / compile / scalacOptions -= "-Ywarn-unused:params",
-
-    scalacOptions ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, minor)) if minor >= 12 =>
-          Seq("-Ybackend-parallelism", math.min(JRuntime.getRuntime.availableProcessors, 16).toString)
-        case _ =>
-          Seq.empty
-      },
-    },
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),

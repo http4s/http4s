@@ -5,6 +5,7 @@ import sbt._
 import sbt.Keys._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import java.lang.{Runtime => JRuntime}
 import _root_.io.chrisdavenport.sbtmimaversioncheck.MimaVersionCheck
 
 object Http4sOrgPlugin extends AutoPlugin {
@@ -18,6 +19,12 @@ object Http4sOrgPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] =
     Seq(
-      organization := "org.http4s"
+      organization := "org.http4s",
+
+      scalacOptions ++=
+        Seq(
+          "-Ybackend-parallelism",
+          math.min(JRuntime.getRuntime.availableProcessors, 16).toString
+        )
     )
 }
