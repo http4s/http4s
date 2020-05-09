@@ -113,10 +113,10 @@ lazy val tests = libraryProject("tests")
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
+  .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s servers"
   )
-  .settings(silencerSettings)
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
@@ -143,12 +143,13 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     server % "test->compile",
     client % "test->compile"
   )
+
 lazy val client = libraryProject("client")
+  .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s clients",
     libraryDependencies += jettyServlet % "test"
   )
-  .settings(silencerSettings)
   .dependsOn(
     core,
     testing % "test->test",
