@@ -607,9 +607,7 @@ lazy val commonSettings = Seq(
     "-source",
     http4sJvmTarget.value,
     "-target",
-    http4sJvmTarget.value,
-    "-Xlint:deprecation",
-    "-Xlint:unchecked"
+    http4sJvmTarget.value
   ),
   libraryDependencies ++= Seq(
     catsEffectTestingSpecs2,

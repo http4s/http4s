@@ -26,6 +26,11 @@ object Http4sOrgPlugin extends AutoPlugin {
         Seq(
           "-Ybackend-parallelism",
           math.min(JRuntime.getRuntime.availableProcessors, 16).toString
+        ),
+
+      javacOptions ++=
+        Seq(
+          "-Xlint:all",
         )
     )
 }
