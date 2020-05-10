@@ -42,6 +42,11 @@ https://github.com/Spinoco/fs2-http
 Copyright (c) 2017 Spinoco
 Licensed under the MIT License (see licenses/LICENSE_fs2-http)
 
+This software contains portions of code derived from jawn
+https://github.com/non/jawn
+Copyright Erik Osheim, 2012-2015.
+Licensed under the MIT License (see licenses/LICENSE_jawn)
+
 This software contains portions of code derived from rl
 https://github.com/scalatra/rl
 Copyright (c) 2011 Mojolly Ltd.
