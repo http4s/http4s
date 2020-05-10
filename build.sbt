@@ -426,32 +426,6 @@ lazy val docs = http4sProject("docs")
       // unused params warnings are disabled due to undefined functions in the doc
       _.filterNot(unwanted) :+ "-Xfatal-warnings"
     },
-    Compile / doc / scalacOptions ++= {
-      scmInfo.value match {
-        case Some(s) =>
-          val isMaster = git.gitCurrentBranch.value == "master"
-          val isSnapshot =
-            git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
-          val gitHeadCommit = git.gitHeadCommit.value
-          val v = version.value
-          val path =
-            if (isSnapshot && isMaster)
-              s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
-            else if (isSnapshot)
-              s"${s.browseUrl}/blob/${gitHeadCommit.get}€{FILE_PATH}.scala"
-            else
-              s"${s.browseUrl}/blob/v${v}€{FILE_PATH}.scala"
-
-          Seq(
-            "-implicits",
-            "-doc-source-url",
-            path,
-            "-sourcepath",
-            (ThisBuild / baseDirectory).value.getAbsolutePath
-          )
-        case _ => Seq.empty
-      }
-    },
     Compile / doc / scalacOptions -= "-Ywarn-unused:imports",
     makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
     Hugo / baseURL := {

@@ -4,6 +4,7 @@ package org.http4s.build
 import sbt._
 import sbt.Keys._
 
+import com.typesafe.sbt.SbtGit.git
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import de.heikoseeberger.sbtheader.{AutomateHeaderPlugin, LicenseDetection, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
@@ -24,6 +25,7 @@ object Http4sOrgPlugin extends AutoPlugin {
     organizationSettings ++
     scalaSettings ++
     javaSettings ++
+    docSettings ++
     headerSettings
 
   val organizationSettings: Seq[Setting[_]] =
@@ -47,6 +49,23 @@ object Http4sOrgPlugin extends AutoPlugin {
         Seq(
           "-Xlint:all",
         )
+    )
+
+  val docSettings: Seq[Setting[_]] =
+    Seq(
+      Compile / doc / scalacOptions ++= {
+        (for {
+          headCommit <- git.gitHeadCommit.value
+          isSnapshot = git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
+          ref = if (isSnapshot) headCommit else s"v${version.value}"
+          scm <- scmInfo.value
+          browseUrl = scm.browseUrl
+          path = s"${browseUrl}/blob/${ref}€{FILE_PATH}.scala"
+        } yield Seq(
+          "-doc-source-url", path,
+          "-sourcepath", baseDirectory.in(LocalRootProject).value.getAbsolutePath
+        )).getOrElse(Seq.empty[String])
+      }
     )
 
   val headerSettings: Seq[Setting[_]] =
