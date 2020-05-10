@@ -4,11 +4,11 @@ package middleware
 
 import cats.Functor
 import cats.data.Kleisli
+import cats.effect.Sync
 import cats.implicits._
-import com.github.ghik.silencer.silent
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.Stream.chunk
-import fs2.compress.deflate
+import fs2.compression.deflate
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.zip.{CRC32, Deflater}
 import org.http4s.headers._
@@ -19,7 +19,7 @@ object GZip {
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Functor, G[_]: Functor](
+  def apply[F[_]: Functor, G[_]: Sync](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION,
@@ -44,7 +44,7 @@ object GZip {
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
       ContentCoding.`x-gzip`)
 
-  private def zipOrPass[F[_]: Functor](
+  private def zipOrPass[F[_]: Sync](
       response: Response[F],
       bufferSize: Int,
       level: Int,
@@ -54,8 +54,7 @@ object GZip {
       case resp => resp // Don't touch it, Content-Encoding already set
     }
 
-  @silent("deprecated")
-  private def zipResponse[F[_]: Functor](
+  private def zipResponse[F[_]: Sync](
       bufferSize: Int,
       level: Int,
       resp: Response[F]): Response[F] = {
