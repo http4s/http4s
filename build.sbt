@@ -606,7 +606,6 @@ lazy val commonSettings = Seq(
     specs2MatcherExtra,
     specs2Scalacheck
   ).map(_ % Test),
-  ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
   git.remoteRepo := "git@github.com:http4s/http4s.git",
   Hugo / includeFilter := (
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
