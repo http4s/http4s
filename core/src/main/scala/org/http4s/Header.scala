@@ -59,14 +59,15 @@ sealed trait Header extends Renderable with Product {
   final override def hashCode(): Int =
     MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
 
-  final override def equals(that: Any): Boolean = that match {
-    case h: AnyRef if this eq h => true
-    case h: Header =>
-      (name == h.name) &&
-        (parsed.productArity == h.parsed.productArity) &&
-        (parsed.productIterator.sameElements(h.parsed.productIterator))
-    case _ => false
-  }
+  final override def equals(that: Any): Boolean =
+    that match {
+      case h: AnyRef if this eq h => true
+      case h: Header =>
+        (name == h.name) &&
+          (parsed.productArity == h.parsed.productArity) &&
+          (parsed.productIterator.sameElements(h.parsed.productIterator))
+      case _ => false
+    }
 
   /** Length of the rendered header, including name and final '\r\n' */
   def renderedLength: Long =
@@ -90,9 +91,8 @@ object Header {
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
     private[this] var _parsed: Header = null
     final override def parsed: Header = {
-      if (_parsed == null) {
+      if (_parsed == null)
         _parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
-      }
       _parsed
     }
     override def renderValue(writer: Writer): writer.type = writer.append(value)

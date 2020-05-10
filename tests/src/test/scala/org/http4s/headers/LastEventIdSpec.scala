@@ -10,9 +10,7 @@ class LastEventIdSpec extends HeaderLaws {
     Arbitrary(for {
       id <- arbitrary[String]
       if !id.contains("\uffff")
-    } yield {
-      `Last-Event-Id`(EventId(id))
-    })
+    } yield `Last-Event-Id`(EventId(id)))
 
   checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
 }

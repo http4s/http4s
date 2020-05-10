@@ -29,48 +29,55 @@ private[parser] trait AuthorizationHeader {
 
   private class AuthorizationParser(input: ParserInput)
       extends Http4sHeaderParser[Authorization](input) {
-    def entry: Rule1[Authorization] = rule {
-      CredentialDef ~ EOI ~> { (creds: Credentials) =>
-        Authorization(creds)
+    def entry: Rule1[Authorization] =
+      rule {
+        CredentialDef ~ EOI ~> { (creds: Credentials) =>
+          Authorization(creds)
+        }
       }
-    }
 
-    def CredentialDef = rule {
-      AuthParamsCredentialsDef |
-        TokenCredentialsDef
-    }
-
-    def TokenCredentialsDef = rule {
-      Token ~ LWS ~ token68 ~> { (scheme: String, value: String) =>
-        Credentials.Token(scheme.ci, value)
+    def CredentialDef =
+      rule {
+        AuthParamsCredentialsDef |
+          TokenCredentialsDef
       }
-    }
 
-    def AuthParamsCredentialsDef = rule {
-      Token ~ OptWS ~ CredentialParams ~> {
-        (scheme: String, params: NonEmptyList[(String, String)]) =>
-          Credentials.AuthParams(scheme.ci, params)
+    def TokenCredentialsDef =
+      rule {
+        Token ~ LWS ~ token68 ~> { (scheme: String, value: String) =>
+          Credentials.Token(scheme.ci, value)
+        }
       }
-    }
 
-    def CredentialParams: Rule1[NonEmptyList[(String, String)]] = rule {
-      oneOrMore(AuthParam).separatedBy(ListSep) ~> { (params: collection.Seq[(String, String)]) =>
-        NonEmptyList(params.head, params.tail.toList)
+    def AuthParamsCredentialsDef =
+      rule {
+        Token ~ OptWS ~ CredentialParams ~> {
+          (scheme: String, params: NonEmptyList[(String, String)]) =>
+            Credentials.AuthParams(scheme.ci, params)
+        }
       }
-    }
 
-    def AuthParam: Rule1[(String, String)] = rule {
-      Token ~ "=" ~ (Token | QuotedString) ~> { (s1: String, s2: String) =>
-        (s1, s2)
+    def CredentialParams: Rule1[NonEmptyList[(String, String)]] =
+      rule {
+        oneOrMore(AuthParam).separatedBy(ListSep) ~> { (params: collection.Seq[(String, String)]) =>
+          NonEmptyList(params.head, params.tail.toList)
+        }
       }
-    }
 
-    def Base64Char: Rule0 = rule { Alpha | Digit | '+' | '/' | '=' }
+    def AuthParam: Rule1[(String, String)] =
+      rule {
+        Token ~ "=" ~ (Token | QuotedString) ~> { (s1: String, s2: String) =>
+          (s1, s2)
+        }
+      }
+
+    def Base64Char: Rule0 = rule(Alpha | Digit | '+' | '/' | '=')
 
     // https://tools.ietf.org/html/rfc6750#page-5
-    def b64token: Rule1[String] = rule {
-      capture(oneOrMore(Alpha | Digit | anyOf("-._~+/")) ~ zeroOrMore('='))
-    }
+    def b64token: Rule1[String] =
+      rule {
+        capture(oneOrMore(Alpha | Digit | anyOf("-._~+/")) ~ zeroOrMore('='))
+      }
 
     def token68: Rule1[String] = b64token
   }

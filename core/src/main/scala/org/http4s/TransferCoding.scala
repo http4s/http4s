@@ -25,16 +25,16 @@ import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
 import org.http4s.util._
 
 class TransferCoding private (val coding: String) extends Ordered[TransferCoding] with Renderable {
-  override def equals(o: Any) = o match {
-    case that: TransferCoding => this.coding.equalsIgnoreCase(that.coding)
-    case _ => false
-  }
+  override def equals(o: Any) =
+    o match {
+      case that: TransferCoding => this.coding.equalsIgnoreCase(that.coding)
+      case _ => false
+    }
 
   private[this] var hash = 0
   override def hashCode(): Int = {
-    if (hash == 0) {
+    if (hash == 0)
       hash = hashLower(coding)
-    }
     hash
   }
 
@@ -71,21 +71,23 @@ object TransferCoding {
     new Http4sParser[NonEmptyList[TransferCoding]](s, "Invalid Transfer Coding")
       with Rfc2616BasicRules
       with TransferCodingParser {
-      def main = rule {
-        oneOrMore(codingRule).separatedBy(ListSep) ~> { (codes: Seq[TransferCoding]) =>
-          NonEmptyList.of(codes.head, codes.tail: _*)
+      def main =
+        rule {
+          oneOrMore(codingRule).separatedBy(ListSep) ~> { (codes: Seq[TransferCoding]) =>
+            NonEmptyList.of(codes.head, codes.tail: _*)
+          }
         }
-      }
     }.parse
 
   private trait TransferCodingParser { self: PbParser =>
-    def codingRule = rule {
-      "chunked" ~ push(chunked) |
-        "compress" ~ push(compress) |
-        "deflate" ~ push(deflate) |
-        "gzip" ~ push(gzip) |
-        "identity" ~ push(identity)
-    }
+    def codingRule =
+      rule {
+        "chunked" ~ push(chunked) |
+          "compress" ~ push(compress) |
+          "deflate" ~ push(deflate) |
+          "gzip" ~ push(gzip) |
+          "identity" ~ push(identity)
+      }
   }
 
   implicit val http4sOrderForTransferCoding: Order[TransferCoding] =

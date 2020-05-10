@@ -30,7 +30,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
       case None => super.renderResponse(req, resp, cleanup)
       case Some(wsContext) =>
         val hdrs = req.headers.toList.map(h => (h.name.toString, h.value))
-        if (WebSocketHandshake.isWebSocketRequest(hdrs)) {
+        if (WebSocketHandshake.isWebSocketRequest(hdrs))
           WebSocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
               logger.info(s"Invalid handshake $code, $msg")
@@ -79,7 +79,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
               }(executionContext)
           }
-        } else super.renderResponse(req, resp, cleanup)
+        else super.renderResponse(req, resp, cleanup)
     }
   }
 }

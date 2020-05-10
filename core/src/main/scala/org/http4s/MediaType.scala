@@ -34,7 +34,7 @@ sealed class MediaRange private[http4s] (
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean =
-    (mainType.charAt(0) === '*' || mainType === mediaType.mainType)
+    mainType.charAt(0) === '*' || mainType === mediaType.mainType
 
   final def satisfies(mediaRange: MediaRange): Boolean = mediaRange.satisfiedBy(this)
 
@@ -52,38 +52,40 @@ sealed class MediaRange private[http4s] (
 
   override def toString: String = s"MediaRange($mainType/*${MediaRange.extensionsToString(this)})"
 
-  override def equals(obj: Any): Boolean = obj match {
-    case _: MediaType => false
-    case x: MediaRange =>
-      (this eq x) ||
-        mainType === x.mainType &&
-          extensions === x.extensions
-    case _ =>
-      false
-  }
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case _: MediaType => false
+      case x: MediaRange =>
+        (this eq x) ||
+          mainType === x.mainType &&
+            extensions === x.extensions
+      case _ =>
+        false
+    }
 
   private[this] var hash = 0
   override def hashCode(): Int = {
-    if (hash == 0) {
+    if (hash == 0)
       hash = MurmurHash3.mixLast(mainType.toLowerCase.##, extensions.##)
-    }
     hash
   }
 }
 
 private[http4s] trait MediaParser extends Rfc2616BasicRules { self: PbParser =>
-  def MediaRangeRule[A](builder: (String, String) => A): Rule1[A] = rule {
-    (("*/*" ~ push("*") ~ push("*")) |
-      (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
-      ("*" ~ push("*") ~ push("*"))) ~> (builder(_, _))
-  }
-
-  def MediaTypeExtension: Rule1[(String, String)] = rule {
-    ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> {
-      (s: String, s2: Option[String]) =>
-        (s, s2.getOrElse(""))
+  def MediaRangeRule[A](builder: (String, String) => A): Rule1[A] =
+    rule {
+      (("*/*" ~ push("*") ~ push("*")) |
+        (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
+        ("*" ~ push("*") ~ push("*"))) ~> (builder(_, _))
     }
-  }
+
+  def MediaTypeExtension: Rule1[(String, String)] =
+    rule {
+      ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> {
+        (s: String, s2: Option[String]) =>
+          (s, s2.getOrElse(""))
+      }
+    }
 }
 
 object MediaRange {
@@ -125,12 +127,13 @@ object MediaRange {
   }
 
   private[http4s] trait MediaRangeParser extends MediaParser { self: PbParser =>
-    def MediaRangeFull: Rule1[MediaRange] = rule {
-      MediaRangeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-        (mr: MediaRange, ext: Option[collection.Seq[(String, String)]]) =>
-          ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
+    def MediaRangeFull: Rule1[MediaRange] =
+      rule {
+        MediaRangeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
+          (mr: MediaRange, ext: Option[collection.Seq[(String, String)]]) =>
+            ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
+        }
       }
-    }
 
     def MediaRangeDef: Rule1[MediaRange] = MediaRangeRule[MediaRange](getMediaRange)
 
@@ -147,10 +150,11 @@ object MediaRange {
     Show.show(s => s"${s.mainType}/*${MediaRange.extensionsToString(s)}")
   implicit val http4sOrderForMediaRange: Order[MediaRange] =
     Order.from { (x, y) =>
-      def orderedSubtype(a: MediaRange) = a match {
-        case mt: MediaType => mt.subType
-        case _ => ""
-      }
+      def orderedSubtype(a: MediaRange) =
+        a match {
+          case mt: MediaType => mt.subType
+          case _ => ""
+        }
       def f(a: MediaRange) = (a.mainType, orderedSubtype(a), a.extensions.toVector.sortBy(_._1))
       Order[(String, String, Vector[(String, String)])].compare(f(x), f(y))
     }
@@ -159,13 +163,14 @@ object MediaRange {
       override def parse(s: String): ParseResult[MediaRange] =
         MediaRange.parse(s)
 
-      override def render(writer: Writer, mr: MediaRange): writer.type = mr match {
-        case mt: MediaType => MediaType.http4sHttpCodecForMediaType.render(writer, mt)
-        case _ =>
-          writer << mr.mainType << "/*"
-          renderExtensions(writer, mr)
-          writer
-      }
+      override def render(writer: Writer, mr: MediaRange): writer.type =
+        mr match {
+          case mt: MediaType => MediaType.http4sHttpCodecForMediaType.render(writer, mt)
+          case _ =>
+            writer << mr.mainType << "/*"
+            renderExtensions(writer, mr)
+            writer
+        }
     }
 }
 
@@ -182,27 +187,29 @@ sealed class MediaType(
 
   final def satisfies(mediaType: MediaType): Boolean = mediaType.satisfiedBy(this)
 
-  override def satisfiedBy(mediaType: MediaRange): Boolean = mediaType match {
-    case mediaType: MediaType =>
-      (this eq mediaType) ||
-        mainType === mediaType.mainType &&
-          subType === mediaType.subType
+  override def satisfiedBy(mediaType: MediaRange): Boolean =
+    mediaType match {
+      case mediaType: MediaType =>
+        (this eq mediaType) ||
+          mainType === mediaType.mainType &&
+            subType === mediaType.subType
 
-    case _ => false
-  }
+      case _ => false
+    }
 
-  override def equals(obj: Any): Boolean = obj match {
-    case x: MediaType =>
-      (this eq x) ||
-        mainType === x.mainType &&
-          subType === x.subType &&
-          extensions === x.extensions
-    case _ => false
-  }
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case x: MediaType =>
+        (this eq x) ||
+          mainType === x.mainType &&
+            subType === x.subType &&
+            extensions === x.extensions
+      case _ => false
+    }
 
   private[this] var hash = 0
   override def hashCode(): Int = {
-    if (hash == 0) {
+    if (hash == 0)
       hash = MurmurHash3.mixLast(
         mainType.##,
         MurmurHash3.mix(
@@ -210,7 +217,6 @@ sealed class MediaType(
           MurmurHash3.mix(
             compressible.##,
             MurmurHash3.mix(binary.##, MurmurHash3.mix(fileExtensions.##, extensions.##)))))
-    }
     hash
   }
 
@@ -255,12 +261,13 @@ object MediaType extends MimeDB {
     parse(s).fold(throw _, identity)
 
   private[http4s] trait MediaTypeParser extends MediaParser {
-    def MediaTypeFull: Rule1[MediaType] = rule {
-      MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-        (mr: MediaType, ext: Option[collection.Seq[(String, String)]]) =>
-          ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
+    def MediaTypeFull: Rule1[MediaType] =
+      rule {
+        MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
+          (mr: MediaType, ext: Option[collection.Seq[(String, String)]]) =>
+            ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
+        }
       }
-    }
 
     def MediaTypeDef: Rule1[MediaType] = MediaRangeRule[MediaType](getMediaType)
 

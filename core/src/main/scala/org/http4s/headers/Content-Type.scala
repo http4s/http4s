@@ -16,10 +16,11 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
 final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset])
     extends Header.Parsed {
   override def key: `Content-Type`.type = `Content-Type`
-  override def renderValue(writer: Writer): writer.type = charset match {
-    case Some(cs) => writer << mediaType << "; charset=" << cs
-    case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, mediaType)
-  }
+  override def renderValue(writer: Writer): writer.type =
+    charset match {
+      case Some(cs) => writer << mediaType << "; charset=" << cs
+      case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, mediaType)
+    }
 
   def withMediaType(mediaType: MediaType): `Content-Type` =
     if (mediaType != this.mediaType) copy(mediaType = mediaType) else this

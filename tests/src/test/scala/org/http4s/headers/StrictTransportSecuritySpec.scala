@@ -85,7 +85,8 @@ class StrictTransportSecuritySpec extends HeaderLaws {
         `Strict-Transport-Security`.unsafeFromDuration(365.days, true))
     }
     "accept age, subdomains and preload" in {
-      `Strict-Transport-Security`.parse("max-age=31536000; includeSubDomains; preload") must beRight(
+      `Strict-Transport-Security`.parse(
+        "max-age=31536000; includeSubDomains; preload") must beRight(
         `Strict-Transport-Security`.unsafeFromDuration(365.days, true, true))
     }
   }

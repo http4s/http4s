@@ -69,9 +69,8 @@ final private[http4s] class ResponseHeaderTimeoutStage[A](
         if (!timeoutState.compareAndSet(prev, next)) {
           next.cancel()
           go()
-        } else {
+        } else
           prev.cancel()
-        }
       }
     }
     go()

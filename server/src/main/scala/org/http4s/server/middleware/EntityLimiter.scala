@@ -19,8 +19,8 @@ object EntityLimiter {
       http(req.withBodyStream(req.body.through(takeLimited(limit))))
     }
 
-  private def takeLimited[F[_]](n: Long)(
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] =
+  private def takeLimited[F[_]](n: Long)(implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] =
     _.pull
       .take(n)
       .flatMap {

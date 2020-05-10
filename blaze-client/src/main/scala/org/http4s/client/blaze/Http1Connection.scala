@@ -42,10 +42,11 @@ private final class Http1Connection[F[_]](
 
   private val stageState = new AtomicReference[State](Idle)
 
-  override def isClosed: Boolean = stageState.get match {
-    case Error(_) => true
-    case _ => false
-  }
+  override def isClosed: Boolean =
+    stageState.get match {
+      case Error(_) => true
+      case _ => false
+    }
 
   override def isRecyclable: Boolean = stageState.get == Idle
 
@@ -65,25 +66,26 @@ private final class Http1Connection[F[_]](
   }
 
   @tailrec
-  private def shutdownWithError(t: Throwable): Unit = stageState.get match {
-    // If we have a real error, lets put it here.
-    case st @ Error(EOF) if t != EOF =>
-      if (!stageState.compareAndSet(st, Error(t))) shutdownWithError(t)
-      else closePipeline(Some(t))
+  private def shutdownWithError(t: Throwable): Unit =
+    stageState.get match {
+      // If we have a real error, lets put it here.
+      case st @ Error(EOF) if t != EOF =>
+        if (!stageState.compareAndSet(st, Error(t))) shutdownWithError(t)
+        else closePipeline(Some(t))
 
-    case Error(_) => // NOOP: already shutdown
+      case Error(_) => // NOOP: already shutdown
 
-    case x =>
-      if (!stageState.compareAndSet(x, Error(t))) shutdownWithError(t)
-      else {
-        val cmd = t match {
-          case EOF => None
-          case _ => Some(t)
+      case x =>
+        if (!stageState.compareAndSet(x, Error(t))) shutdownWithError(t)
+        else {
+          val cmd = t match {
+            case EOF => None
+            case _ => Some(t)
+          }
+          closePipeline(cmd)
+          super.stageShutdown()
         }
-        closePipeline(cmd)
-        super.stageShutdown()
-      }
-  }
+    }
 
   @tailrec
   def reset(): Unit =
@@ -133,9 +135,8 @@ private final class Http1Connection[F[_]](
           // Side Effecting Code
           encodeRequestLine(req, rr)
           Http1Stage.encodeHeaders(req.headers.toList, rr, isServer)
-          if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
+          if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty)
             rr << userAgent.get << "\r\n"
-          }
 
           val mustClose: Boolean = H.Connection.from(req.headers) match {
             case Some(conn) => checkCloseConnection(conn, rr)
@@ -204,98 +205,92 @@ private final class Http1Connection[F[_]](
       doesntHaveBody: Boolean,
       cb: Callback[Response[F]],
       idleTimeoutS: F[Either[Throwable, Unit]]): Unit =
-    try {
-      if (!parser.finishedResponseLine(buffer))
-        readAndParsePrelude(
-          cb,
-          closeOnFinish,
-          doesntHaveBody,
-          "Response Line Parsing",
-          idleTimeoutS)
-      else if (!parser.finishedHeaders(buffer))
-        readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
-      else {
-        // Get headers and determine if we need to close
-        val headers: Headers = parser.getHeaders()
-        val status: Status = parser.getStatus()
-        val httpVersion: HttpVersion = parser.getHttpVersion()
+    try if (!parser.finishedResponseLine(buffer))
+      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing", idleTimeoutS)
+    else if (!parser.finishedHeaders(buffer))
+      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
+    else {
+      // Get headers and determine if we need to close
+      val headers: Headers = parser.getHeaders()
+      val status: Status = parser.getStatus()
+      val httpVersion: HttpVersion = parser.getHttpVersion()
 
-        // we are now to the body
-        def terminationCondition(): Either[Throwable, Option[Chunk[Byte]]] =
-          stageState.get match { // if we don't have a length, EOF signals the end of the body.
-            case Error(e) if e != EOF => Either.left(e)
-            case _ =>
-              if (parser.definedContentLength() || parser.isChunked())
-                Either.left(InvalidBodyException("Received premature EOF."))
-              else Either.right(None)
-          }
-
-        def cleanup(): Unit =
-          if (closeOnFinish || headers.get(Connection).exists(_.hasClose)) {
-            logger.debug("Message body complete. Shutting down.")
-            stageShutdown()
-          } else {
-            logger.debug(s"Resetting $name after completing request.")
-            reset()
-          }
-
-        val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
-          // responses to HEAD requests do not have a body
-          cleanup()
-          (Vault.empty, EmptyBody)
-        } else {
-          // We are to the point of parsing the body and then cleaning up
-          val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
-            collectBodyFromParser(buffer, terminationCondition _)
-
-          // to collect the trailers we need a cleanup helper and an effect in the attribute map
-          val (trailerCleanup, attributes): (() => Unit, Vault) = {
-            if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
-              val trailers = new AtomicReference(Headers.empty)
-
-              val attrs = Vault.empty.insert[F[Headers]](
-                Message.Keys.TrailerHeaders[F],
-                F.suspend {
-                  if (parser.contentComplete()) F.pure(trailers.get())
-                  else
-                    F.raiseError(
-                      new IllegalStateException(
-                        "Attempted to collect trailers before the body was complete."))
-                }
-              )
-
-              (() => trailers.set(parser.getHeaders()), attrs)
-            } else
-              ({ () =>
-                ()
-              }, Vault.empty)
-          }
-
-          if (parser.contentComplete()) {
-            trailerCleanup()
-            cleanup()
-            attributes -> rawBody
-          } else {
-            attributes -> rawBody.onFinalizeCaseWeak {
-              case ExitCase.Completed =>
-                Async.shift(executionContext) *> F.delay { trailerCleanup(); cleanup(); }
-              case ExitCase.Error(_) | ExitCase.Canceled =>
-                Async.shift(executionContext) *> F.delay {
-                  trailerCleanup(); cleanup(); stageShutdown()
-                }
-            }
-          }
+      // we are now to the body
+      def terminationCondition(): Either[Throwable, Option[Chunk[Byte]]] =
+        stageState.get match { // if we don't have a length, EOF signals the end of the body.
+          case Error(e) if e != EOF => Either.left(e)
+          case _ =>
+            if (parser.definedContentLength() || parser.isChunked())
+              Either.left(InvalidBodyException("Received premature EOF."))
+            else Either.right(None)
         }
-        cb(
-          Right(
-            Response[F](
-              status = status,
-              httpVersion = httpVersion,
-              headers = headers,
-              body = body.interruptWhen(idleTimeoutS),
-              attributes = attributes)
-          ))
+
+      def cleanup(): Unit =
+        if (closeOnFinish || headers.get(Connection).exists(_.hasClose)) {
+          logger.debug("Message body complete. Shutting down.")
+          stageShutdown()
+        } else {
+          logger.debug(s"Resetting $name after completing request.")
+          reset()
+        }
+
+      val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
+        // responses to HEAD requests do not have a body
+        cleanup()
+        (Vault.empty, EmptyBody)
+      } else {
+        // We are to the point of parsing the body and then cleaning up
+        val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
+          collectBodyFromParser(buffer, terminationCondition _)
+
+        // to collect the trailers we need a cleanup helper and an effect in the attribute map
+        val (trailerCleanup, attributes): (() => Unit, Vault) = {
+          if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
+            val trailers = new AtomicReference(Headers.empty)
+
+            val attrs = Vault.empty.insert[F[Headers]](
+              Message.Keys.TrailerHeaders[F],
+              F.suspend {
+                if (parser.contentComplete()) F.pure(trailers.get())
+                else
+                  F.raiseError(
+                    new IllegalStateException(
+                      "Attempted to collect trailers before the body was complete."))
+              }
+            )
+
+            (() => trailers.set(parser.getHeaders()), attrs)
+          } else
+            (
+              { () =>
+                ()
+              },
+              Vault.empty)
+        }
+
+        if (parser.contentComplete()) {
+          trailerCleanup()
+          cleanup()
+          attributes -> rawBody
+        } else
+          attributes -> rawBody.onFinalizeCaseWeak {
+            case ExitCase.Completed =>
+              Async.shift(executionContext) *> F.delay { trailerCleanup(); cleanup(); }
+            case ExitCase.Error(_) | ExitCase.Canceled =>
+              Async.shift(executionContext) *> F.delay {
+                trailerCleanup(); cleanup(); stageShutdown()
+              }
+          }
       }
+      cb(
+        Right(
+          Response[F](
+            status = status,
+            httpVersion = httpVersion,
+            headers = headers,
+            body = body.interruptWhen(idleTimeoutS),
+            attributes = attributes)
+        ))
     } catch {
       case t: Throwable =>
         logger.error(t)("Error during client request decode loop")
@@ -315,7 +310,7 @@ private final class Http1Connection[F[_]](
       validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.1`))
     }
     // Ensure we have a host header for HTTP/1.1
-    else if (minor == 1 && req.uri.host.isEmpty) { // this is unlikely if not impossible
+    else if (minor == 1 && req.uri.host.isEmpty) // this is unlikely if not impossible
       if (Host.from(req.headers).isDefined) {
         val host = Host.from(req.headers).get
         val newAuth = req.uri.authority match {
@@ -323,12 +318,11 @@ private final class Http1Connection[F[_]](
           case None => Authority(host = RegName(host.host), port = host.port)
         }
         validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
-      } else if (`Content-Length`.from(req.headers).nonEmpty) { // translate to HTTP/1.0
+      } else if (`Content-Length`.from(req.headers).nonEmpty) // translate to HTTP/1.0
         validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
-      } else {
+      else
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
-      }
-    } else if (req.uri.path == "") Right(req.withUri(req.uri.copy(path = "/")))
+    else if (req.uri.path == "") Right(req.withUri(req.uri.copy(path = "/")))
     else Right(req) // All appears to be well
   }
 
@@ -352,7 +346,10 @@ private object Http1Connection {
 
   private def encodeRequestLine[F[_]](req: Request[F], writer: Writer): writer.type = {
     val uri = req.uri
-    writer << req.method << ' ' << uri.copy(scheme = None, authority = None, fragment = None) << ' ' << req.httpVersion << "\r\n"
+    writer << req.method << ' ' << uri.copy(
+      scheme = None,
+      authority = None,
+      fragment = None) << ' ' << req.httpVersion << "\r\n"
     if (getHttpMinor(req) == 1 && Host
         .from(req.headers)
         .isEmpty) { // need to add the host header for HTTP/1.1

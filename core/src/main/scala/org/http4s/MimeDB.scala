@@ -2,8 +2,8 @@
 package org.http4s
 
 private[http4s] trait MimeDB {
-  lazy val allMediaTypes
-      : List[MediaType] = Nil ++ x_shader.all ++ x_conference.all ++ video.all ++ text.all ++ multipart.all ++ model.all ++ message.all ++ image.all ++ font.all ++ chemical.all ++ audio.all ++ application.all
+  lazy val allMediaTypes: List[MediaType] =
+    Nil ++ x_shader.all ++ x_conference.all ++ video.all ++ text.all ++ multipart.all ++ model.all ++ message.all ++ image.all ++ font.all ++ chemical.all ++ audio.all ++ application.all
   val Compressible: Boolean = true
   val Uncompressible: Boolean = false
   val Binary: Boolean = true

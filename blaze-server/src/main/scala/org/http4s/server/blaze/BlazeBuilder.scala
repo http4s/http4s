@@ -185,40 +185,41 @@ class BlazeBuilder[F[_]](
     b.resource
   }
 
-  private def getContext(): Option[(SSLContext, SSLClientAuthMode)] = sslBits.map {
-    case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
-      val ksStream = new FileInputStream(keyStore.path)
-      val ks = KeyStore.getInstance("JKS")
-      ks.load(ksStream, keyStore.password.toCharArray)
-      ksStream.close()
-
-      val tmf = trustStore.map { auth =>
-        val ksStream = new FileInputStream(auth.path)
-
+  private def getContext(): Option[(SSLContext, SSLClientAuthMode)] =
+    sslBits.map {
+      case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
+        val ksStream = new FileInputStream(keyStore.path)
         val ks = KeyStore.getInstance("JKS")
-        ks.load(ksStream, auth.password.toCharArray)
+        ks.load(ksStream, keyStore.password.toCharArray)
         ksStream.close()
 
-        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+        val tmf = trustStore.map { auth =>
+          val ksStream = new FileInputStream(auth.path)
 
-        tmf.init(ks)
-        tmf.getTrustManagers
-      }
+          val ks = KeyStore.getInstance("JKS")
+          ks.load(ksStream, auth.password.toCharArray)
+          ksStream.close()
 
-      val kmf = KeyManagerFactory.getInstance(
-        Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-          .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+          val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
 
-      kmf.init(ks, keyManagerPassword.toCharArray)
+          tmf.init(ks)
+          tmf.getTrustManagers
+        }
 
-      val context = SSLContext.getInstance(protocol)
-      context.init(kmf.getKeyManagers, tmf.orNull, null)
+        val kmf = KeyManagerFactory.getInstance(
+          Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
+            .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
 
-      (context, clientAuth)
+        kmf.init(ks, keyManagerPassword.toCharArray)
 
-    case SSLContextBits(context, clientAuth) =>
-      (context, clientAuth)
-  }
+        val context = SSLContext.getInstance(protocol)
+        context.init(kmf.getKeyManagers, tmf.orNull, null)
+
+        (context, clientAuth)
+
+      case SSLContextBits(context, clientAuth) =>
+        (context, clientAuth)
+    }
 }
 
 @deprecated("Use BlazeServerBuilder instead", "0.20.0-RC1")

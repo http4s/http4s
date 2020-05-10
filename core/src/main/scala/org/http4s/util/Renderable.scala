@@ -47,15 +47,16 @@ object Renderer {
       writer << d.toString
   }
 
-  implicit def eitherRenderer[A, B](
-      implicit ra: Renderer[A],
-      rb: Renderer[B]): Renderer[Either[A, B]] = new Renderer[Either[A, B]] {
-    override def render(writer: Writer, e: Either[A, B]): writer.type =
-      e match {
-        case Left(a) => ra.render(writer, a)
-        case Right(b) => rb.render(writer, b)
-      }
-  }
+  implicit def eitherRenderer[A, B](implicit
+      ra: Renderer[A],
+      rb: Renderer[B]): Renderer[Either[A, B]] =
+    new Renderer[Either[A, B]] {
+      override def render(writer: Writer, e: Either[A, B]): writer.type =
+        e match {
+          case Left(a) => ra.render(writer, a)
+          case Right(b) => rb.render(writer, b)
+        }
+    }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
@@ -104,12 +105,13 @@ trait Writer {
     this << '"'
 
     @tailrec
-    def go(i: Int): Unit = if (i < s.length) {
-      val c = s.charAt(i)
-      if (escapedChars.contains(c.toInt)) this << escapeChar
-      this << c
-      go(i + 1)
-    }
+    def go(i: Int): Unit =
+      if (i < s.length) {
+        val c = s.charAt(i)
+        if (escapedChars.contains(c.toInt)) this << escapeChar
+        this << c
+        go(i + 1)
+      }
 
     go(0)
     this << '"'

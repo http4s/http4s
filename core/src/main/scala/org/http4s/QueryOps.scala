@@ -168,11 +168,10 @@ trait QueryOps {
     val baseQuery = query.toVector.filter(_._1 != name.value)
     val vec =
       if (values.isEmpty) baseQuery :+ (name.value -> None)
-      else {
+      else
         values.toList.foldLeft(baseQuery) {
           case (vec, v) => vec :+ (name.value -> Some(v.value))
         }
-      }
 
     replaceQuery(Query.fromVector(vec))
   }

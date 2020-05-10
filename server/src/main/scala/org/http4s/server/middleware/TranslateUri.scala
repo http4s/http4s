@@ -7,8 +7,8 @@ import cats.{Functor, MonoidK}
 /** Removes the given prefix from the beginning of the path of the [[Request]].
   */
 object TranslateUri {
-  def apply[F[_], G[_], B](prefix: String)(http: Kleisli[F, Request[G], B])(
-      implicit F: MonoidK[F],
+  def apply[F[_], G[_], B](prefix: String)(http: Kleisli[F, Request[G], B])(implicit
+      F: MonoidK[F],
       G: Functor[G]): Kleisli[F, Request[G], B] =
     if (prefix.isEmpty || prefix == "/") http
     else {

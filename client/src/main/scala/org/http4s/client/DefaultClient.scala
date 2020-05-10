@@ -59,12 +59,13 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
-  def toHttpApp: HttpApp[F] = Kleisli { req =>
-    run(req).allocated.map {
-      case (resp, release) =>
-        resp.withBodyStream(resp.body.onFinalizeWeak(release))
+  def toHttpApp: HttpApp[F] =
+    Kleisli { req =>
+      run(req).allocated.map {
+        case (resp, release) =>
+          resp.withBodyStream(resp.body.onFinalizeWeak(release))
+      }
     }
-  }
 
   /**
     * Returns this client as an [[HttpService]].  It is the
@@ -88,8 +89,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream.eval(req).flatMap(stream).flatMap(f)
 
-  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A] = {
+  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
@@ -110,15 +111,15 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(req)(defaultOnError)
 
-  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A] =
+  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A] =
     req.flatMap(expectOr(_)(onError))
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(req)(defaultOnError)
 
-  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A] =
+  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A] =
     expectOr(Request[F](Method.GET, uri))(onError)
 
   /**
@@ -129,8 +130,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(uri)(defaultOnError)
 
-  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A] =
+  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => expectOr[A](uri)(onError))
 
   /**
@@ -141,8 +142,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(s)(defaultOnError)
 
-  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[Option[A]] = {
+  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[Option[A]] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))

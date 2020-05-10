@@ -27,11 +27,12 @@ trait EntityEncoderLaws[F[_], A] {
 }
 
 object EntityEncoderLaws {
-  def apply[F[_], A](
-      implicit F0: Sync[F],
+  def apply[F[_], A](implicit
+      F0: Sync[F],
       entityEncoderFA: EntityEncoder[F, A]
-  ): EntityEncoderLaws[F, A] = new EntityEncoderLaws[F, A] {
-    val F = F0
-    val encoder = entityEncoderFA
-  }
+  ): EntityEncoderLaws[F, A] =
+    new EntityEncoderLaws[F, A] {
+      val F = F0
+      val encoder = entityEncoderFA
+    }
 }

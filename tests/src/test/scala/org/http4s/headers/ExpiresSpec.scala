@@ -11,7 +11,9 @@ class ExpiresSpec extends HeaderLaws {
 
   "render" should {
     "format GMT date according to RFC 1123" in {
-      Expires(HttpDate.unsafeFromZonedDateTime(gmtDate)).renderString must_== "Expires: Sun, 06 Nov 1994 08:49:37 GMT"
+      Expires(
+        HttpDate.unsafeFromZonedDateTime(
+          gmtDate)).renderString must_== "Expires: Sun, 06 Nov 1994 08:49:37 GMT"
     }
   }
 

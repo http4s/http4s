@@ -10,8 +10,8 @@ import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 
 object JettyScaffold {
-  def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(
-      implicit F: Sync[F]): Resource[F, JettyScaffold] =
+  def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(implicit
+      F: Sync[F]): Resource[F, JettyScaffold] =
     Resource.make(F.delay {
       val scaffold = new JettyScaffold(num, secure)
       scaffold.startServers(testServlet)

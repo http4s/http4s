@@ -41,19 +41,20 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       maxResponseHeaderSize: Int = self.maxResponseHeaderSize,
       timeout: Duration = self.timeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions
-  ): EmberClientBuilder[F] = new EmberClientBuilder[F](
-    blockerOpt = blockerOpt,
-    tlsContextOpt = tlsContextOpt,
-    sgOpt = sgOpt,
-    maxTotal = maxTotal,
-    maxPerKey = maxPerKey,
-    idleTimeInPool = idleTimeInPool,
-    logger = logger,
-    chunkSize = chunkSize,
-    maxResponseHeaderSize = maxResponseHeaderSize,
-    timeout = timeout,
-    additionalSocketOptions = additionalSocketOptions
-  )
+  ): EmberClientBuilder[F] =
+    new EmberClientBuilder[F](
+      blockerOpt = blockerOpt,
+      tlsContextOpt = tlsContextOpt,
+      sgOpt = sgOpt,
+      maxTotal = maxTotal,
+      maxPerKey = maxPerKey,
+      idleTimeInPool = idleTimeInPool,
+      logger = logger,
+      chunkSize = chunkSize,
+      maxResponseHeaderSize = maxResponseHeaderSize,
+      timeout = timeout,
+      additionalSocketOptions = additionalSocketOptions
+    )
 
   def withTLSContext(tlsContext: TLSContext) =
     copy(tlsContextOpt = tlsContext.some)
@@ -84,31 +85,32 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
         tlsContextOpt
           .fold(TLSContext.system(blocker).attempt.map(_.toOption))(_.some.pure[F])
       )
-      builder = KeyPoolBuilder
-        .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
-          { (requestKey: RequestKey) =>
-            org.http4s.ember.client.internal.ClientHelpers
-              .requestKeyToSocketWithKey[F](
-                requestKey,
-                tlsContextOptWithDefault,
-                sg,
-                additionalSocketOptions
-              )
-              .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}")
-          }, {
-            case (RequestKeySocket(socket, r), shutdown) =>
-              logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
-                socket.endOfInput.attempt.void >>
-                socket.endOfOutput.attempt.void >>
-                socket.close.attempt.void >>
-                shutdown
-          }
-        )
-        .withDefaultReuseState(Reusable.DontReuse)
-        .withIdleTimeAllowedInPool(idleTimeInPool)
-        .withMaxPerKey(maxPerKey)
-        .withMaxTotal(maxTotal)
-        .withOnReaperException(_ => Applicative[F].unit)
+      builder =
+        KeyPoolBuilder
+          .apply[F, RequestKey, (RequestKeySocket[F], F[Unit])](
+            (requestKey: RequestKey) =>
+              org.http4s.ember.client.internal.ClientHelpers
+                .requestKeyToSocketWithKey[F](
+                  requestKey,
+                  tlsContextOptWithDefault,
+                  sg,
+                  additionalSocketOptions
+                )
+                .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+            {
+              case (RequestKeySocket(socket, r), shutdown) =>
+                logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
+                  socket.endOfInput.attempt.void >>
+                  socket.endOfOutput.attempt.void >>
+                  socket.close.attempt.void >>
+                  shutdown
+            }
+          )
+          .withDefaultReuseState(Reusable.DontReuse)
+          .withIdleTimeAllowedInPool(idleTimeInPool)
+          .withMaxPerKey(maxPerKey)
+          .withMaxTotal(maxTotal)
+          .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
     } yield {
       val client = Client[F](request =>
@@ -121,27 +123,28 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               )
             }
           )
-          responseResource <- org.http4s.ember.client.internal.ClientHelpers
-            .request[F](
-              request,
-              managed.value._1,
-              chunkSize,
-              maxResponseHeaderSize,
-              timeout
-            )(logger)
-            .map(response =>
-              response.copy(body = response.body.onFinalizeCaseWeak {
-                case ExitCase.Completed =>
-                  val requestClose = request.headers.get(Connection).exists(_.hasClose)
-                  val responseClose = response.isChunked || response.headers
-                    .get(Connection)
-                    .exists(_.hasClose)
+          responseResource <-
+            org.http4s.ember.client.internal.ClientHelpers
+              .request[F](
+                request,
+                managed.value._1,
+                chunkSize,
+                maxResponseHeaderSize,
+                timeout
+              )(logger)
+              .map(response =>
+                response.copy(body = response.body.onFinalizeCaseWeak {
+                  case ExitCase.Completed =>
+                    val requestClose = request.headers.get(Connection).exists(_.hasClose)
+                    val responseClose = response.isChunked || response.headers
+                      .get(Connection)
+                      .exists(_.hasClose)
 
-                  if (requestClose || responseClose) Sync[F].unit
-                  else managed.canBeReused.set(Reusable.Reuse)
-                case ExitCase.Canceled => Sync[F].unit
-                case ExitCase.Error(_) => Sync[F].unit
-              }))
+                    if (requestClose || responseClose) Sync[F].unit
+                    else managed.canBeReused.set(Reusable.Reuse)
+                  case ExitCase.Canceled => Sync[F].unit
+                  case ExitCase.Error(_) => Sync[F].unit
+                }))
           response <- Resource.make[F, Response[F]](responseResource.pure[F])(resp =>
             managed.canBeReused.get.flatMap {
               case Reusable.Reuse => resp.body.compile.drain.attempt.void
@@ -153,19 +156,20 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 }
 
 object EmberClientBuilder {
-  def default[F[_]: Concurrent: Timer: ContextShift] = new EmberClientBuilder[F](
-    blockerOpt = None,
-    tlsContextOpt = None,
-    sgOpt = None,
-    maxTotal = Defaults.maxTotal,
-    maxPerKey = Defaults.maxPerKey,
-    idleTimeInPool = Defaults.idleTimeInPool,
-    logger = Slf4jLogger.getLogger[F],
-    chunkSize = Defaults.chunkSize,
-    maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
-    timeout = Defaults.timeout,
-    additionalSocketOptions = Defaults.additionalSocketOptions
-  )
+  def default[F[_]: Concurrent: Timer: ContextShift] =
+    new EmberClientBuilder[F](
+      blockerOpt = None,
+      tlsContextOpt = None,
+      sgOpt = None,
+      maxTotal = Defaults.maxTotal,
+      maxPerKey = Defaults.maxPerKey,
+      idleTimeInPool = Defaults.idleTimeInPool,
+      logger = Slf4jLogger.getLogger[F],
+      chunkSize = Defaults.chunkSize,
+      maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
+      timeout = Defaults.timeout,
+      additionalSocketOptions = Defaults.additionalSocketOptions
+    )
 
   private object Defaults {
     val acgFixedThreadPoolSize: Int = 100

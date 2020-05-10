@@ -208,37 +208,36 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   private def verifyTimeoutAccuracy(
       tick: Duration,
       timeout: Duration,
-      timeoutName: String): F[Unit] = F.delay {
-    val warningThreshold = 0.1 // 10%
-    val inaccuracy = tick / timeout
-    if (inaccuracy > warningThreshold) {
-      logger.warn(
-        s"With current configuration, $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
-          s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick).")
-    }
-  }
-
-  private def verifyTimeoutRelations(): F[Unit] = F.delay {
-    val advice = s"It is recommended to configure responseHeaderTimeout < requestTimeout < idleTimeout " +
-      s"or disable some of them explicitly by setting them to Duration.Inf."
-
-    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= requestTimeout) {
-      logger.warn(
-        s"responseHeaderTimeout ($responseHeaderTimeout) is >= requestTimeout ($requestTimeout). $advice")
+      timeoutName: String): F[Unit] =
+    F.delay {
+      val warningThreshold = 0.1 // 10%
+      val inaccuracy = tick / timeout
+      if (inaccuracy > warningThreshold)
+        logger.warn(
+          s"With current configuration, $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
+            s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick).")
     }
 
-    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
-      logger.warn(
-        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
+  private def verifyTimeoutRelations(): F[Unit] =
+    F.delay {
+      val advice =
+        s"It is recommended to configure responseHeaderTimeout < requestTimeout < idleTimeout " +
+          s"or disable some of them explicitly by setting them to Duration.Inf."
+
+      if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= requestTimeout)
+        logger.warn(
+          s"responseHeaderTimeout ($responseHeaderTimeout) is >= requestTimeout ($requestTimeout). $advice")
+
+      if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout)
+        logger.warn(
+          s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
+
+      if (requestTimeout.isFinite && requestTimeout >= idleTimeout)
+        logger.warn(s"requestTimeout ($requestTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
 
-    if (requestTimeout.isFinite && requestTimeout >= idleTimeout) {
-      logger.warn(s"requestTimeout ($requestTimeout) is >= idleTimeout ($idleTimeout). $advice")
-    }
-  }
-
-  private def connectionManager(scheduler: TickWheelExecutor)(
-      implicit F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
+  private def connectionManager(scheduler: TickWheelExecutor)(implicit
+      F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,

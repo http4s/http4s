@@ -15,9 +15,8 @@ class HttpHeadersBench {
   @Benchmark
   def add(in: HeadersInput) = {
     var target: Headers = Headers.empty
-    for (header <- in.headers) {
+    for (header <- in.headers)
       target = target.put(header)
-    }
   }
 
   @Benchmark
