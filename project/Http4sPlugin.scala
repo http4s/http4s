@@ -44,9 +44,6 @@ object Http4sPlugin extends AutoPlugin {
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
 
-    // https://github.com/tkawachi/sbt-doctest/issues/102
-    Test / compile / scalacOptions -= "-Ywarn-unused:params",
-
     scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, minor)) if minor >= 12 =>
