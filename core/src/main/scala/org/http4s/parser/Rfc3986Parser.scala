@@ -23,7 +23,6 @@ private[http4s] trait Rfc3986Parser
     with Uri.Ipv6Address.Parser
     with IpParser
     with StringBuilding {
-  // scalastyle:off public.methods.have.type
 
   def charset: Charset
 
@@ -150,5 +149,4 @@ private[http4s] trait Rfc3986Parser
   def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 
   protected def decode(s: String) = org.http4s.Uri.decode(s, charset)
-  // scalastyle:on public.methods.have.type
 }

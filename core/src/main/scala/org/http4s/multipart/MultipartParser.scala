@@ -279,7 +279,6 @@ object MultipartParser {
     * If it is, drain the epilogue and return the empty stream. if it is not,
     * split on the `values` and raise an error if we lack a match
     */
-  //noinspection ScalaStyle
   private def splitOrFinish[F[_]: Sync](
       values: Array[Byte],
       stream: Stream[F, Byte],
@@ -769,7 +768,6 @@ object MultipartParser {
 
   /** Split the stream on `values`, but when
     */
-  //noinspection ScalaStyle
   private def splitWithFileStream[F[_]](
       values: Array[Byte],
       stream: Stream[F, Byte],

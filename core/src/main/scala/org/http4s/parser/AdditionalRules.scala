@@ -21,7 +21,6 @@ import org.http4s.internal.parboiled2.support.{::, HNil}
 import scala.util.Try
 
 private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
-  // scalastyle:off public.methods.have.type
 
   def EOL: Rule0 = rule { OptWS ~ EOI } // Strip trailing whitespace
 
@@ -75,7 +74,6 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Time: RuleN[Int :: Int :: Int :: HNil] = rule { Digit2 ~ ch(':') ~ Digit2 ~ ch(':') ~ Digit2 }
 
-  // scalastyle:off magic.number
   def Wkday: Rule1[Int] = rule {
     ("Sun" ~ push(0)) |
       ("Mon" ~ push(1)) |
@@ -110,7 +108,6 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       ("Nov" ~ push(11)) |
       ("Dec" ~ push(12))
   }
-  // scalastyle:on magic.number
 
   def Digit1: Rule1[Int] = rule {
     capture(Digit) ~> { (s: String) =>
@@ -189,7 +186,6 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       }
     }
   }
-  // scalastyle:on public.methods.have.type
 }
 
 private[http4s] object AdditionalRules {

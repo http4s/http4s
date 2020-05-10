@@ -180,7 +180,7 @@ object EntityDecoder {
   /** Decodes a message to a String */
   def decodeString[F[_]](
       m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
-    m.bodyAsText.compile.foldMonoid
+    m.bodyAsText.compile.string
 
   /////////////////// Instances //////////////////////////////////////////////
 

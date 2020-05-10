@@ -66,7 +66,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 }
 
 object QValue {
-  lazy val One: QValue = new QValue(1000) // scalastyle:ignore
+  lazy val One: QValue = new QValue(1000)
   lazy val Zero: QValue = new QValue(0)
 
   private def mkQValue(thousandths: Int, s: => String): ParseResult[QValue] =

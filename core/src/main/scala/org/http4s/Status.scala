@@ -24,14 +24,13 @@ sealed abstract case class Status private (code: Int)(
     val isEntityAllowed: Boolean)
     extends Ordered[Status]
     with Renderable {
-  // scalastyle:off magic.number
+
   val responseClass: ResponseClass =
     if (code < 200) Status.Informational
     else if (code < 300) Status.Successful
     else if (code < 400) Status.Redirection
     else if (code < 500) Status.ClientError
     else Status.ServerError
-  // scalastyle:on magic.number
 
   def compare(that: Status): Int = code - that.code
 

@@ -20,7 +20,6 @@ private[parser] trait AuthorizationHeader {
   def AUTHORIZATION(value: String): ParseResult[`Authorization`] =
     new AuthorizationParser(value).parse
 
-  // scalastyle:off public.methods.have.type
   private class AuthorizationParser(input: ParserInput)
       extends Http4sHeaderParser[Authorization](input) {
     def entry: Rule1[Authorization] = rule {
@@ -68,5 +67,4 @@ private[parser] trait AuthorizationHeader {
 
     def token68: Rule1[String] = b64token
   }
-  // scalastyle:on public.methods.have.type
 }

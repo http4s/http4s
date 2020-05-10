@@ -398,7 +398,7 @@ final class Request[F[_]](
       .map(_.getPort)
       .orElse(uri.port)
       .orElse(headers.get(Host).flatMap(_.port))
-      .getOrElse(80) // scalastyle:ignore
+      .getOrElse(80)
 
   /** Whether the Request was received over a secure medium */
   def isSecure: Option[Boolean] = connectionInfo.map(_.secure)

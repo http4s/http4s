@@ -16,7 +16,6 @@ import org.http4s.internal.parboiled2._
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[http4s] trait Rfc2616BasicRules extends Parser {
-  // scalastyle:off public.methods.have.type
   def Octet = rule { "\u0000" - "\u00FF" }
 
   def Char = rule { "\u0000" - "\u007F" }

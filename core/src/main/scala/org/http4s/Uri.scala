@@ -774,11 +774,9 @@ object Uri {
   private val toSkip =
     Unreserved ++ "!$&'()*+,;=:/?@"
 
-  // scalastyle:off magic.number
   private val HexUpperCaseChars = (0 until 16).map { i =>
     Character.toUpperCase(Character.forDigit(i, 16))
   }
-  // scalastyle:on magic.number
 
   /**
     * Percent-encodes a string.  Depending on the parameters, this method is
@@ -847,10 +845,8 @@ object Uri {
         if (in.remaining() >= 2) {
           val xc = in.get()
           val yc = in.get()
-          // scalastyle:off magic.number
           val x = Character.digit(xc, 0x10)
           val y = Character.digit(yc, 0x10)
-          // scalastyle:on magic.number
           if (x != -1 && y != -1) {
             val oo = (x << 4) + y
             if (!toSkip(oo.toChar)) {
