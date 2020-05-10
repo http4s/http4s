@@ -3,8 +3,8 @@ package argonaut
 
 import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}
 import _root_.argonaut.Argonaut._
+import _root_.argonaut.JawnParser.facade
 import cats.effect.Sync
-import org.http4s.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
 import jawn.JawnInstances
 import org.typelevel.jawn.ParseException

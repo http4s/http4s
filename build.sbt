@@ -293,7 +293,8 @@ lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sPlugin.argonaut
+      Http4sPlugin.argonaut,
+      Http4sPlugin.argonautJawn
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
