@@ -575,21 +575,8 @@ def exampleProject(name: String) =
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(
-  http4sJvmTarget := scalaVersion.map {
-    VersionNumber(_).numbers match {
-      case Seq(2, 10, _*) => "1.7"
-      case _ => "1.8"
-    }
-  }.value,
-  Compile / scalacOptions ++= Seq(
-    s"-target:jvm-${http4sJvmTarget.value}"
-  ),
   Compile / doc / scalacOptions += "-no-link-warnings",
   javacOptions ++= Seq(
-    "-source",
-    http4sJvmTarget.value,
-    "-target",
-    http4sJvmTarget.value,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
   ),
