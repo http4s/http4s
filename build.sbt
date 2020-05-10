@@ -438,7 +438,6 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
-    Compile / doc / scalacOptions -= "-Ywarn-unused:imports",
     makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
     Hugo / baseURL := {
       val docsPrefix = extractDocsPrefix(version.value)
