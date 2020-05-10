@@ -108,7 +108,7 @@ object Http4sPlugin extends AutoPlugin {
   )
 
   lazy val silencerSettings: Seq[Setting[_]] = {
-    val SilencerVersion = "1.6.0"
+    val SilencerVersion = "1.7.0"
     Seq(
       libraryDependencies ++= Seq(
         compilerPlugin(("com.github.ghik" % "silencer-plugin" % SilencerVersion).cross(CrossVersion.full)),
