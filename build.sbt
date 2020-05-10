@@ -146,7 +146,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
 lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
-    libraryDependencies += jettyServlet % "test"
+    libraryDependencies += jettyServlet % Test
   )
   .settings(silencerSettings)
   .dependsOn(
@@ -243,10 +243,10 @@ lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
     libraryDependencies ++= Seq(
-      javaxServletApi % "provided",
-      jettyServer % "test",
-      jettyServlet % "test",
-      mockito % "test"
+      javaxServletApi % Provided,
+      jettyServer % Test,
+      jettyServlet % Test,
+      mockito % Test
     ),
   )
   .dependsOn(server % "compile;test->test")
@@ -308,7 +308,7 @@ lazy val circe = libraryProject("circe")
     description := "Provides Circe codecs for http4s",
     libraryDependencies ++= Seq(
       circeJawn,
-      circeTesting % "test"
+      circeTesting % Test
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -491,7 +491,7 @@ lazy val examples = http4sProject("examples")
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
       circeGeneric,
-      logbackClassic % "runtime",
+      logbackClassic % Runtime,
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     ),
     TwirlKeys.templateImports := Nil
@@ -553,7 +553,7 @@ lazy val examplesWar = exampleProject("examples-war")
   .settings(
     description := "Example of a WAR deployment of an http4s service",
     fork := true,
-    libraryDependencies += javaxServletApi % "provided",
+    libraryDependencies += javaxServletApi % Provided,
     Jetty / containerLibs := List(jettyRunner),
   )
   .dependsOn(servlet)
@@ -573,7 +573,7 @@ def exampleProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
     .enablePlugins(PrivateProjectPlugin)
-    .settings(libraryDependencies += logbackClassic % "runtime")
+    .settings(libraryDependencies += logbackClassic % Runtime)
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(
@@ -606,7 +606,7 @@ lazy val commonSettings = Seq(
     specs2Core,
     specs2MatcherExtra,
     specs2Scalacheck
-  ).map(_ % "test"),
+  ).map(_ % Test),
   ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
   git.remoteRepo := "git@github.com:http4s/http4s.git",
   Hugo / includeFilter := (
