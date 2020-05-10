@@ -1,7 +1,6 @@
 package org.http4s.server.middleware
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{Clock, ExitCase, Sync}
 import cats.effect.concurrent.Ref
 import cats.effect.implicits._
 import cats.effect.{Clock, ExitCase, Sync}

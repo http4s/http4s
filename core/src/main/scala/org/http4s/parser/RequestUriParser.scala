@@ -8,7 +8,6 @@ import org.http4s.internal.parboiled2._
 private[http4s] class RequestUriParser(val input: ParserInput, val charset: Charset)
     extends Parser
     with Rfc3986Parser {
-  // scalastyle:off public.methods.have.type
   def RequestUri = rule {
     (OriginForm |
       AbsoluteUri |
@@ -29,5 +28,4 @@ private[http4s] class RequestUriParser(val input: ParserInput, val charset: Char
         authority = Some(org.http4s.Uri.Authority(host = org.http4s.Uri.RegName("*"))),
         path = ""))
   }
-  // scalastyle:on public.methods.have.type
 }

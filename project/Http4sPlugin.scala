@@ -18,7 +18,6 @@ object Http4sPlugin extends AutoPlugin {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
-    val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
   }
   import autoImport._
@@ -27,8 +26,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = MimaPlugin && ScalafmtPlugin
 
-  val scala_213 = "2.13.1"
-  val scala_212 = "2.12.10"
+  val scala_213 = "2.13.2"
+  val scala_212 = "2.12.11"
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -37,7 +36,6 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-    git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
 
   val CompileTime = config("CompileTime").hide
@@ -45,9 +43,6 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-
-    // https://github.com/tkawachi/sbt-doctest/issues/102
-    Test / compile / scalacOptions -= "-Ywarn-unused:params",
 
     scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -107,11 +102,6 @@ object Http4sPlugin extends AutoPlugin {
     },
 
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    unusedCompileDependenciesFilter -= moduleFilter(
-      organization = "org.scala-lang",
-      name = "scala-reflect",
-      revision = "2.12.*",
-    ), // false positive on 2.12.10
 
     ivyConfigurations += CompileTime,
     unmanagedClasspath in Compile ++= update.value.select(configurationFilter("CompileTime")),
@@ -224,7 +214,6 @@ object Http4sPlugin extends AutoPlugin {
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.28.v20200408"
     val json4s = "3.6.8"
-    val jsp = "2.3.3"
     val log4cats = "1.0.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
@@ -281,7 +270,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % V.json4s
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
-  lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % V.jsp // YourKit hack
   lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % V.keypool
   lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % V.log4cats
