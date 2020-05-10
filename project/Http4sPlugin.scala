@@ -1,4 +1,4 @@
-package org.http4s.build
+package org.http4s.sbt
 
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
