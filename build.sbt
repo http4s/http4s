@@ -5,7 +5,6 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 // Global settings
 ThisBuild / organization := "org.http4s"
 ThisBuild / scalaVersion := scala_213
-Global / cancelable := true
 
 lazy val modules: List[ProjectReference] = List(
   core,
@@ -72,8 +71,6 @@ lazy val core = libraryProject("core")
       BuildInfoKey.map(http4sApiVersion) { case (_, v) => "apiVersion" -> v }
     ),
     buildInfoPackage := organization.value,
-    resolvers += "Sonatype OSS Snapshots".at(
-      "https://oss.sonatype.org/content/repositories/snapshots"),
     libraryDependencies ++= Seq(
       cats,
       catsEffect,
@@ -146,7 +143,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
 lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
-    libraryDependencies += jettyServlet % "test"
+    libraryDependencies += jettyServlet % Test
   )
   .settings(silencerSettings)
   .dependsOn(
@@ -196,10 +193,6 @@ lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze,
-    mimaBinaryIssueFilters ++= List(
-      // Private API
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blazecore.ResponseHeaderTimeoutStage.this")
-    ),
   )
   .dependsOn(core, testing % "test->test")
 
@@ -247,10 +240,10 @@ lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
     libraryDependencies ++= Seq(
-      javaxServletApi % "provided",
-      jettyServer % "test",
-      jettyServlet % "test",
-      mockito % "test"
+      javaxServletApi % Provided,
+      jettyServer % Test,
+      jettyServlet % Test,
+      mockito % Test
     ),
   )
   .dependsOn(server % "compile;test->test")
@@ -312,7 +305,7 @@ lazy val circe = libraryProject("circe")
     description := "Provides Circe codecs for http4s",
     libraryDependencies ++= Seq(
       circeJawn,
-      circeTesting % "test"
+      circeTesting % Test
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -442,7 +435,6 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
-    Compile / doc / scalacOptions -= "-Ywarn-unused:imports",
     mdocIn := (sourceDirectory in Compile).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     Hugo / baseURL := {
@@ -496,8 +488,7 @@ lazy val examples = http4sProject("examples")
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
       circeGeneric,
-      logbackClassic % "runtime",
-      jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
+      logbackClassic % Runtime,
     ),
     TwirlKeys.templateImports := Nil
   )
@@ -558,7 +549,7 @@ lazy val examplesWar = exampleProject("examples-war")
   .settings(
     description := "Example of a WAR deployment of an http4s service",
     fork := true,
-    libraryDependencies += javaxServletApi % "provided",
+    libraryDependencies += javaxServletApi % Provided,
     Jetty / containerLibs := List(jettyRunner),
   )
   .dependsOn(servlet)
@@ -578,25 +569,12 @@ def exampleProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
     .enablePlugins(PrivateProjectPlugin)
-    .settings(libraryDependencies += logbackClassic % "runtime")
+    .settings(libraryDependencies += logbackClassic % Runtime)
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(
-  http4sJvmTarget := scalaVersion.map {
-    VersionNumber(_).numbers match {
-      case Seq(2, 10, _*) => "1.7"
-      case _ => "1.8"
-    }
-  }.value,
-  Compile / scalacOptions ++= Seq(
-    s"-target:jvm-${http4sJvmTarget.value}"
-  ),
   Compile / doc / scalacOptions += "-no-link-warnings",
   javacOptions ++= Seq(
-    "-source",
-    http4sJvmTarget.value,
-    "-target",
-    http4sJvmTarget.value,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
   ),
@@ -611,8 +589,7 @@ lazy val commonSettings = Seq(
     specs2Core,
     specs2MatcherExtra,
     specs2Scalacheck
-  ).map(_ % "test"),
-  ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
+  ).map(_ % Test),
   git.remoteRepo := "git@github.com:http4s/http4s.git",
   Hugo / includeFilter := (
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |

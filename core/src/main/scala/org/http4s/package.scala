@@ -3,7 +3,7 @@ package org
 import cats.data.{EitherT, Kleisli, OptionT}
 import fs2.Stream
 
-package object http4s { // scalastyle:ignore
+package object http4s {
 
   type AuthScheme = util.CaseInsensitiveString
 

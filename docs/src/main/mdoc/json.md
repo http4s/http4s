@@ -41,10 +41,6 @@ libraryDependencies += Seq(
 )
 ```
 
-For those not ready to upgrade to argonaut-6.2, an `http4s-argonaut61`
-is also available.  It is source compatible, but compiled against
-Argonaut 6.1.
-
 ### Json4s
 
 Json4s is less functionally pure than Circe or Argonaut, but older and
