@@ -37,7 +37,6 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-    git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
 
   val CompileTime = config("CompileTime").hide
