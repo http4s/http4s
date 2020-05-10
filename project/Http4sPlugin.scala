@@ -105,11 +105,6 @@ object Http4sPlugin extends AutoPlugin {
     },
 
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    unusedCompileDependenciesFilter -= moduleFilter(
-      organization = "org.scala-lang",
-      name = "scala-reflect",
-      revision = "2.12.*",
-    ), // false positive on 2.12.10
 
     ivyConfigurations += CompileTime,
     unmanagedClasspath in Compile ++= update.value.select(configurationFilter("CompileTime")),
