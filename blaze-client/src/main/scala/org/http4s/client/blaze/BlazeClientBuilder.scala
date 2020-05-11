@@ -273,7 +273,7 @@ object BlazeClientBuilder {
 
   /** Creates a BlazeClientBuilder
     *
-    * @param executionContext the ExecutionContext for blaze's internal Futures
+    * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
     * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
     */
   def apply[F[_]: ConcurrentEffect](
