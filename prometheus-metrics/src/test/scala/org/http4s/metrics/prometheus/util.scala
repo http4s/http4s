@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.metrics.prometheus
 
 import cats.effect.{Clock, IO, Sync}
@@ -107,18 +113,21 @@ object util {
     }
 
   object FakeClock {
-    def apply[F[_]: Sync] = new Clock[F] {
-      private var count = 0L
+    def apply[F[_]: Sync] =
+      new Clock[F] {
+        private var count = 0L
 
-      override def realTime(unit: TimeUnit): F[Long] = Sync[F].delay {
-        count += 50
-        unit.convert(count, TimeUnit.MILLISECONDS)
-      }
+        override def realTime(unit: TimeUnit): F[Long] =
+          Sync[F].delay {
+            count += 50
+            unit.convert(count, TimeUnit.MILLISECONDS)
+          }
 
-      override def monotonic(unit: TimeUnit): F[Long] = Sync[F].delay {
-        count += 50
-        unit.convert(count, TimeUnit.MILLISECONDS)
+        override def monotonic(unit: TimeUnit): F[Long] =
+          Sync[F].delay {
+            count += 50
+            unit.convert(count, TimeUnit.MILLISECONDS)
+          }
       }
-    }
   }
 }

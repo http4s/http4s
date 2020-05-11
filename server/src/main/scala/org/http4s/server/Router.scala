@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 
@@ -29,9 +35,9 @@ object Router {
         else
           Kleisli { req =>
             (
-              if (toSegments(req.pathInfo).startsWith(prefixSegments)) {
+              if (toSegments(req.pathInfo).startsWith(prefixSegments))
                 routes.local(translate(prefix)) <+> acc
-              } else
+              else
                 acc
             )(req)
           }

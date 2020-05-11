@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
 
 And we need some imports.
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -28,7 +28,7 @@ import org.http4s.implicits._
 Let's start by making a simple service that returns a (relatively) large string
 in its body. We'll use `as[String]` to examine the body.
 
-```tut:book
+```scala mdoc:nest
 val service = HttpRoutes.of[IO] {
   case _ =>
     Ok("I repeat myself when I'm under stress. " * 3)
@@ -44,7 +44,7 @@ body.length
 
 Now we can wrap the service in the `GZip` middleware.
 
-```tut:book
+```scala mdoc:nest
 import org.http4s.server.middleware._
 val zipService = GZip(service)
 
@@ -58,7 +58,7 @@ So far, there was no change. That's because the caller needs to inform us that
 they will accept GZipped responses via an `Accept-Encoding` header. Acceptable
 values for the `Accept-Encoding` header are **"gzip"**, **"x-gzip"**, and **"*"**.
 
-```tut:book
+```scala mdoc:nest
 val acceptHeader = Header("Accept-Encoding", "gzip")
 val zipRequest = request.putHeaders(acceptHeader)
 

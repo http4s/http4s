@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.metrics.prometheus
 
 import cats.effect.{Clock, IO, Resource}
@@ -20,7 +26,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("ok").attempt
         } yield {
-          resp must beRight { contain("200 OK") }
+          resp must beRight(contain("200 OK"))
 
           count(registry, "2xx_responses", "client") must beEqualTo(1)
           count(registry, "active_requests", "client") must beEqualTo(0)
@@ -66,7 +72,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String]("ok").attempt
         } yield {
-          resp must beRight { contain("200 OK") }
+          resp must beRight(contain("200 OK"))
 
           count(registry, "2xx_responses", "client", "get") must beEqualTo(1)
           count(registry, "active_requests", "client", "get") must beEqualTo(0)
@@ -80,7 +86,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String](Request[IO](POST, Uri.unsafeFromString("ok"))).attempt
         } yield {
-          resp must beRight { contain("200 OK") }
+          resp must beRight(contain("200 OK"))
 
           count(registry, "2xx_responses", "client", "post") must beEqualTo(1)
           count(registry, "active_requests", "client", "post") must beEqualTo(0)
@@ -94,7 +100,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String](Request[IO](PUT, Uri.unsafeFromString("ok"))).attempt
         } yield {
-          resp must beRight { contain("200 OK") }
+          resp must beRight(contain("200 OK"))
 
           count(registry, "2xx_responses", "client", "put") must beEqualTo(1)
           count(registry, "active_requests", "client", "put") must beEqualTo(0)
@@ -108,7 +114,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         for {
           resp <- client.expect[String](Request[IO](DELETE, Uri.unsafeFromString("ok"))).attempt
         } yield {
-          resp must beRight { contain("200 OK") }
+          resp must beRight(contain("200 OK"))
 
           count(registry, "2xx_responses", "client", "delete") must beEqualTo(1)
           count(registry, "active_requests", "client", "delete") must beEqualTo(0)
@@ -154,7 +160,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
             for {
               resp <- client.expect[String]("ok").attempt
             } yield {
-              resp must beRight { contain("200 OK") }
+              resp must beRight(contain("200 OK"))
 
               count(registry, "2xx_responses", "client", "get", "classifier") must beEqualTo(1)
               count(registry, "active_requests", "client", "get", "classifier") must beEqualTo(0)

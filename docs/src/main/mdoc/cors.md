@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
 
 And we need some imports.
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -27,7 +27,7 @@ import org.http4s.implicits._
 
 Let's start by making a simple service.
 
-```tut:book
+```scala mdoc
 val service = HttpRoutes.of[IO] {
   case _ =>
     Ok()
@@ -40,11 +40,11 @@ service.orNotFound(request).unsafeRunSync
 
 Now we can wrap the service in the `CORS` middleware.
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.server.middleware._
 ```
 
-```tut:book
+```scala mdoc
 val corsService = CORS(service)
 
 corsService.orNotFound(request).unsafeRunSync
@@ -53,7 +53,7 @@ corsService.orNotFound(request).unsafeRunSync
 So far, there was no change. That's because an `Origin` header is required
 in the requests and it must include a scheme. This, of course, is the responsibility of the caller.
 
-```tut:book
+```scala mdoc
 val originHeader = Header("Origin", "https://somewhere.com")
 val corsRequest = request.putHeaders(originHeader)
 
@@ -72,7 +72,7 @@ are configuration options to modify that.
 First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
-```tut:book
+```scala mdoc
 val googleGet = Request[IO](Method.GET, uri"/", headers = Headers.of(Header("Origin", "https://google.com")))
 val yahooPut = Request[IO](Method.PUT, uri"/", headers = Headers.of(Header("Origin", "https://yahoo.com")))
 val duckPost = Request[IO](Method.POST, uri"/", headers = Headers.of(Header("Origin", "https://duckduckgo.com")))
@@ -81,11 +81,11 @@ val duckPost = Request[IO](Method.POST, uri"/", headers = Headers.of(Header("Ori
 Now, we'll create a configuration that limits the allowed methods to `GET`
 and `POST`, pass that to the `CORS` middleware, and try it out on our requests.
 
-```tut:silent
+```scala mdoc:silent
 import scala.concurrent.duration._
 ```
 
-```tut:book
+```scala mdoc
 val methodConfig = CORSConfig(
   anyOrigin = true,
   anyMethod = false,
@@ -104,7 +104,7 @@ As you can see, the CORS headers were only added to the `GET` and `POST` request
 Next, we'll create a configuration that limits the origins to "yahoo.com" and
 "duckduckgo.com". allowedOrigins can use any expression that resolves into a boolean.
 
-```tut:book
+```scala mdoc
 val originConfig = CORSConfig(
   anyOrigin = false,
   allowedOrigins = Set("https://yahoo.com", "https://duckduckgo.com"),

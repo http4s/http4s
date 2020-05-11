@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
@@ -100,7 +106,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
           s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
             val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
             parseAndDropDate(result) must_== ((status, headers, resp))
-          } else
+          }
+        else
           s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
             val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
             parseAndDropDate(result) must_== ((status, headers, resp))

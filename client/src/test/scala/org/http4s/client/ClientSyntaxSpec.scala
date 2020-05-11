@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -225,13 +231,13 @@ class ClientSyntaxSpec
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
-        "Accept: text/*")
+      client.expect[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
-        "Accept: text/*")
+      client.expect[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
     "combine entity decoder media types correctly" in {
@@ -243,11 +249,13 @@ class ClientSyntaxSpec
     }
 
     "return empty with expectOption and not found" in {
-      client.expectOption[String](Request[IO](GET, uri("http://www.foo.com/random-not-found"))) must returnValue(
+      client.expectOption[String](
+        Request[IO](GET, uri("http://www.foo.com/random-not-found"))) must returnValue(
         Option.empty[String])
     }
     "return expected value with expectOption and a response" in {
-      client.expectOption[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
+      client.expectOption[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
         "Accept: text/*".some
       )
     }

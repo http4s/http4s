@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package circe.test // Get out of circe package so we can import custom instances
 
@@ -29,11 +35,11 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
     .withJawnParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON jawn"))
     .withCirceParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON circe"))
-    .withJsonDecodeError({ (json, failures) =>
+    .withJsonDecodeError { (json, failures) =>
       val failureStr = failures.mkString_("", ", ", "")
       InvalidMessageBodyFailure(
         s"Custom Could not decode JSON: ${json.noSpaces}, errors: $failureStr")
-    })
+    }
     .build
 
   testJsonDecoder(jsonDecoder)

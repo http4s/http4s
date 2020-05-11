@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.ApplicativeError
@@ -33,39 +39,35 @@ package object util {
             decoder.decode(byteBuffer, charBuffer, false)
             val nextStream = stream.consChunk(Chunk.byteBuffer(byteBuffer.slice()))
             Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
-          } else {
+          } else
             Pull.output(Chunk.empty[String]).as(Some(stream))
-          }
       }
     }
   }
 
   private def skipByteOrderMark[F[_]](chunk: Chunk[Byte]): Chunk[Byte] =
-    if (chunk.size >= 3 && chunk.take(3) == utf8Bom) {
+    if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
       chunk.drop(3)
-    } else chunk
+    else chunk
 
   /** Converts ASCII encoded byte stream to a stream of `String`. */
-  private[http4s] def asciiDecode[F[_]](
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Byte, String] =
+  private[http4s] def asciiDecode[F[_]](implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, String] =
     _.chunks.through(asciiDecodeC)
 
   private def asciiCheck(b: Byte) = 0x80 & b
 
   /** Converts ASCII encoded `Chunk[Byte]` inputs to `String`. */
-  private[http4s] def asciiDecodeC[F[_]](
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Chunk[Byte], String] = { in =>
+  private[http4s] def asciiDecodeC[F[_]](implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Chunk[Byte], String] = { in =>
     def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
       if (i == bytes.length)
         Stream.emit(new String(bytes, StandardCharsets.US_ASCII))
-      else {
-        if (asciiCheck(bytes(i)) == 0x80) {
-          Stream.raiseError[F](
-            new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
-        } else {
-          tailRecAsciiCheck(i + 1, bytes)
-        }
-      }
+      else if (asciiCheck(bytes(i)) == 0x80)
+        Stream.raiseError[F](
+          new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
+      else
+        tailRecAsciiCheck(i + 1, bytes)
 
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }

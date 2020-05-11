@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package staticcontent
@@ -56,19 +62,20 @@ object FileService {
       case Success(rootPath) =>
         TranslateUri(config.pathPrefix)(Kleisli {
           case request =>
-            def resolvedPath: OptionT[F, Path] = request.pathInfo.split("/") match {
-              case Array() => OptionT.some(rootPath)
-              case Array(head, segments @ _*) if head.isEmpty =>
-                OptionT
-                  .liftF(F.catchNonFatal {
-                    segments.foldLeft(rootPath) {
-                      case (_, "" | "." | "..") => throw BadTraversal
-                      case (path, segment) =>
-                        path.resolve(Uri.decode(segment, plusIsSpace = true))
-                    }
-                  })
-              case _ => OptionT.none
-            }
+            def resolvedPath: OptionT[F, Path] =
+              request.pathInfo.split("/") match {
+                case Array() => OptionT.some(rootPath)
+                case Array(head, segments @ _*) if head.isEmpty =>
+                  OptionT
+                    .liftF(F.catchNonFatal {
+                      segments.foldLeft(rootPath) {
+                        case (_, "" | "." | "..") => throw BadTraversal
+                        case (path, segment) =>
+                          path.resolve(Uri.decode(segment, plusIsSpace = true))
+                      }
+                    })
+                case _ => OptionT.none
+              }
             resolvedPath
               .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
               .collect { case path if path.startsWith(rootPath) => path.toFile }
@@ -92,8 +99,8 @@ object FileService {
     }
   }
 
-  private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(
-      implicit F: Sync[F],
+  private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(implicit
+      F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT(F.suspend {
       if (file.isDirectory)
@@ -118,12 +125,12 @@ object FileService {
     })
 
   // Attempt to find a Range header and collect only the subrange of content requested
-  private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(
-      implicit F: Sync[F],
+  private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(implicit
+      F: Sync[F],
       cs: ContextShift[F]): F[Option[Response[F]]] =
     req.headers.get(Range) match {
       case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
-        if (validRange(s, e, file.length)) {
+        if (validRange(s, e, file.length))
           F.suspend {
             val size = file.length()
             val start = if (s >= 0) s else math.max(0, size + s)
@@ -145,7 +152,7 @@ object FileService {
               }
               .value
           }
-        } else {
+        else
           F.delay(file.length()).map { size =>
             Some(
               Response[F](
@@ -153,7 +160,6 @@ object FileService {
                 headers = Headers
                   .of(AcceptRangeHeader, `Content-Range`(SubRange(0, size - 1), Some(size)))))
           }
-        }
       case _ => F.pure(None)
     }
 }

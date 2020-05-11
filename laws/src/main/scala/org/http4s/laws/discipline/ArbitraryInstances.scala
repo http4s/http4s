@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package laws
 package discipline
@@ -178,7 +184,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[String].contramap(_.name)
 
   implicit val http4sTestingArbitraryForCharset: Arbitrary[Charset] =
-    Arbitrary { getArbitrary[NioCharset].map(Charset.fromNioCharset) }
+    Arbitrary(getArbitrary[NioCharset].map(Charset.fromNioCharset))
 
   implicit val http4sTestingCogenForCharset: Cogen[Charset] =
     Cogen[NioCharset].contramap(_.nioCharset)
@@ -216,7 +222,7 @@ private[http4s] trait ArbitraryInstances {
     }
 
   implicit val http4sTestingArbitraryForCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
-    Arbitrary { getArbitrary[QValue].map(CharsetRange.`*`.withQValue(_)) }
+    Arbitrary(getArbitrary[QValue].map(CharsetRange.`*`.withQValue(_)))
 
   def genCharsetRangeNoQuality: Gen[CharsetRange] =
     frequency(
@@ -352,9 +358,8 @@ private[http4s] trait ArbitraryInstances {
         // make a set first so we don't have contradictory q-values
         languageTags <- nonEmptyContainerOf[Set, LanguageTag](genLanguageTagNoQuality)
           .map(_.toVector)
-        qValues <- containerOfN[Vector, QValue](
-          languageTags.size,
-          http4sTestingArbitraryForQValue.arbitrary)
+        qValues <-
+          containerOfN[Vector, QValue](languageTags.size, http4sTestingArbitraryForQValue.arbitrary)
         tagsWithQ = languageTags.zip(qValues).map { case (tag, q) => tag.copy(q = q) }
       } yield `Accept-Language`(tagsWithQ.head, tagsWithQ.tail: _*)
     }
@@ -627,8 +632,8 @@ private[http4s] trait ArbitraryInstances {
     } yield Uri.Authority(maybeUserInfo, host, maybePort)
   }
 
-  val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(
-    _.toString)
+  val genPctEncoded: Gen[String] =
+    const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
   val genUnreserved: Gen[Char] =
     oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
   val genSubDelims: Gen[Char] = oneOf(List('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
@@ -706,10 +711,10 @@ private[http4s] trait ArbitraryInstances {
 
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
-  implicit def http4sTestingGenForPureByteStream[F[_]]: Gen[Stream[Pure, Byte]] = Gen.sized {
-    size =>
+  implicit def http4sTestingGenForPureByteStream[F[_]]: Gen[Stream[Pure, Byte]] =
+    Gen.sized { size =>
       Gen.listOfN(size, getArbitrary[Byte]).map(Stream.emits)
-  }
+    }
 
   // Borrowed from cats-effect tests for the time being
   def cogenFuture[A](implicit ec: TestContext, cg: Cogen[Try[A]]): Cogen[Future[A]] =
@@ -744,15 +749,14 @@ private[http4s] trait ArbitraryInstances {
   implicit def http4sTestingCogenForEntity[F[_]](implicit F: Effect[F]): Cogen[Entity[F]] =
     Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
-  implicit def http4sTestingArbitraryForEntityEncoder[F[_], A](
-      implicit CA: Cogen[A]): Arbitrary[EntityEncoder[F, A]] =
+  implicit def http4sTestingArbitraryForEntityEncoder[F[_], A](implicit
+      CA: Cogen[A]): Arbitrary[EntityEncoder[F, A]] =
     Arbitrary(for {
       f <- getArbitrary[A => Entity[F]]
       hs <- getArbitrary[Headers]
     } yield EntityEncoder.encodeBy(hs)(f))
 
-  implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](
-      implicit
+  implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](implicit
       F: Effect[F],
       g: Arbitrary[DecodeResult[F, A]]) =
     Arbitrary(for {
@@ -835,9 +839,8 @@ private[http4s] trait ArbitraryInstances {
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield try {
-        Request(method, uri, httpVersion, headers, body)
-      } catch {
+      } yield try Request(method, uri, httpVersion, headers, body)
+      catch {
         case t: Throwable => t.printStackTrace(); throw t
       }
     }

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 package websocket
@@ -29,22 +35,22 @@ private[http4s] class Http4sWSStage[F[_]](
   def name: String = "Http4s WebSocket Stage"
 
   //////////////////////// Source and Sink generators ////////////////////////
-  def snk: Pipe[F, WebSocketFrame, Unit] = _.evalMap { frame =>
-    F.delay(sentClose.get()).flatMap { wasCloseSent =>
-      if (!wasCloseSent) {
-        frame match {
-          case c: Close =>
-            F.delay(sentClose.compareAndSet(false, true))
-              .flatMap(cond => if (cond) writeFrame(c, directec) else F.unit)
-          case _ =>
-            writeFrame(frame, directec)
-        }
-      } else {
-        //Close frame has been sent. Send no further data
-        F.unit
+  def snk: Pipe[F, WebSocketFrame, Unit] =
+    _.evalMap { frame =>
+      F.delay(sentClose.get()).flatMap { wasCloseSent =>
+        if (!wasCloseSent)
+          frame match {
+            case c: Close =>
+              F.delay(sentClose.compareAndSet(false, true))
+                .flatMap(cond => if (cond) writeFrame(c, directec) else F.unit)
+            case _ =>
+              writeFrame(frame, directec)
+          }
+        else
+          //Close frame has been sent. Send no further data
+          F.unit
       }
     }
-  }
 
   private[this] def writeFrame(frame: WebSocketFrame, ec: ExecutionContext): F[Unit] =
     writeSemaphore.withPermit(F.async[Unit] { cb =>
@@ -54,12 +60,13 @@ private[http4s] class Http4sWSStage[F[_]](
       }(ec)
     })
 
-  private[this] def readFrameTrampoline: F[WebSocketFrame] = F.async[WebSocketFrame] { cb =>
-    channelRead().onComplete {
-      case Success(ws) => cb(Right(ws))
-      case Failure(exception) => cb(Left(exception))
-    }(trampoline)
-  }
+  private[this] def readFrameTrampoline: F[WebSocketFrame] =
+    F.async[WebSocketFrame] { cb =>
+      channelRead().onComplete {
+        case Success(ws) => cb(Right(ws))
+        case Failure(exception) => cb(Left(exception))
+      }(trampoline)
+    }
 
   /** Read from our websocket.
     *
@@ -117,9 +124,13 @@ private[http4s] class Http4sWSStage[F[_]](
 
     val wsStream = inputstream
       .through(ws.receive)
-      .concurrently(ws.send.through(snk).drain) //We don't need to terminate if the send stream terminates.
+      .concurrently(
+        ws.send.through(snk).drain
+      ) //We don't need to terminate if the send stream terminates.
       .interruptWhen(deadSignal)
-      .onFinalizeWeak(ws.onClose.attempt.void) //Doing it this way ensures `sendClose` is sent no matter what
+      .onFinalizeWeak(
+        ws.onClose.attempt.void
+      ) //Doing it this way ensures `sendClose` is sent no matter what
       .onFinalizeWeak(sendClose)
       .compile
       .drain

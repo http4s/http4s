@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -39,13 +45,14 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
       (for {
         pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 2)
         _ <- pool.borrow(key)
-        att <- Stream(Stream.eval(pool.borrow(key))).repeat
-          .take(2)
-          .covary[IO]
-          .parJoinUnbounded
-          .compile
-          .toList
-          .attempt
+        att <-
+          Stream(Stream.eval(pool.borrow(key))).repeat
+            .take(2)
+            .covary[IO]
+            .parJoinUnbounded
+            .compile
+            .toList
+            .attempt
       } yield att).unsafeRunTimed(2.seconds) must_== None
     }
 
@@ -53,13 +60,14 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
       (for {
         pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 2)
         _ <- pool.borrow(key)
-        att <- Stream(Stream.eval(pool.borrow(key))).repeat
-          .take(3)
-          .covary[IO]
-          .parJoinUnbounded
-          .compile
-          .toList
-          .attempt
+        att <-
+          Stream(Stream.eval(pool.borrow(key))).repeat
+            .take(3)
+            .covary[IO]
+            .parJoinUnbounded
+            .compile
+            .toList
+            .attempt
       } yield att).unsafeRunTimed(2.seconds) must_== Some(Left(WaitQueueFullFailure()))
     }
 

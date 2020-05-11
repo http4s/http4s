@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package testing
 
@@ -22,15 +28,15 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       runAwait(r).aka("the returned")
     }
 
-  def haveBody[A](a: ValueCheck[A])(
-      implicit F: MonadError[F, Throwable],
+  def haveBody[A](a: ValueCheck[A])(implicit
+      F: MonadError[F, Throwable],
       ee: EntityDecoder[F, A]): Matcher[Message[F]] =
     returnValue(a) ^^ { (m: Message[F]) =>
       m.as[A].aka("the message body")
     }
 
-  def returnBody[A](a: ValueCheck[A])(
-      implicit F: MonadError[F, Throwable],
+  def returnBody[A](a: ValueCheck[A])(implicit
+      F: MonadError[F, Throwable],
       ee: EntityDecoder[F, A]): Matcher[F[Message[F]]] =
     returnValue(a) ^^ { (m: F[Message[F]]) =>
       m.flatMap(_.as[A]).aka("the returned message body")

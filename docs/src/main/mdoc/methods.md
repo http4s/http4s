@@ -7,7 +7,7 @@ title: HTTP Methods
 For a REST API, your service will want to support different verbs/methods.
 Http4s has a list of all the [methods] you're familiar with, and a few more.
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect._
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -15,7 +15,7 @@ import org.http4s._, org.http4s.dsl.io._
 import org.http4s.circe._
 ```
 
-```tut:book
+```scala mdoc
 case class TweetWithId(id: Int, message: String)
 case class Tweet(message: String)
 

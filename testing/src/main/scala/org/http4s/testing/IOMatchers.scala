@@ -1,6 +1,12 @@
-/* Derived from https://raw.githubusercontent.com/etorreborre/specs2/c0cbfc71390b644db1a5deeedc099f74a237ebde/matcher-extra/src/main/scala-scalaz-7.0.x/org/specs2/matcher/TaskMatchers.scala
- * License: https://raw.githubusercontent.com/etorreborre/specs2/master/LICENSE.txt
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://raw.githubusercontent.com/etorreborre/specs2/c0cbfc71390b644db1a5deeedc099f74a237ebde/matcher-extra/src/main/scala-scalaz-7.0.x/org/specs2/matcher/TaskMatchers.scala
+ * Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
  */
+
 package org.http4s.testing
 
 import cats.effect.{IO, Sync}

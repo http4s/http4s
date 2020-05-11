@@ -3,6 +3,8 @@ package org.http4s.sbt
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
+import de.heikoseeberger.sbtheader.{License, LicenseStyle}
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import sbt.Keys._
 import sbt._
@@ -11,7 +13,6 @@ object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
-    val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
   }
   import autoImport._
@@ -30,15 +31,11 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-    git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-
-    // https://github.com/tkawachi/sbt-doctest/issues/102
-    Test / compile / scalacOptions -= "-Ywarn-unused:params",
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
@@ -71,11 +68,53 @@ object Http4sPlugin extends AutoPlugin {
     },
 
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    unusedCompileDependenciesFilter -= moduleFilter(
-      organization = "org.scala-lang",
-      name = "scala-reflect",
-      revision = "2.12.*",
-    ), // false positive on 2.12.10
+
+    excludeFilter.in(headerSources) := HiddenFileFilter ||
+      new FileFilter {
+        def accept(file: File) = {
+          attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
+        }
+
+        val attributedSources = Set(
+          "src/main/scala/org/http4s/argonaut/Parser.scala",
+          "src/main/scala/org/http4s/CacheDirective.scala",
+          "src/main/scala/org/http4s/Challenge.scala",
+          "src/main/scala/org/http4s/Charset.scala",
+          "src/main/scala/org/http4s/ContentCoding.scala",
+          "src/main/scala/org/http4s/Credentials.scala",
+          "src/main/scala/org/http4s/Header.scala",
+          "src/main/scala/org/http4s/LanguageTag.scala",
+          "src/main/scala/org/http4s/MediaType.scala",
+          "src/main/scala/org/http4s/RangeUnit.scala",
+          "src/main/scala/org/http4s/ResponseCookie.scala",
+          "src/main/scala/org/http4s/TransferCoding.scala",
+          "src/main/scala/org/http4s/Uri.scala",
+          "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptLanguageHeader.scala",
+          "src/main/scala/org/http4s/parser/AdditionalRules.scala",
+          "src/main/scala/org/http4s/parser/AuthorizationHeader.scala",
+          "src/main/scala/org/http4s/parser/CacheControlHeader.scala",
+          "src/main/scala/org/http4s/parser/ContentTypeHeader.scala",
+          "src/main/scala/org/http4s/parser/CookieHeader.scala",
+          "src/main/scala/org/http4s/parser/HttpHeaderParser.scala",
+          "src/main/scala/org/http4s/parser/Rfc2616BasicRules.scala",
+          "src/main/scala/org/http4s/parser/SimpleHeaders.scala",
+          "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
+          "src/main/scala/org/http4s/util/UrlCoding.scala",
+          "src/main/scala/org/http4s/dsl/impl/Path.scala",
+          "src/test/scala/org/http4s/dsl/PathSpec.scala",
+          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
+          "src/main/scala/org/http4s/testing/ErrorReportingUtils.scala",
+          "src/main/scala/org/http4s/testing/IOMatchers.scala",
+          "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
+          "src/test/scala/org/http4s/Http4sSpec.scala",
+          "src/test/scala/org/http4s/util/illTyped.scala",
+          "src/test/scala/org/http4s/testing/ErrorReporting.scala",
+          "src/test/scala/org/http4s/UriSpec.scala"
+        )
+      }
   )
 
   def extractApiVersion(version: String) = {
@@ -162,7 +201,6 @@ object Http4sPlugin extends AutoPlugin {
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.28.v20200408"
     val json4s = "3.6.7"
-    val jsp = "2.3.3"
     val log4cats = "1.0.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
@@ -217,7 +255,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % V.json4s
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
-  lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % V.jsp // YourKit hack
   lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % V.keypool
   lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % V.log4cats

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package laws
 
@@ -27,11 +33,12 @@ trait EntityEncoderLaws[F[_], A] {
 }
 
 object EntityEncoderLaws {
-  def apply[F[_], A](
-      implicit F0: Sync[F],
+  def apply[F[_], A](implicit
+      F0: Sync[F],
       entityEncoderFA: EntityEncoder[F, A]
-  ): EntityEncoderLaws[F, A] = new EntityEncoderLaws[F, A] {
-    val F = F0
-    val encoder = entityEncoderFA
-  }
+  ): EntityEncoderLaws[F, A] =
+    new EntityEncoderLaws[F, A] {
+      val F = F0
+      val encoder = entityEncoderFA
+    }
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 trait QueryOps {
@@ -168,11 +174,10 @@ trait QueryOps {
     val baseQuery = query.toVector.filter(_._1 != name.value)
     val vec =
       if (values.isEmpty) baseQuery :+ (name.value -> None)
-      else {
+      else
         values.toList.foldLeft(baseQuery) {
           case (vec, v) => vec :+ (name.value -> Some(v.value))
         }
-      }
 
     replaceQuery(Query.fromVector(vec))
   }

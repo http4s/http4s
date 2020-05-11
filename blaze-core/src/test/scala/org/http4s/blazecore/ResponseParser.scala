@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 
@@ -31,9 +37,8 @@ class ResponseParser extends Http1ClientParser {
 
     if (!headersComplete()) sys.error("Headers didn't complete!")
     val body = new ListBuffer[ByteBuffer]
-    while (!this.contentComplete() && buffer.hasRemaining) {
+    while (!this.contentComplete() && buffer.hasRemaining)
       body += parseContent(buffer)
-    }
 
     val bp = {
       val bytes =

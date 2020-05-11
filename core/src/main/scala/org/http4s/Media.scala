@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.MonadError
@@ -55,11 +61,12 @@ trait Media[F[_]] {
 }
 
 object Media {
-  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] = new Media[F] {
-    def body = b
+  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
+    new Media[F] {
+      def body = b
 
-    def headers: Headers = h
+      def headers: Headers = h
 
-    override def covary[F2[x] >: F[x]]: Media[F2] = this.asInstanceOf[Media[F2]]
-  }
+      override def covary[F2[x] >: F[x]]: Media[F2] = this.asInstanceOf[Media[F2]]
+    }
 }

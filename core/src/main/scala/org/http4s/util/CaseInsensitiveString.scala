@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.util
 
 import cats.{Monoid, Order, Show}
@@ -17,16 +23,16 @@ sealed class CaseInsensitiveString private (val value: String)
    */
   private[this] var hash = 0
   override def hashCode(): Int = {
-    if (hash == 0) {
+    if (hash == 0)
       hash = hashLower(value)
-    }
     hash
   }
 
-  override def equals(obj: Any): Boolean = obj match {
-    case that: CaseInsensitiveString => value.equalsIgnoreCase(that.value)
-    case _ => false
-  }
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case that: CaseInsensitiveString => value.equalsIgnoreCase(that.value)
+      case _ => false
+    }
 
   override def toString: String = value
 

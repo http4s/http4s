@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -11,7 +17,9 @@ class TransferEncodingSpec extends HeaderLaws {
   "render" should {
     "include all the encodings" in {
       `Transfer-Encoding`(TransferCoding.chunked).renderString must_== "Transfer-Encoding: chunked"
-      `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip).renderString must_== "Transfer-Encoding: chunked, gzip"
+      `Transfer-Encoding`(
+        TransferCoding.chunked,
+        TransferCoding.gzip).renderString must_== "Transfer-Encoding: chunked, gzip"
     }
   }
 

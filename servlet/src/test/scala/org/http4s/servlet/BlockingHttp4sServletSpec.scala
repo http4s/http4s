@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package servlet
 
@@ -70,7 +76,7 @@ class BlockingHttp4sServletSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   )
 
   lazy val serverPortR = Resource
-    .make(IO { new Server })(server => IO { server.stop() })
+    .make(IO(new Server))(server => IO(server.stop()))
     .evalMap { server =>
       IO {
         val connector =
