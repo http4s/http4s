@@ -1,3 +1,13 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/scalatra/rl/blob/v0.4.10/core/src/main/scala/rl/UrlCodingUtils.scala
+ * Copyright (c) 2011 Mojolly Ltd.
+ * See licenses/LICENSE_rl
+ */
+
 package org.http4s
 
 import cats.{Eq, Hash, Order, Show}
@@ -205,16 +215,16 @@ object Uri {
     * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.1
     */
   final class Scheme private (val value: String) extends Ordered[Scheme] {
-    override def equals(o: Any) = o match {
-      case that: Scheme => this.value.equalsIgnoreCase(that.value)
-      case _ => false
-    }
+    override def equals(o: Any) =
+      o match {
+        case that: Scheme => this.value.equalsIgnoreCase(that.value)
+        case _ => false
+      }
 
     private[this] var hash = 0
     override def hashCode(): Int = {
-      if (hash == 0) {
+      if (hash == 0)
         hash = hashLower(value)
-      }
       hash
     }
 
@@ -241,11 +251,12 @@ object Uri {
       fromString(s).fold(throw _, identity)
 
     private[http4s] trait Parser { self: PbParser =>
-      def scheme = rule {
-        "https" ~ !Alpha ~ push(https) |
-          "http" ~ !Alpha ~ push(http) |
-          capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new Scheme(_))
-      }
+      def scheme =
+        rule {
+          "https" ~ !Alpha ~ push(https) |
+            "http" ~ !Alpha ~ push(http) |
+            capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new Scheme(_))
+        }
     }
 
     implicit val http4sOrderForScheme: Order[Scheme] =
@@ -270,13 +281,14 @@ object Uri {
       host: Host = RegName("localhost"),
       port: Option[Int] = None)
       extends Renderable {
-    override def render(writer: Writer): writer.type = this match {
-      case Authority(Some(u), h, None) => writer << u << '@' << h
-      case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
-      case Authority(None, h, Some(p)) => writer << h << ':' << p
-      case Authority(_, h, _) => writer << h
-      case _ => writer
-    }
+    override def render(writer: Writer): writer.type =
+      this match {
+        case Authority(Some(u), h, None) => writer << u << '@' << h
+        case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
+        case Authority(None, h, Some(p)) => writer << h << ':' << p
+        case Authority(_, h, _) => writer << h
+        case _ => writer
+      }
   }
 
   /** The userinfo subcomponent may consist of a user name and,
@@ -316,14 +328,13 @@ object Uri {
       }.parse
 
     private[http4s] trait Parser { self: Rfc3986Parser =>
-      def userInfo: Rule1[UserInfo] = rule {
-        capture(zeroOrMore(Unreserved | PctEncoded | SubDelims)) ~
-          (":" ~ capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":"))).? ~>
-          (
-              (
-                  username: String,
-                  password: Option[String]) => UserInfo(decode(username), password.map(decode)))
-      }
+      def userInfo: Rule1[UserInfo] =
+        rule {
+          capture(zeroOrMore(Unreserved | PctEncoded | SubDelims)) ~
+            (":" ~ capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":"))).? ~>
+            ((username: String, password: Option[String]) =>
+              UserInfo(decode(username), password.map(decode)))
+        }
     }
 
     implicit val http4sInstancesForUserInfo
@@ -360,12 +371,13 @@ object Uri {
   sealed trait Host extends Renderable {
     def value: String
 
-    override def render(writer: Writer): writer.type = this match {
-      case RegName(n) => writer << n
-      case a: Ipv4Address => writer << a.value
-      case a: Ipv6Address => writer << '[' << a << ']'
-      case _ => writer
-    }
+    override def render(writer: Writer): writer.type =
+      this match {
+        case RegName(n) => writer << n
+        case a: Ipv4Address => writer << a.value
+        case a: Ipv6Address => writer << '[' << a << ']'
+        case _ => writer
+      }
   }
 
   @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
@@ -437,14 +449,15 @@ object Uri {
       }
 
     private[http4s] trait Parser { self: PbParser with IpParser =>
-      def ipv4Address: Rule1[Ipv4Address] = rule {
-        // format: off
+      def ipv4Address: Rule1[Ipv4Address] =
+        rule {
+          // format: off
         decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~>
         { (a: Byte, b: Byte, c: Byte, d: Byte) => new Ipv4Address(a, b, c, d) }
         // format:on
       }
 
-      private def decOctet = rule { capture(DecOctet) ~> (_.toInt.toByte) }
+      private def decOctet = rule {capture(DecOctet) ~> (_.toInt.toByte)}
     }
 
     implicit val http4sInstancesForIpv4Address
@@ -621,7 +634,7 @@ object Uri {
             Ipv6Address(a, b, c, d, e, f, g, h)
         }
 
-      private def decOctet = rule { capture(DecOctet) ~> (_.toInt.toByte) }
+      private def decOctet = rule {capture(DecOctet) ~> (_.toInt.toByte)}
     }
 
     implicit val http4sInstancesForIpv6Address
@@ -757,10 +770,6 @@ object Uri {
       case n => b.setLength(n)
     }
 
-  /**
-    * Taken from https://github.com/scalatra/rl/blob/v0.4.10/core/src/main/scala/rl/UrlCodingUtils.scala
-    * Copyright (c) 2011 Mojolly Ltd.
-    */
   private[http4s] val Unreserved =
     CharPredicate.AlphaNum ++ "-_.~"
 

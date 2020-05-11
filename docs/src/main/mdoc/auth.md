@@ -11,11 +11,10 @@ For this section, remember that, like mentioned in the [service] section, a serv
 
 Lets start by defining all the imports we will need in the examples below:
 
-```tut:silent
+```scala mdoc:silent
 import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.implicits._
 import org.http4s.server._
 ```
 
@@ -25,7 +24,7 @@ such object, and is the equivalent to `(User, Request[F])`. _http4s_ provides yo
 but you have to provide your own _user_, or _authInfo_ representation. For our purposes here we will
 use the following definition:
 
-```tut:silent
+```scala mdoc:silent
 case class User(id: Long, name: String)
 ```
 
@@ -38,7 +37,7 @@ With that we can represent a service that requires authentication, but to actual
 to define how to extract the authentication information from the request. For that, we need a function
 with the following signature: `Request[F] => OptionT[F, User]`. Here is an example of how to define it:
 
-```tut:silent
+```scala mdoc:silent
 val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
   Kleisli(_ => OptionT.liftF(IO(???)))
 ```
@@ -50,7 +49,7 @@ IO operations.
 Now we need a middleware that can bridge a "normal" service into an `AuthedRoutes`, which is quite easy to
 get using our function defined above. We use `AuthMiddleware` for that:
 
-```tut:silent
+```scala mdoc:silent
 val middleware: AuthMiddleware[IO, User] =
   AuthMiddleware(authUser)
 ```
@@ -58,7 +57,7 @@ val middleware: AuthMiddleware[IO, User] =
 Finally, we can create our `AuthedRoutes`, and wrap it with our authentication middleware, getting the
 final `HttpRoutes` to be exposed. Notice that we now have access to the user object in the service implementation:
 
-```tut:silent
+```scala mdoc:silent
 val authedRoutes: AuthedRoutes[User, IO] =
   AuthedRoutes.of {
     case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
@@ -74,7 +73,7 @@ not authenticated by returning an empty response with status code 401 (Unauthori
 a kind of reconnaissance called "spidering", useful for white and black hat hackers to enumerate
 your api for possible unprotected points.
 
-```tut:silent
+```scala mdoc:silent:nest
 val spanishRoutes: AuthedRoutes[User, IO] =
     AuthedRoutes.of {
         case GET -> Root / "hola" as user => Ok(s"Hola, ${user.name}")
@@ -91,7 +90,7 @@ val service: HttpRoutes[IO] = middleware(spanishRoutes) <+> frenchRoutes
 Call to the french routes will always return 401 (Unauthorized) as they are caught by the spanish routes. To allow access to other routes you can:
 
 * Use a Router with unique route prefixes
-```tut:silent
+```scala mdoc:silent:nest
 val service = {
   Router (
     "/spanish" -> middleware(spanishRoutes),
@@ -101,14 +100,14 @@ val service = {
 ```
 
 * Allow fallthrough, using `AuthMiddleware.withFallThrough`.
-```tut:silent
+```scala mdoc:silent:nest
 val middlewareWithFallThrough: AuthMiddleware[IO, User] =
   AuthMiddleware.withFallThrough(authUser)
 val service: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
 ```
 
 * Reorder the routes so that authed routes compose last
-```tut:silent
+```scala mdoc:silent:nest
 val service: HttpRoutes[IO] = frenchRoutes <+> middleware(spanishRoutes)
 ```
 
@@ -128,7 +127,7 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request[F
 => F[Either[String,User]]`. So we'll need to handle that possibility. For advanced
 error handling, we recommend an error [ADT] instead of a `String`.
 
-```tut:silent
+```scala mdoc:silent:nest
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
 val onFailure: AuthedRoutes[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.context)))
@@ -159,13 +158,12 @@ use multiple application instances.
 
 The message is simply the user id.
 
-```tut:silent
+```scala mdoc:silent
 import org.reactormonk.{CryptoBits, PrivateKey}
-import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString("")))
 val crypto = CryptoBits(key)
-val clock = Clock.systemUTC
+val clock = java.time.Clock.systemUTC
 
 def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form
 val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
@@ -182,7 +180,7 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
 
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
-```tut:silent
+```scala mdoc:silent:nest
 def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
@@ -201,8 +199,7 @@ There is no inherent way to set the Authorization header, send the token in any
 way that your [SPA] understands. Retrieve the header value in the `authUser`
 function.
 
-```tut:silent
-import org.http4s.util.string._
+```scala mdoc:silent:nest
 import org.http4s.headers.Authorization
 
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>

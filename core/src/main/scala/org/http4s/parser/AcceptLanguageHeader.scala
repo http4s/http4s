@@ -1,20 +1,13 @@
 /*
- * Derived from https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/parser/AcceptLanguageHeader.scala
+ * Copyright 2013-2020 http4s.org
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/parser/AcceptLanguageHeader.scala
  * Copyright (C) 2011-2012 spray.io
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team
  */
+
 package org.http4s
 package parser
 
@@ -29,17 +22,19 @@ private[parser] trait AcceptLanguageHeader {
       extends Http4sHeaderParser[headers.`Accept-Language`](value)
       with MediaRange.MediaRangeParser
       with QValueParser {
-    def entry: Rule1[headers.`Accept-Language`] = rule {
-      oneOrMore(languageTag).separatedBy(ListSep) ~> { (tags: Seq[LanguageTag]) =>
-        headers.`Accept-Language`(tags.head, tags.tail: _*)
+    def entry: Rule1[headers.`Accept-Language`] =
+      rule {
+        oneOrMore(languageTag).separatedBy(ListSep) ~> { (tags: Seq[LanguageTag]) =>
+          headers.`Accept-Language`(tags.head, tags.tail: _*)
+        }
       }
-    }
 
-    def languageTag: Rule1[LanguageTag] = rule {
-      capture(oneOrMore(Alpha)) ~ zeroOrMore("-" ~ Token) ~ QualityValue ~> {
-        (main: String, sub: collection.Seq[String], q: QValue) =>
-          LanguageTag(main, q, sub.toList)
+    def languageTag: Rule1[LanguageTag] =
+      rule {
+        capture(oneOrMore(Alpha)) ~ zeroOrMore("-" ~ Token) ~ QualityValue ~> {
+          (main: String, sub: collection.Seq[String], q: QValue) =>
+            LanguageTag(main, q, sub.toList)
+        }
       }
-    }
   }
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.blazecore
 package websocket
 
@@ -132,11 +138,12 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
       out = Stream.eval(socket.sendWSOutbound(Text("."))).repeat.take(200)
       _ <- in.merge(out).compile.drain
       _ <- socket.sendInbound(Close(reasonSent))
-      reasonReceived <- socket.outStream
-        .collectFirst { case Close(reasonReceived) => reasonReceived }
-        .compile
-        .toList
-        .timeout(5.seconds)
+      reasonReceived <-
+        socket.outStream
+          .collectFirst { case Close(reasonReceived) => reasonReceived }
+          .compile
+          .toList
+          .timeout(5.seconds)
       _ = reasonReceived must_== (List(reasonSent))
     } yield ok)
   }

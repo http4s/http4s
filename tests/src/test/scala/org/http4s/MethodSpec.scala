@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.kernel.laws.discipline.EqTests
@@ -37,6 +43,6 @@ class MethodSpec extends Http4sSpec {
   }
 
   "safety implies idempotence" in {
-    foreach(Method.all.filter(_.isSafe)) { _.isIdempotent }
+    foreach(Method.all.filter(_.isSafe))(_.isIdempotent)
   }
 }

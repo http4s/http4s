@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package asynchttpclient
@@ -41,16 +47,18 @@ object AsyncHttpClient {
   /**
     * Allocates a Client and its shutdown mechanism for freeing resources.
     */
-  def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
+  def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
+      F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
     F.delay(new DefaultAsyncHttpClient(config))
       .map(c =>
-        (Client[F] { req =>
-          Resource(F.async[(Response[F], F[Unit])] { cb =>
-            c.executeRequest(toAsyncRequest(req), asyncHandler(cb))
-            ()
-          })
-        }, F.delay(c.close)))
+        (
+          Client[F] { req =>
+            Resource(F.async[(Response[F], F[Unit])] { cb =>
+              c.executeRequest(toAsyncRequest(req), asyncHandler(cb))
+              ()
+            })
+          },
+          F.delay(c.close)))
 
   /**
     * Create an HTTP client based on the AsyncHttpClient library
@@ -58,8 +66,8 @@ object AsyncHttpClient {
     * @param config configuration for the client
     * @param ec The ExecutionContext to run responses on
     */
-  def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+  def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
+      F: ConcurrentEffect[F]): Resource[F, Client[F]] =
     Resource(allocate(config))
 
   /**
@@ -70,12 +78,12 @@ object AsyncHttpClient {
     * @return a singleton stream of the client.  The client will be
     * shutdown when the stream terminates.
     */
-  def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+  def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
+      F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(config))
 
-  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])])(
-      implicit F: ConcurrentEffect[F]) =
+  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])])(implicit
+      F: ConcurrentEffect[F]) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
@@ -94,14 +102,15 @@ object AsyncHttpClient {
             subscriber.stream(subscribeF).pull.uncons.void.stream.compile.drain
           }
 
-          body = subscriber
-            .stream(bodyDisposal.set(F.unit) >> subscribeF)
-            .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+          body =
+            subscriber
+              .stream(bodyDisposal.set(F.unit) >> subscribeF)
+              .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
 
           responseWithBody = response.copy(body = body)
 
-          _ <- invokeCallbackF[F](
-            cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
+          _ <-
+            invokeCallbackF[F](cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
         } yield ()
 
         eff.runAsync(_ => IO.unit).unsafeRunSync()

@@ -1,10 +1,11 @@
-/* checkAll and friends were copied from the scalaz-specs2 project.
- * Source file: src/main/scala/Spec.scala
- * Project address: https://github.com/typelevel/scalaz-specs2
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/typelevel/scalaz-specs2/src/main/scala/Spec.scala
  * Copyright (C) 2013 Lars Hupel
- * License: MIT. https://github.com/typelevel/scalaz-specs2/blob/master/LICENSE.txt
- * Commit df921e18cf8bf0fd0bb510133f1ca6e1caea512b
- * Copied on. 11/1/2015
+ * See licenses/LICENSE_scalaz-specs2
  */
 
 package org.http4s
@@ -67,8 +68,8 @@ trait Http4sSpec
       .map(_.getOrElse(""))
       .unsafeRunSync
 
-  def checkAll(name: String, props: Properties)(
-      implicit p: Parameters,
+  def checkAll(name: String, props: Properties)(implicit
+      p: Parameters,
       f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
     addFragments(Fragments.foreach(props.properties.toList) {
@@ -86,12 +87,14 @@ trait Http4sSpec
     })
   }
 
-  implicit def enrichProperties(props: Properties) = new {
-    def withProp(propName: String, prop: Prop) = new Properties(props.name) {
-      for { (name, p) <- props.properties } property(name) = p
-      property(propName) = prop
+  implicit def enrichProperties(props: Properties) =
+    new {
+      def withProp(propName: String, prop: Prop) =
+        new Properties(props.name) {
+          for { (name, p) <- props.properties } property(name) = p
+          property(propName) = prop
+        }
     }
-  }
 
   def beStatus(status: Status): Matcher[Response[IO]] = { (resp: Response[IO]) =>
     (resp.status == status) -> s" doesn't have status $status"

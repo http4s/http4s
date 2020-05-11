@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package bench
 
@@ -15,9 +21,8 @@ class HttpHeadersBench {
   @Benchmark
   def add(in: HeadersInput) = {
     var target: Headers = Headers.empty
-    for (header <- in.headers) {
+    for (header <- in.headers)
       target = target.put(header)
-    }
   }
 
   @Benchmark

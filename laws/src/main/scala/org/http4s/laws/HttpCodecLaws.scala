@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package laws
 
@@ -12,7 +18,8 @@ trait HttpCodecLaws[A] {
 }
 
 object HttpCodecLaws {
-  def apply[A](implicit httpCodecA: HttpCodec[A]): HttpCodecLaws[A] = new HttpCodecLaws[A] {
-    val C = httpCodecA
-  }
+  def apply[A](implicit httpCodecA: HttpCodec[A]): HttpCodecLaws[A] =
+    new HttpCodecLaws[A] {
+      val C = httpCodecA
+    }
 }

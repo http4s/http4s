@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
@@ -198,13 +204,12 @@ private class Http2NodeStage[F[_]](
         }
     }
 
-    if (method == null || scheme == null || path == null) {
+    if (method == null || scheme == null || path == null)
       error += s"Invalid request: missing pseudo headers. Method: $method, Scheme: $scheme, path: $path. "
-    }
 
-    if (error.length > 0) {
+    if (error.length > 0)
       closePipeline(Some(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
-    } else {
+    else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())

@@ -1,21 +1,13 @@
 /*
- * Derived from https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/HttpHeader.scala
+ * Copyright 2013-2020 http4s.org
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/HttpHeader.scala
  * Copyright (C) 2011-2012 spray.io
- * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team
  */
+
 package org.http4s
 
 import cats.{Eq, Show}
@@ -59,14 +51,15 @@ sealed trait Header extends Renderable with Product {
   final override def hashCode(): Int =
     MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
 
-  final override def equals(that: Any): Boolean = that match {
-    case h: AnyRef if this eq h => true
-    case h: Header =>
-      (name == h.name) &&
-        (parsed.productArity == h.parsed.productArity) &&
-        (parsed.productIterator.sameElements(h.parsed.productIterator))
-    case _ => false
-  }
+  final override def equals(that: Any): Boolean =
+    that match {
+      case h: AnyRef if this eq h => true
+      case h: Header =>
+        (name == h.name) &&
+          (parsed.productArity == h.parsed.productArity) &&
+          (parsed.productIterator.sameElements(h.parsed.productIterator))
+      case _ => false
+    }
 
   /** Length of the rendered header, including name and final '\r\n' */
   def renderedLength: Long =
@@ -90,9 +83,8 @@ object Header {
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
     private[this] var _parsed: Header = null
     final override def parsed: Header = {
-      if (_parsed == null) {
+      if (_parsed == null)
         _parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
-      }
       _parsed
     }
     override def renderValue(writer: Writer): writer.type = writer.append(value)

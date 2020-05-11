@@ -52,14 +52,14 @@ prefer you can read these introductions first:
 Wherever you are in your studies, let's create our first
 `HttpRoutes`.  Start by pasting these imports into your SBT console:
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 You also will need a `ContextShift` and a `Timer`.  These come for
 free if you are in an `IOApp`.
 
-```tut:silent
+```scala mdoc:silent
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
 implicit val timer: Timer[IO] = IO.timer(global)
 ```
@@ -69,7 +69,7 @@ matching the request.  Let's build a service that matches requests to
 `GET /hello/:name`, where `:name` is a path parameter for the person to
 greet.
 
-```tut:book
+```scala mdoc
 val helloWorldService = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
@@ -89,7 +89,7 @@ We've defined `tweetsEncoder` as being implicit so that we don't need to explici
 reference it when serving the response, which can be seen as
 `getPopularTweets().flatMap(Ok(_))`.
 
-```tut:book
+```scala mdoc
 case class Tweet(id: Int, message: String)
 
 implicit def tweetEncoder: EntityEncoder[IO, Tweet] = ???
@@ -122,14 +122,14 @@ Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 
 `scalacOptions ++= Seq("-Ypartial-unification")`
 
-```tut:silent
+```scala mdoc:silent
 import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
 import org.http4s.server.Router
 ```
 
-```tut:book
+```scala mdoc
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
 val serverBuilder = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(httpApp)
@@ -141,7 +141,7 @@ associates the specified routes with this http server instance.
 
 We start a server resource in the background.  The server will run until we cancel the fiber:
 
-```tut:book
+```scala mdoc
 val fiber = serverBuilder.resource.use(_ => IO.never).start.unsafeRunSync()
 ```
 
@@ -155,7 +155,7 @@ $ curl http://localhost:8080/hello/Pete
 
 We can shut down the server by canceling its fiber.
 
-```tut:book
+```scala mdoc
 fiber.cancel.unsafeRunSync()
 ```
 
@@ -173,18 +173,16 @@ with an abstract `run` method that returns a `IO[ExitCode]`.  An
 the infinite process and gracefully shut down your server when a
 SIGTERM is received.
 
-```tut:silent:reset
+```scala mdoc:silent:reset
 import cats.effect._
-import cats.implicits._
 import org.http4s.HttpRoutes
-import org.http4s.syntax._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server.blaze._
 import scala.concurrent.ExecutionContext.global
 ```
 
-```tut:silent
+```scala mdoc:silent
 object Main extends IOApp {
 
   val helloWorldService = HttpRoutes.of[IO] {
@@ -205,7 +203,7 @@ object Main extends IOApp {
 
 You may also create the server within an `IOApp` using resource:
 
-```tut:silent
+```scala mdoc:silent
 import scala.concurrent.ExecutionContext.global
 
 object MainWithResource extends IOApp {

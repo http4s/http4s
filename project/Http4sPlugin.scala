@@ -6,6 +6,8 @@ import com.typesafe.sbt.git.JGit
 import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleResultTypeProblem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import de.heikoseeberger.sbtheader.{License, LicenseStyle}
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import java.lang.{Runtime => JRuntime}
 import org.scalafmt.sbt.ScalafmtPlugin
@@ -105,6 +107,54 @@ object Http4sPlugin extends AutoPlugin {
 
     ivyConfigurations += CompileTime,
     unmanagedClasspath in Compile ++= update.value.select(configurationFilter("CompileTime")),
+
+    headerLicense := Some(License.ALv2("2013-2020", "http4s.org", LicenseStyle.SpdxSyntax)),
+    excludeFilter.in(headerSources) := HiddenFileFilter ||
+      new FileFilter {
+        def accept(file: File) = {
+          attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
+        }
+
+        val attributedSources = Set(
+          "src/main/scala/org/http4s/argonaut/Parser.scala",
+          "src/main/scala/org/http4s/CacheDirective.scala",
+          "src/main/scala/org/http4s/Challenge.scala",
+          "src/main/scala/org/http4s/Charset.scala",
+          "src/main/scala/org/http4s/ContentCoding.scala",
+          "src/main/scala/org/http4s/Credentials.scala",
+          "src/main/scala/org/http4s/Header.scala",
+          "src/main/scala/org/http4s/LanguageTag.scala",
+          "src/main/scala/org/http4s/MediaType.scala",
+          "src/main/scala/org/http4s/RangeUnit.scala",
+          "src/main/scala/org/http4s/ResponseCookie.scala",
+          "src/main/scala/org/http4s/TransferCoding.scala",
+          "src/main/scala/org/http4s/Uri.scala",
+          "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptLanguageHeader.scala",
+          "src/main/scala/org/http4s/parser/AdditionalRules.scala",
+          "src/main/scala/org/http4s/parser/AuthorizationHeader.scala",
+          "src/main/scala/org/http4s/parser/CacheControlHeader.scala",
+          "src/main/scala/org/http4s/parser/ContentTypeHeader.scala",
+          "src/main/scala/org/http4s/parser/CookieHeader.scala",
+          "src/main/scala/org/http4s/parser/HttpHeaderParser.scala",
+          "src/main/scala/org/http4s/parser/Rfc2616BasicRules.scala",
+          "src/main/scala/org/http4s/parser/SimpleHeaders.scala",
+          "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
+          "src/main/scala/org/http4s/util/UrlCoding.scala",
+          "src/main/scala/org/http4s/dsl/impl/Path.scala",
+          "src/test/scala/org/http4s/dsl/PathSpec.scala",
+          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
+          "src/main/scala/org/http4s/testing/ErrorReportingUtils.scala",
+          "src/main/scala/org/http4s/testing/IOMatchers.scala",
+          "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
+          "src/test/scala/org/http4s/Http4sSpec.scala",
+          "src/test/scala/org/http4s/util/illTyped.scala",
+          "src/test/scala/org/http4s/testing/ErrorReporting.scala",
+          "src/test/scala/org/http4s/UriSpec.scala"
+        )
+      }
   )
 
   lazy val silencerSettings: Seq[Setting[_]] = {

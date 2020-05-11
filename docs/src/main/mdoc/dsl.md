@@ -35,7 +35,7 @@ $ sbt console
 
 We'll need the following imports to get started:
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 // Provided by `cats.effect.IOApp`
@@ -54,7 +54,7 @@ anything.  The right hand side of the request must return a
 
 In the following we use `cats.effect.IO` as the effect type `F`.
 
-```tut:book
+```scala mdoc
 val service = HttpRoutes.of[IO] {
   case _ =>
     IO(Response(Status.Ok))
@@ -67,7 +67,7 @@ One beautiful thing about the `HttpRoutes[F]` model is that we don't
 need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
 
-```tut
+```scala mdoc
 val getRoot = Request[IO](Method.GET, uri"/")
 
 val io = service.orNotFound.run(getRoot)
@@ -84,7 +84,7 @@ run it.
 
 But here in the REPL, it's up to us to run it:
 
-```tut
+```scala mdoc
 val response = io.unsafeRunSync
 ```
 
@@ -101,7 +101,7 @@ generating `F[Response]`s.
 http4s-dsl provides a shortcut to create an `F[Response]` by
 applying a status code:
 
-```tut
+```scala mdoc
 val okIo = Ok()
 val ok = okIo.unsafeRunSync
 ```
@@ -109,7 +109,7 @@ val ok = okIo.unsafeRunSync
 This simple `Ok()` expression succinctly says what we mean in a
 service:
 
-```tut:book
+```scala mdoc
 HttpRoutes.of[IO] {
   case _ => Ok()
 }.orNotFound.run(getRoot).unsafeRunSync
@@ -119,7 +119,7 @@ This syntax works for other status codes as well.  In our example, we
 don't return a body, so a `204 No Content` would be a more appropriate
 response:
 
-```tut:book
+```scala mdoc
 HttpRoutes.of[IO] {
   case _ => NoContent()
 }.orNotFound.run(getRoot).unsafeRunSync
@@ -129,19 +129,19 @@ HttpRoutes.of[IO] {
 
 http4s adds a minimum set of headers depending on the response, e.g:
 
-```tut
+```scala mdoc
 Ok("Ok response.").unsafeRunSync.headers
 ```
 
 Extra headers can be added using `putHeaders`, for example to specify cache policies:
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective.`no-cache`
 import cats.data.NonEmptyList
 ```
 
-```tut
+```scala mdoc
 Ok("Ok response.", `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync.headers
 ```
 
@@ -149,7 +149,7 @@ http4s defines all the well known headers directly, but sometimes you need to
 define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand:
 
-```tut
+```scala mdoc
 Ok("Ok response.", Header("X-Auth-Token", "value")).unsafeRunSync.headers
 ```
 
@@ -158,13 +158,13 @@ Ok("Ok response.", Header("X-Auth-Token", "value")).unsafeRunSync.headers
 http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
-```tut
+```scala mdoc
 Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync.headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
-```tut
+```scala mdoc
 val cookieResp = {
   for {
     resp <- Ok("Ok response.")
@@ -177,7 +177,7 @@ cookieResp.unsafeRunSync.headers
 To request a cookie to be removed on the client, you need to set the cookie value
 to empty. http4s can do that with `removeCookie`:
 
-```tut
+```scala mdoc
 Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync.headers
 ```
 
@@ -197,7 +197,7 @@ for now is that a response body can be generated for any type with an
 implicit `EntityEncoder` in scope.  http4s provides several out of the
 box:
 
-```tut
+```scala mdoc
 Ok("Received request.").unsafeRunSync
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -207,7 +207,7 @@ Ok("binary".getBytes(UTF_8)).unsafeRunSync
 Per the HTTP specification, some status codes don't support a body.
 http4s prevents such nonsense at compile time:
 
-```tut:fail
+```scala mdoc:fail
 NoContent("does not compile")
 ```
 
@@ -216,9 +216,9 @@ NoContent("does not compile")
 While http4s prefers `F[_]: Effect`, you may be working with libraries that
 use standard library `Future`s.  Some relevant imports:
 
-```tut:silent
+```scala mdoc
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.global
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
@@ -231,8 +231,8 @@ effectful, unless we wrap it in `IO`:
 `IO.fromFuture` requires an implicit `ContextShift`, to ensure that the
 suspended future is shifted to the corred thread pool.
 
-```tut
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
+```scala mdoc:nest
+implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
 val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
@@ -244,7 +244,7 @@ io.unsafeRunSync
 As good functional programmers who like to delay our side effects, we
 of course prefer to operate in `F`s:
 
-```tut
+```scala mdoc:nest
 val io = Ok(IO {
   println("I run when the IO is run.")
   "Mission accomplished!"
@@ -267,20 +267,19 @@ An intro to `Stream` is out of scope, but we can glimpse the
 power here.  This stream emits the elapsed time every 100 milliseconds
 for one second:
 
-```tut:silent
+```scala mdoc:silent
 import fs2.Stream
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-```tut:book
+```scala mdoc
 val drip: Stream[IO, String] =
   Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
 ```
 
 We can see it for ourselves in the REPL:
 
-```tut
+```scala mdoc
 val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s => {IO{println(s); s}})).compile.drain
 dripOutIO.unsafeRunSync
 ```
@@ -290,7 +289,7 @@ When wrapped in a `Response[F]`, http4s will flush each chunk of a
 generally be anticipated before it runs, so this triggers chunked
 transfer encoding:
 
-```tut
+```scala mdoc
 Ok(drip)
 ```
 
@@ -308,7 +307,7 @@ info via the `->` object.  On the left side is the method, and on the
 right side, the path info.  The following matches a request to `GET
 /hello`:
 
-```tut
+```scala mdoc
 HttpRoutes.of[IO] {
   case GET -> Root / "hello" => Ok("hello")
 }
@@ -335,7 +334,7 @@ A request to the root of the service is matched with the `Root`
 extractor.  `Root` consumes the leading slash of the path info.  The
 following matches requests to `GET /`:
 
-```tut
+```scala mdoc:silent
 HttpRoutes.of[IO] {
   case GET -> Root => Ok("root")
 }
@@ -348,7 +347,7 @@ matched as literals or made available through standard Scala pattern
 matching.  For example, the following service responds with "Hello,
 Alice!" to `GET /hello/Alice`:
 
-```tut
+```scala mdoc:silent
 HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name => Ok(s"Hello, $name!")
 }
@@ -360,7 +359,7 @@ a right-associative `/:` extractor.  In this case, there is no `Root`,
 and the final pattern is a `Path` of the remaining segments.  This would
 say `"Hello, Alice and Bob!"`
 
-```tut
+```scala mdoc:silent
 HttpRoutes.of[IO] {
   case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.toList.mkString(" and ")}!""")
 }
@@ -368,7 +367,7 @@ HttpRoutes.of[IO] {
 
 To match a file extension on a segment, use the `~` extractor:
 
-```tut
+```scala mdoc:silent
 HttpRoutes.of[IO] {
   case GET -> Root / file ~ "json" => Ok(s"""{"response": "You asked for $file"}""")
 }
@@ -379,7 +378,7 @@ Path params can be extracted and converted to a specific type but are
 `String`s by default. There are numeric extractors provided in the form
 of `IntVar` and `LongVar`, as well as `UUIDVar` extractor for `java.util.UUID`.
 
-```tut:book
+```scala mdoc
 def getUserName(userId: Int): IO[String] = ???
 
 val usersService = HttpRoutes.of[IO] {
@@ -392,13 +391,13 @@ If you want to extract a variable of type `T`, you can provide a custom extracto
 object which implements `def unapply(str: String): Option[T]`, similar to the way
 in which `IntVar` does it.
 
-```tut:silent
+```scala mdoc:silent
 import java.time.LocalDate
 import scala.util.Try
 import org.http4s.client.dsl.io._
 ```
 
-```tut:book
+```scala mdoc
 object LocalDateVar {
   def unapply(str: String): Option[LocalDate] = {
     if (!str.isEmpty)
@@ -429,12 +428,11 @@ return optional or validated parameter values.
 In the example below we're finding query params named `country` and `year` and
 then parsing them as a `String` and `java.time.Year`.
 
-```tut:silent
+```scala mdoc:silent
 import java.time.Year
-import cats.data.ValidatedNel
 ```
 
-```tut:book
+```scala mdoc
 object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
@@ -453,12 +451,12 @@ val averageTemperatureService = HttpRoutes.of[IO] {
 To support a `QueryParamDecoderMatcher[Instant]`, consider `QueryParamCodec#instantQueryParamCodec`. That
 outputs a `QueryParamCodec[Instant]`, which offers both a `QueryParamEncoder[Instant]` and `QueryParamDecoder[Instant]`.
 
-```tut:silent
+```scala mdoc:silent
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 ```
 
-```tut:book
+```scala mdoc:silent:warn
 implicit val isoInstantCodec: QueryParamCodec[Instant] =
   QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
 
@@ -469,12 +467,12 @@ object IsoInstantParamMatcher extends QueryParamDecoderMatcher[Instant]("timesta
 
 To accept an optional query parameter a `OptionalQueryParamDecoderMatcher` can be used.
 
-```tut:silent
+```scala mdoc:silent
 import java.time.Year
 import org.http4s.client.dsl.io._
 ```
 
-```tut:book
+```scala mdoc:nest
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
 
@@ -502,7 +500,7 @@ A request with a missing required query parameter will fall through to the follo
 
 To validate query parsing you can use `ValidatingQueryParamDecoderMatcher` which returns a `ParseFailure` if the parameter cannot be decoded. Be careful not to return the raw invalid value in a `BadRequest` because it could be used for [Cross Site Scripting](https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)) attacks.
 
-```tut:book
+```scala mdoc:nest
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
 

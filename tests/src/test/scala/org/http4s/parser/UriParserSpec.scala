@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.parser
 
 import cats.implicits._
@@ -9,16 +15,17 @@ import org.http4s.Uri._
 import org.http4s.internal.parboiled2._
 
 class IpParserImpl(val input: ParserInput, val charset: NioCharset) extends Parser with IpParser {
-  def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }
-  def CaptureIPv4: Rule1[String] = rule { capture(IpV4Address) }
+  def CaptureIPv6: Rule1[String] = rule(capture(IpV6Address))
+  def CaptureIPv4: Rule1[String] = rule(capture(IpV4Address))
 }
 
 class UriParserSpec extends Http4sSpec {
   "Uri.requestTarget" should {
-    def check(items: Seq[(String, Uri)]) = foreach(items) {
-      case (str, uri) =>
-        Uri.requestTarget(str) must beRight(uri)
-    }
+    def check(items: Seq[(String, Uri)]) =
+      foreach(items) {
+        case (str, uri) =>
+          Uri.requestTarget(str) must beRight(uri)
+      }
 
     // RFC 3986 examples
     // http://tools.ietf.org/html/rfc3986#section-1.1.2
@@ -42,8 +49,8 @@ class UriParserSpec extends Http4sSpec {
     "parse a IPv4 address" in {
       foreach(0 to 255) { i =>
         val addr = s"$i.$i.$i.$i"
-        Either.fromTry(new IpParserImpl(addr, StandardCharsets.UTF_8).CaptureIPv4.run()) must beRight(
-          addr)
+        Either.fromTry(
+          new IpParserImpl(addr, StandardCharsets.UTF_8).CaptureIPv4.run()) must beRight(addr)
       }
     }
 
@@ -202,10 +209,11 @@ class UriParserSpec extends Http4sSpec {
   }
 
   "Uri.fromString" should {
-    def check(items: Seq[(String, Uri)]) = foreach(items) {
-      case (str, uri) =>
-        Uri.fromString(str) must beRight(uri)
-    }
+    def check(items: Seq[(String, Uri)]) =
+      foreach(items) {
+        case (str, uri) =>
+          Uri.fromString(str) must beRight(uri)
+      }
 
     "parse absolute URIs" in {
       val absoluteUris: Seq[(String, Uri)] = Seq(

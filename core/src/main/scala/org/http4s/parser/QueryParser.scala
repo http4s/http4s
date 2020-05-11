@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package parser
 
@@ -81,7 +87,7 @@ private[http4s] class QueryParser(
             valAcc.clear()
           }
 
-        case c if (qChars.contains(c.toInt)) => valAcc.append(c)
+        case c if qChars.contains(c.toInt) => valAcc.append(c)
 
         case c => error = s"Invalid char while splitting key/value pairs: '$c'"
       }

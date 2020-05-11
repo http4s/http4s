@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.Monoid
@@ -100,7 +106,9 @@ class UrlFormSpec extends Http4sSpec {
     }
 
     "construct consistently from kv-pairs or and Map[String, Chain[String]]" in prop {
-      map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
+      map: Map[String, NonEmptyList[
+        String
+      ]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
           (k, vs) <- map.toSeq
           v <- vs.toList
@@ -110,7 +118,9 @@ class UrlFormSpec extends Http4sSpec {
     }
 
     "construct consistently from Chain of kv-pairs and Map[String, Chain[String]]" in prop {
-      map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
+      map: Map[String, NonEmptyList[
+        String
+      ]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
           (k, vs) <- Chain.fromSeq(map.toSeq)
           v <- Chain.fromSeq(vs.toList)

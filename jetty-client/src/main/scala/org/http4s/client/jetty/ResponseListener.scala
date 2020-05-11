@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package jetty
@@ -45,7 +51,7 @@ private[jetty] final case class ResponseListener[F[_]](
           }
         ))
       }
-      .leftMap(t => { abort(t, response); t })
+      .leftMap { t => abort(t, response); t }
 
     invokeCallback(logger)(cb(r))
   }
@@ -111,8 +117,8 @@ private[jetty] object ResponseListener {
 
   private val logger = getLogger
 
-  def apply[F[_]](cb: Callback[Resource[F, Response[F]]])(
-      implicit F: ConcurrentEffect[F]): F[ResponseListener[F]] =
+  def apply[F[_]](cb: Callback[Resource[F, Response[F]]])(implicit
+      F: ConcurrentEffect[F]): F[ResponseListener[F]] =
     Queue
       .synchronous[F, Item]
       .map(q => ResponseListener(q, cb))

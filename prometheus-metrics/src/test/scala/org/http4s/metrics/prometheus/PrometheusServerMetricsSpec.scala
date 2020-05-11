@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.metrics.prometheus
 
 import cats.effect.{Clock, IO, Resource}
@@ -173,8 +179,11 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
           resp must haveStatus(Status.Ok)
           resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
 
-          count(registry, "abnormal_terminations", "server", cause = "java.lang.RuntimeException") must beEqualTo(
-            1)
+          count(
+            registry,
+            "abnormal_terminations",
+            "server",
+            cause = "java.lang.RuntimeException") must beEqualTo(1)
           count(registry, "active_requests", "server") must beEqualTo(0)
           count(registry, "2xx_headers_duration", "server") must beEqualTo(0.05)
           count(registry, "2xx_total_duration", "server") must beEqualTo(0.1)

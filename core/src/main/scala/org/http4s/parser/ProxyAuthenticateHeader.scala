@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package parser
 
@@ -10,10 +16,11 @@ trait ProxyAuthenticateHeader {
 
   private class ProxyAuthenticateParser(input: ParserInput)
       extends ChallengeParser[`Proxy-Authenticate`](input) {
-    def entry: Rule1[`Proxy-Authenticate`] = rule {
-      oneOrMore(ChallengeRule).separatedBy(ListSep) ~ EOI ~> { (xs: Seq[Challenge]) =>
-        `Proxy-Authenticate`(xs.head, xs.tail: _*)
+    def entry: Rule1[`Proxy-Authenticate`] =
+      rule {
+        oneOrMore(ChallengeRule).separatedBy(ListSep) ~ EOI ~> { (xs: Seq[Challenge]) =>
+          `Proxy-Authenticate`(xs.head, xs.tail: _*)
+        }
       }
-    }
   }
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s.blaze.demo.client
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
@@ -19,12 +25,13 @@ object MultipartClient extends MultipartHttpClient
 class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4sClientDsl[IO] {
   private val image: IO[URL] = IO(getClass.getResource("/beerbottle.png"))
 
-  private def multipart(url: URL, blocker: Blocker) = Multipart[IO](
-    Vector(
-      Part.formData("name", "gvolpe"),
-      Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png))
+  private def multipart(url: URL, blocker: Blocker) =
+    Multipart[IO](
+      Vector(
+        Part.formData("name", "gvolpe"),
+        Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png))
+      )
     )
-  )
 
   private def request(blocker: Blocker) =
     for {

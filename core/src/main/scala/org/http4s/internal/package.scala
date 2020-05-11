@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import java.util.concurrent.{
@@ -32,8 +38,8 @@ package object internal {
     }
 
   // Inspired by https://github.com/functional-streams-for-scala/fs2/blob/14d20f6f259d04df410dc3b1046bc843a19d73e5/io/src/main/scala/fs2/io/io.scala#L140-L141
-  private[http4s] def invokeCallback[F[_]](logger: Logger)(f: => Unit)(
-      implicit F: ConcurrentEffect[F]): Unit =
+  private[http4s] def invokeCallback[F[_]](logger: Logger)(f: => Unit)(implicit
+      F: ConcurrentEffect[F]): Unit =
     F.runAsync(F.start(F.delay(f)).flatMap(_.join))(loggingAsyncCallback(logger)).unsafeRunSync()
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
@@ -59,8 +65,8 @@ package object internal {
       def innerEncode(l: Int, i: Int, j: Int): Array[Char] =
         i match {
           case k if k < l =>
-            out(j) = Digits((0xF0 & data(k)) >>> 4)
-            out(j + 1) = Digits(0x0F & data(k))
+            out(j) = Digits((0xf0 & data(k)) >>> 4)
+            out(j + 1) = Digits(0x0f & data(k))
             innerEncode(l, k + 1, j + 2)
           case _ => out
         }
@@ -102,7 +108,7 @@ package object internal {
         j += 1
         f = f | toDigit(data(j))
         j += 1
-        out(i) = (f & 0xFF).toByte
+        out(i) = (f & 0xff).toByte
 
         i += 1
       }
@@ -133,8 +139,8 @@ package object internal {
 
   // Adapted from https://github.com/typelevel/cats-effect/issues/160#issue-306054982
   @deprecated("Use `fromCompletionStage`", since = "0.21.3")
-  private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(
-      implicit F: Concurrent[F]): F[A] =
+  private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(implicit
+      F: Concurrent[F]): F[A] =
     fcf.flatMap { cf =>
       F.cancelable { cb =>
         cf.handle[Unit]((result, err) =>
@@ -148,8 +154,8 @@ package object internal {
       }
     }
 
-  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](fcs: F[CF[A]])(
-      implicit
+  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
+      fcs: F[CF[A]])(implicit
       // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
       F: Concurrent[F],
       CS: ContextShift[F]): F[A] =

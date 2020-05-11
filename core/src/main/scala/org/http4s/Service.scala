@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Applicative, Monoid, Semigroup}
@@ -19,8 +25,8 @@ object Service {
   /** Lifts a partial function to an `Service`.  Responds with the
     * zero of [B] for any request where `pf` is not defined.
     */
-  def apply[F[_], A, B: Monoid](pf: PartialFunction[A, F[B]])(
-      implicit F: Applicative[F]): Service[F, A, B] =
+  def apply[F[_], A, B: Monoid](pf: PartialFunction[A, F[B]])(implicit
+      F: Applicative[F]): Service[F, A, B] =
     lift(req => pf.applyOrElse(req, Function.const(F.pure(Monoid[B].empty))))
 
   /**
@@ -38,8 +44,8 @@ object Service {
     lift(_ => F.delay(b))
 
   /** Allows Service chaining through a Monoid instance. */
-  def withFallback[F[_], A, B](fallback: Service[F, A, B])(service: Service[F, A, B])(
-      implicit M: Semigroup[F[B]]): Service[F, A, B] =
+  def withFallback[F[_], A, B](fallback: Service[F, A, B])(service: Service[F, A, B])(implicit
+      M: Semigroup[F[B]]): Service[F, A, B] =
     service |+| fallback
 
   /** A service that always returns the zero of B. */

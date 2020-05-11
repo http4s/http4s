@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Applicative, Monad}
@@ -129,29 +135,30 @@ package object server {
 
   type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
 
-  def DefaultServiceErrorHandler[F[_]](
-      implicit F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
+  def DefaultServiceErrorHandler[F[_]](implicit
+      F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
     inDefaultServiceErrorHandler[F, F]
 
-  def inDefaultServiceErrorHandler[F[_], G[_]](
-      implicit F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] = req => {
-    case mf: MessageFailure =>
-      messageFailureLogger.debug(mf)(
-        s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-          .getOrElse("<unknown>")}""")
-      mf.toHttpResponse[G](req.httpVersion).pure[F]
-    case NonFatal(t) =>
-      serviceErrorLogger.error(t)(
-        s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse(
-          "<unknown>")}""")
-      F.pure(
-        Response(
-          Status.InternalServerError,
-          req.httpVersion,
-          Headers(
-            Connection("close".ci) ::
-              `Content-Length`.zero ::
-              Nil
-          )))
-  }
+  def inDefaultServiceErrorHandler[F[_], G[_]](implicit
+      F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
+    req => {
+      case mf: MessageFailure =>
+        messageFailureLogger.debug(mf)(
+          s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+            .getOrElse("<unknown>")}""")
+        mf.toHttpResponse[G](req.httpVersion).pure[F]
+      case NonFatal(t) =>
+        serviceErrorLogger.error(t)(
+          s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+            .getOrElse("<unknown>")}""")
+        F.pure(
+          Response(
+            Status.InternalServerError,
+            req.httpVersion,
+            Headers(
+              Connection("close".ci) ::
+                `Content-Length`.zero ::
+                Nil
+            )))
+    }
 }

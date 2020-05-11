@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
@@ -31,8 +37,8 @@ object GZip {
           req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
     }
 
-  private def decompress[F[_]](bufferSize: Int, response: Response[F])(
-      implicit F: Sync[F]): Response[F] =
+  private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
+      F: Sync[F]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -56,8 +62,8 @@ object VirtualHost {
       h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port))
   }
 
-  def apply[F[_], G[_]](first: HostService[F, G], rest: HostService[F, G]*)(
-      implicit F: Applicative[F],
+  def apply[F[_], G[_]](first: HostService[F, G], rest: HostService[F, G]*)(implicit
+      F: Applicative[F],
       W: EntityEncoder[G, String]): Http[F, G] =
     Kleisli { req =>
       req.headers

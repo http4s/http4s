@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.ember.core
 
 import org.specs2.mutable.Specification
@@ -127,14 +133,13 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
           |""".stripMargin
 
       (for {
-        parsed <- Parser.Response
-          .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw))(logger)
-          .use { resp =>
-            resp.body.through(text.utf8Decode).compile.string
-          }
-      } yield {
-        parsed must_== "{}"
-      }).unsafeRunSync()
+        parsed <-
+          Parser.Response
+            .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw))(logger)
+            .use { resp =>
+              resp.body.through(text.utf8Decode).compile.string
+            }
+      } yield parsed must_== "{}").unsafeRunSync()
     }
 
   }

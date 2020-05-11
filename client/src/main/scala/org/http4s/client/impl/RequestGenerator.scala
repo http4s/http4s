@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.client.impl
 
 import cats.Applicative
@@ -18,8 +24,8 @@ trait EmptyRequestGenerator[F[_]] extends Any with RequestGenerator {
 trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
 
   /** Make a [[org.http4s.Request]] using this Method */
-  final def apply[A](body: A, uri: Uri, headers: Header*)(
-      implicit F: Applicative[F],
+  final def apply[A](body: A, uri: Uri, headers: Header*)(implicit
+      F: Applicative[F],
       w: EntityEncoder[F, A]): F[Request[F]] = {
     val h = w.headers ++ Headers(headers.toList)
     val entity = w.toEntity(body)
