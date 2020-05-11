@@ -94,7 +94,7 @@ After installing the above dependencies you should build an assembled JAR. We ca
 
 After we have built the assembled JAR containing all our Java dependencies, we use that JAR to build our native image. In the command below we need to replace the muslC and assembly jar paths with the appropriate locations.
 
-Note: Mac and Windows platforms do not support build static images. Remove `--static` and `-H:UseMuslC="/path.to/muslC"` for building for those platforms.
+Note: Mac and Windows platforms do not support build static images. Remove `--static` and `-H:UseMuslC="/path.to/muslC"` when building for those platforms.
 
 sh
 ```
