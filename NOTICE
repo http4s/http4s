@@ -7,6 +7,11 @@ https://github.com/akka/akka-http
 Copyright (C) 2009-2017 Lightbend Inc. <http://www.lightbend.com>
 Licensed under Apache License 2.0 (see LICENSE)
 
+This software contains portions of code derived from bootstrap
+https://github.com/twbs/bootstrap
+Copyright 2011-2017 The Bootstrap Authors
+Licensed under the MIT License (see licenses/LICENSE_bootstrap)
+
 This software contains portions of code derived from cats-effect
 https://github.com/typelevel/cats-effect
 Copyright (c) 2017-2018 The Typelevel Cats-effect Project Developers
@@ -14,7 +19,18 @@ Licensed under Apache License 2.0 (see LICENSE)
 
 This software contains portions of code derived from finagle
 https://github.com/twitter/finagle
+Copyright 2017, Twitter Inc.
 Licensed under Apache License 2.0 (see LICENSE)
+
+This software contains portions of code derived from fontello
+https://github.com/fontello/fontello
+Copyright (C) 2011 by Vitaly Puzrin
+Licensed under the MIT License (see licenses/LICENSE_fontello)
+
+This software contains portions of code derived from font-awesome
+https://github.com/FortAwesome/Font-Awesome
+Font Awesome by Dave Gandy - http://fontawesome.io
+Licensed under the SIL OFL 1.1 (see licenses/LICENSE_font-awesome)
 
 This software contains portions of code derived from fs2
 https://github.com/functional-streams-for-scala/fs2
@@ -26,15 +42,29 @@ https://github.com/Spinoco/fs2-http
 Copyright (c) 2017 Spinoco
 Licensed under the MIT License (see licenses/LICENSE_fs2-http)
 
-This software contains portions of code derived from sbt
-https://github.com/sbt/sbt
-Copyright (c) 2008-2014 Typesafe Inc, Mark Harrah, Grzegorz Kossakowski, Josh Suereth, Indrajit Raychaudhuri, Eugene Yokota, and other contributors.
-Licensed under BSD-style license (see licenses/LICENSE_sbt)
+This software contains portions of code derived from jawn
+https://github.com/non/jawn
+Copyright Erik Osheim, 2012-2015.
+Licensed under the MIT License (see licenses/LICENSE_jawn)
+
+This software contains portions of code derived from rl
+https://github.com/scalatra/rl
+Copyright (c) 2011 Mojolly Ltd.
+Licensed under BSD-style license (see licenses/LICENSE_rl)
+
+This software contains portions of code derived from scalaz-specs2
+https://github.com/typelevel/scalaz-specs2
+Copyright (C) 2013 Lars Hupel
+Licensed under BSD-style license (see licenses/LICENSE_scalaz-specs2)
+
+This software contains portions of code derived from shapeless
+https://github.com/milessabin/shapeless
+Copyright (c) 2013-16 Miles Sabin
+Licensed under Apache License 2.0 (see LICENSE)
 
 This software contains portions of code derived from specs2
 https://github.com/etorreborre/specs2
-Copyright (C) 2011-2012 spray.io
-Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
+Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
 Licensed under MIT license (see licenses/LICENSE_specs2)
 
 This software contains portions of code derived from spray
@@ -42,8 +72,3 @@ https://github.com/spray/spray
 Copyright (C) 2011-2012 spray.io
 Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
 Licensed under Apache License 2.0 (see LICENSE)
-
-
-
-
-

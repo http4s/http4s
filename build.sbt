@@ -562,6 +562,7 @@ def http4sProject(name: String) =
       Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
       initCommands()
     )
+    .enablePlugins(AutomateHeaderPlugin)
 
 def libraryProject(name: String) = http4sProject(name)
 

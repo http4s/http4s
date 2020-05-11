@@ -1,3 +1,13 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/Spinoco/fs2-http/blob/c8b164b2b319903ca15e33a4f312cded63ea9882/src/main/scala/spinoco/fs2/http/internal/ChunkedEncoding.scala
+ * Copyright (c) 2017 Spinoco
+ * See licenses/LICENSE_fs2-http
+ */
+
 package org.http4s.ember.core
 
 import cats.ApplicativeError
