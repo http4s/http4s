@@ -42,18 +42,21 @@ object util {
   case class Timer(value: String)
 
   object FakeClock {
-    def apply[F[_]: Sync] = new Clock[F] {
-      private var count = 0L
+    def apply[F[_]: Sync] =
+      new Clock[F] {
+        private var count = 0L
 
-      override def realTime(unit: TimeUnit): F[Long] = Sync[F].delay {
-        count += 50
-        unit.convert(count, TimeUnit.MILLISECONDS)
-      }
+        override def realTime(unit: TimeUnit): F[Long] =
+          Sync[F].delay {
+            count += 50
+            unit.convert(count, TimeUnit.MILLISECONDS)
+          }
 
-      override def monotonic(unit: TimeUnit): F[Long] = Sync[F].delay {
-        count += 50
-        unit.convert(count, TimeUnit.MILLISECONDS)
+        override def monotonic(unit: TimeUnit): F[Long] =
+          Sync[F].delay {
+            count += 50
+            unit.convert(count, TimeUnit.MILLISECONDS)
+          }
       }
-    }
   }
 }

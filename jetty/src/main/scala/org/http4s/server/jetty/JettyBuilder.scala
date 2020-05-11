@@ -60,19 +60,20 @@ sealed class JettyBuilder[F[_]] private (
       mounts: Vector[Mount[F]],
       serviceErrorHandler: ServiceErrorHandler[F],
       banner: immutable.Seq[String]
-  )(implicit F: ConcurrentEffect[F]) = this(
-    socketAddress = socketAddress,
-    threadPool = threadPool,
-    idleTimeout = idleTimeout,
-    asyncTimeout = asyncTimeout,
-    shutdownTimeout = shutdownTimeout,
-    servletIo = servletIo,
-    sslConfig = sslConfig,
-    mounts = mounts,
-    serviceErrorHandler = serviceErrorHandler,
-    supportHttp2 = false,
-    banner = banner
-  )
+  )(implicit F: ConcurrentEffect[F]) =
+    this(
+      socketAddress = socketAddress,
+      threadPool = threadPool,
+      idleTimeout = idleTimeout,
+      asyncTimeout = asyncTimeout,
+      shutdownTimeout = shutdownTimeout,
+      servletIo = servletIo,
+      sslConfig = sslConfig,
+      mounts = mounts,
+      serviceErrorHandler = serviceErrorHandler,
+      supportHttp2 = false,
+      banner = banner
+    )
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
@@ -284,19 +285,20 @@ sealed class JettyBuilder[F[_]] private (
 }
 
 object JettyBuilder {
-  def apply[F[_]: ConcurrentEffect] = new JettyBuilder[F](
-    socketAddress = defaults.SocketAddress,
-    threadPool = new QueuedThreadPool(),
-    idleTimeout = defaults.IdleTimeout,
-    asyncTimeout = defaults.ResponseTimeout,
-    shutdownTimeout = defaults.ShutdownTimeout,
-    servletIo = ServletContainer.DefaultServletIo,
-    sslConfig = NoSsl,
-    mounts = Vector.empty,
-    serviceErrorHandler = DefaultServiceErrorHandler,
-    supportHttp2 = false,
-    banner = defaults.Banner
-  )
+  def apply[F[_]: ConcurrentEffect] =
+    new JettyBuilder[F](
+      socketAddress = defaults.SocketAddress,
+      threadPool = new QueuedThreadPool(),
+      idleTimeout = defaults.IdleTimeout,
+      asyncTimeout = defaults.ResponseTimeout,
+      shutdownTimeout = defaults.ShutdownTimeout,
+      servletIo = ServletContainer.DefaultServletIo,
+      sslConfig = NoSsl,
+      mounts = Vector.empty,
+      serviceErrorHandler = DefaultServiceErrorHandler,
+      supportHttp2 = false,
+      banner = defaults.Banner
+    )
 
   private sealed trait SslConfig {
     def makeSslContextFactory: Option[SslContextFactory.Server]

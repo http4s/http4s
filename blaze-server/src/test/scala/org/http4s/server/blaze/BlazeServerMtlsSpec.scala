@@ -114,11 +114,10 @@ class BlazeServerMtlsSpec extends Http4sSpec {
       val conn = url.openConnection().asInstanceOf[HttpsURLConnection]
       conn.setRequestMethod("GET")
 
-      if (clientAuth) {
+      if (clientAuth)
         conn.setSSLSocketFactory(sslContext.getSocketFactory)
-      } else {
+      else
         conn.setSSLSocketFactory(noAuthClientContext.getSocketFactory)
-      }
 
       Try {
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
@@ -150,11 +149,10 @@ class BlazeServerMtlsSpec extends Http4sSpec {
       val conn = url.openConnection().asInstanceOf[HttpsURLConnection]
       conn.setRequestMethod("GET")
 
-      if (clientAuth) {
+      if (clientAuth)
         conn.setSSLSocketFactory(sslContext.getSocketFactory)
-      } else {
+      else
         conn.setSSLSocketFactory(noAuthClientContext.getSocketFactory)
-      }
 
       Try {
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString

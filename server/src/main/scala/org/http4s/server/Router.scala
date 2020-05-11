@@ -29,9 +29,9 @@ object Router {
         else
           Kleisli { req =>
             (
-              if (toSegments(req.pathInfo).startsWith(prefixSegments)) {
+              if (toSegments(req.pathInfo).startsWith(prefixSegments))
                 routes.local(translate(prefix)) <+> acc
-              } else
+              else
                 acc
             )(req)
           }

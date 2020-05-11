@@ -20,8 +20,8 @@ object AuthedService {
     * where `pf` is not defined.
     */
   @deprecated("Use AuthedRoutes.of instead", "0.20.2")
-  def apply[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
-      implicit F: Applicative[F]): AuthedService[T, F] =
+  def apply[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(implicit
+      F: Applicative[F]): AuthedService[T, F] =
     Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
   /**

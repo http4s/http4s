@@ -52,22 +52,22 @@ object HeaderKey {
       @tailrec def loop(
           hs: Headers,
           acc: NonEmptyList[HeaderT#Value]): NonEmptyList[HeaderT#Value] =
-        if (hs.nonEmpty) {
+        if (hs.nonEmpty)
           matchHeader(hs.toList.head) match {
             case Some(header) =>
               loop(Headers(hs.toList.tail), acc.concatNel(header.values.widen[HeaderT#Value]))
             case None =>
               loop(Headers(hs.toList.tail), acc)
           }
-        } else acc
+        else acc
       @tailrec def start(hs: Headers): Option[HeaderT] =
-        if (hs.nonEmpty) {
+        if (hs.nonEmpty)
           matchHeader(hs.toList.head) match {
             case Some(header) =>
               Some(apply(loop(Headers(hs.toList.tail), header.values.widen[HeaderT#Value])))
             case None => start(Headers(hs.toList.tail))
           }
-        } else None
+        else None
       start(headers)
     }
   }

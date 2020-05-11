@@ -21,7 +21,8 @@ object ErrorAction {
       serviceErrorLogAction: (Throwable, => String) => F[Unit]
   ): Kleisli[F, Request[G], B] =
     apply(
-      http, {
+      http,
+      {
         case (req, mf: MessageFailure) =>
           messageFailureLogAction(
             mf,

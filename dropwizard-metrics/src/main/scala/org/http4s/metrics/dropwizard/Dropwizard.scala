@@ -62,25 +62,28 @@ object Dropwizard {
     * @param registry a dropwizard metric registry
     * @param prefix a prefix that will be added to all metrics
     */
-  def apply[F[_]](registry: MetricRegistry, prefix: String = "org.http4s.server")(
-      implicit F: Sync[F]): MetricsOps[F] =
+  def apply[F[_]](registry: MetricRegistry, prefix: String = "org.http4s.server")(implicit
+      F: Sync[F]): MetricsOps[F] =
     new MetricsOps[F] {
-      override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
-        registry.counter(s"${namespace(prefix, classifier)}.active-requests").inc()
-      }
+      override def increaseActiveRequests(classifier: Option[String]): F[Unit] =
+        F.delay {
+          registry.counter(s"${namespace(prefix, classifier)}.active-requests").inc()
+        }
 
-      override def decreaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
-        registry.counter(s"${namespace(prefix, classifier)}.active-requests").dec()
-      }
+      override def decreaseActiveRequests(classifier: Option[String]): F[Unit] =
+        F.delay {
+          registry.counter(s"${namespace(prefix, classifier)}.active-requests").dec()
+        }
 
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
-          classifier: Option[String]): F[Unit] = F.delay {
-        registry
-          .timer(s"${namespace(prefix, classifier)}.requests.headers")
-          .update(elapsed, TimeUnit.NANOSECONDS)
-      }
+          classifier: Option[String]): F[Unit] =
+        F.delay {
+          registry
+            .timer(s"${namespace(prefix, classifier)}.requests.headers")
+            .update(elapsed, TimeUnit.NANOSECONDS)
+        }
 
       override def recordTotalTime(
           method: Method,
@@ -100,29 +103,33 @@ object Dropwizard {
       override def recordAbnormalTermination(
           elapsed: Long,
           terminationType: TerminationType,
-          classifier: Option[String]): F[Unit] = terminationType match {
-        case Abnormal => recordAbnormal(elapsed, classifier)
-        case Error => recordError(elapsed, classifier)
-        case Timeout => recordTimeout(elapsed, classifier)
-      }
+          classifier: Option[String]): F[Unit] =
+        terminationType match {
+          case Abnormal => recordAbnormal(elapsed, classifier)
+          case Error => recordError(elapsed, classifier)
+          case Timeout => recordTimeout(elapsed, classifier)
+        }
 
-      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        registry
-          .timer(s"${namespace(prefix, classifier)}.abnormal-terminations")
-          .update(elapsed, TimeUnit.NANOSECONDS)
-      }
+      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] =
+        F.delay {
+          registry
+            .timer(s"${namespace(prefix, classifier)}.abnormal-terminations")
+            .update(elapsed, TimeUnit.NANOSECONDS)
+        }
 
-      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        registry
-          .timer(s"${namespace(prefix, classifier)}.errors")
-          .update(elapsed, TimeUnit.NANOSECONDS)
-      }
+      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] =
+        F.delay {
+          registry
+            .timer(s"${namespace(prefix, classifier)}.errors")
+            .update(elapsed, TimeUnit.NANOSECONDS)
+        }
 
-      private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        registry
-          .timer(s"${namespace(prefix, classifier)}.timeouts")
-          .update(elapsed, TimeUnit.NANOSECONDS)
-      }
+      private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] =
+        F.delay {
+          registry
+            .timer(s"${namespace(prefix, classifier)}.timeouts")
+            .update(elapsed, TimeUnit.NANOSECONDS)
+        }
 
       private def namespace(prefix: String, classifier: Option[String]): String =
         classifier.map(d => s"${prefix}.${d}").getOrElse(s"${prefix}.default")
@@ -140,17 +147,18 @@ object Dropwizard {
           case _ => registry.timer(s"${namespace(prefix, classifier)}.5xx-responses")
         }).update(elapsed, TimeUnit.NANOSECONDS)
 
-      private def requestTimer(method: Method): String = method match {
-        case Method.GET => "get-requests"
-        case Method.POST => "post-requests"
-        case Method.PUT => "put-requests"
-        case Method.HEAD => "head-requests"
-        case Method.MOVE => "move-requests"
-        case Method.OPTIONS => "options-requests"
-        case Method.TRACE => "trace-requests"
-        case Method.CONNECT => "connect-requests"
-        case Method.DELETE => "delete-requests"
-        case _ => "other-requests"
-      }
+      private def requestTimer(method: Method): String =
+        method match {
+          case Method.GET => "get-requests"
+          case Method.POST => "post-requests"
+          case Method.PUT => "put-requests"
+          case Method.HEAD => "head-requests"
+          case Method.MOVE => "move-requests"
+          case Method.OPTIONS => "options-requests"
+          case Method.TRACE => "trace-requests"
+          case Method.CONNECT => "connect-requests"
+          case Method.DELETE => "delete-requests"
+          case _ => "other-requests"
+        }
     }
 }

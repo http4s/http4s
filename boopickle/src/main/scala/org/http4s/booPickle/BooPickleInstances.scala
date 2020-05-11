@@ -16,16 +16,16 @@ import scala.util.{Failure, Success}
   * Note that the media type is set for application/octet-stream
   */
 trait BooPickleInstances {
-  private def booDecoderByteBuffer[F[_]: Sync, A](m: Media[F])(
-      implicit pickler: Pickler[A]): DecodeResult[F, A] =
+  private def booDecoderByteBuffer[F[_]: Sync, A](m: Media[F])(implicit
+      pickler: Pickler[A]): DecodeResult[F, A] =
     EntityDecoder.collectBinary(m).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
-      if (bb.hasRemaining) {
+      if (bb.hasRemaining)
         Unpickle[A](pickler).tryFromBytes(bb) match {
           case Success(bb) => Right(bb)
           case Failure(pf) => Left(MalformedMessageBodyFailure("Invalid binary body", Some(pf)))
         }
-      } else
+      else
         Left(MalformedMessageBodyFailure("Invalid binary: empty body", None))
     }
 

@@ -24,9 +24,10 @@ object HSTS {
 
   def apply[F[_]: Functor, A, G[_]: Functor](
       http: Kleisli[F, A, Response[G]],
-      header: `Strict-Transport-Security`): Kleisli[F, A, Response[G]] = Kleisli { req =>
-    http.map(_.putHeaders(header)).apply(req)
-  }
+      header: `Strict-Transport-Security`): Kleisli[F, A, Response[G]] =
+    Kleisli { req =>
+      http.map(_.putHeaders(header)).apply(req)
+    }
 
   def unsafeFromDuration[F[_]: Functor, A, G[_]: Functor](
       http: Kleisli[F, A, Response[G]],

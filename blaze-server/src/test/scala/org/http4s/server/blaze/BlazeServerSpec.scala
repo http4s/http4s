@@ -79,17 +79,18 @@ class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     // This too
-    def postChunkedMultipart(path: String, boundary: String, body: String): IO[String] = IO {
-      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
-      val conn = url.openConnection().asInstanceOf[HttpURLConnection]
-      val bytes = body.getBytes(StandardCharsets.UTF_8)
-      conn.setRequestMethod("POST")
-      conn.setChunkedStreamingMode(-1)
-      conn.setRequestProperty("Content-Type", s"""multipart/form-data; boundary="$boundary"""")
-      conn.setDoOutput(true)
-      conn.getOutputStream.write(bytes)
-      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
-    }
+    def postChunkedMultipart(path: String, boundary: String, body: String): IO[String] =
+      IO {
+        val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+        val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+        val bytes = body.getBytes(StandardCharsets.UTF_8)
+        conn.setRequestMethod("POST")
+        conn.setChunkedStreamingMode(-1)
+        conn.setRequestProperty("Content-Type", s"""multipart/form-data; boundary="$boundary"""")
+        conn.setDoOutput(true)
+        conn.getOutputStream.write(bytes)
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+      }
 
     "A server" should {
       "route requests on the service executor" in {

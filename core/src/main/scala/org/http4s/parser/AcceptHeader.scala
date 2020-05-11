@@ -27,31 +27,36 @@ private[parser] trait AcceptHeader {
   private class AcceptParser(value: String)
       extends Http4sHeaderParser[Accept](value)
       with MediaRange.MediaRangeParser {
-    def entry: Rule1[headers.Accept] = rule {
-      oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { (xs: Seq[MediaRangeAndQValue]) =>
-        Accept(xs.head, xs.tail: _*)
+    def entry: Rule1[headers.Accept] =
+      rule {
+        oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { (xs: Seq[MediaRangeAndQValue]) =>
+          Accept(xs.head, xs.tail: _*)
+        }
       }
-    }
 
-    def FullRange: Rule1[MediaRangeAndQValue] = rule {
-      (MediaRangeDef ~ optional(QAndExtensions)) ~> {
-        (mr: MediaRange, params: Option[(QValue, collection.Seq[(String, String)])]) =>
-          val (qValue, extensions) = params.getOrElse((org.http4s.QValue.One, collection.Seq.empty))
-          mr.withExtensions(extensions.toMap).withQValue(qValue)
+    def FullRange: Rule1[MediaRangeAndQValue] =
+      rule {
+        (MediaRangeDef ~ optional(QAndExtensions)) ~> {
+          (mr: MediaRange, params: Option[(QValue, collection.Seq[(String, String)])]) =>
+            val (qValue, extensions) =
+              params.getOrElse((org.http4s.QValue.One, collection.Seq.empty))
+            mr.withExtensions(extensions.toMap).withQValue(qValue)
+        }
       }
-    }
 
-    def QAndExtensions: Rule1[(QValue, collection.Seq[(String, String)])] = rule {
-      AcceptParams | (oneOrMore(MediaTypeExtension) ~> { (s: collection.Seq[(String, String)]) =>
-        (org.http4s.QValue.One, s)
-      })
-    }
+    def QAndExtensions: Rule1[(QValue, collection.Seq[(String, String)])] =
+      rule {
+        AcceptParams | (oneOrMore(MediaTypeExtension) ~> { (s: collection.Seq[(String, String)]) =>
+          (org.http4s.QValue.One, s)
+        })
+      }
 
-    def AcceptParams: Rule1[(QValue, collection.Seq[(String, String)])] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> (
-        (
-          _: QValue,
-          _: collection.Seq[(String, String)]))
-    }
+    def AcceptParams: Rule1[(QValue, collection.Seq[(String, String)])] =
+      rule {
+        (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> (
+          (
+            _: QValue,
+            _: collection.Seq[(String, String)]))
+      }
   }
 }

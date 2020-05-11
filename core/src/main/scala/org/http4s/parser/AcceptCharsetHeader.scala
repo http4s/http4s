@@ -30,21 +30,23 @@ private[parser] trait AcceptCharsetHeader {
   private class AcceptCharsetParser(input: ParserInput)
       extends Http4sHeaderParser[headers.`Accept-Charset`](input)
       with QValueParser {
-    def entry: Rule1[headers.`Accept-Charset`] = rule {
-      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[CharsetRange]) =>
-        headers.`Accept-Charset`(xs.head, xs.tail: _*)
+    def entry: Rule1[headers.`Accept-Charset`] =
+      rule {
+        oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[CharsetRange]) =>
+          headers.`Accept-Charset`(xs.head, xs.tail: _*)
+        }
       }
-    }
 
-    def CharsetRangeDecl: Rule1[CharsetRange] = rule {
-      ("*" ~ QualityValue) ~> { q =>
-        if (q != org.http4s.QValue.One) `*`.withQValue(q) else `*`
-      } |
-        ((Token ~ QualityValue) ~> { (s: String, q: QValue) =>
-          // TODO handle tokens that aren't charsets
-          val c = Charset.fromString(s).valueOr(throw _)
-          if (q != org.http4s.QValue.One) c.withQuality(q) else c.toRange
-        })
-    }
+    def CharsetRangeDecl: Rule1[CharsetRange] =
+      rule {
+        ("*" ~ QualityValue) ~> { q =>
+          if (q != org.http4s.QValue.One) `*`.withQValue(q) else `*`
+        } |
+          ((Token ~ QualityValue) ~> { (s: String, q: QValue) =>
+            // TODO handle tokens that aren't charsets
+            val c = Charset.fromString(s).valueOr(throw _)
+            if (q != org.http4s.QValue.One) c.withQuality(q) else c.toRange
+          })
+      }
   }
 }

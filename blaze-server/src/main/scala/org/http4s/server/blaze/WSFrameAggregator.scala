@@ -27,38 +27,39 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
     p.future
   }
 
-  private def readLoop(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit = frame match {
-    case _: Text => handleHead(frame, p)
-    case _: Binary => handleHead(frame, p)
+  private def readLoop(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit =
+    frame match {
+      case _: Text => handleHead(frame, p)
+      case _: Binary => handleHead(frame, p)
 
-    case c: Continuation =>
-      if (accumulator.isEmpty) {
-        val e = new ProtocolException(
-          "Invalid state: Received a Continuation frame without accumulated state.")
-        logger.error(e)("Invalid state")
-        p.failure(e)
-        ()
-      } else {
-        accumulator.append(frame)
-        if (c.last) {
-          // We are finished with the segment, accumulate
-          p.success(accumulator.take())
+      case c: Continuation =>
+        if (accumulator.isEmpty) {
+          val e = new ProtocolException(
+            "Invalid state: Received a Continuation frame without accumulated state.")
+          logger.error(e)("Invalid state")
+          p.failure(e)
           ()
-        } else
-          channelRead().onComplete {
-            case Success(f) =>
-              readLoop(f, p)
-            case Failure(t) =>
-              p.failure(t)
-              ()
-          }(trampoline)
-      }
+        } else {
+          accumulator.append(frame)
+          if (c.last) {
+            // We are finished with the segment, accumulate
+            p.success(accumulator.take())
+            ()
+          } else
+            channelRead().onComplete {
+              case Success(f) =>
+                readLoop(f, p)
+              case Failure(t) =>
+                p.failure(t)
+                ()
+            }(trampoline)
+        }
 
-    case f =>
-      // Must be a control frame, send it out
-      p.success(f)
-      ()
-  }
+      case f =>
+        // Must be a control frame, send it out
+        p.success(f)
+        ()
+    }
 
   private def handleHead(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit =
     if (!accumulator.isEmpty) {

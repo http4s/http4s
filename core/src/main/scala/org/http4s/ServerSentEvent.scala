@@ -15,13 +15,13 @@ final case class ServerSentEvent(
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
     writer << "data: " << data << "\n"
-    eventType.foreach { writer << "event: " << _ << "\n" }
+    eventType.foreach(writer << "event: " << _ << "\n")
     id match {
       case None =>
       case Some(EventId.reset) => writer << "id\n"
       case Some(EventId(id)) => writer << "id: " << id << "\n"
     }
-    retry.foreach { writer << "retry: " << _ << "\n" }
+    retry.foreach(writer << "retry: " << _ << "\n")
     writer << "\n"
   }
 

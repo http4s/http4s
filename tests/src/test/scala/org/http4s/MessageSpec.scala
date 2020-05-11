@@ -155,7 +155,8 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       "parse HTTP/1 and HTTP/2 Cookie headers on a single request into corresponding RequestCookies" in {
         val cookies = Headers.of(
           Header("Cookie", "test1=value1; test2=value2"), // HTTP/1 style
-          Header("Cookie", "test3=value3")) // HTTP/2 style (separate headers for separate cookies)
+          Header("Cookie", "test3=value3")
+        ) // HTTP/2 style (separate headers for separate cookies)
         val request = Request(Method.GET, headers = cookies)
         request.cookies mustEqual cookieList
       }
@@ -222,7 +223,8 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             Header("Cookie", "k3=v3; k4=v4"),
             Header("k5", "v5"),
             Authorization(BasicCredentials("user", "pass")))
-          .asCurl(_ => false) mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
+          .asCurl(_ =>
+            false) mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
       }
 
       "escape quotation marks in header" in {

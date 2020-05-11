@@ -67,8 +67,8 @@ trait Http4sSpec
       .map(_.getOrElse(""))
       .unsafeRunSync
 
-  def checkAll(name: String, props: Properties)(
-      implicit p: Parameters,
+  def checkAll(name: String, props: Properties)(implicit
+      p: Parameters,
       f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
     addFragments(Fragments.foreach(props.properties.toList) {
@@ -86,12 +86,14 @@ trait Http4sSpec
     })
   }
 
-  implicit def enrichProperties(props: Properties) = new {
-    def withProp(propName: String, prop: Prop) = new Properties(props.name) {
-      for { (name, p) <- props.properties } property(name) = p
-      property(propName) = prop
+  implicit def enrichProperties(props: Properties) =
+    new {
+      def withProp(propName: String, prop: Prop) =
+        new Properties(props.name) {
+          for { (name, p) <- props.properties } property(name) = p
+          property(propName) = prop
+        }
     }
-  }
 
   def beStatus(status: Status): Matcher[Response[IO]] = { (resp: Response[IO]) =>
     (resp.status == status) -> s" doesn't have status $status"

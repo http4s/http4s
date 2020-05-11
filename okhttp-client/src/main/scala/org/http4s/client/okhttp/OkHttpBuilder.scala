@@ -76,8 +76,8 @@ sealed abstract class OkHttpBuilder[F[_]] private (
       ()
     })
 
-  private def handler(cb: Either[Throwable, Resource[F, Response[F]]] => Unit)(
-      implicit F: ConcurrentEffect[F],
+  private def handler(cb: Either[Throwable, Resource[F, Response[F]]] => Unit)(implicit
+      F: ConcurrentEffect[F],
       cs: ContextShift[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
@@ -144,7 +144,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
               .drain
               .runAsync {
                 case Left(t) =>
-                  IO { logger.warn(t)("Unable to write to OkHttp sink") }
+                  IO(logger.warn(t)("Unable to write to OkHttp sink"))
                 case Right(_) =>
                   IO.unit
               }
@@ -196,31 +196,27 @@ object OkHttpBuilder {
       blocker: Blocker): Resource[F, OkHttpBuilder[F]] =
     defaultOkHttpClient.map(apply(_, blocker))
 
-  private def defaultOkHttpClient[F[_]](
-      implicit F: ConcurrentEffect[F]): Resource[F, OkHttpClient] =
+  private def defaultOkHttpClient[F[_]](implicit
+      F: ConcurrentEffect[F]): Resource[F, OkHttpClient] =
     Resource.make(F.delay(new OkHttpClient()))(shutdown(_))
 
   private def shutdown[F[_]](client: OkHttpClient)(implicit F: Sync[F]) =
-    F.delay({
-      try {
-        client.dispatcher.executorService().shutdown()
-      } catch {
+    F.delay {
+      try client.dispatcher.executorService().shutdown()
+      catch {
         case NonFatal(t) =>
           logger.warn(t)("Unable to shut down dispatcher when disposing of OkHttp client")
       }
-      try {
-        client.connectionPool().evictAll()
-      } catch {
+      try client.connectionPool().evictAll()
+      catch {
         case NonFatal(t) =>
           logger.warn(t)("Unable to evict connection pool when disposing of OkHttp client")
       }
-      if (client.cache() != null) {
-        try {
-          client.cache().close()
-        } catch {
+      if (client.cache() != null)
+        try client.cache().close()
+        catch {
           case NonFatal(t) =>
             logger.warn(t)("Unable to close cache when disposing of OkHttp client")
         }
-      }
-    })
+    }
 }

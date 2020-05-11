@@ -89,8 +89,8 @@ object DigestAuth {
         F.pure(NoAuthorizationHeader)
     }
 
-  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeper, staleNonce: Boolean)(
-      implicit F: Sync[F]): F[Map[String, String]] =
+  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeper, staleNonce: Boolean)(implicit
+      F: Sync[F]): F[Map[String, String]] =
     F.delay {
       val nonce = nonceKeeper.newNonce()
       val m = Map("qop" -> "auth", "nonce" -> nonce)

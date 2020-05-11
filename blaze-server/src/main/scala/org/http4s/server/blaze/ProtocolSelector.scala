@@ -26,8 +26,8 @@ private[blaze] object ProtocolSelector {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(
-      implicit F: ConcurrentEffect[F],
+      scheduler: TickWheelExecutor)(implicit
+      F: ConcurrentEffect[F],
       timer: Timer[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>

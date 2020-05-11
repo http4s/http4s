@@ -41,8 +41,8 @@ package object oauth1 {
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token])(
-      implicit F: MonadError[F, Throwable],
+      token: Option[Token])(implicit
+      F: MonadError[F, Throwable],
       W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).map {
       case (req, params) =>
@@ -165,9 +165,12 @@ package object oauth1 {
       params.result()
     }
 
-    val baseString = genBaseString(method, uri, params ++ userParams.map {
-      case (k, v) => (encode(k), encode(v))
-    })
+    val baseString = genBaseString(
+      method,
+      uri,
+      params ++ userParams.map {
+        case (k, v) => (encode(k), encode(v))
+      })
     val sig = makeSHASig(baseString, consumer, token)
     val creds =
       Credentials.AuthParams("OAuth".ci, NonEmptyList("oauth_signature" -> encode(sig), params))
@@ -214,8 +217,8 @@ package object oauth1 {
   private[oauth1] def encode(str: String): String =
     Uri.encode(str, spaceIsPlus = false, toSkip = Uri.Unreserved)
 
-  private[oauth1] def getUserParams[F[_]](req: Request[F])(
-      implicit F: MonadError[F, Throwable],
+  private[oauth1] def getUserParams[F[_]](req: Request[F])(implicit
+      F: MonadError[F, Throwable],
       W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
     val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 

@@ -20,12 +20,14 @@ final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding])
     values.tail.fold(values.head)((a, b) => if (a.qValue >= b.qValue) a else b)
 
   def qValue(coding: ContentCoding): QValue = {
-    def specific = values.toList.collectFirst {
-      case cc: ContentCoding if cc =!= ContentCoding.`*` && cc.matches(coding) => cc.qValue
-    }
-    def splatted = values.toList.collectFirst {
-      case cc: ContentCoding if cc === ContentCoding.`*` => cc.qValue
-    }
+    def specific =
+      values.toList.collectFirst {
+        case cc: ContentCoding if cc =!= ContentCoding.`*` && cc.matches(coding) => cc.qValue
+      }
+    def splatted =
+      values.toList.collectFirst {
+        case cc: ContentCoding if cc === ContentCoding.`*` => cc.qValue
+      }
     specific.orElse(splatted).getOrElse(QValue.Zero)
   }
 

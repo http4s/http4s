@@ -12,8 +12,8 @@ import org.eclipse.jetty.util.{Callback => JettyCallback}
 import org.http4s.internal.loggingAsyncCallback
 import org.log4s.getLogger
 
-private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[F])(
-    implicit F: Effect[F])
+private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[F])(implicit
+    F: Effect[F])
     extends DeferredContentProvider {
   import StreamRequestContentProvider.logger
 

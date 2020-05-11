@@ -29,11 +29,11 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
     .withJawnParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON jawn"))
     .withCirceParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON circe"))
-    .withJsonDecodeError({ (json, failures) =>
+    .withJsonDecodeError { (json, failures) =>
       val failureStr = failures.mkString_("", ", ", "")
       InvalidMessageBodyFailure(
         s"Custom Could not decode JSON: ${json.noSpaces}, errors: $failureStr")
-    })
+    }
     .build
 
   testJsonDecoder(jsonDecoder)

@@ -11,7 +11,9 @@ class TransferEncodingSpec extends HeaderLaws {
   "render" should {
     "include all the encodings" in {
       `Transfer-Encoding`(TransferCoding.chunked).renderString must_== "Transfer-Encoding: chunked"
-      `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip).renderString must_== "Transfer-Encoding: chunked, gzip"
+      `Transfer-Encoding`(
+        TransferCoding.chunked,
+        TransferCoding.gzip).renderString must_== "Transfer-Encoding: chunked, gzip"
     }
   }
 

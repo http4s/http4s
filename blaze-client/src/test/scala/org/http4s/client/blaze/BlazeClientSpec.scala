@@ -46,34 +46,35 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       .withScheduler(scheduler = tickWheel)
       .resource
 
-  private def testServlet = new HttpServlet {
-    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-      GetRoutes.getPaths.get(req.getRequestURI) match {
-        case Some(resp) =>
-          srv.setStatus(resp.status.code)
-          resp.headers.foreach { h =>
-            srv.addHeader(h.name.toString, h.value)
-          }
-
-          val os: ServletOutputStream = srv.getOutputStream
-
-          val writeBody: IO[Unit] = resp.body
-            .evalMap { byte =>
-              IO(os.write(Array(byte)))
+  private def testServlet =
+    new HttpServlet {
+      override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
+        GetRoutes.getPaths.get(req.getRequestURI) match {
+          case Some(resp) =>
+            srv.setStatus(resp.status.code)
+            resp.headers.foreach { h =>
+              srv.addHeader(h.name.toString, h.value)
             }
-            .compile
-            .drain
-          val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> flushOutputStream).unsafeRunSync()
 
-        case None => srv.sendError(404)
+            val os: ServletOutputStream = srv.getOutputStream
+
+            val writeBody: IO[Unit] = resp.body
+              .evalMap { byte =>
+                IO(os.write(Array(byte)))
+              }
+              .compile
+              .drain
+            val flushOutputStream: IO[Unit] = IO(os.flush())
+            (writeBody *> flushOutputStream).unsafeRunSync()
+
+          case None => srv.sendError(404)
+        }
+
+      override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
+        resp.setStatus(Status.Ok.code)
+        req.getInputStream.close()
       }
-
-    override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
-      resp.setStatus(Status.Ok.code)
-      req.getInputStream.close()
     }
-  }
 
   "Blaze Http1Client" should {
     withResource(
@@ -82,9 +83,9 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         JettyScaffold[IO](1, true, testServlet)
       ).tupled) {
       case (
-          jettyServer,
-          jettySslServer
-          ) => {
+            jettyServer,
+            jettySslServer
+          ) =>
         val addresses = jettyServer.addresses
         val sslAddress = jettySslServer.addresses.head
 
@@ -348,7 +349,6 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
               e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
           }
         }
-      }
     }
   }
 }

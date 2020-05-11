@@ -54,7 +54,8 @@ private[client] object ClientHelpers {
                 initSocket,
                 TLSParameters(serverNames = Some(List(new SNIHostName(address.getHostName)))))
               .widen[Socket[F]]
-          } else initSocket.pure[Resource[F, *]]
+          }
+        else initSocket.pure[Resource[F, *]]
       }
     } yield RequestKeySocket(socket, requestKey)
 
@@ -106,7 +107,7 @@ private[client] object ClientHelpers {
   private def getAddress[F[_]: Sync](requestKey: RequestKey): F[InetSocketAddress] =
     requestKey match {
       case RequestKey(s, auth) =>
-        val port = auth.port.getOrElse { if (s == Uri.Scheme.https) 443 else 80 }
+        val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
         Sync[F].delay(new InetSocketAddress(host, port))
     }

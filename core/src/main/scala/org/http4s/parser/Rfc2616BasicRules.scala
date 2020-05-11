@@ -23,61 +23,62 @@ import org.http4s.internal.parboiled2._
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[http4s] trait Rfc2616BasicRules extends Parser {
-  def Octet = rule { "\u0000" - "\u00FF" }
+  def Octet = rule("\u0000" - "\u00FF")
 
-  def Char = rule { "\u0000" - "\u007F" }
+  def Char = rule("\u0000" - "\u007F")
 
-  def Alpha = rule { LoAlpha | UpAlpha }
+  def Alpha = rule(LoAlpha | UpAlpha)
 
-  def UpAlpha = rule { "A" - "Z" }
+  def UpAlpha = rule("A" - "Z")
 
-  def LoAlpha = rule { "a" - "z" }
+  def LoAlpha = rule("a" - "z")
 
-  def Digit = rule { "0" - "9" }
+  def Digit = rule("0" - "9")
 
-  def AlphaNum = rule { Alpha | Digit }
+  def AlphaNum = rule(Alpha | Digit)
 
-  def CTL = rule { "\u0000" - "\u001F" | "\u007F" }
+  def CTL = rule("\u0000" - "\u001F" | "\u007F")
 
-  def CRLF = rule { str("\r\n") }
+  def CRLF = rule(str("\r\n"))
 
-  def LWS = rule { optional(CRLF) ~ oneOrMore(anyOf(" \t")) }
+  def LWS = rule(optional(CRLF) ~ oneOrMore(anyOf(" \t")))
 
-  def Text = rule { !CTL ~ ANY | LWS }
+  def Text = rule(!CTL ~ ANY | LWS)
 
-  def Hex = rule { "A" - "F" | "a" - "f" | Digit }
+  def Hex = rule("A" - "F" | "a" - "f" | Digit)
 
-  def Separator = rule { anyOf("()<>@,;:\\\"/[]?={} \t") }
+  def Separator = rule(anyOf("()<>@,;:\\\"/[]?={} \t"))
 
-  def Token: Rule1[String] = rule { capture(oneOrMore(!CTL ~ !Separator ~ ANY)) }
+  def Token: Rule1[String] = rule(capture(oneOrMore(!CTL ~ !Separator ~ ANY)))
 
   // TODO What's the replacement for DROP?
-  def Comment: Rule0 = rule { "(" ~ zeroOrMore(CText | QuotedPair ~> DROP | Comment) ~ ")" }
+  def Comment: Rule0 = rule("(" ~ zeroOrMore(CText | QuotedPair ~> DROP | Comment) ~ ")")
 
   def DROP: Any => Unit = { _ =>
     ()
   }
 
-  def CText = rule { !anyOf("()") ~ Text }
+  def CText = rule(!anyOf("()") ~ Text)
 
   // TODO This parser cannot handle strings terminating on \" which is a border case but still valid quoted pair
-  def QuotedString: Rule1[String] = rule {
-    "\"" ~ zeroOrMore(QuotedPair | QDText) ~> { (chars: collection.Seq[Char]) =>
-      new String(chars.toArray[scala.Char])
-    } ~ "\""
-  }
+  def QuotedString: Rule1[String] =
+    rule {
+      "\"" ~ zeroOrMore(QuotedPair | QDText) ~> { (chars: collection.Seq[Char]) =>
+        new String(chars.toArray[scala.Char])
+      } ~ "\""
+    }
 
-  def QDText: Rule1[Char] = rule { !ch('"') ~ Text ~ LASTCHAR }
+  def QDText: Rule1[Char] = rule(!ch('"') ~ Text ~ LASTCHAR)
 
-  def QuotedPair: Rule1[Char] = rule { "\\" ~ Char ~ LASTCHAR }
+  def QuotedPair: Rule1[Char] = rule("\\" ~ Char ~ LASTCHAR)
 
   // helpers
 
-  def OptWS = rule { zeroOrMore(LWS) }
+  def OptWS = rule(zeroOrMore(LWS))
 
-  def ListSep = rule { oneOrMore("," ~ OptWS) }
+  def ListSep = rule(oneOrMore("," ~ OptWS))
 
-  def LASTCHAR: Rule1[Char] = rule { push(input.charAt(cursor - 1)) }
+  def LASTCHAR: Rule1[Char] = rule(push(input.charAt(cursor - 1)))
 }
 
 private[http4s] object Rfc2616BasicRules {

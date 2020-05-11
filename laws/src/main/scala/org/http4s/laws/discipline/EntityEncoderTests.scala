@@ -11,27 +11,28 @@ import org.typelevel.discipline.Laws
 trait EntityEncoderTests[F[_], A] extends Laws {
   def laws: EntityEncoderLaws[F, A]
 
-  def entityEncoder(
-      implicit
+  def entityEncoder(implicit
       arbitraryA: Arbitrary[A],
       shrinkA: Shrink[A],
       eqFBoolean: Eq[F[Boolean]]
-  ): RuleSet = new DefaultRuleSet(
-    name = "EntityEncoder",
-    parent = None,
-    "accurateContentLength" -> Prop.forAll { (a: A) =>
-      laws.accurateContentLengthIfDefined(a)
-    },
-    "noContentLengthInStaticHeaders" -> laws.noContentLengthInStaticHeaders,
-    "noTransferEncodingInStaticHeaders" -> laws.noTransferEncodingInStaticHeaders
-  )
+  ): RuleSet =
+    new DefaultRuleSet(
+      name = "EntityEncoder",
+      parent = None,
+      "accurateContentLength" -> Prop.forAll { (a: A) =>
+        laws.accurateContentLengthIfDefined(a)
+      },
+      "noContentLengthInStaticHeaders" -> laws.noContentLengthInStaticHeaders,
+      "noTransferEncodingInStaticHeaders" -> laws.noTransferEncodingInStaticHeaders
+    )
 }
 
 object EntityEncoderTests {
-  def apply[F[_], A](
-      implicit effectF: Effect[F],
+  def apply[F[_], A](implicit
+      effectF: Effect[F],
       entityEncoderFA: EntityEncoder[F, A]
-  ): EntityEncoderTests[F, A] = new EntityEncoderTests[F, A] {
-    val laws: EntityEncoderLaws[F, A] = EntityEncoderLaws.apply[F, A]
-  }
+  ): EntityEncoderTests[F, A] =
+    new EntityEncoderTests[F, A] {
+      val laws: EntityEncoderLaws[F, A] = EntityEncoderLaws.apply[F, A]
+    }
 }

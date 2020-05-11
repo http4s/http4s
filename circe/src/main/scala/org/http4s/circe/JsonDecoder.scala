@@ -18,8 +18,9 @@ trait JsonDecoder[F[_]] {
 object JsonDecoder {
   def apply[F[_]](implicit ev: JsonDecoder[F]): JsonDecoder[F] = ev
 
-  implicit def impl[F[_]: Sync]: JsonDecoder[F] = new JsonDecoder[F] {
-    def asJson(m: Message[F]): F[Json] = m.as[Json]
-    def asJsonDecode[A: Decoder](m: Message[F]): F[A] = m.decodeJson
-  }
+  implicit def impl[F[_]: Sync]: JsonDecoder[F] =
+    new JsonDecoder[F] {
+      def asJson(m: Message[F]): F[Json] = m.as[Json]
+      def asJsonDecode[A: Decoder](m: Message[F]): F[A] = m.decodeJson
+    }
 }

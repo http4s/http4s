@@ -11,13 +11,13 @@ import org.http4s.util.StringWriter
 import org.log4s.getLogger
 import scala.concurrent.{ExecutionContext, Future}
 
-private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(
-    implicit protected val F: Effect[F],
+private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(implicit
+    protected val F: Effect[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
   @deprecated("Kept for binary compatibility. To be removed in 0.21.", "0.20.13")
-  private[IdentityWriter] def this(size: Int, out: TailStage[ByteBuffer])(
-      implicit F: Effect[F],
+  private[IdentityWriter] def this(size: Int, out: TailStage[ByteBuffer])(implicit
+      F: Effect[F],
       ec: ExecutionContext) =
     this(size.toLong, out)
 
@@ -60,9 +60,9 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
   protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val total = bodyBytesWritten + chunk.size
 
-    if (size < 0 || total >= size) {
+    if (size < 0 || total >= size)
       writeBodyChunk(chunk, flush = true).map(Function.const(size < 0)) // require close if infinite
-    } else {
+    else {
       val msg = s"Expected `Content-Length: $size` bytes, but only $total were written."
 
       logger.warn(msg)

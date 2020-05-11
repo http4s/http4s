@@ -24,17 +24,18 @@ private trait WriteSerializer[I] extends TailStage[I] { self =>
   override def channelWrite(data: I): Future[Unit] =
     channelWrite(data :: Nil)
 
-  override def channelWrite(data: collection.Seq[I]): Future[Unit] = synchronized {
-    if (serializerWritePromise == null) { // there is no queue!
-      serializerWritePromise = Promise[Unit]
-      val f = super.channelWrite(data)
-      f.onComplete(checkQueue)(directec)
-      f
-    } else {
-      serializerWriteQueue ++= data
-      serializerWritePromise.future
+  override def channelWrite(data: collection.Seq[I]): Future[Unit] =
+    synchronized {
+      if (serializerWritePromise == null) { // there is no queue!
+        serializerWritePromise = Promise[Unit]
+        val f = super.channelWrite(data)
+        f.onComplete(checkQueue)(directec)
+        f
+      } else {
+        serializerWriteQueue ++= data
+        serializerWritePromise.future
+      }
     }
-  }
 
   private def checkQueue(t: Try[Unit]): Unit =
     t match {
@@ -50,10 +51,10 @@ private trait WriteSerializer[I] extends TailStage[I] { self =>
 
       case Success(_) =>
         synchronized {
-          if (serializerWriteQueue.isEmpty) {
+          if (serializerWriteQueue.isEmpty)
             // Nobody has written anything
             serializerWritePromise = null
-          } else {
+          else {
             // stuff to write
             val f = {
               if (serializerWriteQueue.length > 1) { // multiple messages, just give them the queue
@@ -112,7 +113,10 @@ trait ReadSerializer[I] extends TailStage[I] {
     super
       .channelRead(size, timeout)
       .onComplete { t =>
-        serializerReadRef.compareAndSet(p.future, null) // don't hold our reference if the queue is idle
+        serializerReadRef.compareAndSet(
+          p.future,
+          null
+        ) // don't hold our reference if the queue is idle
         p.complete(t)
       }(directec)
 }

@@ -78,11 +78,12 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Idle timeout on slow POST body" in {
       (for {
         d <- Deferred[IO, Unit]
-        body = Stream
-          .awakeEvery[IO](2.seconds)
-          .map(_ => "1".toByte)
-          .take(4)
-          .onFinalizeWeak(d.complete(()))
+        body =
+          Stream
+            .awakeEvery[IO](2.seconds)
+            .map(_ => "1".toByte)
+            .take(4)
+            .onFinalizeWeak(d.complete(()))
         req = Request(method = Method.POST, uri = www_foo_com, body = body)
         tail = mkConnection(RequestKey.fromRequest(req))
         q <- Queue.unbounded[IO, Option[ByteBuffer]]
@@ -159,10 +160,10 @@ class ClientTimeoutSpec extends Http4sSpec {
     // Regression test for: https://github.com/http4s/http4s/issues/2386
     // and https://github.com/http4s/http4s/issues/2338
     "Eventually timeout on connect timeout" in {
-      val manager = ConnectionManager.basic[IO, BlazeConnection[IO]]({ _ =>
+      val manager = ConnectionManager.basic[IO, BlazeConnection[IO]] { _ =>
         // In a real use case this timeout is under OS's control (AsynchronousSocketChannel.connect)
         IO.sleep(1000.millis) *> IO.raiseError[BlazeConnection[IO]](new IOException())
-      })
+      }
       val c = BlazeClient.makeClient(
         manager = manager,
         responseHeaderTimeout = Duration.Inf,

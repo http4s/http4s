@@ -191,7 +191,9 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
       val range = headers.Range(2, 4)
       val req = Request[IO](uri = uri("/testresource.txt")).withHeaders(range)
       routes.orNotFound(req) must returnStatus(Status.PartialContent)
-      routes.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.slice(2, 4 + 1))) // the end number is inclusive in the Range header
+      routes.orNotFound(req) must returnBody(
+        Chunk.bytes(testResource.toArray.slice(2, 4 + 1))
+      ) // the end number is inclusive in the Range header
     }
 
     "Return a 416 RangeNotSatisfiable on invalid range" in {

@@ -13,8 +13,8 @@ private[ember] object ChunkedEncoding {
     * decodes from the HTTP chunked encoding. After last chunk this terminates. Allows to specify max header size, after which this terminates
     * Please see https://en.wikipedia.org/wiki/Chunked_transfer_encoding for details
     */
-  def decode[F[_]](maxChunkHeaderSize: Int)(
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] = {
+  def decode[F[_]](maxChunkHeaderSize: Int)(implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
     def go(expect: Either[ByteVector, Long], in: Stream[F, Byte]): Pull[F, Byte, Unit] =
@@ -27,7 +27,10 @@ private[ember] object ChunkedEncoding {
               val nh = header ++ bv
               val endOfheader = nh.indexOfSlice(`\r\n`)
               if (endOfheader == 0)
-                go(expect, Stream.chunk(Chunk.ByteVectorChunk(bv.drop(`\r\n`.size))) ++ tl) //strip any leading crlf on header, as this starts with /r/n
+                go(
+                  expect,
+                  Stream.chunk(Chunk.ByteVectorChunk(bv.drop(`\r\n`.size))) ++ tl
+                ) //strip any leading crlf on header, as this starts with /r/n
               else if (endOfheader < 0 && nh.size > maxChunkHeaderSize)
                 Pull.raiseError[F](EmberException.ChunkedEncodingError(
                   s"Failed to get Chunk header. Size exceeds max($maxChunkHeaderSize) : ${nh.size} ${nh.decodeUtf8}"))
@@ -83,10 +86,8 @@ private[ember] object ChunkedEncoding {
     hdr.decodeUtf8.toOption.flatMap { s =>
       val parts = s.split(';') // lets ignore any extensions
       if (parts.isEmpty) None
-      else {
-        try {
-          Some(java.lang.Long.parseLong(parts(0).trim, 16))
-        } catch { case NonFatal(_) => None }
-      }
+      else
+        try Some(java.lang.Long.parseLong(parts(0).trim, 16))
+        catch { case NonFatal(_) => None }
     }
 }

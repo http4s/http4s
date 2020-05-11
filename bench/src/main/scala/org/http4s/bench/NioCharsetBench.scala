@@ -20,9 +20,7 @@ class NioCharsetBench {
     for {
       cs <- NioCharset.availableCharsets.values.asScala
       name <- cs.name :: cs.aliases.asScala.toList
-    } {
-      map.put(name.toLowerCase(Locale.ROOT), cs)
-    }
+    } map.put(name.toLowerCase(Locale.ROOT), cs)
     map
   }
 

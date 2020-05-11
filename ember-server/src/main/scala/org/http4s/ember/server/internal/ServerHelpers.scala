@@ -72,18 +72,22 @@ private[server] object ServerHelpers {
                   ) {
                     case (context, params) =>
                       context
-                        .server(socketInit, params, { (s: String) =>
-                          logger.trace(s)
-                        }.some)
+                        .server(
+                          socketInit,
+                          params,
+                          { (s: String) =>
+                            logger.trace(s)
+                          }.some)
                         .widen[Socket[F]]
                   }
                 }
                 .use { socket =>
                   val app: F[(Request[F], Response[F])] = for {
                     req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
-                    resp <- httpApp
-                      .run(req)
-                      .handleError(onError)
+                    resp <-
+                      httpApp
+                        .run(req)
+                        .handleError(onError)
                   } yield (req, resp)
                   def send(request: Option[Request[F]], resp: Response[F]): F[Unit] =
                     Stream(resp)

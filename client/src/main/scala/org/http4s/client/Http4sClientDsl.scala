@@ -15,8 +15,8 @@ trait Http4sClientDsl[F[_]] {
   implicit def http4sNoBodyOps(method: Method with NoBody): NoBodyOps[F] =
     new NoBodyOps[F](method)
 
-  implicit def http4sHeadersDecoder[T](
-      implicit F: Applicative[F],
+  implicit def http4sHeadersDecoder[T](implicit
+      F: Applicative[F],
       decoder: EntityDecoder[F, T]): EntityDecoder[F, (Headers, T)] = {
     val s = decoder.consumes.toList
     EntityDecoder.decodeBy(s.head, s.tail: _*)(resp =>

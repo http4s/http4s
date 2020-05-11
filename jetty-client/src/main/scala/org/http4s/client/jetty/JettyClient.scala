@@ -13,11 +13,11 @@ import org.log4s.{Logger, getLogger}
 object JettyClient {
   private val logger: Logger = getLogger
 
-  def allocate[F[_]](client: HttpClient = defaultHttpClient())(
-      implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] = {
+  def allocate[F[_]](client: HttpClient = defaultHttpClient())(implicit
+      F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] = {
     val acquire = F
       .pure(client)
-      .flatTap(client => F.delay { client.start() })
+      .flatTap(client => F.delay(client.start()))
       .map(client =>
         Client[F] { req =>
           Resource.suspend(F.asyncF[Resource[F, Response[F]]] { cb =>
@@ -39,12 +39,12 @@ object JettyClient {
     acquire.map((_, dispose))
   }
 
-  def resource[F[_]](client: HttpClient = new HttpClient())(
-      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+  def resource[F[_]](client: HttpClient = new HttpClient())(implicit
+      F: ConcurrentEffect[F]): Resource[F, Client[F]] =
     Resource(allocate[F](client))
 
-  def stream[F[_]](client: HttpClient = new HttpClient())(
-      implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+  def stream[F[_]](client: HttpClient = new HttpClient())(implicit
+      F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(client))
 
   def defaultHttpClient(): HttpClient = {

@@ -45,22 +45,23 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       requestHeaderReceiveTimeout: Duration = self.requestHeaderReceiveTimeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger
-  ): EmberServerBuilder[F] = new EmberServerBuilder[F](
-    host = host,
-    port = port,
-    httpApp = httpApp,
-    blockerOpt = blockerOpt,
-    tlsInfoOpt = tlsInfoOpt,
-    sgOpt = sgOpt,
-    onError = onError,
-    onWriteFailure = onWriteFailure,
-    maxConcurrency = maxConcurrency,
-    receiveBufferSize = receiveBufferSize,
-    maxHeaderSize = maxHeaderSize,
-    requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
-    additionalSocketOptions = additionalSocketOptions,
-    logger = logger
-  )
+  ): EmberServerBuilder[F] =
+    new EmberServerBuilder[F](
+      host = host,
+      port = port,
+      httpApp = httpApp,
+      blockerOpt = blockerOpt,
+      tlsInfoOpt = tlsInfoOpt,
+      sgOpt = sgOpt,
+      onError = onError,
+      onWriteFailure = onWriteFailure,
+      maxConcurrency = maxConcurrency,
+      receiveBufferSize = receiveBufferSize,
+      maxHeaderSize = maxHeaderSize,
+      requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
+      additionalSocketOptions = additionalSocketOptions,
+      logger = logger
+    )
 
   def withHost(host: String) = copy(host = host)
   def withPort(port: Int) = copy(port = port)

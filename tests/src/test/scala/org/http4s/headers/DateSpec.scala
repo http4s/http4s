@@ -10,11 +10,15 @@ class DateSpec extends HeaderLaws {
 
   "render" should {
     "format GMT date according to RFC 1123" in {
-      Date(HttpDate.unsafeFromZonedDateTime(gmtDate)).renderString must_== "Date: Sun, 06 Nov 1994 08:49:37 GMT"
+      Date(
+        HttpDate.unsafeFromZonedDateTime(
+          gmtDate)).renderString must_== "Date: Sun, 06 Nov 1994 08:49:37 GMT"
     }
     "format UTC date according to RFC 1123" in {
       val utcDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("UTC"))
-      Date(HttpDate.unsafeFromZonedDateTime(utcDate)).renderString must_== "Date: Sun, 06 Nov 1994 08:49:37 GMT"
+      Date(
+        HttpDate.unsafeFromZonedDateTime(
+          utcDate)).renderString must_== "Date: Sun, 06 Nov 1994 08:49:37 GMT"
     }
   }
 

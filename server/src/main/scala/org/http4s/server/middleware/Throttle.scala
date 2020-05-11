@@ -41,8 +41,8 @@ object Throttle {
       * @param refillEvery the frequency with which to add another token if there is capacity spare.
       * @return A task to create the [[TokenBucket]].
       */
-    def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(
-        implicit F: Sync[F],
+    def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(implicit
+        F: Sync[F],
         clock: Clock[F]): F[TokenBucket[F]] = {
       def getTime = clock.monotonic(NANOSECONDS)
       val bucket = getTime.flatMap(time => Ref[F].of((capacity.toDouble, time)))
@@ -57,22 +57,24 @@ object Throttle {
                   val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
                   val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
 
-                  val attemptSet: F[Option[TokenAvailability]] = if (newTokenTotal >= 1) {
-                    setter((newTokenTotal - 1, currentTime))
-                      .map(_.guard[Option].as(TokenAvailable))
-                  } else {
-                    val timeToNextToken = refillEvery.toNanos - timeDifference
-                    val successResponse = TokenUnavailable(timeToNextToken.nanos.some)
-                    setter((newTokenTotal, currentTime)).map(_.guard[Option].as(successResponse))
-                  }
+                  val attemptSet: F[Option[TokenAvailability]] =
+                    if (newTokenTotal >= 1)
+                      setter((newTokenTotal - 1, currentTime))
+                        .map(_.guard[Option].as(TokenAvailable))
+                    else {
+                      val timeToNextToken = refillEvery.toNanos - timeDifference
+                      val successResponse = TokenUnavailable(timeToNextToken.nanos.some)
+                      setter((newTokenTotal, currentTime)).map(_.guard[Option].as(successResponse))
+                    }
 
                   attemptSet
                 }
             }
 
-            def loop: F[TokenAvailability] = attemptUpdate.flatMap { attempt =>
-              attempt.fold(loop)(token => token.pure[F])
-            }
+            def loop: F[TokenAvailability] =
+              attemptUpdate.flatMap { attempt =>
+                attempt.fold(loop)(token => token.pure[F])
+              }
             loop
           }
         }
