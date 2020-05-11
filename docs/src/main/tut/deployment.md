@@ -96,8 +96,8 @@ After we have built the assembled JAR containing all our Java dependencies, we u
 
 Note: Mac and Windows platforms do not support build static images. Remove `--static` and `-H:UseMuslC="/path.to/muslC"` when building for those platforms.
 
-sh
-```
+
+```sh
 native-image --static -H:+ReportExceptionStackTraces -H:UseMuslC="/path.to/muslC" --allow-incomplete-classpath --no-fallback --initialize-at-build-time --enable-http --enable-https --enable-all-security-services --verbose -jar "./path.to.assembly.jar" projectBinaryImage
 ```
 
