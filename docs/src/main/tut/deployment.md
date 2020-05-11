@@ -76,7 +76,6 @@ OpenJDK 64-Bit Server VM GraalVM CE 20.0.0 (build 11.0.6+9-jvmci-20.0-b02, mixed
 Note: Static images aren't supported in [MacOS or Windows](https://github.com/oracle/graal/issues/478) . If building for those platforms skip this step
 
 To create a truly static native image we need to use muslC according to [issue](https://github.com/oracle/graal/issues/1919#issuecomment-589085506) . Instructions and an example bundle are provided [here](https://github.com/gradinac/musl-bundle-example). For the sake of our example we can download the resulting bundle for our build. We will need to use the path to the unpacked bundle as an argument to build the image.
->>>>>>> Stashed changes
 
 ```sh
 wget https://github.com/gradinac/musl-bundle-example/releases/download/v1.0/musl.tar.gz -O - | tar -xz
