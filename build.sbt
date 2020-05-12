@@ -1,9 +1,9 @@
 import com.typesafe.tools.mima.core._
-import org.http4s.build.Http4sPlugin._
+import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
+import org.http4s.sbt.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / organization := "org.http4s"
 ThisBuild / scalaVersion := scala_213
 
 lazy val modules: List[ProjectReference] = List(
@@ -110,10 +110,10 @@ lazy val tests = libraryProject("tests")
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
+  .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s servers"
   )
-  .settings(silencerSettings)
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
@@ -140,12 +140,13 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     server % "test->compile",
     client % "test->compile"
   )
+
 lazy val client = libraryProject("client")
+  .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s clients",
     libraryDependencies += jettyServlet % Test
   )
-  .settings(silencerSettings)
   .dependsOn(
     core,
     testing % "test->test",
@@ -171,7 +172,10 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
 lazy val emberCore = libraryProject("ember-core")
   .settings(
     description := "Base library for ember http4s clients and servers",
-    libraryDependencies ++= Seq(log4catsCore, log4catsTesting % Test)
+    libraryDependencies ++= Seq(log4catsCore, log4catsTesting % Test),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+    )
   )
   .dependsOn(core, testing % "test->test")
 
@@ -185,7 +189,11 @@ lazy val emberServer = libraryProject("ember-server")
 lazy val emberClient = libraryProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
-    libraryDependencies ++= Seq(keypool, log4catsSlf4j)
+    libraryDependencies ++= Seq(keypool, log4catsSlf4j),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+    )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -374,6 +382,8 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser,
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.openjdk.jmh"),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "pl.project13.scala", name = "sbt-jmh-extras"),
   )
   .dependsOn(core, circe)
 
@@ -408,32 +418,6 @@ lazy val docs = http4sProject("docs")
       val unwanted = Set("-Ywarn-unused:params", "-Xlint:missing-interpolator", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
       _.filterNot(unwanted) :+ "-Xfatal-warnings"
-    },
-    Compile / doc / scalacOptions ++= {
-      scmInfo.value match {
-        case Some(s) =>
-          val isMaster = git.gitCurrentBranch.value == "master"
-          val isSnapshot =
-            git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
-          val gitHeadCommit = git.gitHeadCommit.value
-          val v = version.value
-          val path =
-            if (isSnapshot && isMaster)
-              s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
-            else if (isSnapshot)
-              s"${s.browseUrl}/blob/${gitHeadCommit.get}€{FILE_PATH}.scala"
-            else
-              s"${s.browseUrl}/blob/v${v}€{FILE_PATH}.scala"
-
-          Seq(
-            "-implicits",
-            "-doc-source-url",
-            path,
-            "-sourcepath",
-            (ThisBuild / baseDirectory).value.getAbsolutePath
-          )
-        case _ => Seq.empty
-      }
     },
     mdocIn := (sourceDirectory in Compile).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
@@ -487,8 +471,8 @@ lazy val examples = http4sProject("examples")
   .settings(
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
-      circeGeneric,
-      logbackClassic % Runtime,
+      circeGeneric % Runtime,
+      logbackClassic % Runtime
     ),
     TwirlKeys.templateImports := Nil
   )
@@ -496,12 +480,14 @@ lazy val examples = http4sProject("examples")
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
+  .enablePlugins(AlpnBootPlugin)
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",
     fork := true,
-    libraryDependencies ++= Seq(alpnBoot, dropwizardMetricsJson),
-    run / javaOptions ++= addAlpnPath((Runtime / managedClasspath).value)
+    libraryDependencies ++= Seq(
+      circeGeneric,
+    ),
   )
   .dependsOn(blazeServer, blazeClient)
 
