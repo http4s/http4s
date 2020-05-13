@@ -276,6 +276,18 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
 object BlazeClientBuilder {
 
+  sealed trait SSLContextOption
+  object SSLContextOption {
+    case object NoSSL                                 extends SSLContextOption
+    case object TryDefaultSSLContextOrNone            extends SSLContextOption
+    final case class Provided(SSLContext: SSLContext) extends SSLContextOption
+
+    def toMaybeSSLContext(sco: SSLContextOption): Option[SSLContext] = sco match {
+      case SSLContextOption.NoSSL => None
+      case SSLContextOption.TryDefaultSSLContextOrNone =>tryDefaultSslContext
+      case SSLContextOption.Provided(context) => Some(context)
+    }
+  }
   /** Creates a BlazeClientBuilder
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures
