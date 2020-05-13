@@ -279,30 +279,30 @@ object BlazeClientBuilder {
   sealed trait SSLContextOption
   object SSLContextOption {
     case object NoSSL extends SSLContextOption
-    case object TryDefaultSSLContextOrNone extends SSLContextOption
+    case object TryDefaultSSLContext extends SSLContextOption
     final case class Provided(sslContext: SSLContext) extends SSLContextOption
 
     def toMaybeSSLContext(sco: SSLContextOption): Option[SSLContext] =
       sco match {
         case SSLContextOption.NoSSL => None
-        case SSLContextOption.TryDefaultSSLContextOrNone => tryDefaultSslContext
+        case SSLContextOption.TryDefaultSSLContext => tryDefaultSslContext
         case SSLContextOption.Provided(context) => Some(context)
       }
   }
 
-  import SSLContextOption.{TryDefaultSSLContextOrNone, toMaybeSSLContext}
+  import SSLContextOption.{TryDefaultSSLContext, toMaybeSSLContext}
 
   /** Creates a BlazeClientBuilder
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures
     * @param sslContextOption indicates how to resolve SSLContext. The sum type offers three options:
-    *                         NoSSL                      = do not use SSL/HTTPS
-    *                         TryDefaultSSLContextOrNone = `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
-    *                         Provided                   = use the explicitly passed SSLContext
+    *                         NoSSL                = do not use SSL/HTTPS
+    *                         TryDefaultSSLContext = `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
+    *                         Provided             = use the explicitly passed SSLContext
     */
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
-      sslContextOption: SSLContextOption = TryDefaultSSLContextOrNone): BlazeClientBuilder[F] =
+      sslContextOption: SSLContextOption = TryDefaultSSLContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
