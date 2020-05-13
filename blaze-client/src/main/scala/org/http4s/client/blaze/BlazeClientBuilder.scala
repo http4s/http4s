@@ -288,14 +288,20 @@ object BlazeClientBuilder {
       case SSLContextOption.Provided(context) => Some(context)
     }
   }
+
+  import SSLContextOption.{TryDefaultSSLContextOrNone, toMaybeSSLContext}
+
   /** Creates a BlazeClientBuilder
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures
-    * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
+    * @param sslContextOption indicates how to resolve SSLContext. The sum type offers three options:
+    *                         NoSSL                      = do not use SSL/HTTPS
+    *                         TryDefaultSSLContextOrNone = `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
+    *                         Provided                   = use the explicitly passed SSLContext
     */
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
-      sslContext: Option[SSLContext] = tryDefaultSslContext): BlazeClientBuilder[F] =
+      sslContextOption: SSLContextOption = TryDefaultSSLContextOrNone): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
@@ -305,7 +311,7 @@ object BlazeClientBuilder {
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,
       maxConnectionsPerRequestKey = Function.const(256),
-      sslContext = sslContext,
+      sslContext = toMaybeSSLContext(sslContextOption),
       checkEndpointIdentification = true,
       maxResponseLineSize = 4096,
       maxHeaderLength = 40960,
