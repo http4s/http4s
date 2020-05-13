@@ -276,7 +276,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
 object BlazeClientBuilder {
 
-  sealed trait SSLContextOption
+  sealed trait SSLContextOption extends Product with Serializable
   object SSLContextOption {
     case object NoSSL extends SSLContextOption
     case object TryDefaultSSLContext extends SSLContextOption
