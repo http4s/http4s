@@ -51,8 +51,6 @@ The first step is to install the core GraalVM and `native-image` plugin. The cor
 
 After installing the core GraalVM you should be able to use it as a JDK. For example you might set `JAVA_HOME` to point to your Graal version. Otherwise, your build platform might allow you to select the Java library to build against Graal. 
 
-`JAVA_HOME` set 
-
 ```sh
 export JAVA_HOME=/path/to/graalVM
 ```
