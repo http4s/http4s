@@ -280,7 +280,7 @@ object BlazeClientBuilder {
   object SSLContextOption {
     case object NoSSL extends SSLContextOption
     case object TryDefaultSSLContextOrNone extends SSLContextOption
-    final case class Provided(SSLContext: SSLContext) extends SSLContextOption
+    final case class Provided(sslContext: SSLContext) extends SSLContextOption
 
     def toMaybeSSLContext(sco: SSLContextOption): Option[SSLContext] =
       sco match {
