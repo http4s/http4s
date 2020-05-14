@@ -276,6 +276,12 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
 object BlazeClientBuilder {
 
+  /**
+    * Indicates how to resolve SSLContext.
+    *  * NoSSL                = do not use SSL/HTTPS
+    *  * TryDefaultSSLContext = `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
+    *  * Provided             = use the explicitly passed SSLContext
+    */
   sealed trait SSLContextOption extends Product with Serializable
   object SSLContextOption {
     case object NoSSL extends SSLContextOption
