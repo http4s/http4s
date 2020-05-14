@@ -57,6 +57,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   final protected val logger = getLogger(this.getClass)
 
+  import BlazeClientBuilder.SSLContextOption
+
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
       idleTimeout: Duration = idleTimeout,
@@ -66,7 +68,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       maxTotalConnections: Int = maxTotalConnections,
       maxWaitQueueLimit: Int = maxWaitQueueLimit,
       maxConnectionsPerRequestKey: RequestKey => Int = maxConnectionsPerRequestKey,
-      sslContext: Option[SSLContext] = sslContext,
+      sslContext: SSLContextOption = sslContext,
       checkEndpointIdentification: Boolean = checkEndpointIdentification,
       maxResponseLineSize: Int = maxResponseLineSize,
       maxHeaderLength: Int = maxHeaderLength,
