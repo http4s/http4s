@@ -147,10 +147,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withDefaultSslContext: BlazeClientBuilder[F] =
     withSslContext(SSLContext.getDefault())
 
-  /** Use some provided `SSLContext` when making secure calls, or disable secure calls with `None` */
-  def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
-    copy(sslContext = sslContext)
-
   /** Disable secure calls */
   def withoutSslContext: BlazeClientBuilder[F] =
     copy(sslContext = SSLContextOption.NoSSL)
