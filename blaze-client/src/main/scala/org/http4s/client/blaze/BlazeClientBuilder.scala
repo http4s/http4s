@@ -302,8 +302,7 @@ object BlazeClientBuilder {
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures
     */
-  def apply[F[_]: ConcurrentEffect](
-      executionContext: ExecutionContext): BlazeClientBuilder[F] =
+  def apply[F[_]: ConcurrentEffect](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
