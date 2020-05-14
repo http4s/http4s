@@ -38,7 +38,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val maxTotalConnections: Int,
     val maxWaitQueueLimit: Int,
     val maxConnectionsPerRequestKey: RequestKey => Int,
-    val sslContext: Option[SSLContext],
+    val sslContext: BlazeClientBuilder.SSLContextOption,
     val checkEndpointIdentification: Boolean,
     val maxResponseLineSize: Int,
     val maxHeaderLength: Int,
