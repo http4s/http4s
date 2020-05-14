@@ -310,7 +310,7 @@ object BlazeClientBuilder {
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,
       maxConnectionsPerRequestKey = Function.const(256),
-      sslContext = toMaybeSSLContext(TryDefaultSSLContext),
+      sslContext = TryDefaultSSLContext,
       checkEndpointIdentification = true,
       maxResponseLineSize = 4096,
       maxHeaderLength = 40960,
