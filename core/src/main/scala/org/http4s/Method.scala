@@ -44,8 +44,8 @@ object Method {
   }
 
   // Type tags for a method allowing a body or not
-  sealed trait PermitsBody
-  sealed trait NoBody
+  sealed trait PermitsBody { _: Method => }
+  sealed trait NoBody { _: Method => }
 
   def fromString(s: String): ParseResult[Method] =
     allByKey.getOrElse(
