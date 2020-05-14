@@ -296,7 +296,7 @@ object BlazeClientBuilder {
       }
   }
 
-  import SSLContextOption.{TryDefaultSSLContext, toMaybeSSLContext}
+  import SSLContextOption.TryDefaultSSLContext
 
   /** Creates a BlazeClientBuilder
     *
