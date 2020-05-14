@@ -26,7 +26,8 @@ object Http1Client {
   private def resource[F[_]](config: BlazeClientConfig)(implicit
       F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
-      sslContextOption = config.sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided),
+      sslContextOption =
+        config.sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided),
       bufferSize = config.bufferSize,
       asynchronousChannelGroup = config.group,
       executionContext = config.executionContext,

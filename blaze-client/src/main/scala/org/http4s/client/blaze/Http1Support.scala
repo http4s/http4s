@@ -95,7 +95,6 @@ final private class Http1Support[F[_]](
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Uri.Scheme.https, auth) =>
-
         val maybeSSLContext: Option[SSLContext] =
           SSLContextOption.toMaybeSSLContext(sslContextOption)
 
