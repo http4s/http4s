@@ -138,7 +138,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   /** Use the provided `SSLContext` when making secure calls */
   def withSslContext(sslContext: SSLContext): BlazeClientBuilder[F] =
-    withSslContextOption(Some(sslContext))
+    copy(sslContext = SSLContextOption.Provided(sslContext))
 
   /** Use an `SSLContext` obtained by `SSLContext.getDefault()` when making secure calls.
     *
@@ -153,7 +153,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   /** Disable secure calls */
   def withoutSslContext: BlazeClientBuilder[F] =
-    copy(sslContext = None)
+    copy(sslContext = SSLContextOption.NoSSL)
 
   def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): BlazeClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
