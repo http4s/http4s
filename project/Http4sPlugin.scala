@@ -67,7 +67,24 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
+    // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
+    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
+    // breaks binary compatibility in caffeine module with 0.8.1
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.9.0"),
+    // Jetty prereleases appear because of their non-semver prod releases
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
+    // Broke binary compatibility with 2.10.5
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
+    // No release notes. If it's compatible with 6.2.5, prove it and PR it.
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -188,34 +205,34 @@ object Http4sPlugin extends AutoPlugin {
     val argonaut = "6.2.5"
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.12"
-    val boopickle = "1.3.1"
+    val boopickle = "1.3.2"
     val cats = "2.1.1"
     val catsEffect = "2.1.3"
     val catsEffectTesting = "0.4.0"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.0"
-    val dropwizardMetrics = "4.1.6"
+    val dropwizardMetrics = "4.1.7"
     val fs2 = "2.3.0"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.28.v20200408"
-    val json4s = "3.6.7"
-    val log4cats = "1.0.1"
+    val json4s = "3.6.8"
+    val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
     val log4s = "1.8.2"
     val mockito = "3.3.3"
-    val okhttp = "4.5.0"
+    val okhttp = "4.6.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.8.1"
     val prometheusClient = "0.8.1"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.14.3"
-    val scalatags = "0.9.0"
+    val scalatags = "0.9.1"
     val scalaXml = "1.3.0"
     val servlet = "3.1.0"
-    val specs2 = "4.9.3"
+    val specs2 = "4.9.4"
     val tomcat = "9.0.34"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
