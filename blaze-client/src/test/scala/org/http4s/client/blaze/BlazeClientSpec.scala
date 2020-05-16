@@ -51,13 +51,11 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         .withChunkBufferMaxSize(chunkBufferMaxSize)
         .withScheduler(scheduler = tickWheel)
 
-
     val builderWithMaybeSSLContext: BlazeClientBuilder[IO] =
-      sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(builder.withSslContext)
+      sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(
+        builder.withSslContext)
 
-
-    builderWithMaybeSSLContext
-      .resource
+    builderWithMaybeSSLContext.resource
   }
 
   private def testServlet =
