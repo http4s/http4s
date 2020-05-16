@@ -148,9 +148,13 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     withSslContext(SSLContext.getDefault())
 
   /** Use some provided `SSLContext` when making secure calls, or disable secure calls with `None` */
-  @deprecated(message = "Use withDefaultSslContext, withSslContext or withoutSslContext to set the SSLContext", since = "1.0.0")
+  @deprecated(
+    message =
+      "Use withDefaultSslContext, withSslContext or withoutSslContext to set the SSLContext",
+    since = "1.0.0")
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
-    copy(sslContext = sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided))
+    copy(sslContext =
+      sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided))
 
   /** Disable secure calls */
   def withoutSslContext: BlazeClientBuilder[F] =
@@ -285,8 +289,8 @@ object BlazeClientBuilder {
     *  * TryDefaultSSLContext = `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
     *  * Provided             = use the explicitly passed SSLContext
     */
-  private [blaze] sealed trait SSLContextOption extends Product with Serializable
-  private [blaze] object SSLContextOption {
+  private[blaze] sealed trait SSLContextOption extends Product with Serializable
+  private[blaze] object SSLContextOption {
     case object NoSSL extends SSLContextOption
     case object TryDefaultSSLContext extends SSLContextOption
     final case class Provided(sslContext: SSLContext) extends SSLContextOption
