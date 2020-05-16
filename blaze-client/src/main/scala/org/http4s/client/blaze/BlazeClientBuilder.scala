@@ -285,8 +285,8 @@ object BlazeClientBuilder {
     *  * TryDefaultSSLContext = `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
     *  * Provided             = use the explicitly passed SSLContext
     */
-  sealed trait SSLContextOption extends Product with Serializable
-  object SSLContextOption {
+  private [blaze] sealed trait SSLContextOption extends Product with Serializable
+  private [blaze] object SSLContextOption {
     case object NoSSL extends SSLContextOption
     case object TryDefaultSSLContext extends SSLContextOption
     final case class Provided(sslContext: SSLContext) extends SSLContextOption
