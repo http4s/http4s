@@ -339,7 +339,9 @@ object BlazeClientBuilder {
     * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
     */
   @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "1.0.0")
-  def apply[F[_]: ConcurrentEffect](executionContext: ExecutionContext, sslContext: Option[SSLContext] = tryDefaultSslContext): BlazeClientBuilder[F] =
+  def apply[F[_]: ConcurrentEffect](
+      executionContext: ExecutionContext,
+      sslContext: Option[SSLContext] = tryDefaultSslContext): BlazeClientBuilder[F] =
     sslContext match {
       case None => apply(executionContext).withoutSslContext
       case Some(sslCtx) => apply(executionContext).withSslContext(sslCtx)
