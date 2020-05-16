@@ -333,6 +333,18 @@ object BlazeClientBuilder {
       channelOptions = ChannelOptions(Vector.empty)
     ) {}
 
+  /** Creates a BlazeClientBuilder
+    *
+    * @param executionContext the ExecutionContext for blaze's internal Futures
+    * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
+    */
+  @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "1.0.0")
+  def apply[F[_]: ConcurrentEffect](executionContext: ExecutionContext, sslContext: Option[SSLContext] = tryDefaultSslContext): BlazeClientBuilder[F] =
+    sslContext match {
+      case None => apply(executionContext).withoutSslContext
+      case Some(sslCtx) => apply(executionContext).withSslContext(sslCtx)
+    }
+
   private def tryDefaultSslContext: Option[SSLContext] =
     try Some(SSLContext.getDefault())
     catch {
