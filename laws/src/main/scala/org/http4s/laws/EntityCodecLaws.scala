@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package laws
 
@@ -20,12 +26,13 @@ trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
 }
 
 object EntityCodecLaws {
-  def apply[F[_], A](
-      implicit F0: Effect[F],
+  def apply[F[_], A](implicit
+      F0: Effect[F],
       entityEncoderFA: EntityEncoder[F, A],
-      entityDecoderFA: EntityDecoder[F, A]): EntityCodecLaws[F, A] = new EntityCodecLaws[F, A] {
-    val F = F0
-    val encoder = entityEncoderFA
-    val decoder = entityDecoderFA
-  }
+      entityDecoderFA: EntityDecoder[F, A]): EntityCodecLaws[F, A] =
+    new EntityCodecLaws[F, A] {
+      val F = F0
+      val encoder = entityEncoderFA
+      val decoder = entityDecoderFA
+    }
 }

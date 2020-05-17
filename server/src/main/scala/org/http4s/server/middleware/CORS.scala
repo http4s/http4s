@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -41,8 +47,8 @@ object CORS {
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
-  def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = DefaultCORSConfig)(
-      implicit F: Applicative[F]): Http[F, G] =
+  def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = DefaultCORSConfig)(implicit
+      F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(origin: Header, acrm: Header): Response[G] =
@@ -90,17 +96,20 @@ object CORS {
       def headerFromStrings(headerName: String, values: Set[String]): Header =
         Header(headerName, values.mkString("", ", ", ""))
 
-      (req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
+      (
+        req.method,
+        req.headers.get(Origin),
+        req.headers.get(`Access-Control-Request-Method`)) match {
         case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
           logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
           createOptionsResponse(origin, acrm).pure[F]
         case (_, Some(origin), _) =>
-          if (allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString))) {
+          if (allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString)))
             http(req).map { resp =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
               corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)
             }
-          } else {
+          else {
             logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
             Response(status = Status.Forbidden).pure[F]
           }

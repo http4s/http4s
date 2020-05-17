@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -10,9 +16,7 @@ class LastEventIdSpec extends HeaderLaws {
     Arbitrary(for {
       id <- arbitrary[String]
       if !id.contains("\uffff")
-    } yield {
-      `Last-Event-Id`(EventId(id))
-    })
+    } yield `Last-Event-Id`(EventId(id)))
 
   checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))
 }

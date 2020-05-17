@@ -1,9 +1,12 @@
 /*
- * Derived from Twitter Finagle.
+ * Copyright 2013-2020 http4s.org
  *
- * Original source:
- * https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/test/scala/com/twitter/finagle/http/path/PathSpec.scala
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/test/scala/com/twitter/finagle/http/path/PathSpec.scala
+ * Copyright 2017, Twitter Inc.
  */
+
 package org.http4s
 package dsl
 

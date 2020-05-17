@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -82,8 +88,8 @@ trait Client[F[_]] {
   @deprecated("Use `Stream.eval(req).flatMap(client.stream).flatMap(f)`", "0.19.0-M4")
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
-  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A]
+  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A]
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
@@ -92,13 +98,13 @@ trait Client[F[_]] {
     */
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A]
+  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A]
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A]
+  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A]
 
   /**
     * Submits a GET request to the specified URI and decodes the response on
@@ -107,8 +113,8 @@ trait Client[F[_]] {
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A]
+  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A]
 
   /**
     * Submits a GET request to the URI specified by the String and decodes the
@@ -117,8 +123,8 @@ trait Client[F[_]] {
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[Option[A]]
+  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[Option[A]]
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
   /**
@@ -184,10 +190,11 @@ trait Client[F[_]] {
 }
 
 object Client {
-  def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(
-      implicit F: Bracket[F, Throwable]): Client[F] = new DefaultClient[F] {
-    def run(req: Request[F]): Resource[F, Response[F]] = f(req)
-  }
+  def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
+      F: Bracket[F, Throwable]): Client[F] =
+    new DefaultClient[F] {
+      def run(req: Request[F]): Resource[F, Response[F]] = f(req)
+    }
 
   /** Creates a client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.

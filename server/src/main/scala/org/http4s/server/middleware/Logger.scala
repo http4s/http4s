@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -61,34 +67,35 @@ object Logger {
 
     val isText = !isBinary || isJson
 
-    def prelude = message match {
-      case Request(method, uri, httpVersion, _, _, _) =>
-        s"$httpVersion $method $uri"
+    def prelude =
+      message match {
+        case Request(method, uri, httpVersion, _, _, _) =>
+          s"$httpVersion $method $uri"
 
-      case Response(status, httpVersion, _, _, _) =>
-        s"$httpVersion $status"
-    }
+        case Response(status, httpVersion, _, _, _) =>
+          s"$httpVersion $status"
+      }
 
     val headers =
       if (logHeaders)
         message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
       else ""
 
-    val bodyStream = if (logBody && isText) {
-      message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
-    } else if (logBody) {
-      message.body
-        .map(b => java.lang.Integer.toHexString(b & 0xff))
-    } else {
-      Stream.empty.covary[F]
-    }
+    val bodyStream =
+      if (logBody && isText)
+        message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
+      else if (logBody)
+        message.body
+          .map(b => java.lang.Integer.toHexString(b & 0xff))
+      else
+        Stream.empty.covary[F]
 
-    val bodyText = if (logBody) {
-      bodyStream.compile.string
-        .map(text => s"""body="$text"""")
-    } else {
-      F.pure("")
-    }
+    val bodyText =
+      if (logBody)
+        bodyStream.compile.string
+          .map(text => s"""body="$text"""")
+      else
+        F.pure("")
 
     def spaced(x: String): String = if (x.isEmpty) x else s" $x"
 

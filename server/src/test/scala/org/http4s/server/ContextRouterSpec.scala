@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 
@@ -70,8 +76,8 @@ class ContextRouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "match longer prefixes first" in {
-      service.orNotFound(ContextRequest((), Request[IO](GET, uri"/shadow/shadowed"))) must returnBody(
-        "visible")
+      service.orNotFound(
+        ContextRequest((), Request[IO](GET, uri"/shadow/shadowed"))) must returnBody("visible")
     }
 
     "404 on unknown prefixes" in {

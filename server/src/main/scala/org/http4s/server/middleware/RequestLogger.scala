@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -26,13 +32,13 @@ object RequestLogger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(
-      implicit F: Concurrent[F],
+  )(http: Http[G, F])(implicit
+      F: Concurrent[F],
       G: Bracket[G, Throwable]
   ): Http[G, F] = {
-    val log = logAction.fold({ (s: String) =>
+    val log = logAction.fold { (s: String) =>
       Sync[F].delay(logger.info(s))
-    })(identity)
+    }(identity)
     Kleisli { req =>
       if (!logBody) {
         def logAct =
@@ -46,7 +52,7 @@ object RequestLogger {
             case ExitCase.Error(_) => fk(logAct)
             case ExitCase.Completed => G.unit
           } <* fk(logAct)
-      } else {
+      } else
         fk(Ref[F].of(Vector.empty[Chunk[Byte]]))
           .flatMap { vec =>
             val newBody = Stream
@@ -74,7 +80,6 @@ object RequestLogger {
                 .map(resp => resp.withBodyStream(resp.body.onFinalizeWeak(logRequest)))
             response
           }
-      }
     }
   }
 

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -25,8 +31,8 @@ object ResponseLogger {
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None)(http: Kleisli[G, A, Response[F]])(
-      implicit G: Bracket[G, Throwable],
+      logAction: Option[String => F[Unit]] = None)(http: Kleisli[G, A, Response[F]])(implicit
+      G: Bracket[G, Throwable],
       F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
     val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
     val log = logAction.fold(fallback)(identity)

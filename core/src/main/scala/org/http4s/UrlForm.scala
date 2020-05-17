@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Eq, Monoid}
@@ -44,8 +50,8 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
     * @param ev evidence of the existence of `QueryParamEncoder[T]`
     * @return `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`, otherwise it is unaltered
     */
-  def updateFormField[T](key: String, value: Option[T])(
-      implicit ev: QueryParamEncoder[T]): UrlForm =
+  def updateFormField[T](key: String, value: Option[T])(implicit
+      ev: QueryParamEncoder[T]): UrlForm =
     value.fold(this)(updateFormField(key, _))
 
   /**
@@ -84,15 +90,15 @@ object UrlForm {
   def fromChain(values: Chain[(String, String)]): UrlForm =
     apply(values.toList: _*)
 
-  implicit def entityEncoder[F[_]](
-      implicit charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
+  implicit def entityEncoder[F[_]](implicit
+      charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
     EntityEncoder
       .stringEncoder[F]
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
-  implicit def entityDecoder[F[_]](
-      implicit F: Sync[F],
+  implicit def entityDecoder[F[_]](implicit
+      F: Sync[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.servlet
 
 import cats.effect._
@@ -14,8 +20,8 @@ import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
 
-abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(
-    implicit F: Effect[F])
+abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
+    F: Effect[F])
     extends HttpServlet {
   protected val logger = getLogger
 

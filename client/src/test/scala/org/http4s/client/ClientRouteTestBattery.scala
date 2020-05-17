@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -24,20 +30,21 @@ abstract class ClientRouteTestBattery(name: String)
 
   def clientResource: Resource[IO, Client[IO]]
 
-  def testServlet = new HttpServlet {
-    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-      GetRoutes.getPaths.get(req.getRequestURI) match {
-        case Some(r) => renderResponse(srv, r)
-        case None => srv.sendError(404)
-      }
+  def testServlet =
+    new HttpServlet {
+      override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
+        GetRoutes.getPaths.get(req.getRequestURI) match {
+          case Some(r) => renderResponse(srv, r)
+          case None => srv.sendError(404)
+        }
 
-    override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
-      srv.setStatus(200)
-      val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
-      srv.getWriter.print(s)
-      srv.getWriter.flush()
+      override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
+        srv.setStatus(200)
+        val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
+        srv.getWriter.print(s)
+        srv.getWriter.flush()
+      }
     }
-  }
 
   withResource(JettyScaffold[IO](1, false, testServlet)) { jetty =>
     withResource(clientResource) { client =>
@@ -67,9 +74,10 @@ abstract class ClientRouteTestBattery(name: String)
         "Repeat a simple request" in {
           val path = GetRoutes.SimplePath
 
-          def fetchBody = client.toKleisli(_.as[String]).local { (uri: Uri) =>
-            Request(uri = uri)
-          }
+          def fetchBody =
+            client.toKleisli(_.as[String]).local { (uri: Uri) =>
+              Request(uri = uri)
+            }
 
           val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
           (0 until 10).toVector

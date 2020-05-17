@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package servlet
 
@@ -102,9 +108,9 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
           // Shift execution to a different EC
           Async.shift(Trampoline) *>
             F.async[Option[Chunk[Byte]]] { cb =>
-              if (!state.compareAndSet(Init, Blocked(cb))) {
+              if (!state.compareAndSet(Init, Blocked(cb)))
                 cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
-              } else
+              else
                 in.setReadListener(
                   new ReadListener {
                     override def onDataAvailable(): Unit =
@@ -134,34 +140,35 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
             Async.shift(Trampoline) *>
               F.async[Option[Chunk[Byte]]] { cb =>
                 @tailrec
-                def go(): Unit = state.get match {
-                  case Ready if in.isReady => read(cb)
+                def go(): Unit =
+                  state.get match {
+                    case Ready if in.isReady => read(cb)
 
-                  case Ready => // wasn't ready so set the callback and double check that we're still not ready
-                    val blocked = Blocked(cb)
-                    if (state.compareAndSet(Ready, blocked)) {
-                      if (in.isReady && state.compareAndSet(blocked, Ready)) {
-                        read(cb) // data became available while we were setting up the callbacks
-                      } else {
-                        /* NOOP: our callback is either still needed or has been handled */
-                      }
-                    } else go() // Our state transitioned so try again.
+                    case Ready => // wasn't ready so set the callback and double check that we're still not ready
+                      val blocked = Blocked(cb)
+                      if (state.compareAndSet(Ready, blocked))
+                        if (in.isReady && state.compareAndSet(blocked, Ready))
+                          read(cb) // data became available while we were setting up the callbacks
+                        else {
+                          /* NOOP: our callback is either still needed or has been handled */
+                        }
+                      else go() // Our state transitioned so try again.
 
-                  case Complete => cb(rightNone)
+                    case Complete => cb(rightNone)
 
-                  case Errored(t) => cb(Left(t))
+                    case Errored(t) => cb(Left(t))
 
-                  // This should never happen so throw a huge fit if it does.
-                  case Blocked(c1) =>
-                    val t = bug("Two callbacks found in read state")
-                    cb(Left(t))
-                    c1(Left(t))
-                    logger.error(t)("This should never happen. Please report.")
-                    throw t
+                    // This should never happen so throw a huge fit if it does.
+                    case Blocked(c1) =>
+                      val t = bug("Two callbacks found in read state")
+                      cb(Left(t))
+                      c1(Left(t))
+                      logger.error(t)("This should never happen. Please report.")
+                      throw t
 
-                  case Init =>
-                    cb(Left(bug("Should have left Init state by now")))
-                }
+                    case Init =>
+                      cb(Left(bug("Should have left Init state by now")))
+                  }
                 go()
               })
         readStream.unNoneTerminate.flatMap(Stream.chunk)
@@ -188,9 +195,9 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
     @volatile var autoFlush = false
 
     val writeChunk = Right { (chunk: Chunk[Byte]) =>
-      if (!out.isReady) {
+      if (!out.isReady)
         logger.error(s"writeChunk called while out was not ready, bytes will be lost!")
-      } else {
+      else {
         out.write(chunk.toArray)
         if (autoFlush && out.isReady)
           out.flush()

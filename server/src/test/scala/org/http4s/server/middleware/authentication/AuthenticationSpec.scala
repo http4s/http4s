@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -13,27 +19,30 @@ import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
-  def nukeService(launchTheNukes: => Unit) = AuthedRoutes.of[String, IO] {
-    case GET -> Root / "launch-the-nukes" as user =>
-      for {
-        _ <- IO(launchTheNukes)
-        r <- Gone(s"Oops, $user launched the nukes.")
-      } yield r
-  }
+  def nukeService(launchTheNukes: => Unit) =
+    AuthedRoutes.of[String, IO] {
+      case GET -> Root / "launch-the-nukes" as user =>
+        for {
+          _ <- IO(launchTheNukes)
+          r <- Gone(s"Oops, $user launched the nukes.")
+        } yield r
+    }
 
   val realm = "Test Realm"
   val username = "Test User"
   val password = "Test Password"
 
-  def authStore(u: String) = IO.pure {
-    if (u === username) Some(u -> password)
-    else None
-  }
+  def authStore(u: String) =
+    IO.pure {
+      if (u === username) Some(u -> password)
+      else None
+    }
 
-  def validatePassword(creds: BasicCredentials) = IO.pure {
-    if (creds.username == username && creds.password == password) Some(creds.username)
-    else None
-  }
+  def validatePassword(creds: BasicCredentials) =
+    IO.pure {
+      if (creds.username == username && creds.password == password) Some(creds.username)
+      else None
+    }
 
   val service = AuthedRoutes.of[String, IO] {
     case GET -> Root as user => Ok(user)

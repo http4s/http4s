@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -11,7 +17,9 @@ class RetryAfterSpec extends HeaderLaws {
 
   "render" should {
     "format GMT date according to RFC 1123" in {
-      `Retry-After`(HttpDate.unsafeFromZonedDateTime(gmtDate)).renderString must_== "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT"
+      `Retry-After`(
+        HttpDate.unsafeFromZonedDateTime(
+          gmtDate)).renderString must_== "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT"
     }
     "duration in seconds" in {
       `Retry-After`.unsafeFromDuration(120.seconds).renderString must_== "Retry-After: 120"

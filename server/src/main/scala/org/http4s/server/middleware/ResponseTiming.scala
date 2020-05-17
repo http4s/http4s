@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -24,8 +30,8 @@ object ResponseTiming {
   def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
-      headerName: CIString = CIString("X-Response-Time"))(
-      implicit F: Sync[F],
+      headerName: CIString = CIString("X-Response-Time"))(implicit
+      F: Sync[F],
       clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
       for {

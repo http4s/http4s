@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats._
@@ -145,9 +151,10 @@ object Caching {
     Kleisli { (req: Request[F]) =>
       for {
         resp <- http(req)
-        out <- if (methodToSetOn(req.method) && statusToSetOn(resp.status)) {
-          cacheResponse[G](lifetime, isPublic)(resp)
-        } else resp.pure[G]
+        out <-
+          if (methodToSetOn(req.method) && statusToSetOn(resp.status))
+            cacheResponse[G](lifetime, isPublic)(resp)
+          else resp.pure[G]
       } yield out
     }
 
@@ -177,9 +184,10 @@ object Caching {
           resp: Response[F])(implicit M: MonadError[G, Throwable], C: Clock[G]): G[Response[F]] =
         for {
           now <- HttpDate.current[G]
-          expires <- HttpDate
-            .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
-            .liftTo[G]
+          expires <-
+            HttpDate
+              .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
+              .liftTo[G]
         } yield {
           val headers = List(
             `Cache-Control`(

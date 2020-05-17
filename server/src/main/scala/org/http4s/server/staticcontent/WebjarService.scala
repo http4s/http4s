@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package staticcontent
@@ -97,9 +103,8 @@ object WebjarService {
       val version = p.getName(1).toString
       val asset = p.subpath(2, count).iterator().asScala.mkString("/")
       Some(WebjarAsset(library, version, asset))
-    } else {
+    } else
       None
-    }
   }
 
   /**

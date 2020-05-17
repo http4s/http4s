@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import java.time.{Clock, Instant, ZoneId}
@@ -144,11 +150,12 @@ class CSRFSpec extends Http4sSpec {
         (for {
           oldToken <- csrf.generateToken[IO]
           raw1 <- IO.fromEither(csrf.extractRaw(unlift(oldToken)))
-          response <- csrf.validate()(dummyRoutes)(
-            csrf.embedInRequestCookie(passThroughRequest, oldToken))
-          newCookie = response.cookies
-            .find(_.name == cookieName)
-            .getOrElse(ResponseCookie("invalid", "Invalid2"))
+          response <-
+            csrf.validate()(dummyRoutes)(csrf.embedInRequestCookie(passThroughRequest, oldToken))
+          newCookie =
+            response.cookies
+              .find(_.name == cookieName)
+              .getOrElse(ResponseCookie("invalid", "Invalid2"))
           raw2 <- IO.fromEither(csrf.extractRaw(newCookie.content))
         } yield (oldToken, raw1, response, newCookie, raw2)).unsafeRunSync()
 

@@ -1,9 +1,14 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
 
-import cats.effect.Bracket
-import com.github.ghik.silencer.silent
+import cats.effect.Sync
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
 
 /**
@@ -13,8 +18,7 @@ object GZip {
   private val supportedCompressions =
     Seq(ContentCoding.gzip.coding, ContentCoding.deflate.coding).mkString(", ")
 
-  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(
-      implicit F: Bracket[F, Throwable]): Client[F] =
+  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit F: Sync[F]): Client[F] =
     Client[F] { req =>
       val reqWithEncoding = addHeaders(req)
       val responseResource = client.run(reqWithEncoding)
@@ -33,20 +37,20 @@ object GZip {
           req.headers ++ Headers.of(Header(`Accept-Encoding`.name.toString, supportedCompressions)))
     }
 
-  @silent("deprecated")
-  private def decompress[F[_]](bufferSize: Int, response: Response[F])(
-      implicit F: Bracket[F, Throwable]): Response[F] =
+  private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
+      F: Sync[F]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         response
           .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(fs2.compress.gunzip(bufferSize)))
+          .withBodyStream(
+            response.body.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
         response
           .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(fs2.compress.deflate(bufferSize = bufferSize)))
+          .withBodyStream(response.body.through(fs2.compression.deflate(bufferSize = bufferSize)))
 
       case _ =>
         response

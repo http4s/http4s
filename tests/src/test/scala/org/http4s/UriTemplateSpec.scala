@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import org.http4s.Uri.{Authority, RegName, Scheme, UserInfo}
@@ -69,11 +75,13 @@ class UriTemplateSpec extends Http4sSpec {
         equalTo("/orders{id,item}")
     }
     "render /some/test{rel}" in {
-      UriTemplate(path = List(PathElm("some"), PathElm("test"), VarExp("rel"))).toString must equalTo(
+      UriTemplate(path =
+        List(PathElm("some"), PathElm("test"), VarExp("rel"))).toString must equalTo(
         "/some/test{rel}")
     }
     "render /some{rel}/test" in {
-      UriTemplate(path = List(PathElm("some"), VarExp("rel"), PathElm("test"))).toString must equalTo(
+      UriTemplate(path =
+        List(PathElm("some"), VarExp("rel"), PathElm("test"))).toString must equalTo(
         "/some{rel}/test")
     }
     "render /some{rel}/test{?id}" in {
@@ -216,7 +224,9 @@ class UriTemplateSpec extends Http4sSpec {
         equalTo("http://www.foo.com:80")
     }
     "render http://www.foo.com" in {
-      UriTemplate(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com"))))).toString must
+      UriTemplate(
+        Some(Scheme.http),
+        Some(Authority(host = RegName(CIString("www.foo.com"))))).toString must
         equalTo("http://www.foo.com")
     }
     "render http://192.168.1.1" in {
@@ -464,7 +474,9 @@ class UriTemplateSpec extends Http4sSpec {
       val scheme = Some(Scheme.http)
       val host = RegName(CIString("www.foo.com"))
       val authority = Some(Authority(host = host))
-      UriTemplate(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com"))))).toUriIfPossible.get must
+      UriTemplate(
+        Some(Scheme.http),
+        Some(Authority(host = RegName(CIString("www.foo.com"))))).toUriIfPossible.get must
         equalTo(Uri(scheme, authority))
     }
     "convert http://192.168.1.1 to Uri" in {

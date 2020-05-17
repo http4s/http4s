@@ -1,9 +1,14 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package staticcontent
 
 import cats.effect.IO
-import cats.effect._
 import java.nio.file.Paths
 import org.http4s.Method.{GET, POST}
 import org.http4s.Uri.uri

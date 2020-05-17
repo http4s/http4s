@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s.ember
 
 import fs2._
@@ -17,12 +23,13 @@ object EmberServerSimpleExample extends IOApp {
     val port = 8080
     for {
       // Server Level Resources Here
-      server <- EmberServerBuilder
-        .default[IO]
-        .withHost(host)
-        .withPort(port)
-        .withHttpApp(service[IO])
-        .build
+      server <-
+        EmberServerBuilder
+          .default[IO]
+          .withHost(host)
+          .withPort(port)
+          .withHttpApp(service[IO])
+          .build
     } yield server
   }.use(server =>
     IO.delay(println(s"Server Has Started at ${server.address}")) >>
