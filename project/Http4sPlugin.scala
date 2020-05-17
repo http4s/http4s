@@ -85,6 +85,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
     // No release notes. If it's compatible with 6.2.5, prove it and PR it.
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.0"),
+    // Cursed release. Calls ByteBuffer incompatibly with JDK8
+    dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -205,7 +207,7 @@ object Http4sPlugin extends AutoPlugin {
     val argonaut = "6.2.5"
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.12"
-    val boopickle = "1.3.2"
+    val boopickle = "1.3.1"
     val cats = "2.1.1"
     val catsEffect = "2.1.3"
     val catsEffectTesting = "0.4.0"
