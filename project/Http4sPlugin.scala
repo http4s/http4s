@@ -1,24 +1,17 @@
-package org.http4s.build
+package org.http4s.sbt
 
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleResultTypeProblem, ProblemFilters}
-import com.typesafe.tools.mima.plugin.MimaPlugin
-import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
-import java.lang.{Runtime => JRuntime}
-import org.scalafmt.sbt.ScalafmtPlugin
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
-    val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
   }
@@ -26,7 +19,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  override def requires = MimaPlugin && ScalafmtPlugin
+  override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.2"
   val scala_212 = "2.12.11"
@@ -40,38 +33,9 @@ object Http4sPlugin extends AutoPlugin {
     }.value,
   )
 
-  val CompileTime = config("CompileTime").hide
-
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-
-    scalacOptions ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, minor)) if minor >= 12 =>
-          Seq("-Ybackend-parallelism", math.min(JRuntime.getRuntime.availableProcessors, 16).toString)
-        case _ =>
-          Seq.empty
-      },
-    },
-
-    http4sMimaVersion := {
-      version.value match {
-        case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
-          Some(s"$major.$minor.${patch.toInt - 1}")
-        case _ =>
-          None
-      }
-    },
-    mimaFailOnProblem := http4sMimaVersion.value.isDefined,
-    mimaFailOnNoPrevious := false,
-    mimaPreviousArtifacts := (http4sMimaVersion.value.map {
-      organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
-    }).toSet,
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-    ),
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
@@ -105,10 +69,6 @@ object Http4sPlugin extends AutoPlugin {
 
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
 
-    ivyConfigurations += CompileTime,
-    unmanagedClasspath in Compile ++= update.value.select(configurationFilter("CompileTime")),
-
-    headerLicense := Some(License.ALv2("2013-2020", "http4s.org", LicenseStyle.SpdxSyntax)),
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
         def accept(file: File) = {
@@ -156,18 +116,6 @@ object Http4sPlugin extends AutoPlugin {
         )
       }
   )
-
-  lazy val silencerSettings: Seq[Setting[_]] = {
-    val SilencerVersion = "1.6.0"
-    Seq(
-      libraryDependencies ++= Seq(
-        compilerPlugin(("com.github.ghik" % "silencer-plugin" % SilencerVersion).cross(CrossVersion.full)),
-        ("com.github.ghik" % "silencer-lib" % SilencerVersion % CompileTime).cross(CrossVersion.full),
-        ("com.github.ghik" % "silencer-lib" % SilencerVersion % Test).cross(CrossVersion.full),
-      ),
-      unusedCompileDependenciesFilter -= moduleFilter("com.github.ghik", name = "silencer-lib"),
-    )
-  }
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
@@ -233,21 +181,10 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
-  def addAlpnPath(attList: Keys.Classpath): Seq[String] = {
-    for {
-      file <- attList.map(_.data)
-      path = file.getAbsolutePath if path.contains("jetty") && path.contains("alpn-boot")
-    } yield {
-      println(s"Adding Alpn classes to boot classpath: $path")
-      "-Xbootclasspath/p:" + path
-    }
-  }
-
   object V { // Dependency versions
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val alpn = "8.1.13.v20181017"
     val argonaut = "6.3.0"
     val asyncHttpClient = "2.12.1"
     val blaze = "0.14.12"
@@ -279,13 +216,12 @@ object Http4sPlugin extends AutoPlugin {
     val scalaXml = "1.3.0"
     val servlet = "3.1.0"
     val specs2 = "4.9.4"
-    val tomcat = "9.0.34"
+    val tomcat = "9.0.35"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
   }
 
-  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % V.alpn
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
   lazy val argonautJawn                     = "io.argonaut"            %% "argonaut-jawn"             % V.argonaut
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
