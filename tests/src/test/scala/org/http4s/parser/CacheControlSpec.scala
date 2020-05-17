@@ -1,10 +1,10 @@
 package org.http4s
 package parser
 
-import com.rossabaker.ci.CIString
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective.{`max-age`, `max-stale`, `min-fresh`, `private`, `s-maxage`, _}
 import org.specs2.mutable.Specification
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] {

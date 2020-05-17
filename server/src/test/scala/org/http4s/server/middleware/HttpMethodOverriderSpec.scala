@@ -7,7 +7,7 @@ import org.http4s.dsl.io._
 import org.http4s.server.Router
 import org.http4s.server.middleware.HttpMethodOverrider._
 import org.http4s.testing.Http4sLegacyMatchersIO
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 
 class HttpMethodOverriderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   private final val overrideHeader = "X-HTTP-Method-Override"

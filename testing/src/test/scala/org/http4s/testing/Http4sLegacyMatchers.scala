@@ -5,8 +5,8 @@ import cats.MonadError
 import cats.data.EitherT
 import cats.implicits._
 import org.http4s.headers._
-import com.rossabaker.ci.CIString
 import org.specs2.matcher.{RunTimedMatchers => Specs2RunTimedMatchers, _}
+import org.typelevel.ci.CIString
 
 trait Http4sLegacyMatchers[F[_]] extends Matchers with Specs2RunTimedMatchers[F] {
   def haveStatus(expected: Status): Matcher[Response[F]] =

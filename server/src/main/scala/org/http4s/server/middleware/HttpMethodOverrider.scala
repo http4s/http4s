@@ -11,7 +11,7 @@ import cats.syntax.alternative._
 import cats.{Monad, ~>}
 import io.chrisdavenport.vault.Key
 import org.http4s.Http
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 
 object HttpMethodOverrider {
 

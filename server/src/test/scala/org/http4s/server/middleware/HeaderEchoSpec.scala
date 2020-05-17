@@ -4,7 +4,7 @@ import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.Uri.uri
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 
 class HeaderEchoSpec extends Http4sSpec {
   object someHeaderKey extends HeaderKey.Default

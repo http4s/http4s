@@ -5,8 +5,7 @@ package middleware
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import com.rossabaker.ci.CIString
-
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 object ResponseTiming {

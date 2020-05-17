@@ -5,8 +5,8 @@ import cats.implicits._
 import cats.effect._
 import cats.data._
 import org.http4s._
-import com.rossabaker.ci.CIString
 import org.http4s.headers.{Date => HDate, _}
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 /**

@@ -8,8 +8,8 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
-import com.rossabaker.ci.CIString
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 

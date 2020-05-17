@@ -2,8 +2,8 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import com.rossabaker.ci.CIString
 import org.http4s.headers.Authorization
+import org.typelevel.ci.CIString
 
 class AuthorizationHeaderSpec extends Http4sSpec {
   def hparse(value: String) = HttpHeaderParser.AUTHORIZATION(value)

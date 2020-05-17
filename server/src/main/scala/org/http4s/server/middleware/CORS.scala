@@ -7,8 +7,8 @@ import cats.data.Kleisli
 import cats.implicits._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
-import com.rossabaker.ci.CIString
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 /**

@@ -1,8 +1,8 @@
 package org.http4s
 package parser
 
-import com.rossabaker.ci.CIString
 import org.specs2.mutable.Specification
+import org.typelevel.ci.CIString
 
 class HeaderParserSpec extends Specification {
   "Header parsing should catch ParseFailures " in {

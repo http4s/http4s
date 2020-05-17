@@ -6,8 +6,8 @@ import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
-import com.rossabaker.ci.CIString
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 
 /**
   * Simple Middleware for Logging Requests As They Are Processed

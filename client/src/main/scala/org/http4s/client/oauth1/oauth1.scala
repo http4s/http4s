@@ -4,7 +4,6 @@ package client
 import cats.{Monad, MonadError, Show}
 import cats.data.NonEmptyList
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import java.nio.charset.StandardCharsets
 import javax.crypto
 import org.http4s.client.oauth1.ProtocolParameter.{
@@ -18,6 +17,7 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Version
 }
 import org.http4s.headers.Authorization
+import org.typelevel.ci.CIString
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps

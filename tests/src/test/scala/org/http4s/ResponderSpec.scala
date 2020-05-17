@@ -1,10 +1,10 @@
 package org.http4s
 
 import cats.effect.IO
-import com.rossabaker.ci.CIString
 import org.http4s.Charset._
 import org.http4s.headers._
 import org.specs2.mutable.Specification
+import org.typelevel.ci.CIString
 
 class ResponderSpec extends Specification {
   val resp = Response[IO](Status.Ok)

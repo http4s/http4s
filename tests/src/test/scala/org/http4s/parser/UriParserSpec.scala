@@ -1,12 +1,12 @@
 package org.http4s.parser
 
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import java.nio.charset.{StandardCharsets, Charset => NioCharset}
 import org.http4s.Uri.Scheme.https
 import org.http4s._
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2._
+import org.typelevel.ci.CIString
 
 class IpParserImpl(val input: ParserInput, val charset: NioCharset) extends Parser with IpParser {
   def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }

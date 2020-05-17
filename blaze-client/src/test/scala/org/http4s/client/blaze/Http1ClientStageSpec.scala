@@ -5,7 +5,6 @@ package blaze
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import fs2.Stream
 import fs2.concurrent.Queue
 import java.nio.ByteBuffer
@@ -14,6 +13,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead}
 import org.http4s.client.blaze.bits.DefaultUserAgent
 import org.http4s.headers.`User-Agent`
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class Http1ClientStageSpec extends Http4sSpec {

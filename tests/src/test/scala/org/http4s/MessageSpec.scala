@@ -2,13 +2,13 @@ package org.http4s
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import com.rossabaker.ci.CIString
 import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.testing.Http4sLegacyMatchersIO
 import _root_.io.chrisdavenport.vault._
 import org.http4s.Uri.{Authority, Scheme}
+import org.typelevel.ci.CIString
 
 class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "Request" >> {

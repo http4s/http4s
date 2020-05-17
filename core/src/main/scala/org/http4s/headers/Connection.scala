@@ -3,9 +3,9 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 // values should be case insensitive
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive

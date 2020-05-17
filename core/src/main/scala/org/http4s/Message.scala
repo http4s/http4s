@@ -6,13 +6,12 @@ import cats.implicits._
 import cats.effect.IO
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
+import _root_.io.chrisdavenport.vault._
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
-
 import org.http4s.headers._
 import org.log4s.getLogger
-import _root_.io.chrisdavenport.vault._
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 
 import scala.util.hashing.MurmurHash3
 

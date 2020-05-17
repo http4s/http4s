@@ -2,13 +2,13 @@ package org.http4s
 
 import cats.implicits._
 import cats.kernel.laws.discipline.EqTests
-import com.rossabaker.ci.CIString
 import java.nio.file.Paths
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.Uri._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers
+import org.typelevel.ci.CIString
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {

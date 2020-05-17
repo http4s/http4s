@@ -18,8 +18,8 @@
  */
 package org.http4s
 
-import com.rossabaker.ci.CIString
 import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 import scala.concurrent.duration.Duration
 
 sealed trait CacheDirective extends Product with Renderable {

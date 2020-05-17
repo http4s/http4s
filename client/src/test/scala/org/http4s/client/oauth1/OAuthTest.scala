@@ -11,8 +11,8 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Timestamp,
   Version
 }
-import com.rossabaker.ci.CIString
 import org.specs2.mutable.Specification
+import org.typelevel.ci.CIString
 
 class OAuthTest extends Specification {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from

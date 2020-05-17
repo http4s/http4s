@@ -9,8 +9,6 @@ import cats.effect.{Effect, IO}
 import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
 import cats.implicits._
-import com.rossabaker.ci.CIString
-import com.rossabaker.ci.testing.arbitraries._
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -22,6 +20,8 @@ import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
 import org.scalacheck.Gen._
 import org.scalacheck.rng.Seed
+import org.typelevel.ci.CIString
+import org.typelevel.ci.testing.arbitraries._
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
@@ -32,13 +32,13 @@ private[http4s] trait ArbitraryInstances {
   }
 
   @deprecated(
-    "Use com.rossabaker.ci.testing.arbitraries from com.rossabaker::case-insensitive-testing",
+    "Use org.typelevel.ci.testing.arbitraries from org.typelevel::case-insensitive-testing",
     "1.0.0-M1")
   val http4sTestingArbitraryForCIString: Arbitrary[CIString] =
     Arbitrary(getArbitrary[String].map(CIString(_)))
 
   @deprecated(
-    "Use com.rossabaker.ci.testing.arbitraries from com.rossabaker::case-insensitive-testing",
+    "Use org.typelevel.ci.testing.arbitraries from org.typelevel::case-insensitive-testing",
     "1.0.0-M1")
   val http4sTestingCogenForCIString: Cogen[CIString] =
     Cogen[String].contramap(_.toString.toLowerCase(Locale.ROOT))

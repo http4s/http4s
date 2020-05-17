@@ -2,7 +2,6 @@ package org.http4s.server.blaze
 
 import cats.effect._
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import fs2.concurrent.SignallingRef
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
@@ -13,6 +12,7 @@ import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.WebSocketHandshake
+import org.typelevel.ci.CIString
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 

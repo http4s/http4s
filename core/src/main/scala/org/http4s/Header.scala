@@ -21,8 +21,8 @@ package org.http4s
 import cats.{Eq, Show}
 import cats.data.NonEmptyList
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import org.http4s.util._
+import org.typelevel.ci.CIString
 import scala.util.hashing.MurmurHash3
 
 /**

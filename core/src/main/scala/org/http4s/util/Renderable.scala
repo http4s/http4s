@@ -1,10 +1,10 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
-import com.rossabaker.ci.CIString
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import org.typelevel.ci.CIString
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration

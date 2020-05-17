@@ -5,7 +5,7 @@ import cats.effect._
 import cats.effect.concurrent.Ref
 import org.http4s._
 import org.http4s.dsl.io._
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 
 import scala.concurrent.duration.TimeUnit
 

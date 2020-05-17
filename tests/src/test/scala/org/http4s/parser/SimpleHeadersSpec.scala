@@ -2,10 +2,10 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import com.rossabaker.ci.CIString
 import java.net.InetAddress
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
+import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSpec {
   "SimpleHeaders" should {

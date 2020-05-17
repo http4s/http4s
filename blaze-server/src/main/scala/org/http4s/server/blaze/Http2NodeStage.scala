@@ -4,7 +4,6 @@ package blaze
 
 import cats.effect.{ConcurrentEffect, IO, Sync, Timer}
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import fs2._
 import fs2.Stream._
 import java.util.Locale
@@ -17,6 +16,7 @@ import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.{End, Http2Writer}
+import org.typelevel.ci.CIString
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}

@@ -5,8 +5,8 @@ import cats.MonadError
 import cats.data.EitherT
 import cats.implicits._
 import org.http4s.headers._
-import com.rossabaker.ci.CIString
 import org.specs2.matcher._
+import org.typelevel.ci.CIString
 
 @deprecated(
   "Discontinued. Inherits from vendored `RunTimedMatchers` that are now provided by specs-cats. The matchers that require them block threads and are disrecommended. What's left is insubstantial.",

@@ -19,12 +19,12 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import com.rossabaker.ci.CIString
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
+import org.typelevel.ci.CIString
 
 /**
   * parser rules for all headers that can be parsed with one simple rule

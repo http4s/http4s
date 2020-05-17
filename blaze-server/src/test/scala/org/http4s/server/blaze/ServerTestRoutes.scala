@@ -3,12 +3,12 @@ package server
 package blaze
 
 import cats.effect._
-import com.rossabaker.ci.CIString
 import fs2.Stream._
 import org.http4s.Charset._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.implicits._
+import org.typelevel.ci.CIString
 
 object ServerTestRoutes extends Http4sDsl[IO] {
   val textPlain: Header = `Content-Type`(MediaType.text.plain, `UTF-8`)

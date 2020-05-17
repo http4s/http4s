@@ -5,7 +5,7 @@ package middleware
 import cats.effect._
 import cats.implicits._
 import fs2._
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 
 /**
   * Simple Middleware for Logging All Requests and Responses

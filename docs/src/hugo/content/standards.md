@@ -34,7 +34,7 @@ When a list must not be empty, use `cats.data.NonEmptyList`.
 ### `CIString``
 
 Many parts of the HTTP spec require case-insensitive semantics. Use
-`com.rossabaker.ci.CIString` to represent these. This is important to
+`org.typelevel.ci.CIString` to represent these. This is important to
 get correct matching semantics when using case class extractors.
 
 ## Case classes

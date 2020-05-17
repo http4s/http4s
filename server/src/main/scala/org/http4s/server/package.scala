@@ -4,13 +4,13 @@ import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import cats.effect.IO
-import com.rossabaker.ci.CIString
-import org.http4s.headers.{Connection, `Content-Length`}
-import org.log4s.getLogger
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
 import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}
+import org.http4s.headers.{Connection, `Content-Length`}
+import org.log4s.getLogger
+import org.typelevel.ci.CIString
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 package object server {
   object defaults {

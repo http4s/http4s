@@ -14,9 +14,9 @@ import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Origin, Referer, `X-Forwarded-For`}
-import com.rossabaker.ci.CIString
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
+import org.typelevel.ci.CIString
 import scala.util.control.NoStackTrace
 
 /** Middleware to avoid Cross-site request forgery attacks.

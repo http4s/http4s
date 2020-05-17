@@ -1,8 +1,8 @@
 package org
 
 import cats.data.{EitherT, Kleisli, OptionT}
-import com.rossabaker.ci.CIString
 import fs2.Stream
+import org.typelevel.ci.CIString
 
 package object http4s { // scalastyle:ignore
 

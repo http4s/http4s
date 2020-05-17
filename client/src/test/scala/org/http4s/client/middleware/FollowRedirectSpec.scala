@@ -5,7 +5,6 @@ package middleware
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import fs2._
 import java.util.concurrent.atomic._
 import org.http4s.Uri.uri
@@ -14,6 +13,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.mutable.Tables
+import org.typelevel.ci.CIString
 
 class FollowRedirectSpec
     extends Http4sSpec

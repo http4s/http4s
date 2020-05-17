@@ -6,10 +6,10 @@ package authentication
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {

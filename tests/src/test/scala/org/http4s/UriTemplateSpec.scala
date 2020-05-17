@@ -1,8 +1,8 @@
 package org.http4s
 
-import com.rossabaker.ci.CIString
 import org.http4s.Uri.{Authority, RegName, Scheme, UserInfo}
 import org.http4s.UriTemplate._
+import org.typelevel.ci.CIString
 
 class UriTemplateSpec extends Http4sSpec {
   "UriTemplate" should {

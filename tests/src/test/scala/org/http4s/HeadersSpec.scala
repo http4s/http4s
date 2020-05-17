@@ -1,8 +1,8 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.{EqTests, MonoidTests}
-import com.rossabaker.ci.CIString
 import org.http4s.headers._
+import org.typelevel.ci.CIString
 
 class HeadersSpec extends Http4sSpec {
   val clength = `Content-Length`.unsafeFromLong(10)

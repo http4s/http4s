@@ -19,8 +19,8 @@ package org.http4s
 package parser
 
 import java.util
-import com.rossabaker.ci.CIString
 import org.http4s.Header.Parsed
+import org.typelevel.ci.CIString
 
 object HttpHeaderParser
     extends SimpleHeaders

@@ -4,7 +4,7 @@ package blaze
 
 import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
 import cats.implicits._
-import com.rossabaker.ci.CIString
+import io.chrisdavenport.vault._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
@@ -18,10 +18,10 @@ import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.util.StringWriter
+import org.typelevel.ci.CIString
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
-import io.chrisdavenport.vault._
 
 private[blaze] object Http1ServerStage {
   def apply[F[_]](

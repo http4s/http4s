@@ -2,12 +2,12 @@ package org.http4s.circe.middleware
 
 import cats.effect._
 import cats.data._
-import com.rossabaker.ci.CIString
 import io.circe._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.headers.Connection
 import org.http4s.circe._
+import org.typelevel.ci.CIString
 
 object JsonDebugErrorHandler {
   private[this] val messageFailureLogger =

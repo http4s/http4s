@@ -6,7 +6,7 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.Method._
 import org.http4s.headers._
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 import _root_.io.chrisdavenport.vault._
 
 /**

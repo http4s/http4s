@@ -2,9 +2,8 @@ package org.http4s
 
 import cats.{Eq, Eval, Foldable, Monoid, Show}
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import org.http4s.headers.`Set-Cookie`
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 import scala.collection.mutable.ListBuffer
 
 /** A collection of HTTP Headers */
@@ -23,7 +22,7 @@ final class Headers private (private val headers: List[Header]) extends AnyVal {
     *
     * @param key [[HeaderKey.Extractable]] that can identify the required header
     * @return a scala.Option possibly containing the resulting header of type key.HeaderT
-    * @see [[Header]] object and get([[com.rossabaker.ci.CIString]])
+    * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
     */
   def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
 

@@ -9,8 +9,8 @@ import cats.data.OptionT
 import cats.effect.{Bracket, Concurrent, Sync}
 import cats.effect.Sync._
 import fs2.Stream
-import com.rossabaker.ci.CIString
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 
 /**
   * Simple Middleware for Logging All Requests and Responses

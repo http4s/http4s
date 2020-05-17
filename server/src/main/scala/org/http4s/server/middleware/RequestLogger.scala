@@ -10,8 +10,8 @@ import cats.effect.implicits._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2.{Chunk, Stream}
-import com.rossabaker.ci.CIString
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 import cats.effect.Sync._
 
 /**

@@ -6,7 +6,6 @@ import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import cats.implicits._
-import com.rossabaker.ci.CIString
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H}
@@ -18,6 +17,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.specs2.specification.AfterAll
 import org.specs2.specification.core.Fragment
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import _root_.io.chrisdavenport.vault._

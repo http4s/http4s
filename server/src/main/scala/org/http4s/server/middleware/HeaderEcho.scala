@@ -2,9 +2,9 @@ package org.http4s.server.middleware
 
 import cats.Functor
 import cats.data.Kleisli
-import org.http4s._
 import cats.implicits._
-import com.rossabaker.ci.CIString
+import org.http4s._
+import org.typelevel.ci.CIString
 
 object HeaderEcho {
 

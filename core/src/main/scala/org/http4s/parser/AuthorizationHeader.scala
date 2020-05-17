@@ -19,9 +19,9 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import com.rossabaker.ci.CIString
 import org.http4s.headers.Authorization
 import org.http4s.internal.parboiled2.{ParserInput, Rule0, Rule1}
+import org.typelevel.ci.CIString
 
 private[parser] trait AuthorizationHeader {
   def AUTHORIZATION(value: String): ParseResult[`Authorization`] =

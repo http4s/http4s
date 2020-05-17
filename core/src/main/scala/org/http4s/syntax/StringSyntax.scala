@@ -1,7 +1,7 @@
 package org.http4s
 package syntax
 
-import com.rossabaker.ci.CIString
+import org.typelevel.ci.CIString
 
 trait StringSyntax {
   @deprecated("Use CIString.apply instead", "1.0.0-M1")
