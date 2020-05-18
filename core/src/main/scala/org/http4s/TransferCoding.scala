@@ -12,6 +12,7 @@ package org.http4s
 
 import cats.data.NonEmptyList
 import cats.{Order, Show}
+import org.http4s.internal.hashLower
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
 import org.http4s.util._

@@ -7,6 +7,7 @@
 package org.http4s.util
 
 import cats.{Monoid, Order, Show}
+import org.http4s.internal.hashLower
 
 /**
   * A String wrapper such that two strings `x` and `y` are equal if
