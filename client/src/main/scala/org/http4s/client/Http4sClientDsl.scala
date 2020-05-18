@@ -9,17 +9,11 @@ package client
 package dsl
 
 import cats.Applicative
-import org.http4s.Method.{NoBody, PermitsBody}
-import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
+import org.http4s.headers.`Content-Length`
 
 trait Http4sClientDsl[F[_]] {
-  import Http4sClientDsl._
-
-  implicit def http4sWithBodySyntax(method: Method with PermitsBody): WithBodyOps[F] =
-    new WithBodyOps[F](method)
-
-  implicit def http4sNoBodyOps(method: Method with NoBody): NoBodyOps[F] =
-    new NoBodyOps[F](method)
+  implicit def http4sClientSyntaxMethod(method: Method): MethodOps[F] =
+    new MethodOps[F](method)
 
   implicit def http4sHeadersDecoder[T](implicit
       F: Applicative[F],
@@ -30,13 +24,23 @@ trait Http4sClientDsl[F[_]] {
   }
 }
 
-object Http4sClientDsl {
+class MethodOps[F[_]](private val method: Method) extends AnyVal {
 
-  /** Syntax classes to generate a request directly from a [[Method]] */
-  implicit class WithBodyOps[F[_]](val method: Method with PermitsBody)
-      extends AnyVal
-      with EntityRequestGenerator[F]
-  implicit class NoBodyOps[F[_]](val method: Method with NoBody)
-      extends AnyVal
-      with EmptyRequestGenerator[F]
+  /** Make a [[org.http4s.Request]] using this [[Method]] */
+  final def apply(uri: Uri, headers: Header*)(implicit F: Applicative[F]): F[Request[F]] =
+    F.pure(Request(method, uri, headers = Headers(headers.toList)))
+
+  /** Make a [[org.http4s.Request]] using this Method */
+  final def apply[A](body: A, uri: Uri, headers: Header*)(implicit
+      F: Applicative[F],
+      w: EntityEncoder[F, A]): F[Request[F]] = {
+    val h = w.headers ++ Headers(headers.toList)
+    val entity = w.toEntity(body)
+    val newHeaders = entity.length
+      .map { l =>
+        `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+      }
+      .getOrElse(h)
+    F.pure(Request(method = method, uri = uri, headers = newHeaders, body = entity.body))
+  }
 }
