@@ -10,35 +10,43 @@ import cats.implicits._
 import cats.{Eq, Show}
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
+import scala.util.hashing.MurmurHash3
 
 /**
   * An HTTP method.
   *
+  * @param name The name of the method
+  *
+  * @param isSafe Request methods are considered "safe" if their defined
+  * semantics are essentially read-only; i.e., the client does not request, and
+  * does not expect, any state change on the origin server as a result of
+  * applying a safe method to a target resource.
+  *
+  * @param isIdempotent A request method is considered "idempotent" if the
+  * intended effect on the server of multiple identical requests with that
+  * method is the same as the effect for a single such request.
+  *
   * @see [http://tools.ietf.org/html/rfc7231#section-4 RFC7321, Section 4]
   * @see [http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]
   */
-sealed abstract case class Method private (name: String) extends Renderable {
+final class Method private (val name: String, val isSafe: Boolean, val isIdempotent: Boolean)
+    extends Renderable
+    with Serializable {
+  override def equals(that: Any): Boolean =
+    that match {
+      case that: Method => this.name == that.name
+      case _ => false
+    }
+
+  override def hashCode(): Int = MurmurHash3.stringHash(name, Method.HashSeed)
+
+  override def toString(): String = name
+
   final override def render(writer: Writer): writer.type = writer << name
-
-  /** Request methods are considered "safe" if their defined semantics are
-    * essentially read-only; i.e., the client does not request, and does not
-    * expect, any state change on the origin server as a result of applying a
-    * safe method to a target resource.
-    *
-    * @see [https://tools.ietf.org/html/rfc7231#section-4.2.1]
-    */
-  def isSafe: Boolean
-
-  /** A request method is considered "idempotent" if the intended effect on the
-    * server of multiple identical requests with that method is the same as the
-    * effect for a single such request.
-    *
-    * @see [https://tools.ietf.org/html/rfc7231#section-4.2.2]
-    */
-  def isIdempotent: Boolean
 }
 
 object Method {
+  private final val HashSeed = 0x892abd01
 
   def fromString(s: String): ParseResult[Method] =
     allByKey.getOrElse(
@@ -47,27 +55,15 @@ object Method {
         .token(s)
         .bimap(
           e => ParseFailure("Invalid method", e.details),
-          new Method(_) {
-            def isSafe = false
-            def isIdempotent = false
-          }
+          apply(_)
         ))
 
   private def apply(name: String) =
-    new Method(name) {
-      def isSafe = false
-      def isIdempotent = false
-    }
+    new Method(name, isSafe = false, isIdempotent = false)
   private def idempotent(name: String) =
-    new Method(name) {
-      def isSafe = false
-      def isIdempotent = true
-    }
+    new Method(name, isSafe = false, isIdempotent = true)
   private def safe(name: String) =
-    new Method(name) {
-      def isSafe = true
-      def isIdempotent = true
-    }
+    new Method(name, isSafe = true, isIdempotent = true)
 
   val ACL: Method = idempotent("ACL")
   val `BASELINE-CONTROL`: Method = idempotent("BASELINE-CONTROL")
