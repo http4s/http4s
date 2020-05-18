@@ -40,10 +40,6 @@ sealed abstract case class Method private (name: String) extends Renderable {
 
 object Method {
 
-  // Type tags for a method allowing a body or not
-  sealed trait PermitsBody extends Method
-  sealed trait NoBody extends Method
-
   def fromString(s: String): ParseResult[Method] =
     allByKey.getOrElse(
       s,
@@ -73,18 +69,17 @@ object Method {
       def isIdempotent = true
     }
 
-  // TODO: find out the rest of the body permissions. http://www.iana.org/assignments/http-methods/http-methods.xhtml#methods
   val ACL: Method = idempotent("ACL")
   val `BASELINE-CONTROL`: Method = idempotent("BASELINE-CONTROL")
   val BIND: Method = idempotent("BIND")
   val CHECKIN: Method = idempotent("CHECKIN")
   val CHECKOUT: Method = idempotent("CHECKOUT")
-  val CONNECT: Method = apply("CONNECT") // with PermitsBody
+  val CONNECT: Method = apply("CONNECT")
   val COPY: Method = idempotent("COPY")
-  val DELETE: Method = idempotent("DELETE") // with PermitsBody
-  val GET: Method = safe("GET") // with PermitsBody
-  val HEAD: Method = safe("HEAD") // with PermitsBody
-  val LABEL: Method = idempotent("LABEL") // with PermitsBody
+  val DELETE: Method = idempotent("DELETE")
+  val GET: Method = safe("GET")
+  val HEAD: Method = safe("HEAD")
+  val LABEL: Method = idempotent("LABEL")
   val LINK: Method = idempotent("LINK")
   val LOCK: Method = apply("LOCK")
   val MERGE: Method = idempotent("MERGE")
@@ -94,17 +89,17 @@ object Method {
   val MKREDIRECTREF: Method = idempotent("MKREDIRECTREF")
   val MKWORKSPACE: Method = idempotent("MKWORKSPACE")
   val MOVE: Method = idempotent("MOVE")
-  val OPTIONS: Method = safe("OPTIONS") // with PermitsBody
+  val OPTIONS: Method = safe("OPTIONS")
   val ORDERPATCH: Method = idempotent("ORDERPATCH")
-  val PATCH: Method = apply("PATCH") // with PermitsBody
-  val POST: Method = apply("POST") // with PermitsBody
+  val PATCH: Method = apply("PATCH")
+  val POST: Method = apply("POST")
   val PROPFIND: Method = safe("PROPFIND")
   val PROPPATCH: Method = idempotent("PROPPATCH")
-  val PUT: Method = idempotent("PUT") // with PermitsBody
+  val PUT: Method = idempotent("PUT")
   val REBIND: Method = idempotent("REBIND")
   val REPORT: Method = safe("REPORT")
   val SEARCH: Method = safe("SEARCH")
-  val TRACE: Method = safe("TRACE") // with PermitsBody
+  val TRACE: Method = safe("TRACE")
   val UNBIND: Method = idempotent("UNBIND")
   val UNCHECKOUT: Method = idempotent("UNCHECKOUT")
   val UNLINK: Method = idempotent("UNLINK")

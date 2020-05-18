@@ -75,7 +75,7 @@ class FollowRedirectSpec
       ) = {
         val u = uri("http://localhost") / status.code.toString
         val req: Request[IO] = method match {
-          case _: Method.PermitsBody if body.nonEmpty =>
+          case (OPTIONS | PATCH | POST | PUT) if body.nonEmpty =>
             val bodyBytes = body.getBytes.toList
             Request[IO](
               method,
