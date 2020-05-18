@@ -46,7 +46,6 @@ object Method {
   // Type tags for a method allowing a body or not
   sealed trait PermitsBody { _: Method => }
   sealed trait NoBody { _: Method => }
-  sealed trait IsPermitsBody extends Method with PermitsBody
 
   def fromString(s: String): ParseResult[Method] =
     allByKey.getOrElse(
