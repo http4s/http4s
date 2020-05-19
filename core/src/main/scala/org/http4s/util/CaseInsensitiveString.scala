@@ -7,7 +7,7 @@
 package org.http4s.util
 
 import cats.{Monoid, Order, Show}
-import org.http4s.internal.hashLower
+import org.http4s.internal.{hashLower => ciHash}
 
 /**
   * A String wrapper such that two strings `x` and `y` are equal if
@@ -25,7 +25,7 @@ sealed class CaseInsensitiveString private (val value: String)
   private[this] var hash = 0
   override def hashCode(): Int = {
     if (hash == 0)
-      hash = hashLower(value)
+      hash = ciHash(value)
     hash
   }
 
