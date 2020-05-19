@@ -11,8 +11,35 @@ package org.http4s.testing
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 import scala.util.control.NonFatal
+import cats.implicits._
+import cats.Monad
+import org.http4s.{Headers, MessageFailure, Request, Response, Status}
+import org.http4s.headers.{Connection, `Content-Length`}
+import org.http4s.syntax.string._
 
 object ErrorReporting {
+
+  /**
+    * Returns an ErrorHandler that does not log
+    */
+  def silentErrorHandler[F[_], G[_]](implicit
+      F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[G]]] =
+    req => {
+      case mf: MessageFailure =>
+        mf.toHttpResponse[G](req.httpVersion).pure[F]
+      case NonFatal(_) =>
+        F.pure(
+          Response(
+            Status.InternalServerError,
+            req.httpVersion,
+            Headers(
+              Connection("close".ci) ::
+                `Content-Length`.zero ::
+                Nil
+            )))
+    }
+
+  
 
   /**
     * Silences `System.err`, only printing the output in case exceptions are
@@ -31,11 +58,11 @@ object ErrorReporting {
         result
       } catch {
         case NonFatal(e) =>
-          System.setErr(oldErr)
+//          System.setErr(oldErr)
           // In case of errors, print whatever was caught
-          fakeErr.close()
-          val out = outStream.toString("utf-8")
-          if (out.nonEmpty) oldErr.println(out)
+//          fakeErr.close()
+//          val out = outStream.toString("utf-8")
+//          if (out.nonEmpty) oldErr.println(out)
           throw e
       }
     }
