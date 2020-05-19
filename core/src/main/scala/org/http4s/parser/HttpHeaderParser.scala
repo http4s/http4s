@@ -24,6 +24,7 @@ object HttpHeaderParser
     with AcceptLanguageHeader
     with AuthorizationHeader
     with CacheControlHeader
+    with ContentBaseHeader
     with ContentLocationHeader
     with ContentTypeHeader
     with CookieHeader
@@ -116,6 +117,7 @@ object HttpHeaderParser
     addParser_("AUTHORIZATION".ci, `AUTHORIZATION`)
     addParser_("CACHE-CONTROL".ci, `CACHE_CONTROL`)
     addParser_("CONNECTION".ci, `CONNECTION`)
+    addParser_("CONTENT-BASE".ci, `CONTENT_BASE`)
     addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
     addParser_("CONTENT-ENCODING".ci, `CONTENT_ENCODING`)
     addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
