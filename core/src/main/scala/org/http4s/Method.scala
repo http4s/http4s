@@ -94,6 +94,7 @@ object Method {
   val ORDERPATCH: IdempotentMethod = new Method("ORDERPATCH") with Idempotent
   val PATCH: DefaultMethodWithBody = new Method("PATCH") with Default with PermitsBody
   val POST: DefaultMethodWithBody = new Method("POST") with Default with PermitsBody
+  val PRI: SafeMethod = new Method("PRI") with Safe
   val PROPFIND: SafeMethod = new Method("PROPFIND") with Safe
   val PROPPATCH: IdempotentMethod = new Method("PROPPATCH") with Idempotent
   val PUT: IdempotentMethodWithBody = new Method("PUT") with Idempotent with PermitsBody
@@ -134,6 +135,7 @@ object Method {
     ORDERPATCH,
     PATCH,
     POST,
+    PRI,
     PROPFIND,
     PROPPATCH,
     PUT,
