@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.implicits._
-import cats.{Eq, Show}
+import cats.{Eq, Hash, Show}
 import org.http4s.Method.Semantics
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
@@ -151,6 +151,10 @@ object Method {
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap
 
-  implicit val http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
+  implicit val catsHashForHttp4sMethod: Hash[Method] = Hash.fromUniversalHashCode
+
+  @deprecated("Upgraded to hash. Kept for binary compatibility", "0.21.5")
+  private[Method] val http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
+
   implicit val http4sShowForMethod: Show[Method] = Show.fromToString
 }
