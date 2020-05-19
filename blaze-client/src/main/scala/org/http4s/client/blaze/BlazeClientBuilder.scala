@@ -17,6 +17,7 @@ import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
 import org.http4s.headers.`User-Agent`
+import org.http4s.internal.SSLContextOption
 import org.http4s.ProductId
 import org.http4s.internal.BackendBuilder
 import org.log4s.getLogger
@@ -38,7 +39,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val maxTotalConnections: Int,
     val maxWaitQueueLimit: Int,
     val maxConnectionsPerRequestKey: RequestKey => Int,
-    val sslContext: BlazeClientBuilder.SSLContextOption,
+    val sslContext: SSLContextOption,
     val checkEndpointIdentification: Boolean,
     val maxResponseLineSize: Int,
     val maxHeaderLength: Int,
@@ -56,8 +57,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   type Self = BlazeClientBuilder[F]
 
   final protected val logger = getLogger(this.getClass)
-
-  import BlazeClientBuilder.SSLContextOption
 
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
@@ -283,9 +282,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
 object BlazeClientBuilder {
 
-
-  import SSLContextOption.TryDefaultSSLContext
-
   /** Creates a BlazeClientBuilder
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures
@@ -300,7 +296,7 @@ object BlazeClientBuilder {
       maxTotalConnections = 10,
       maxWaitQueueLimit = 256,
       maxConnectionsPerRequestKey = Function.const(256),
-      sslContext = TryDefaultSSLContext,
+      sslContext = SSLContextOption.TryDefaultSSLContext,
       checkEndpointIdentification = true,
       maxResponseLineSize = 4096,
       maxHeaderLength = 40960,
@@ -322,7 +318,8 @@ object BlazeClientBuilder {
   @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "1.0.0")
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
-      sslContext: Option[SSLContext] = tryDefaultSslContext): BlazeClientBuilder[F] =
+      sslContext: Option[SSLContext] = SSLContextOption.tryDefaultSslContext)
+      : BlazeClientBuilder[F] =
     sslContext match {
       case None => apply(executionContext).withoutSslContext
       case Some(sslCtx) => apply(executionContext).withSslContext(sslCtx)

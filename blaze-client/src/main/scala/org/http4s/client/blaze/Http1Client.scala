@@ -11,7 +11,7 @@ package blaze
 import cats.effect._
 import fs2.Stream
 import org.http4s.blaze.channel.ChannelOptions
-import org.http4s.client.blaze.BlazeClientBuilder.SSLContextOption
+import org.http4s.internal.SSLContextOption
 
 import scala.concurrent.duration.Duration
 
