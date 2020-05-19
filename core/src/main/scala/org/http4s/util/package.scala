@@ -94,6 +94,7 @@ package object util {
   /* This is nearly identical to the hashCode of java.lang.String, but converting
    * to lower case on the fly to avoid copying `value`'s character storage.
    */
+  @deprecated("Not a good hash. Prefer org.typelevel.ci.CIString.", "0.21.5")
   def hashLower(s: String): Int = {
     var h = 0
     var i = 0

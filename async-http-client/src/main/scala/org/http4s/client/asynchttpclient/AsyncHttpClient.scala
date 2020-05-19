@@ -24,7 +24,7 @@ import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.invokeCallback
 import org.http4s.internal.bug
-import org.http4s.util.threads._
+import org.http4s.internal.threads._
 import org.log4s.getLogger
 import org.reactivestreams.Publisher
 

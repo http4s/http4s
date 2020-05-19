@@ -67,7 +67,18 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
+    // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
+    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
+    // Jetty prereleases appear because of their non-semver prod releases
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
+    // Cursed release. Calls ByteBuffer incompatibly with JDK8
+    dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -196,13 +207,13 @@ object Http4sPlugin extends AutoPlugin {
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.0"
-    val dropwizardMetrics = "4.1.7"
+    val dropwizardMetrics = "4.1.8"
     val fs2 = "2.3.0"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.28.v20200408"
     val json4s = "3.6.8"
-    val log4cats = "1.0.1"
+    val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
     val log4s = "1.8.2"
@@ -210,7 +221,7 @@ object Http4sPlugin extends AutoPlugin {
     val okhttp = "4.6.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.8.1"
-    val prometheusClient = "0.8.1"
+    val prometheusClient = "0.9.0"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.14.3"
     val scalatags = "0.9.1"

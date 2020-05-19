@@ -189,4 +189,21 @@ package object internal {
   private[http4s] def bug(message: String): AssertionError =
     new AssertionError(
       s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+
+  // TODO Remove in 1.0. We can do better with MurmurHash3.
+  private[http4s] def hashLower(s: String): Int = {
+    var h = 0
+    var i = 0
+    val len = s.length
+    while (i < len) {
+      // Strings are equal igoring case if either their uppercase or lowercase
+      // forms are equal. Equality of one does not imply the other, so we need
+      // to go in both directions. A character is not guaranteed to make this
+      // round trip, but it doesn't matter as long as all equal characters
+      // hash the same.
+      h = h * 31 + Character.toLowerCase(Character.toUpperCase(s.charAt(i)))
+      i += 1
+    }
+    h
+  }
 }
