@@ -6,12 +6,13 @@
 
 package org.http4s
 
-import org.http4s.headers._
 import cats.kernel.laws.discipline.{EqTests, MonoidTests}
+import org.http4s.headers._
+import org.typelevel.ci.CIString
 
 class HeadersSpec extends Http4sSpec {
   val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = Header.Raw("raw-header".ci, "Raw value")
+  val raw = Header.Raw(CIString("raw-header"), "Raw value")
 
   val base = Headers.of(clength.toRaw, raw)
 
@@ -22,7 +23,7 @@ class HeadersSpec extends Http4sSpec {
 
     "Find an existing header and return its parsed form" in {
       base.get(`Content-Length`) should beSome(clength)
-      base.get("raw-header".ci) should beSome(raw)
+      base.get(CIString("raw-header")) should beSome(raw)
     }
 
     "Replaces headers" in {

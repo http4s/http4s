@@ -23,6 +23,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.specs2.specification.AfterAll
 import org.specs2.specification.core.Fragment
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import _root_.io.chrisdavenport.vault._
@@ -133,7 +134,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
         .map {
           case (s, h, r) =>
             val close = h.exists { h =>
-              h.toRaw.name == "connection".ci && h.toRaw.value == "close"
+              h.toRaw.name == CIString("connection") && h.toRaw.value == "close"
             }
             (s, close, r)
         }

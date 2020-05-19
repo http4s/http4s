@@ -12,6 +12,7 @@ package org.http4s
 
 import cats.{Eq, Hash, Order, Show}
 import cats.syntax.either._
+import org.typelevel.ci.CIString
 import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset, StandardCharsets}
@@ -19,7 +20,6 @@ import org.http4s.internal.{bug, hashLower}
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
-import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.collection.immutable
 import scala.math.Ordered
@@ -386,8 +386,8 @@ object Uri {
   @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
   object IPv4 {
     @deprecated("Use Ipv4Address.fromString(ciString.value)", "0.21.0-M2")
-    def apply(ciString: CaseInsensitiveString): ParseResult[Ipv4Address] =
-      Ipv4Address.fromString(ciString.value)
+    def apply(ciString: CIString): ParseResult[Ipv4Address] =
+      Ipv4Address.fromString(ciString.toString)
   }
 
   final case class Ipv4Address(a: Byte, b: Byte, c: Byte, d: Byte)
@@ -482,8 +482,8 @@ object Uri {
   @deprecated("Renamed to Ipv6Address, modeled as case class of bytes", "0.21.0-M2")
   object IPv6 {
     @deprecated("Use Ipv6Address.fromString(ciString.value)", "0.21.0-M2")
-    def apply(ciString: CaseInsensitiveString): ParseResult[Ipv6Address] =
-      Ipv6Address.fromString(ciString.value)
+    def apply(ciString: CIString): ParseResult[Ipv6Address] =
+      Ipv6Address.fromString(ciString.toString)
   }
 
   final case class Ipv6Address(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
@@ -653,11 +653,11 @@ object Uri {
       }
   }
 
-  final case class RegName(host: CaseInsensitiveString) extends Host {
+  final case class RegName(host: CIString) extends Host {
     def value: String = host.toString
   }
 
-  object RegName { def apply(name: String): RegName = new RegName(name.ci) }
+  object RegName { def apply(name: String): RegName = new RegName(CIString(name)) }
 
   /**
     * Resolve a relative Uri reference, per RFC 3986 sec 5.2

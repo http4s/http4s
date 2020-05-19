@@ -14,8 +14,8 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
-import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 
@@ -24,7 +24,7 @@ object Retry {
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       Resource.suspend[F, Response[F]](F.continual(client.run(req).allocated) {
@@ -54,7 +54,7 @@ object Retry {
           }
       })
 
-    def showRequest(request: Request[F], redactWhen: CaseInsensitiveString => Boolean): String = {
+    def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
       val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
       val uri = request.uri.renderString
       val method = request.method

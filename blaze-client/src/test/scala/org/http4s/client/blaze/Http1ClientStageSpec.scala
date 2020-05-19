@@ -19,6 +19,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead}
 import org.http4s.client.blaze.bits.DefaultUserAgent
 import org.http4s.headers.`User-Agent`
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class Http1ClientStageSpec extends Http4sSpec {
@@ -205,7 +206,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Use User-Agent header provided in Request" in skipOnCi {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.withHeaders(Header.Raw("User-Agent".ci, "myagent"))
+      val req = FooRequest.withHeaders(Header.Raw(CIString("User-Agent"), "myagent"))
 
       val (request, response) = getSubmission(req, resp).unsafeRunSync()
 

@@ -18,6 +18,7 @@ import org.http4s.Uri._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers
+import org.typelevel.ci.CIString
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
@@ -217,7 +218,7 @@ http://example.org/a file
     "render URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = RegName("www.foo.com".ci))),
+        Some(Authority(host = RegName(CIString("www.foo.com")))),
         "/foo",
         Query.fromPairs("bar" -> "baz")).toString must_== ("http://www.foo.com/foo?bar=baz")
     }
@@ -227,14 +228,16 @@ http://example.org/a file
         Some(Scheme.http),
         Some(
           Authority(
-            host = RegName("www.foo.com".ci),
+            host = RegName(CIString("www.foo.com")),
             port = Some(80)))).toString must_== ("http://www.foo.com:80")
     }
 
     "render URL without port" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = RegName("www.foo.com".ci)))).toString must_== ("http://www.foo.com")
+        Some(
+          Authority(host =
+            RegName(CIString("www.foo.com"))))).toString must_== ("http://www.foo.com")
     }
 
     "render IPv4 URL with parameters" in {

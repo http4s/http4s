@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
-import org.http4s.syntax.string._
+import org.typelevel.ci.CIString
 
 /**
   * parser rules for all headers that can be parsed with one simple rule
@@ -50,7 +50,7 @@ private[parser] trait SimpleHeaders {
       def entry =
         rule(
           oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[String]) =>
-            Connection(xs.head.ci, xs.tail.map(_.ci): _*)
+            Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
           }
         )
     }.parse

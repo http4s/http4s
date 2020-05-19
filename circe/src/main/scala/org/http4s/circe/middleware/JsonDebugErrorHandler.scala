@@ -12,9 +12,8 @@ import io.circe._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.headers.Connection
-import org.http4s.util.CaseInsensitiveString
-import org.http4s.implicits._
 import org.http4s.circe._
+import org.typelevel.ci.CIString
 
 object JsonDebugErrorHandler {
   private[this] val messageFailureLogger =
@@ -25,7 +24,7 @@ object JsonDebugErrorHandler {
   // Can be parametric on my other PR is merged.
   def apply[F[_]: Sync, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
-      redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
   ): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       import cats.syntax.applicative._
@@ -54,7 +53,7 @@ object JsonDebugErrorHandler {
               Status.InternalServerError,
               req.httpVersion,
               Headers(
-                Connection("close".ci) ::
+                Connection(CIString("close")) ::
                   Nil
               ))
               .withEntity(JsonErrorHandlerResponse[G](req, t))
@@ -68,13 +67,13 @@ object JsonDebugErrorHandler {
   )
   private object JsonErrorHandlerResponse {
     def entEnc[F[_], G[_]](
-        redactWhen: CaseInsensitiveString => Boolean
+        redactWhen: CIString => Boolean
     ): EntityEncoder[F, JsonErrorHandlerResponse[G]] =
       jsonEncoderOf(
         encoder(redactWhen)
       )
     def encoder[F[_]](
-        redactWhen: CaseInsensitiveString => Boolean
+        redactWhen: CIString => Boolean
     ): Encoder[JsonErrorHandlerResponse[F]] =
       new Encoder[JsonErrorHandlerResponse[F]] {
         def apply(a: JsonErrorHandlerResponse[F]): Json =
@@ -85,9 +84,7 @@ object JsonDebugErrorHandler {
       }
   }
 
-  private def encodeRequest[F[_]](
-      req: Request[F],
-      redactWhen: CaseInsensitiveString => Boolean): Json =
+  private def encodeRequest[F[_]](req: Request[F], redactWhen: CIString => Boolean): Json =
     Json
       .obj(
         "method" -> req.method.name.asJson,

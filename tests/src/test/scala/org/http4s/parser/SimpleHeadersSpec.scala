@@ -11,11 +11,12 @@ import cats.data.NonEmptyList
 import java.net.InetAddress
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
+import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSpec {
   "SimpleHeaders" should {
     "parse Connection" in {
-      val header = Connection("closed".ci)
+      val header = Connection(CIString("closed"))
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
     }
 

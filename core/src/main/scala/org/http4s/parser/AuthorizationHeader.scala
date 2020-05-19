@@ -14,7 +14,7 @@ package parser
 import cats.data.NonEmptyList
 import org.http4s.headers.Authorization
 import org.http4s.internal.parboiled2.{ParserInput, Rule0, Rule1}
-import org.http4s.syntax.string._
+import org.typelevel.ci.CIString
 
 private[parser] trait AuthorizationHeader {
   def AUTHORIZATION(value: String): ParseResult[`Authorization`] =
@@ -38,7 +38,7 @@ private[parser] trait AuthorizationHeader {
     def TokenCredentialsDef =
       rule {
         Token ~ LWS ~ token68 ~> { (scheme: String, value: String) =>
-          Credentials.Token(scheme.ci, value)
+          Credentials.Token(CIString(scheme), value)
         }
       }
 
@@ -46,7 +46,7 @@ private[parser] trait AuthorizationHeader {
       rule {
         Token ~ OptWS ~ CredentialParams ~> {
           (scheme: String, params: NonEmptyList[(String, String)]) =>
-            Credentials.AuthParams(scheme.ci, params)
+            Credentials.AuthParams(CIString(scheme), params)
         }
       }
 

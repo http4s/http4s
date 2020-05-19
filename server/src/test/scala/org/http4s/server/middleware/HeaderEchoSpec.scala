@@ -10,7 +10,7 @@ import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.Uri.uri
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 
 class HeaderEchoSpec extends Http4sSpec {
   object someHeaderKey extends HeaderKey.Default
@@ -26,7 +26,7 @@ class HeaderEchoSpec extends Http4sSpec {
         Request[IO](
           uri = uri("/request"),
           headers = Headers.of(Header("someheaderkey", "someheadervalue")))
-      val testee = HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService)
+      val testee = HeaderEcho(_ == CIString("someheaderkey"))(testService)
       val responseHeaders =
         testee.orNotFound(requestMatchingSingleHeaderKey).unsafeRunSync().headers
 
@@ -42,7 +42,7 @@ class HeaderEchoSpec extends Http4sSpec {
             Header("someheaderkey", "someheadervalue"),
             Header("anotherheaderkey", "anotherheadervalue")))
       val headersToEcho =
-        List(CaseInsensitiveString("someheaderkey"), CaseInsensitiveString("anotherheaderkey"))
+        List(CIString("someheaderkey"), CIString("anotherheaderkey"))
       val testee = HeaderEcho(headersToEcho.contains(_))(testService)
 
       val responseHeaders =
@@ -59,7 +59,7 @@ class HeaderEchoSpec extends Http4sSpec {
           uri = uri("/request"),
           headers = Headers.of(Header("someunmatchedheader", "someunmatchedvalue")))
 
-      val testee = HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService)
+      val testee = HeaderEcho(_ == CIString("someheaderkey"))(testService)
       val responseHeaders =
         testee.orNotFound(requestMatchingNotPresentHeaderKey).unsafeRunSync().headers
 

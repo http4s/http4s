@@ -13,7 +13,7 @@ import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers.Referer
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 import CSRF.unlift
 import cats.arrow.FunctionK
 
@@ -37,7 +37,7 @@ class CSRFSpec extends Http4sSpec {
   }
 
   val cookieName = "csrf-token"
-  val headerName = CaseInsensitiveString("X-Csrf-Token")
+  val headerName = CIString("X-Csrf-Token")
 
   val defaultOriginCheck: Request[IO] => Boolean =
     CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, None)
@@ -66,7 +66,7 @@ class CSRFSpec extends Http4sSpec {
     .map(
       _.withClock(testClock)
         .withCookieName(cookieName)
-        .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](headerName.value, FunctionK.id))
+        .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](headerName.toString, FunctionK.id))
         .build)
     .unsafeRunSync()
 
@@ -113,7 +113,7 @@ class CSRFSpec extends Http4sSpec {
           res <- csrfForm.checkCSRF(req, dummyRoutes.run(req))
         } yield res
 
-      val hn = headerName.value
+      val hn = headerName.toString
 
       val fromHeader = check((ts, r) => r.putHeaders(Header(hn, ts)))
       val fromForm = check((ts, r) => r.withEntity(UrlForm(hn -> ts)))
@@ -178,7 +178,7 @@ class CSRFSpec extends Http4sSpec {
         token <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .putHeaders(Header(headerName.value, unlift(token)))
+            .putHeaders(Header(headerName.toString, unlift(token)))
             .addCookie(cookieName, unlift(token))
         )
       } yield res
@@ -194,7 +194,7 @@ class CSRFSpec extends Http4sSpec {
             csrf.embedInRequestCookie(
               Request[IO](POST)
                 .putHeaders(
-                  Header(headerName.value, unlift(token)),
+                  Header(headerName.toString, unlift(token)),
                   Referer(Uri.unsafeFromString("http://localhost/lol"))),
               token)
           )
@@ -219,7 +219,7 @@ class CSRFSpec extends Http4sSpec {
         res <- csrf.validate()(dummyRoutes)(
           Request[IO](POST)
             .putHeaders(
-              Header(headerName.value, unlift(token)),
+              Header(headerName.toString, unlift(token)),
               Header("Origin", "http://example.com"),
               Referer(Uri.unsafeFromString("http://example.com/lol")))
             .addCookie(cookieName, unlift(token))
@@ -247,7 +247,7 @@ class CSRFSpec extends Http4sSpec {
       (for {
         token <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
-          dummyRequest.putHeaders(Header(headerName.value, unlift(token)))
+          dummyRequest.putHeaders(Header(headerName.toString, unlift(token)))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden
     }
@@ -258,7 +258,7 @@ class CSRFSpec extends Http4sSpec {
         token2 <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .withHeaders(Headers.of(Header(headerName.value, unlift(token1))))
+            .withHeaders(Headers.of(Header(headerName.toString, unlift(token1))))
             .addCookie(cookieName, unlift(token2))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden
@@ -271,7 +271,7 @@ class CSRFSpec extends Http4sSpec {
           raw1 <- IO.fromEither(csrf.extractRaw(unlift(token)))
           res <- csrf.validate()(dummyRoutes)(
             dummyRequest
-              .putHeaders(Header(headerName.value, unlift(token)))
+              .putHeaders(Header(headerName.toString, unlift(token)))
               .addCookie(cookieName, unlift(token))
           )
           rawContent = res.cookies.find(_.name == cookieName).map(_.content).getOrElse("")
@@ -287,7 +287,7 @@ class CSRFSpec extends Http4sSpec {
         token2 <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .putHeaders(Header(headerName.value, unlift(token1)))
+            .putHeaders(Header(headerName.toString, unlift(token1)))
             .addCookie(cookieName, unlift(token2))
         )
       } yield res).unsafeRunSync()

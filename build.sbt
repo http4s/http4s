@@ -72,6 +72,7 @@ lazy val core = libraryProject("core")
     ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
+      caseInsensitive,
       cats,
       catsEffect,
       fs2Io,
@@ -86,6 +87,7 @@ lazy val laws = libraryProject("laws")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
+      caseInsensitiveTesting,
       catsEffectLaws,
     ),
   )

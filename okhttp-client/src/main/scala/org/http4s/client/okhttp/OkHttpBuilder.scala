@@ -167,7 +167,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     }
 
     new OKRequest.Builder()
-      .headers(OKHeaders.of(req.headers.toList.map(h => (h.name.value, h.value)).toMap.asJava))
+      .headers(OKHeaders.of(req.headers.toList.map(h => (h.name.toString, h.value)).toMap.asJava))
       .method(req.method.toString(), body)
       .url(req.uri.toString())
       .build()

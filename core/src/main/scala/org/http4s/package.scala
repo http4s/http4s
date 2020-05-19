@@ -8,10 +8,11 @@ package org
 
 import cats.data.{EitherT, Kleisli, OptionT}
 import fs2.Stream
+import org.typelevel.ci.CIString
 
 package object http4s {
 
-  type AuthScheme = util.CaseInsensitiveString
+  type AuthScheme = CIString
 
   type EntityBody[+F[_]] = Stream[F, Byte]
 

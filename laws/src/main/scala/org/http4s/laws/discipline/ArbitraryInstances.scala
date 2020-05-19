@@ -22,12 +22,12 @@ import java.util.Locale
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.syntax.literals._
-import org.http4s.syntax.string._
-import org.http4s.util.CaseInsensitiveString
 import org.scalacheck._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
 import org.scalacheck.Gen._
 import org.scalacheck.rng.Seed
+import org.typelevel.ci.CIString
+import org.typelevel.ci.testing.arbitraries._
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
@@ -37,11 +37,17 @@ private[http4s] trait ArbitraryInstances {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
 
-  implicit val http4sTestingArbitraryForCaseInsensitiveString: Arbitrary[CaseInsensitiveString] =
-    Arbitrary(getArbitrary[String].map(_.ci))
+  @deprecated(
+    "Use org.typelevel.ci.testing.arbitraries from org.typelevel::case-insensitive-testing",
+    "1.0.0-M1")
+  val http4sTestingArbitraryForCIString: Arbitrary[CIString] =
+    Arbitrary(getArbitrary[String].map(CIString(_)))
 
-  implicit val http4sTestingCogenForCaseInsensitiveString: Cogen[CaseInsensitiveString] =
-    Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
+  @deprecated(
+    "Use org.typelevel.ci.testing.arbitraries from org.typelevel::case-insensitive-testing",
+    "1.0.0-M1")
+  val http4sTestingCogenForCIString: Cogen[CIString] =
+    Cogen[String].contramap(_.toString.toLowerCase(Locale.ROOT))
 
   implicit def http4sTestingArbitraryForNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
     Arbitrary {
@@ -519,7 +525,7 @@ private[http4s] trait ArbitraryInstances {
       for {
         token <- genToken
         value <- genFieldValue
-      } yield Header.Raw(token.ci, value)
+      } yield Header.Raw(CIString(token), value)
     }
 
   implicit val http4sTestingArbitraryForHeader: Arbitrary[Header] =
@@ -773,7 +779,7 @@ private[http4s] trait ArbitraryInstances {
     Cogen[List[Header]].contramap(_.toList)
 
   implicit def http4sTestingCogenForHeader: Cogen[Header] =
-    Cogen[(CaseInsensitiveString, String)].contramap(h => (h.name, h.value))
+    Cogen[(CIString, String)].contramap(h => (h.name, h.value))
 
   implicit def http4sTestingArbitraryForDecodeFailure: Arbitrary[DecodeFailure] =
     Arbitrary(

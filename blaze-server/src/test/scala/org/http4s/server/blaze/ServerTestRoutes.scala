@@ -10,16 +10,17 @@ package blaze
 
 import cats.effect._
 import fs2.Stream._
-import org.http4s.implicits._
 import org.http4s.Charset._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
+import org.http4s.implicits._
+import org.typelevel.ci.CIString
 
 object ServerTestRoutes extends Http4sDsl[IO] {
   val textPlain: Header = `Content-Type`(MediaType.text.plain, `UTF-8`)
 
-  val connClose = Connection("close".ci)
-  val connKeep = Connection("keep-alive".ci)
+  val connClose = Connection(CIString("close"))
+  val connKeep = Connection(CIString("keep-alive"))
   val chunked = `Transfer-Encoding`(TransferCoding.chunked)
 
   def length(l: Long): `Content-Length` = `Content-Length`.unsafeFromLong(l)

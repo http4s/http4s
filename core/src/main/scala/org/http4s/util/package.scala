@@ -10,6 +10,7 @@ import cats.ApplicativeError
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.StandardCharsets
+import org.typelevel.ci.CIString
 import scala.concurrent.ExecutionContextExecutor
 
 package object util {
@@ -109,4 +110,9 @@ package object util {
     }
     h
   }
+
+  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  type CaseInsensitiveString = CIString
+  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  val CaseInsensitiveString = CIString
 }

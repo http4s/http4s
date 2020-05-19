@@ -14,6 +14,7 @@ import fs2.Stream
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.testing.Http4sLegacyMatchersIO
+import org.typelevel.ci.CIString
 
 class DefaultHeadSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val app = DefaultHead(HttpRoutes.of[IO] {
@@ -30,7 +31,8 @@ class DefaultHeadSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "DefaultHead" should {
     "honor HEAD routes" in {
       val req = Request[IO](Method.HEAD, uri = uri("/special"))
-      app(req).map(_.headers.get("X-Handled-By".ci).map(_.value)) must returnValue(Some("HEAD"))
+      app(req).map(_.headers.get(CIString("X-Handled-By")).map(_.value)) must returnValue(
+        Some("HEAD"))
     }
 
     "return truncated body of corresponding GET on fallthrough" in {

@@ -20,9 +20,9 @@ import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Origin, Referer, `X-Forwarded-For`}
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
+import org.typelevel.ci.CIString
 import scala.util.control.NoStackTrace
 
 /** Middleware to avoid Cross-site request forgery attacks.
@@ -59,7 +59,7 @@ import scala.util.control.NoStackTrace
   * @param clock clock used as a nonce
   */
 final class CSRF[F[_], G[_]] private[middleware] (
-    headerName: CaseInsensitiveString,
+    headerName: CIString,
     cookieSettings: CSRF.CookieSettings,
     clock: Clock,
     onFailure: Response[G],
@@ -249,7 +249,7 @@ object CSRF {
       headerCheck: Request[G] => Boolean
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
-      headerName = CaseInsensitiveString("X-Csrf-Token"),
+      headerName = CIString("X-Csrf-Token"),
       cookieSettings = CookieSettings(
         cookieName = "csrf-token",
         secure = false,
@@ -297,7 +297,7 @@ object CSRF {
   ///
 
   class CSRFBuilder[F[_], G[_]] private[middleware] (
-      headerName: CaseInsensitiveString,
+      headerName: CIString,
       cookieSettings: CSRF.CookieSettings,
       clock: Clock,
       onFailure: Response[G],
@@ -307,7 +307,7 @@ object CSRF {
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G]
   )(implicit F: Sync[F], G: Applicative[G]) {
     private def copy(
-        headerName: CaseInsensitiveString = headerName,
+        headerName: CIString = headerName,
         cookieSettings: CookieSettings = cookieSettings,
         clock: Clock = clock,
         onFailure: Response[G] = onFailure,
@@ -327,7 +327,7 @@ object CSRF {
         csrfCheck
       )
 
-    def withHeaderName(headerName: CaseInsensitiveString): CSRFBuilder[F, G] =
+    def withHeaderName(headerName: CIString): CSRFBuilder[F, G] =
       copy(headerName = headerName)
     def withClock(clock: Clock): CSRFBuilder[F, G] = copy(clock = clock)
     def withOnFailure(onFailure: Response[G]): CSRFBuilder[F, G] = copy(onFailure = onFailure)
