@@ -24,7 +24,6 @@ import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 /**
   * @param sslContext Some custom `SSLContext`, or `None` if the
