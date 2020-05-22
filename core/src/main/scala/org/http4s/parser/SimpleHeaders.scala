@@ -30,6 +30,16 @@ import org.typelevel.ci.CIString
   * parser rules for all headers that can be parsed with one simple rule
   */
 private[parser] trait SimpleHeaders {
+  def ACCEPT_PATCH(value: String): ParseResult[`Accept-Patch`] =
+    new Http4sHeaderParser[`Accept-Patch`](value) with MediaType.MediaTypeParser {
+      def entry =
+        rule {
+          oneOrMore(MediaTypeFull).separatedBy(ListSep) ~ EOL ~> { (medias: Seq[MediaType]) =>
+            `Accept-Patch`(NonEmptyList(medias.head, medias.tail.toList))
+          }
+        }
+    }.parse
+
   def ALLOW(value: String): ParseResult[Allow] =
     new Http4sHeaderParser[Allow](value) {
       def entry =

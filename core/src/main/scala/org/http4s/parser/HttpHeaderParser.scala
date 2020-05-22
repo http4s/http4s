@@ -105,6 +105,7 @@ object HttpHeaderParser
   }
 
   private def gatherBuiltIn(): Unit = {
+    addParser_(CIString("ACCEPT-PATCH"), `ACCEPT_PATCH`)
     addParser_(CIString("ACCEPT"), `ACCEPT`)
     addParser_(CIString("ACCEPT-CHARSET"), `ACCEPT_CHARSET`)
     addParser_(CIString("ACCEPT-ENCODING"), `ACCEPT_ENCODING`)

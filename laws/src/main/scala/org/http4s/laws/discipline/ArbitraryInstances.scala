@@ -492,6 +492,13 @@ private[http4s] trait ArbitraryInstances {
       )
     }
 
+  implicit val http4sTestingArbitraryForAcceptPatchHeader: Arbitrary[headers.`Accept-Patch`] =
+    Arbitrary {
+      for {
+        media <- getArbitrary[NonEmptyList[MediaType]]
+      } yield headers.`Accept-Patch`(media)
+    }
+
   implicit val http4sTestingArbitraryForAgeHeader: Arbitrary[headers.Age] =
     Arbitrary {
       for {
