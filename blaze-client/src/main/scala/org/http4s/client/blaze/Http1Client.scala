@@ -11,6 +11,7 @@ package blaze
 import cats.effect._
 import fs2.Stream
 import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.internal.SSLContextOption
 
 import scala.concurrent.duration.Duration
 
@@ -25,7 +26,8 @@ object Http1Client {
   private def resource[F[_]](config: BlazeClientConfig)(implicit
       F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
-      sslContextOption = config.sslContext,
+      sslContextOption =
+        config.sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided),
       bufferSize = config.bufferSize,
       asynchronousChannelGroup = config.group,
       executionContext = config.executionContext,
