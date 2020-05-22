@@ -10,6 +10,7 @@ package jetty
 
 import cats.effect._
 import cats.implicits._
+import cats.Semigroup
 import java.net.InetSocketAddress
 import java.util
 import javax.net.ssl.{SSLContext, SSLParameters}
@@ -172,6 +173,10 @@ sealed class JettyBuilder[F[_]] private (
 
   def mountService(service: HttpRoutes[F], prefix: String): Self =
     mountHttpApp(service.orNotFound, prefix)
+
+  def mountPrefixedServices(prefixed: PrefixedServices[F]): Self =
+    prefixed.services.foldLeft(this)((builder, prefixedService) =>
+      builder.mountService(prefixedService.service, prefixedService.prefix))
 
   def mountHttpApp(service: HttpApp[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (context, index, builder) =>
@@ -388,3 +393,15 @@ object JettyBuilder {
 }
 
 private final case class Mount[F[_]](f: (ServletContextHandler, Int, JettyBuilder[F]) => Unit)
+
+case class PrefixedService[F[_]](service: HttpRoutes[F], prefix: String)
+class PrefixedServices[F[_]] private (val services: List[PrefixedService[F]])
+
+object PrefixedServices {
+  def apply[F[_]](service: HttpRoutes[F], prefix: String) =
+    new PrefixedServices[F](List(PrefixedService(service, prefix)))
+
+  implicit def prefixedServicesSemigroup[F[_]]: Semigroup[PrefixedServices[F]] =
+    (x: PrefixedServices[F], y: PrefixedServices[F]) =>
+      new PrefixedServices[F](x.services ++ y.services)
+}
