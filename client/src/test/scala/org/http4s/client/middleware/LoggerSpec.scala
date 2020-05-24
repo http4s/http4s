@@ -81,5 +81,50 @@ class LoggerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       res must returnStatus(Status.Ok)
       res must returnBody(expectedBody)
     }
+
+    import cats.effect.concurrent.Ref
+
+    def loggerAppWithRef(logBody: Boolean, ref: Ref[IO, List[String]]): HttpApp[IO] =
+      Logger(
+        logHeaders = true,
+        logBody = logBody,
+        logAction = Some {
+          str: String => ref.update(_ ++ List(str))
+        }
+      )(Client.fromHttpApp(testApp)).toHttpApp
+
+    "should log the expected request and response w/ logBody = false" in {
+      val req = Request[IO](uri = uri("/request"))
+      val value: IO[(Response[IO], List[String])] = for {
+        ref <- Ref.of[IO, List[String]](List[String]())
+        resp <- loggerAppWithRef(false, ref)(req)
+        value <- ref.get
+      } yield (resp, value)
+
+      val (r, v) = value.unsafeRunSync()
+
+      r.status ==== Status.Ok
+      v ==== List(
+        "HTTP/1.1 GET /request Headers()",
+        "HTTP/1.1 200 OK Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 16)"
+      )
+    }
+
+    "should log the expected request and response w/ logBody = true" in {
+      val req = Request[IO](uri = uri("/request"))
+      val value: IO[(Response[IO], List[String])] = for {
+        ref <- Ref.of[IO, List[String]](List[String]())
+        resp <- loggerAppWithRef(true, ref)(req)
+        value <- ref.get
+      } yield (resp, value)
+
+      val (r, v) = value.unsafeRunSync()
+
+      r.status ==== Status.Ok
+      v ==== List(
+        "HTTP/1.1 GET /request Headers()",
+        "HTTP/1.1 200 OK Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 16)"
+      )
+    }
   }
 }
