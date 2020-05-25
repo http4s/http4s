@@ -206,7 +206,7 @@ object CookieJar {
       r.uri.host.forall { authority =>
         authority.renderString.contains(s)
       })
-    val pathApplies = c.path.forall(s => r.uri.path.contains(s))
+    val pathApplies = c.path.forall(s => r.uri.path.renderString.contains(s))
 
     val secureSatisfied =
       if (c.secure)

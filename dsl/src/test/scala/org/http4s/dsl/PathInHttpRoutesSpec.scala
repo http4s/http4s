@@ -10,7 +10,6 @@ package dsl
 import cats.data.Validated._
 import cats.effect.IO
 import cats.implicits._
-import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.testing.Http4sLegacyMatchersIO
 
@@ -88,33 +87,33 @@ object PathInHttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
   "Path DSL within HttpService" should {
     "GET /" in {
-      val response = serve(Request(GET, Uri(path = "/")))
+      val response = serve(Request(GET, Uri(path = Uri.Path.Root)))
       response.status must_== (Ok)
       response.as[String] must returnValue("(empty)")
     }
     "GET /{id}" in {
-      val response = serve(Request(GET, Uri(path = "/12345")))
+      val response = serve(Request(GET, uri"/12345"))
       response.status must_== (Ok)
       response.as[String] must returnValue("id: 12345")
     }
     "GET /?{start}" in {
-      val response = serve(Request(GET, uri("/?start=1")))
+      val response = serve(Request(GET, uri"/?start=1"))
       response.status must_== (Ok)
       response.as[String] must returnValue("start: 1")
     }
     "GET /?{start,limit}" in {
-      val response = serve(Request(GET, uri("/?start=1&limit=2")))
+      val response = serve(Request(GET, uri"/?start=1&limit=2"))
       response.status must_== (Ok)
       response.as[String] must returnValue("start: 1, limit: 2")
     }
     "GET /calc" in {
-      val response = serve(Request(GET, Uri(path = "/calc")))
+      val response = serve(Request(GET, uri"/calc"))
       response.status must_== (NotFound)
       response.as[String] must returnValue("404 Not Found: /calc")
     }
     "GET /calc?decimal=1.3" in {
       val response =
-        serve(Request(GET, Uri(path = "/calc", query = Query.fromString("decimal=1.3"))))
+        serve(Request(GET, Uri(path = path"/calc", query = Query.fromString("decimal=1.3"))))
       response.status must_== (Ok)
       response.as[String] must returnValue(s"result: 0.65")
     }
@@ -122,89 +121,94 @@ object PathInHttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = serve(
         Request(
           GET,
-          Uri(path = "/items", query = Query.fromString("list=1&list=2&list=3&list=4&list=5"))))
+          Uri(path = path"/items", query = Query.fromString("list=1&list=2&list=3&list=4&list=5"))))
       response.status must_== (Ok)
       response.as[String] must returnValue(s"items: 1,2,3,4,5")
     }
     "GET /search" in {
-      val response = serve(Request(GET, Uri(path = "/search")))
+      val response = serve(Request(GET, uri"/search"))
       response.status must_== (NotFound)
       response.as[String] must returnValue("404 Not Found: /search")
     }
     "GET /search?term" in {
-      val response = serve(Request(GET, Uri(path = "/search", query = Query.fromString("term"))))
+      val response =
+        serve(Request(GET, Uri(path = path"/search", query = Query.fromString("term"))))
       response.status must_== (NotFound)
       response.as[String] must returnValue("404 Not Found: /search")
     }
     "GET /search?term=" in {
-      val response = serve(Request(GET, Uri(path = "/search", query = Query.fromString("term="))))
+      val response =
+        serve(Request(GET, Uri(path = path"/search", query = Query.fromString("term="))))
       response.status must_== (Ok)
       response.as[String] must returnValue("term: ")
     }
     "GET /search?term= http4s  " in {
       val response =
-        serve(Request(GET, Uri(path = "/search", query = Query.fromString("term=%20http4s%20%20"))))
+        serve(
+          Request(GET, Uri(path = path"/search", query = Query.fromString("term=%20http4s%20%20"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("term:  http4s  ")
     }
     "GET /search?term=http4s" in {
       val response =
-        serve(Request(GET, Uri(path = "/search", query = Query.fromString("term=http4s"))))
+        serve(Request(GET, Uri(path = path"/search", query = Query.fromString("term=http4s"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("term: http4s")
     }
     "optional parameter present" in {
-      val response = serve(Request(GET, Uri(path = "/app", query = Query.fromString("counter=3"))))
+      val response =
+        serve(Request(GET, Uri(path = path"/app", query = Query.fromString("counter=3"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("counter: Some(3)")
     }
     "optional parameter absent" in {
-      val response = serve(Request(GET, Uri(path = "/app", query = Query.fromString("other=john"))))
+      val response =
+        serve(Request(GET, Uri(path = path"/app", query = Query.fromString("other=john"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("counter: None")
     }
     "optional parameter present with incorrect format" in {
       val response =
-        serve(Request(GET, Uri(path = "/app", query = Query.fromString("counter=john"))))
+        serve(Request(GET, Uri(path = path"/app", query = Query.fromString("counter=john"))))
       response.status must_== (NotFound)
     }
     "validating parameter present" in {
       val response =
-        serve(Request(GET, Uri(path = "/valid", query = Query.fromString("counter=3"))))
+        serve(Request(GET, Uri(path = path"/valid", query = Query.fromString("counter=3"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("counter: 3")
     }
     "validating parameter absent" in {
       val response =
-        serve(Request(GET, Uri(path = "/valid", query = Query.fromString("notthis=3"))))
+        serve(Request(GET, Uri(path = path"/valid", query = Query.fromString("notthis=3"))))
       response.status must_== (NotFound)
     }
     "validating parameter present with incorrect format" in {
       val response =
-        serve(Request(GET, Uri(path = "/valid", query = Query.fromString("counter=foo"))))
+        serve(Request(GET, Uri(path = path"/valid", query = Query.fromString("counter=foo"))))
       response.status must_== (BadRequest)
       response.as[String] must returnValue("Query decoding Int failed")
     }
     "optional validating parameter present" in {
       val response =
-        serve(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=3"))))
+        serve(Request(GET, Uri(path = path"/optvalid", query = Query.fromString("counter=3"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("counter: 3")
     }
     "optional validating parameter absent" in {
       val response =
-        serve(Request(GET, Uri(path = "/optvalid", query = Query.fromString("notthis=3"))))
+        serve(Request(GET, Uri(path = path"/optvalid", query = Query.fromString("notthis=3"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("no counter")
     }
     "optional validating parameter present with incorrect format" in {
       val response =
-        serve(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=foo"))))
+        serve(Request(GET, Uri(path = path"/optvalid", query = Query.fromString("counter=foo"))))
       response.status must_== (BadRequest)
       response.as[String] must returnValue("Query decoding Int failed")
     }
     "optional multi parameter with no parameters" in {
-      val response = serve(Request(GET, Uri(path = "/multiopt")))
+      val response = serve(Request(GET, uri"/multiopt"))
       response.status must_== (Ok)
       response.as[String] must returnValue("absent")
     }
@@ -212,33 +216,39 @@ object PathInHttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = serve(
         Request(
           GET,
-          Uri(path = "/multiopt", query = Query.fromString("counter=1&counter=2&counter=3"))))
+          Uri(path = path"/multiopt", query = Query.fromString("counter=1&counter=2&counter=3"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("3: 1,2,3")
     }
     "optional multi parameter with one parameter" in {
       val response =
-        serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=3"))))
+        serve(Request(GET, Uri(path = path"/multiopt", query = Query.fromString("counter=3"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("1: 3")
     }
     "optional multi parameter with incorrect format" in {
       val response =
-        serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo"))))
+        serve(Request(GET, Uri(path = path"/multiopt", query = Query.fromString("counter=foo"))))
       response.status must_== (BadRequest)
     }
     "optional multi parameter with one incorrect parameter" in {
       val response = serve(
-        Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo&counter=1"))))
+        Request(
+          GET,
+          Uri(path = path"/multiopt", query = Query.fromString("counter=foo&counter=1"))))
       response.status must_== (BadRequest)
 
       val response2 = serve(
-        Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=1&counter=foo"))))
+        Request(
+          GET,
+          Uri(path = path"/multiopt", query = Query.fromString("counter=1&counter=foo"))))
       response2.status must_== (BadRequest)
     }
     "optional multi parameter with two incorrect parameters must return both" in {
       val response = serve(
-        Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo&counter=bar"))))
+        Request(
+          GET,
+          Uri(path = path"/multiopt", query = Query.fromString("counter=foo&counter=bar"))))
       response.status must_== (BadRequest)
       response.as[String].map(_.split("\n").toList) must returnValue(
         scala.List(
@@ -248,19 +258,19 @@ object PathInHttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
     "optional flag parameter when present" in {
       val response =
-        serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString("flag"))))
+        serve(Request(GET, Uri(path = path"/flagparam", query = Query.fromString("flag"))))
       response.status must_== Ok
       response.as[String] must returnValue("flag present")
     }
     "optional flag parameter when present with a value" in {
       val response =
-        serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString("flag=1"))))
+        serve(Request(GET, Uri(path = path"/flagparam", query = Query.fromString("flag=1"))))
       response.status must_== (Ok)
       response.as[String] must returnValue("flag present")
     }
     "optional flag parameter when not present" in {
       val response =
-        serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString(""))))
+        serve(Request(GET, Uri(path = path"/flagparam", query = Query.fromString(""))))
       response.status must_== (Ok)
       response.as[String] must returnValue("flag not present")
     }

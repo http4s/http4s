@@ -27,10 +27,10 @@ object AutoSlash {
       http(req) <+> {
         val pathInfo = req.pathInfo
 
-        if (pathInfo.isEmpty || pathInfo.charAt(pathInfo.length - 1) != '/')
+        if (pathInfo.isEmpty)
           F.empty
         else
-          http.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
+          http.apply(req.withPathInfo(pathInfo.dropEndsWithSlash))
       }
     }
   }

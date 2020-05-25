@@ -103,7 +103,7 @@ object JsonDebugErrorHandler {
                   )
                   .dropNullValues)
               .asJson,
-            "path" -> req.uri.path.asJson,
+            "path" -> req.uri.path.renderString.asJson,
             "query" -> req.uri.query.multiParams.asJson
           )
           .dropNullValues,
@@ -118,7 +118,7 @@ object JsonDebugErrorHandler {
             )
           }
           .asJson,
-        "path_info" -> req.pathInfo.asJson,
+        "path_info" -> req.pathInfo.renderString.asJson,
         "remote_address" -> req.remoteAddr.asJson,
         "http_version" -> req.httpVersion.toString().asJson
       )

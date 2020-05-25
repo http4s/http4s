@@ -43,7 +43,8 @@ class RouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
   def middleware(routes: HttpRoutes[IO]): HttpRoutes[IO] =
     Kleisli((r: Request[IO]) =>
-      if (r.uri.query.containsQueryParam("block")) OptionT.liftF(Ok(r.uri.path)) else routes(r))
+      if (r.uri.query.containsQueryParam("block")) OptionT.liftF(Ok(r.uri.path.renderString))
+      else routes(r))
 
   val service = Router[IO](
     "/numbers" -> numbers,

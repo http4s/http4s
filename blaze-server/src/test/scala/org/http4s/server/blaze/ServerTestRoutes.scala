@@ -107,23 +107,23 @@ object ServerTestRoutes extends Http4sDsl[IO] {
   def apply()(implicit cs: ContextShift[IO]) =
     HttpRoutes
       .of[IO] {
-        case req if req.method == Method.GET && req.pathInfo == "/get" =>
+        case req if req.method == Method.GET && req.pathInfo == path"/get" =>
           Ok("get")
 
-        case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
+        case req if req.method == Method.GET && req.pathInfo == path"/chunked" =>
           Ok(eval(IO.shift *> IO("chu")) ++ eval(IO.shift *> IO("nk")))
 
-        case req if req.method == Method.POST && req.pathInfo == "/post" =>
+        case req if req.method == Method.POST && req.pathInfo == path"/post" =>
           Ok("post")
 
-        case req if req.method == Method.GET && req.pathInfo == "/twocodings" =>
+        case req if req.method == Method.GET && req.pathInfo == path"/twocodings" =>
           Ok("Foo", `Transfer-Encoding`(TransferCoding.chunked))
 
-        case req if req.method == Method.POST && req.pathInfo == "/echo" =>
+        case req if req.method == Method.POST && req.pathInfo == path"/echo" =>
           Ok(emit("post") ++ req.bodyAsText)
 
         // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
-        case req if req.method == Method.GET && req.pathInfo == "/notmodified" =>
+        case req if req.method == Method.GET && req.pathInfo == path"/notmodified" =>
           NotModified()
       }
       .orNotFound
