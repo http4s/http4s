@@ -56,12 +56,6 @@ package object http4s {
     */
   type HttpRoutes[F[_]] = Http[OptionT[F, *], F]
 
-  @deprecated("Deprecated in favor of just using Kleisli", "0.18")
-  type Service[F[_], A, B] = Kleisli[F, A, B]
-
-  @deprecated("Deprecated in favor of HttpRoutes", "0.19")
-  type HttpService[F[_]] = HttpRoutes[F]
-
   type AuthedRequest[F[_], T] = ContextRequest[F, T]
 
   /**
@@ -69,9 +63,6 @@ package object http4s {
     * trigger. See https://github.com/http4s/http4s/issues/1506
     */
   type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, *], AuthedRequest[F, T], Response[F]]
-
-  @deprecated("Deprecated in favor of AuthedRoutes", "0.20.1")
-  type AuthedService[T, F[_]] = AuthedRoutes[T, F]
 
   type ContextRoutes[T, F[_]] = Kleisli[OptionT[F, *], ContextRequest[F, T], Response[F]]
 

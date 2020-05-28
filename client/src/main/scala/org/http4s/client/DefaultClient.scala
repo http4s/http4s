@@ -8,7 +8,7 @@ package org.http4s
 package client
 
 import cats.Applicative
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect.{Bracket, Resource}
 import cats.implicits._
 import fs2.Stream
@@ -52,10 +52,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A] =
     Kleisli(fetch(_)(f))
 
-  @deprecated("Use toKleisli", "0.18")
-  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A] =
-    toKleisli(f)
-
   /**
     * Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
@@ -72,19 +68,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
           resp.withBodyStream(resp.body.onFinalizeWeak(release))
       }
     }
-
-  /**
-    * Returns this client as an [[HttpService]].  It is the
-    * responsibility of callers of this service to run the response
-    * body to dispose of the underlying HTTP connection.
-    *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
-    */
-  @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
-  def toHttpService: HttpService[F] =
-    toHttpApp.mapF(OptionT.liftF(_))
 
   def stream(req: Request[F]): Stream[F, Response[F]] =
     Stream.resource(run(req))
