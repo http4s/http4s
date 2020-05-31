@@ -39,6 +39,8 @@ object Logger {
     val isJson = message.contentType.exists(mT =>
       mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json"))
 
+    println(">>>> HERE")
+
     val isText = !isBinary || isJson
 
     def prelude =
@@ -50,10 +52,14 @@ object Logger {
           s"$httpVersion $status"
       }
 
+    println(">> prelude: " + prelude)
+
     val headers =
       if (logHeaders)
         message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
       else ""
+
+    println("> logBody: " +logBody + " , isText " + isText)
 
     val bodyStream =
       if (logBody && isText)

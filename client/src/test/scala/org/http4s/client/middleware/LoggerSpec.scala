@@ -35,52 +35,52 @@ class LoggerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
   val expectedBody: String = Source.fromInputStream(testResource).mkString
 
-  "ResponseLogger" should {
-    val responseLoggerClient =
-      ResponseLogger(true, true)(Client.fromHttpApp(testApp))
-
-    "not affect a Get" in {
-      val req = Request[IO](uri = uri("/request"))
-      responseLoggerClient.status(req).unsafeRunSync() must_== Status.Ok
-    }
-
-    "not affect a Post" in {
-      val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
-      val res = responseLoggerClient.expect[String](req)
-      res.unsafeRunSync() must_== expectedBody
-    }
-  }
-
-  "RequestLogger" should {
-    val requestLoggerClient = RequestLogger.apply(true, true)(Client.fromHttpApp(testApp))
-
-    "not affect a Get" in {
-      val req = Request[IO](uri = uri("/request"))
-      requestLoggerClient.status(req).unsafeRunSync() must_== Status.Ok
-    }
-
-    "not affect a Post" in {
-      val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
-      val res = requestLoggerClient.expect[String](req)
-      res.unsafeRunSync() must_== expectedBody
-    }
-  }
+//  "ResponseLogger" should {
+//    val responseLoggerClient =
+//      ResponseLogger(true, true)(Client.fromHttpApp(testApp))
+//
+//    "not affect a Get" in {
+//      val req = Request[IO](uri = uri("/request"))
+//      responseLoggerClient.status(req).unsafeRunSync() must_== Status.Ok
+//    }
+//
+//    "not affect a Post" in {
+//      val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+//      val res = responseLoggerClient.expect[String](req)
+//      res.unsafeRunSync() must_== expectedBody
+//    }
+//  }
+//
+//  "RequestLogger" should {
+//    val requestLoggerClient = RequestLogger.apply(true, true)(Client.fromHttpApp(testApp))
+//
+//    "not affect a Get" in {
+//      val req = Request[IO](uri = uri("/request"))
+//      requestLoggerClient.status(req).unsafeRunSync() must_== Status.Ok
+//    }
+//
+//    "not affect a Post" in {
+//      val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+//      val res = requestLoggerClient.expect[String](req)
+//      res.unsafeRunSync() must_== expectedBody
+//    }
+//  }
 
   "Logger" should {
-    val loggerApp =
-      Logger(true, true)(Client.fromHttpApp(testApp)).toHttpApp
-
-    "not affect a Get" in {
-      val req = Request[IO](uri = uri("/request"))
-      loggerApp(req) must returnStatus(Status.Ok)
-    }
-
-    "not affect a Post" in {
-      val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
-      val res = loggerApp(req)
-      res must returnStatus(Status.Ok)
-      res must returnBody(expectedBody)
-    }
+//    val loggerApp =
+//      Logger(true, true)(Client.fromHttpApp(testApp)).toHttpApp
+//
+//    "not affect a Get" in {
+//      val req = Request[IO](uri = uri("/request"))
+//      loggerApp(req) must returnStatus(Status.Ok)
+//    }
+//
+//    "not affect a Post" in {
+//      val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+//      val res = loggerApp(req)
+//      res must returnStatus(Status.Ok)
+//      res must returnBody(expectedBody)
+//    }
 
     import cats.effect.concurrent.Ref
 
@@ -92,23 +92,23 @@ class LoggerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
           str: String => ref.update(_ ++ List(str))
         }
       )(Client.fromHttpApp(testApp)).toHttpApp
-
-    "should log the expected request and response w/ logBody = false" in {
-      val req = Request[IO](uri = uri("/request"))
-      val value: IO[(Response[IO], List[String])] = for {
-        ref <- Ref.of[IO, List[String]](List[String]())
-        resp <- loggerAppWithRef(false, ref)(req)
-        value <- ref.get
-      } yield (resp, value)
-
-      val (r, v) = value.unsafeRunSync()
-
-      r.status ==== Status.Ok
-      v ==== List(
-        "HTTP/1.1 GET /request Headers()",
-        "HTTP/1.1 200 OK Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 16)"
-      )
-    }
+//
+//    "should log the expected request and response w/ logBody = false" in {
+//      val req = Request[IO](uri = uri("/request"))
+//      val value: IO[(Response[IO], List[String])] = for {
+//        ref <- Ref.of[IO, List[String]](List[String]())
+//        resp <- loggerAppWithRef(false, ref)(req)
+//        value <- ref.get
+//      } yield (resp, value)
+//
+//      val (r, v) = value.unsafeRunSync()
+//
+//      r.status ==== Status.Ok
+//      v ==== List(
+//        "HTTP/1.1 GET /request Headers()",
+//        "HTTP/1.1 200 OK Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 16)"
+//      )
+//    }
 
     "should log the expected request and response w/ logBody = true" in {
       val req = Request[IO](uri = uri("/request"))
