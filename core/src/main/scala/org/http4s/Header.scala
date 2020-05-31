@@ -120,6 +120,17 @@ object Header {
     }
   }
 
+  /** Helper trait that provides a default way of rendering the value provided a Renderer */
+  trait RecurringRenderer extends Recurring {
+    type Value
+    implicit def renderer: Renderer[Value]
+    override def renderValue(writer: Writer): writer.type = {
+      renderer.render(writer, values.head)
+      values.tail.foreach(writer << ", " << Renderer.renderString(_))
+      writer
+    }
+  }
+
   implicit val HeaderShow: Show[Header] = Show.show[Header] {
     _.toString
   }

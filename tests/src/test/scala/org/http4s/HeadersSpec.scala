@@ -46,7 +46,7 @@ class HeadersSpec extends Http4sSpec {
         Header("Accept-Patch", ""),
         Header("Access-Control-Allow-Credentials", "")
       )
-      headers.get(`Accept-Patch`).map(_.value) must beSome("")
+      headers.get(`Access-Control-Allow-Credentials`).map(_.value) must beSome("")
     }
 
     "Remove duplicate headers which are not of type Recurring on concatenation (++)" in {

@@ -15,6 +15,21 @@ import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSpec {
   "SimpleHeaders" should {
+    "parse Accept-Patch" in {
+      val header =
+        `Accept-Patch`(
+          NonEmptyList.of(new MediaType("text", "example", extensions = Map("charset" -> "utf-8"))))
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+      val multipleMediaTypes =
+        `Accept-Patch`(
+          NonEmptyList
+            .of(new MediaType("application", "example"), new MediaType("text", "example")))
+      HttpHeaderParser.parseHeader(multipleMediaTypes.toRaw) must beRight(multipleMediaTypes)
+
+      val bad = Header(header.name.toString, "foo; bar")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+    }
+
     "parse Connection" in {
       val header = Connection(CIString("closed"))
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
