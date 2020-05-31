@@ -75,6 +75,17 @@ class SimpleHeadersSpec extends Http4sSpec {
       HttpHeaderParser.parseHeader(bad) must beLeft
     }
 
+    "parse Access-Control-Allow-Credentials" in {
+      val header = `Access-Control-Allow-Credentials`().toRaw.parsed
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val bad = Header(header.name.toString, "false")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+      // it is case sensitive
+      val bad2 = Header(header.name.toString, "True")
+      HttpHeaderParser.parseHeader(bad2) must beLeft
+    }
+
     "parse Last-Modified" in {
       val header = `Last-Modified`(HttpDate.Epoch).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
