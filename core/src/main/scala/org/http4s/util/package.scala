@@ -10,39 +10,65 @@ import cats.ApplicativeError
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.StandardCharsets
+import org.http4s.internal.{bug => bug0}
 import scala.concurrent.ExecutionContextExecutor
 
 package object util {
   private val utf8Bom: Chunk[Byte] = Chunk(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
 
-  def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
+  def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = { in =>
     val decoder = charset.nioCharset.newDecoder
     val maxCharsPerByte = math.ceil(decoder.maxCharsPerByte().toDouble).toInt
     val avgBytesPerChar = math.ceil(1.0 / decoder.averageCharsPerByte().toDouble).toInt
     val charBufferSize = 128
 
-    _.repeatPull[String] {
-      _.unconsN(charBufferSize * avgBytesPerChar, allowFewer = true).flatMap {
-        case None =>
-          val charBuffer = CharBuffer.allocate(1)
-          decoder.decode(ByteBuffer.allocate(0), charBuffer, true)
-          decoder.flush(charBuffer)
-          val outputString = charBuffer.flip().toString
-          if (outputString.isEmpty) Pull.done.as(None)
-          else Pull.output1(outputString).as(None)
-        case Some((chunk, stream)) =>
-          if (chunk.nonEmpty) {
-            val chunkWithoutBom = skipByteOrderMark(chunk)
-            val bytes = chunkWithoutBom.toArray
-            val byteBuffer = ByteBuffer.wrap(bytes)
-            val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
-            decoder.decode(byteBuffer, charBuffer, false)
-            val nextStream = stream.consChunk(Chunk.byteBuffer(byteBuffer.slice()))
-            Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
-          } else
-            Pull.output(Chunk.empty[String]).as(Some(stream))
-      }
-    }
+    Pull
+      .loop[F, String, (Chunk[Byte], Stream[F, Byte])] {
+        case (carryover, stream) =>
+          stream.pull.unconsN(charBufferSize * avgBytesPerChar, allowFewer = true).flatMap {
+            case None =>
+              val bytes = carryover.toArray
+              val byteBuffer = ByteBuffer.wrap(bytes)
+              val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
+              decoder.decode(byteBuffer, charBuffer, true) match {
+                case result if result.isError || result.isOverflow =>
+                  result.throwException()
+                  throw bug0(s"Expected to have thrown an exception from ${result}")
+                case _ =>
+                  decoder.flush(charBuffer) match {
+                    case result if result.isError || result.isOverflow =>
+                      result.throwException()
+                      throw bug0(s"Expected to have thrown an exception from ${result}")
+                    case _ =>
+                      val outputString = charBuffer.flip().toString
+                      if (outputString.isEmpty)
+                        Pull.done.as(None)
+                      else
+                        Pull.output1(outputString).as(None)
+                  }
+              }
+            case Some((chunk, stream)) =>
+              if (chunk.nonEmpty) {
+                val chunkWithoutBom = skipByteOrderMark(chunk)
+                val bytes = new Array[Byte](carryover.size + chunkWithoutBom.size)
+                carryover.copyToArray(bytes, 0)
+                chunkWithoutBom.copyToArray(bytes, carryover.size)
+                val byteBuffer = ByteBuffer.wrap(bytes)
+                val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
+                decoder.decode(byteBuffer, charBuffer, false) match {
+                  case result if result.isError || result.isOverflow =>
+                    result.throwException()
+                    throw bug0(s"Expected to have thrown an exception from ${result}")
+                  case _ =>
+                    val carryover = Chunk.byteBuffer(byteBuffer.slice())
+                    Pull.output1(charBuffer.flip().toString).as(Some((carryover, stream)))
+                }
+              } else
+                Pull.output(Chunk.empty[String]).as(Some((carryover, stream)))
+          }
+      }((Chunk.empty, in))
+      .void
+      .stream
   }
 
   private def skipByteOrderMark[F[_]](chunk: Chunk[Byte]): Chunk[Byte] =

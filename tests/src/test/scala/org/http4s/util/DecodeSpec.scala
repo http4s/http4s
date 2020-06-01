@@ -8,6 +8,12 @@ package org.http4s
 package util
 
 import cats.implicits._
+import java.nio.charset.{Charset => JCharset}
+import java.nio.charset.{
+  CharacterCodingException,
+  MalformedInputException,
+  UnmappableCharacterException
+}
 import fs2._
 import fs2.text.utf8Decode
 import java.nio.charset.StandardCharsets
@@ -66,6 +72,35 @@ class DecodeSpec extends Http4sSpec {
       val source = Stream.emits(Seq(0xef.toByte, 0xbb.toByte, 0xbf.toByte))
       val decoded = decode(Charset.`UTF-8`)(source).toList.combineAll
       decoded must_== ""
+    }
+
+    "handle malformed input" in {
+      // Not a valid first byte in UTF-8
+      val source: Stream[Fallible, Byte] = Stream.emits(Seq(0x80.toByte))
+      val decoded = decode(Charset.`UTF-8`)(source).compile.string
+      decoded must beLeft(beAnInstanceOf[MalformedInputException])
+    }
+
+    "handle incomplete input" in {
+      // Only the first byte of a two-byte UTF-8 sequence
+      val source: Stream[Fallible, Byte] = Stream.emits(Seq(0xc2.toByte))
+      val decoded = decode(Charset.`UTF-8`)(source).compile.string // incorrect encoding provided
+      decoded must beLeft(beAnInstanceOf[MalformedInputException])
+    }
+
+    "handle unmappable character" in {
+      // https://stackoverflow.com/a/22902806
+      val source: Stream[Fallible, Byte] = Stream.emits(Seq(0x80.toByte, 0x81.toByte))
+      val decoded = decode(Charset(JCharset.forName("IBM1098")))(source).compile.string
+      decoded must beLeft(beAnInstanceOf[UnmappableCharacterException])
+    }
+
+    "either succeed or raise a CharacterCodingException" in prop { (bs: Array[Byte], cs: Charset) =>
+      val decoded = decode(cs)(Stream.emits[Fallible, Byte](bs)).compile.drain
+      decoded must beLike {
+        case Left(_: CharacterCodingException) => ok
+        case Right(_) if true => ok
+      }
     }
   }
 }
