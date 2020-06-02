@@ -119,7 +119,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
           Ok("Foo", `Transfer-Encoding`(TransferCoding.chunked))
 
         case req if req.method == Method.POST && req.pathInfo == "/echo" =>
-          Ok(emit("post") ++ req.bodyAsText)
+          Ok(emit("post") ++ req.bodyText)
 
         // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
         case req if req.method == Method.GET && req.pathInfo == "/notmodified" =>

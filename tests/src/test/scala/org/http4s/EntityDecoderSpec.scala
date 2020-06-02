@@ -432,20 +432,20 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
     }
   }
 
-  "decodeString" should {
+  "decodeText" should {
     val str = "Oekraïene"
     "Use an charset defined by the Content-Type header" in {
       val resp = Response[IO](Ok)
         .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.`UTF-8`)))
-      EntityDecoder.decodeString(resp)(implicitly, Charset.`US-ASCII`) must returnValue(str)
+      EntityDecoder.decodeText(resp)(implicitly, Charset.`US-ASCII`) must returnValue(str)
     }
 
     "Use the default if the Content-Type header does not define one" in {
       val resp = Response[IO](Ok)
         .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(`Content-Type`(MediaType.text.plain, None))
-      EntityDecoder.decodeString(resp)(implicitly, Charset.`UTF-8`) must returnValue(str)
+      EntityDecoder.decodeText(resp)(implicitly, Charset.`UTF-8`) must returnValue(str)
     }
   }
 

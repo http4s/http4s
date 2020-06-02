@@ -57,7 +57,7 @@ object Logger {
 
     val bodyStream =
       if (logBody && isText)
-        message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
+        message.bodyText(implicitly, charset.getOrElse(Charset.`UTF-8`))
       else if (logBody)
         message.body
           .map(b => java.lang.Integer.toHexString(b & 0xff))
