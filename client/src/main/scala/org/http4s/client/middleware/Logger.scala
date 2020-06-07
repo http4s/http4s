@@ -80,7 +80,6 @@ object Logger {
 
         m.compile.string
           .flatMap(f)
-          .handleError { case _ => "N/A" }
           .map(text => s"""body="$text"""")
 
       case None =>
