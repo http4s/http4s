@@ -50,12 +50,12 @@ object Logger {
           s"$httpVersion $status"
       }
 
-    val headers =
+    val headers: String =
       if (logHeaders)
         message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
       else ""
 
-    val bodyStream =
+    val bodyStream: Stream[F, String] =
       if (logBody && isText)
         message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
       else if (logBody)
@@ -64,7 +64,7 @@ object Logger {
       else
         Stream.empty.covary[F]
 
-    val bodyText =
+    val bodyText: F[String] =
       if (logBody)
         bodyStream.compile.string
           .map(text => s"""body="$text"""")
