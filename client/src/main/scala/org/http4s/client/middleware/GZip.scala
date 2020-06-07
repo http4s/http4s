@@ -8,7 +8,10 @@ package org.http4s
 package client
 package middleware
 
+import java.io.EOFException
+
 import cats.effect.Sync
+import fs2.{Pipe, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
 
 /**
@@ -24,7 +27,7 @@ object GZip {
       val responseResource = client.run(reqWithEncoding)
 
       responseResource.map { actualResponse =>
-        decompress(bufferSize, actualResponse)
+        decompress(bufferSize, canEntityBodyBeEmpty(req.method), actualResponse)
       }
     }
 
@@ -37,20 +40,29 @@ object GZip {
           req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
     }
 
-  private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
-      F: Sync[F]): Response[F] =
+  private def canEntityBodyBeEmpty(requestMethod: Method): Boolean =
+    requestMethod == Method.HEAD
+
+  private def decompress[F[_]](
+      bufferSize: Int,
+      entityBodyCanBeEmpty: Boolean,
+      response: Response[F])(implicit F: Sync[F]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
+        val gunzip: Pipe[F, Byte, Byte] =
+          _.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content)
+
         response
           .filterHeaders(nonCompressionHeader)
-          .withBodyStream(
-            response.body.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content))
+          .withBodyStream(response.body.through(decompressWith(gunzip, entityBodyCanBeEmpty)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
+        val deflate: Pipe[F, Byte, Byte] = fs2.compression.deflate(bufferSize)
+
         response
           .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(fs2.compression.deflate(bufferSize = bufferSize)))
+          .withBodyStream(response.body.through(decompressWith(deflate, entityBodyCanBeEmpty)))
 
       case _ =>
         response
@@ -58,4 +70,13 @@ object GZip {
 
   private def nonCompressionHeader(header: Header): Boolean =
     header.isNot(`Content-Encoding`) && header.isNot(`Content-Length`)
+
+  private def decompressWith[F[_]](
+      decompressor: Pipe[F, Byte, Byte],
+      entityBodyCanBeEmpty: Boolean)(implicit F: Sync[F]): Pipe[F, Byte, Byte] =
+    _.through(decompressor)
+      .handleErrorWith {
+        case _: EOFException if entityBodyCanBeEmpty => Stream.empty
+        case error => Stream.raiseError(error)
+      }
 }
