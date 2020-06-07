@@ -42,10 +42,10 @@ object Logger {
   }
 
   def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
-    logHeaders: Boolean,
-    logBodyText: Option[String => F[String]],
-    redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-    log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
+      logHeaders: Boolean,
+      logBodyText: Option[String => F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
@@ -71,19 +71,17 @@ object Logger {
     val bodyText: F[String] = logBodyText match {
       case Some(f) =>
         val m: Stream[F, String] =
-          if(isText) {
+          if (isText)
             message
               .bodyAsText(charset.getOrElse(Charset.`UTF-8`))
-          } else {
+          else
             message.body
               .map(b => java.lang.Integer.toHexString(b & 0xff))
-          }
 
-        m.compile
-         .string
-         .flatMap(f)
-         .handleError {case _ => "N/A"}
-         .map(text => s"""body="$text"""")
+        m.compile.string
+          .flatMap(f)
+          .handleError { case _ => "N/A" }
+          .map(text => s"""body="$text"""")
 
       case None =>
         F.pure("")
