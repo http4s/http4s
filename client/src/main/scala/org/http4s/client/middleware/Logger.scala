@@ -34,51 +34,14 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
-    val charset = message.charset
-    val isBinary = message.contentType.exists(_.mediaType.binary)
-    val isJson = message.contentType.exists(mT =>
-      mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json"))
 
-    val isText = !isBinary || isJson
+    val logBodyValue: Option[String => F[String]] =
+      if (logBody) Some(F.pure) else None
 
-    def prelude =
-      message match {
-        case Request(method, uri, httpVersion, _, _, _) =>
-          s"$httpVersion $method $uri"
-
-        case Response(status, httpVersion, _, _, _) =>
-          s"$httpVersion $status"
-      }
-
-    val headers: String =
-      if (logHeaders)
-        message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
-      else ""
-
-    val bodyStream: Stream[F, String] =
-      if (logBody && isText)
-        message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
-      else if (logBody)
-        message.body
-          .map(b => java.lang.Integer.toHexString(b & 0xff))
-      else
-        Stream.empty.covary[F]
-
-    val bodyText: F[String] =
-      if (logBody)
-        bodyStream.compile.string
-          .map(text => s"""body="$text"""")
-      else
-        F.pure("")
-
-    def spaced(x: String): String = if (x.isEmpty) x else s" $x"
-
-    bodyText
-      .map(body => s"$prelude${spaced(headers)}${spaced(body)}")
-      .flatMap(log)
+    logMessageWithBodyText[F, A](message)(logHeaders, logBodyValue, redactHeadersWhen)(log)
   }
 
-  def logMessage[F[_], A <: Message[F]](message: A)(
+  def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
     logHeaders: Boolean,
     logBodyText: Option[String => F[String]],
     redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
