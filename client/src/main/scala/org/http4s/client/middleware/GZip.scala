@@ -12,7 +12,7 @@ import java.io.EOFException
 
 import cats.effect.Sync
 import fs2.{Pipe, Stream}
-import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
+import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 
 /**
   * Client middleware for enabling gzip.
@@ -53,23 +53,17 @@ object GZip {
         val gunzip: Pipe[F, Byte, Byte] =
           _.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content)
 
-        response
-          .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(decompressWith(gunzip, entityBodyCanBeEmpty)))
+        response.withBodyStream(response.body.through(decompressWith(gunzip, entityBodyCanBeEmpty)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
         val deflate: Pipe[F, Byte, Byte] = fs2.compression.deflate(bufferSize)
 
-        response
-          .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(decompressWith(deflate, entityBodyCanBeEmpty)))
+        response.withBodyStream(
+          response.body.through(decompressWith(deflate, entityBodyCanBeEmpty)))
 
       case _ =>
         response
     }
-
-  private def nonCompressionHeader(header: Header): Boolean =
-    header.isNot(`Content-Encoding`) && header.isNot(`Content-Length`)
 
   private def decompressWith[F[_]](
       decompressor: Pipe[F, Byte, Byte],

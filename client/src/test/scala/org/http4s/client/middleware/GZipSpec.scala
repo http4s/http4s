@@ -26,7 +26,7 @@ class GZipSpec extends Http4sSpec {
     "return data correctly" in {
       val body = gzipClient.get(Uri.unsafeFromString("/gziptest")) { response =>
         response.status must_== Status.Ok
-        response.headers.get(`Content-Encoding`) must beNone
+        response.headers.get(`Content-Encoding`) must beSome(`Content-Encoding`(ContentCoding.gzip))
 
         response.as[String]
       }
@@ -38,7 +38,7 @@ class GZipSpec extends Http4sSpec {
       val request = Request[IO](method = Method.HEAD, uri = Uri.unsafeFromString("/gziptest"))
       val response = gzipClient.fetch[String](request) { response =>
         response.status must_== Status.Ok
-        response.headers.get(`Content-Encoding`) must beNone
+        response.headers.get(`Content-Encoding`) must beSome(`Content-Encoding`(ContentCoding.gzip))
 
         response.as[String]
       }
