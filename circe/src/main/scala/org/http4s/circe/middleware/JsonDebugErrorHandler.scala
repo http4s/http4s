@@ -75,13 +75,10 @@ object JsonDebugErrorHandler {
     def encoder[F[_]](
         redactWhen: CIString => Boolean
     ): Encoder[JsonErrorHandlerResponse[F]] =
-      new Encoder[JsonErrorHandlerResponse[F]] {
-        def apply(a: JsonErrorHandlerResponse[F]): Json =
-          Json.obj(
-            "request" -> encodeRequest(a.req, redactWhen),
-            "throwable" -> encodeThrowable(a.caught)
-          )
-      }
+      (a: JsonErrorHandlerResponse[F]) => Json.obj(
+        "request" -> encodeRequest(a.req, redactWhen),
+        "throwable" -> encodeThrowable(a.caught)
+      )
   }
 
   private def encodeRequest[F[_]](req: Request[F], redactWhen: CIString => Boolean): Json =
