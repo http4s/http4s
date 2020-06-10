@@ -9,7 +9,9 @@ package server
 package middleware
 
 import org.http4s.{Header, Http, Request, Response}
-import cats.data.Kleisli
+import cats.{FlatMap, ~>}
+import cats.arrow.FunctionK
+import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import cats.implicits._
 import org.typelevel.ci.CIString
@@ -21,15 +23,40 @@ import java.util.UUID
   */
 object RequestId {
 
-  def apply[G[_], F[_]](headerName: CIString = CIString("X-Request-ID"))(http: Http[G, F])(implicit
-      G: Sync[G]): Http[G, F] =
+  private val requestIdHeader = CIString("X-Request-ID")
+
+  def apply[G[_], F[_]](
+      fk: F ~> G,
+      headerName: CIString = requestIdHeader,
+      genReqId: Option[F[UUID]] = None
+  )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] = {
+    val gen = genReqId.getOrElse(F.delay(UUID.randomUUID()))
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
-        header <- req.headers.get(headerName) match {
-          case None => G.delay[Header](Header.Raw(headerName, UUID.randomUUID().show))
-          case Some(header) => G.pure[Header](header)
-        }
+        header <- fk(req.headers.get(headerName) match {
+          case None => gen.map(reqId => Header.Raw(headerName, reqId.show))
+          case Some(header) => F.pure[Header](header)
+        })
         response <- http(req.putHeaders(header))
       } yield response.putHeaders(header)
     }
+  }
+
+  def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
+    apply(FunctionK.id[F], requestIdHeader, None)(httpApp)
+
+  def httpApp[F[_]: Sync](
+      headerName: CIString = requestIdHeader,
+      genReqId: Option[F[UUID]] = None
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    apply(FunctionK.id[F], headerName, genReqId)(httpApp)
+
+  def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(OptionT.liftK[F], requestIdHeader, None)(httpRoutes)
+
+  def httpRoutes[F[_]: Sync](
+      headerName: CIString = requestIdHeader,
+      genReqId: Option[F[UUID]] = None
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(OptionT.liftK[F], headerName, genReqId)(httpRoutes)
 }

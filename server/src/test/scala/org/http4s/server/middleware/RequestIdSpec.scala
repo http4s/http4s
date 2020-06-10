@@ -12,7 +12,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.Uri.uri
 import org.typelevel.ci.CIString
-import java.{util => ju}
+import java.util.UUID
 
 class RequestIdSpec extends Http4sSpec {
   private def testService(headerKey: CIString = CIString("X-Request-ID")) = HttpRoutes.of[IO] {
@@ -29,7 +29,7 @@ class RequestIdSpec extends Http4sSpec {
   "RequestId middleware" should {
     "propagate X-Request-ID header from request to response" in {
       val req = Request[IO](uri = uri("/request"), headers = Headers.of(Header("X-Request-ID", "123")))
-      val (reqReqId, respReqId) = RequestId()(testService()).orNotFound(req)
+      val (reqReqId, respReqId) = RequestId.httpRoutes(testService()).orNotFound(req)
         .flatMap { resp =>
           requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp))
         }.unsafeRunSync()
@@ -38,16 +38,24 @@ class RequestIdSpec extends Http4sSpec {
     }
     "generate X-Request-ID header when unset" in {
       val req = Request[IO](uri = uri("/request"))
-      val (reqReqId, respReqId) = RequestId()(testService()).orNotFound(req)
+      val (reqReqId, respReqId) = RequestId.httpRoutes(testService()).orNotFound(req)
         .flatMap { resp =>
           requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp))
         }.unsafeRunSync()
 
-      (reqReqId must_=== respReqId) and (Either.catchNonFatal(ju.UUID.fromString(respReqId)) must(beRight))
+      (reqReqId must_=== respReqId) and (Either.catchNonFatal(UUID.fromString(respReqId)) must(beRight))
+    }
+    "generate different request ids on subsequent requests" in {
+      val req = Request[IO](uri = uri("/request"))
+      val resp = RequestId.httpRoutes(testService()).orNotFound(req)
+      val requestId1 = resp.map(requestIdFromHeaders(_)).unsafeRunSync()
+      val requestId2 = resp.map(requestIdFromHeaders(_)).unsafeRunSync()
+
+      (requestId1 must_!== requestId2)
     }
     "propagate custom request id header from request to response" in {
       val req = Request[IO](uri = uri("/request"), headers = Headers.of(Header("X-Request-ID", "123"), Header("X-Correlation-ID", "abc")))
-      val (reqReqId, respReqId) = RequestId(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID"))).orNotFound(req)
+      val (reqReqId, respReqId) = RequestId.httpRoutes(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID"))).orNotFound(req)
         .flatMap { resp =>
           requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, CIString("X-Correlation-ID")))
         }.unsafeRunSync()
@@ -56,12 +64,22 @@ class RequestIdSpec extends Http4sSpec {
     }
     "generate custom request id header when unset" in {
       val req = Request[IO](uri = uri("/request"), headers = Headers.of(Header("X-Request-ID", "123")))
-      val (reqReqId, respReqId) = RequestId(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID"))).orNotFound(req)
+      val (reqReqId, respReqId) = RequestId.httpRoutes(CIString("X-Correlation-ID"))(testService(CIString("X-Correlation-ID"))).orNotFound(req)
         .flatMap { resp =>
           requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp, CIString("X-Correlation-ID")))
         }.unsafeRunSync()
 
-      (reqReqId must_=== respReqId) and (Either.catchNonFatal(ju.UUID.fromString(respReqId)) must(beRight))
+      (reqReqId must_=== respReqId) and (Either.catchNonFatal(UUID.fromString(respReqId)) must(beRight))
+    }
+    "generate X-Request-ID header when unset using supplied generator" in {
+      val uuid = UUID.fromString("00000000-0000-0000-0000-000000000000")
+      val req = Request[IO](uri = uri("/request"))
+      val (reqReqId, respReqId) = RequestId.httpRoutes(genReqId = Some(IO.pure(uuid)))(testService()).orNotFound(req)
+        .flatMap { resp =>
+          requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp))
+        }.unsafeRunSync()
+
+      (reqReqId must_=== uuid.show) and (respReqId must_=== uuid.show)
     }
   }
 }
