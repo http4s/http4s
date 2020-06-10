@@ -40,6 +40,17 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
+  def ACCESS_CONTROL_ALLOW_CREDENTIALS(
+      value: String): ParseResult[`Access-Control-Allow-Credentials`] =
+    new Http4sHeaderParser[`Access-Control-Allow-Credentials`](value) {
+      def entry =
+        rule {
+          str("true") ~ EOL ~> { () =>
+            `Access-Control-Allow-Credentials`()
+          }
+        }
+    }.parse
+
   def ALLOW(value: String): ParseResult[Allow] =
     new Http4sHeaderParser[Allow](value) {
       def entry =

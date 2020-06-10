@@ -34,8 +34,8 @@ class CORSSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   )
 
   def headerCheck(h: Header) = h.is(`Access-Control-Max-Age`)
-  def matchHeader(hs: Headers, hk: HeaderKey.Extractable, expected: String) =
-    hs.get(hk).fold(false)(_.value === expected)
+  final def matchHeader[A <: Header](hs: Headers, hk: HeaderKey.Internal[A], expected: String) =
+    hs.get(hk.name).fold(false)(_.value === expected)
 
   def buildRequest(path: String, method: Method = GET) =
     Request[IO](uri = Uri(path = Uri.Path.fromString(path)), method = method).withHeaders(

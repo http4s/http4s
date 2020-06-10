@@ -111,6 +111,7 @@ object HttpHeaderParser
     addParser_(CIString("ACCEPT-ENCODING"), `ACCEPT_ENCODING`)
     addParser_(CIString("ACCEPT-LANGUAGE"), `ACCEPT_LANGUAGE`)
     addParser_(CIString("ACCEPT-RANGES"), `ACCEPT_RANGES`)
+    addParser_(CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"), `ACCESS_CONTROL_ALLOW_CREDENTIALS`)
     addParser_(CIString("AGE"), `AGE`)
     addParser_(CIString("ALLOW"), `ALLOW`)
     addParser_(CIString("AUTHORIZATION"), `AUTHORIZATION`)

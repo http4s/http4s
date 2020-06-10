@@ -40,15 +40,6 @@ class HeadersSpec extends Http4sSpec {
       headers.get(org.http4s.headers.Cookie).map(_.values.length) must beSome(2)
     }
 
-    "Find the headers with DefaultHeaderKey keys" in {
-      val headers = Headers.of(
-        `Set-Cookie`(ResponseCookie("foo", "bar")),
-        Header("Accept-Patch", ""),
-        Header("Access-Control-Allow-Credentials", "")
-      )
-      headers.get(`Access-Control-Allow-Credentials`).map(_.value) must beSome("")
-    }
-
     "Remove duplicate headers which are not of type Recurring on concatenation (++)" in {
       val hs = Headers.of(clength) ++ Headers.of(clength)
       hs.toList.length must_== 1

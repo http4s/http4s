@@ -475,6 +475,12 @@ private[http4s] trait ArbitraryInstances {
       qValue <- getArbitrary[QValue]
     } yield MediaRangeAndQValue(mediaRange, qValue)
 
+  implicit val http4sTestingArbitraryForAceesContrlolAllowedCredentials
+      : Arbitrary[headers.`Access-Control-Allow-Credentials`] =
+    Arbitrary {
+      Gen.const(`Access-Control-Allow-Credentials`())
+    }
+
   implicit val http4sTestingArbitraryForAcceptHeader: Arbitrary[headers.Accept] =
     Arbitrary {
       for {
