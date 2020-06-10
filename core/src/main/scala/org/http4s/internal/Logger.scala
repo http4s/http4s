@@ -19,6 +19,12 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
+
+  def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
+      logHeaders: Boolean,
+      logBodyText: Option[String => F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
     val isJson = message.contentType.exists(mT =>
@@ -40,8 +46,8 @@ object Logger {
         message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
       else ""
 
-    val bodyText: F[String] = logBody match {
-      case true =>
+    val bodyText: F[String] = logBodyText match {
+      case Some(f) =>
         val m: Stream[F, String] =
           if (isText)
             message
@@ -51,9 +57,10 @@ object Logger {
               .map(b => java.lang.Integer.toHexString(b & 0xff))
 
         m.compile.string
+          .flatMap(f)
           .map(text => s"""body="$text"""")
 
-      case false =>
+      case None =>
         F.pure("")
     }
 
