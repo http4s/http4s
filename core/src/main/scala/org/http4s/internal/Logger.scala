@@ -35,26 +35,27 @@ object Logger {
           s"$httpVersion $status"
       }
 
-    val headers =
+    val headers: String =
       if (logHeaders)
         message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
       else ""
 
-    val bodyStream =
-      if (logBody && isText)
-        message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
-      else if (logBody)
-        message.body
-          .map(b => java.lang.Integer.toHexString(b & 0xff))
-      else
-        Stream.empty.covary[F]
+    val bodyText: F[String] = logBody match {
+      case true =>
+        val m: Stream[F, String] =
+          if (isText)
+            message
+              .bodyAsText(charset.getOrElse(Charset.`UTF-8`))
+          else
+            message.body
+              .map(b => java.lang.Integer.toHexString(b & 0xff))
 
-    val bodyText =
-      if (logBody)
-        bodyStream.compile.string
+        m.compile.string
           .map(text => s"""body="$text"""")
-      else
+
+      case false =>
         F.pure("")
+    }
 
     def spaced(x: String): String = if (x.isEmpty) x else s" $x"
 
