@@ -19,6 +19,11 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
+    val logBodyText: Option[String => F[String]] =
+      if (logBody) Some(F.pure) else None
+
+    logMessageWithBodyText[F, A](message)(logHeaders, logBodyText, redactHeadersWhen)(log)
+  }
 
   def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
