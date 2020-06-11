@@ -48,8 +48,8 @@ object ErrorReporting {
       val context = new AccessControlContext(domains)
 
       // Redirect output to dummy stream
-      val fakeOutStream = new PrintStream(new ByteArrayOutputStream)
-      val fakeErrStream = new PrintStream(new ByteArrayOutputStream)
+      val fakeOutStream = new PrintStream(NullOutStream)
+      val fakeErrStream = new PrintStream(NullOutStream)
       System.setOut(fakeOutStream)
       System.setErr(fakeErrStream)
       val result = java.security.AccessController.doPrivileged(
