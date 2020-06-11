@@ -156,7 +156,7 @@ object Method {
   implicit val catsHashForHttp4sMethod: Hash[Method] = Hash.fromUniversalHashCode
 
   @deprecated("Upgraded to hash. Kept for binary compatibility", "0.21.5")
-  private[Method] val http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
+  def http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
 
   implicit val http4sShowForMethod: Show[Method] = Show.fromToString
 }
