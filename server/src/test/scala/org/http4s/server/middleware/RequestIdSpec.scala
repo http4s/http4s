@@ -96,7 +96,7 @@ class RequestIdSpec extends Http4sSpec {
       val uuid = UUID.fromString("00000000-0000-0000-0000-000000000000")
       val req = Request[IO](uri = uri("/request"))
       val (reqReqId, respReqId) = RequestId
-        .httpRoutes(genReqId = Some(IO.pure(uuid)))(testService())
+        .httpRoutes(genReqId = IO.pure(uuid))(testService())
         .orNotFound(req)
         .flatMap { resp =>
           requestIdFromBody(resp).map(_ -> requestIdFromHeaders(resp))

@@ -23,40 +23,64 @@ import java.util.UUID
   */
 object RequestId {
 
-  private val requestIdHeader = CIString("X-Request-ID")
+  private[this] val requestIdHeader = CIString("X-Request-ID")
+
+  def apply[G[_], F[_]](http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
+    apply(requestIdHeader)(http)
+
+  def apply[G[_], F[_]](
+      headerName: CIString
+  )(http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
+    Kleisli[G, Request[F], Response[F]] { req =>
+      for {
+        header <- req.headers.get(headerName) match {
+          case None => G.delay(Header.Raw(headerName, UUID.randomUUID().toString()))
+          case Some(header) => G.pure[Header](header)
+        }
+        response <- http(req.putHeaders(header))
+      } yield response.putHeaders(header)
+    }
 
   def apply[G[_], F[_]](
       fk: F ~> G,
       headerName: CIString = requestIdHeader,
-      genReqId: Option[F[UUID]] = None
-  )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] = {
-    val gen = genReqId.getOrElse(F.delay(UUID.randomUUID()))
+      genReqId: F[UUID]
+  )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] =
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
         header <- fk(req.headers.get(headerName) match {
-          case None => gen.map(reqId => Header.Raw(headerName, reqId.show))
+          case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
           case Some(header) => F.pure[Header](header)
         })
         response <- http(req.putHeaders(header))
       } yield response.putHeaders(header)
     }
-  }
 
   def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
-    apply(FunctionK.id[F], requestIdHeader, None)(httpApp)
+    apply(requestIdHeader)(httpApp)
+
+  def httpApp[F[_]: Sync](
+      headerName: CIString
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    apply(headerName)(httpApp)
 
   def httpApp[F[_]: Sync](
       headerName: CIString = requestIdHeader,
-      genReqId: Option[F[UUID]] = None
+      genReqId: F[UUID]
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(FunctionK.id[F], headerName, genReqId)(httpApp)
 
   def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(OptionT.liftK[F], requestIdHeader, None)(httpRoutes)
+    apply(requestIdHeader)(httpRoutes)
+
+  def httpRoutes[F[_]: Sync](
+      headerName: CIString
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(headerName)(httpRoutes)
 
   def httpRoutes[F[_]: Sync](
       headerName: CIString = requestIdHeader,
-      genReqId: Option[F[UUID]] = None
+      genReqId: F[UUID]
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(OptionT.liftK[F], headerName, genReqId)(httpRoutes)
 }
