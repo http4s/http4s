@@ -35,53 +35,8 @@ object RequestLogger {
   )(http: Http[G, F])(implicit
       F: Concurrent[F],
       G: Bracket[G, Throwable]
-  ): Http[G, F] = {
-    val log = logAction.fold { (s: String) =>
-      Sync[F].delay(logger.info(s))
-    }(identity)
-    Kleisli { req =>
-      if (!logBody) {
-        def logAct =
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(log)
-        // This construction will log on Any Error/Cancellation
-        // The Completed Case is Unit, as we rely on the semantics of G
-        // As None Is Successful, but we oly want to log on Some
-        http(req)
-          .guaranteeCase {
-            case ExitCase.Canceled => fk(logAct)
-            case ExitCase.Error(_) => fk(logAct)
-            case ExitCase.Completed => G.unit
-          } <* fk(logAct)
-      } else
-        fk(Ref[F].of(Vector.empty[Chunk[Byte]]))
-          .flatMap { vec =>
-            val newBody = Stream
-              .eval(vec.get)
-              .flatMap(v => Stream.emits(v).covary[F])
-              .flatMap(c => Stream.chunk(c).covary[F])
-
-            val changedRequest = req.withBodyStream(
-              req.body
-              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
-            )
-            def logRequest: F[Unit] =
-              Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                logHeaders,
-                logBody,
-                redactHeadersWhen
-              )(log)
-            val response: G[Response[F]] =
-              http(changedRequest)
-                .guaranteeCase {
-                  case ExitCase.Completed => G.unit
-                  case _ => fk(logRequest)
-                }
-                .map(resp => resp.withBodyStream(resp.body.onFinalizeWeak(logRequest)))
-            response
-          }
-    }
-  }
+  ): Http[G, F] =
+    impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
   private def impl[G[_], F[_]](
       logHeaders: Boolean,
