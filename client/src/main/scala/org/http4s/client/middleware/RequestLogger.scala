@@ -29,7 +29,7 @@ object RequestLogger {
   )(client: Client[F]): Client[F] =
     impl[F](logHeaders, Left(logBody), redactHeadersWhen, logAction)(client)
 
-  def impl[F[_]: Concurrent](
+  private def impl[F[_]: Concurrent](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
