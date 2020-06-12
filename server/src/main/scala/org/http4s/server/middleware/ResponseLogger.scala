@@ -102,6 +102,15 @@ object ResponseLogger {
       httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
+  def httpAppLogBodyText[F[_]: Concurrent, A](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None)(
+      httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
+    impl[F, F, A](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(
+      httpApp)
+
   def httpRoutes[F[_]: Concurrent, A](
       logHeaders: Boolean,
       logBody: Boolean,
