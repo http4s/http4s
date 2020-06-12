@@ -38,7 +38,7 @@ object RequestLogger {
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
-  private def impl[G[_], F[_]](
+  private[server] def impl[G[_], F[_]](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,

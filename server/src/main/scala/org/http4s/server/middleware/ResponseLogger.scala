@@ -36,7 +36,7 @@ object ResponseLogger {
       F: Concurrent[F]): Kleisli[G, A, Response[F]] =
     impl[G, F, A](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
-  private def impl[G[_], F[_], A](
+  private[server] def impl[G[_], F[_], A](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,
