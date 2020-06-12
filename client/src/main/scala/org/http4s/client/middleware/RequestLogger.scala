@@ -32,8 +32,8 @@ object RequestLogger {
   private def impl[F[_]: Concurrent](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      redactHeadersWhen: CaseInsensitiveString => Boolean,
+      logAction: Option[String => F[Unit]]
   )(client: Client[F]): Client[F] = {
     val log = logAction.getOrElse { (s: String) =>
       Sync[F].delay(logger.info(s))
