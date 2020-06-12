@@ -73,6 +73,64 @@ object ResponseLogger {
     }
   }
 
+  private def impl[G[_], F[_], A](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      fk: F ~> G,
+      redactHeadersWhen: CaseInsensitiveString => Boolean,
+      logAction: Option[String => F[Unit]])(http: Kleisli[G, A, Response[F]])(implicit
+      G: Bracket[G, Throwable],
+      F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
+    val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
+    val log = logAction.fold(fallback)(identity)
+
+    def logMessage(resp: Response[F]): F[Unit] =
+      logBodyText match {
+        case Left(bool) =>
+          Logger.logMessage[F, Response[F]](resp)(logHeaders, bool, redactHeadersWhen)(log(_))
+        case Right(f) =>
+          org.http4s.internal.Logger
+            .logMessageWithBodyText[F, Response[F]](resp)(logHeaders, f, redactHeadersWhen)(log(_))
+      }
+
+    val logBody: Boolean = logBodyText match {
+      case Left(bool) => bool
+      case Right(_) => true
+    }
+
+    Kleisli[G, A, Response[F]] { req =>
+      http(req)
+        .flatMap { response =>
+          val out =
+            if (!logBody)
+              logMessage(response)
+                .as(response)
+            else
+              Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+                val newBody = Stream
+                  .eval(vec.get)
+                  .flatMap(v => Stream.emits(v).covary[F])
+                  .flatMap(c => Stream.chunk(c).covary[F])
+
+                response.copy(
+                  body = response.body
+                  // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                    .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
+                    .onFinalizeWeak {
+                      logMessage(response.withBodyStream(newBody))
+                    }
+                )
+              }
+          fk(out)
+        }
+        .guaranteeCase {
+          case ExitCase.Error(t) => fk(log(s"service raised an error: ${t.getClass}"))
+          case ExitCase.Canceled => fk(log(s"service cancelled response for request [$req]"))
+          case ExitCase.Completed => G.unit
+        }
+    }
+  }
+
   def httpApp[F[_]: Concurrent, A](
       logHeaders: Boolean,
       logBody: Boolean,
