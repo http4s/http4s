@@ -128,4 +128,17 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+
+  def httpRoutesLogBodyText[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    impl[OptionT[F, *], F](
+      logHeaders,
+      Right(logBody),
+      OptionT.liftK[F],
+      redactHeadersWhen,
+      logAction)(httpRoutes)
 }
