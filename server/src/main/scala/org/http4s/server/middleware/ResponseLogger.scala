@@ -118,4 +118,17 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None)(
       httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+
+  def httpRoutesLogBodyText[F[_]: Concurrent, A](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None)(
+      httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
+    impl[OptionT[F, *], F, A](
+      logHeaders,
+      Right(logBody),
+      OptionT.liftK[F],
+      redactHeadersWhen,
+      logAction)(httpRoutes)
 }
