@@ -28,7 +28,7 @@ object ErrorReporting {
 
   /**
     * Silences System.out and System.err streams for the duration of thunk.
-    * Restores back the original streams before exiting.
+    * Restores the original streams before exiting.
     */
   def silenceOutputStreams[R](thunk: => R): R =
     synchronized {
@@ -52,16 +52,16 @@ object ErrorReporting {
       val fakeErrStream = new PrintStream(NullOutStream)
       System.setOut(fakeOutStream)
       System.setErr(fakeErrStream)
-      val result = java.security.AccessController.doPrivileged(
+      try java.security.AccessController.doPrivileged(
         new PrivilegedAction[R]() {
           override def run: R = thunk
         },
         context)
-
-      // Set back the original streams
-      System.setOut(originalOut)
-      System.setErr(originalErr)
-      result
+      finally {
+        // Set back the original streams
+        System.setOut(originalOut)
+        System.setErr(originalErr)
+      }
     }
 
   /**
