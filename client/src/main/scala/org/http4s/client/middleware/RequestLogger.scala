@@ -29,6 +29,14 @@ object RequestLogger {
   )(client: Client[F]): Client[F] =
     impl[F](logHeaders, Left(logBody), redactHeadersWhen, logAction)(client)
 
+  def logBodyText[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(client: Client[F]): Client[F] =
+    impl[F](logHeaders, Right(logBody), redactHeadersWhen, logAction)(client)
+
   private def impl[F[_]: Concurrent](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
