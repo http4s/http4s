@@ -56,7 +56,6 @@ object RequestId {
       } yield response.putHeaders(header)
     }
 
-
   object httpApp {
     def apply[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(requestIdHeader)(httpApp)
