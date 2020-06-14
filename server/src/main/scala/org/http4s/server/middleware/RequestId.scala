@@ -56,31 +56,36 @@ object RequestId {
       } yield response.putHeaders(header)
     }
 
-  def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
-    apply(requestIdHeader)(httpApp)
 
-  def httpApp[F[_]: Sync](
-      headerName: CIString
-  )(httpApp: HttpApp[F]): HttpApp[F] =
-    apply(headerName)(httpApp)
+  object httpApp {
+    def apply[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
+      RequestId.apply(requestIdHeader)(httpApp)
 
-  def httpApp[F[_]: Sync](
-      headerName: CIString = requestIdHeader,
-      genReqId: F[UUID]
-  )(httpApp: HttpApp[F]): HttpApp[F] =
-    apply(FunctionK.id[F], headerName, genReqId)(httpApp)
+    def apply[F[_]: Sync](
+        headerName: CIString
+    )(httpApp: HttpApp[F]): HttpApp[F] =
+      RequestId.apply(headerName)(httpApp)
 
-  def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(requestIdHeader)(httpRoutes)
+    def apply[F[_]: Sync](
+        headerName: CIString = requestIdHeader,
+        genReqId: F[UUID]
+    )(httpApp: HttpApp[F]): HttpApp[F] =
+      RequestId.apply(FunctionK.id[F], headerName, genReqId)(httpApp)
+  }
 
-  def httpRoutes[F[_]: Sync](
-      headerName: CIString
-  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(headerName)(httpRoutes)
+  object httpRoutes {
+    def apply[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+      RequestId.apply(requestIdHeader)(httpRoutes)
 
-  def httpRoutes[F[_]: Sync](
-      headerName: CIString = requestIdHeader,
-      genReqId: F[UUID]
-  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(OptionT.liftK[F], headerName, genReqId)(httpRoutes)
+    def apply[F[_]: Sync](
+        headerName: CIString
+    )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+      RequestId.apply(headerName)(httpRoutes)
+
+    def apply[F[_]: Sync](
+        headerName: CIString = requestIdHeader,
+        genReqId: F[UUID]
+    )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+      RequestId.apply(OptionT.liftK[F], headerName, genReqId)(httpRoutes)
+  }
 }
