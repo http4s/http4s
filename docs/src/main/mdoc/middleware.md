@@ -241,9 +241,16 @@ val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
 val responseIO = requestIdService.orNotFound(goodRequest)
 ```
 
+Note: `req.attributes.lookup(RequestId.requestIdAttrKey)` can also be used to lookup the request id
+extracted from the header, or the generated request id.
+
 ```scala mdoc
 // generated request id can be correlated with logs
-responseIO.unsafeRunSync().headers
+val resp = responseIO.unsafeRunSync()
+// X-Request-ID header added to response
+resp.headers
+// the request id is also available using attributes
+resp.attributes.lookup(RequestId.requestIdAttrKey)
 ```
 
 [service]: ../service

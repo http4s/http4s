@@ -19,6 +19,8 @@ class RequestIdSpec extends Http4sSpec {
     HttpRoutes.of[IO] {
       case req @ GET -> Root / "request" =>
         Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.value)}")
+      case req @ GET -> Root / "attribute" =>
+        Ok(show"request-id: ${req.attributes.lookup(RequestId.requestIdAttrKey).getOrElse[String]("None")}")
     }
 
   private def requestIdFromBody(resp: Response[IO]) =
@@ -104,6 +106,19 @@ class RequestIdSpec extends Http4sSpec {
         .unsafeRunSync()
 
       (reqReqId must_=== uuid.show).and(respReqId must_=== uuid.show)
+    }
+    "include requestId attribute with request and response" in {
+      val req =
+        Request[IO](uri = uri("/attribute"), headers = Headers.of(Header("X-Request-ID", "123")))
+      val (reqReqId, respReqId) = RequestId
+        .httpRoutes(testService())
+        .orNotFound(req)
+        .flatMap { resp =>
+          requestIdFromBody(resp).map(_ -> resp.attributes.lookup(RequestId.requestIdAttrKey).getOrElse("None"))
+        }
+        .unsafeRunSync()
+
+      (reqReqId must_=== "123").and(respReqId must_=== "123")
     }
   }
 }
