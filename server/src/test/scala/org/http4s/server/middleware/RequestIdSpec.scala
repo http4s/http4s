@@ -20,7 +20,8 @@ class RequestIdSpec extends Http4sSpec {
       case req @ GET -> Root / "request" =>
         Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.value)}")
       case req @ GET -> Root / "attribute" =>
-        Ok(show"request-id: ${req.attributes.lookup(RequestId.requestIdAttrKey).getOrElse[String]("None")}")
+        Ok(
+          show"request-id: ${req.attributes.lookup(RequestId.requestIdAttrKey).getOrElse[String]("None")}")
     }
 
   private def requestIdFromBody(resp: Response[IO]) =
@@ -114,7 +115,8 @@ class RequestIdSpec extends Http4sSpec {
         .httpRoutes(testService())
         .orNotFound(req)
         .flatMap { resp =>
-          requestIdFromBody(resp).map(_ -> resp.attributes.lookup(RequestId.requestIdAttrKey).getOrElse("None"))
+          requestIdFromBody(resp).map(
+            _ -> resp.attributes.lookup(RequestId.requestIdAttrKey).getOrElse("None"))
         }
         .unsafeRunSync()
 
