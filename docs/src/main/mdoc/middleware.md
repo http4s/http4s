@@ -230,11 +230,11 @@ as to why this header is useful.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.RequestId
-import org.typelevel.ci.CIString
+import org.http4s.util.CaseInsensitiveString
 
 val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
   case req =>
-    val reqId = req.headers.get(CIString("X-Request-ID")).fold("null")(_.value)
+    val reqId = req.headers.get(CaseInsensitiveString("X-Request-ID")).fold("null")(_.value)
     // use request id to correlate logs with the request
     IO(println(s"request received, cid=$reqId")) *> Ok()
 })
