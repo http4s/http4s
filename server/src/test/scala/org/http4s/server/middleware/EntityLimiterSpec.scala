@@ -15,6 +15,7 @@ import fs2.Stream._
 import java.nio.charset.StandardCharsets
 import org.http4s.Method._
 import org.http4s.Status._
+import org.http4s.Uri.uri
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.testing.Http4sLegacyMatchersIO
 
@@ -57,6 +58,25 @@ class EntityLimiterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         .map(_ => -1L)
         .value
         .handleError { case EntityTooLarge(i) => Some(i) } must returnValue(Some(3L))
+    }
+
+    "Be created via the httpRoutes constructor" in {
+      EntityLimiter
+        .httpRoutes(routes, 3)
+        .apply(Request[IO](POST, uri("/echo"), body = b))
+        .map(_ => -1L)
+        .value
+        .handleError { case EntityTooLarge(i) => Some(i) } must returnValue(Some(3))
+    }
+
+    "Be created via the httpRoutes constructor" in {
+      val app: HttpApp[IO] = routes.orNotFound
+
+      EntityLimiter
+        .httpApp(app, 3)
+        .apply(Request[IO](POST, uri("/echo"), body = b))
+        .map(_ => -1L)
+        .handleError { case EntityTooLarge(i) => i } must returnValue(3)
     }
   }
 }
