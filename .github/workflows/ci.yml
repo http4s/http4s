@@ -18,6 +18,8 @@ jobs:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: olafurpg/setup-scala@v7
         with:
           java-version: ${{ matrix.java }}
