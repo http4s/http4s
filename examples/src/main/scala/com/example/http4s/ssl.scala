@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s
 
 import cats.effect.Sync
@@ -19,8 +25,8 @@ object ssl {
 
   val storeInfo: StoreInfo = StoreInfo(keystorePath, keystorePassword)
 
-  def loadContextFromClasspath[F[_]](keystorePassword: String, keyManagerPass: String)(
-      implicit F: Sync[F]): F[SSLContext] =
+  def loadContextFromClasspath[F[_]](keystorePassword: String, keyManagerPass: String)(implicit
+      F: Sync[F]): F[SSLContext] =
     F.delay {
       val ksStream = this.getClass.getResourceAsStream("/server.jks")
       val ks = KeyStore.getInstance("JKS")

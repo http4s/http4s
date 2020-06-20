@@ -1,16 +1,21 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.data.NonEmptyList
 import cats.implicits._
-import org.http4s.syntax.string._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
 sealed trait HeaderKey {
   type HeaderT <: Header
 
-  def name: CaseInsensitiveString
+  def name: CIString
 
   def matchHeader(header: Header): Option[HeaderT]
   final def unapply(header: Header): Option[HeaderT] = matchHeader(header)
@@ -52,36 +57,36 @@ object HeaderKey {
       @tailrec def loop(
           hs: Headers,
           acc: NonEmptyList[HeaderT#Value]): NonEmptyList[HeaderT#Value] =
-        if (hs.nonEmpty) {
+        if (hs.nonEmpty)
           matchHeader(hs.toList.head) match {
             case Some(header) =>
               loop(Headers(hs.toList.tail), acc.concatNel(header.values.widen[HeaderT#Value]))
             case None =>
               loop(Headers(hs.toList.tail), acc)
           }
-        } else acc
+        else acc
       @tailrec def start(hs: Headers): Option[HeaderT] =
-        if (hs.nonEmpty) {
+        if (hs.nonEmpty)
           matchHeader(hs.toList.head) match {
             case Some(header) =>
               Some(apply(loop(Headers(hs.toList.tail), header.values.widen[HeaderT#Value])))
             case None => start(Headers(hs.toList.tail))
           }
-        } else None
+        else None
       start(headers)
     }
   }
 
   private[http4s] abstract class Internal[T <: Header: ClassTag] extends HeaderKey {
     type HeaderT = T
-    val name = getClass.getName
-      .split("\\.")
-      .last
-      .replaceAll("\\$minus", "-")
-      .split("\\$")
-      .last
-      .replace("\\$$", "")
-      .ci
+    val name = CIString(
+      getClass.getName
+        .split("\\.")
+        .last
+        .replaceAll("\\$minus", "-")
+        .split("\\$")
+        .last
+        .replace("\\$$", ""))
     private val runtimeClass = implicitly[ClassTag[HeaderT]].runtimeClass
     override def matchHeader(header: Header): Option[HeaderT] =
       header match {

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.ember.server
 
 import cats._
@@ -45,22 +51,23 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       requestHeaderReceiveTimeout: Duration = self.requestHeaderReceiveTimeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger
-  ): EmberServerBuilder[F] = new EmberServerBuilder[F](
-    host = host,
-    port = port,
-    httpApp = httpApp,
-    blockerOpt = blockerOpt,
-    tlsInfoOpt = tlsInfoOpt,
-    sgOpt = sgOpt,
-    onError = onError,
-    onWriteFailure = onWriteFailure,
-    maxConcurrency = maxConcurrency,
-    receiveBufferSize = receiveBufferSize,
-    maxHeaderSize = maxHeaderSize,
-    requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
-    additionalSocketOptions = additionalSocketOptions,
-    logger = logger
-  )
+  ): EmberServerBuilder[F] =
+    new EmberServerBuilder[F](
+      host = host,
+      port = port,
+      httpApp = httpApp,
+      blockerOpt = blockerOpt,
+      tlsInfoOpt = tlsInfoOpt,
+      sgOpt = sgOpt,
+      onError = onError,
+      onWriteFailure = onWriteFailure,
+      maxConcurrency = maxConcurrency,
+      receiveBufferSize = receiveBufferSize,
+      maxHeaderSize = maxHeaderSize,
+      requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
+      additionalSocketOptions = additionalSocketOptions,
+      logger = logger
+    )
 
   def withHost(host: String) = copy(host = host)
   def withPort(port: Int) = copy(port = port)
@@ -87,7 +94,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]) = copy(logger = l)
 
-  def build: Resource[F, Server[F]] =
+  def build: Resource[F, Server] =
     for {
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
@@ -116,7 +123,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               .drain
           )
           .as(
-            new Server[F] {
+            new Server {
               def address: InetSocketAddress = bindAddress
               def isSecure: Boolean = false
             }

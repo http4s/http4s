@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats._
@@ -18,11 +24,12 @@ object Date {
     Kleisli { a =>
       for {
         resp <- k(a)
-        header <- resp.headers
-          .get(HDate)
-          .fold(
-            HttpDate.current[G].map(HDate(_))
-          )(_.pure[G])
+        header <-
+          resp.headers
+            .get(HDate)
+            .fold(
+              HttpDate.current[G].map(HDate(_))
+            )(_.pure[G])
       } yield resp.putHeaders(header)
     }
 

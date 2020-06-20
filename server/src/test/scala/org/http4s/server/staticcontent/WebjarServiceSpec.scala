@@ -1,10 +1,15 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package staticcontent
 
 import java.net.URL
 import cats.effect.IO
-import cats.effect._
 import java.nio.file.Paths
 import org.http4s.Method.{GET, POST}
 import org.http4s.Uri.uri
@@ -24,7 +29,7 @@ class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sL
 
   "The WebjarService" should {
     "Return a 200 Ok file" in {
-      val req = Request[IO](GET, Uri(path = "/test-lib/1.0.0/testresource.txt"))
+      val req = Request[IO](GET, uri"/test-lib/1.0.0/testresource.txt")
       val rb = runReq(req)
 
       rb._1 must_== testWebjarResource
@@ -32,7 +37,7 @@ class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sL
     }
 
     "Return a 200 Ok file in a subdirectory" in {
-      val req = Request[IO](GET, Uri(path = "/test-lib/1.0.0/sub/testresource.txt"))
+      val req = Request[IO](GET, uri"/test-lib/1.0.0/sub/testresource.txt")
       val rb = runReq(req)
 
       rb._1 must_== testWebjarSubResource
@@ -40,7 +45,7 @@ class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sL
     }
 
     "Decodes path segments" in {
-      val req = Request[IO](uri = uri("/deep+purple/machine+head/space+truckin%27.txt"))
+      val req = Request[IO](uri = uri"/deep+purple/machine+head/space+truckin%27.txt")
       routes.orNotFound(req) must returnStatus(Status.Ok)
     }
 
@@ -75,27 +80,27 @@ class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sL
     }
 
     "Not find missing file" in {
-      val req = Request[IO](uri = uri("/test-lib/1.0.0/doesnotexist.txt"))
+      val req = Request[IO](uri = uri"/test-lib/1.0.0/doesnotexist.txt")
       routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
 
     "Not find missing library" in {
-      val req = Request[IO](uri = uri("/1.0.0/doesnotexist.txt"))
+      val req = Request[IO](uri = uri"/1.0.0/doesnotexist.txt")
       routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
 
     "Return bad request on missing version" in {
-      val req = Request[IO](uri = uri("/test-lib//doesnotexist.txt"))
+      val req = Request[IO](uri = uri"/test-lib//doesnotexist.txt")
       routes.orNotFound(req) must returnStatus(Status.BadRequest)
     }
 
     "Not find blank asset" in {
-      val req = Request[IO](uri = uri("/test-lib/1.0.0/"))
+      val req = Request[IO](uri = uri"/test-lib/1.0.0/")
       routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
 
     "Not match a request with POST" in {
-      val req = Request[IO](POST, Uri(path = "/test-lib/1.0.0/testresource.txt"))
+      val req = Request[IO](POST, uri"/test-lib/1.0.0/testresource.txt")
       routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
     "Respects ClassLoader passed to it" in {

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.effect._
@@ -10,13 +16,13 @@ import java.nio.charset.StandardCharsets
 import cats.data.Chain
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+import org.http4s.internal.Trampoline
 import org.http4s.testing.Http4sLegacyMatchersIO
-import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
 import scala.concurrent.ExecutionContext
 
 class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with PendingUntilFixed {
-  implicit val executionContext: ExecutionContext = trampoline
+  implicit val executionContext: ExecutionContext = Trampoline
   implicit val testContext: TestContext = TestContext()
 
   val `application/excel`: MediaType =

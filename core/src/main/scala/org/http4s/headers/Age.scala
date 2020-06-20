@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -10,11 +16,10 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
   private class AgeImpl(age: Long) extends Age(age)
 
   def fromLong(age: Long): ParseResult[Age] =
-    if (age >= 0) {
+    if (age >= 0)
       ParseResult.success(new AgeImpl(age))
-    } else {
+    else
       ParseResult.fail("Invalid age value", s"Age param $age must be more or equal to 0 seconds")
-    }
 
   def unsafeFromDuration(age: FiniteDuration): Age =
     fromLong(age.toSeconds).fold(throw _, identity)

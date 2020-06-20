@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
@@ -13,6 +19,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.mutable.Tables
+import org.typelevel.ci.CIString
 
 class FollowRedirectSpec
     extends Http4sSpec
@@ -28,9 +35,8 @@ class FollowRedirectSpec
         if (iteration < 3) {
           val uri = Uri.unsafeFromString(s"/loop/${iteration + 1}")
           MovedPermanently(Location(uri)).map(_.withEntity(iteration.toString))
-        } else {
+        } else
           Ok(iteration.toString)
-        }
 
       case req @ _ -> Root / "ok" =>
         Ok(
@@ -70,7 +76,7 @@ class FollowRedirectSpec
       ) = {
         val u = uri("http://localhost") / status.code.toString
         val req: Request[IO] = method match {
-          case _: Method.PermitsBody if body.nonEmpty =>
+          case (POST | PUT) if body.nonEmpty =>
             val bodyBytes = body.getBytes.toList
             Request[IO](
               method,
@@ -84,7 +90,7 @@ class FollowRedirectSpec
         client
           .fetch(req) {
             case Ok(resp) =>
-              val method = resp.headers.get("X-Original-Method".ci).fold("")(_.value)
+              val method = resp.headers.get(CIString("X-Original-Method")).fold("")(_.toString)
               val body = resp.as[String]
               body.map(RedirectResponse(method, _))
             case resp =>
@@ -141,7 +147,7 @@ class FollowRedirectSpec
       client
         .fetch(req) {
           case Ok(resp) =>
-            resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[IO]
+            resp.headers.get(CIString("X-Original-Content-Length")).map(_.value).pure[IO]
         }
         .unsafeRunSync()
         .get must be("0")
@@ -190,7 +196,7 @@ class FollowRedirectSpec
         Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
-          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+          resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
       } must returnValue(Some(""))
     }
 
@@ -201,7 +207,7 @@ class FollowRedirectSpec
         Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
-          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+          resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
       } must returnValue(Some("Bearer s3cr3t"))
     }
 

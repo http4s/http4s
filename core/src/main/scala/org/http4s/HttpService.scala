@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Applicative, Functor}
@@ -21,8 +27,8 @@ object HttpService extends Serializable {
     * Unlike `HttpRoutes.of`, does not suspend the application of `pf`.
     */
   @deprecated("Replaced by `HttpRoutes.of`", "0.19")
-  def apply[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(
-      implicit F: Applicative[F]): HttpRoutes[F] =
+  def apply[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(implicit
+      F: Applicative[F]): HttpRoutes[F] =
     Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
   @deprecated("Replaced by `HttpRoutes.empty`", "0.19")

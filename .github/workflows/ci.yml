@@ -13,11 +13,13 @@ jobs:
       fail-fast: false
       matrix:
         java: [adopt@1.8, adopt@1.11, adopt@1.14]
-        scala: [2.12.11, 2.13.1]
+        scala: [2.12.11, 2.13.2]
     env:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: olafurpg/setup-scala@v7
         with:
           java-version: ${{ matrix.java }}
@@ -34,6 +36,9 @@ jobs:
       - name: Check formatting
         if: startsWith(matrix.scala, '2.12.') && (matrix.java == 'adopt@1.8')
         run: sbt ++$SCALA_VERSION scalafmtCheckAll
+      - name: Check headers
+        if: matrix.java == 'adopt@1.8'
+        run: sbt ++$SCALA_VERSION headerCheck test:headerCheck
       - name: Compile
         run: sbt ++$SCALA_VERSION test:compile
       - name: Check compatibility
@@ -46,7 +51,7 @@ jobs:
         run: sbt ++$SCALA_VERSION doc
   scalafix:
     name: Scalafix
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v5
@@ -65,7 +70,7 @@ jobs:
         run: sbt ++$SCALA_VERSION test
   project-site:
     name: Project Site
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v5

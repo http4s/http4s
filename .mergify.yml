@@ -3,8 +3,14 @@ pull_request_rules:
   - name: automatically merge scala-steward's PRs
     conditions:
       - author=scala-steward
-      - status-success=continuous-integration/travis-ci/pr
       - body~=labels:.*semver-patch.*
+      - status-success=Scala 2.12.11, Java adopt@1.8
+      - status-success=Scala 2.13.2, Java adopt@1.8
+      - status-success=Scala 2.12.11, Java adopt@1.11
+      - status-success=Scala 2.13.2, Java adopt@1.11
+      - status-success=Scalafix
+      - status-success=Project Site
+      - status-success=Doc Site
     actions:
       merge:
         method: merge

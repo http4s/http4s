@@ -1,6 +1,12 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server
 
-import org.http4s.{ContextRequest, ContextRoutes}
+import org.http4s.{ContextRequest, ContextRoutes, Uri}
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.semigroupk._
@@ -25,15 +31,15 @@ object ContextRouter {
   )(default: ContextRoutes[A, F]): ContextRoutes[A, F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, routes)) =>
-        val segments = Router.toSegments(prefix)
-        if (segments.isEmpty) routes <+> acc
+        val prefixSegments = Uri.Path.fromString(prefix)
+        if (prefixSegments.isEmpty) routes <+> acc
         else
           Kleisli { req =>
             (
-              if (Router.toSegments(req.req.pathInfo).startsWith(segments))
+              if (req.req.pathInfo.startsWith(prefixSegments))
                 routes
                   .local[ContextRequest[F, A]](r =>
-                    ContextRequest(r.context, Router.translate(prefix)(r.req))) <+> acc
+                    ContextRequest(r.context, Router.translate(prefixSegments)(r.req))) <+> acc
               else
                 acc
             )(req)

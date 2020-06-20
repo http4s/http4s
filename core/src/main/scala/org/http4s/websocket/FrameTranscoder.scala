@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.websocket
 
 import java.nio.ByteBuffer
@@ -9,11 +15,9 @@ private[http4s] object FrameTranscoder {
   private def decodeBinary(in: ByteBuffer, mask: Array[Byte]) = {
     val data = new Array[Byte](in.remaining)
     in.get(data)
-    if (mask != null) { // We can use the charset decode
-      for (i <- 0 until data.length) {
+    if (mask != null) // We can use the charset decode
+      for (i <- 0 until data.length)
         data(i) = (data(i) ^ mask(i & 0x3)).toByte // i mod 4 is the same as i & 0x3 but slower
-      }
-    }
     data
   }
 
@@ -54,9 +58,9 @@ private[http4s] object FrameTranscoder {
     if (len == 126) totalLen += 2
     if (len == 127) totalLen += 8
 
-    if (in.remaining < totalLen) {
+    if (in.remaining < totalLen)
       -1
-    } else {
+    else {
       totalLen += bodyLength(in)
 
       if (in.remaining < totalLen) -1
@@ -100,9 +104,9 @@ class FrameTranscoder(val isClient: Boolean) {
     buff.put(b2.byteValue)
 
     // Put the length if we have an extended length packet
-    if (in.length > 125 && in.length <= 0xffff) {
+    if (in.length > 125 && in.length <= 0xffff)
       buff.put((in.length >>> 8 & 0xff).toByte).put((in.length & 0xff).toByte)
-    } else if (in.length > 0xffff) buff.putLong(in.length.toLong)
+    else if (in.length > 0xffff) buff.putLong(in.length.toLong)
 
     // If we are a client, we need to mask the data, else just wrap it in a buffer and done
     if (isClient && in.length > 0) { // need to mask outgoing bytes
@@ -117,9 +121,10 @@ class FrameTranscoder(val isClient: Boolean) {
 
       val data = in.data
 
-      for (i <- 0 until in.length.toInt) {
-        buff.put((data(i.toLong) ^ maskBits(i & 0x3)).toByte) // i & 0x3 is the same as i % 4 but faster
-      }
+      for (i <- 0 until in.length.toInt)
+        buff.put(
+          (data(i.toLong) ^ maskBits(i & 0x3)).toByte
+        ) // i & 0x3 is the same as i % 4 but faster
       buff.flip
       Array[ByteBuffer](buff)
     } else {
@@ -135,9 +140,9 @@ class FrameTranscoder(val isClient: Boolean) {
     * @return optional message if enough data was available
     */
   def bufferToFrame(in: ByteBuffer): WebSocketFrame =
-    if (in.remaining < 2 || FrameTranscoder.getMsgLength(in) < 0) {
+    if (in.remaining < 2 || FrameTranscoder.getMsgLength(in) < 0)
       null
-    } else {
+    else {
       val opcode = in.get(0) & OP_CODE
       val finished = (in.get(0) & FINISHED) != 0
       val masked = (in.get(1) & MASK) != 0
@@ -150,9 +155,8 @@ class FrameTranscoder(val isClient: Boolean) {
       val m = if (masked) {
         bodyOffset += 4
         FrameTranscoder.getMask(in)
-      } else {
+      } else
         null
-      }
 
       val oldLim = in.limit()
       val bodylen = FrameTranscoder.bodyLength(in)

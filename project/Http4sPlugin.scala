@@ -1,34 +1,28 @@
-package org.http4s.build
+package org.http4s.sbt
 
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleResultTypeProblem, ProblemFilters}
-import com.typesafe.tools.mima.plugin.MimaPlugin
-import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import de.heikoseeberger.sbtheader.{License, LicenseStyle}
+import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
-import java.lang.{Runtime => JRuntime}
-import org.scalafmt.sbt.ScalafmtPlugin
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
-    val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
     val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
-    val http4sJvmTarget = taskKey[String]("JVM target")
     val http4sBuildData = taskKey[Unit]("Export build metadata for Hugo")
   }
   import autoImport._
 
   override def trigger = allRequirements
 
-  override def requires = MimaPlugin && ScalafmtPlugin
+  override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.1"
-  val scala_212 = "2.12.10"
+  val scala_213 = "2.13.2"
+  val scala_212 = "2.12.11"
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -37,44 +31,11 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-    git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
-
-  val CompileTime = config("CompileTime").hide
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-
-    // https://github.com/tkawachi/sbt-doctest/issues/102
-    Test / compile / scalacOptions -= "-Ywarn-unused:params",
-
-    scalacOptions ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, minor)) if minor >= 12 =>
-          Seq("-Ybackend-parallelism", math.min(JRuntime.getRuntime.availableProcessors, 16).toString)
-        case _ =>
-          Seq.empty
-      },
-    },
-
-    http4sMimaVersion := {
-      version.value match {
-        case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
-          Some(s"$major.$minor.${patch.toInt - 1}")
-        case _ =>
-          None
-      }
-    },
-    mimaFailOnProblem := http4sMimaVersion.value.isDefined,
-    mimaFailOnNoPrevious := false,
-    mimaPreviousArtifacts := (http4sMimaVersion.value.map {
-      organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
-    }).toSet,
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-    ),
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
@@ -106,28 +67,70 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
-    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    unusedCompileDependenciesFilter -= moduleFilter(
-      organization = "org.scala-lang",
-      name = "scala-reflect",
-      revision = "2.12.*",
-    ), // false positive on 2.12.10
+    // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
+    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
+    // Jetty prereleases appear because of their non-semver prod releases
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0-alpha0"),
+    // Cursed release. Calls ByteBuffer incompatibly with JDK8
+    dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
 
-    ivyConfigurations += CompileTime,
-    unmanagedClasspath in Compile ++= update.value.select(configurationFilter("CompileTime")),
+    excludeFilter.in(headerSources) := HiddenFileFilter ||
+      new FileFilter {
+        def accept(file: File) = {
+          attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
+        }
+
+        val attributedSources = Set(
+          "src/main/scala/org/http4s/argonaut/Parser.scala",
+          "src/main/scala/org/http4s/CacheDirective.scala",
+          "src/main/scala/org/http4s/Challenge.scala",
+          "src/main/scala/org/http4s/Charset.scala",
+          "src/main/scala/org/http4s/ContentCoding.scala",
+          "src/main/scala/org/http4s/Credentials.scala",
+          "src/main/scala/org/http4s/Header.scala",
+          "src/main/scala/org/http4s/LanguageTag.scala",
+          "src/main/scala/org/http4s/MediaType.scala",
+          "src/main/scala/org/http4s/RangeUnit.scala",
+          "src/main/scala/org/http4s/ResponseCookie.scala",
+          "src/main/scala/org/http4s/TransferCoding.scala",
+          "src/main/scala/org/http4s/Uri.scala",
+          "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptHeader.scala",
+          "src/main/scala/org/http4s/parser/AcceptLanguageHeader.scala",
+          "src/main/scala/org/http4s/parser/AdditionalRules.scala",
+          "src/main/scala/org/http4s/parser/AuthorizationHeader.scala",
+          "src/main/scala/org/http4s/parser/CacheControlHeader.scala",
+          "src/main/scala/org/http4s/parser/ContentTypeHeader.scala",
+          "src/main/scala/org/http4s/parser/CookieHeader.scala",
+          "src/main/scala/org/http4s/parser/HttpHeaderParser.scala",
+          "src/main/scala/org/http4s/parser/Rfc2616BasicRules.scala",
+          "src/main/scala/org/http4s/parser/SimpleHeaders.scala",
+          "src/main/scala/org/http4s/parser/WwwAuthenticateHeader.scala",
+          "src/main/scala/org/http4s/util/UrlCoding.scala",
+          "src/main/scala/org/http4s/dsl/impl/Path.scala",
+          "src/test/scala/org/http4s/dsl/PathSpec.scala",
+          "src/main/scala/org/http4s/ember/core/ChunkedEncoding.scala",
+          "src/main/scala/org/http4s/testing/ErrorReportingUtils.scala",
+          "src/main/scala/org/http4s/testing/IOMatchers.scala",
+          "src/main/scala/org/http4s/testing/RunTimedMatchers.scala",
+          "src/test/scala/org/http4s/Http4sSpec.scala",
+          "src/test/scala/org/http4s/util/illTyped.scala",
+          "src/test/scala/org/http4s/testing/ErrorReporting.scala",
+          "src/test/scala/org/http4s/UriSpec.scala"
+        )
+      }
   )
-
-  lazy val silencerSettings: Seq[Setting[_]] = {
-    val SilencerVersion = "1.6.0"
-    Seq(
-      libraryDependencies ++= Seq(
-        compilerPlugin(("com.github.ghik" % "silencer-plugin" % SilencerVersion).cross(CrossVersion.full)),
-        ("com.github.ghik" % "silencer-lib" % SilencerVersion % CompileTime).cross(CrossVersion.full),
-        ("com.github.ghik" % "silencer-lib" % SilencerVersion % Test).cross(CrossVersion.full),
-      ),
-      unusedCompileDependenciesFilter -= moduleFilter("com.github.ghik", name = "silencer-lib"),
-    )
-  }
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
@@ -193,65 +196,55 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
-  def addAlpnPath(attList: Keys.Classpath): Seq[String] = {
-    for {
-      file <- attList.map(_.data)
-      path = file.getAbsolutePath if path.contains("jetty") && path.contains("alpn-boot")
-    } yield {
-      println(s"Adding Alpn classes to boot classpath: $path")
-      "-Xbootclasspath/p:" + path
-    }
-  }
-
-
   object V { // Dependency versions
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val alpn = "8.1.13.v20181017"
-    val argonaut = "6.2.5"
-    val asyncHttpClient = "2.10.5"
+    val argonaut = "6.3.0"
+    val asyncHttpClient = "2.12.1"
     val blaze = "0.14.12"
-    val boopickle = "1.3.1"
+    val boopickle = "1.3.3"
+    val caseInsensitive = "0.3.0"
     val cats = "2.1.1"
     val catsEffect = "2.1.3"
     val catsEffectTesting = "0.4.0"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.0"
-    val dropwizardMetrics = "4.1.6"
-    val fs2 = "2.3.0"
+    val dropwizardMetrics = "4.1.9"
+    val fs2 = "2.4.2"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.28.v20200408"
-    val json4s = "3.6.7"
-    val jsp = "2.3.3"
-    val log4cats = "1.0.1"
+    val jetty = "9.4.30.v20200611"
+    val json4s = "3.6.9"
+    val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
     val log4s = "1.8.2"
     val mockito = "3.3.3"
-    val okhttp = "4.5.0"
+    val okhttp = "4.7.2"
     val parboiledHttp4s = "2.0.1"
-    val playJson = "2.8.1"
-    val prometheusClient = "0.8.1"
+    val playJson = "2.9.0"
+    val prometheusClient = "0.9.0"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.14.3"
-    val scalatags = "0.9.0"
+    val scalatags = "0.9.1"
     val scalaXml = "1.3.0"
     val servlet = "3.1.0"
-    val specs2 = "4.9.3"
-    val tomcat = "9.0.34"
+    val specs2 = "4.9.4"
+    val tomcat = "9.0.36"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
   }
 
-  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % V.alpn
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
+  lazy val argonautJawn                     = "io.argonaut"            %% "argonaut-jawn"             % V.argonaut
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % V.blaze
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % V.boopickle
+  lazy val caseInsensitive                  = "org.typelevel"          %% "case-insensitive"          % V.caseInsensitive
+  lazy val caseInsensitiveTesting           = "org.typelevel"          %% "case-insensitive-testing"  % V.caseInsensitive
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
@@ -281,7 +274,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % V.json4s
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
-  lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % V.jsp // YourKit hack
   lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % V.keypool
   lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % V.log4cats
   lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % V.log4cats

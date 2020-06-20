@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.client.middleware
 
 import cats.effect.{Clock, Resource, Sync}
@@ -33,10 +39,11 @@ object Metrics {
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
-  def apply[F[_]](ops: MetricsOps[F], classifierF: Request[F] => Option[String] = {
-    (_: Request[F]) =>
-      None
-  })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] =
+  def apply[F[_]](
+      ops: MetricsOps[F],
+      classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
+        None
+      })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] =
     Client(withMetrics(client, ops, classifierF))
 
   private def withMetrics[F[_]](
@@ -89,10 +96,9 @@ object Metrics {
     clock
       .monotonic(TimeUnit.NANOSECONDS)
       .flatMap { now =>
-        if (e.isInstanceOf[TimeoutException]) {
+        if (e.isInstanceOf[TimeoutException])
           ops.recordAbnormalTermination(now - start, Timeout, classifier)
-        } else {
-          ops.recordAbnormalTermination(now - start, Error, classifier)
-        }
+        else
+          ops.recordAbnormalTermination(now - start, Error(e), classifier)
       }
 }

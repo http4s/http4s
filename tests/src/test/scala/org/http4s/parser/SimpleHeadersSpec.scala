@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package parser
 
@@ -5,11 +11,27 @@ import cats.data.NonEmptyList
 import java.net.InetAddress
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
+import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSpec {
   "SimpleHeaders" should {
+    "parse Accept-Patch" in {
+      val header =
+        `Accept-Patch`(
+          NonEmptyList.of(new MediaType("text", "example", extensions = Map("charset" -> "utf-8"))))
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+      val multipleMediaTypes =
+        `Accept-Patch`(
+          NonEmptyList
+            .of(new MediaType("application", "example"), new MediaType("text", "example")))
+      HttpHeaderParser.parseHeader(multipleMediaTypes.toRaw) must beRight(multipleMediaTypes)
+
+      val bad = Header(header.name.toString, "foo; bar")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+    }
+
     "parse Connection" in {
-      val header = Connection("closed".ci)
+      val header = Connection(CIString("closed"))
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
     }
 
@@ -51,6 +73,17 @@ class SimpleHeadersSpec extends Http4sSpec {
 
       val bad = Header(header1.name.toString, "foo:bar")
       HttpHeaderParser.parseHeader(bad) must beLeft
+    }
+
+    "parse Access-Control-Allow-Credentials" in {
+      val header = `Access-Control-Allow-Credentials`().toRaw.parsed
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val bad = Header(header.name.toString, "false")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+      // it is case sensitive
+      val bad2 = Header(header.name.toString, "True")
+      HttpHeaderParser.parseHeader(bad2) must beLeft
     }
 
     "parse Last-Modified" in {
@@ -102,25 +135,60 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse User-Agent" in {
-      val header = `User-Agent`(AgentProduct("foo", Some("bar")), List(AgentComment("foo")))
+      val header = `User-Agent`(ProductId("foo", Some("bar")), List(ProductComment("foo")))
       header.value must_== "foo/bar (foo)"
 
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
-      val header2 = `User-Agent`(
-        AgentProduct("foo"),
-        List(AgentProduct("bar", Some("biz")), AgentComment("blah")))
+      val header2 =
+        `User-Agent`(
+          ProductId("foo", None),
+          List(ProductId("bar", Some("biz")), ProductComment("blah")))
       header2.value must_== "foo bar/biz (blah)"
       HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
 
       val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
-      HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr)) must beRight(
+      val parsed = HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr))
+      parsed must beRight(
         `User-Agent`(
-          AgentProduct("Mozilla", Some("5.0")),
+          ProductId("Mozilla", Some("5.0")),
           List(
-            AgentComment("Android; Mobile; rv:30.0"),
-            AgentProduct("Gecko", Some("30.0")),
-            AgentProduct("Firefox", Some("30.0"))
+            ProductComment("Android; Mobile; rv:30.0"),
+            ProductId("Gecko", Some("30.0")),
+            ProductId("Firefox", Some("30.0"))
+          )
+        )
+      )
+      parsed.map(_.value) must_== Right(headerstr)
+    }
+
+    "parse Server" in {
+      val header = Server(ProductId("foo", Some("bar")), List(ProductComment("foo")))
+      header.value must_== "foo/bar (foo)"
+
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val header2 =
+        Server(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
+      header2.value must_== "foo bar/biz (blah)"
+      HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
+
+      val headerstr = "nginx/1.14.0 (Ubuntu)"
+      HttpHeaderParser.parseHeader(Header.Raw(Server.name, headerstr)) must beRight(
+        Server(
+          ProductId("nginx", Some("1.14.0")),
+          List(
+            ProductComment("Ubuntu")
+          )
+        )
+      )
+
+      val headerstr2 = "CERN/3.0 libwww/2.17"
+      HttpHeaderParser.parseHeader(Header.Raw(Server.name, headerstr2)) must beRight(
+        Server(
+          ProductId("CERN", Some("3.0")),
+          List(
+            ProductId("libwww", Some("2.17"))
           )
         )
       )

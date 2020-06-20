@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.client
 
 import cats.effect.{Resource, Sync}
@@ -10,8 +16,8 @@ import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 
 object JettyScaffold {
-  def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(
-      implicit F: Sync[F]): Resource[F, JettyScaffold] =
+  def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(implicit
+      F: Sync[F]): Resource[F, JettyScaffold] =
     Resource.make(F.delay {
       val scaffold = new JettyScaffold(num, secure)
       scaffold.startServers(testServlet)
@@ -66,7 +72,7 @@ class JettyScaffold private (num: Int, secure: Boolean) {
       server.start()
 
       val address = new InetSocketAddress(
-        InetAddress.getLocalHost(),
+        InetAddress.getLocalHost.getCanonicalHostName,
         server.getConnectors.head.asInstanceOf[ServerConnector].getLocalPort)
 
       (address, server)

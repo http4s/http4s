@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -19,8 +25,18 @@ object EntityLimiter {
       http(req.withBodyStream(req.body.through(takeLimited(limit))))
     }
 
-  private def takeLimited[F[_]](n: Long)(
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] =
+  def httpRoutes[F[_]: ApplicativeError[*[_], Throwable]](
+      httpRoutes: HttpRoutes[F],
+      limit: Long = DefaultMaxEntitySize): HttpRoutes[F] =
+    apply(httpRoutes, limit)
+
+  def httpApp[F[_]: ApplicativeError[*[_], Throwable]](
+      httpApp: HttpApp[F],
+      limit: Long = DefaultMaxEntitySize): HttpApp[F] =
+    apply(httpApp, limit)
+
+  private def takeLimited[F[_]](n: Long)(implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] =
     _.pull
       .take(n)
       .flatMap {

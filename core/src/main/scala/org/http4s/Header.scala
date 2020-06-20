@@ -1,28 +1,20 @@
 /*
- * Derived from https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/HttpHeader.scala
+ * Copyright 2013-2020 http4s.org
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/HttpHeader.scala
  * Copyright (C) 2011-2012 spray.io
- * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team
  */
+
 package org.http4s
 
 import cats.{Eq, Show}
 import cats.data.NonEmptyList
 import cats.implicits._
-import org.http4s.syntax.string._
 import org.http4s.util._
+import org.typelevel.ci.CIString
 import scala.util.hashing.MurmurHash3
 
 /**
@@ -32,7 +24,7 @@ import scala.util.hashing.MurmurHash3
 sealed trait Header extends Renderable with Product {
   import Header.Raw
 
-  def name: CaseInsensitiveString
+  def name: CIString
 
   def parsed: Header
 
@@ -59,14 +51,15 @@ sealed trait Header extends Renderable with Product {
   final override def hashCode(): Int =
     MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
 
-  final override def equals(that: Any): Boolean = that match {
-    case h: AnyRef if this eq h => true
-    case h: Header =>
-      (name == h.name) &&
-        (parsed.productArity == h.parsed.productArity) &&
-        (parsed.productIterator.sameElements(h.parsed.productIterator))
-    case _ => false
-  }
+  final override def equals(that: Any): Boolean =
+    that match {
+      case h: AnyRef if this eq h => true
+      case h: Header =>
+        (name == h.name) &&
+          (parsed.productArity == h.parsed.productArity) &&
+          (parsed.productIterator.sameElements(h.parsed.productIterator))
+      case _ => false
+    }
 
   /** Length of the rendered header, including name and final '\r\n' */
   def renderedLength: Long =
@@ -74,10 +67,10 @@ sealed trait Header extends Renderable with Product {
 }
 
 object Header {
-  def unapply(header: Header): Option[(CaseInsensitiveString, String)] =
+  def unapply(header: Header): Option[(CIString, String)] =
     Some((header.name, header.value))
 
-  def apply(name: String, value: String): Raw = Raw(name.ci, value)
+  def apply(name: String, value: String): Raw = Raw(CIString(name), value)
 
   /**
     * Raw representation of the Header
@@ -87,12 +80,11 @@ object Header {
     * @param name case-insensitive string used to identify the header
     * @param value String representation of the header value
     */
-  final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
+  final case class Raw(name: CIString, override val value: String) extends Header {
     private[this] var _parsed: Header = null
     final override def parsed: Header = {
-      if (_parsed == null) {
+      if (_parsed == null)
         _parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
-      }
       _parsed
     }
     override def renderValue(writer: Writer): writer.type = writer.append(value)
@@ -101,7 +93,7 @@ object Header {
   /** A Header that is already parsed from its String representation. */
   trait Parsed extends Header {
     def key: HeaderKey
-    def name: CaseInsensitiveString = key.name
+    def name: CIString = key.name
     def parsed: this.type = this
   }
 
@@ -124,6 +116,17 @@ object Header {
     override def renderValue(writer: Writer): writer.type = {
       values.head.render(writer)
       values.tail.foreach(writer << ", " << _)
+      writer
+    }
+  }
+
+  /** Helper trait that provides a default way of rendering the value provided a Renderer */
+  trait RecurringRenderer extends Recurring {
+    type Value
+    implicit def renderer: Renderer[Value]
+    override def renderValue(writer: Writer): writer.type = {
+      renderer.render(writer, values.head)
+      values.tail.foreach(writer << ", " << Renderer.renderString(_))
       writer
     }
   }

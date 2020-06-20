@@ -12,6 +12,9 @@ title: Adopters
 [Cammy](http://www.cammy.com)
 : Has about 10 services in production at thousands of requests per second.
 
+[ClearScore](https://www.clearscore.com)
+: Uses http4s for some API services.
+
 [Eckerd College](https://www.eckerd.edu/)
 : Uses http4s for several of its internal services.
 
@@ -23,6 +26,12 @@ title: Adopters
 
 [Quantiply](https://www.quantiply.com)
 : Uses http4s to power the critical data APIs.
+
+[MYOB](https://myob.com)
+: Uses http4s for some API and Web services.
+
+[Netflix](https://www.netflix.com)
+: Uses http4s for internal tools.
 
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).

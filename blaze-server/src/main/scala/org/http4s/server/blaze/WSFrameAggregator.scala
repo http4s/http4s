@@ -1,16 +1,22 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.blaze
 
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.Execution._
-import org.http4s.util
-import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
 import java.net.ProtocolException
+import org.http4s.internal.bug
 import org.http4s.server.blaze.WSFrameAggregator.Accumulator
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 import scodec.bits.ByteVector
 
 private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame] {
@@ -27,38 +33,39 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
     p.future
   }
 
-  private def readLoop(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit = frame match {
-    case _: Text => handleHead(frame, p)
-    case _: Binary => handleHead(frame, p)
+  private def readLoop(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit =
+    frame match {
+      case _: Text => handleHead(frame, p)
+      case _: Binary => handleHead(frame, p)
 
-    case c: Continuation =>
-      if (accumulator.isEmpty) {
-        val e = new ProtocolException(
-          "Invalid state: Received a Continuation frame without accumulated state.")
-        logger.error(e)("Invalid state")
-        p.failure(e)
-        ()
-      } else {
-        accumulator.append(frame)
-        if (c.last) {
-          // We are finished with the segment, accumulate
-          p.success(accumulator.take())
+      case c: Continuation =>
+        if (accumulator.isEmpty) {
+          val e = new ProtocolException(
+            "Invalid state: Received a Continuation frame without accumulated state.")
+          logger.error(e)("Invalid state")
+          p.failure(e)
           ()
-        } else
-          channelRead().onComplete {
-            case Success(f) =>
-              readLoop(f, p)
-            case Failure(t) =>
-              p.failure(t)
-              ()
-          }(trampoline)
-      }
+        } else {
+          accumulator.append(frame)
+          if (c.last) {
+            // We are finished with the segment, accumulate
+            p.success(accumulator.take())
+            ()
+          } else
+            channelRead().onComplete {
+              case Success(f) =>
+                readLoop(f, p)
+              case Failure(t) =>
+                p.failure(t)
+                ()
+            }(trampoline)
+        }
 
-    case f =>
-      // Must be a control frame, send it out
-      p.success(f)
-      ()
-  }
+      case f =>
+        // Must be a control frame, send it out
+        p.success(f)
+        ()
+    }
 
   private def handleHead(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit =
     if (!accumulator.isEmpty) {
@@ -99,7 +106,7 @@ private object WSFrameAggregator {
       if (queue.isEmpty) frame match {
         case _: Text | _: Binary => // nop
         case f =>
-          throw util.bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
+          throw bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
       }
       size += frame.length
       queue += frame
@@ -112,7 +119,7 @@ private object WSFrameAggregator {
         case _: Binary => false
         case f =>
           // shouldn't happen as it's guarded for in `append`
-          val e = util.bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
+          val e = bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
           throw e
       }
 

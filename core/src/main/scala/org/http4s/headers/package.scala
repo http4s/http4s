@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import java.lang.{Long => JLong}
@@ -15,9 +21,9 @@ package object headers {
       idLeastSigBits: Option[Long] = None): writer.type =
     idLeastSigBits match {
       case Some(idLsb) =>
-        if (idMostSigBits == 0L && idLsb == 0L) {
+        if (idMostSigBits == 0L && idLsb == 0L)
           writer.append(XB3IdFormatZeroPad.take(XB3Id128BitCharLength))
-        } else if (idMostSigBits == 0L) {
+        else if (idMostSigBits == 0L) {
           val leadingLsbHexZeroCount = JLong.numberOfLeadingZeros(idLsb) / BitsToNibbleRatio
           writer
             .append(XB3IdFormatZeroPad.take(XB3Id64BitCharLength))
@@ -39,13 +45,22 @@ package object headers {
             .append(idLsb.toHexString)
         }
       case None =>
-        if (idMostSigBits == 0L) {
+        if (idMostSigBits == 0L)
           writer.append(XB3IdFormatZeroPad.take(XB3Id64BitCharLength))
-        } else {
+        else {
           val leadingMsbHexZeroCount = JLong.numberOfLeadingZeros(idMostSigBits) / BitsToNibbleRatio
           writer
             .append(XB3IdFormatZeroPad.take(leadingMsbHexZeroCount))
             .append(idMostSigBits.toHexString)
         }
     }
+
+  @deprecated("Deprecated in favor of HttpToken", "0.22")
+  type AgentToken = ProductIdOrComment
+
+  @deprecated("Deprecated in favor of HttpComment", "0.22")
+  type AgentComment = ProductComment
+
+  @deprecated("Deprecated in favor of HttpProduct", "0.22")
+  type AgentProduct = ProductId
 }

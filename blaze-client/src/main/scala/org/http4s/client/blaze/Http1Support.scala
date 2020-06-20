@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package blaze
@@ -13,8 +19,9 @@ import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.internal.SSLContextOption
 import org.http4s.headers.`User-Agent`
-import org.http4s.internal.fromFuture
+import org.http4s.blazecore.util.fromFutureNoShift
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -22,7 +29,7 @@ import scala.util.{Failure, Success}
 /** Provides basic HTTP1 pipeline building
   */
 final private class Http1Support[F[_]](
-    sslContextOption: Option[SSLContext],
+    sslContextOption: SSLContextOption,
     bufferSize: Int,
     asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     executionContext: ExecutionContext,
@@ -49,7 +56,7 @@ final private class Http1Support[F[_]](
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
     getAddress(requestKey) match {
-      case Right(a) => fromFuture(F.delay(buildPipeline(requestKey, a)))
+      case Right(a) => fromFutureNoShift(F.delay(buildPipeline(requestKey, a)))
       case Left(t) => F.raiseError(t)
     }
 
@@ -88,7 +95,10 @@ final private class Http1Support[F[_]](
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Uri.Scheme.https, auth) =>
-        sslContextOption match {
+        val maybeSSLContext: Option[SSLContext] =
+          SSLContextOption.toMaybeSSLContext(sslContextOption)
+
+        maybeSSLContext match {
           case Some(sslContext) =>
             val eng = sslContext.createSSLEngine(auth.host.value, auth.port.getOrElse(443))
             eng.setUseClientMode(true)
@@ -114,7 +124,7 @@ final private class Http1Support[F[_]](
   private def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
     requestKey match {
       case RequestKey(s, auth) =>
-        val port = auth.port.getOrElse { if (s == Uri.Scheme.https) 443 else 80 }
+        val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
         Either.catchNonFatal(new InetSocketAddress(host, port))
     }

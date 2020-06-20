@@ -8,9 +8,36 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.4 (unreleased)
+# v1.0.0-M1 (unreleased)
 
-This release is fully backward compatible with 0.21.3.  
+This is the first milestone release in the 1.x series.
+It is not binary compatible with prior releases.
+
+## Breaking changes
+
+* [#3174](https://github.com/http4s/http4s/pull/3174): Drop http4s-prometheus dependency on http4s-dsl
+* [#2615](https://github.com/http4s/http4s/pull/2615): Model the `Server` header
+* [#3206](https://github.com/http4s/http4s/pull/2615): Model the `Content-Location` header
+* [#3264](https://github.com/http4s/http4s/pull/3264): Remove unused `EntityEncoder` argument in `PlayInstances`.
+* [#3257](https://github.com/http4s/http4s/pull/3257): Make `SameSite` cookie attribute optional
+* [#3291](https://github.com/http4s/http4s/pull/3291): Remove unused `F[_]` parameter from `Server`
+* [#3241](https://github.com/http4s/http4s/pull/3241): Port all macros to blackbox in anticipation of Dotty support
+* [#3323](https://github.com/http4s/http4s/pull/3323): Drop deprecated `ArbitraryInstances#charsetRangesNoQuality`
+* [#3322](https://github.com/http4s/http4s/pull/3322): Drop deprecated `getAs` and `prepAs` methods from `Client`
+* [#3371](https://github.com/http4s/http4s/pull/3271): In http4s-metrics, add `rootCause` field to `TerminationType.Abnormal` and `TerminationType.Error`.  Add `TerminationType.Canceled`
+* [#3335](https://github.com/http4s/http4s/pull/3335): Remove unused `Bracket` instance in `Client#translate`
+
+## Enhancements
+
+* [#3320](https://github.com/http4s/http4s/pull/3320): Reimplement `Media#as` with `F.rethrow`
+
+## Dependency updates
+
+* async-http-client-2.11.0
+
+# v0.21.4 (2020-04-28)
+
+This release is fully backward compatible with 0.21.3.
 
 ## Bugfixes
 
@@ -21,11 +48,15 @@ This release is fully backward compatible with 0.21.3.
 * [#3303](https://github.com/http4s/http4s/pull/3303): In blaze, cache `Date` header value 
 * [#3350](https://github.com/http4s/http4s/pull/3350): Use stable host address in `ConnectionFailure` message. Makes code more portable post-JDK11.
 
+## Deprecation
+
+* [#3361](https://github.com/http4s/http4s/pull/3361): Deprecate the `org.http4s.util.execution` package.
+
 ## Documentation
 
-* [#3279](https://github.com/http4s/http4s/pull/3279): Improve Prometheus middleware usage example #3279
+* [#3279](https://github.com/http4s/http4s/pull/3279): Improve Prometheus middleware usage example
 
-## Depedency updates
+## Dependency updates
 
 * fs2-2.3.0
 * okhttp-4.5.0
@@ -33,10 +64,23 @@ This release is fully backward compatible with 0.21.3.
 * scala-xml-1.3.0
 * specs2-4.9.3
 
-# v0.20.22 (unreleased)
+# v0.20.23 (2020-04-28)
 
-This release is fully backward compatible with 0.20.21.  
-It is the final planned release in the 0.20.x series.
+This release restores backward compatibility with the 0.20 series.
+This is the final planned release in the 0.20 series.
+
+## Compatibility
+
+* [#3362](https://github.com/http4s/http4s/pull/3362): Restores binary compatibility in http4s-jetty back to 0.20.21.
+
+# v0.20.22 (2020-04-28)
+
+This release is backward compatible with 0.20, except for http4s-jetty.
+This incompatibility will be corrected in 0.20.23.
+
+## Breaking changes
+
+* [#3333](https://github.com/http4s/http4s/pull/3333): Add Http2c support to jetty-server. This accidentally broke binary compatibility, and will be patched in v0.20.23.
 
 ## Bugfixes
 
@@ -45,10 +89,14 @@ It is the final planned release in the 0.20.x series.
 
 ## Enhancements
 
-* [#3333](https://github.com/http4s/http4s/pull/3333): Add Http2c support to jetty-server
 * [#3327](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `Date` middleware
 * [#3381](https://github.com/http4s/http4s/pull/3327): Add `httpRoutes` and `httpApp` convenience constructors to `CORS` middleware
 * [#3298](https://github.com/http4s/http4s/pull/3298): In `Logger` client and server middlewares, detect any media types ending in `+json` as non-binary
+
+## Deprecations
+
+* [#3330](https://github.com/http4s/http4s/pull/3330): Deprecate `BlazeServerBuilder#apply()` in favor of passing an `ExecutionContext` explicitly.  Formerly, `ExecutionContext.global` was referenced by the default builder, and would spin up its thread pool even if the app never used the global execution context.
+* [#3361](https://github.com/http4s/http4s/pull/3361): Deprecate `org.http4s.util.bug`, which is for internal use only.
 
 ## Backports
 
@@ -64,7 +112,7 @@ These appeared in previous releases, but have been backported to 0.20.x
 
 * Start testing on JDK14
 
-## Depedency updates
+## Dependency updates
 
 * blaze-0.14.12
 * metrics-4.1.6
@@ -78,7 +126,7 @@ This release is fully backward compatible with 0.21.2.
 
 # Bugfixes
 
-* [#3245](https://github.com/http4s/http4s/pull/3245): Write ember-client request to socket before reading response
+* [#3243](https://github.com/http4s/http4s/pull/3243): Write ember-client request to socket before reading response
 
 ## Enhancements
 
@@ -270,7 +318,7 @@ This release is binary incompatible with 0.21.0-RC2, but should be source compat
 
 ### Binary and source
 
-* [#3110](https://github.com/http4s/http4s/pull/3098): Change `MessageFailure#toHttpResponse` to return a `Response[F]` instead of an `F[Response[F]]`, and relax constraints accordingly. Drops the `inHttpResponse` method.
+* [#3110](https://github.com/http4s/http4s/pull/3110): Change `MessageFailure#toHttpResponse` to return a `Response[F]` instead of an `F[Response[F]]`, and relax constraints accordingly. Drops the `inHttpResponse` method.
 * [#3107](https://github.com/http4s/http4s/pull/3107): Add `covary[F[_]]` method to `Media` types.  Should not break your source unless you have your own `Media` subclass, which you shouldn't.
 
 ### Binary only
@@ -699,7 +747,7 @@ Cursed release.  Sonatype staging repo closed in flight.
 * [#2574](https://github.com/http4s/http4s/pull/2574): Refactor `FollowRedirect`
 * [#2648](https://github.com/http4s/http4s/pull/2648): Move `mimedb-generator` from a project to an internal SBT plugin. Run with `core/generateMimeDb`.
 
-## Depedency updates
+## Dependency updates
 * cats-2.0.0-M4
 * cats-effect-2.0.0-M4
 * circe-0.12.0-M3
@@ -1789,7 +1837,7 @@ This release is identical to v0.19.0-M4.  We mistagged it.  Please proceed to th
   implementors, with more to follow.  Added an `HttpCodecLaws` to http4s-testing.
 * `Uri.Scheme` is now its own type instead of a type alias.
 * `TransferCoding` is no longer a case class. Its `coding` member is now a
-  `String`, not a `CaseInsensitiveString`. Its companion is no longer a
+  `String`, not a `CIString`. Its companion is no longer a
   `Registry`.
 * Introduced `org.http4s.syntax.literals`, which contains a `StringContext` forAll
   safely constructing a `Uri.Scheme`.  More will follow.
@@ -2137,7 +2185,7 @@ Several dependencies are upgraded:
 * Overload `client.fetchAs` and `client.streaming` to accept a `Task[Request]`
 * Replace `Instant` with `HttpDate` to avoid silent truncation and constrain
   to dates that are legally renderable in HTTP.
-* Fix bug in hash code of `CaseInsensitiveString`
+* Fix bug in hash code of `CIString`
 * Update `request.pathInfo` when changing `request.withUri`. To keep these
   values in sync, `request.copy` has been deprecated, but copy constructors
   based on `with` have been added.
@@ -2154,7 +2202,7 @@ Several dependencies are upgraded:
   backends
 * Fix `Part.name` to return the name from the `Content-Disposition` header
   instead of the name _of_ the `Content-Disposition` header. Accordingly, it is
-  no longer a `CaseInsensitiveString`
+  no longer a `CIString`
 * `Request.toString` and `Response.toString` now redact sensitive headers. A
   method to redact arbitrary headers is added to `Headers`.
 * `Retry-After` is now modeled as a `Either[HttpDate, Long]` to reflect either
@@ -2315,7 +2363,7 @@ Several dependencies are upgraded:
 * Use `SSLContext.getDefault` by default in blaze-client.  Use
   `BlazeServerConfig.insecure` to ignore certificate validity.  But
   please don't.
-* Move `CaseInsensitiveString` syntax to `org.http4s.syntax`.
+* Move `CIString` syntax to `org.http4s.syntax`.
 * Bundle an internal version of parboiled2.  This decouples core from
   shapeless, allowing applications to use their preferred version of
   shapeless.

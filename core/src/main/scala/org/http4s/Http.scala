@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats._
@@ -49,7 +55,7 @@ object Http {
     * @return An [[Http]] whose input is transformed by `f` before
     * being applied to `fa`
     */
-  def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(
-      implicit F: Defer[F]): Http[F, G] =
+  def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(implicit
+      F: Defer[F]): Http[F, G] =
     Kleisli(req => F.defer(fa.run(f(req))))
 }

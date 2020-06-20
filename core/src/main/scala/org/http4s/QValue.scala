@@ -1,10 +1,16 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Order, Show}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser.{AdditionalRules, Http4sParser}
 import org.http4s.util.Writer
-import scala.reflect.macros.whitebox
+import scala.reflect.macros.blackbox
 
 /**
   * A Quality Value.  Represented as thousandths for an exact representation rounded to three
@@ -60,7 +66,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 }
 
 object QValue {
-  lazy val One: QValue = new QValue(1000) // scalastyle:ignore
+  lazy val One: QValue = new QValue(1000)
   lazy val Zero: QValue = new QValue(0)
 
   private def mkQValue(thousandths: Int, s: => String): ParseResult[QValue] =
@@ -89,15 +95,16 @@ object QValue {
     }.parse
 
   private[http4s] trait QValueParser extends AdditionalRules { self: PbParser =>
-    def QualityValue = rule { // QValue is already taken
-      ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
-    }
+    def QualityValue =
+      rule { // QValue is already taken
+        ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
+      }
   }
 
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
-  class Macros(val c: whitebox.Context) {
+  class Macros(val c: blackbox.Context) {
     import c.universe._
 
     def qValueLiteral(d: c.Expr[Double]): Tree =

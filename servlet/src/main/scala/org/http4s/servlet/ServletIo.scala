@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package servlet
 
@@ -7,8 +13,8 @@ import fs2._
 import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{ReadListener, WriteListener}
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import org.http4s.util.bug
-import org.http4s.util.execution.trampoline
+import org.http4s.internal.bug
+import org.http4s.internal.Trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
 
@@ -100,11 +106,11 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         // This effect sets the callback and waits for the first bytes to read
         val registerRead =
           // Shift execution to a different EC
-          Async.shift(trampoline) *>
+          Async.shift(Trampoline) *>
             F.async[Option[Chunk[Byte]]] { cb =>
-              if (!state.compareAndSet(Init, Blocked(cb))) {
+              if (!state.compareAndSet(Init, Blocked(cb)))
                 cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
-              } else
+              else
                 in.setReadListener(
                   new ReadListener {
                     override def onDataAvailable(): Unit =
@@ -131,37 +137,38 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         val readStream = Stream.eval(registerRead) ++ Stream
           .repeatEval( // perform the initial set then transition into normal read mode
             // Shift execution to a different EC
-            Async.shift(trampoline) *>
+            Async.shift(Trampoline) *>
               F.async[Option[Chunk[Byte]]] { cb =>
                 @tailrec
-                def go(): Unit = state.get match {
-                  case Ready if in.isReady => read(cb)
+                def go(): Unit =
+                  state.get match {
+                    case Ready if in.isReady => read(cb)
 
-                  case Ready => // wasn't ready so set the callback and double check that we're still not ready
-                    val blocked = Blocked(cb)
-                    if (state.compareAndSet(Ready, blocked)) {
-                      if (in.isReady && state.compareAndSet(blocked, Ready)) {
-                        read(cb) // data became available while we were setting up the callbacks
-                      } else {
-                        /* NOOP: our callback is either still needed or has been handled */
-                      }
-                    } else go() // Our state transitioned so try again.
+                    case Ready => // wasn't ready so set the callback and double check that we're still not ready
+                      val blocked = Blocked(cb)
+                      if (state.compareAndSet(Ready, blocked))
+                        if (in.isReady && state.compareAndSet(blocked, Ready))
+                          read(cb) // data became available while we were setting up the callbacks
+                        else {
+                          /* NOOP: our callback is either still needed or has been handled */
+                        }
+                      else go() // Our state transitioned so try again.
 
-                  case Complete => cb(rightNone)
+                    case Complete => cb(rightNone)
 
-                  case Errored(t) => cb(Left(t))
+                    case Errored(t) => cb(Left(t))
 
-                  // This should never happen so throw a huge fit if it does.
-                  case Blocked(c1) =>
-                    val t = bug("Two callbacks found in read state")
-                    cb(Left(t))
-                    c1(Left(t))
-                    logger.error(t)("This should never happen. Please report.")
-                    throw t
+                    // This should never happen so throw a huge fit if it does.
+                    case Blocked(c1) =>
+                      val t = bug("Two callbacks found in read state")
+                      cb(Left(t))
+                      c1(Left(t))
+                      logger.error(t)("This should never happen. Please report.")
+                      throw t
 
-                  case Init =>
-                    cb(Left(bug("Should have left Init state by now")))
-                }
+                    case Init =>
+                      cb(Left(bug("Should have left Init state by now")))
+                  }
                 go()
               })
         readStream.unNoneTerminate.flatMap(Stream.chunk)
@@ -188,9 +195,9 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
     @volatile var autoFlush = false
 
     val writeChunk = Right { (chunk: Chunk[Byte]) =>
-      if (!out.isReady) {
+      if (!out.isReady)
         logger.error(s"writeChunk called while out was not ready, bytes will be lost!")
-      } else {
+      else {
         out.write(chunk.toArray)
         if (autoFlush && out.isReady)
           out.flush()
@@ -221,7 +228,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
 
     val awaitLastWrite = Stream.eval_ {
       // Shift execution to a different EC
-      Async.shift(trampoline) *>
+      Async.shift(Trampoline) *>
         F.async[Unit] { cb =>
           state.getAndSet(AwaitingLastWrite(cb)) match {
             case Ready if out.isReady => cb(Right(()))
@@ -236,7 +243,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
       response.body.chunks
         .evalMap { chunk =>
           // Shift execution to a different EC
-          Async.shift(trampoline) *>
+          Async.shift(Trampoline) *>
             F.async[Chunk[Byte] => Unit] { cb =>
                 val blocked = Blocked(cb)
                 state.getAndSet(blocked) match {

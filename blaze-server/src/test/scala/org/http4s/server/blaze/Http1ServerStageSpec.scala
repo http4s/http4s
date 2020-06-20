@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
@@ -17,16 +23,18 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.specs2.specification.AfterAll
 import org.specs2.specification.core.Fragment
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import _root_.io.chrisdavenport.vault._
+import org.http4s.testing.ErrorReporting._
 
 class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   sequential
 
   val tickWheel = new TickWheelExecutor()
 
-  def afterAll = tickWheel.shutdown()
+  def afterAll() = tickWheel.shutdown()
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
@@ -58,7 +66,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       maxReqLine,
       maxHeaders,
       10 * 1024,
-      DefaultServiceErrorHandler,
+      silentErrorHandler,
       30.seconds,
       30.seconds,
       tickWheel
@@ -100,7 +108,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
           s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
             val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
             parseAndDropDate(result) must_== ((status, headers, resp))
-          } else
+          }
+        else
           s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
             val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
             parseAndDropDate(result) must_== ((status, headers, resp))
@@ -126,7 +135,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
         .map {
           case (s, h, r) =>
             val close = h.exists { h =>
-              h.toRaw.name == "connection".ci && h.toRaw.value == "close"
+              h.toRaw.name == CIString("connection") && h.toRaw.value == "close"
             }
             (s, close, r)
         }
@@ -423,14 +432,14 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
       val routes = HttpRoutes
         .of[IO] {
-          case req if req.pathInfo == "/foo" =>
+          case req if req.pathInfo == path"/foo" =>
             for {
               _ <- req.body.compile.drain
               hs <- req.trailerHeaders
               resp <- Ok(hs.toList.mkString)
             } yield resp
 
-          case req if req.pathInfo == "/bar" =>
+          case req if req.pathInfo == path"/bar" =>
             for {
               // Don't run the body
               hs <- req.trailerHeaders

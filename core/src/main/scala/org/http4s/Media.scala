@@ -1,7 +1,12 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.MonadError
-import cats.implicits._
 import fs2.Stream
 import fs2.text.utf8Decode
 import org.http4s.headers._
@@ -50,16 +55,16 @@ trait Media[F[_]] {
     * @return the effect which will generate the A
     */
   final def as[A](implicit F: MonadError[F, Throwable], decoder: EntityDecoder[F, A]): F[A] =
-    // n.b. this will be better with redeem in Cats-2.0
-    attemptAs.leftWiden[Throwable].rethrowT
+    F.rethrow(attemptAs.value)
 }
 
 object Media {
-  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] = new Media[F] {
-    def body = b
+  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
+    new Media[F] {
+      def body = b
 
-    def headers: Headers = h
+      def headers: Headers = h
 
-    override def covary[F2[x] >: F[x]]: Media[F2] = this.asInstanceOf[Media[F2]]
-  }
+      override def covary[F2[x] >: F[x]]: Media[F2] = this.asInstanceOf[Media[F2]]
+    }
 }

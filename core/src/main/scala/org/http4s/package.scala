@@ -1,11 +1,18 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org
 
 import cats.data.{EitherT, Kleisli, OptionT}
 import fs2.Stream
+import org.typelevel.ci.CIString
 
-package object http4s { // scalastyle:ignore
+package object http4s {
 
-  type AuthScheme = util.CaseInsensitiveString
+  type AuthScheme = CIString
 
   type EntityBody[+F[_]] = Stream[F, Byte]
 

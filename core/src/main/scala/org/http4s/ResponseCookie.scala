@@ -1,21 +1,13 @@
 /*
- * Derived from https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/HttpCookie.scala
+ * Copyright 2013-2020 http4s.org
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/ResponseCookie.scala
  * Copyright (C) 2011-2012 spray.io
- * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team
  */
+
 package org.http4s
 
 import org.http4s.util.{Renderable, Writer}
@@ -102,7 +94,7 @@ final case class ResponseCookie(
     maxAge: Option[Long] = None,
     domain: Option[String] = None,
     path: Option[String] = None,
-    sameSite: SameSite = SameSite.Lax,
+    sameSite: Option[SameSite] = None,
     secure: Boolean = false,
     httpOnly: Boolean = false,
     extension: Option[String] = None
@@ -117,8 +109,8 @@ final case class ResponseCookie(
     maxAge.foreach(writer.append("; Max-Age=").append(_))
     domain.foreach(writer.append("; Domain=").append(_))
     path.foreach(writer.append("; Path=").append(_))
-    writer.append("; SameSite=").append(sameSite)
-    if (secure || sameSite == SameSite.None) writer.append("; Secure")
+    sameSite.foreach(writer.append("; SameSite=").append(_))
+    if (secure || sameSite.exists(_ == SameSite.None)) writer.append("; Secure")
     if (httpOnly) writer.append("; HttpOnly")
     extension.foreach(writer.append("; ").append(_))
     writer

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -10,8 +16,8 @@ import cats.effect.implicits._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2.{Chunk, Stream}
-import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
+import org.typelevel.ci.CIString
 import cats.effect.Sync._
 
 /**
@@ -24,15 +30,15 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(
-      implicit F: Concurrent[F],
+  )(http: Http[G, F])(implicit
+      F: Concurrent[F],
       G: Bracket[G, Throwable]
   ): Http[G, F] = {
-    val log = logAction.fold({ (s: String) =>
+    val log = logAction.fold { (s: String) =>
       Sync[F].delay(logger.info(s))
-    })(identity)
+    }(identity)
     Kleisli { req =>
       if (!logBody) {
         def logAct =
@@ -46,7 +52,7 @@ object RequestLogger {
             case ExitCase.Error(_) => fk(logAct)
             case ExitCase.Completed => G.unit
           } <* fk(logAct)
-      } else {
+      } else
         fk(Ref[F].of(Vector.empty[Chunk[Byte]]))
           .flatMap { vec =>
             val newBody = Stream
@@ -74,14 +80,13 @@ object RequestLogger {
                 .map(resp => resp.withBodyStream(resp.body.onFinalizeWeak(logRequest)))
             response
           }
-      }
     }
   }
 
   def httpApp[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
@@ -89,7 +94,7 @@ object RequestLogger {
   def httpRoutes[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)

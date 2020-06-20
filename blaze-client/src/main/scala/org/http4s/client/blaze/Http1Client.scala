@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package blaze
@@ -5,6 +11,7 @@ package blaze
 import cats.effect._
 import fs2.Stream
 import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.internal.SSLContextOption
 
 import scala.concurrent.duration.Duration
 
@@ -16,10 +23,11 @@ object Http1Client {
     *
     * @param config blaze client configuration options
     */
-  private def resource[F[_]](config: BlazeClientConfig)(
-      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
+  private def resource[F[_]](config: BlazeClientConfig)(implicit
+      F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
-      sslContextOption = config.sslContext,
+      sslContextOption =
+        config.sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided),
       bufferSize = config.bufferSize,
       asynchronousChannelGroup = config.group,
       executionContext = config.executionContext,
@@ -50,7 +58,7 @@ object Http1Client {
       .map(pool => BlazeClient(pool, config, pool.shutdown, config.executionContext))
   }
 
-  def stream[F[_]](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(
-      implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+  def stream[F[_]](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(implicit
+      F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(config))
 }

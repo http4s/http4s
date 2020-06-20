@@ -1,9 +1,16 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.util
 
 import cats.data.NonEmptyList
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import org.typelevel.ci.CIString
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
@@ -22,6 +29,8 @@ trait Renderer[T] {
 }
 
 object Renderer {
+  @inline def apply[A](implicit ev: Renderer[A]): Renderer[A] = ev
+
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
@@ -47,15 +56,16 @@ object Renderer {
       writer << d.toString
   }
 
-  implicit def eitherRenderer[A, B](
-      implicit ra: Renderer[A],
-      rb: Renderer[B]): Renderer[Either[A, B]] = new Renderer[Either[A, B]] {
-    override def render(writer: Writer, e: Either[A, B]): writer.type =
-      e match {
-        case Left(a) => ra.render(writer, a)
-        case Right(b) => rb.render(writer, b)
-      }
-  }
+  implicit def eitherRenderer[A, B](implicit
+      ra: Renderer[A],
+      rb: Renderer[B]): Renderer[Either[A, B]] =
+    new Renderer[Either[A, B]] {
+      override def render(writer: Writer, e: Either[A, B]): writer.type =
+        e match {
+          case Left(a) => ra.render(writer, a)
+          case Right(b) => rb.render(writer, b)
+        }
+    }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
@@ -88,7 +98,7 @@ object Writer {
 /** Efficiently accumulate [[Renderable]] representations */
 trait Writer {
   def append(s: String): this.type
-  def append(ci: CaseInsensitiveString): this.type = append(ci.toString)
+  def append(ci: CIString): this.type = append(ci.toString)
   def append(char: Char): this.type = append(char.toString)
   def append(float: Float): this.type = append(float.toString)
   def append(double: Double): this.type = append(double.toString)
@@ -104,12 +114,13 @@ trait Writer {
     this << '"'
 
     @tailrec
-    def go(i: Int): Unit = if (i < s.length) {
-      val c = s.charAt(i)
-      if (escapedChars.contains(c.toInt)) this << escapeChar
-      this << c
-      go(i + 1)
-    }
+    def go(i: Int): Unit =
+      if (i < s.length) {
+        val c = s.charAt(i)
+        if (escapedChars.contains(c.toInt)) this << escapeChar
+        this << c
+        go(i + 1)
+      }
 
     go(0)
     this << '"'
@@ -154,7 +165,7 @@ trait Writer {
 
   final def <<(s: String): this.type = append(s)
   final def <<#(s: String): this.type = quote(s)
-  final def <<(s: CaseInsensitiveString): this.type = append(s)
+  final def <<(s: CIString): this.type = append(s)
   final def <<(char: Char): this.type = append(char)
   final def <<(float: Float): this.type = append(float)
   final def <<(double: Double): this.type = append(double)

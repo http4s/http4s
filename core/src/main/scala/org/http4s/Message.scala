@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Applicative, Functor, Monad, ~>}
@@ -6,13 +12,12 @@ import cats.implicits._
 import cats.effect.IO
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
+import _root_.io.chrisdavenport.vault._
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
-
 import org.http4s.headers._
 import org.log4s.getLogger
-import _root_.io.chrisdavenport.vault._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 
 import scala.util.hashing.MurmurHash3
 
@@ -68,10 +73,12 @@ sealed trait Message[F[_]] extends Media[F] { self =>
       case Some(l) =>
         `Content-Length`
           .fromLong(l)
-          .fold[Headers](_ => {
-            Message.logger.warn(s"Attempt to provide a negative content length of $l")
-            w.headers
-          }, cl => Headers(cl :: w.headers.toList))
+          .fold[Headers](
+            _ => {
+              Message.logger.warn(s"Attempt to provide a negative content length of $l")
+              w.headers
+            },
+            cl => Headers(cl :: w.headers.toList))
       case None => w.headers
     }
     change(body = entity.body, headers = headers ++ hs)
@@ -202,7 +209,7 @@ object Message {
   */
 final class Request[F[_]](
     val method: Method = Method.GET,
-    val uri: Uri = Uri(path = "/"),
+    val uri: Uri = Uri(path = Uri.Path.Root),
     val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
     val headers: Headers = Headers.empty,
     val body: EntityBody[F] = EmptyBody,
@@ -264,11 +271,14 @@ final class Request[F[_]](
     uri.path.splitAt(caret)
 
   private def caret =
-    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
 
+  @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "1.0.0-M1")
   def withPathInfo(pi: String): Self =
+    withPathInfo(Uri.Path.fromString(pi))
+  def withPathInfo(pi: Uri.Path): Self =
     // Don't use withUri, which clears the caret
-    copy(uri = uri.withPath(scriptName + pi))
+    copy(uri = uri.withPath(scriptName.concat(pi)))
 
   def pathTranslated: Option[File] = attributes.lookup(Keys.PathTranslated)
 
@@ -279,9 +289,7 @@ final class Request[F[_]](
     * Supported cURL-Parameters are: -X, -H
     *
     */
-  def asCurl(
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
-      : String = {
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
 
     /*
      * escapes characters that are used in the curl-command, such as '
@@ -347,7 +355,7 @@ final class Request[F[_]](
       .fold(putHeaders(Cookie(NonEmptyList.of(cookie)))) { preExistingCookie =>
         removeHeader(Cookie).putHeaders(
           Header(
-            Cookie.name.value,
+            Cookie.name.toString,
             s"${preExistingCookie.value}; ${cookie.name}=${cookie.content}"))
       }
 
@@ -392,7 +400,7 @@ final class Request[F[_]](
       .map(_.getPort)
       .orElse(uri.port)
       .orElse(headers.get(Host).flatMap(_.port))
-      .getOrElse(80) // scalastyle:ignore
+      .getOrElse(80)
 
   /** Whether the Request was received over a secure medium */
   def isSecure: Option[Boolean] = connectionInfo.map(_.secure)
@@ -400,8 +408,8 @@ final class Request[F[_]](
   def serverSoftware: ServerSoftware =
     attributes.lookup(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
-      implicit F: Monad[F]): F[Response[F]] =
+  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(implicit
+      F: Monad[F]): F[Response[F]] =
     decoder
       .decode(this, strict = strict)
       .fold(_.toHttpResponse[F](httpVersion).pure[F], f)
@@ -444,15 +452,16 @@ final class Request[F[_]](
 
   def productArity: Int = 6
 
-  def productElement(n: Int): Any = n match {
-    case 0 => method
-    case 1 => uri
-    case 2 => httpVersion
-    case 3 => headers
-    case 4 => body
-    case 5 => attributes
-    case _ => throw new IndexOutOfBoundsException()
-  }
+  def productElement(n: Int): Any =
+    n match {
+      case 0 => method
+      case 1 => uri
+      case 2 => httpVersion
+      case 3 => headers
+      case 4 => body
+      case 5 => attributes
+      case _ => throw new IndexOutOfBoundsException()
+    }
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
@@ -461,7 +470,7 @@ final class Request[F[_]](
 object Request {
   def apply[F[_]](
       method: Method = Method.GET,
-      uri: Uri = Uri(path = "/"),
+      uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
       body: EntityBody[F] = EmptyBody,
@@ -518,13 +527,14 @@ final case class Response[F[_]](
     extends Message[F] {
   type SelfF[F0[_]] = Response[F0]
 
-  def mapK[G[_]](f: F ~> G): Response[G] = Response[G](
-    status = status,
-    httpVersion = httpVersion,
-    headers = headers,
-    body = body.translate(f),
-    attributes = attributes
-  )
+  def mapK[G[_]](f: F ~> G): Response[G] =
+    Response[G](
+      status = status,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body.translate(f),
+      attributes = attributes
+    )
 
   def withStatus(status: Status): Self =
     copy(status = status)
@@ -577,8 +587,8 @@ object Response {
 
   def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
 
-  def notFoundFor[F[_]: Applicative](request: Request[F])(
-      implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
+  def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
+      encoder: EntityEncoder[F, String]): F[Response[F]] =
     Response[F](Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
 
   def timeout[F[_]]: Response[F] =

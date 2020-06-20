@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
@@ -6,7 +12,7 @@ import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 import org.log4s.getLogger
 
 /**
@@ -18,7 +24,7 @@ object ResponseLogger {
   def apply[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
   )(client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
     val log = logAction.getOrElse { (s: String) =>

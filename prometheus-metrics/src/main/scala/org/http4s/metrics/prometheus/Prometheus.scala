@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.metrics.prometheus
 
 import cats.data.NonEmptyList
@@ -7,7 +13,7 @@ import io.prometheus.client._
 import org.http4s.{Method, Status}
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
-import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
+import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
 
 /**
   * [[MetricsOps]] algebra capable of recording Prometheus metrics
@@ -82,27 +88,30 @@ object Prometheus {
       metrics: MetricsCollection
   )(implicit F: Sync[F]): MetricsOps[F] =
     new MetricsOps[F] {
-      override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
-        metrics.activeRequests
-          .labels(label(classifier))
-          .inc()
-      }
+      override def increaseActiveRequests(classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.activeRequests
+            .labels(label(classifier))
+            .inc()
+        }
 
-      override def decreaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
-        metrics.activeRequests
-          .labels(label(classifier))
-          .dec()
-      }
+      override def decreaseActiveRequests(classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.activeRequests
+            .labels(label(classifier))
+            .dec()
+        }
 
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
           classifier: Option[String]
-      ): F[Unit] = F.delay {
-        metrics.responseDuration
-          .labels(label(classifier), reportMethod(method), Phase.report(Phase.Headers))
-          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-      }
+      ): F[Unit] =
+        F.delay {
+          metrics.responseDuration
+            .labels(label(classifier), reportMethod(method), Phase.report(Phase.Headers))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
 
       override def recordTotalTime(
           method: Method,
@@ -122,31 +131,61 @@ object Prometheus {
       override def recordAbnormalTermination(
           elapsed: Long,
           terminationType: TerminationType,
-          classifier: Option[String]): F[Unit] = terminationType match {
-        case Abnormal => recordAbnormal(elapsed, classifier)
-        case Error => recordError(elapsed, classifier)
-        case Timeout => recordTimeout(elapsed, classifier)
-      }
+          classifier: Option[String]): F[Unit] =
+        terminationType match {
+          case Abnormal(e) => recordAbnormal(elapsed, classifier, e)
+          case Error(e) => recordError(elapsed, classifier, e)
+          case Canceled => recordCanceled(elapsed, classifier)
+          case Timeout => recordTimeout(elapsed, classifier)
+        }
 
-      private def recordAbnormal(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Abnormal))
-          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-      }
+      private def recordCanceled(elapsed: Long, classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.abnormalTerminations
+            .labels(
+              label(classifier),
+              AbnormalTermination.report(AbnormalTermination.Canceled),
+              label(Option.empty))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
 
-      private def recordError(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Error))
-          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-      }
+      private def recordAbnormal(
+          elapsed: Long,
+          classifier: Option[String],
+          cause: Throwable): F[Unit] =
+        F.delay {
+          metrics.abnormalTerminations
+            .labels(
+              label(classifier),
+              AbnormalTermination.report(AbnormalTermination.Abnormal),
+              label(Option(cause.getClass.getName)))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
 
-      private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] = F.delay {
-        metrics.abnormalTerminations
-          .labels(label(classifier), AbnormalTermination.report(AbnormalTermination.Timeout))
-          .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-      }
+      private def recordError(
+          elapsed: Long,
+          classifier: Option[String],
+          cause: Throwable): F[Unit] =
+        F.delay {
+          metrics.abnormalTerminations
+            .labels(
+              label(classifier),
+              AbnormalTermination.report(AbnormalTermination.Error),
+              label(Option(cause.getClass.getName)))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
 
-      private def label(classifier: Option[String]): String = classifier.getOrElse("")
+      private def recordTimeout(elapsed: Long, classifier: Option[String]): F[Unit] =
+        F.delay {
+          metrics.abnormalTerminations
+            .labels(
+              label(classifier),
+              AbnormalTermination.report(AbnormalTermination.Timeout),
+              label(Option.empty))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+        }
+
+      private def label(value: Option[String]): String = value.getOrElse("")
 
       private def reportStatus(status: Status): String =
         status.code match {
@@ -157,18 +196,19 @@ object Prometheus {
           case _ => "5xx"
         }
 
-      private def reportMethod(m: Method): String = m match {
-        case Method.GET => "get"
-        case Method.PUT => "put"
-        case Method.POST => "post"
-        case Method.HEAD => "head"
-        case Method.MOVE => "move"
-        case Method.OPTIONS => "options"
-        case Method.TRACE => "trace"
-        case Method.CONNECT => "connect"
-        case Method.DELETE => "delete"
-        case _ => "other"
-      }
+      private def reportMethod(m: Method): String =
+        m match {
+          case Method.GET => "get"
+          case Method.PUT => "put"
+          case Method.POST => "post"
+          case Method.HEAD => "head"
+          case Method.MOVE => "move"
+          case Method.OPTIONS => "options"
+          case Method.TRACE => "trace"
+          case Method.CONNECT => "connect"
+          case Method.DELETE => "delete"
+          case _ => "other"
+        }
     }
 
   private def createMetricsCollection[F[_]: Sync](
@@ -212,7 +252,7 @@ object Prometheus {
         .build()
         .name(prefix + "_" + "abnormal_terminations")
         .help("Total Abnormal Terminations.")
-        .labelNames("classifier", "termination_type")
+        .labelNames("classifier", "termination_type", "cause")
         .create(),
       registry
     )
@@ -242,10 +282,11 @@ private sealed trait Phase
 private object Phase {
   case object Headers extends Phase
   case object Body extends Phase
-  def report(s: Phase): String = s match {
-    case Headers => "headers"
-    case Body => "body"
-  }
+  def report(s: Phase): String =
+    s match {
+      case Headers => "headers"
+      case Body => "body"
+    }
 }
 
 private sealed trait AbnormalTermination
@@ -253,9 +294,12 @@ private object AbnormalTermination {
   case object Abnormal extends AbnormalTermination
   case object Error extends AbnormalTermination
   case object Timeout extends AbnormalTermination
-  def report(t: AbnormalTermination): String = t match {
-    case Abnormal => "abnormal"
-    case Timeout => "timeout"
-    case Error => "error"
-  }
+  case object Canceled extends AbnormalTermination
+  def report(t: AbnormalTermination): String =
+    t match {
+      case Abnormal => "abnormal"
+      case Timeout => "timeout"
+      case Error => "error"
+      case Canceled => "cancel"
+    }
 }

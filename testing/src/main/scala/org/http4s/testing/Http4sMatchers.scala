@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package testing
 
@@ -5,8 +11,8 @@ import cats.MonadError
 import cats.data.EitherT
 import cats.implicits._
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString
 import org.specs2.matcher._
+import org.typelevel.ci.CIString
 
 @deprecated(
   "Discontinued. Inherits from vendored `RunTimedMatchers` that are now provided by specs-cats. The matchers that require them block threads and are disrecommended. What's left is insubstantial.",
@@ -22,15 +28,15 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       runAwait(r).aka("the returned")
     }
 
-  def haveBody[A](a: ValueCheck[A])(
-      implicit F: MonadError[F, Throwable],
+  def haveBody[A](a: ValueCheck[A])(implicit
+      F: MonadError[F, Throwable],
       ee: EntityDecoder[F, A]): Matcher[Message[F]] =
     returnValue(a) ^^ { (m: Message[F]) =>
       m.as[A].aka("the message body")
     }
 
-  def returnBody[A](a: ValueCheck[A])(
-      implicit F: MonadError[F, Throwable],
+  def returnBody[A](a: ValueCheck[A])(implicit
+      F: MonadError[F, Throwable],
       ee: EntityDecoder[F, A]): Matcher[F[Message[F]]] =
     returnValue(a) ^^ { (m: F[Message[F]]) =>
       m.flatMap(_.as[A]).aka("the returned message body")
@@ -46,7 +52,7 @@ trait Http4sMatchers[F[_]] extends Matchers with RunTimedMatchers[F] {
       m.headers.get(h.name).map(_.value).aka("the particular header")
     }
 
-  def doesntContainHeader(h: CaseInsensitiveString): Matcher[Message[F]] =
+  def doesntContainHeader(h: CIString): Matcher[Message[F]] =
     beNone ^^ { (m: Message[F]) =>
       m.headers.get(h).aka("the particular header")
     }

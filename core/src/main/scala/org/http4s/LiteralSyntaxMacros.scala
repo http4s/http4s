@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import scala.reflect.macros.blackbox
@@ -12,6 +18,13 @@ object LiteralSyntaxMacros {
       "Uri",
       Uri.fromString(_).isRight,
       s => c.universe.reify(Uri.unsafeFromString(s.splice)))
+
+  def pathInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Path] =
+    singlePartInterpolator(c)(
+      args,
+      "Uri.Path",
+      _ => true,
+      s => c.universe.reify(Uri.Path.fromString(s.splice)))
 
   def schemeInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Scheme] =
     singlePartInterpolator(c)(

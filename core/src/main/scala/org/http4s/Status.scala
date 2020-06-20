@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Order, Show}
@@ -18,14 +24,13 @@ sealed abstract case class Status private (code: Int)(
     val isEntityAllowed: Boolean)
     extends Ordered[Status]
     with Renderable {
-  // scalastyle:off magic.number
+
   val responseClass: ResponseClass =
     if (code < 200) Status.Informational
     else if (code < 300) Status.Successful
     else if (code < 400) Status.Redirection
     else if (code < 500) Status.ClientError
     else Status.ServerError
-  // scalastyle:on magic.number
 
   def compare(that: Status): Int = code - that.code
 
@@ -79,19 +84,21 @@ object Status {
   private[http4s] val MinCode = 100
   private[http4s] val MaxCode = 599
 
-  def fromInt(code: Int): ParseResult[Status] = withRangeCheck(code) {
-    lookup(code) match {
-      case right: Right[_, _] => right
-      case _ => ParseResult.success(Status(code, ""))
+  def fromInt(code: Int): ParseResult[Status] =
+    withRangeCheck(code) {
+      lookup(code) match {
+        case right: Right[_, _] => right
+        case _ => ParseResult.success(Status(code, ""))
+      }
     }
-  }
 
-  def fromIntAndReason(code: Int, reason: String): ParseResult[Status] = withRangeCheck(code) {
-    lookup(code, reason) match {
-      case right: Right[_, _] => right
-      case _ => ParseResult.success(Status(code, reason))
+  def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =
+    withRangeCheck(code) {
+      lookup(code, reason) match {
+        case right: Right[_, _] => right
+        case _ => ParseResult.success(Status(code, reason))
+      }
     }
-  }
 
   private def withRangeCheck(code: Int)(onSuccess: => ParseResult[Status]): ParseResult[Status] =
     if (code >= MinCode && code <= MaxCode) onSuccess

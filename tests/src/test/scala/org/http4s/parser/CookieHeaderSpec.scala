@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package parser
 
@@ -17,15 +23,15 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
       c.content must be_==("foo")
       c.maxAge must be_==(Some(1))
       c.path must beSome("value")
-      c.sameSite must be_==(SameSite.Strict)
+      c.sameSite must be_==(Some(SameSite.Strict))
       c.secure must be_==(true)
       c.httpOnly must be_==(true)
     }
 
-    "default to SameSite=Lax" in {
+    "default to None" in {
       val cookiestr = "myname=\"foo\"; Domain=value; Max-Age=1; Path=value"
       val c = parse(cookiestr).cookie
-      c.sameSite must be_==(SameSite.Lax)
+      c.sameSite must be_==(None)
     }
 
     "parse a set cookie with lowercase attributes" in {
@@ -37,7 +43,7 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
       c.content must be_==("foo")
       c.maxAge must be_==(Some(1))
       c.path must be_==(Some("value"))
-      c.sameSite must be_==(SameSite.Strict)
+      c.sameSite must be_==(Some(SameSite.Strict))
       c.secure must be_==(true)
       c.httpOnly must be_==(true)
     }

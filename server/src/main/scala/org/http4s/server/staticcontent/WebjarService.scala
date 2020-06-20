@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package staticcontent
@@ -6,8 +12,8 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
 import cats.implicits._
 import java.nio.file.{Path, Paths}
-import scala.util.control.NoStackTrace
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import scala.util.control.NoStackTrace
 
 /** [[org.http4s.server.staticcontent.WebjarServiceBuilder]] builder
   *
@@ -26,13 +32,13 @@ class WebjarServiceBuilder[F[_]] private (
 
   private def copy(
       blocker: Blocker = blocker,
-      webjarAssetFiltr: WebjarAssetFilter = webjarAssetFilter,
+      webjarAssetFilter: WebjarAssetFilter = webjarAssetFilter,
       cacheStrategy: CacheStrategy[F] = cacheStrategy,
       classLoader: Option[ClassLoader] = classLoader) =
-    new WebjarServiceBuilder[F](blocker, webjarAssetFiltr, cacheStrategy, classLoader)
+    new WebjarServiceBuilder[F](blocker, webjarAssetFilter, cacheStrategy, classLoader)
 
   def withWebjarAssetFilter(webjarAssetFilter: WebjarAssetFilter): WebjarServiceBuilder[F] =
-    copy(webjarAssetFiltr = webjarAssetFilter)
+    copy(webjarAssetFilter = webjarAssetFilter)
 
   def withCacheStrategy(cacheStrategy: CacheStrategy[F]): WebjarServiceBuilder[F] =
     copy(cacheStrategy = cacheStrategy)
@@ -49,24 +55,21 @@ class WebjarServiceBuilder[F[_]] private (
     Kleisli {
       // Intercepts the routes that match webjar asset names
       case request if request.method == Method.GET =>
-        request.pathInfo.split("/") match {
-          case Array(head, segments @ _*) if head.isEmpty =>
-            OptionT
-              .liftF(F.catchNonFatal {
-                segments.foldLeft(Root) {
-                  case (_, "" | "." | "..") => throw BadTraversal
-                  case (path, segment) =>
-                    path.resolve(Uri.decode(segment, plusIsSpace = true))
-                }
-              })
-              .subflatMap(toWebjarAsset)
-              .filter(webjarAssetFilter)
-              .flatMap(serveWebjarAsset(blocker, cacheStrategy, classLoader, request)(_))
-              .recover {
-                case BadTraversal => Response(Status.BadRequest)
-              }
-          case _ => OptionT.none
-        }
+        val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
+        OptionT
+          .liftF(F.catchNonFatal {
+            segments.foldLeft(Root) {
+              case (_, "" | "." | "..") => throw BadTraversal
+              case (path, segment) =>
+                path.resolve(segment)
+            }
+          })
+          .subflatMap(toWebjarAsset)
+          .filter(webjarAssetFilter)
+          .flatMap(serveWebjarAsset(blocker, cacheStrategy, classLoader, request)(_))
+          .recover {
+            case BadTraversal => Response(Status.BadRequest)
+          }
       case _ => OptionT.none
     }
   }
@@ -84,9 +87,8 @@ class WebjarServiceBuilder[F[_]] private (
       val version = p.getName(1).toString
       val asset = asScalaIterator(p.subpath(2, count).iterator()).mkString("/")
       Some(WebjarAsset(library, version, asset))
-    } else {
+    } else
       None
-    }
   }
 
   /** Creates a scala.Iterator from a java.util.Iterator.
@@ -205,25 +207,22 @@ object WebjarService {
     val Root = Paths.get("")
     Kleisli {
       // Intercepts the routes that match webjar asset names
-      case request if request.method == Method.GET =>
-        request.pathInfo.split("/") match {
-          case Array(head, segments @ _*) if head.isEmpty =>
-            OptionT
-              .liftF(F.catchNonFatal {
-                segments.foldLeft(Root) {
-                  case (_, "" | "." | "..") => throw BadTraversal
-                  case (path, segment) =>
-                    path.resolve(Uri.decode(segment, plusIsSpace = true))
-                }
-              })
-              .subflatMap(toWebjarAsset)
-              .filter(config.filter)
-              .flatMap(serveWebjarAsset(config, request)(_))
-              .recover {
-                case BadTraversal => Response(Status.BadRequest)
-              }
-          case _ => OptionT.none
-        }
+      case request if request.method == Method.GET && request.pathInfo.nonEmpty =>
+        val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
+        OptionT
+          .liftF(F.catchNonFatal {
+            segments.foldLeft(Root) {
+              case (_, "" | "." | "..") => throw BadTraversal
+              case (path, segment) =>
+                path.resolve(segment)
+            }
+          })
+          .subflatMap(toWebjarAsset)
+          .filter(config.filter)
+          .flatMap(serveWebjarAsset(config, request)(_))
+          .recover {
+            case BadTraversal => Response(Status.BadRequest)
+          }
       case _ => OptionT.none
     }
   }
@@ -241,9 +240,8 @@ object WebjarService {
       val version = p.getName(1).toString
       val asset = p.subpath(2, count).iterator().asScala.mkString("/")
       Some(WebjarAsset(library, version, asset))
-    } else {
+    } else
       None
-    }
   }
 
   /**

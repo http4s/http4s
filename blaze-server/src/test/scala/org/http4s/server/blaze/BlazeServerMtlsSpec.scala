@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.blaze
 
 import cats.effect.{IO, Resource}
@@ -12,11 +18,13 @@ import org.http4s.{Http4sSpec, HttpApp}
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.Try
+import scala.concurrent.ExecutionContext.global
+import org.http4s.testing.SilenceOutputStream
 
 /**
   * Test cases for mTLS support in blaze server
   */
-class BlazeServerMtlsSpec extends Http4sSpec {
+class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
   {
     val hostnameVerifier: HostnameVerifier = new HostnameVerifier {
       override def verify(s: String, sslSession: SSLSession): Boolean = true
@@ -27,9 +35,8 @@ class BlazeServerMtlsSpec extends Http4sSpec {
   }
 
   def builder: BlazeServerBuilder[IO] =
-    BlazeServerBuilder[IO]
+    BlazeServerBuilder[IO](global)
       .withResponseHeaderTimeout(1.second)
-      .withExecutionContext(testExecutionContext)
 
   val service: HttpApp[IO] = HttpApp {
     case req @ GET -> Root / "dummy" =>
@@ -63,7 +70,7 @@ class BlazeServerMtlsSpec extends Http4sSpec {
     case _ => NotFound()
   }
 
-  def serverR(sslParameters: SSLParameters): Resource[IO, Server[IO]] =
+  def serverR(sslParameters: SSLParameters): Resource[IO, Server] =
     builder
       .bindAny()
       .withSslContextAndParameters(sslContext, sslParameters)
@@ -114,11 +121,10 @@ class BlazeServerMtlsSpec extends Http4sSpec {
       val conn = url.openConnection().asInstanceOf[HttpsURLConnection]
       conn.setRequestMethod("GET")
 
-      if (clientAuth) {
+      if (clientAuth)
         conn.setSSLSocketFactory(sslContext.getSocketFactory)
-      } else {
+      else
         conn.setSSLSocketFactory(noAuthClientContext.getSocketFactory)
-      }
 
       Try {
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
@@ -150,11 +156,10 @@ class BlazeServerMtlsSpec extends Http4sSpec {
       val conn = url.openConnection().asInstanceOf[HttpsURLConnection]
       conn.setRequestMethod("GET")
 
-      if (clientAuth) {
+      if (clientAuth)
         conn.setSSLSocketFactory(sslContext.getSocketFactory)
-      } else {
+      else
         conn.setSSLSocketFactory(noAuthClientContext.getSocketFactory)
-      }
 
       Try {
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString

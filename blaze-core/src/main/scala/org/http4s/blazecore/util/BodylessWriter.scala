@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 package util
@@ -16,8 +22,8 @@ import scala.concurrent._
   * @param pipe the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
   * @param ec an ExecutionContext which will be used to complete operations
   */
-private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(
-    implicit protected val F: Effect[F],
+private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(implicit
+    protected val F: Effect[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
   def writeHeaders(headerWriter: StringWriter): Future[Unit] =
