@@ -6,7 +6,9 @@
 
 package org.http4s.server.middleware
 
+import cats.Functor
 import cats.effect.IO
+import cats.syntax.functor._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.Uri.uri
@@ -20,18 +22,27 @@ class HeaderEchoSpec extends Http4sSpec {
     case GET -> Root / "request" => Ok("request response")
   }
 
+  def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {
+    val requestMatchingSingleHeaderKey =
+      Request[G](
+        uri = uri("/request"),
+        headers = Headers.of(Header("someheaderkey", "someheadervalue"))
+      )
+
+    testee
+      .apply(requestMatchingSingleHeaderKey)
+      .map(_.headers)
+      .map { responseHeaders =>
+        responseHeaders.exists(_.value == "someheadervalue") must_== true
+        (responseHeaders.toList must have).size(3)
+      }
+  }
+
   "HeaderEcho" should {
     "echo a single header in addition to the defaults" in {
-      val requestMatchingSingleHeaderKey =
-        Request[IO](
-          uri = uri("/request"),
-          headers = Headers.of(Header("someheaderkey", "someheadervalue")))
-      val testee = HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService)
-      val responseHeaders =
-        testee.orNotFound(requestMatchingSingleHeaderKey).unsafeRunSync().headers
-
-      responseHeaders.exists(_.value == "someheadervalue") must_== true
-      (responseHeaders.toList must have).size(3)
+      testSingleHeader(
+        HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService).orNotFound)
+        .unsafeRunSync()
     }
 
     "echo multiple headers" in {
@@ -65,6 +76,18 @@ class HeaderEchoSpec extends Http4sSpec {
 
       responseHeaders.exists(_.value == "someunmatchedvalue") must_== false
       (responseHeaders.toList must have).size(2)
+    }
+
+    "be created via the httpRoutes constructor" in {
+      testSingleHeader(
+        HeaderEcho.httpRoutes(_ == CaseInsensitiveString("someheaderkey"))(testService).orNotFound)
+        .unsafeRunSync()
+    }
+
+    "be created via the httpApps constructor" in {
+      testSingleHeader(
+        HeaderEcho.httpApp(_ == CaseInsensitiveString("someheaderkey"))(testService.orNotFound))
+        .unsafeRunSync()
     }
   }
 }

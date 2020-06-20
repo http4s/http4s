@@ -27,4 +27,12 @@ object HeaderEcho {
 
       http(req).map(_.putHeaders(headersToEcho.toList: _*))
     }
+
+  def httpRoutes[F[_]: Functor](echoHeadersWhen: CaseInsensitiveString => Boolean)(
+      httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(echoHeadersWhen)(httpRoutes)
+
+  def httpApp[F[_]: Functor](echoHeadersWhen: CaseInsensitiveString => Boolean)(
+      httpApp: HttpApp[F]): HttpApp[F] =
+    apply(echoHeadersWhen)(httpApp)
 }
