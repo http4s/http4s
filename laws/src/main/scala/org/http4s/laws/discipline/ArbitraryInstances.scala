@@ -264,7 +264,7 @@ private[http4s] trait ArbitraryInstances {
     }
 
   implicit val http4sTestingCogenForContentCoding: Cogen[ContentCoding] =
-    Cogen[String].contramap(_.coding)
+    Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
 
   // MediaRange exepects the quoted pair without quotes
   val http4sGenUnquotedPair = genQuotedPair.map { c =>
