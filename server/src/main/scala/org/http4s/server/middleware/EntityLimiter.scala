@@ -25,6 +25,16 @@ object EntityLimiter {
       http(req.withBodyStream(req.body.through(takeLimited(limit))))
     }
 
+  def httpRoutes[F[_]: ApplicativeError[*[_], Throwable]](
+      httpRoutes: HttpRoutes[F],
+      limit: Long = DefaultMaxEntitySize): HttpRoutes[F] =
+    apply(httpRoutes, limit)
+
+  def httpApp[F[_]: ApplicativeError[*[_], Throwable]](
+      httpApp: HttpApp[F],
+      limit: Long = DefaultMaxEntitySize): HttpApp[F] =
+    apply(httpApp, limit)
+
   private def takeLimited[F[_]](n: Long)(implicit
       F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] =
     _.pull

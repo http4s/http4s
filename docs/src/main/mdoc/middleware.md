@@ -148,6 +148,7 @@ package. These include:
 * [Jsonp]
 * [Virtual Host]
 * [Metrics]
+* [`X-Request-ID` header]
 
 And a few others.
 
@@ -218,6 +219,40 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   
 ```
 
+### X-Request-ID Middleware
+
+Use the `RequestId` middleware to automatically generate a `X-Request-ID` header to a request,
+if one wasn't supplied. Adds a `X-Request-ID` header to the response with the id generated
+or supplied as part of the request.
+
+This [heroku guide](https://devcenter.heroku.com/articles/http-request-id) gives a brief explanation
+as to why this header is useful.
+
+```scala mdoc:silent
+import org.http4s.server.middleware.RequestId
+import org.http4s.util.CaseInsensitiveString
+
+val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
+  case req =>
+    val reqId = req.headers.get(CaseInsensitiveString("X-Request-ID")).fold("null")(_.value)
+    // use request id to correlate logs with the request
+    IO(println(s"request received, cid=$reqId")) *> Ok()
+})
+val responseIO = requestIdService.orNotFound(goodRequest)
+```
+
+Note: `req.attributes.lookup(RequestId.requestIdAttrKey)` can also be used to lookup the request id
+extracted from the header, or the generated request id.
+
+```scala mdoc
+// generated request id can be correlated with logs
+val resp = responseIO.unsafeRunSync()
+// X-Request-ID header added to response
+resp.headers
+// the request id is also available using attributes
+resp.attributes.lookup(RequestId.requestIdAttrKey)
+```
+
 [service]: ../service
 [dsl]: ../dsl
 [Authentication]: ../auth
@@ -228,4 +263,5 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
 [Jsonp]: ../api/org/http4s/server/middleware/Jsonp$
 [Virtual Host]: ../api/org/http4s/server/middleware/VirtualHost$
 [Metrics]: ../api/org/http4s/server/middleware/Metrics$
+[`X-Request-ID` header]: ../api/org/http4s/server/middleware/RequestId$
 [`Kleisli`]: https://typelevel.org/cats/datatypes/kleisli.html

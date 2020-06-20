@@ -107,8 +107,8 @@ object GZip {
   private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Int): Pipe[F, Byte, Byte] =
     _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).void.stream
 
-  private def trailerStep[F[_]](gen: TrailerGen, maxReadLimit: Int): (
-      Option[(Chunk[Byte], Stream[F, Byte])]) => Pull[F, Byte, Option[Stream[F, Byte]]] = {
+  private def trailerStep[F[_]](gen: TrailerGen, maxReadLimit: Int)
+      : (Option[(Chunk[Byte], Stream[F, Byte])]) => Pull[F, Byte, Option[Stream[F, Byte]]] = {
     case None => Pull.pure(None)
     case Some((chunk, stream)) =>
       gen.crc.update(chunk.toArray)
