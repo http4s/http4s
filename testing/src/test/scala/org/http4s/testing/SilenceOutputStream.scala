@@ -11,9 +11,9 @@ import org.specs2.execute.{AsResult, Result}
 import org.http4s.testing.ErrorReporting._
 
 /**
- Wraps around each test and silences System.out and System.err output streams.
- Restores back the original streams after each test case.
- **/
+  * Wraps around each test and silences System.out and System.err output streams.
+  * Restores back the original streams after each test case.
+  */
 
 trait SilenceOutputStream extends AroundEach {
 

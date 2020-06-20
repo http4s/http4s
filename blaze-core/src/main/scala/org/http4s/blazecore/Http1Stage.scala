@@ -29,7 +29,8 @@ import scala.util.{Failure, Success}
 private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
   /** ExecutionContext to be used for all Future continuations
-    * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
+    * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows
+    */
   protected implicit def executionContext: ExecutionContext
 
   protected implicit def F: Effect[F]
@@ -74,7 +75,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   }
 
   /** Get the proper body encoder based on the message headers,
-    * adding the appropriate Connection and Transfer-Encoding headers along the way */
+    * adding the appropriate Connection and Transfer-Encoding headers along the way
+    */
   final protected def getEncoder(
       connectionHeader: Option[Connection],
       bodyEncoding: Option[`Transfer-Encoding`],
@@ -275,7 +277,8 @@ object Http1Stage {
     * `Content-Length` headers, which are left for the body encoder. Adds
     * `Date` header if one is missing and this is a server response.
     *
-    * Note: this method is very niche but useful for both server and client. */
+    * Note: this method is very niche but useful for both server and client.
+    */
   def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
     headers.foreach { h =>

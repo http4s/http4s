@@ -31,14 +31,12 @@ object Service {
 
   /**
     * Lifts a F into a [[Service]].
-    *
     */
   def const[F[_], A, B](b: F[B]): Service[F, A, B] =
     lift(_ => b)
 
   /**
     *  Lifts a value into a [[Service]].
-    *
     */
   def constVal[F[_], A, B](b: => B)(implicit F: Sync[F]): Service[F, A, B] =
     lift(_ => F.delay(b))

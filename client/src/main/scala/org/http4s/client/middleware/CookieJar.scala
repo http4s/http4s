@@ -16,7 +16,7 @@ import org.http4s.client.Client
 /**
   * Algebra for Interfacing with the Cookie Jar.
   * Allows manual intervention and eviction.
- **/
+  */
 trait CookieJar[F[_]] {
 
   /**
@@ -37,7 +37,7 @@ trait CookieJar[F[_]] {
 
   /**
     * Like addCookie but puts several in at once
-   **/
+    */
   def addCookies[G[_]: Foldable](cookies: G[(ResponseCookie, Uri)]): F[Unit]
 
   /**
@@ -50,12 +50,12 @@ trait CookieJar[F[_]] {
   * Cookie Jar Companion Object
   * Contains constructors for client middleware or raw
   * jar creation, as well as the middleware
- **/
+  */
 object CookieJar {
 
   /**
     * Middleware Constructor Using a Provided [[CookieJar]].
-   **/
+    */
   def apply[F[_]: Sync](
       alg: CookieJar[F]
   )(
@@ -77,27 +77,27 @@ object CookieJar {
   /**
     * Constructor which builds a non-exposed CookieJar
     * and applies it to the client.
-   **/
+    */
   def impl[F[_]: Sync: Timer](c: Client[F]): F[Client[F]] =
     in[F, F](c)
 
   /**
     * Like [[impl]] except it allows the creation of the middleware in a
     * different HKT than the client is in.
-   **/
+    */
   def in[F[_]: Sync: Timer, G[_]: Sync](c: Client[F]): G[Client[F]] =
     jarIn[F, G].map(apply(_)(c))
 
   /**
     * Jar Constructor
-   **/
+    */
   def jarImpl[F[_]: Sync: Clock]: F[CookieJar[F]] =
     jarIn[F, F]
 
   /**
     * Like [[jarImpl]] except it allows the creation of the CookieJar in a
     * different HKT than the client is in.
-   **/
+    */
   def jarIn[F[_]: Sync: Clock, G[_]: Sync]: G[CookieJar[F]] =
     Ref.in[G, F, Map[CookieKey, CookieValue]](Map.empty).map { ref =>
       new CookieJarRefImpl[F](ref) {}
