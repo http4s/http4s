@@ -810,6 +810,13 @@ http://example.org/a file
       val u = Uri(query = Query.fromString("param=value"))
       u =? ps must be_==(u =? ps)
     }
+    "discard the blank value in withQueryParam" in {
+      uri"/test?".withQueryParam("k", "v") must be_==(uri"/test?k=v")
+    }
+    "discard the blank value in withOptionQueryParam" in {
+      uri"/test?".withOptionQueryParam("k", Some("v")) must be_==(uri"/test?k=v")
+    }
+
   }
 
   "Uri.withFragment convenience method" should {
