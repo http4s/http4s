@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package multipart
 
@@ -7,36 +13,35 @@ import cats.implicits._
 import fs2._
 import java.io.File
 import org.http4s.headers._
-import org.http4s.Uri._
+import org.http4s.syntax.literals._
 import org.http4s.EntityEncoder._
 import org.specs2.mutable.Specification
 
 class MultipartSpec extends Specification {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
 
-  val url = Uri(
-    scheme = Some(Scheme.https),
-    authority = Some(Authority(host = RegName("example.com"))),
-    path = "/path/to/some/where")
+  val url = uri"https://example.com/path/to/some/where"
 
-  implicit def partIOEq: Eq[Part[IO]] = Eq.instance[Part[IO]] {
-    case (a, b) =>
-      a.headers === b.headers && {
-        for {
-          abv <- a.body.compile.toVector
-          bbv <- b.body.compile.toVector
-        } yield abv === bbv
-      }.unsafeRunSync()
-  }
+  implicit def partIOEq: Eq[Part[IO]] =
+    Eq.instance[Part[IO]] {
+      case (a, b) =>
+        a.headers === b.headers && {
+          for {
+            abv <- a.body.compile.toVector
+            bbv <- b.body.compile.toVector
+          } yield abv === bbv
+        }.unsafeRunSync()
+    }
 
-  implicit def multipartIOEq: Eq[Multipart[IO]] = Eq.instance[Multipart[IO]] { (a, b) =>
-    a.headers === b.headers &&
-    a.boundary === b.boundary &&
-    a.parts === b.parts
-  }
+  implicit def multipartIOEq: Eq[Multipart[IO]] =
+    Eq.instance[Multipart[IO]] { (a, b) =>
+      a.headers === b.headers &&
+      a.boundary === b.boundary &&
+      a.parts === b.parts
+    }
 
-  def multipartSpec(name: String)(
-      implicit E: EntityDecoder[IO, Multipart[IO]]): org.specs2.specification.core.Fragment = {
+  def multipartSpec(name: String)(implicit
+      E: EntityDecoder[IO, Multipart[IO]]): org.specs2.specification.core.Fragment = {
     s"Multipart form data $name" should {
       "be encoded and decoded with content types" in {
         val field1 =

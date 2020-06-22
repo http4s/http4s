@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package tomcat
@@ -176,11 +182,11 @@ sealed class TomcatBuilder[F[_]] private (
       val conn = tomcat.getConnector()
       sslConfig.configureConnector(conn)
 
-      conn.setAttribute("address", socketAddress.getHostString)
+      conn.setProperty("address", socketAddress.getHostString)
       conn.setPort(socketAddress.getPort)
-      conn.setAttribute(
+      conn.setProperty(
         "connection_pool_timeout",
-        if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
+        (if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0).toString)
 
       externalExecutor.foreach { ee =>
         conn.getProtocolHandler match {
@@ -254,13 +260,13 @@ object TomcatBuilder {
     def configureConnector(conn: Connector) = {
       conn.setSecure(true)
       conn.setScheme("https")
-      conn.setAttribute("SSLEnabled", true)
+      conn.setProperty("SSLEnabled", "true")
 
       // TODO These configuration properties are all deprecated
-      conn.setAttribute("keystoreFile", keyStore.path)
-      conn.setAttribute("keystorePass", keyStore.password)
-      conn.setAttribute("keyPass", keyManagerPassword)
-      conn.setAttribute(
+      conn.setProperty("keystoreFile", keyStore.path)
+      conn.setProperty("keystorePass", keyStore.password)
+      conn.setProperty("keyPass", keyManagerPassword)
+      conn.setProperty(
         "clientAuth",
         clientAuth match {
           case SSLClientAuthMode.Required => "required"
@@ -268,10 +274,10 @@ object TomcatBuilder {
           case SSLClientAuthMode.NotRequested => "none"
         }
       )
-      conn.setAttribute("sslProtocol", protocol)
+      conn.setProperty("sslProtocol", protocol)
       trustStore.foreach { ts =>
-        conn.setAttribute("truststoreFile", ts.path)
-        conn.setAttribute("truststorePass", ts.password)
+        conn.setProperty("truststoreFile", ts.path)
+        conn.setProperty("truststorePass", ts.password)
       }
     }
     def isSecure = true

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server
 package middleware
 
@@ -21,7 +27,8 @@ object ErrorAction {
       serviceErrorLogAction: (Throwable, => String) => F[Unit]
   ): Kleisli[F, Request[G], B] =
     apply(
-      http, {
+      http,
+      {
         case (req, mf: MessageFailure) =>
           messageFailureLogAction(
             mf,

@@ -1,16 +1,22 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import cats.effect.IO
-import org.http4s.headers.{Connection, `Content-Length`}
-import org.http4s.syntax.string._
-import org.log4s.getLogger
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
 import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}
+import org.http4s.headers.{Connection, `Content-Length`}
+import org.log4s.getLogger
+import org.typelevel.ci.CIString
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 package object server {
   object defaults {
@@ -129,29 +135,30 @@ package object server {
 
   type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
 
-  def DefaultServiceErrorHandler[F[_]](
-      implicit F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
+  def DefaultServiceErrorHandler[F[_]](implicit
+      F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
     inDefaultServiceErrorHandler[F, F]
 
-  def inDefaultServiceErrorHandler[F[_], G[_]](
-      implicit F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] = req => {
-    case mf: MessageFailure =>
-      messageFailureLogger.debug(mf)(
-        s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-          .getOrElse("<unknown>")}""")
-      mf.toHttpResponse[G](req.httpVersion).pure[F]
-    case NonFatal(t) =>
-      serviceErrorLogger.error(t)(
-        s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse(
-          "<unknown>")}""")
-      F.pure(
-        Response(
-          Status.InternalServerError,
-          req.httpVersion,
-          Headers(
-            Connection("close".ci) ::
-              `Content-Length`.zero ::
-              Nil
-          )))
-  }
+  def inDefaultServiceErrorHandler[F[_], G[_]](implicit
+      F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
+    req => {
+      case mf: MessageFailure =>
+        messageFailureLogger.debug(mf)(
+          s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+            .getOrElse("<unknown>")}""")
+        mf.toHttpResponse[G](req.httpVersion).pure[F]
+      case NonFatal(t) =>
+        serviceErrorLogger.error(t)(
+          s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+            .getOrElse("<unknown>")}""")
+        F.pure(
+          Response(
+            Status.InternalServerError,
+            req.httpVersion,
+            Headers(
+              Connection(CIString("close")) ::
+                `Content-Length`.zero ::
+                Nil
+            )))
+    }
 }

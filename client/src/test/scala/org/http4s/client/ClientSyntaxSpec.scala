@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -21,15 +27,15 @@ class ClientSyntaxSpec
     with Http4sLegacyMatchersIO {
   val app = HttpRoutes
     .of[IO] {
-      case r if r.method == GET && r.pathInfo == "/" =>
+      case r if r.method == GET && r.pathInfo == path"/" =>
         Response[IO](Ok).withEntity("hello").pure[IO]
-      case r if r.method == PUT && r.pathInfo == "/put" =>
+      case r if r.method == PUT && r.pathInfo == path"/put" =>
         Response[IO](Created).withEntity(r.body).pure[IO]
-      case r if r.method == GET && r.pathInfo == "/echoheaders" =>
+      case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
         r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
           Response[IO](Ok).withEntity(m.toString).pure[IO]
         }
-      case r if r.pathInfo == "/status/500" =>
+      case r if r.pathInfo == path"/status/500" =>
         Response[IO](InternalServerError).withEntity("Oops").pure[IO]
     }
     .orNotFound
@@ -225,13 +231,13 @@ class ClientSyntaxSpec
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
-        "Accept: text/*")
+      client.expect[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
-        "Accept: text/*")
+      client.expect[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
     "combine entity decoder media types correctly" in {
@@ -243,11 +249,13 @@ class ClientSyntaxSpec
     }
 
     "return empty with expectOption and not found" in {
-      client.expectOption[String](Request[IO](GET, uri("http://www.foo.com/random-not-found"))) must returnValue(
+      client.expectOption[String](
+        Request[IO](GET, uri("http://www.foo.com/random-not-found"))) must returnValue(
         Option.empty[String])
     }
     "return expected value with expectOption and a response" in {
-      client.expectOption[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
+      client.expectOption[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
         "Accept: text/*".some
       )
     }

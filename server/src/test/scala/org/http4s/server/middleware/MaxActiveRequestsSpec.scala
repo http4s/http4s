@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats.implicits._
@@ -10,15 +16,15 @@ import cats.effect.testing.specs2.CatsEffect
 class MaxActiveRequestsSpec extends Http4sSpec with CatsEffect {
   val req = Request[IO]()
 
-  def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) = Kleisli {
-    req: Request[IO] =>
+  def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) =
+    Kleisli { req: Request[IO] =>
       req match {
         case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
         case _ =>
           OptionT.liftF(
             startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO])
       }
-  }
+    }
 
   "httpApp" should {
     "allow a request when allowed" in {

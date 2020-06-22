@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package scalaxml
 
@@ -15,8 +21,8 @@ import scala.xml.{Elem, InputSource, SAXParseException, XML}
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory
 
-  implicit def xmlEncoder[F[_]](
-      implicit charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
+  implicit def xmlEncoder[F[_]](implicit
+      charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
     EntityEncoder
       .stringEncoder[F]
       .contramap[Elem](xml => xml.buildString(false))

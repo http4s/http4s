@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s.ember
 
 import cats._
@@ -27,7 +33,7 @@ object EmberClientSimpleExample extends IOApp {
 
   val logger = Slf4jLogger.getLogger[IO]
 
-  def run(args: List[String]): IO[ExitCode] = {
+  def run(args: List[String]): IO[ExitCode] =
     EmberClientBuilder
       .default[IO]
       .build
@@ -47,8 +53,7 @@ object EmberClientSimpleExample extends IOApp {
             "Large Response - HttpBin PNG",
             getRequestBufferedBody(client, httpBinPng)) >>
           IO(println("Done")))
-
-  }.as(ExitCode.Success)
+      .as(ExitCode.Success)
 
   def getRequestBufferedBody[F[_]: Sync](client: Client[F], req: Request[F]): F[Response[F]] =
     client

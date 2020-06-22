@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package parser
 
@@ -5,11 +11,27 @@ import cats.data.NonEmptyList
 import java.net.InetAddress
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
+import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSpec {
   "SimpleHeaders" should {
+    "parse Accept-Patch" in {
+      val header =
+        `Accept-Patch`(
+          NonEmptyList.of(new MediaType("text", "example", extensions = Map("charset" -> "utf-8"))))
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+      val multipleMediaTypes =
+        `Accept-Patch`(
+          NonEmptyList
+            .of(new MediaType("application", "example"), new MediaType("text", "example")))
+      HttpHeaderParser.parseHeader(multipleMediaTypes.toRaw) must beRight(multipleMediaTypes)
+
+      val bad = Header(header.name.toString, "foo; bar")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+    }
+
     "parse Connection" in {
-      val header = Connection("closed".ci)
+      val header = Connection(CIString("closed"))
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
     }
 
@@ -51,6 +73,17 @@ class SimpleHeadersSpec extends Http4sSpec {
 
       val bad = Header(header1.name.toString, "foo:bar")
       HttpHeaderParser.parseHeader(bad) must beLeft
+    }
+
+    "parse Access-Control-Allow-Credentials" in {
+      val header = `Access-Control-Allow-Credentials`().toRaw.parsed
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val bad = Header(header.name.toString, "false")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+      // it is case sensitive
+      val bad2 = Header(header.name.toString, "True")
+      HttpHeaderParser.parseHeader(bad2) must beLeft
     }
 
     "parse Last-Modified" in {

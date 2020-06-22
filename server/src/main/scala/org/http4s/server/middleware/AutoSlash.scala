@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -13,19 +19,18 @@ import cats.implicits._
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-  def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(
-      implicit F: MonoidK[F],
+  def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(implicit
+      F: MonoidK[F],
       G: Functor[G]): Kleisli[F, Request[G], B] = {
     val _ = G // for binary compatibility in 0.20, remove on master
     Kleisli { req =>
       http(req) <+> {
         val pathInfo = req.pathInfo
 
-        if (pathInfo.isEmpty || pathInfo.charAt(pathInfo.length - 1) != '/') {
+        if (pathInfo.isEmpty)
           F.empty
-        } else {
-          http.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
-        }
+        else
+          http.apply(req.withPathInfo(pathInfo.dropEndsWithSlash))
       }
     }
   }

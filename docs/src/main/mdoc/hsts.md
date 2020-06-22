@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
 
 And we need some imports.
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
@@ -28,7 +28,7 @@ import cats.effect.IO
 
 Let's make a simple service that will be exposed and wrapped with HSTS.
 
-```tut:book
+```scala mdoc
 val service = HttpRoutes.of[IO] {
   case _ =>
     Ok("ok")
@@ -43,11 +43,11 @@ response.headers
 
 If we were to wrap this on the `HSTS` middleware.
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.server.middleware._
 ```
 
-```tut:book
+```scala mdoc:nest
 val hstsService = HSTS(service)
 
 // Do not call 'unsafeRunSync' in your code
@@ -68,12 +68,12 @@ should be done over `https` and it will contain the `includeSubDomains` directiv
 
 If you want to `preload` or change other default values you can pass a custom header, e.g.
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.headers._
 import scala.concurrent.duration._
 ```
 
-```tut:book
+```scala mdoc:nest
 val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
 val hstsService = HSTS(service, hstsHeader)
 

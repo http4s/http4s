@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
@@ -6,7 +12,7 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.Method._
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 import _root_.io.chrisdavenport.vault._
 
 /**
@@ -39,8 +45,8 @@ import _root_.io.chrisdavenport.vault._
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
-      sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
-      client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
+      sensitiveHeaderFilter: CIString => Boolean = Headers.SensitiveHeaders)(client: Client[F])(
+      implicit F: Concurrent[F]): Client[F] = {
     def nextRequest(
         req: Request[F],
         uri: Uri,
@@ -60,13 +66,12 @@ object FollowRedirect {
           req
 
       def propagateCookies(req: Request[F]): Request[F] =
-        if (req.uri.authority == nextUri.authority) {
+        if (req.uri.authority == nextUri.authority)
           cookies.foldLeft(req) {
             case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
           }
-        } else {
+        else
           req
-        }
 
       def clearBodyFromGetHead(req: Request[F]): Request[F] =
         method match {

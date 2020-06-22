@@ -1,8 +1,10 @@
 /*
- * Derived from Twitter Finagle.
+ * Copyright 2013-2020 http4s.org
  *
- * Original source:
- * https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/main/scala/com/twitter/finagle/http/path/Path.scala
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/main/scala/com/twitter/finagle/http/path/Path.scala
+ * Copyright 2017, Twitter Inc.
  */
 
 package org.http4s.dsl.impl
@@ -54,14 +56,13 @@ object Path {
     * }}}
     */
   def apply(str: String): Path =
-    if (str == "" || str == "/")
-      Root
-    else {
-      val segments = str.split("/", -1)
-      // .head is safe because split always returns non-empty array
-      val segments0 = if (segments.head == "") segments.drop(1) else segments
-      segments0.foldLeft(Root: Path)((path, seg) => path / Uri.decode(seg))
-    }
+    apply(Uri.Path.fromString(str))
+
+  def apply(path: Uri.Path): Path =
+    if (path.isEmpty) Root
+    else
+      (if (path.endsWithSlash) path.segments :+ Uri.Path.Segment("") else path.segments)
+        .foldLeft(Root: Path)((path, seg) => path / seg.decoded())
 
   def apply(first: String, rest: String*): Path =
     rest.foldLeft(Root / first)(_ / _)

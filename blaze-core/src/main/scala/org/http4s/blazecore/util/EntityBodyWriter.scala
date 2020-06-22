@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 package util
@@ -16,8 +22,6 @@ private[http4s] trait EntityBodyWriter[F[_]] {
   implicit protected def ec: ExecutionContext
 
   /** Write a Chunk to the wire.
-    * If a request is cancelled, or the stream is closed this method should
-    * return a failed Future with Cancelled as the exception
     *
     * @param chunk BodyChunk to write to wire
     * @return a future letting you know when its safe to continue
@@ -25,10 +29,7 @@ private[http4s] trait EntityBodyWriter[F[_]] {
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit]
 
   /** Write the ending chunk and, in chunked encoding, a trailer to the
-    * wire.  If a request is cancelled, or the stream is closed this
-    * method should return a failed Future with Cancelled as the
-    * exception, or a Future with a Boolean to indicate whether the
-    * connection is to be closed or not.
+    * wire.
     *
     * @param chunk BodyChunk to write to wire
     * @return a future letting you know when its safe to continue (if `false`) or
@@ -40,7 +41,6 @@ private[http4s] trait EntityBodyWriter[F[_]] {
   protected def exceptionFlush(): Future[Unit] = FutureUnit
 
   /** Creates an effect that writes the contents of the EntityBody to the output.
-    * Cancelled exceptions fall through to the effect cb
     * The writeBodyEnd triggers if there are no exceptions, and the result will
     * be the result of the writeEnd call.
     *

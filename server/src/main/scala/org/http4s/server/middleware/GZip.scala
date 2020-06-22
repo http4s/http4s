@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -6,7 +12,7 @@ import cats.Functor
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.implicits._
-import fs2.{Chunk, Pipe, Pull, Pure, Stream}
+import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.Stream.chunk
 import fs2.compression.deflate
 import java.nio.{ByteBuffer, ByteOrder}
@@ -97,11 +103,11 @@ object GZip {
 
   private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
 
-  private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Int): Pipe[Pure, Byte, Byte] =
+  private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Int): Pipe[F, Byte, Byte] =
     _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).void.stream
 
-  private def trailerStep(gen: TrailerGen, maxReadLimit: Int): (
-      Option[(Chunk[Byte], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
+  private def trailerStep[F[_]](gen: TrailerGen, maxReadLimit: Int)
+      : (Option[(Chunk[Byte], Stream[F, Byte])]) => Pull[F, Byte, Option[Stream[F, Byte]]] = {
     case None => Pull.pure(None)
     case Some((chunk, stream)) =>
       gen.crc.update(chunk.toArray)

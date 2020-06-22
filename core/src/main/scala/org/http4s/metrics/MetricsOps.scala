@@ -1,8 +1,14 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.metrics
 
 import cats.Foldable
 import cats.implicits._
-import org.http4s.{Method, Request, Status, Uri}
+import org.http4s.{Method, Request, Status}
 
 /**
   * Describes an algebra capable of writing metrics to a metrics registry
@@ -100,7 +106,7 @@ object MetricsOps {
     val initial: String = request.method.name
 
     val pathList: List[String] =
-      requestToPathList(request)
+      request.pathInfo.segments.map(_.decoded()).toList
 
     val minusExcluded: List[String] = pathList.map { value: String =>
       if (exclude(value)) excludedValue else value
@@ -116,25 +122,6 @@ object MetricsOps {
 
     Some(result)
   }
-
-  // The following was copied from
-  // https://github.com/http4s/http4s/blob/v0.20.17/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala#L56-L64,
-  // and then modified.
-  private def requestToPathList[F[_]](request: Request[F]): List[String] = {
-    val str: String = request.pathInfo
-
-    if (str == "" || str == "/")
-      Nil
-    else {
-      val segments = str.split("/", -1)
-      // .head is safe because split always returns non-empty array
-      val segments0 = if (segments.head == "") segments.drop(1) else segments
-      val reversed: List[String] =
-        segments0.foldLeft[List[String]](Nil)((path, seg) => Uri.decode(seg) :: path)
-      reversed.reverse
-    }
-  }
-
 }
 
 /** Describes the type of abnormal termination*/

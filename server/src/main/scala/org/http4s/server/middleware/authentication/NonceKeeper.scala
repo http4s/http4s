@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware.authentication
 
 import java.util.LinkedHashMap
@@ -59,9 +65,7 @@ private[authentication] class NonceKeeper(
     var n: Nonce = null
     nonces.synchronized {
       checkStale()
-      do {
-        n = Nonce.gen(bits)
-      } while (nonces.get(n.data) != null)
+      do n = Nonce.gen(bits) while (nonces.get(n.data) != null)
       nonces.put(n.data, n)
     }
     n.data

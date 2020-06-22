@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.client.oauth1
 
 import cats.{Functor, Show}
@@ -73,17 +79,18 @@ object ProtocolParameter {
   }
 
   implicit val oauth1HeaderShow: Show[ProtocolParameter] = new Show[ProtocolParameter] {
-    override def show(t: ProtocolParameter): String = t match {
-      case c: Consumer => tupleShow.contramap[Consumer](_.toTuple).show(c)
-      case t: Token => tupleShow.contramap[Token](_.toTuple).show(t)
-      case r: Realm => tupleShow.contramap[Realm](_.toTuple).show(r)
-      case c: Custom => tupleShow.contramap[Custom](_.toTuple).show(c)
-      case s: SignatureMethod => tupleShow.contramap[SignatureMethod](_.toTuple).show(s)
-      case n: Nonce => tupleShow.contramap[Nonce](_.toTuple).show(n)
-      case v: Version => tupleShow.contramap[Version](_.toTuple).show(v)
-      case t: Timestamp => tupleShow.contramap[Timestamp](_.toTuple).show(t)
-      case c: Callback => tupleShow.contramap[Callback](_.toTuple).show(c)
-      case v: Verifier => tupleShow.contramap[Verifier](_.toTuple).show(v)
-    }
+    override def show(t: ProtocolParameter): String =
+      t match {
+        case c: Consumer => tupleShow.contramap[Consumer](_.toTuple).show(c)
+        case t: Token => tupleShow.contramap[Token](_.toTuple).show(t)
+        case r: Realm => tupleShow.contramap[Realm](_.toTuple).show(r)
+        case c: Custom => tupleShow.contramap[Custom](_.toTuple).show(c)
+        case s: SignatureMethod => tupleShow.contramap[SignatureMethod](_.toTuple).show(s)
+        case n: Nonce => tupleShow.contramap[Nonce](_.toTuple).show(n)
+        case v: Version => tupleShow.contramap[Version](_.toTuple).show(v)
+        case t: Timestamp => tupleShow.contramap[Timestamp](_.toTuple).show(t)
+        case c: Callback => tupleShow.contramap[Callback](_.toTuple).show(c)
+        case v: Verifier => tupleShow.contramap[Verifier](_.toTuple).show(v)
+      }
   }
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.client.middleware
 
 import cats._
@@ -136,13 +142,14 @@ object CookieJar {
       val expiresAt: HttpDate,
       val cookie: ResponseCookie
   ) {
-    override def equals(obj: Any): Boolean = obj match {
-      case c: CookieValue =>
-        setAt == c.setAt &&
-          expiresAt == c.expiresAt &&
-          cookie == c.cookie
-      case _ => false
-    }
+    override def equals(obj: Any): Boolean =
+      obj match {
+        case c: CookieValue =>
+          setAt == c.setAt &&
+            expiresAt == c.expiresAt &&
+            cookie == c.cookie
+        case _ => false
+      }
   }
 
   private[middleware] object CookieValue {
@@ -199,13 +206,14 @@ object CookieJar {
       r.uri.host.forall { authority =>
         authority.renderString.contains(s)
       })
-    val pathApplies = c.path.forall(s => r.uri.path.contains(s))
+    val pathApplies = c.path.forall(s => r.uri.path.renderString.contains(s))
 
-    val secureSatisfied = if (c.secure) {
-      r.uri.scheme.exists { scheme =>
-        scheme === Uri.Scheme.https
-      }
-    } else true
+    val secureSatisfied =
+      if (c.secure)
+        r.uri.scheme.exists { scheme =>
+          scheme === Uri.Scheme.https
+        }
+      else true
 
     domainApplies && pathApplies && secureSatisfied
   }
@@ -213,9 +221,10 @@ object CookieJar {
   private[middleware] def cookiesForRequest[N[_]](
       r: Request[N],
       l: List[ResponseCookie]
-  ): List[RequestCookie] = l.foldLeft(List.empty[RequestCookie]) {
-    case (list, cookie) =>
-      if (cookieAppliesToRequest(r, cookie)) responseCookieToRequestCookie(cookie) :: list
-      else list
-  }
+  ): List[RequestCookie] =
+    l.foldLeft(List.empty[RequestCookie]) {
+      case (list, cookie) =>
+        if (cookieAppliesToRequest(r, cookie)) responseCookieToRequestCookie(cookie) :: list
+        else list
+    }
 }

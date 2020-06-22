@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats._
@@ -5,8 +11,8 @@ import cats.implicits._
 import cats.effect._
 import cats.data._
 import org.http4s._
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.{Date => HDate, _}
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 /**
@@ -107,7 +113,7 @@ object Caching {
   def privateCache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
       lifetime: Duration,
       http: Http[G, F],
-      fieldNames: List[CaseInsensitiveString] = Nil): Http[G, F] =
+      fieldNames: List[CIString] = Nil): Http[G, F] =
     cache(
       lifetime,
       Either.right(CacheDirective.`private`(fieldNames)),
@@ -123,7 +129,7 @@ object Caching {
    **/
   def privateCacheResponse[G[_]](
       lifetime: Duration,
-      fieldNames: List[CaseInsensitiveString] = Nil
+      fieldNames: List[CIString] = Nil
   ): PartiallyAppliedCache[G] =
     cacheResponse(lifetime, Either.right(CacheDirective.`private`(fieldNames)))
 
@@ -145,9 +151,10 @@ object Caching {
     Kleisli { (req: Request[F]) =>
       for {
         resp <- http(req)
-        out <- if (methodToSetOn(req.method) && statusToSetOn(resp.status)) {
-          cacheResponse[G](lifetime, isPublic)(resp)
-        } else resp.pure[G]
+        out <-
+          if (methodToSetOn(req.method) && statusToSetOn(resp.status))
+            cacheResponse[G](lifetime, isPublic)(resp)
+          else resp.pure[G]
       } yield out
     }
 
@@ -177,9 +184,10 @@ object Caching {
           resp: Response[F])(implicit M: MonadError[G, Throwable], C: Clock[G]): G[Response[F]] =
         for {
           now <- HttpDate.current[G]
-          expires <- HttpDate
-            .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
-            .liftTo[G]
+          expires <-
+            HttpDate
+              .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
+              .liftTo[G]
         } yield {
           val headers = List(
             `Cache-Control`(

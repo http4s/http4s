@@ -1,9 +1,16 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.ApplicativeError
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.StandardCharsets
+import org.typelevel.ci.CIString
 import scala.concurrent.ExecutionContextExecutor
 
 package object util {
@@ -33,39 +40,35 @@ package object util {
             decoder.decode(byteBuffer, charBuffer, false)
             val nextStream = stream.consChunk(Chunk.byteBuffer(byteBuffer.slice()))
             Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
-          } else {
+          } else
             Pull.output(Chunk.empty[String]).as(Some(stream))
-          }
       }
     }
   }
 
   private def skipByteOrderMark[F[_]](chunk: Chunk[Byte]): Chunk[Byte] =
-    if (chunk.size >= 3 && chunk.take(3) == utf8Bom) {
+    if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
       chunk.drop(3)
-    } else chunk
+    else chunk
 
   /** Converts ASCII encoded byte stream to a stream of `String`. */
-  private[http4s] def asciiDecode[F[_]](
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Byte, String] =
+  private[http4s] def asciiDecode[F[_]](implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, String] =
     _.chunks.through(asciiDecodeC)
 
   private def asciiCheck(b: Byte) = 0x80 & b
 
   /** Converts ASCII encoded `Chunk[Byte]` inputs to `String`. */
-  private[http4s] def asciiDecodeC[F[_]](
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Chunk[Byte], String] = { in =>
+  private[http4s] def asciiDecodeC[F[_]](implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Chunk[Byte], String] = { in =>
     def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
       if (i == bytes.length)
         Stream.emit(new String(bytes, StandardCharsets.US_ASCII))
-      else {
-        if (asciiCheck(bytes(i)) == 0x80) {
-          Stream.raiseError[F](
-            new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
-        } else {
-          tailRecAsciiCheck(i + 1, bytes)
-        }
-      }
+      else if (asciiCheck(bytes(i)) == 0x80)
+        Stream.raiseError[F](
+          new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
+      else
+        tailRecAsciiCheck(i + 1, bytes)
 
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
@@ -91,6 +94,7 @@ package object util {
   /* This is nearly identical to the hashCode of java.lang.String, but converting
    * to lower case on the fly to avoid copying `value`'s character storage.
    */
+  @deprecated("Not a good hash. Prefer org.typelevel.ci.CIString.", "0.21.5")
   def hashLower(s: String): Int = {
     var h = 0
     var i = 0
@@ -106,4 +110,9 @@ package object util {
     }
     h
   }
+
+  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  type CaseInsensitiveString = CIString
+  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  val CaseInsensitiveString = CIString
 }

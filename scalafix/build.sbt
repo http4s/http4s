@@ -1,9 +1,16 @@
 lazy val V = _root_.scalafix.sbt.BuildInfo
+lazy val outputVersion = "0.20.0"
 inThisBuild(
   List(
     organization := "org.http4s",
+    version := outputVersion,
+    isSnapshot := {
+      if (outputVersion == "0.20.0") false
+      else isSnapshot.value
+    },
     homepage := Some(url("https://github.com/http4s/http4s")),
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    scmInfo := Some(ScmInfo(url("https://github.com/http4s/http4s"), "git@github.com:http4s/http4s.git")),
     developers := List(
       Developer(
         "amarrella",
@@ -17,22 +24,29 @@ inThisBuild(
     scalacOptions ++= List(
       "-Yrangepos"
     ),
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    }
   )
 )
 
 skip in publish := true
 
 lazy val rules = project.settings(
-  moduleName := "scalafix",
+  moduleName := "http4s-scalafix",
   libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafixVersion
 )
 
 lazy val input = project.settings(
   skip in publish := true,
   libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-blaze-client" % "0.18.21",
-  "org.http4s" %% "http4s-blaze-server" % "0.18.21",
-  "org.http4s" %% "http4s-dsl" % "0.18.21"
+    "org.http4s" %% "http4s-blaze-client" % "0.18.21",
+    "org.http4s" %% "http4s-blaze-server" % "0.18.21",
+    "org.http4s" %% "http4s-dsl" % "0.18.21"
   )
 )
 
@@ -40,16 +54,16 @@ lazy val output = project.settings(
   skip in publish := true,
   skip in compile := true,
   libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-blaze-client" % "0.20.0-M5",
-  "org.http4s" %% "http4s-blaze-server" % "0.20.0-M5",
-  "org.http4s" %% "http4s-dsl" % "0.20.0-M5"
+    "org.http4s" %% "http4s-blaze-client" % outputVersion,
+    "org.http4s" %% "http4s-blaze-server" % outputVersion,
+    "org.http4s" %% "http4s-dsl" % outputVersion
   )
 )
 
 lazy val tests = project
   .settings(
     skip in publish := true,
-    libraryDependencies +="ch.epfl.scala" % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
+    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
     Compile / compile :=
       (Compile / compile).dependsOn(input / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=

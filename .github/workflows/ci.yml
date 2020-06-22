@@ -18,6 +18,8 @@ jobs:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: olafurpg/setup-scala@v7
         with:
           java-version: ${{ matrix.java }}
@@ -34,6 +36,9 @@ jobs:
       - name: Check formatting
         if: startsWith(matrix.scala, '2.12.') && (matrix.java == 'adopt@1.8')
         run: sbt ++$SCALA_VERSION scalafmtCheckAll
+      - name: Check headers
+        if: matrix.java == 'adopt@1.8'
+        run: sbt ++$SCALA_VERSION headerCheck test:headerCheck
       - name: Compile
         run: sbt ++$SCALA_VERSION test:compile
       - name: Check compatibility

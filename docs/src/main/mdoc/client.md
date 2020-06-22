@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
 
 Then we create the [service] again so tut picks it up:
 >
-```tut:silent
+```scala mdoc:silent
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -38,7 +38,7 @@ Blaze needs a [[`ConcurrentEffect`]] instance, which is derived from
 [[`ContextShift`]].  The following lines are not necessary if you are
 in an [[`IOApp`]]:
 
-```tut:silent
+```scala mdoc:silent:nest
 import scala.concurrent.ExecutionContext.global
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
 implicit val timer: Timer[IO] = IO.timer(global)
@@ -46,7 +46,7 @@ implicit val timer: Timer[IO] = IO.timer(global)
 
 Finish setting up our server:
 
-```tut:book
+```scala mdoc:nest
 import scala.concurrent.ExecutionContext.global
 
 val app = HttpRoutes.of[IO] {
@@ -60,7 +60,7 @@ val server = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttp
 We'll start the server in the background.  The `IO.never` keeps it
 running until we cancel the fiber.
 
-```tut:book
+```scala mdoc:nest
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
@@ -70,13 +70,13 @@ val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 A good default choice is the `BlazeClientBuilder`.  The
 `BlazeClientBuilder` maintains a connection pool and speaks HTTP 1.x.
 
-```tut:silent
+```scala mdoc
 import org.http4s.client.blaze._
 import org.http4s.client._
 import scala.concurrent.ExecutionContext.global
 ```
 
-```tut:book
+```scala mdoc:silent
 BlazeClientBuilder[IO](global).resource.use { client =>
   // use `client` here and return an `IO`.
   // the client will be acquired and shut down
@@ -94,7 +94,7 @@ interface!
 It uses blocking IO and is less suited for production, but it is
 highly useful in a REPL:
 
-```tut:silent
+```scala mdoc:silent:nest
 import cats.effect.Blocker
 import java.util.concurrent._
 
@@ -108,7 +108,7 @@ val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
 To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
-```tut:book
+```scala mdoc
 val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
 ```
 
@@ -126,13 +126,12 @@ side effects to the end.
 Let's describe how we're going to greet a collection of people in
 parallel:
 
-```tut:silent
+```scala mdoc:silent
 import cats._, cats.effect._, cats.implicits._
 import org.http4s.Uri
-import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-```tut:book
+```scala mdoc
 def hello(name: String): IO[String] = {
   val target = uri"http://localhost:8080/hello/" / name
   httpClient.expect[String](target)
@@ -156,7 +155,7 @@ the world" varies by context:
   server.
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
-```tut:book
+```scala mdoc:nest
 val greetingsStringEffect = greetingList.map(_.mkString("\n"))
 greetingsStringEffect.unsafeRunSync
 ```
@@ -170,7 +169,7 @@ There are a number of ways to construct a `Uri`.
 
 If you have a literal string, you can use `uri"..."`:
 
-```tut:book
+```scala mdoc:nest
 uri"https://my-awesome-service.com/foo/bar?wow=yeah"
 ```
 
@@ -180,7 +179,7 @@ format at compile-time.
 Otherwise, you'll need to use `Uri.fromString(...)` and handle the case where
 validation fails:
 
-```tut:book
+```scala mdoc:nest
 val validUri = "https://my-awesome-service.com/foo/bar?wow=yeah"
 val invalidUri = "yeah whatever"
 
@@ -191,9 +190,9 @@ val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
 
 You can also build up a URI incrementally, e.g.:
 
-```tut:book
+```scala mdoc:nest
 val baseUri = uri"http://foo.com"
-val withPath = baseUri.withPath("/bar/baz")
+val withPath = baseUri.withPath(path"/bar/baz")
 val withQuery = withPath.withQueryParam("hello", "world")
 ```
 
@@ -234,12 +233,12 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
-```tut:book
+```scala mdoc:nest
 implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
@@ -264,13 +263,12 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect.{Resource, IO}
 import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.prometheus.Prometheus
-import io.prometheus.client.CollectorRegistry
 ```
-```tut:book
+```scala mdoc:nest
 implicit val clock = Clock.create[IO]
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
@@ -291,21 +289,21 @@ to add a label to every metric based on the `Request`
 
 You can send a GET by calling the `expect` method on the client, passing a `Uri`:
 
-```tut:book
+```scala mdoc:nest
 httpClient.expect[String](uri"https://google.com/")
 ```
 
 If you need to do something more complicated like setting request headers, you
 can build up a request object and pass that to `expect`:
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
 import org.http4s.MediaType
 import org.http4s.Method._
 ```
 
-```tut:book
+```scala mdoc:nest
 val request = GET(
   uri"https://my-lovely-api.com/",
   Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
@@ -317,7 +315,7 @@ httpClient.expect[String](request)
 
 ### Post a form, decoding the JSON response to a case class
 
-```tut:book
+```scala mdoc:nest
 case class AuthResponse(access_token: String)
 
 // See the JSON page for details on how to define this
@@ -335,7 +333,7 @@ val postRequest = POST(
 httpClient.expect[AuthResponse](postRequest)
 ```
 
-```tut:book:invisible
+```scala mdoc:nest:invisible
 fiber.cancel.unsafeRunSync()
 ```
 
@@ -374,7 +372,7 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-```tut:invisible
+```scala mdoc:nest:invisible
 blockingPool.shutdown()
 ```
 

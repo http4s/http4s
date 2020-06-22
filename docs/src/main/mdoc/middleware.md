@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
 ```
 and some imports.
 
-```tut:silent
+```scala mdoc:silent
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
@@ -35,7 +35,7 @@ import org.http4s.implicits._
 Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
-```tut:book
+```scala mdoc
 def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
   service(req).map {
     case Status.Successful(resp) =>
@@ -56,7 +56,7 @@ is implemented as a [`Kleisli`], which is just a function at heart, we can test 
 service without a server. Because an `HttpService[F]` returns a `F[Response[F]]`,
 we need to call `unsafeRunSync` on the result of the function to extract the `Response[F]`.
 
-```tut:book
+```scala mdoc
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "bad" =>
     BadRequest()
@@ -73,7 +73,7 @@ service.orNotFound(badRequest).unsafeRunSync
 
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
 
-```tut:book
+```scala mdoc
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 
 wrappedService.orNotFound(goodRequest).unsafeRunSync
@@ -85,7 +85,7 @@ Note that the successful response has your header added to it.
 If you intend to use you middleware in multiple places,  you may want to implement
 it as an `object` and use the `apply` method.
 
-```tut:book
+```scala mdoc
 object MyMiddle {
   def addHeader(resp: Response[IO], header: Header) =
     resp match {
@@ -119,7 +119,7 @@ Because middleware returns a `Service`, you can compose services wrapped in
 middleware with other, unwrapped, services, or services wrapped in other middleware.
 You can also wrap a single service in multiple layers of middleware. For example:
 
-```tut:book
+```scala mdoc
 val apiService = HttpRoutes.of[IO] {
   case GET -> Root / "api" =>
     Ok()
@@ -148,6 +148,7 @@ package. These include:
 * [Jsonp]
 * [Virtual Host]
 * [Metrics]
+* [`X-Request-ID` header]
 
 And a few others.
 
@@ -170,12 +171,12 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.server.middleware.Metrics
 import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
-```tut:book
+```scala mdoc
 implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 
@@ -196,14 +197,14 @@ libraryDependencies ++= Seq(
 We can create a middleware that registers metrics prefixed with a
 provided prefix like this.
 
-```tut:silent
+```scala mdoc:silent
 import cats.effect.{Clock, IO, Resource}
 import org.http4s.HttpRoutes
 import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.server.Router
 import org.http4s.server.middleware.Metrics
 ```
-```tut:book
+```scala mdoc:nest
 implicit val clock = Clock.create[IO]
 
 val meteredRouter: Resource[IO, HttpRoutes[IO]] =
@@ -218,6 +219,40 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   
 ```
 
+### X-Request-ID Middleware
+
+Use the `RequestId` middleware to automatically generate a `X-Request-ID` header to a request,
+if one wasn't supplied. Adds a `X-Request-ID` header to the response with the id generated
+or supplied as part of the request.
+
+This [heroku guide](https://devcenter.heroku.com/articles/http-request-id) gives a brief explanation
+as to why this header is useful.
+
+```scala mdoc:silent
+import org.http4s.server.middleware.RequestId
+import org.typelevel.ci.CIString
+
+val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
+  case req =>
+    val reqId = req.headers.get(CIString("X-Request-ID")).fold("null")(_.value)
+    // use request id to correlate logs with the request
+    IO(println(s"request received, cid=$reqId")) *> Ok()
+})
+val responseIO = requestIdService.orNotFound(goodRequest)
+```
+
+Note: `req.attributes.lookup(RequestId.requestIdAttrKey)` can also be used to lookup the request id
+extracted from the header, or the generated request id.
+
+```scala mdoc
+// generated request id can be correlated with logs
+val resp = responseIO.unsafeRunSync()
+// X-Request-ID header added to response
+resp.headers
+// the request id is also available using attributes
+resp.attributes.lookup(RequestId.requestIdAttrKey)
+```
+
 [service]: ../service
 [dsl]: ../dsl
 [Authentication]: ../auth
@@ -228,4 +263,5 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
 [Jsonp]: ../api/org/http4s/server/middleware/Jsonp$
 [Virtual Host]: ../api/org/http4s/server/middleware/VirtualHost$
 [Metrics]: ../api/org/http4s/server/middleware/Metrics$
+[`X-Request-ID` header]: ../api/org/http4s/server/middleware/RequestId$
 [`Kleisli`]: https://typelevel.org/cats/datatypes/kleisli.html

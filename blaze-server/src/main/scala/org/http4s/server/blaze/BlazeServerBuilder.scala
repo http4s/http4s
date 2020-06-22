@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
@@ -29,10 +35,10 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.internal.threads.threadFactory
 import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.blaze.BlazeServerBuilder._
-import org.http4s.util.threads.threadFactory
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -318,65 +324,66 @@ class BlazeServerBuilder[F[_]](
     }
   }
 
-  def resource: Resource[F, Server] = tickWheelResource.flatMap { scheduler =>
-    def resolveAddress(address: InetSocketAddress) =
-      if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
-      else address
+  def resource: Resource[F, Server] =
+    tickWheelResource.flatMap { scheduler =>
+      def resolveAddress(address: InetSocketAddress) =
+        if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
+        else address
 
-    val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
-      if (isNio2)
-        NIO2SocketServerGroup
-          .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
-      else
-        NIO1SocketServerGroup
-          .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
-    })(factory => F.delay { factory.closeGroup() })
+      val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
+        if (isNio2)
+          NIO2SocketServerGroup
+            .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
+        else
+          NIO1SocketServerGroup
+            .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
+      })(factory => F.delay(factory.closeGroup()))
 
-    def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
-      Resource.make(
-        for {
-          ctxOpt <- sslConfig.makeContext
-          engineCfg = ctxOpt.map(ctx => (ctx, sslConfig.configureEngine _))
-          address = resolveAddress(socketAddress)
-        } yield factory.bind(address, pipelineFactory(scheduler, engineCfg)).get
-      )(serverChannel => F.delay { serverChannel.close() })
+      def mkServerChannel(factory: ServerChannelGroup): Resource[F, ServerChannel] =
+        Resource.make(
+          for {
+            ctxOpt <- sslConfig.makeContext
+            engineCfg = ctxOpt.map(ctx => (ctx, sslConfig.configureEngine _))
+            address = resolveAddress(socketAddress)
+          } yield factory.bind(address, pipelineFactory(scheduler, engineCfg)).get
+        )(serverChannel => F.delay(serverChannel.close()))
 
-    def logStart(server: Server): Resource[F, Unit] =
-      Resource.liftF(F.delay {
-        Option(banner)
-          .filter(_.nonEmpty)
-          .map(_.mkString("\n", "\n", ""))
-          .foreach(logger.info(_))
+      def logStart(server: Server): Resource[F, Unit] =
+        Resource.liftF(F.delay {
+          Option(banner)
+            .filter(_.nonEmpty)
+            .map(_.mkString("\n", "\n", ""))
+            .foreach(logger.info(_))
 
-        logger.info(
-          s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
-      })
+          logger.info(
+            s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
+        })
 
-    Resource.liftF(verifyTimeoutRelations()) >>
-      mkFactory
-        .flatMap(mkServerChannel)
-        .map[F, Server] { serverChannel =>
-          new Server {
-            val address: InetSocketAddress =
-              serverChannel.socketAddress
+      Resource.liftF(verifyTimeoutRelations()) >>
+        mkFactory
+          .flatMap(mkServerChannel)
+          .map[F, Server] { serverChannel =>
+            new Server {
+              val address: InetSocketAddress =
+                serverChannel.socketAddress
 
-            val isSecure = sslConfig.isSecure
+              val isSecure = sslConfig.isSecure
 
-            override def toString: String =
-              s"BlazeServer($address)"
+              override def toString: String =
+                s"BlazeServer($address)"
+            }
           }
-        }
-        .flatTap(logStart)
-  }
-
-  private def verifyTimeoutRelations(): F[Unit] = F.delay {
-    if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout) {
-      logger.warn(
-        s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
-          s"It is recommended to configure responseHeaderTimeout < idleTimeout, " +
-          s"otherwise timeout responses won't be delivered to clients.")
+          .flatTap(logStart)
     }
-  }
+
+  private def verifyTimeoutRelations(): F[Unit] =
+    F.delay {
+      if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout)
+        logger.warn(
+          s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). " +
+            s"It is recommended to configure responseHeaderTimeout < idleTimeout, " +
+            s"otherwise timeout responses won't be delivered to clients.")
+    }
 }
 
 object BlazeServerBuilder {
@@ -403,8 +410,8 @@ object BlazeServerBuilder {
       channelOptions = ChannelOptions(Vector.empty)
     )
 
-  def apply[F[_]](executionContext: ExecutionContext)(
-      implicit F: ConcurrentEffect[F],
+  def apply[F[_]](executionContext: ExecutionContext)(implicit
+      F: ConcurrentEffect[F],
       timer: Timer[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.SocketAddress,
@@ -446,35 +453,36 @@ object BlazeServerBuilder {
       trustStore: Option[StoreInfo],
       clientAuth: SSLClientAuthMode)(implicit F: Sync[F])
       extends SslConfig[F] {
-    def makeContext = F.delay {
-      val ksStream = new FileInputStream(keyStore.path)
-      val ks = KeyStore.getInstance("JKS")
-      ks.load(ksStream, keyStore.password.toCharArray)
-      ksStream.close()
-
-      val tmf = trustStore.map { auth =>
-        val ksStream = new FileInputStream(auth.path)
-
+    def makeContext =
+      F.delay {
+        val ksStream = new FileInputStream(keyStore.path)
         val ks = KeyStore.getInstance("JKS")
-        ks.load(ksStream, auth.password.toCharArray)
+        ks.load(ksStream, keyStore.password.toCharArray)
         ksStream.close()
 
-        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+        val tmf = trustStore.map { auth =>
+          val ksStream = new FileInputStream(auth.path)
 
-        tmf.init(ks)
-        tmf.getTrustManagers
+          val ks = KeyStore.getInstance("JKS")
+          ks.load(ksStream, auth.password.toCharArray)
+          ksStream.close()
+
+          val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+
+          tmf.init(ks)
+          tmf.getTrustManagers
+        }
+
+        val kmf = KeyManagerFactory.getInstance(
+          Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
+            .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+
+        kmf.init(ks, keyManagerPassword.toCharArray)
+
+        val context = SSLContext.getInstance(protocol)
+        context.init(kmf.getKeyManagers, tmf.orNull, null)
+        context.some
       }
-
-      val kmf = KeyManagerFactory.getInstance(
-        Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-          .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
-
-      kmf.init(ks, keyManagerPassword.toCharArray)
-
-      val context = SSLContext.getInstance(protocol)
-      context.init(kmf.getKeyManagers, tmf.orNull, null)
-      context.some
-    }
     def configureEngine(engine: SSLEngine) =
       configureEngineFromSslClientAuthMode(engine, clientAuth)
     def isSecure = true

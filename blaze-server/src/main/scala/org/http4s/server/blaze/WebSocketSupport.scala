@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.blaze
 
 import cats.effect._
@@ -11,8 +17,8 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.syntax.string._
 import org.http4s.websocket.WebSocketHandshake
+import org.typelevel.ci.CIString
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -30,7 +36,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
       case None => super.renderResponse(req, resp, cleanup)
       case Some(wsContext) =>
         val hdrs = req.headers.toList.map(h => (h.name.toString, h.value))
-        if (WebSocketHandshake.isWebSocketRequest(hdrs)) {
+        if (WebSocketHandshake.isWebSocketRequest(hdrs))
           WebSocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
               logger.info(s"Invalid handshake $code, $msg")
@@ -38,7 +44,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 wsContext.failureResponse
                   .map(
                     _.withHeaders(
-                      Connection("close".ci),
+                      Connection(CIString("close")),
                       Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
                     ))
               } {
@@ -79,7 +85,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
               }(executionContext)
           }
-        } else super.renderResponse(req, resp, cleanup)
+        else super.renderResponse(req, resp, cleanup)
     }
   }
 }

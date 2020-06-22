@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -5,8 +11,7 @@ package middleware
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import org.http4s.util.CaseInsensitiveString
-
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 object ResponseTiming {
@@ -25,15 +30,15 @@ object ResponseTiming {
   def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
-      headerName: CaseInsensitiveString = CaseInsensitiveString("X-Response-Time"))(
-      implicit F: Sync[F],
+      headerName: CIString = CIString("X-Response-Time"))(implicit
+      F: Sync[F],
       clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
       for {
         before <- clock.monotonic(timeUnit)
         resp <- http(req)
         after <- clock.monotonic(timeUnit)
-        header = Header(headerName.value, s"${after - before}")
+        header = Header(headerName.toString, s"${after - before}")
       } yield resp.putHeaders(header)
     }
 }

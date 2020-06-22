@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Order, Show}
@@ -89,9 +95,10 @@ object QValue {
     }.parse
 
   private[http4s] trait QValueParser extends AdditionalRules { self: PbParser =>
-    def QualityValue = rule { // QValue is already taken
-      ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
-    }
+    def QualityValue =
+      rule { // QValue is already taken
+        ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
+      }
   }
 
   /** Exists to support compile-time verified literals. Do not call directly. */

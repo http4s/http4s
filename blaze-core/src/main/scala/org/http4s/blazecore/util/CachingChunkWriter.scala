@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 package util
@@ -71,11 +77,10 @@ private[http4s] class CachingChunkWriter[F[_]](
           val hbuff = ByteBuffer.wrap(h.result.getBytes(ISO_8859_1))
           pipe.channelWrite(hbuff)
         }
-      } else {
-        if (!chunk.isEmpty) writeBodyChunk(chunk, true).flatMap { _ =>
-          writeTrailer(pipe, trailer)
-        } else writeTrailer(pipe, trailer)
+      } else if (!chunk.isEmpty) writeBodyChunk(chunk, true).flatMap { _ =>
+        writeTrailer(pipe, trailer)
       }
+      else writeTrailer(pipe, trailer)
 
     f.map(Function.const(false))
   }

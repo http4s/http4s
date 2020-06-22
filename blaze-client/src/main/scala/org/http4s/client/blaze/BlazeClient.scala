@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package blaze
@@ -68,7 +74,7 @@ object BlazeClient {
           }
 
         def idleTimeoutStage(conn: A) =
-          Resource.makeCase({
+          Resource.makeCase {
             idleTimeout match {
               case d: FiniteDuration =>
                 val stage = new IdleTimeoutStage[ByteBuffer](d, scheduler, ec)
@@ -76,7 +82,7 @@ object BlazeClient {
               case _ =>
                 F.pure(None)
             }
-          }) {
+          } {
             case (_, ExitCase.Completed) => F.unit
             case (stageOpt, _) => F.delay(stageOpt.foreach(_.removeStage()))
           }
@@ -106,9 +112,8 @@ object BlazeClient {
                       if (next.fresh)
                         F.raiseError(
                           new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
-                      else {
+                      else
                         loop
-                      }
                     }
                 }
 
@@ -147,11 +152,14 @@ object BlazeClient {
             F.racePair(
                 res,
                 F.cancelable[TimeoutException] { cb =>
-                  val c = scheduler.schedule(new Runnable {
-                    def run() =
-                      cb(Right(
-                        new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
-                  }, ec, d)
+                  val c = scheduler.schedule(
+                    new Runnable {
+                      def run() =
+                        cb(Right(new TimeoutException(
+                          s"Request to $key timed out after ${d.toMillis} ms")))
+                    },
+                    ec,
+                    d)
                   F.delay(c.cancel)
                 }
               )

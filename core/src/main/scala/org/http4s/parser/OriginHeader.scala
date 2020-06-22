@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package parser
 
@@ -17,9 +23,10 @@ trait OriginHeader {
     override def charset: Charset =
       StandardCharsets.ISO_8859_1
 
-    def entry: Rule1[Origin] = rule {
-      nullEntry | hostListEntry
-    }
+    def entry: Rule1[Origin] =
+      rule {
+        nullEntry | hostListEntry
+      }
 
     // The spec states that an Origin may be the string "null":
     // http://tools.ietf.org/html/rfc6454#section-7
@@ -30,22 +37,26 @@ trait OriginHeader {
     // Although the MDN article is possibly wrong,
     // it seems likely we could get either case,
     // so we read both as Origin.Null and re-serialize it as "null":
-    def nullEntry: Rule1[Origin] = rule {
-      (str("") ~ EOI | str("null") ~ EOI) ~> { () =>
-        Origin.Null
+    def nullEntry: Rule1[Origin] =
+      rule {
+        (str("") ~ EOI | str("null") ~ EOI) ~> { () =>
+          Origin.Null
+        }
       }
-    }
 
-    def hostListEntry: Rule1[Origin] = rule {
-      (host ~ zeroOrMore(" " ~ host)) ~> { (head: Origin.Host, tail: collection.Seq[Origin.Host]) =>
-        Origin.HostList(NonEmptyList(head, tail.toList))
+    def hostListEntry: Rule1[Origin] =
+      rule {
+        (host ~ zeroOrMore(" " ~ host)) ~> {
+          (head: Origin.Host, tail: collection.Seq[Origin.Host]) =>
+            Origin.HostList(NonEmptyList(head, tail.toList))
+        }
       }
-    }
 
-    def host: Rule1[Origin.Host] = rule {
-      (scheme ~ "://" ~ Host ~ Port) ~> { (s, h, p) =>
-        Origin.Host(s, h, p)
+    def host: Rule1[Origin.Host] =
+      rule {
+        (scheme ~ "://" ~ Host ~ Port) ~> { (s, h, p) =>
+          Origin.Host(s, h, p)
+        }
       }
-    }
   }
 }

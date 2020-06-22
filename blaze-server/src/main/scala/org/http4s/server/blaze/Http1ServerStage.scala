@@ -1,9 +1,16 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
 
 import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
 import cats.implicits._
+import io.chrisdavenport.vault._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
@@ -16,12 +23,11 @@ import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
+import org.typelevel.ci.CIString
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
-import io.chrisdavenport.vault._
 
 private[blaze] object Http1ServerStage {
   def apply[F[_]](
@@ -35,8 +41,8 @@ private[blaze] object Http1ServerStage {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(
-      implicit F: ConcurrentEffect[F],
+      scheduler: TickWheelExecutor)(implicit
+      F: ConcurrentEffect[F],
       timer: Timer[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
@@ -133,17 +139,15 @@ private[blaze] class Http1ServerStage[F[_]](
   private def reqLoopCallback(buff: ByteBuffer): Unit = {
     logRequest(buff)
     parser.synchronized {
-      if (!isClosed) {
-        try {
-          if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff)) {
-            requestLoop()
-          } else if (!parser.headersComplete() && !parser.doParseHeaders(buff)) {
-            requestLoop()
-          } else {
-            // we have enough to start the request
-            runRequest(buff)
-          }
-        } catch {
+      if (!isClosed)
+        try if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff))
+          requestLoop()
+        else if (!parser.headersComplete() && !parser.doParseHeaders(buff))
+          requestLoop()
+        else
+          // we have enough to start the request
+          runRequest(buff)
+        catch {
           case t: BadMessage =>
             badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
           case t: Throwable =>
@@ -153,7 +157,6 @@ private[blaze] class Http1ServerStage[F[_]](
               Request[F](),
               () => Future.successful(emptyBuffer))
         }
-      }
     }
   }
 
@@ -217,7 +220,9 @@ private[blaze] class Http1ServerStage[F[_]](
       .orElse {
         Connection.from(req.headers).map(checkCloseConnection(_, rr))
       }
-      .getOrElse(parser.minorVersion == 0) // Finally, if nobody specifies, http 1.0 defaults to close
+      .getOrElse(
+        parser.minorVersion == 0
+      ) // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
     val bodyEncoder: Http1Writer[F] = {
@@ -225,12 +230,11 @@ private[blaze] class Http1ServerStage[F[_]](
         // We don't have a body (or don't want to send it) so we just get the headers
 
         if (!resp.status.isEntityAllowed &&
-          (lengthHeader.isDefined || respTransferCoding.isDefined)) {
+          (lengthHeader.isDefined || respTransferCoding.isDefined))
           logger.warn(
             s"Body detected for response code ${resp.status.code} which doesn't permit an entity. Dropping.")
-        }
 
-        if (req.method == Method.HEAD) {
+        if (req.method == Method.HEAD)
           // write message body header for HEAD response
           (parser.minorVersion, respTransferCoding, lengthHeader) match {
             case (minor, Some(enc), _) if minor > 0 && enc.hasChunked =>
@@ -238,7 +242,6 @@ private[blaze] class Http1ServerStage[F[_]](
             case (_, _, Some(len)) => rr << len << "\r\n"
             case _ => // nop
           }
-        }
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present
         rr << (if (!closeOnFinish && parser.minorVersion == 0 && respConn.isEmpty)
@@ -297,13 +300,14 @@ private[blaze] class Http1ServerStage[F[_]](
     super.stageShutdown()
   }
 
-  private def cancel(): Unit = cancelToken.foreach { token =>
-    F.runAsync(token) {
-        case Right(_) => IO(logger.debug("Canceled request"))
-        case Left(t) => IO(logger.error(t)("Error canceling request"))
-      }
-      .unsafeRunSync()
-  }
+  private def cancel(): Unit =
+    cancelToken.foreach { token =>
+      F.runAsync(token) {
+          case Right(_) => IO(logger.debug("Canceled request"))
+          case Left(t) => IO(logger.error(t)("Error canceling request"))
+        }
+        .unsafeRunSync()
+    }
 
   final protected def badMessage(
       debugMessage: String,
@@ -311,7 +315,7 @@ private[blaze] class Http1ServerStage[F[_]](
       req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .withHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection(CIString("close")), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -323,8 +327,12 @@ private[blaze] class Http1ServerStage[F[_]](
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .withHeaders(Connection("close".ci), `Content-Length`.zero)
-    renderResponse(req, resp, bodyCleanup) // will terminate the connection due to connection: close header
+      .withHeaders(Connection(CIString("close")), `Content-Length`.zero)
+    renderResponse(
+      req,
+      resp,
+      bodyCleanup
+    ) // will terminate the connection due to connection: close header
   }
 
   private[this] val raceTimeout: Request[F] => F[Response[F]] =
