@@ -78,7 +78,7 @@ object FileService {
             .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
             .collect { case path if path.startsWith(rootPath) => path.toFile }
             .flatMap(f => config.pathCollector(f, config, request))
-            .semiflatMap(config.cacheStrategy.cache(request.pathInfo.renderString, _))
+            .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
             .recoverWith {
               case _: NoSuchFileException => OptionT.none
               case BadTraversal => OptionT.some(Response(Status.BadRequest))
