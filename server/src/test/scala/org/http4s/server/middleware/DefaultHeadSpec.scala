@@ -17,7 +17,7 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 import org.typelevel.ci.CIString
 
 class DefaultHeadSpec extends Http4sSpec with Http4sLegacyMatchersIO {
-  val app = DefaultHead(HttpRoutes.of[IO] {
+  val httpRoutes = HttpRoutes.of[IO] {
     case GET -> Root / "hello" =>
       Ok("hello")
 
@@ -26,7 +26,8 @@ class DefaultHeadSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
     case HEAD -> Root / "special" =>
       Ok(Header("X-Handled-By", "HEAD"))
-  }).orNotFound
+  }
+  val app = DefaultHead(httpRoutes).orNotFound
 
   "DefaultHead" should {
     "honor HEAD routes" in {
@@ -62,6 +63,11 @@ class DefaultHeadSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         _ <- resp.body.compile.drain
         leaked <- open.get
       } yield leaked).unsafeRunSync() must beFalse
+    }
+
+    "be created via the httpRoutes constructor" in {
+      val req = Request[IO](Method.HEAD, uri = uri("/hello"))
+      DefaultHead.httpRoutes(httpRoutes).orNotFound(req) must returnBody("")
     }
   }
 }
