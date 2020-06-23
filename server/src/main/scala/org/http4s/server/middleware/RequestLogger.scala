@@ -105,48 +105,40 @@ object RequestLogger {
     }
   }
 
-  object httpApp {
-    def apply[F[_]: Concurrent](
-        logHeaders: Boolean,
-        logBody: Boolean,
-        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-        logAction: Option[String => F[Unit]] = None
-    )(httpApp: HttpApp[F]): HttpApp[F] =
-      RequestLogger.apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(
-        httpApp)
+  def httpApp[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-    def logBodyText[F[_]: Concurrent](
-        logHeaders: Boolean,
-        logBody: Stream[F, Byte] => Option[F[String]],
-        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-        logAction: Option[String => F[Unit]] = None
-    )(httpApp: HttpApp[F]): HttpApp[F] =
-      RequestLogger
-        .impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(
-          httpApp)
-  }
+  def httpRoutes[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  object httpRoutes {
-    def apply[F[_]: Concurrent](
-        logHeaders: Boolean,
-        logBody: Boolean,
-        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-        logAction: Option[String => F[Unit]] = None
-    )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-      RequestLogger.apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(
-        httpRoutes)
+  def httpAppLogBodyText[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-    def logBodyText[F[_]: Concurrent](
-        logHeaders: Boolean,
-        logBody: Stream[F, Byte] => Option[F[String]],
-        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-        logAction: Option[String => F[Unit]] = None
-    )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-      RequestLogger.impl[OptionT[F, *], F](
-        logHeaders,
-        Right(logBody),
-        OptionT.liftK[F],
-        redactHeadersWhen,
-        logAction)(httpRoutes)
-  }
+  def httpRoutesLogBodyText[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    impl[OptionT[F, *], F](
+      logHeaders,
+      Right(logBody),
+      OptionT.liftK[F],
+      redactHeadersWhen,
+      logAction)(httpRoutes)
 }
