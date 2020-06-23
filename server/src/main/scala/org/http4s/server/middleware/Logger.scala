@@ -58,7 +58,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-    log: String => F[Unit])(implicit F: Sync[F]): F[Unit] =
+      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage[F, A](message)(logHeaders, logBody, redactHeadersWhen)(log)
 }
