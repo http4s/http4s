@@ -94,53 +94,41 @@ object ResponseLogger {
     }
   }
 
-  object httpApp {
-    def apply[F[_]: Concurrent, A](
-        logHeaders: Boolean,
-        logBody: Boolean,
-        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-        logAction: Option[String => F[Unit]] = None)(
-        httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
-      ResponseLogger.apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(
-        httpApp)
+  def httpApp[F[_]: Concurrent, A](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None)(
+      httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
+    apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-    def logBodyText[F[_]: Concurrent, A](
-        logHeaders: Boolean,
-        logBody: Stream[F, Byte] => Option[F[String]],
-        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-        logAction: Option[String => F[Unit]] = None)(
-        httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
-      ResponseLogger.impl[F, F, A](
-        logHeaders,
-        Right(logBody),
-        FunctionK.id[F],
-        redactHeadersWhen,
-        logAction)(httpApp)
-  }
+  def httpAppLogBodyText[F[_]: Concurrent, A](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None)(
+      httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
+    impl[F, F, A](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(
+      httpApp)
 
-  object httpRoutes {
-    def apply[F[_]: Concurrent, A](
-        logHeaders: Boolean,
-        logBody: Boolean,
-        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-        logAction: Option[String => F[Unit]] = None)(
-        httpRoutes: Kleisli[OptionT[F, *], A, Response[F]])
-        : Kleisli[OptionT[F, *], A, Response[F]] =
-      ResponseLogger.apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(
-        httpRoutes)
+  def httpRoutes[F[_]: Concurrent, A](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None)(
+      httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
+    apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-    def logBodyText[F[_]: Concurrent, A](
-        logHeaders: Boolean,
-        logBody: Stream[F, Byte] => Option[F[String]],
-        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
-        logAction: Option[String => F[Unit]] = None)(
-        httpRoutes: Kleisli[OptionT[F, *], A, Response[F]])
-        : Kleisli[OptionT[F, *], A, Response[F]] =
-      impl[OptionT[F, *], F, A](
-        logHeaders,
-        Right(logBody),
-        OptionT.liftK[F],
-        redactHeadersWhen,
-        logAction)(httpRoutes)
-  }
+  def httpRoutesLogBodyText[F[_]: Concurrent, A](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None)(
+      httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
+    impl[OptionT[F, *], F, A](
+      logHeaders,
+      Right(logBody),
+      OptionT.liftK[F],
+      redactHeadersWhen,
+      logAction)(httpRoutes)
 }
