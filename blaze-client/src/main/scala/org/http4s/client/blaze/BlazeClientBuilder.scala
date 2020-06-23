@@ -283,7 +283,7 @@ object BlazeClientBuilder {
 
   /** Creates a BlazeClientBuilder
     *
-    * @param executionContext the ExecutionContext for blaze's internal Futures
+    * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
     */
   def apply[F[_]: ConcurrentEffect](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
