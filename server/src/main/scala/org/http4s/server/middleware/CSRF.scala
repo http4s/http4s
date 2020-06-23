@@ -84,7 +84,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
       lift(joined + "-" + encodeHexString(out))
     }
 
-  /** Generate a new token * */
+  /** Generate a new token */
   def generateToken[M[_]](implicit F: Sync[M]): M[CSRFToken] =
     signToken[M](CSRF.genTokenString)
 
@@ -235,7 +235,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
   def embedInRequestCookie(r: Request[G], token: CSRFToken): Request[G] =
     r.addCookie(createRequestCookie(token))
 
-  /** Embed a token into a response * */
+  /** Embed a token into a response */
   def embedNewInResponseCookie[M[_]: Sync](res: Response[G]): M[Response[G]] =
     generateToken[M].map(embedInResponseCookie(res, _))
 }
@@ -481,22 +481,22 @@ object CSRF {
       .from(request.headers)
       .flatMap(_.values.find(_.name == cookieName))
 
-  /** A Constant-time string equality * */
+  /** A Constant-time string equality */
   def tokensEqual(s1: CSRFToken, s2: CSRFToken): Boolean =
     isEqual(unlift(s1), unlift(s2))
 
-  /** A Constant-time string equality * */
+  /** A Constant-time string equality */
   def isEqual(s1: String, s2: String): Boolean =
     MessageDigest.isEqual(s1.getBytes(StandardCharsets.UTF_8), s2.getBytes(StandardCharsets.UTF_8))
 
-  /** Generate an unsigned CSRF token from a `SecureRandom` * */
+  /** Generate an unsigned CSRF token from a `SecureRandom` */
   private[middleware] def genTokenString: String = {
     val bytes = new Array[Byte](CSRFTokenLength)
     CachedRandom.nextBytes(bytes)
     encodeHexString(bytes)
   }
 
-  /** Generate a signing Key for the CSRF token * */
+  /** Generate a signing Key for the CSRF token */
   def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[SecretKey] =
     F.delay(KeyGenerator.getInstance(SigningAlgo).generateKey())
 
