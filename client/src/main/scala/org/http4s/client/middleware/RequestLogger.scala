@@ -26,14 +26,44 @@ object RequestLogger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
+  )(client: Client[F]): Client[F] =
+    impl[F](logHeaders, Left(logBody), redactHeadersWhen, logAction)(client)
+
+  def logBodyText[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(client: Client[F]): Client[F] =
+    impl[F](logHeaders, Right(logBody), redactHeadersWhen, logAction)(client)
+
+  private def impl[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean,
+      logAction: Option[String => F[Unit]]
   )(client: Client[F]): Client[F] = {
     val log = logAction.getOrElse { (s: String) =>
       Sync[F].delay(logger.info(s))
     }
+
+    def logMessage(r: Request[F]): F[Unit] =
+      logBodyText match {
+        case Left(bool) =>
+          Logger.logMessage[F, Request[F]](r)(logHeaders, bool, redactHeadersWhen)(log(_))
+        case Right(f) =>
+          org.http4s.internal.Logger
+            .logMessageWithBodyText[F, Request[F]](r)(logHeaders, f, redactHeadersWhen)(log(_))
+      }
+
+    val logBody: Boolean = logBodyText match {
+      case Left(bool) => bool
+      case Right(_) => true
+    }
+
     Client { req =>
       if (!logBody)
-        Resource.liftF(Logger
-          .logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(log(_))) *> client
+        Resource.liftF(logMessage(req)) *> client
           .run(req)
       else
         Resource.suspend {
@@ -48,10 +78,7 @@ object RequestLogger {
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s))))
                 .onFinalizeWeak(
-                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                    logHeaders,
-                    logBody,
-                    redactHeadersWhen)(log(_))
+                  logMessage(req.withBodyStream(newBody))
                 )
             )
 
@@ -60,4 +87,5 @@ object RequestLogger {
         }
     }
   }
+
 }

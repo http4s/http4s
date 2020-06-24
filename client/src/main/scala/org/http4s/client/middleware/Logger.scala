@@ -9,6 +9,7 @@ package client
 package middleware
 
 import cats.effect._
+import fs2.Stream
 import org.http4s.util.CaseInsensitiveString
 
 /**
@@ -23,6 +24,18 @@ object Logger {
   )(client: Client[F]): Client[F] =
     ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
       RequestLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
+        client
+      )
+    )
+
+  def logBodyText[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(client: Client[F]): Client[F] =
+    ResponseLogger.logBodyText(logHeaders, logBody, redactHeadersWhen, logAction)(
+      RequestLogger.logBodyText(logHeaders, logBody, redactHeadersWhen, logAction)(
         client
       )
     )

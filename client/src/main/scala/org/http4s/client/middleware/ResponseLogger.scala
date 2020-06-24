@@ -26,16 +26,45 @@ object ResponseLogger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
+  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
+    impl[F](logHeaders, Left(logBody), redactHeadersWhen, logAction)(client)
+
+  def logBodyText[F[_]](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None
+  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
+    impl[F](logHeaders, Right(logBody), redactHeadersWhen, logAction)(client)
+
+  private def impl[F[_]](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      redactHeadersWhen: CaseInsensitiveString => Boolean,
+      logAction: Option[String => F[Unit]]
   )(client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
     val log = logAction.getOrElse { (s: String) =>
       Sync[F].delay(logger.info(s))
     }
+
+    def logMessage(resp: Response[F]): F[Unit] =
+      logBodyText match {
+        case Left(bool) =>
+          Logger.logMessage[F, Response[F]](resp)(logHeaders, bool, redactHeadersWhen)(log(_))
+        case Right(f) =>
+          org.http4s.internal.Logger
+            .logMessageWithBodyText[F, Response[F]](resp)(logHeaders, f, redactHeadersWhen)(log(_))
+      }
+
+    val logBody: Boolean = logBodyText match {
+      case Left(bool) => bool
+      case Right(_) => true
+    }
+
     Client { req =>
       client.run(req).flatMap { response =>
         if (!logBody)
-          Resource.liftF(
-            Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-              log(_)) *> F.delay(response))
+          Resource.liftF(logMessage(response) *> F.delay(response))
         else
           Resource.suspend {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
@@ -49,13 +78,7 @@ object ResponseLogger {
                   .eval(vec.get)
                   .flatMap(v => Stream.emits(v).covary[F])
                   .flatMap(c => Stream.chunk(c).covary[F])
-
-                Logger
-                  .logMessage[F, Response[F]](response.withBodyStream(newBody))(
-                    logHeaders,
-                    logBody,
-                    redactHeadersWhen)(log(_))
-                  .attempt
+                logMessage(response.withBodyStream(newBody)).attempt
                   .flatMap {
                     case Left(t) => F.delay(logger.error(t)("Error logging response body"))
                     case Right(()) => F.unit
@@ -66,4 +89,5 @@ object ResponseLogger {
       }
     }
   }
+
 }
