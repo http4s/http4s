@@ -560,7 +560,8 @@ lazy val scalafixSettings: Seq[Setting[_]] = Seq(
     ),
   ),
   addCompilerPlugin(scalafixSemanticdb),
-  scalacOptions += "-Yrangepos"
+  scalacOptions += "-Yrangepos",
+  mimaPreviousArtifacts := Set.empty,
 )
 
 lazy val scalafixRules = project
@@ -571,7 +572,6 @@ lazy val scalafixRules = project
     libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafix,
   )
   .enablePlugins(AutomateHeaderPlugin)
-  .disablePlugins(MimaPlugin)
 
 lazy val scalafixInput = project
   .in(file("scalafix/input"))
@@ -586,11 +586,8 @@ lazy val scalafixInput = project
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
-    // scalafix parses the cStyle headers
-    headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment)
   )
-  .enablePlugins(AutomateHeaderPlugin)
-  .disablePlugins(MimaPlugin)
+  .disablePlugins(HeaderPlugin)
 
 lazy val scalafixOutput = project
   .in(file("scalafix/output"))
@@ -600,7 +597,6 @@ lazy val scalafixOutput = project
     skip in compile := true,
   )
   .dependsOn(blazeClient, blazeServer, theDsl)
-  .disablePlugins(MimaPlugin)
   // This is effectively generated code. These just get in the way.
   .disablePlugins(HeaderPlugin)
   .disablePlugins(ScalafmtPlugin)
@@ -624,7 +620,6 @@ lazy val scalafixTests = project
   .dependsOn(scalafixRules)
   .enablePlugins(ScalafixTestkitPlugin)
   .enablePlugins(AutomateHeaderPlugin)
-  .disablePlugins(MimaPlugin)
 
 def http4sProject(name: String) =
   Project(name, file(name))
