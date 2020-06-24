@@ -46,7 +46,11 @@ lazy val modules: List[ProjectReference] = List(
   examplesEmber,
   examplesJetty,
   examplesTomcat,
-  examplesWar
+  examplesWar,
+  scalafixInput,
+  scalafixOutput,
+  scalafixRules,
+  scalafixTests
 )
 
 lazy val root = project.in(file("."))
@@ -539,6 +543,84 @@ lazy val examplesWar = exampleProject("examples-war")
     Jetty / containerLibs := List(jettyRunner),
   )
   .dependsOn(servlet)
+
+lazy val scalafixSettings: Seq[Setting[_]] = Seq(
+  developers ++= List(
+    Developer(
+      "amarrella",
+      "Alessandro Marrella",
+      "hello@alessandromarrella.com",
+        url("https://alessandromarrella.com")
+    )
+  ),
+  addCompilerPlugin(scalafixSemanticdb),
+  scalacOptions += "-Yrangepos"
+)
+
+lazy val scalafixRules = project
+  .in(file("scalafix/rules"))
+  .settings(scalafixSettings)
+  .settings(
+    moduleName := "http4s-scalafix",
+    libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafix,
+  )
+  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+
+lazy val scalafixInput = project
+  .in(file("scalafix/input"))
+  .settings(scalafixSettings)
+  .settings(
+    skip in publish := true,
+    libraryDependencies ++= List(
+      "http4s-blaze-client",
+      "http4s-blaze-server",
+      "http4s-dsl",
+    ).map("org.http4s" %% _ % "0.21.0"),
+    // TODO: I think these are false positives
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
+    scalacOptions -= "-Xfatal-warnings",
+    // scalafix parses the cStyle headers
+    headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment)
+  )
+  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+
+lazy val scalafixOutput = project
+  .in(file("scalafix/output"))
+  .settings(scalafixSettings)
+  .settings(
+    skip in publish := true,
+    skip in compile := true,
+  )
+  .dependsOn(blazeClient, blazeServer, theDsl)
+  .disablePlugins(MimaPlugin)
+  // This is effectively generated code. These just get in the way.
+  .disablePlugins(HeaderPlugin)
+  .disablePlugins(ScalafmtPlugin)
+
+lazy val scalafixTests = project
+  .in(file("scalafix/tests"))
+  .settings(commonSettings)
+  .settings(scalafixSettings)
+  .settings(
+    skip in publish := true,
+    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafix % Test cross CrossVersion.full,
+    Compile / compile :=
+      (Compile / compile).dependsOn(scalafixInput / Compile / compile).value,
+    scalafixTestkitOutputSourceDirectories :=
+      (scalafixOutput / Compile / sourceDirectories).value,
+    scalafixTestkitInputSourceDirectories :=
+      (scalafixInput / Compile / sourceDirectories).value,
+    scalafixTestkitInputClasspath :=
+      (scalafixInput / Compile / fullClasspath).value,
+  )
+  .dependsOn(scalafixRules)
+  .enablePlugins(ScalafixTestkitPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(MimaPlugin)
+
+addCommandAlias("ci", ";clean ;test")
 
 def http4sProject(name: String) =
   Project(name, file(name))

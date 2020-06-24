@@ -48,27 +48,8 @@ jobs:
       - name: Test
         run: sbt ++$SCALA_VERSION test
       - name: Scaladoc
-        run: sbt ++$SCALA_VERSION doc
-  scalafix:
-    name: Scalafix
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v5
-      - name: Cache Coursier
-        uses: actions/cache@v1
-        with:
-          path: ~/.cache/coursier
-          key: sbt-coursier-cache
-      - name: Cache SBT
-        uses: actions/cache@v1
-        with:
-          path: ~/.sbt
-          key: sbt-${{ hashFiles('**/build.sbt') }}
-      - name: Scalafix
-        working-directory: ./scalafix
-        run: sbt ++$SCALA_VERSION test
-  project-site:
+        run: sbt ++$SCALA_VERSION doc 
+ project-site:
     name: Project Site
     runs-on: ubuntu-latest
     steps:
