@@ -620,8 +620,6 @@ lazy val scalafixTests = project
   .enablePlugins(AutomateHeaderPlugin)
   .disablePlugins(MimaPlugin)
 
-addCommandAlias("ci", ";clean ;test")
-
 def http4sProject(name: String) =
   Project(name, file(name))
     .settings(commonSettings)
