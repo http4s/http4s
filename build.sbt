@@ -550,8 +550,14 @@ lazy val scalafixSettings: Seq[Setting[_]] = Seq(
       "amarrella",
       "Alessandro Marrella",
       "hello@alessandromarrella.com",
-        url("https://alessandromarrella.com")
-    )
+      url("https://alessandromarrella.com")
+    ),
+    Developer(
+      "satorg",
+      "Sergey Torgashov",
+      "satorg@gmail.com",
+      url("https://github.com/satorg")
+    ),
   ),
   addCompilerPlugin(scalafixSemanticdb),
   scalacOptions += "-Yrangepos"
