@@ -587,7 +587,8 @@ lazy val scalafixInput = project
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
   )
-  .disablePlugins(HeaderPlugin)
+  // Syntax matters as much as semantics here.
+  .disablePlugins(HeaderPlugin, ScalafmtPlugin)
 
 lazy val scalafixOutput = project
   .in(file("scalafix/output"))
@@ -597,9 +598,8 @@ lazy val scalafixOutput = project
     skip in compile := true,
   )
   .dependsOn(blazeClient, blazeServer, theDsl)
-  // This is effectively generated code. These just get in the way.
-  .disablePlugins(HeaderPlugin)
-  .disablePlugins(ScalafmtPlugin)
+  // Auto-formatting prevents the tests from passing
+  .disablePlugins(HeaderPlugin, ScalafmtPlugin)
 
 lazy val scalafixTests = project
   .in(file("scalafix/tests"))
