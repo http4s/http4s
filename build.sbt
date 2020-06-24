@@ -600,6 +600,7 @@ lazy val scalafixOutput = project
   .settings(
     skip in publish := true,
     skip in compile := true,
+    Compile / doc / sources := Nil
   )
   // Auto-formatting prevents the tests from passing
   .disablePlugins(HeaderPlugin, ScalafmtPlugin)

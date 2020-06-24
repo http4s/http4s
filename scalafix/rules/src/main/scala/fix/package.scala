@@ -52,7 +52,7 @@ package object fix {
 
   object XSemanticType {
 
-    /** Tries to infer a result [[SemanticType]] of a particular [[Stat]].
+    /** Tries to infer a result SemanticType of a particular Stat.
       *
       * @note Not all possible cases are handled.
       */
