@@ -417,6 +417,10 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
+        scalafixInput,
+        scalafixOutput,
+        scalafixRules,
+        scalafixTests
       ),
     Compile / scalacOptions ~= {
       val unwanted = Set("-Ywarn-unused:params", "-Xlint:missing-interpolator", "-Ywarn-unused:imports")
@@ -597,7 +601,6 @@ lazy val scalafixOutput = project
     skip in publish := true,
     skip in compile := true,
   )
-  .dependsOn(blazeClient, blazeServer, theDsl)
   // Auto-formatting prevents the tests from passing
   .disablePlugins(HeaderPlugin, ScalafmtPlugin)
 
