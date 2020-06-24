@@ -11,6 +11,9 @@ import cats.kernel.laws.discipline.OrderTests
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer
 
+import org.specs2.scalacheck.Parameters
+import org.scalacheck.rng.Seed
+
 class ContentCodingSpec extends Http4sSpec {
   "equals" should {
     "be consistent with equalsIgnoreCase of the codings and quality" in prop {
@@ -85,4 +88,9 @@ class ContentCodingSpec extends Http4sSpec {
 
   checkAll("Order[ContentCoding]", OrderTests[ContentCoding].order)
   checkAll("HttpCodec[ContentCoding]", HttpCodecTests[ContentCoding].httpCodec)
+
+  checkAll("Order[ContentCoding] for #3328", OrderTests[ContentCoding].order)(
+    Parameters(
+      seed = Seed.fromBase64("2kpw5tJ8tADijqPv2GG3pUWPhjzpJUnaypQufFSWHBB=").toOption,
+      minTestsOk = 1))
 }
