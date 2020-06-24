@@ -245,19 +245,18 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
           // Shift execution to a different EC
           Async.shift(trampoline) *>
             F.async[Chunk[Byte] => Unit] { cb =>
-                val blocked = Blocked(cb)
-                state.getAndSet(blocked) match {
-                  case Ready if out.isReady =>
-                    if (state.compareAndSet(blocked, Ready))
-                      cb(writeChunk)
-                  case e @ Errored(t) =>
-                    if (state.compareAndSet(blocked, e))
-                      cb(Left(t))
-                  case _ =>
-                    ()
-                }
+              val blocked = Blocked(cb)
+              state.getAndSet(blocked) match {
+                case Ready if out.isReady =>
+                  if (state.compareAndSet(blocked, Ready))
+                    cb(writeChunk)
+                case e @ Errored(t) =>
+                  if (state.compareAndSet(blocked, e))
+                    cb(Left(t))
+                case _ =>
+                  ()
               }
-              .map(_(chunk))
+            }.map(_(chunk))
         }
         .append(awaitLastWrite)
         .compile

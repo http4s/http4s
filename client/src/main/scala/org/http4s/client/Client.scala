@@ -79,7 +79,8 @@ trait Client[F[_]] {
   def toHttpService: HttpService[F]
 
   /** Run the request as a stream.  The response lifecycle is equivalent
-    * to the returned Stream's. */
+    * to the returned Stream's.
+    */
   def stream(req: Request[F]): Stream[F, Response[F]]
 
   @deprecated("Use `client.stream(req).flatMap(f)`", "0.19.0-M4")
@@ -154,11 +155,13 @@ trait Client[F[_]] {
   def statusFromString(s: String): F[Status]
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: Request[F]): F[Boolean]
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: F[Request[F]]): F[Boolean]
 
   @deprecated("Use expect", "0.14")

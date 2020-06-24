@@ -43,7 +43,6 @@ object HeaderKey {
   /**
     * Represents a header key whose multiple headers can be combined by joining
     * their values with a comma.  See RFC 2616, Section 4.2.
-    *
     */
   trait Recurring extends Extractable {
     type HeaderT <: Header.Recurring

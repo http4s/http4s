@@ -46,7 +46,7 @@ package object internal {
       F: ConcurrentEffect[F]): Unit =
     F.runAsync(F.start(F.delay(f)).flatMap(_.join))(loggingAsyncCallback(logger)).unsafeRunSync()
 
-  /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
+  /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
   private val Digits: Array[Char] =
     Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
 
@@ -162,17 +162,16 @@ package object internal {
       CS: ContextShift[F]): F[A] =
     fcs.flatMap { cs =>
       F.async[A] { cb =>
-          cs.handle[Unit] { (result, err) =>
-            err match {
-              case null => cb(Right(result))
-              case _: CancellationException => ()
-              case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
-              case ex => cb(Left(ex))
-            }
+        cs.handle[Unit] { (result, err) =>
+          err match {
+            case null => cb(Right(result))
+            case _: CancellationException => ()
+            case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
+            case ex => cb(Left(ex))
           }
-          ()
         }
-        .guarantee(CS.shift)
+        ()
+      }.guarantee(CS.shift)
     }
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
@@ -180,10 +179,9 @@ package object internal {
   )(implicit F: Effect[F]): CompletionStage[A] = {
     val cf = new CompletableFuture[A]()
     F.runAsync(fa) {
-        case Right(a) => IO { cf.complete(a); () }
-        case Left(e) => IO { cf.completeExceptionally(e); () }
-      }
-      .unsafeRunSync()
+      case Right(a) => IO { cf.complete(a); () }
+      case Left(e) => IO { cf.completeExceptionally(e); () }
+    }.unsafeRunSync()
     cf
   }
 

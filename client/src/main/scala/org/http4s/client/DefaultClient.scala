@@ -209,12 +209,14 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     F.fromEither(Uri.fromString(s)).flatMap(statusFromUri)
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: Request[F]): F[Boolean] =
     status(req).map(_.isSuccess)
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: F[Request[F]]): F[Boolean] =
     req.flatMap(successful)
 

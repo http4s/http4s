@@ -285,7 +285,6 @@ final class Request[F[_]](
   /** cURL representation of the request.
     *
     * Supported cURL-Parameters are: -X, -H
-    *
     */
   def asCurl(
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
@@ -570,7 +569,8 @@ final case class Response[F[_]](
 
   /** Returns a list of cookies from the [[`Set-Cookie`]]
     * headers. Includes expired cookies, such as those that represent cookie
-    * deletion. */
+    * deletion.
+    */
   def cookies: List[ResponseCookie] =
     `Set-Cookie`.from(headers).map(_.cookie)
 
