@@ -48,8 +48,8 @@ jobs:
       - name: Test
         run: sbt ++$SCALA_VERSION test
       - name: Scaladoc
-        run: sbt ++$SCALA_VERSION doc 
- project-site:
+        run: sbt ++$SCALA_VERSION doc
+  project-site:
     name: Project Site
     runs-on: ubuntu-latest
     steps:
