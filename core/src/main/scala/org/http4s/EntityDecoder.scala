@@ -181,10 +181,17 @@ object EntityDecoder {
   def collectBinary[F[_]: Sync](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
     DecodeResult.success(m.body.chunks.compile.toVector.map(Chunk.concatBytes))
 
-  /** Decodes a message to a String */
+  @deprecated(
+    "Can go into an infinite loop for charsets other than UTF-8. Replaced by decodeText",
+    "0.21.5")
   def decodeString[F[_]](
       m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
     m.bodyAsText.compile.string
+
+  /** Decodes a message to a String */
+  def decodeText[F[_]](
+      m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
+    m.bodyText.compile.string
 
   /////////////////// Instances //////////////////////////////////////////////
 
