@@ -57,7 +57,8 @@ abstract class ClientRouteTestBattery(name: String)
             val port = address.getPort
             val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
             client
-              .fetch(req)(resp => checkResponse(resp, expected))
+              .run(req)
+              .use(resp => checkResponse(resp, expected))
               .unsafeRunTimed(timeout)
               .get
           }
@@ -67,7 +68,7 @@ abstract class ClientRouteTestBattery(name: String)
         "Strip fragments from URI" in {
           skipped("Can only reproduce against external resource.  Help wanted.")
           val uri = Uri.uri("https://en.wikipedia.org/wiki/Buckethead_discography#Studio_albums")
-          val body = client.fetch(Request[IO](uri = uri))(e => IO.pure(e.status))
+          val body = client.run(Request[IO](uri = uri)).use(e => IO.pure(e.status))
           body must returnValue(Ok)
         }
 

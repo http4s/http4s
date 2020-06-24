@@ -12,7 +12,6 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import org.http4s.Method._
-import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.Uri.uri
 import org.http4s.client.dsl.Http4sClientDsl
@@ -67,22 +66,8 @@ class ClientSyntaxSpec
       } must returnValue("Ok")
     }
 
-    "match responses to requests with fetch" in {
-      client.fetch(req) {
-        case Ok(_) => IO.pure("Ok")
-        case _ => IO.pure("fail")
-      } must returnValue("Ok")
-    }
-
-    "match responses to request tasks with fetch" in {
-      client.fetch(IO.pure(req)) {
-        case Ok(_) => IO.pure("Ok")
-        case _ => IO.pure("fail")
-      } must returnValue("Ok")
-    }
-
-    "match responses to request tasks with fetch" in {
-      client.fetch(IO.pure(req)) {
+    "match responses to requests with run" in {
+      client.run(req).use {
         case Ok(_) => IO.pure("Ok")
         case _ => IO.pure("fail")
       } must returnValue("Ok")
@@ -106,44 +91,26 @@ class ClientSyntaxSpec
       })
     }
 
-    "fetch disposes of the response on success" in {
-      assertDisposes(_.fetch(req) { _ =>
+    "run disposes of the response on success" in {
+      assertDisposes(_.run(req).use { _ =>
         IO.unit
       })
     }
 
-    "fetch disposes of the response on failure" in {
-      assertDisposes(_.fetch(req) { _ =>
+    "run disposes of the response on failure" in {
+      assertDisposes(_.run(req).use { _ =>
         IO.raiseError(SadTrombone)
       })
     }
 
-    "fetch disposes of the response on uncaught exception" in {
-      assertDisposes(_.fetch(req) { _ =>
+    "run disposes of the response on uncaught exception" in {
+      assertDisposes(_.run(req).use { _ =>
         sys.error("Don't do this at home, kids")
       })
     }
 
-    "fetch on task disposes of the response on success" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ =>
-        IO.unit
-      })
-    }
-
-    "fetch on task disposes of the response on failure" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ =>
-        IO.raiseError(SadTrombone)
-      })
-    }
-
-    "fetch on task disposes of the response on uncaught exception" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ =>
-        sys.error("Don't do this at home, kids")
-      })
-    }
-
-    "fetch on task that does not match results in failed task" in {
-      client.fetch(IO.pure(req))(PartialFunction.empty).attempt.unsafeRunSync() must beLeft {
+    "run that does not match results in failed task" in {
+      client.run(req).use(PartialFunction.empty).attempt.unsafeRunSync() must beLeft {
         e: Throwable =>
           e must beAnInstanceOf[MatchError]
       }
