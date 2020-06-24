@@ -185,7 +185,8 @@ object ClientFetchPatches {
       }
   }
 
-  private def asCalleeString(maybeCalleeTerm: Option[Term]) = maybeCalleeTerm.fold("")(_.toString + ".")
+  private def asCalleeString(maybeCalleeTerm: Option[Term]) =
+    maybeCalleeTerm.fold("")(_.toString + ".")
 
   private def asApplyTypesString(effectTypeSym: Symbol, entityType: Type) =
     s"[${effectTypeSym.displayName}, $entityType]"
