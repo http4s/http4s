@@ -8,10 +8,14 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M1 (2020-06-25)
+# v1.0.0-M2 (2020-06-25)
 
 This is the first milestone release in the 1.x series.
 It is not binary compatible with prior releases.
+
+## Where is M1?
+
+Unpublished. The release build from the tag failed, and the fix required a new tag.
 
 ## Breaking changes
 
@@ -62,7 +66,11 @@ It is not binary compatible with prior releases.
 * play-json-2.9.0
 * simpleclient-0.9.0 (Prometheus)
 
-# v0.21.5 (2010-06-24)
+~~# v1.0.0-M1 (2020-06-25)~~
+
+Did not publish successfully from tag.
+
+# v0.21.5 (2020-06-24)
 
 This release is fully backward compatible with 0.21.4.
 
