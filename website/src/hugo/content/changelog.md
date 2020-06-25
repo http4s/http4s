@@ -68,6 +68,7 @@ This release is fully backward compatible with 0.21.4.
 * json4s-3.6.9
 * log4cats-1.1.1
 * okhttp-4.7.2
+* scalafix-0.9.17
 * scalatags-0.9.1
 * tomcat-9.0.36
 
@@ -95,14 +96,10 @@ This release is fully backward compatible with 0.21.3.
 ## Depedency updates
 
 * fs2-2.3.0
-* json4s-3.6.8
-* log4cats-1.1.1
-* metrics-4.1.8
-* okhttp-4.6.0
+* okhttp-4.5.0
 * scalafix-0.9.12
-* scalatags-0.9.1
 * scala-xml-1.3.0
-* specs2-4.9.4
+* specs2-4.9.3
 
 # v0.20.23 (2020-04-28)
 
@@ -125,7 +122,6 @@ This incompatibility will be corrected in 0.20.23.
 ## Bugfixes
 
 * [#3326](https://github.com/http4s/http4s/pull/3326): In `WebjarService`, do not use OS-specific directory separators
-* [#3331](https://github.com/http4s/http4s/pull/3326): In `FileService`, serve index.html if request points to directory
 * [#3331](https://github.com/http4s/http4s/pull/3326): In `FileService`, serve index.html if request points to directory
 
 ## Enhancements
