@@ -17,6 +17,7 @@ import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.Http4sParser
 import org.http4s.util._
 import scala.util.hashing.MurmurHash3
+import java.{util => ju}
 
 class ContentCoding private (val coding: String, override val qValue: QValue = QValue.One)
     extends HasQValue
@@ -114,7 +115,8 @@ object ContentCoding {
   }
 
   implicit val http4sOrderForContentCoding: Order[ContentCoding] =
-    Order.by(c => (c.coding.toLowerCase, c.qValue))
+    Order.by(c => (c.coding.toLowerCase(ju.Locale.ENGLISH), c.qValue))
+
   implicit val http4sShowForContentCoding: Show[ContentCoding] =
     Show.fromToString
   implicit val http4sHttpCodecForContentCoding: HttpCodec[ContentCoding] =

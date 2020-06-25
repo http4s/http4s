@@ -40,7 +40,9 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     val hostnameVerifier: Option[HostnameVerifier],
     val sslSocketFactory: Option[SSLSocketFactory],
     val blocker: Blocker
-)(implicit protected val F: Async[F], cs: ContextShift[F])
+)(implicit
+    protected val F: Async[F],
+    cs: ContextShift[F])
     extends BackendBuilder[F, Client[F]] {
   private def copy(
       connectTimeout: Duration = connectTimeout,

@@ -85,7 +85,6 @@ object MetricsOps {
     *   intercalateValue = "_"
     * )
     *
-    *
     * Chris Davenport notes the following on performance considerations of exclude's function value:
     *
     * > It's worth noting that this runs on every segment of a path. So note that if an intermediate Throwables with
@@ -124,7 +123,7 @@ object MetricsOps {
   }
 }
 
-/** Describes the type of abnormal termination*/
+/** Describes the type of abnormal termination */
 sealed trait TerminationType
 
 object TerminationType {

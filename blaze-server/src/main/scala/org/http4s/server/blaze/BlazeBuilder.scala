@@ -65,7 +65,9 @@ class BlazeBuilder[F[_]](
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+)(implicit
+    protected val F: ConcurrentEffect[F],
+    timer: Timer[F])
     extends ServerBuilder[F] {
   type Self = BlazeBuilder[F]
 

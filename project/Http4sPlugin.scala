@@ -228,6 +228,7 @@ object Http4sPlugin extends AutoPlugin {
     val prometheusClient = "0.9.0"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.14.3"
+    val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.1"
     val scalaXml = "1.3.0"
     val servlet = "3.1.0"

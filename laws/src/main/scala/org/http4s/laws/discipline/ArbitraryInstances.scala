@@ -266,7 +266,7 @@ private[http4s] trait ArbitraryInstances {
     }
 
   implicit val http4sTestingCogenForContentCoding: Cogen[ContentCoding] =
-    Cogen[String].contramap(_.coding)
+    Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
 
   // MediaRange exepects the quoted pair without quotes
   val http4sGenUnquotedPair = genQuotedPair.map { c =>
@@ -756,10 +756,9 @@ private[http4s] trait ArbitraryInstances {
       var bytes: Vector[Byte] = null
       val readBytes = IO(bytes)
       F.runAsync(stream.compile.toVector) {
-          case Right(bs) => IO { bytes = bs }
-          case Left(t) => IO.raiseError(t)
-        }
-        .toIO *> readBytes
+        case Right(bs) => IO { bytes = bs }
+        case Left(t) => IO.raiseError(t)
+      }.toIO *> readBytes
     }
 
   implicit def http4sTestingArbitraryForEntity[F[_]]: Arbitrary[Entity[F]] =

@@ -97,7 +97,9 @@ class BlazeServerBuilder[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     val channelOptions: ChannelOptions
-)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+)(implicit
+    protected val F: ConcurrentEffect[F],
+    timer: Timer[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
   type Self = BlazeServerBuilder[F]
@@ -180,7 +182,8 @@ class BlazeServerBuilder[F[_]](
     copy(sslConfig = new ContextWithClientAuth[F](sslContext, clientAuth))
 
   /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters` */
+    * default `SSLParameters`
+    */
   def withSslContext(sslContext: SSLContext): Self =
     copy(sslConfig = new ContextOnly[F](sslContext))
 

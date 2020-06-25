@@ -171,7 +171,8 @@ trait QueryOps {
   private def _withQueryParam(
       name: QueryParameterKey,
       values: collection.Seq[QueryParameterValue]): Self = {
-    val baseQuery = query.toVector.filter(_._1 != name.value)
+    val q = if (query == Query.blank) Query.empty else query
+    val baseQuery = q.toVector.filter(_._1 != name.value)
     val vec =
       if (values.isEmpty) baseQuery :+ (name.value -> None)
       else

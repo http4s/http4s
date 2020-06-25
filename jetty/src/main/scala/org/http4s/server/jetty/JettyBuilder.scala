@@ -129,12 +129,14 @@ sealed class JettyBuilder[F[_]] private (
     copy(sslConfig = new ContextWithClientAuth(sslContext, clientAuth))
 
   /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters` */
+    * default `SSLParameters`
+    */
   def withSslContext(sslContext: SSLContext): Self =
     copy(sslConfig = new ContextOnly(sslContext))
 
   /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters` */
+    * default `SSLParameters`
+    */
   def withSslContextAndParameters(sslContext: SSLContext, sslParameters: SSLParameters): Self =
     copy(sslConfig = new ContextWithParameters(sslContext, sslParameters))
 
@@ -193,7 +195,8 @@ sealed class JettyBuilder[F[_]] private (
     copy(asyncTimeout = asyncTimeout)
 
   /** Sets the graceful shutdown timeout for Jetty.  Closing the resource
-    * will wait this long before a forcible stop. */
+    * will wait this long before a forcible stop.
+    */
   def withShutdownTimeout(shutdownTimeout: Duration): Self =
     copy(shutdownTimeout = shutdownTimeout)
 
@@ -204,7 +207,8 @@ sealed class JettyBuilder[F[_]] private (
     copy(serviceErrorHandler = serviceErrorHandler)
 
   /** Enables HTTP/2 connection upgrade over plain text (no TLS).
-    * See https://webtide.com/introduction-to-http2-in-jetty */
+    * See https://webtide.com/introduction-to-http2-in-jetty
+    */
   def withHttp2c: Self =
     copy(supportHttp2 = true)
 

@@ -22,16 +22,15 @@ class BlockingHttp4sServlet[F[_]](
       servletRequest: HttpServletRequest,
       servletResponse: HttpServletResponse): Unit =
     F.suspend {
-        val bodyWriter = servletIo.initWriter(servletResponse)
+      val bodyWriter = servletIo.initWriter(servletResponse)
 
-        val render = toRequest(servletRequest).fold(
-          onParseFailure(_, servletResponse, bodyWriter),
-          handleRequest(_, servletResponse, bodyWriter)
-        )
+      val render = toRequest(servletRequest).fold(
+        onParseFailure(_, servletResponse, bodyWriter),
+        handleRequest(_, servletResponse, bodyWriter)
+      )
 
-        render
-      }
-      .handleErrorWith(errorHandler(servletResponse))
+      render
+    }.handleErrorWith(errorHandler(servletResponse))
       .toIO
       .unsafeRunSync()
 

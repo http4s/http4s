@@ -129,10 +129,9 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
       Try {
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
       }.recover {
-          case ex: Throwable =>
-            ex.getMessage
-        }
-        .toOption
+        case ex: Throwable =>
+          ex.getMessage
+      }.toOption
         .getOrElse("")
     }
 
@@ -164,10 +163,9 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
       Try {
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
       }.recover {
-          case ex: Throwable =>
-            ex.getMessage
-        }
-        .toOption
+        case ex: Throwable =>
+          ex.getMessage
+      }.toOption
         .getOrElse("")
     }
 

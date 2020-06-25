@@ -58,8 +58,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
     }
 
     "write JSON according to explicit printer" in {
-      writeToString(json)(
-        jsonEncoderWithPrettyParams(PrettyParams.spaces2)) must_== ("""{
+      writeToString(json)(jsonEncoderWithPrettyParams(PrettyParams.spaces2)) must_== ("""{
                                                                                         |  "test" : "ArgonautSupport"
                                                                                         |}""".stripMargin)
     }
