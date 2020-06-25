@@ -7,8 +7,8 @@ scalacOptions := Seq(
 libraryDependencies ++= List(
   "com.eed3si9n" %% "treehugger" % "0.4.4",
   "io.circe" %% "circe-generic" % "0.13.0",
-  "org.http4s" %% "http4s-blaze-client" % "0.21.4",
-  "org.http4s" %% "http4s-circe" % "0.21.4",
+  "org.http4s" %% "http4s-blaze-client" % "0.21.5",
+  "org.http4s" %% "http4s-circe" % "0.21.5",
 )
 
 // Hack around a binary conflict in scalameta's dependency on
