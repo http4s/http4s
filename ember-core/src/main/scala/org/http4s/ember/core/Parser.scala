@@ -222,7 +222,8 @@ private[ember] object Parser {
         isChunked =
           transferEncoding
             .exists(_.values.exists(_ === TransferCoding.chunked))
-        _ <- logger.trace(s"Content Status -  Content-Length: $contentLength - TransferEncoding $transferEncoding -  Chunked: $isChunked")
+        _ <- logger.trace(
+          s"Content Status -  Content-Length: $contentLength - TransferEncoding $transferEncoding -  Chunked: $isChunked")
 
         body =
           if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
