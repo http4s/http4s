@@ -127,7 +127,7 @@ private[ember] object Parser {
         isChunked =
           headers
             .get(org.http4s.headers.`Transfer-Encoding`)
-            .exists(_.value.toList.contains(TransferCoding.chunked))
+            .exists(_.values.exists(_ === TransferCoding.chunked))
 
         body =
           if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
@@ -209,18 +209,25 @@ private[ember] object Parser {
               EmberException.ParseError("Invalid Empty Init Line")),
           Applicative[F].pure(_)
         )
+        _ <- logger.trace(s"HeadersSection - ${headersBV.decodeAscii}")
         headers <- generateHeaders(headersBV)(Headers.empty)(logger)
+        _ <- logger.trace(show"Headers: $headers")
+
         (httpV, status) <- bvToResponseTopLine[F](methodHttpUri)
 
-        contentLength = headers.get(org.http4s.headers.`Content-Length`).map(_.length).getOrElse(0L)
+        _ <- logger.trace(s"HttpVersion: $httpV - Status: $status")
+
+        contentLength = headers.get(org.http4s.headers.`Content-Length`).map(_.length)
+        transferEncoding = headers.get(org.http4s.headers.`Transfer-Encoding`)
         isChunked =
-          headers
-            .get(org.http4s.headers.`Transfer-Encoding`)
-            .exists(_.value.toList.contains(TransferCoding.chunked))
+          transferEncoding
+            .exists(_.values.exists(_ === TransferCoding.chunked))
+        _ <- logger.trace(s"Content Status -  Content-Length: $contentLength - TransferEncoding $transferEncoding -  Chunked: $isChunked")
 
         body =
           if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
-          else s.take(contentLength)
+          else s.take(contentLength.getOrElse(0))
+
       } yield org.http4s.Response[F](
         status = status,
         httpVersion = httpV,
