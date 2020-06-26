@@ -26,7 +26,7 @@ class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
     *   <name>gvolpe</name>
     *   <age>30</age>
     * </person>
-    * */
+    */
   object Person {
     def fromXml(elem: Elem): Person = {
       val name = (elem \\ "name").text

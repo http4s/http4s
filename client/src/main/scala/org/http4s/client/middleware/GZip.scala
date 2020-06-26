@@ -10,7 +10,9 @@ package middleware
 
 import cats.effect.Bracket
 import com.github.ghik.silencer.silent
-import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`, `Content-Length`}
+import fs2.{Pipe, Stream}
+import java.io.EOFException
+import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 
 /**
   * Client middleware for enabling gzip.
@@ -26,7 +28,7 @@ object GZip {
       val responseResource = client.run(reqWithEncoding)
 
       responseResource.map { actualResponse =>
-        decompress(bufferSize, actualResponse)
+        decompress(bufferSize, canEntityBodyBeEmpty(req.method), actualResponse)
       }
     }
 
@@ -39,25 +41,38 @@ object GZip {
           req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
     }
 
+  private def canEntityBodyBeEmpty(requestMethod: Method): Boolean =
+    requestMethod == Method.HEAD
+
   @silent("deprecated")
-  private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
-      F: Bracket[F, Throwable]): Response[F] =
+  private def decompress[F[_]](
+      bufferSize: Int,
+      entityBodyCanBeEmpty: Boolean,
+      response: Response[F])(implicit F: Bracket[F, Throwable]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
-        response
-          .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(fs2.compress.gunzip(bufferSize)))
+        val gunzip: Pipe[F, Byte, Byte] =
+          _.through(fs2.compress.gunzip(bufferSize))
+
+        response.withBodyStream(response.body.through(decompressWith(gunzip, entityBodyCanBeEmpty)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
-        response
-          .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(fs2.compress.deflate(bufferSize = bufferSize)))
+        val deflate: Pipe[F, Byte, Byte] = fs2.compress.deflate(bufferSize)
+
+        response.withBodyStream(
+          response.body.through(decompressWith(deflate, entityBodyCanBeEmpty)))
 
       case _ =>
         response
     }
 
-  private def nonCompressionHeader(header: Header): Boolean =
-    header.isNot(`Content-Encoding`) && header.isNot(`Content-Length`)
+  private def decompressWith[F[_]](
+      decompressor: Pipe[F, Byte, Byte],
+      entityBodyCanBeEmpty: Boolean)(implicit F: Bracket[F, Throwable]): Pipe[F, Byte, Byte] =
+    _.through(decompressor)
+      .handleErrorWith {
+        case _: EOFException if entityBodyCanBeEmpty => Stream.empty
+        case error => Stream.raiseError(error)
+      }
 }

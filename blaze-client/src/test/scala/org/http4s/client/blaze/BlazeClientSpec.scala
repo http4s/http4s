@@ -313,7 +313,8 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             .use { client =>
               val req = Request[IO](uri = uri)
               client
-                .fetch(req) { _ =>
+                .run(req)
+                .use { _ =>
                   IO.never
                 }
                 .timeout(250.millis)

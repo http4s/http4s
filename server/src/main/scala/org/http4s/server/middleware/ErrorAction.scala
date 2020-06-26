@@ -7,7 +7,7 @@
 package org.http4s.server
 package middleware
 
-import cats.data.Kleisli
+import cats.data.{Kleisli, OptionT}
 import cats._
 import cats.implicits._
 import org.http4s._
@@ -43,4 +43,40 @@ object ErrorAction {
           )
       }
     )
+
+  object httpApp {
+    def apply[F[_]: ApplicativeError[*[_], Throwable]](
+        httpApp: HttpApp[F],
+        f: (Request[F], Throwable) => F[Unit]): HttpApp[F] =
+      ErrorAction(httpApp, f)
+
+    def log[F[_]: ApplicativeError[*[_], Throwable], G[_], B](
+        httpApp: HttpApp[F],
+        messageFailureLogAction: (Throwable, => String) => F[Unit],
+        serviceErrorLogAction: (Throwable, => String) => F[Unit]
+    ): HttpApp[F] =
+      ErrorAction.log(httpApp, messageFailureLogAction, serviceErrorLogAction)
+  }
+
+  object httpRoutes {
+    def apply[F[_]: MonadError[*[_], Throwable]](
+        httpRoutes: HttpRoutes[F],
+        f: (Request[F], Throwable) => F[Unit]): HttpRoutes[F] =
+      ErrorAction(httpRoutes, liftFToOptionT(f))
+
+    def log[F[_]: MonadError[*[_], Throwable]](
+        httpRoutes: HttpRoutes[F],
+        messageFailureLogAction: (Throwable, => String) => F[Unit],
+        serviceErrorLogAction: (Throwable, => String) => F[Unit]
+    ): HttpRoutes[F] =
+      ErrorAction.log(
+        httpRoutes,
+        liftFToOptionT(messageFailureLogAction),
+        liftFToOptionT(serviceErrorLogAction)
+      )
+
+    private def liftFToOptionT[F[_]: Functor, A, B, C](
+        f: Function2[A, B, F[C]]): Function2[A, B, OptionT[F, C]] =
+      (a: A, b: B) => OptionT.liftF(f(a, b))
+  }
 }

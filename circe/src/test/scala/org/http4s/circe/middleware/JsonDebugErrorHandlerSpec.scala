@@ -6,12 +6,13 @@
 
 package org.http4s.circe.middleware
 
-import org.specs2.mutable.Specification
 import cats.data.Kleisli
 import cats.effect.IO
 import org.http4s._
+import org.http4s.testing.SilenceOutputStream
 
-class JsonDebugErrorHandlerSpec extends Specification {
+class JsonDebugErrorHandlerSpec extends Http4sSpec with SilenceOutputStream {
+
   "JsonDebugErrorHandler" should {
     "handle an unknown error" in {
       val service: Kleisli[IO, Request[IO], Response[IO]] =

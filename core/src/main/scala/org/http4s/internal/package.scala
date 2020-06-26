@@ -16,12 +16,16 @@ import java.util.concurrent.{
 import cats.effect.implicits._
 import cats.effect.{Async, Concurrent, ConcurrentEffect, ContextShift, Effect, IO}
 import cats.implicits._
+import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
+import java.nio.{ByteBuffer, CharBuffer}
 import org.http4s.util.execution.direct
 import org.log4s.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NoStackTrace
 import scala.util.{Failure, Success}
+import java.nio.charset.MalformedInputException
+import java.nio.charset.UnmappableCharacterException
 
 package object internal {
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
@@ -42,7 +46,7 @@ package object internal {
       F: ConcurrentEffect[F]): Unit =
     F.runAsync(F.start(F.delay(f)).flatMap(_.join))(loggingAsyncCallback(logger)).unsafeRunSync()
 
-  /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
+  /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
   private val Digits: Array[Char] =
     Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
 
@@ -158,17 +162,16 @@ package object internal {
       CS: ContextShift[F]): F[A] =
     fcs.flatMap { cs =>
       F.async[A] { cb =>
-          cs.handle[Unit] { (result, err) =>
-            err match {
-              case null => cb(Right(result))
-              case _: CancellationException => ()
-              case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
-              case ex => cb(Left(ex))
-            }
+        cs.handle[Unit] { (result, err) =>
+          err match {
+            case null => cb(Right(result))
+            case _: CancellationException => ()
+            case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
+            case ex => cb(Left(ex))
           }
-          ()
         }
-        .guarantee(CS.shift)
+        ()
+      }.guarantee(CS.shift)
     }
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
@@ -176,10 +179,9 @@ package object internal {
   )(implicit F: Effect[F]): CompletionStage[A] = {
     val cf = new CompletableFuture[A]()
     F.runAsync(fa) {
-        case Right(a) => IO { cf.complete(a); () }
-        case Left(e) => IO { cf.completeExceptionally(e); () }
-      }
-      .unsafeRunSync()
+      case Right(a) => IO { cf.complete(a); () }
+      case Left(e) => IO { cf.completeExceptionally(e); () }
+    }.unsafeRunSync()
     cf
   }
 
@@ -203,4 +205,73 @@ package object internal {
     }
     h
   }
+
+  def decode[F[_]: RaiseThrowable](charset: Charset): Pipe[F, Byte, String] = { in =>
+    val decoder = charset.nioCharset.newDecoder
+    val byteBufferSize = 16
+    val byteBuffer = ByteBuffer.allocate(byteBufferSize)
+    val charBuffer =
+      CharBuffer.allocate(math.ceil(byteBufferSize.toDouble * decoder.averageCharsPerByte).toInt)
+
+    def skipByteOrderMark(chunk: Chunk[Byte]): Chunk[Byte] =
+      if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
+        chunk.drop(3)
+      else chunk
+
+    def out = {
+      val s = charBuffer.flip().toString()
+      charBuffer.clear()
+      if (s.isEmpty) Pull.done else Pull.output1(s)
+    }
+
+    Pull
+      .loop[F, String, Stream[F, Byte]] { stream =>
+        stream.pull.unconsN(byteBuffer.remaining(), allowFewer = true).flatMap {
+          case None =>
+            byteBuffer.flip()
+            val result = decoder.decode(byteBuffer, charBuffer, true)
+            byteBuffer.compact()
+            result match {
+              case _ if result.isUnderflow =>
+                def flushLoop: Pull[F, String, Unit] =
+                  decoder.flush(charBuffer) match {
+                    case result if result.isUnderflow =>
+                      out
+                    case result if result.isOverflow =>
+                      out >> flushLoop
+                  }
+                flushLoop.as(None)
+              case _ if result.isOverflow =>
+                out.as(Some(Stream.empty))
+              case _ if result.isMalformed =>
+                Pull.raiseError(new MalformedInputException(result.length()))
+              case _ if result.isUnmappable =>
+                Pull.raiseError(new UnmappableCharacterException(result.length()))
+            }
+          case Some((chunk, stream)) =>
+            val chunkWithoutBom = skipByteOrderMark(chunk)
+            byteBuffer.put(chunkWithoutBom.toArray)
+            byteBuffer.flip()
+            val result = decoder.decode(byteBuffer, charBuffer, false)
+            byteBuffer.compact()
+            result match {
+              case _ if result.isUnderflow || result.isOverflow =>
+                out.as(Some(stream))
+              case _ if result.isMalformed =>
+                Pull.raiseError(new MalformedInputException(result.length()))
+              case _ if result.isUnmappable =>
+                Pull.raiseError(new UnmappableCharacterException(result.length()))
+            }
+        }
+      }(in)
+      .void
+      .stream
+  }
+
+  private val utf8Bom: Chunk[Byte] = Chunk(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
+
+  private[http4s] def skipUtf8ByteOrderMark(chunk: Chunk[Byte]): Chunk[Byte] =
+    if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
+      chunk.drop(3)
+    else chunk
 }

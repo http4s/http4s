@@ -84,7 +84,6 @@ object MultipartParser {
     *
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
-    *
     */
   private def splitCompleteMatch[F[_]: Sync](
       middleChunked: Boolean,
@@ -113,7 +112,6 @@ object MultipartParser {
     * DO NOT USE. Was made private[http4s] because
     * Jose messed up hard like 5 patches ago and now it breaks bincompat to
     * remove.
-    *
     */
   private def splitPartialMatch[F[_]: Sync](
       middleChunked: Boolean,
@@ -143,7 +141,6 @@ object MultipartParser {
     * be the byte sequence. As such, carry is re-emitted if it was an
     * incomplete match, or ignored (as such excluding the sequence
     * from the subsequent split stream).
-    *
     */
   private[http4s] def splitOnChunk[F[_]: Sync](
       values: Array[Byte],
@@ -210,7 +207,6 @@ object MultipartParser {
   }
 
   /**
-    *
     * @param boundary
     * @param s
     * @param limit
@@ -444,7 +440,6 @@ object MultipartParser {
     *
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
-    *
     */
   private def splitCompleteLimited[F[_]: Sync](
       state: Int,
@@ -483,7 +478,6 @@ object MultipartParser {
     *
     * Else, if the whole block is a partial match,
     * add it to the carry over
-    *
     */
   private[http4s] def splitPartialLimited[F[_]: Sync](
       state: Int,
@@ -627,7 +621,6 @@ object MultipartParser {
   }
 
   /**
-    *
     * @param boundary
     * @param s
     * @param limit

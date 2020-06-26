@@ -76,9 +76,13 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0-alpha0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0-alpha0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0-alpha0"),
     // Broke binary compatibility with 2.10.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
@@ -87,6 +91,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.0"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
+    // Dropped joda-time support, wait for next breaking release
+    dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -207,35 +213,36 @@ object Http4sPlugin extends AutoPlugin {
     val argonaut = "6.2.5"
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.12"
-    val boopickle = "1.3.1"
+    val boopickle = "1.3.3"
     val cats = "2.1.1"
     val catsEffect = "2.1.3"
     val catsEffectTesting = "0.4.0"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.0"
-    val dropwizardMetrics = "4.1.8"
-    val fs2 = "2.3.0"
+    val dropwizardMetrics = "4.1.9"
+    val fs2 = "2.4.2"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.28.v20200408"
-    val json4s = "3.6.8"
+    val jetty = "9.4.30.v20200611"
+    val json4s = "3.6.9"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
     val log4s = "1.8.2"
     val mockito = "3.3.3"
-    val okhttp = "4.6.0"
+    val okhttp = "4.7.2"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.8.1"
     val prometheusClient = "0.8.1"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.14.3"
+    val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.1"
     val scalaXml = "1.3.0"
     val servlet = "3.1.0"
-    val specs2 = "4.9.4"
-    val tomcat = "9.0.35"
+    val specs2 = "4.10.0"
+    val tomcat = "9.0.36"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"

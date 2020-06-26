@@ -31,6 +31,9 @@ object DefaultHead {
       }
     }
 
+  def httpRoutes[F[_]: Concurrent](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(httpRoutes)
+
   private[this] def drainBody[G[_]: Concurrent](response: Response[G]): Response[G] =
     response.copy(body = response.body.interruptWhen[G](Stream(true)).drain)
 }

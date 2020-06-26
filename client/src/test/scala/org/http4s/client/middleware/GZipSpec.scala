@@ -16,6 +16,8 @@ class GZipSpec extends Http4sSpec {
   val service = server.middleware.GZip(HttpApp[IO] {
     case GET -> Root / "gziptest" =>
       Ok("Dummy response")
+    case HEAD -> Root / "gziptest" =>
+      Ok()
   })
 
   "Client Gzip" should {
@@ -24,12 +26,24 @@ class GZipSpec extends Http4sSpec {
     "return data correctly" in {
       val body = gzipClient.get(Uri.unsafeFromString("/gziptest")) { response =>
         response.status must_== Status.Ok
-        response.headers.get(`Content-Encoding`) must beNone
+        response.headers.get(`Content-Encoding`) must beSome(`Content-Encoding`(ContentCoding.gzip))
 
         response.as[String]
       }
 
       body.unsafeRunSync() must_== "Dummy response"
+    }
+
+    "handle correctly the response of a HEAD request" in {
+      val request = Request[IO](method = Method.HEAD, uri = Uri.unsafeFromString("/gziptest"))
+      val response = gzipClient.run(request).use[IO, String] { response =>
+        response.status must_== Status.Ok
+        response.headers.get(`Content-Encoding`) must beSome(`Content-Encoding`(ContentCoding.gzip))
+
+        response.as[String]
+      }
+
+      response.unsafeRunSync() must_== ""
     }
   }
 }

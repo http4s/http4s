@@ -100,7 +100,7 @@ object Caching {
     *
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
-   **/
+    */
   def publicCacheResponse[G[_]](lifetime: Duration): PartiallyAppliedCache[G] =
     cacheResponse(lifetime, Either.left(CacheDirective.public))
 
@@ -126,7 +126,7 @@ object Caching {
     *
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
-   **/
+    */
   def privateCacheResponse[G[_]](
       lifetime: Duration,
       fieldNames: List[CaseInsensitiveString] = Nil
@@ -168,7 +168,7 @@ object Caching {
     *
     *  Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
-   **/
+    */
   def cacheResponse[G[_]](
       lifetime: Duration,
       isPublic: Either[CacheDirective.public.type, CacheDirective.`private`]

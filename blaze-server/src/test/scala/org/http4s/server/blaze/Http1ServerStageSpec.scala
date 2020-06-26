@@ -26,6 +26,7 @@ import org.specs2.specification.core.Fragment
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import _root_.io.chrisdavenport.vault._
+import org.http4s.testing.ErrorReporting._
 
 class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   sequential
@@ -64,7 +65,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       maxReqLine,
       maxHeaders,
       10 * 1024,
-      DefaultServiceErrorHandler,
+      silentErrorHandler,
       30.seconds,
       30.seconds,
       tickWheel
