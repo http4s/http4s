@@ -161,4 +161,31 @@ package object server {
                 Nil
             )))
     }
+
+  def serviceErrorHandler[F[_], G[_]](
+      messageFailureLogAction: (Throwable, => String) => F[Unit],
+      serviceErrorLogAction: (Throwable, => String) => F[Unit]
+  )(implicit F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
+    req => {
+      case mf: MessageFailure =>
+        val msg: String =
+          s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+            .getOrElse("<unknown>")}"""
+        messageFailureLogAction(mf, msg) >>
+          mf.toHttpResponse[G](req.httpVersion).pure[F]
+      case NonFatal(t) =>
+        val msg: String =
+          s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+            .getOrElse("<unknown>")}"""
+        serviceErrorLogAction(t, msg) >>
+          F.pure(
+            Response(
+              Status.InternalServerError,
+              req.httpVersion,
+              Headers(
+                Connection("close".ci) ::
+                  `Content-Length`.zero ::
+                  Nil
+              )))
+    }
 }
