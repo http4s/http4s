@@ -140,27 +140,17 @@ package object server {
     inDefaultServiceErrorHandler[F, F]
 
   def inDefaultServiceErrorHandler[F[_], G[_]](implicit
-      F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
-    req => {
-      case mf: MessageFailure =>
-        messageFailureLogger.debug(mf)(
-          s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-            .getOrElse("<unknown>")}""")
-        mf.toHttpResponse[G](req.httpVersion).pure[F]
-      case NonFatal(t) =>
-        serviceErrorLogger.error(t)(
-          s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-            .getOrElse("<unknown>")}""")
-        F.pure(
-          Response(
-            Status.InternalServerError,
-            req.httpVersion,
-            Headers(
-              Connection("close".ci) ::
-                `Content-Length`.zero ::
-                Nil
-            )))
+      F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] = {
+    def messageFailureLogAction: (Throwable, => String) => F[Unit] = { (t, msg) =>
+      Monad[F].pure(messageFailureLogger.debug(t)(msg))
     }
+
+    def serviceErrorLogAction: (Throwable, => String) => F[Unit] = { (t, msg) =>
+      Monad[F].pure(serviceErrorLogger.error(t)(msg))
+    }
+
+    serviceErrorHandler[F, G](messageFailureLogAction, serviceErrorLogAction)
+  }
 
   def serviceErrorHandler[F[_], G[_]](
       messageFailureLogAction: (Throwable, => String) => F[Unit],
