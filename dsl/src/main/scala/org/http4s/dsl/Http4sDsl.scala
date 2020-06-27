@@ -10,7 +10,7 @@ import cats.arrow.FunctionK
 import org.http4s.Method
 import org.http4s.dsl.impl._
 
-trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, G] {
+trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Responses[F, G] {
   val Path: impl.Path.type = impl.Path
   val Root: impl.Root.type = impl.Root
   val / : impl./.type = impl./
