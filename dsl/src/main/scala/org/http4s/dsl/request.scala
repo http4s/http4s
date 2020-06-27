@@ -29,10 +29,10 @@ trait request extends Methods with Statuses with Auth {
   /**
     * Alias for `->`.
     *
-  * Note: Due to infix operation precedence, `→` has a lower priority than `/`. So you have to use parentheses in
+    * Note: Due to infix operation precedence, `→` has a lower priority than `/`. So you have to use parentheses in
     * pattern matching when using this operator.
     *
-  * For example:
+    * For example:
     * {{{
     *   (request.method, Path(request.path)) match {
     *     case Method.GET → (Root / "test.json") => ...
