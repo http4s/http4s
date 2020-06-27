@@ -32,7 +32,7 @@ object FileService {
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param blockingExecutionContext `ExecutionContext` to use for blocking I/O
+    * @param blocker to use for blocking I/O
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](
@@ -60,31 +60,29 @@ object FileService {
     object BadTraversal extends Exception with NoStackTrace
     Try(Paths.get(config.systemPath).toRealPath()) match {
       case Success(rootPath) =>
-        TranslateUri(config.pathPrefix)(Kleisli {
-          case request =>
-            def resolvedPath: OptionT[F, Path] =
-              request.pathInfo.split("/") match {
-                case Array() => OptionT.some(rootPath)
-                case Array(head, segments @ _*) if head.isEmpty =>
-                  OptionT
-                    .liftF(F.catchNonFatal {
-                      segments.foldLeft(rootPath) {
-                        case (_, "" | "." | "..") => throw BadTraversal
-                        case (path, segment) =>
-                          path.resolve(Uri.decode(segment, plusIsSpace = true))
-                      }
-                    })
-                case _ => OptionT.none
-              }
-            resolvedPath
-              .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
-              .collect { case path if path.startsWith(rootPath) => path.toFile }
-              .flatMap(f => config.pathCollector(f, config, request))
-              .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-              .recoverWith {
-                case _: NoSuchFileException => OptionT.none
-                case BadTraversal => OptionT.some(Response(Status.BadRequest))
-              }
+        TranslateUri(config.pathPrefix)(Kleisli { request =>
+          def resolvedPath: OptionT[F, Path] = {
+            val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
+            if (request.pathInfo.isEmpty) OptionT.some(rootPath)
+            else
+              OptionT
+                .liftF(F.catchNonFatal {
+                  segments.foldLeft(rootPath) {
+                    case (_, "" | "." | "..") => throw BadTraversal
+                    case (path, segment) =>
+                      path.resolve(segment)
+                  }
+                })
+          }
+          resolvedPath
+            .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
+            .collect { case path if path.startsWith(rootPath) => path.toFile }
+            .flatMap(f => config.pathCollector(f, config, request))
+            .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+            .recoverWith {
+              case _: NoSuchFileException => OptionT.none
+              case BadTraversal => OptionT.some(Response(Status.BadRequest))
+            }
         })
 
       case Failure(_: NoSuchFileException) =>

@@ -15,6 +15,7 @@ import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
@@ -52,7 +53,7 @@ class AuthenticationSpec extends Http4sSpec {
 
   "Failure to authenticate" should {
     "not run unauthorized routes" in {
-      val req = Request[IO](uri = Uri(path = "/launch-the-nukes"))
+      val req = Request[IO](uri = uri"/launch-the-nukes")
       var isNuked = false
       val authedValidateNukeService = basicAuthMiddleware(nukeService {
         isNuked = true
@@ -67,7 +68,7 @@ class AuthenticationSpec extends Http4sSpec {
     val basicAuthedService = basicAuthMiddleware(service)
 
     "Respond to a request without authentication with 401" in {
-      val req = Request[IO](uri = Uri(path = "/"))
+      val req = Request[IO](uri = uri"/")
       val res = basicAuthedService.orNotFound(req).unsafeRunSync
 
       res.status must_=== Unauthorized
@@ -77,7 +78,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with unknown username with 401" in {
       val req = Request[IO](
-        uri = Uri(path = "/"),
+        uri = uri"/",
         headers = Headers.of(Authorization(BasicCredentials("Wrong User", password))))
       val res = basicAuthedService.orNotFound(req).unsafeRunSync
 
@@ -88,7 +89,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with wrong password with 401" in {
       val req = Request[IO](
-        uri = Uri(path = "/"),
+        uri = uri"/",
         headers = Headers.of(Authorization(BasicCredentials(username, "Wrong Password"))))
       val res = basicAuthedService.orNotFound(req).unsafeRunSync
 
@@ -99,7 +100,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with correct credentials" in {
       val req = Request[IO](
-        uri = Uri(path = "/"),
+        uri = uri"/",
         headers = Headers.of(Authorization(BasicCredentials(username, password))))
       val res = basicAuthedService.orNotFound(req).unsafeRunSync
 
@@ -117,7 +118,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request without authentication with 401" in {
       val authedService = digestAuthMiddleware(service)
-      val req = Request[IO](uri = Uri(path = "/"))
+      val req = Request[IO](uri = uri"/")
       val res = authedService.orNotFound(req).unsafeRunSync
 
       res.status must_=== Unauthorized
@@ -135,7 +136,7 @@ class AuthenticationSpec extends Http4sSpec {
     // Send a request without authorization, receive challenge.
     def doDigestAuth1(digest: HttpApp[IO]) = {
       // Get auth data
-      val req = Request[IO](uri = Uri(path = "/"))
+      val req = Request[IO](uri = uri"/")
       val res = digest(req).unsafeRunSync
 
       res.status must_=== Unauthorized
@@ -168,9 +169,9 @@ class AuthenticationSpec extends Http4sSpec {
         "response" -> response,
         "method" -> method
       )
-      val header = Authorization(Credentials.AuthParams("Digest".ci, params))
+      val header = Authorization(Credentials.AuthParams(CIString("Digest"), params))
 
-      val req2 = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
+      val req2 = Request[IO](uri = uri"/", headers = Headers.of(header))
       val res2 = digest(req2).unsafeRunSync
 
       if (withReplay) {
@@ -270,8 +271,8 @@ class AuthenticationSpec extends Http4sSpec {
       val result = (0 to params.size).map { i =>
         val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
         val header = Authorization(
-          Credentials.AuthParams("Digest".ci, invalidParams.head, invalidParams.tail: _*))
-        val req = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
+          Credentials.AuthParams(CIString("Digest"), invalidParams.head, invalidParams.tail: _*))
+        val req = Request[IO](uri = uri"/", headers = Headers.of(header))
         val res = digestAuthService.orNotFound(req).unsafeRunSync
 
         res.status

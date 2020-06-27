@@ -35,10 +35,10 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{BlazeBackendBuilder, tickWheelResource}
+import org.http4s.internal.threads.threadFactory
 import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.blaze.BlazeServerBuilder._
-import org.http4s.util.threads.threadFactory
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -97,7 +97,9 @@ class BlazeServerBuilder[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     val channelOptions: ChannelOptions
-)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+)(implicit
+    protected val F: ConcurrentEffect[F],
+    timer: Timer[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
   type Self = BlazeServerBuilder[F]
@@ -180,7 +182,8 @@ class BlazeServerBuilder[F[_]](
     copy(sslConfig = new ContextWithClientAuth[F](sslContext, clientAuth))
 
   /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters` */
+    * default `SSLParameters`
+    */
   def withSslContext(sslContext: SSLContext): Self =
     copy(sslConfig = new ContextOnly[F](sslContext))
 

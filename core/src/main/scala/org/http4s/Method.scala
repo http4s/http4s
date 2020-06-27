@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.implicits._
-import cats.{Eq, Show}
+import cats.{Eq, Hash, Show}
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
 import scala.util.hashing.MurmurHash3
@@ -89,6 +89,7 @@ object Method {
   val ORDERPATCH: Method = idempotent("ORDERPATCH")
   val PATCH: Method = apply("PATCH")
   val POST: Method = apply("POST")
+  val PRI: Method = safe("PRI")
   val PROPFIND: Method = safe("PROPFIND")
   val PROPPATCH: Method = idempotent("PROPPATCH")
   val PUT: Method = idempotent("PUT")
@@ -129,6 +130,7 @@ object Method {
     ORDERPATCH,
     PATCH,
     POST,
+    PRI,
     PROPFIND,
     PROPPATCH,
     PUT,
@@ -146,6 +148,10 @@ object Method {
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap
 
-  implicit val http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
+  implicit val catsHashForHttp4sMethod: Hash[Method] = Hash.fromUniversalHashCode
+
+  @deprecated("Upgraded to hash. Kept for binary compatibility", "0.21.5")
+  def http4sEqForMethod: Eq[Method] = catsHashForHttp4sMethod
+
   implicit val http4sShowForMethod: Show[Method] = Show.fromToString
 }

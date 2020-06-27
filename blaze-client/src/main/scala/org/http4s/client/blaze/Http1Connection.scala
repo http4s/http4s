@@ -306,7 +306,8 @@ private final class Http1Connection[F[_]](
   ///////////////////////// Private helpers /////////////////////////
 
   /** Validates the request, attempting to fix it if possible,
-    * returning an Exception if invalid, None otherwise */
+    * returning an Exception if invalid, None otherwise
+    */
   @tailrec private def validateRequest(req: Request[F]): Either[Exception, Request[F]] = {
     val minor: Int = getHttpMinor(req)
 
@@ -328,7 +329,7 @@ private final class Http1Connection[F[_]](
         validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
       else
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
-    else if (req.uri.path == "") Right(req.withUri(req.uri.copy(path = "/")))
+    else if (req.uri.path == Uri.Path.empty) Right(req.withUri(req.uri.copy(path = Uri.Path.Root)))
     else Right(req) // All appears to be well
   }
 

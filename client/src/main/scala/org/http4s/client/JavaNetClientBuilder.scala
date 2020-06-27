@@ -40,7 +40,9 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     val hostnameVerifier: Option[HostnameVerifier],
     val sslSocketFactory: Option[SSLSocketFactory],
     val blocker: Blocker
-)(implicit protected val F: Async[F], cs: ContextShift[F])
+)(implicit
+    protected val F: Async[F],
+    cs: ContextShift[F])
     extends BackendBuilder[F, Client[F]] {
   private def copy(
       connectTimeout: Duration = connectTimeout,
@@ -109,7 +111,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
           _ <- F.delay(conn.setRequestMethod(req.method.renderString))
           _ <- F.delay(req.headers.foreach {
-            case Header(name, value) => conn.setRequestProperty(name.value, value)
+            case Header(name, value) => conn.setRequestProperty(name.toString, value)
           })
           _ <- F.delay(conn.setInstanceFollowRedirects(false))
           _ <- F.delay(conn.setDoInput(true))

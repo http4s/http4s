@@ -59,11 +59,10 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
     // Note: the servlet API gives us no undeprecated method to both set
     // a body and a status reason.  We sacrifice the status reason.
     F.delay {
-        servletResponse.setStatus(response.status.code)
-        for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
-          servletResponse.addHeader(header.name.toString, header.value)
-      }
-      .attempt
+      servletResponse.setStatus(response.status.code)
+      for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
+        servletResponse.addHeader(header.name.toString, header.value)
+    }.attempt
       .flatMap {
         case Right(()) => bodyWriter(response)
         case Left(t) =>
@@ -89,7 +88,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       headers = toHeaders(req),
       body = servletIo.reader(req),
       attributes = Vault.empty
-        .insert(Request.Keys.PathInfoCaret, req.getContextPath.length + req.getServletPath.length)
+        .insert(Request.Keys.PathInfoCaret, getPathInfoIndex(req, uri))
         .insert(
           Request.Keys.ConnectionInfo,
           Request.Connection(
@@ -127,6 +126,16 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
             .mapN(SecureSession.apply)
         )
     )
+
+  private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
+    val pathInfo =
+      Uri.Path
+        .fromString(req.getContextPath)
+        .concat(Uri.Path.fromString(req.getServletPath))
+    uri.path
+      .indexOf(pathInfo)
+      .getOrElse(-1)
+  }
 
   protected def toHeaders(req: HttpServletRequest): Headers = {
     val headers = for {

@@ -111,7 +111,7 @@ For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:
 
 ```scala mdoc:nest
-val routes = resourceService[IO](ResourceService.Config("/assets", blocker))
+val routes = resourceServiceBuilder[IO]("/assets", blocker).toRoutes
 ```
 
 For custom behaviour, `StaticFile.fromResource` can be used. In this example,
@@ -142,7 +142,7 @@ Then, mount the `WebjarService` like any other service:
 
 ```scala mdoc:silent
 import org.http4s.server.staticcontent.webjarService
-import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
+import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
 ```
 
 ```scala mdoc
@@ -150,12 +150,7 @@ import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
 
-val webjars: HttpRoutes[IO] = webjarService(
-  Config(
-    filter = isJsAsset,
-    blocker = blocker
-  )
-)
+val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO](blocker = blocker).withWebjarAssetFilter(isJsAsset).toRoutes
 ```
 
 ```scala mdoc:silent

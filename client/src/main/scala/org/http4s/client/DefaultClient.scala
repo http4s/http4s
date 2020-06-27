@@ -8,7 +8,7 @@ package org.http4s
 package client
 
 import cats.Applicative
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect.{Bracket, Resource}
 import cats.implicits._
 import fs2.Stream
@@ -39,29 +39,25 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * @return The result of applying f to the response to req
     */
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
-    req.flatMap(fetch(_)(f))
+    req.flatMap(run(_).use(f))
 
   /**
     * Returns this client as a [[Kleisli]].  All connections created by this
     * service are disposed on completion of callback task f.
     *
-    * This method effectively reverses the arguments to `fetch`, and is
+    * This method effectively reverses the arguments to `run` followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A] =
-    Kleisli(fetch(_)(f))
-
-  @deprecated("Use toKleisli", "0.18")
-  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A] =
-    toKleisli(f)
+    Kleisli(run(_).use(f))
 
   /**
     * Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
+    * This is intended for use in proxy servers.  `run`, `fetchAs`,
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
@@ -72,19 +68,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
           resp.withBodyStream(resp.body.onFinalizeWeak(release))
       }
     }
-
-  /**
-    * Returns this client as an [[HttpService]].  It is the
-    * responsibility of callers of this service to run the response
-    * body to dispose of the underlying HTTP connection.
-    *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
-    */
-  @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
-  def toHttpService: HttpService[F] =
-    toHttpApp.mapF(OptionT.liftF(_))
 
   def stream(req: Request[F]): Stream[F, Response[F]] =
     Stream.resource(run(req))
@@ -101,7 +84,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
-    fetch(r) {
+
+    run(r).use {
       case Successful(resp) =>
         d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
       case failedResponse =>
@@ -154,7 +138,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
-    fetch(r) {
+
+    run(r).use {
       case Successful(resp) =>
         d.decode(resp, strict = false).leftWiden[Throwable].rethrowT.map(_.some)
       case failedResponse =>
@@ -179,7 +164,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
-    fetch(r) { resp =>
+
+    run(r).use { resp =>
       d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
     }
   }
@@ -194,7 +180,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
 
   /** Submits a request and returns the response status */
   def status(req: Request[F]): F[Status] =
-    fetch(req)(resp => F.pure(resp.status))
+    run(req).use(resp => F.pure(resp.status))
 
   /** Submits a request and returns the response status */
   def status(req: F[Request[F]]): F[Status] =
@@ -209,12 +195,14 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     F.fromEither(Uri.fromString(s)).flatMap(statusFromUri)
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: Request[F]): F[Boolean] =
     status(req).map(_.isSuccess)
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: F[Request[F]]): F[Boolean] =
     req.flatMap(successful)
 
@@ -227,7 +215,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * @return The result of applying f to the response to req
     */
   def get[A](uri: Uri)(f: Response[F] => F[A]): F[A] =
-    fetch(Request[F](Method.GET, uri))(f)
+    run(Request[F](Method.GET, uri)).use(f)
 
   /**
     * Submits a request and decodes the response on success.  On failure, the

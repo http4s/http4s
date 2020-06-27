@@ -11,8 +11,8 @@ import cats.implicits._
 import cats.effect._
 import cats.data._
 import org.http4s._
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.{Date => HDate, _}
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 /**
@@ -100,7 +100,7 @@ object Caching {
     *
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
-   **/
+    */
   def publicCacheResponse[G[_]](lifetime: Duration): PartiallyAppliedCache[G] =
     cacheResponse(lifetime, Either.left(CacheDirective.public))
 
@@ -113,7 +113,7 @@ object Caching {
   def privateCache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
       lifetime: Duration,
       http: Http[G, F],
-      fieldNames: List[CaseInsensitiveString] = Nil): Http[G, F] =
+      fieldNames: List[CIString] = Nil): Http[G, F] =
     cache(
       lifetime,
       Either.right(CacheDirective.`private`(fieldNames)),
@@ -126,10 +126,10 @@ object Caching {
     *
     * Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
-   **/
+    */
   def privateCacheResponse[G[_]](
       lifetime: Duration,
-      fieldNames: List[CaseInsensitiveString] = Nil
+      fieldNames: List[CIString] = Nil
   ): PartiallyAppliedCache[G] =
     cacheResponse(lifetime, Either.right(CacheDirective.`private`(fieldNames)))
 
@@ -168,7 +168,7 @@ object Caching {
     *
     *  Note: If set to Duration.Inf, lifetime falls back to
     * 10 years for support of Http1 caches.
-   **/
+    */
   def cacheResponse[G[_]](
       lifetime: Duration,
       isPublic: Either[CacheDirective.public.type, CacheDirective.`private`]

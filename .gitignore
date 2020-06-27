@@ -30,3 +30,4 @@ project/metals.sbt
 project/travis-deploy-key
 project/.gnupg
 !project/.gnupg/secret.tar.enc
+out

@@ -10,12 +10,12 @@
 
 package org.http4s
 
-import org.http4s.syntax.string._
-import org.http4s.util.{CaseInsensitiveString, Renderable, Writer}
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 import scala.concurrent.duration.Duration
 
 sealed trait CacheDirective extends Product with Renderable {
-  val name = productPrefix.replace("$minus", "-").ci
+  val name = CIString(productPrefix.replace("$minus", "-"))
   def value: String = name.toString
   override def toString: String = value
   def render(writer: Writer): writer.type = writer.append(value)
@@ -40,8 +40,7 @@ object CacheDirective {
 
   case object `must-revalidate` extends CacheDirective
 
-  final case class `no-cache`(fieldNames: List[CaseInsensitiveString] = Nil)
-      extends CacheDirective {
+  final case class `no-cache`(fieldNames: List[CIString] = Nil) extends CacheDirective {
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
@@ -52,7 +51,7 @@ object CacheDirective {
 
   case object `only-if-cached` extends CacheDirective
 
-  final case class `private`(fieldNames: List[CaseInsensitiveString] = Nil) extends CacheDirective {
+  final case class `private`(fieldNames: List[CIString] = Nil) extends CacheDirective {
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
@@ -73,16 +72,16 @@ object CacheDirective {
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
 
-  def apply(name: CaseInsensitiveString, argument: Option[String] = None): CacheDirective =
+  def apply(name: CIString, argument: Option[String] = None): CacheDirective =
     new CustomCacheDirective(name, argument)
 
   def apply(name: String, argument: Option[String]): CacheDirective =
-    apply(name.ci, argument)
+    apply(CIString(name), argument)
 
   def apply(name: String): CacheDirective = apply(name, None)
 
   private final case class CustomCacheDirective(
-      override val name: CaseInsensitiveString,
+      override val name: CIString,
       argument: Option[String] = None)
       extends CacheDirective {
     override def value: String = name.toString + argument.fold("")("=\"" + _ + '"')

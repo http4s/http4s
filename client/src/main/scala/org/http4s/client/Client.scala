@@ -30,6 +30,7 @@ trait Client[F[_]] {
     *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
+  @deprecated("Use run(req).use(f)", "0.21.5")
   def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A]
 
   /** Submits a request, and provides a callback to process the response.
@@ -40,46 +41,33 @@ trait Client[F[_]] {
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
+  @deprecated("Use req.flatMap(run(_).use(f))", "0.21.5")
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
 
   /**
     * Returns this client as a [[Kleisli]].  All connections created by this
     * service are disposed on completion of callback task f.
     *
-    * This method effectively reverses the arguments to `fetch`, and is
+    * This method effectively reverses the arguments to `run` followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A]
-
-  @deprecated("Use toKleisli", "0.18")
-  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A]
 
   /**
     * Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
+    * This is intended for use in proxy servers.  `run`, `fetchAs`,
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpApp: HttpApp[F]
 
-  /**
-    * Returns this client as an [[HttpService]].  It is the
-    * responsibility of callers of this service to run the response
-    * body to dispose of the underlying HTTP connection.
-    *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
-    */
-  @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
-  def toHttpService: HttpService[F]
-
   /** Run the request as a stream.  The response lifecycle is equivalent
-    * to the returned Stream's. */
+    * to the returned Stream's.
+    */
   def stream(req: Request[F]): Stream[F, Response[F]]
 
   @deprecated("Use `client.stream(req).flatMap(f)`", "0.19.0-M4")
@@ -154,11 +142,13 @@ trait Client[F[_]] {
   def statusFromString(s: String): F[Status]
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: Request[F]): F[Boolean]
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: F[Request[F]]): F[Boolean]
 
   /** Submits a GET request, and provides a callback to process the response.

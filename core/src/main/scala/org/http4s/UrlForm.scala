@@ -103,7 +103,7 @@ object UrlForm {
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder
-          .decodeString(m)
+          .decodeText(m)
           .map(decodeString(m.charset.getOrElse(defaultCharset)))
       )
     }

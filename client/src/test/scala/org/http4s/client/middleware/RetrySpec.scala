@@ -50,7 +50,8 @@ class RetrySpec extends Http4sSpec with Tables with Http4sLegacyMatchersIO {
     val retryClient = Retry[IO](policy)(client)
     val req = Request[IO](method, uri("http://localhost/") / status.code.toString).withEntity(body)
     retryClient
-      .fetch(req) { _ =>
+      .run(req)
+      .use { _ =>
         IO.unit
       }
       .attempt

@@ -43,7 +43,8 @@ class ContextRouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
   def middleware(routes: ContextRoutes[Unit, IO]): ContextRoutes[Unit, IO] =
     Kleisli((r: ContextRequest[IO, Unit]) =>
-      if (r.req.uri.query.containsQueryParam("block")) OptionT.liftF(Ok(r.req.uri.path))
+      if (r.req.uri.query.containsQueryParam("block"))
+        OptionT.liftF(Ok(r.req.uri.path.renderString))
       else routes(r))
 
   val service = ContextRouter[IO, Unit](

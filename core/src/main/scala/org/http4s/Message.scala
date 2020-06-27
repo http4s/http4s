@@ -12,13 +12,12 @@ import cats.implicits._
 import cats.effect.IO
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
+import _root_.io.chrisdavenport.vault._
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
-
 import org.http4s.headers._
 import org.log4s.getLogger
-import _root_.io.chrisdavenport.vault._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 
 import scala.util.hashing.MurmurHash3
 
@@ -210,7 +209,7 @@ object Message {
   */
 final class Request[F[_]](
     val method: Method = Method.GET,
-    val uri: Uri = Uri(path = "/"),
+    val uri: Uri = Uri(path = Uri.Path.Root),
     val httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
     val headers: Headers = Headers.empty,
     val body: EntityBody[F] = EmptyBody,
@@ -272,11 +271,14 @@ final class Request[F[_]](
     uri.path.splitAt(caret)
 
   private def caret =
-    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+    attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
 
+  @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "1.0.0-M1")
   def withPathInfo(pi: String): Self =
+    withPathInfo(Uri.Path.fromString(pi))
+  def withPathInfo(pi: Uri.Path): Self =
     // Don't use withUri, which clears the caret
-    copy(uri = uri.withPath(scriptName + pi))
+    copy(uri = uri.withPath(scriptName.concat(pi)))
 
   def pathTranslated: Option[File] = attributes.lookup(Keys.PathTranslated)
 
@@ -285,11 +287,8 @@ final class Request[F[_]](
   /** cURL representation of the request.
     *
     * Supported cURL-Parameters are: -X, -H
-    *
     */
-  def asCurl(
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
-      : String = {
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
 
     /*
      * escapes characters that are used in the curl-command, such as '
@@ -355,7 +354,7 @@ final class Request[F[_]](
       .fold(putHeaders(Cookie(NonEmptyList.of(cookie)))) { preExistingCookie =>
         removeHeader(Cookie).putHeaders(
           Header(
-            Cookie.name.value,
+            Cookie.name.toString,
             s"${preExistingCookie.value}; ${cookie.name}=${cookie.content}"))
       }
 
@@ -470,7 +469,7 @@ final class Request[F[_]](
 object Request {
   def apply[F[_]](
       method: Method = Method.GET,
-      uri: Uri = Uri(path = "/"),
+      uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
       body: EntityBody[F] = EmptyBody,
@@ -570,7 +569,8 @@ final case class Response[F[_]](
 
   /** Returns a list of cookies from the [[`Set-Cookie`]]
     * headers. Includes expired cookies, such as those that represent cookie
-    * deletion. */
+    * deletion.
+    */
   def cookies: List[ResponseCookie] =
     `Set-Cookie`.from(headers).map(_.cookie)
 

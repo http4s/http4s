@@ -8,14 +8,17 @@ package org.http4s.websocket
 
 import fs2._
 
-private[http4s] final case class WebSocket[F[_]](
+private[http4s] sealed trait WebSocket[F[_]] {
+  def onClose: F[Unit]
+}
+
+private[http4s] final case class WebSocketSeparatePipe[F[_]](
     send: Stream[F, WebSocketFrame],
     receive: Pipe[F, WebSocketFrame, Unit],
     onClose: F[Unit]
-) {
-  @deprecated("Parameter has been renamed to `send`", "0.18.0-M7")
-  def read: Stream[F, WebSocketFrame] = send
+) extends WebSocket[F]
 
-  @deprecated("Parameter has been renamed to `receive`", "0.18.0-M7")
-  def write: Pipe[F, WebSocketFrame, Unit] = receive
-}
+private[http4s] final case class WebSocketCombinedPipe[F[_]](
+    receiveSend: Pipe[F, WebSocketFrame, WebSocketFrame],
+    onClose: F[Unit]
+) extends WebSocket[F]

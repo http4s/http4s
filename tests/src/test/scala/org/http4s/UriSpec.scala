@@ -11,13 +11,15 @@
 package org.http4s
 
 import cats.implicits._
-import cats.kernel.laws.discipline.EqTests
+import cats.kernel.laws.discipline.{EqTests, SemigroupTests}
 import java.nio.file.Paths
+
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.Uri._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers
+import org.typelevel.ci.CIString
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
@@ -171,15 +173,14 @@ http://example.org/a file
 
   "Uri copy" should {
     "support updating the schema" in {
-      uri("http://example.com/").copy(scheme = Scheme.https.some) must_== uri(
-        "https://example.com/")
+      uri"http://example.com/".copy(scheme = Scheme.https.some) must_== uri("https://example.com/")
       // Must add the authority to set the scheme and host
-      uri("/route/").copy(
+      uri"/route/".copy(
         scheme = Scheme.https.some,
         authority = Some(Authority(None, RegName("example.com")))) must_== uri(
         "https://example.com/route/")
       // You can add a port too
-      uri("/route/").copy(
+      uri"/route/".copy(
         scheme = Scheme.https.some,
         authority = Some(Authority(None, RegName("example.com"), Some(8443)))) must_== uri(
         "https://example.com:8443/route/")
@@ -193,7 +194,7 @@ http://example.org/a file
 
     "withPath without slash adds a / on render" in {
       val uri = getUri("http://localhost/foo/bar/baz")
-      uri.withPath("bar").toString must_=== "http://localhost/bar"
+      uri.withPath(path"bar").toString must_=== "http://localhost/bar"
     }
 
     "render a IPv6 address, should be wrapped in brackets" in {
@@ -208,7 +209,7 @@ http://example.org/a file
         Uri(
           Some(Scheme.http),
           Some(Authority(host = Ipv6Address.unsafeFromString(s))),
-          "/foo",
+          Uri.Path.fromString("/foo"),
           Query.fromPairs("bar" -> "baz")).toString must_==
           (s"http://[$s]/foo?bar=baz")
       }
@@ -217,8 +218,8 @@ http://example.org/a file
     "render URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = RegName("www.foo.com".ci))),
-        "/foo",
+        Some(Authority(host = RegName(CIString("www.foo.com")))),
+        Uri.Path.fromString("/foo"),
         Query.fromPairs("bar" -> "baz")).toString must_== ("http://www.foo.com/foo?bar=baz")
     }
 
@@ -227,21 +228,23 @@ http://example.org/a file
         Some(Scheme.http),
         Some(
           Authority(
-            host = RegName("www.foo.com".ci),
+            host = RegName(CIString("www.foo.com")),
             port = Some(80)))).toString must_== ("http://www.foo.com:80")
     }
 
     "render URL without port" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = RegName("www.foo.com".ci)))).toString must_== ("http://www.foo.com")
+        Some(
+          Authority(host =
+            RegName(CIString("www.foo.com"))))).toString must_== ("http://www.foo.com")
     }
 
     "render IPv4 URL with parameters" in {
       Uri(
         Some(Scheme.http),
         Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
-        "/c",
+        Uri.Path.fromString("/c"),
         Query.fromPairs(
           "GB" -> "object",
           "Class" -> "one")).toString must_== ("http://192.168.1.1:80/c?GB=object&Class=one")
@@ -266,7 +269,7 @@ http://example.org/a file
       Uri(
         Some(Scheme.http),
         Some(Authority(host = ipv6"2001:db8::7")),
-        "/c",
+        Uri.Path.fromString("/c"),
         Query.fromPairs(
           "GB" -> "object",
           "Class" -> "one")).toString must_== ("http://[2001:db8::7]/c?GB=object&Class=one")
@@ -297,7 +300,9 @@ http://example.org/a file
     "render email address" in {
       Uri(
         Some(scheme"mailto"),
-        path = "John.Doe@example.com").toString must_== ("mailto:John.Doe@example.com")
+        path =
+          Uri.Path.fromString(
+            "John.Doe@example.com")).toString must_== ("mailto:John.Doe@example.com")
     }
 
     "render an URL with username and password" in {
@@ -308,9 +313,10 @@ http://example.org/a file
             Some(UserInfo("username", Some("password"))),
             RegName("some.example.com"),
             None)),
-        "/",
+        Uri.Path.fromString("/"),
         Query.empty,
-        None).toString must_== ("http://username:password@some.example.com/")
+        None
+      ).toString must_== ("http://username:password@some.example.com/")
     }
 
     "render an URL with username and password, path and params" in {
@@ -321,48 +327,56 @@ http://example.org/a file
             Some(UserInfo("username", Some("password"))),
             RegName("some.example.com"),
             None)),
-        "/some/path",
+        Uri.Path.fromString("/some/path"),
         Query.fromString("param1=5&param-without-value"),
         None
       ).toString must_== ("http://username:password@some.example.com/some/path?param1=5&param-without-value")
     }
 
     "render relative URI with empty query string" in {
-      Uri(path = "/", query = Query.fromString(""), fragment = None).toString must_== ("/?")
+      Uri(
+        path = Uri.Path.fromString("/"),
+        query = Query.fromString(""),
+        fragment = None).toString must_== ("/?")
     }
 
     "render relative URI with empty query string and fragment" in {
-      Uri(path = "/", query = Query.fromString(""), fragment = Some("")).toString must_== ("/?#")
+      Uri(
+        path = Uri.Path.Root,
+        query = Query.fromString(""),
+        fragment = Some("")).toString must_== ("/?#")
     }
 
     "render relative URI with empty fragment" in {
-      Uri(path = "/", query = Query.empty, fragment = Some("")).toString must_== ("/#")
+      Uri(path = Uri.Path.Root, query = Query.empty, fragment = Some("")).toString must_== ("/#")
     }
 
     "render relative path with fragment" in {
-      Uri(path = "/foo/bar", fragment = Some("an-anchor")).toString must_== ("/foo/bar#an-anchor")
+      Uri(
+        path = Uri.Path.fromString("/foo/bar"),
+        fragment = Some("an-anchor")).toString must_== ("/foo/bar#an-anchor")
     }
 
     "render relative path with parameters" in {
       Uri(
-        path = "/foo/bar",
+        path = Uri.Path.fromString("/foo/bar"),
         query =
           Query.fromString("foo=bar&ding=dong")).toString must_== ("/foo/bar?foo=bar&ding=dong")
     }
 
     "render relative path with parameters and fragment" in {
       Uri(
-        path = "/foo/bar",
+        path = Uri.Path.fromString("/foo/bar"),
         query = Query.fromString("foo=bar&ding=dong"),
         fragment = Some("an_anchor")).toString must_== ("/foo/bar?foo=bar&ding=dong#an_anchor")
     }
 
     "render relative path without parameters" in {
-      Uri(path = "/foo/bar").toString must_== ("/foo/bar")
+      Uri(path = Uri.Path.fromString("/foo/bar")).toString must_== ("/foo/bar")
     }
 
     "render relative root path without parameters" in {
-      Uri(path = "/").toString must_== ("/")
+      Uri(path = Uri.Path.fromString("/")).toString must_== ("/")
     }
 
     "render a query string with a single param" in {
@@ -382,17 +396,7 @@ http://example.org/a file
        * - http://en.wikipedia.org/wiki/Uniform_Resource_Identifier
        *
        * URI.fromString fails for:
-       * - "http://en.wikipedia.org/wiki/URI#Examples_of_URI_references",
-       * - "file:///C:/Users/Benutzer/Desktop/Uniform%20Resource%20Identifier.html",
-       * - "file:///etc/fstab",
-       * - "relative/path/to/resource.txt",
        * - "//example.org/scheme-relative/URI/with/absolute/path/to/resource.txt",
-       * - "../../../resource.txt",
-       * - "./resource.txt#frag01",
-       * - "resource.txt",
-       * - "#frag01",
-       * - ""
-       *
        */
       val examples = Seq(
         "http://de.wikipedia.org/wiki/Uniform_Resource_Identifier",
@@ -410,7 +414,16 @@ http://example.org/a file
         "git://github.com/rails/rails.git",
         "crid://broadcaster.com/movies/BestActionMovieEver",
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
-        "/relative/URI/with/absolute/path/to/resource.txt"
+        "/relative/URI/with/absolute/path/to/resource.txt",
+        "http://en.wikipedia.org/wiki/URI#Examples_of_URI_references",
+        "file:///C:/Users/Benutzer/Desktop/Uniform%20Resource%20Identifier.html",
+        "file:///etc/fstab",
+        "relative/path/to/resource.txt",
+        "../../../resource.txt",
+        "./resource.txt#frag01",
+        "resource.txt",
+        "#frag01",
+        ""
       )
       foreach(examples) { e =>
         Uri.fromString(e).map(_.toString) must beRight(e)
@@ -810,21 +823,28 @@ http://example.org/a file
       val u = Uri(query = Query.fromString("param=value"))
       u =? ps must be_==(u =? ps)
     }
+    "discard the blank value in withQueryParam" in {
+      uri"/test?".withQueryParam("k", "v") must be_==(uri"/test?k=v")
+    }
+    "discard the blank value in withOptionQueryParam" in {
+      uri"/test?".withOptionQueryParam("k", Some("v")) must be_==(uri"/test?k=v")
+    }
+
   }
 
   "Uri.withFragment convenience method" should {
     "set a Fragment" in {
-      val u = Uri(path = "/")
+      val u = Uri(path = Uri.Path.Root)
       val updated = u.withFragment("nonsense")
       updated.renderString must_== "/#nonsense"
     }
     "set a new Fragment" in {
-      val u = Uri(path = "/", fragment = Some("adjakda"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some("adjakda"))
       val updated = u.withFragment("nonsense")
       updated.renderString must_== "/#nonsense"
     }
     "set no Fragment on a null String" in {
-      val u = Uri(path = "/", fragment = Some("adjakda"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some("adjakda"))
       val evilString: String = null
       val updated = u.withFragment(evilString)
       updated.renderString must_== "/"
@@ -833,7 +853,7 @@ http://example.org/a file
 
   "Uri.withoutFragment convenience method" should {
     "unset a Fragment" in {
-      val u = Uri(path = "/", fragment = Some("nonsense"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some("nonsense"))
       val updated = u.withoutFragment
       updated.renderString must_== "/"
     }
@@ -841,11 +861,11 @@ http://example.org/a file
 
   "Uri.renderString" should {
     "Encode special chars in the query" in {
-      val u = Uri(path = "/").withQueryParam("foo", " !$&'()*+,;=:/?@~")
+      val u = Uri(path = Uri.Path.Root).withQueryParam("foo", " !$&'()*+,;=:/?@~")
       u.renderString must_== "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~"
     }
     "Encode special chars in the fragment" in {
-      val u = Uri(path = "/", fragment = Some(" !$&'()*+,;=:/?@~"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some(" !$&'()*+,;=:/?@~"))
       u.renderString must_== "/#%20!$&'()*+,;=:/?@~"
     }
   }
@@ -854,14 +874,14 @@ http://example.org/a file
     val base = getUri("http://a/b/c/d;p?q")
 
     "correctly remove ./.. sequences" >> {
-      implicit class checkDotSequences(path: String) {
-        def removingDotsShould_==(expected: String) =
+      implicit class checkDotSequences(path: Uri.Path) {
+        def removingDotsShould_==(expected: Uri.Path) =
           s"$path -> $expected" in { removeDotSegments(path) must_== expected }
       }
 
       // from RFC 3986 sec 5.2.4
-      "mid/content=5/../6".removingDotsShould_==("mid/6")
-      "/a/b/c/./../../g".removingDotsShould_==("/a/g")
+      path"mid/content=5/../6".removingDotsShould_==(path"mid/6")
+      path"/a/b/c/./../../g".removingDotsShould_==(path"/a/g")
     }
 
     implicit class check(relative: String) {
@@ -936,7 +956,7 @@ http://example.org/a file
 
     "correctly remove dot segments in other examples" >> prop { (input: String) =>
       val prefix = "/this/isa/prefix/"
-      val processed = Uri.removeDotSegments(input)
+      val processed = Uri.removeDotSegments(Uri.Path.fromString(input)).renderString
       val path = Paths.get(prefix, processed).normalize
       path.startsWith(Paths.get(prefix)) must beTrue
       processed must not contain "./"
@@ -954,7 +974,7 @@ http://example.org/a file
 
   "Uri.equals" should {
     "be false between an empty path and a trailing slash after an authority" in {
-      uri("http://example.com") must_!= uri("http://example.com/")
+      getUri("http://example.com") must_!= getUri("http://example.com/")
     }
   }
 
@@ -966,24 +986,25 @@ http://example.org/a file
 
   "/" should {
     "encode space as %20" in {
-      uri("http://example.com/") / " " must_== uri("http://example.com/%20")
+      getUri("http://example.com/") / " " must_== getUri("http://example.com/%20")
     }
 
     "encode generic delimiters that aren't pchars" in {
       // ":" and "@" are valid pchars
-      uri("http://example.com") / ":/?#[]@" must_== uri("http://example.com/:%2F%3F%23%5B%5D@")
+      getUri("http://example.com") / ":/?#[]@" must_== getUri(
+        "http://example.com/:%2F%3F%23%5B%5D@")
     }
 
     "encode percent sequences" in {
-      uri("http://example.com") / "%2F" must_== uri("http://example.com/%252F")
+      getUri("http://example.com") / "%2F" must_== getUri("http://example.com/%252F")
     }
 
     "not encode sub-delims" in {
-      uri("http://example.com") / "!$&'()*+,;=" must_== uri("http://example.com/!$&'()*+,;=")
+      getUri("http://example.com") / "!$&'()*+,;=" must_== getUri("http://example.com/!$&'()*+,;=")
     }
 
     "UTF-8 encode characters" in {
-      uri("http://example.com/") / "ö" must_== uri("http://example.com/%C3%B6")
+      getUri("http://example.com/") / "ö" must_== getUri("http://example.com/%C3%B6")
     }
 
     "not make bad URIs" >> forAll { (s: String) =>
@@ -1076,4 +1097,22 @@ http://example.org/a file
       decode(encode("%2f", toSkip = CharPredicate("%")), toSkip = CharPredicate("/")) must_== "%2f"
     }
   }
+
+  "Uri.Path" should {
+    "check that we store the encoded path from parsed" in {
+      val uriReference = uri"https://example.com/auth0%7Cdsfhsklh46ksx/we-have-a%2Ftest"
+      uriReference.path.segments must_== List("auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest").map(
+        Uri.Path.Segment.encoded)
+    }
+    "check that we store the encoded " in {
+      val uriReference = uri"https://example.com/test" / "auth0|dsfhsklh46ksx" / "we-have-a/test"
+      uriReference.path.segments must_== List("test", "auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest")
+        .map(Uri.Path.Segment.encoded)
+    }
+    "instances" in {
+      checkAll("Uri.Path", SemigroupTests[Uri.Path].semigroup)
+      checkAll("Uri.Path", EqTests[Uri.Path].eqv)
+    }
+  }
+
 }

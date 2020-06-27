@@ -22,7 +22,7 @@ import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.{End, Http2Writer}
-import org.http4s.syntax.string._
+import org.typelevel.ci.CIString
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -38,7 +38,9 @@ private class Http2NodeStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F], timer: Timer[F])
+    scheduler: TickWheelExecutor)(implicit
+    F: ConcurrentEffect[F],
+    timer: Timer[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -200,7 +202,7 @@ private class Http2NodeStage[F[_]](
               error += s"HTTP/2.0 forbids TE header values other than 'trailers'. "
           // ignore otherwise
 
-          case (k, v) => headers += Raw(k.ci, v)
+          case (k, v) => headers += Raw(CIString(k), v)
         }
     }
 
@@ -239,7 +241,7 @@ private class Http2NodeStage[F[_]](
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
       if (h.name != headers.`Transfer-Encoding`.name &&
         h.name != headers.Connection.name) {
-        hs += ((h.name.value.toLowerCase(Locale.ROOT), h.value))
+        hs += ((h.name.toString.toLowerCase(Locale.ROOT), h.value))
         ()
       }
     }

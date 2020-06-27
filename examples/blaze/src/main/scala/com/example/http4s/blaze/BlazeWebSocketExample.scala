@@ -53,7 +53,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
          * on the WebSocket together. The queue is therefore not accessible outside
          * of the scope of this single HTTP request to connect a WebSocket.
          *
-       * While this meets the contract of the service to echo traffic back to
+         * While this meets the contract of the service to echo traffic back to
          * its source, many applications will want to create the queue object at
          * a higher level and pass it into the "routes" method or the containing
          * class constructor in order to share the queue (or some other concurrency

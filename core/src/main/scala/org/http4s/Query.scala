@@ -128,7 +128,11 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
 object Query {
   type KeyValue = (String, Option[String])
 
+  /** Represents the absence of a query string. */
   val empty: Query = new Query(Vector.empty)
+
+  /** Represents a query string with no keys or values: `?` */
+  val blank = new Query(Vector("" -> None))
 
   /*
    * "The characters slash ("/") and question mark ("?") may represent data

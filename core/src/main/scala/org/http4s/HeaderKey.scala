@@ -8,15 +8,14 @@ package org.http4s
 
 import cats.data.NonEmptyList
 import cats.implicits._
-import org.http4s.syntax.string._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
 sealed trait HeaderKey {
   type HeaderT <: Header
 
-  def name: CaseInsensitiveString
+  def name: CIString
 
   def matchHeader(header: Header): Option[HeaderT]
   final def unapply(header: Header): Option[HeaderT] = matchHeader(header)
@@ -43,7 +42,6 @@ object HeaderKey {
   /**
     * Represents a header key whose multiple headers can be combined by joining
     * their values with a comma.  See RFC 2616, Section 4.2.
-    *
     */
   trait Recurring extends Extractable {
     type HeaderT <: Header.Recurring
@@ -80,14 +78,14 @@ object HeaderKey {
 
   private[http4s] abstract class Internal[T <: Header: ClassTag] extends HeaderKey {
     type HeaderT = T
-    val name = getClass.getName
-      .split("\\.")
-      .last
-      .replaceAll("\\$minus", "-")
-      .split("\\$")
-      .last
-      .replace("\\$$", "")
-      .ci
+    val name = CIString(
+      getClass.getName
+        .split("\\.")
+        .last
+        .replaceAll("\\$minus", "-")
+        .split("\\$")
+        .last
+        .replace("\\$$", ""))
     private val runtimeClass = implicitly[ClassTag[HeaderT]].runtimeClass
     override def matchHeader(header: Header): Option[HeaderT] =
       header match {

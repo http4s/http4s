@@ -10,11 +10,14 @@ import cats.ApplicativeError
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.StandardCharsets
+import org.http4s.internal.skipUtf8ByteOrderMark
+import org.typelevel.ci.CIString
 import scala.concurrent.ExecutionContextExecutor
 
 package object util {
-  private val utf8Bom: Chunk[Byte] = Chunk(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
-
+  @deprecated(
+    "Can fall into an infinite loop, which can't be fixed without a RaiseThrowable constraint. A corrected version will be contributed to fs2.",
+    "0.21.5")
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
     val decoder = charset.nioCharset.newDecoder
     val maxCharsPerByte = math.ceil(decoder.maxCharsPerByte().toDouble).toInt
@@ -32,7 +35,7 @@ package object util {
           else Pull.output1(outputString).as(None)
         case Some((chunk, stream)) =>
           if (chunk.nonEmpty) {
-            val chunkWithoutBom = skipByteOrderMark(chunk)
+            val chunkWithoutBom = skipUtf8ByteOrderMark(chunk)
             val bytes = chunkWithoutBom.toArray
             val byteBuffer = ByteBuffer.wrap(bytes)
             val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
@@ -44,11 +47,6 @@ package object util {
       }
     }
   }
-
-  private def skipByteOrderMark[F[_]](chunk: Chunk[Byte]): Chunk[Byte] =
-    if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
-      chunk.drop(3)
-    else chunk
 
   /** Converts ASCII encoded byte stream to a stream of `String`. */
   private[http4s] def asciiDecode[F[_]](implicit
@@ -93,6 +91,7 @@ package object util {
   /* This is nearly identical to the hashCode of java.lang.String, but converting
    * to lower case on the fly to avoid copying `value`'s character storage.
    */
+  @deprecated("Not a good hash. Prefer org.typelevel.ci.CIString.", "0.21.5")
   def hashLower(s: String): Int = {
     var h = 0
     var i = 0
@@ -108,4 +107,9 @@ package object util {
     }
     h
   }
+
+  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  type CaseInsensitiveString = CIString
+  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  val CaseInsensitiveString = CIString
 }

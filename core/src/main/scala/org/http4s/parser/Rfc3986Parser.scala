@@ -13,7 +13,7 @@ import org.http4s.{Query => Q}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.internal.parboiled2.support.HNil
-import org.http4s.syntax.string._
+import org.typelevel.ci.CIString
 
 private[http4s] trait Rfc3986Parser
     extends Parser
@@ -33,7 +33,12 @@ private[http4s] trait Rfc3986Parser
       scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
         (scheme, auth, path, query, fragment) =>
           org.http4s
-            .Uri(Some(scheme), auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
+            .Uri(
+              Some(scheme),
+              auth,
+              org.http4s.Uri.Path.fromString(path),
+              query.map(Q.fromString).getOrElse(Q.empty),
+              fragment)
       }
     }
 
@@ -41,15 +46,19 @@ private[http4s] trait Rfc3986Parser
     rule {
       RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
         (auth, path, query, fragment) =>
-          org.http4s.Uri(None, auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
+          org.http4s.Uri(
+            None,
+            auth,
+            org.http4s.Uri.Path.fromString(path),
+            query.map(Q.fromString).getOrElse(Q.empty),
+            fragment)
       }
     }
 
-  def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] =
+  def HierPart: Rule2[Option[org.http4s.Uri.Authority], String] =
     rule {
-      "//" ~ Authority ~ PathAbempty ~> {
-        (auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) =>
-          Some(auth) :: path :: HNil
+      "//" ~ Authority ~ PathAbempty ~> { (auth: org.http4s.Uri.Authority, path: String) =>
+        Some(auth) :: path :: HNil
       } |
         PathAbsolute ~> (None :: _ :: HNil) |
         PathRootless ~> (None :: _ :: HNil) |
@@ -58,11 +67,10 @@ private[http4s] trait Rfc3986Parser
         }
     }
 
-  def RelativePart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] =
+  def RelativePart: Rule2[Option[org.http4s.Uri.Authority], String] =
     rule {
-      "//" ~ Authority ~ PathAbempty ~> {
-        (auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) =>
-          Some(auth) :: path :: HNil
+      "//" ~ Authority ~ PathAbempty ~> { (auth: org.http4s.Uri.Authority, path: String) =>
+        Some(auth) :: path :: HNil
       } |
         PathAbsolute ~> (None :: _ :: HNil) |
         PathNoscheme ~> (None :: _ :: HNil) |
@@ -82,7 +90,7 @@ private[http4s] trait Rfc3986Parser
     ipv4Address |
     "[" ~ ipv6Address ~ "]" |
     capture(RegName) ~> { (s: String) =>
-      org.http4s.Uri.RegName(decode(s).ci)
+      org.http4s.Uri.RegName(CIString(decode(s)))
     }
     // format:on
   }
@@ -101,9 +109,9 @@ private[http4s] trait Rfc3986Parser
 
   def RegName: Rule0 = rule {zeroOrMore(Unreserved | PctEncoded | SubDelims)}
 
-  def Path: Rule1[String] = rule {
+  def Path: Rule1[org.http4s.Uri.Path] = rule {
     (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { (s: String) =>
-      decode(s)
+      org.http4s.Uri.Path.fromString(decode(s))
     }
   }
 

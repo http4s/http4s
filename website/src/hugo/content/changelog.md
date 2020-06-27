@@ -8,10 +8,14 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M1 (unreleased)
+# v1.0.0-M2 (2020-06-25)
 
 This is the first milestone release in the 1.x series.
 It is not binary compatible with prior releases.
+
+## Where is M1?
+
+Unpublished. The release build from the tag failed, and the fix required a new tag.
 
 ## Breaking changes
 
@@ -26,14 +30,109 @@ It is not binary compatible with prior releases.
 * [#3322](https://github.com/http4s/http4s/pull/3322): Drop deprecated `getAs` and `prepAs` methods from `Client`
 * [#3371](https://github.com/http4s/http4s/pull/3271): In http4s-metrics, add `rootCause` field to `TerminationType.Abnormal` and `TerminationType.Error`.  Add `TerminationType.Canceled`
 * [#3335](https://github.com/http4s/http4s/pull/3335): Remove unused `Bracket` instance in `Client#translate`
+* [#3390](https://github.com/http4s/http4s/pull/3390): Replace `org.http4s.util.CaseInsensitiveString` with `org.typelevel.ci.CIString`
+* [#3221](https://github.com/http4s/http4s/pull/3221): Implement a `Uri.Path` type to replace the type alias for `String`
+* [#3450](https://github.com/http4s/http4s/pull/3450): Model `Accept-Patch` header as a `NonEmptyList[MediaType]`
+* [#3463](https://github.com/http4s/http4s/pull/3450): Model `Access-Control-Allow-Credentials` header as a nullary case class.
+* [#3325](https://github.com/http4s/http4s/pull/3325): Add a WebSocket builder with a `Pipe[F, WebSocketFrame, WebSocketFrame]` to unify sending and receiving.
+* [#3373](https://github.com/http4s/http4s/pull/3373): Parameterize `ClassLoader` for `ResourceService` and `WebjarService`. Changes the `CacheStrategy`'s `uriPath` argument to `Uri.Path`.
+* [#3460](https://github.com/http4s/http4s/pull/3460): Remove deprecated `Service` and related aliases
+* [#3529](https://github.com/http4s/http4s/pull/3529): Refresh the `MediaType`s constants from the IANA registry. Not source breaking, but shifts constants in a binary breaking way.
 
 ## Enhancements
 
 * [#3320](https://github.com/http4s/http4s/pull/3320): Reimplement `Media#as` with `F.rethrow`
 
+## Deprecations
+
+* [#3359](https://github.com/http4s/http4s/pull/3359): Deprecate the `org.http4s.util.execution` package.
+* [#3422](https://github.com/http4s/http4s/pull/3359): Deprecate `BlazeClientBuilder#withSslContextOption`.
+
+# Documentation
+
+* [#3374](https://github.com/http4s/http4s/pull/3374): Add a deployment tutorial, including for GraalVM. See also #[3416](https://github.com/http4s/http4s/pull/3416).
+* [#3410](https://github.com/http4s/http4s/pull/3410): Suggest a global execution context for the argument to `BlazeClientBuilder`
+
+## Internal refactoring
+
+* [#3386](https://github.com/http4s/http4s/pull/3386): Drop internal argonaut parser in favor of jawn's
+* [#3266](https://github.com/http4s/http4s/pull/3266): Replace `fs2.compress` with `fs2.compression`
+
 ## Dependency updates
 
-* async-http-client-2.11.0
+* argonaut-6.3.0
+* async-http-client-2.12.1
+* blaze-http-0.14.13
+* play-json-2.9.0
+* simpleclient-0.9.0 (Prometheus)
+
+~~# v1.0.0-M1 (2020-06-25)~~
+
+Did not publish successfully from tag.
+
+# v0.21.5 (2020-06-24)
+
+This release is fully backward compatible with 0.21.4.
+
+## New modules
+
+* [#3372](https://github.com/http4s/http4s/pull/3372): `http4s-scalafix`: starting with this release, we have integrated Scalafix rules into the build.  All our Scalafix rules will be published as both snapshots and with core releases.  The http4s-scalafix version is equivalent to the output version of the scalafix rules.  The scalafix rules are intended to assist migrations with deprecations (within this series) and breaking changes (in the upcoming push to 1.0).
+
+## Bugfixes
+
+* [#3476](https://github.com/http4s/http4s/pull/3476): Fix crash of `GZip` client middleware on responses to `HEAD` requests
+* [#3488](https://github.com/http4s/http4s/pull/3488): Don't call `toString` on input of `ResponseLogger` on cancellation. The input is usually a `Request`. We filter a set of default sensitive headers in `Request#toString`, but custom headers can also be sensitive and could previously be leaked by this middleware.
+* [#3521](https://github.com/http4s/http4s/pull/3521): In async-http-client, raise errors into response body stream when thrown after we've begun streaming. Previously, these errors were logged, but the response body was truncated with no value indicating failure.
+* [#3520](https://github.com/http4s/http4s/pull/3520): When adding a query parameter to a `Uri` with a blank query string (i.e., the URI ends in '?'), don't prepend it with a `'&'` character. This is important in OAuth1 signing.
+* [#3518](https://github.com/http4s/http4s/pull/3518): Fix `Cogen[ContentCoding]` in the testing arbitraries to respect the case-insensitivity of the coding field.
+* [#3501](https://github.com/http4s/http4s/pull/3501): Explicitly use `Locale.ENGLISH` when comparing two `ContentCoding`'s coding fields. This only matters if your default locale has different casing semantics than English for HTTP token characters.
+
+## Deprecations
+
+* [#3441](https://github.com/http4s/http4s/pull/3441): Deprecate `org.http4s.util.threads`, which is not related to HTTP
+* [#3442](https://github.com/http4s/http4s/pull/3442): Deprecate `org.http4s.util.hashLower`, which is not related to HTTP
+* [#3466](https://github.com/http4s/http4s/pull/3466): Deprecate `util.decode`, which may loop infinitely on certain malformed input.  Deprecate `Media#bodyAsText` and `EntityDecoder.decodeString`, which may loop infinitely for charsets other than UTF-8.  The latter two methods are replaced by `Media#bodyText` and `EntityDecoder.decodeText`.
+* [#3372](https://github.com/http4s/http4s/pull/3372): Deprecate `Client.fetch(request)(f)` in favor of `Client#run(request).use(f)`. This is to highlight the dangers of using `F.pure` or similar as `f`, which gives access to the body after the client may have recycled the connection.  For training and code reviewing purposes, it's easier to be careful with `Resource#use` than convenience methods like `fetch` that are `use` in disguise. This change can be fixed with our new http4s-scalafix.
+
+## Enhancements
+
+* [#3286](https://github.com/http4s/http4s/pull/3286): Add `httpRoutes` constructor for `Autoslash middleware`
+* [#3382](https://github.com/http4s/http4s/pull/3382): Use more efficient String compiler in `EntityDecoder[F, String]`
+* [#3439](https://github.com/http4s/http4s/pull/3439): Add `Hash[Method]` instance. See also [#3490](https://github.com/http4s/http4s/pull/3490).
+* [#3438](https://github.com/http4s/http4s/pull/3438): Add `PRI` method
+* [#3474](https://github.com/http4s/http4s/pull/3474): Add `httpApp` and `httpRoutes` constructors for `HeaderEcho` middleware
+* [#3473](https://github.com/http4s/http4s/pull/3473): Add `httpApp` and `httpRoutes` constructors for `ErrorHandling` middleware
+* [#3472](https://github.com/http4s/http4s/pull/3472): Add `httpApp` and `httpRoutes` constructors for `EntityLimiter` middleware
+* [#3487](https://github.com/http4s/http4s/pull/3487): Add new `RequestID` middleware.
+* [#3515](https://github.com/http4s/http4s/pull/3472): Add `httpApp` and `httpRoutes` constructors for `ErrorAction` middleware
+* [#3513](https://github.com/http4s/http4s/pull/3513): Add `httpRoutes` constructor for `DefaultHead`. Note that `httpApp` is not relevant.
+* [#3497](https://github.com/http4s/http4s/pull/3497): Add `logBodyText` functions to `Logger` middleware to customize the logging of the bodies
+
+## Documentation
+
+* [#3358](https://github.com/http4s/http4s/pull/3358): Replaced tut with mdoc
+* [#3421](https://github.com/http4s/http4s/pull/3421): New deployment tutorial, including GraalVM
+* [#3404](https://github.com/http4s/http4s/pull/3404): Drop reference to http4s-argonaut61, which is unsupported.
+* [#3465](https://github.com/http4s/http4s/pull/3465): Update sbt version used in `sbt new` command
+* [#3489](https://github.com/http4s/http4s/pull/3489): Remove obsolete scaladoc about `Canceled` in blaze internals
+
+## Internals
+
+* [#3478](https://github.com/http4s/http4s/pull/3478): Refactor `logMessage` in client and server logging middlewares
+
+## Dependency updates
+
+* scala-2.13.2
+* boopickle-1.3.3
+* fs2-2.4.2
+* metrics-4.1.9 (Dropwizard)
+* jetty-9.4.30
+* json4s-3.6.9
+* log4cats-1.1.1
+* okhttp-4.7.2
+* scalafix-0.9.17
+* scalatags-0.9.1
+* tomcat-9.0.36
 
 # v0.21.4 (2020-04-28)
 
@@ -1837,7 +1936,7 @@ This release is identical to v0.19.0-M4.  We mistagged it.  Please proceed to th
   implementors, with more to follow.  Added an `HttpCodecLaws` to http4s-testing.
 * `Uri.Scheme` is now its own type instead of a type alias.
 * `TransferCoding` is no longer a case class. Its `coding` member is now a
-  `String`, not a `CaseInsensitiveString`. Its companion is no longer a
+  `String`, not a `CIString`. Its companion is no longer a
   `Registry`.
 * Introduced `org.http4s.syntax.literals`, which contains a `StringContext` forAll
   safely constructing a `Uri.Scheme`.  More will follow.
@@ -2185,7 +2284,7 @@ Several dependencies are upgraded:
 * Overload `client.fetchAs` and `client.streaming` to accept a `Task[Request]`
 * Replace `Instant` with `HttpDate` to avoid silent truncation and constrain
   to dates that are legally renderable in HTTP.
-* Fix bug in hash code of `CaseInsensitiveString`
+* Fix bug in hash code of `CIString`
 * Update `request.pathInfo` when changing `request.withUri`. To keep these
   values in sync, `request.copy` has been deprecated, but copy constructors
   based on `with` have been added.
@@ -2202,7 +2301,7 @@ Several dependencies are upgraded:
   backends
 * Fix `Part.name` to return the name from the `Content-Disposition` header
   instead of the name _of_ the `Content-Disposition` header. Accordingly, it is
-  no longer a `CaseInsensitiveString`
+  no longer a `CIString`
 * `Request.toString` and `Response.toString` now redact sensitive headers. A
   method to redact arbitrary headers is added to `Headers`.
 * `Retry-After` is now modeled as a `Either[HttpDate, Long]` to reflect either
@@ -2363,7 +2462,7 @@ Several dependencies are upgraded:
 * Use `SSLContext.getDefault` by default in blaze-client.  Use
   `BlazeServerConfig.insecure` to ignore certificate validity.  But
   please don't.
-* Move `CaseInsensitiveString` syntax to `org.http4s.syntax`.
+* Move `CIString` syntax to `org.http4s.syntax`.
 * Bundle an internal version of parboiled2.  This decouples core from
   shapeless, allowing applications to use their preferred version of
   shapeless.

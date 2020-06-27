@@ -20,9 +20,9 @@ import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Origin, Referer, `X-Forwarded-For`}
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
+import org.typelevel.ci.CIString
 import scala.util.control.NoStackTrace
 
 /** Middleware to avoid Cross-site request forgery attacks.
@@ -52,14 +52,13 @@ import scala.util.control.NoStackTrace
   * not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
   * user data). Please do not use the CSRF protection from this middleware as a safety net for bad design.
   *
-  *
   * @param headerName your CSRF header name
   * @param cookieSettings the CSRF cookie settings
   * @param key the CSRF signing key
   * @param clock clock used as a nonce
   */
 final class CSRF[F[_], G[_]] private[middleware] (
-    headerName: CaseInsensitiveString,
+    headerName: CIString,
     cookieSettings: CSRF.CookieSettings,
     clock: Clock,
     onFailure: Response[G],
@@ -85,7 +84,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
       lift(joined + "-" + encodeHexString(out))
     }
 
-  /** Generate a new token **/
+  /** Generate a new token */
   def generateToken[M[_]](implicit F: Sync[M]): M[CSRFToken] =
     signToken[M](CSRF.genTokenString)
 
@@ -206,7 +205,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
           case CSRFCheckFailed => Response[G](Status.Forbidden)
         }
 
-  /** Check for CSRF validity for an unsafe action.*/
+  /** Check for CSRF validity for an unsafe action. */
   def checkCSRF(r: Request[G], http: F[Response[G]]): F[Response[G]] = csrfChecker(r, http)
 
   /** Constructs a middleware that will check for the csrf token
@@ -217,8 +216,6 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * to effectively randomize the complete token while
     * avoiding the generation of a new secure random Id, to guard
     * against [BREACH](http://breachattack.com/)
-    *
-    *
     */
   def validate(predicate: Request[G] => Boolean = _.method.isSafe)
       : Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
@@ -238,7 +235,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
   def embedInRequestCookie(r: Request[G], token: CSRFToken): Request[G] =
     r.addCookie(createRequestCookie(token))
 
-  /** Embed a token into a response **/
+  /** Embed a token into a response */
   def embedNewInResponseCookie[M[_]: Sync](res: Response[G]): M[Response[G]] =
     generateToken[M].map(embedInResponseCookie(res, _))
 }
@@ -249,7 +246,7 @@ object CSRF {
       headerCheck: Request[G] => Boolean
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
-      headerName = CaseInsensitiveString("X-Csrf-Token"),
+      headerName = CIString("X-Csrf-Token"),
       cookieSettings = CookieSettings(
         cookieName = "csrf-token",
         secure = false,
@@ -297,7 +294,7 @@ object CSRF {
   ///
 
   class CSRFBuilder[F[_], G[_]] private[middleware] (
-      headerName: CaseInsensitiveString,
+      headerName: CIString,
       cookieSettings: CSRF.CookieSettings,
       clock: Clock,
       onFailure: Response[G],
@@ -305,9 +302,11 @@ object CSRF {
       key: SecretKey,
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G]
-  )(implicit F: Sync[F], G: Applicative[G]) {
+  )(implicit
+      F: Sync[F],
+      G: Applicative[G]) {
     private def copy(
-        headerName: CaseInsensitiveString = headerName,
+        headerName: CIString = headerName,
         cookieSettings: CookieSettings = cookieSettings,
         clock: Clock = clock,
         onFailure: Response[G] = onFailure,
@@ -327,7 +326,7 @@ object CSRF {
         csrfCheck
       )
 
-    def withHeaderName(headerName: CaseInsensitiveString): CSRFBuilder[F, G] =
+    def withHeaderName(headerName: CIString): CSRFBuilder[F, G] =
       copy(headerName = headerName)
     def withClock(clock: Clock): CSRFBuilder[F, G] = copy(clock = clock)
     def withOnFailure(onFailure: Response[G]): CSRFBuilder[F, G] = copy(onFailure = onFailure)
@@ -482,22 +481,22 @@ object CSRF {
       .from(request.headers)
       .flatMap(_.values.find(_.name == cookieName))
 
-  /** A Constant-time string equality **/
+  /** A Constant-time string equality */
   def tokensEqual(s1: CSRFToken, s2: CSRFToken): Boolean =
     isEqual(unlift(s1), unlift(s2))
 
-  /** A Constant-time string equality **/
+  /** A Constant-time string equality */
   def isEqual(s1: String, s2: String): Boolean =
     MessageDigest.isEqual(s1.getBytes(StandardCharsets.UTF_8), s2.getBytes(StandardCharsets.UTF_8))
 
-  /** Generate an unsigned CSRF token from a `SecureRandom` **/
+  /** Generate an unsigned CSRF token from a `SecureRandom` */
   private[middleware] def genTokenString: String = {
     val bytes = new Array[Byte](CSRFTokenLength)
     CachedRandom.nextBytes(bytes)
     encodeHexString(bytes)
   }
 
-  /** Generate a signing Key for the CSRF token **/
+  /** Generate a signing Key for the CSRF token */
   def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[SecretKey] =
     F.delay(KeyGenerator.getInstance(SigningAlgo).generateKey())
 
@@ -510,7 +509,6 @@ object CSRF {
     *
     * Use for loading a key from a config file, after having generated
     * one safely
-    *
     */
   def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[SecretKey] =
     F.delay(new SecretKeySpec(array, SigningAlgo))

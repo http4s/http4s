@@ -7,9 +7,9 @@
 package org.http4s
 package server
 
+import cats.implicits._
 import cats._
 import cats.data.Kleisli
-import cats.syntax.semigroupk._
 
 object Router {
 
@@ -30,32 +30,26 @@ object Router {
       default: HttpRoutes[F]): HttpRoutes[F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, routes)) =>
-        val prefixSegments = toSegments(prefix)
+        val prefixSegments = Uri.Path.fromString(prefix)
         if (prefixSegments.isEmpty) routes <+> acc
         else
           Kleisli { req =>
             (
-              if (toSegments(req.pathInfo).startsWith(prefixSegments))
-                routes.local(translate(prefix)) <+> acc
+              if (req.pathInfo.startsWith(prefixSegments))
+                routes.local(translate(prefixSegments)) <+> acc
               else
                 acc
             )(req)
           }
     }
 
-  private[server] def translate[F[_]: Functor](prefix: String)(req: Request[F]): Request[F] = {
-    val newCaret = prefix match {
-      case "/" => 0
-      case x if x.startsWith("/") => x.length
-      case x => x.length + 1
+  private[server] def translate[F[_]: Functor](prefix: Uri.Path)(req: Request[F]): Request[F] = {
+    val newCaret = req.pathInfo.indexOf(prefix)
+    val oldCaret = req.attributes.lookup(Request.Keys.PathInfoCaret)
+    val resultCaret = oldCaret |+| newCaret
+    resultCaret match {
+      case Some(index) => req.withAttribute(Request.Keys.PathInfoCaret, index)
+      case None => req
     }
-
-    val oldCaret = req.attributes
-      .lookup(Request.Keys.PathInfoCaret)
-      .getOrElse(0)
-    req.withAttribute(Request.Keys.PathInfoCaret, oldCaret + newCaret)
   }
-
-  private[server] def toSegments(path: String): List[String] =
-    path.split("/").filterNot(_.trim.isEmpty).toList
 }

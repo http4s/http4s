@@ -25,4 +25,10 @@ object ErrorHandling {
         }
       }
     }
+
+  def httpRoutes[F[_]: MonadError[*[_], Throwable]](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(httpRoutes)
+
+  def httpApp[F[_]: MonadError[*[_], Throwable]](httpApp: HttpApp[F]): HttpApp[F] =
+    apply(httpApp)
 }

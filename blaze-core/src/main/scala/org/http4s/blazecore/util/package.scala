@@ -31,7 +31,8 @@ package object util {
 
   // Adapted from https://github.com/typelevel/cats-effect/issues/199#issuecomment-401273282
   /** Inferior to `Async[F].fromFuture` for general use because it doesn't shift, but
-    * in blaze internals, we don't want to shift. */
+    * in blaze internals, we don't want to shift.
+    */
   private[http4s] def fromFutureNoShift[F[_], A](f: F[Future[A]])(implicit F: Async[F]): F[A] =
     F.flatMap(f) { future =>
       future.value match {

@@ -10,16 +10,17 @@ package blaze
 
 import cats.effect._
 import fs2.Stream._
-import org.http4s.implicits._
 import org.http4s.Charset._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
+import org.http4s.implicits._
+import org.typelevel.ci.CIString
 
 object ServerTestRoutes extends Http4sDsl[IO] {
   val textPlain: Header = `Content-Type`(MediaType.text.plain, `UTF-8`)
 
-  val connClose = Connection("close".ci)
-  val connKeep = Connection("keep-alive".ci)
+  val connClose = Connection(CIString("close"))
+  val connKeep = Connection(CIString("keep-alive"))
   val chunked = `Transfer-Encoding`(TransferCoding.chunked)
 
   def length(l: Long): `Content-Length` = `Content-Length`.unsafeFromLong(l)
@@ -106,23 +107,23 @@ object ServerTestRoutes extends Http4sDsl[IO] {
   def apply()(implicit cs: ContextShift[IO]) =
     HttpRoutes
       .of[IO] {
-        case req if req.method == Method.GET && req.pathInfo == "/get" =>
+        case req if req.method == Method.GET && req.pathInfo == path"/get" =>
           Ok("get")
 
-        case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
+        case req if req.method == Method.GET && req.pathInfo == path"/chunked" =>
           Ok(eval(IO.shift *> IO("chu")) ++ eval(IO.shift *> IO("nk")))
 
-        case req if req.method == Method.POST && req.pathInfo == "/post" =>
+        case req if req.method == Method.POST && req.pathInfo == path"/post" =>
           Ok("post")
 
-        case req if req.method == Method.GET && req.pathInfo == "/twocodings" =>
+        case req if req.method == Method.GET && req.pathInfo == path"/twocodings" =>
           Ok("Foo", `Transfer-Encoding`(TransferCoding.chunked))
 
-        case req if req.method == Method.POST && req.pathInfo == "/echo" =>
-          Ok(emit("post") ++ req.bodyAsText)
+        case req if req.method == Method.POST && req.pathInfo == path"/echo" =>
+          Ok(emit("post") ++ req.bodyText)
 
         // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
-        case req if req.method == Method.GET && req.pathInfo == "/notmodified" =>
+        case req if req.method == Method.GET && req.pathInfo == path"/notmodified" =>
           NotModified()
       }
       .orNotFound
