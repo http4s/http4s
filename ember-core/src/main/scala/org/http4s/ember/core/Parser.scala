@@ -138,13 +138,18 @@ private[ember] object Parser {
         newUri = uri.copy(
           authority = host.map(h => Uri.Authority(host = Uri.RegName(h.host), port = h.port)))
         newHeaders = headers.filterNot(_.is(org.http4s.headers.Host))
-      } yield org.http4s.Request[F](
-        method = method,
-        uri = newUri,
-        httpVersion = http,
-        headers = newHeaders,
-        body = body
-      )
+      } yield {
+        val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
+          method = method,
+          uri = newUri,
+          httpVersion = http,
+          headers = newHeaders
+        )
+        val body =
+          if (baseReq.isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
+          else s.take(baseReq.contentLength.getOrElse(0L))
+        baseReq.withBodyStream(body)
+      }
 
     private def bvToRequestTopLine[F[_]](b: ByteVector)(implicit
         F: MonadError[F, Throwable]): F[(Method, Uri, HttpVersion)] =
@@ -216,25 +221,17 @@ private[ember] object Parser {
         (httpV, status) <- bvToResponseTopLine[F](methodHttpUri)
 
         _ <- logger.trace(s"HttpVersion: $httpV - Status: $status")
-
-        contentLength = headers.get(org.http4s.headers.`Content-Length`).map(_.length)
-        transferEncoding = headers.get(org.http4s.headers.`Transfer-Encoding`)
-        isChunked =
-          transferEncoding
-            .exists(_.values.exists(_ === TransferCoding.chunked))
-        _ <- logger.trace(
-          s"Content Status -  Content-Length: $contentLength - TransferEncoding $transferEncoding -  Chunked: $isChunked")
-
-        body =
-          if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
-          else s.take(contentLength.getOrElse(0))
-
-      } yield org.http4s.Response[F](
-        status = status,
-        httpVersion = httpV,
-        headers = headers,
-        body = body
-      )
+      } yield {
+        val baseResp = org.http4s.Response[F](
+          status = status,
+          httpVersion = httpV,
+          headers = headers
+        )
+        val body =
+          if (baseResp.isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
+          else s.take(baseResp.contentLength.getOrElse(0L))
+        baseResp.withBodyStream(body)
+      }
 
     private def bvToResponseTopLine[F[_]](
         b: ByteVector
