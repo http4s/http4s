@@ -9,8 +9,6 @@ package org.http4s.ember.core
 import cats.effect._
 import fs2._
 import org.http4s._
-// import cats.implicits._
-// import Shared._
 import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
