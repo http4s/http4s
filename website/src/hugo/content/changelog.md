@@ -8,7 +8,21 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.5 (2010-06-24)
+# v0.21.6 (2020-06-27)
+
+## Bugfixes
+
+* [#3538](https://github.com/http4s/http4s/pull/3538): In ember, fix request and response parser to recognize chunked transfer encoding. In chunked messages, bodies were incorrectly empty.
+
+## Enhancements
+
+* [#3492](https://github.com/http4s/http4s/pull/3538): Split the request extractors in the server DSL into `org.http4s.dsl.request`. This leaner DSL does not deal with bodies, and does not require an `F[_]` parameter. Use of the existing `http4s-dsl` is unaffected.
+
+## Dependency updates
+
+* blaze-0.14.13
+
+# v0.21.5 (2020-06-24)
 
 This release is fully backward compatible with 0.21.4.
 
