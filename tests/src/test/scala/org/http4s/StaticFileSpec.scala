@@ -276,5 +276,14 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
           .map(_.flatMap(_.contentLength))
       len must returnValue(Some(24005L))
     }
+
+    "Read a directory from a URL" in {
+      // val url = getClass.getResource("/foo")
+      val s = StaticFile
+        .fromURL[IO](getClass.getResource("/foo"), testBlocker)
+        .value
+        .unsafeRunSync
+      s must_== None
+    }
   }
 }
