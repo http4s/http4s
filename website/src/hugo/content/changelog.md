@@ -8,6 +8,11 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M3 (2020-06-27)
+
+This milestone merges the changes in 0.21.6.
+It is binary compatible with 0.21.0-M2.
+
 # v0.21.6 (2020-06-27)
 
 ## Bugfixes
