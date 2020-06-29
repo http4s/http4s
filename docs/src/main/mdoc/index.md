@@ -55,17 +55,18 @@ generated:
 ```sh
 $ cd quickstart
 $ find src/main -name '*.scala'
-./src/main/scala/com/example/http4squickstart/HelloWorldServer.scala
-./src/main/scala/com/example/http4squickstart/HelloWorldService.scala
+./src/main/scala/com/example/quickstart/HelloWorld.scala
+./src/main/scala/com/example/quickstart/QuickstartRoutes.scala
+./src/main/scala/com/example/quickstart/Jokes.scala
+./src/main/scala/com/example/quickstart/Main.scala
+./src/main/scala/com/example/quickstart/QuickstartServer.scala
 ```
+`Main.scala` defines a runnable object `Main extends IOApp` with an entry point method `run` 
+which calls the `stream` method of the object `QuickstartServer` defined on `QuickstartServer.scala`.
+Starting blaze, http4s' native server backend.
 
-`HelloWorldServer.scala` defines a runnable object `HelloWorldServer extends StreamApp[IO]`
- overriding the `stream(args: List[String],
-requestShutdown: IO[Unit])` method which acts as the entry point to your application by
- starting blaze, http4s' native server backend.
-
-`HelloWorldService` defines a `service` value containing a simple `HttpService` that responds to `GET
-/hello/$USERNAME` with a JSON greeting.  Let's try it:
+`QuickStartRoutes` has two `route` definitions. The `helloWorldRoutes` containing a simple `HttpRoutes` 
+that responds to `GET/hello/$USERNAME` with a JSON greeting.  Let's try it:
 
 ```sh
 $ sbt run
@@ -76,17 +77,16 @@ download.  This is a good time to grab a beverage.  When you come
 back, you should see a line similar to this:
 
 ```
-264 [run-main-0] INFO org.http4s.blaze.channel.nio1.NIO1SocketServerGroup - Service bound to address /127.0.0.1:8080
+[ioapp-compute-0] INFO  o.h.b.c.n.NIO1SocketServerGroup - Service bound to address /0:0:0:0:0:0:0:0:8080 
 ```
 
 This indicates that blaze is running our service on port 8080. Let's try out the
 hello world service with curl:
 
 ```sh
-$ curl -i http://localhost:8080/hello/world
 HTTP/1.1 200 OK
-Content-Type: application/json; charset=UTF-8
-Date: Thu, 01 Dec 2016 05:05:24 GMT
+Content-Type: application/json
+Date: Sun, 28 Jun 2020 16:23:31 GMT
 Content-Length: 26
 
 {"message":"Hello, world"}
