@@ -69,10 +69,10 @@ object StaticFile {
       cs: ContextShift[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
-    if (file.isDirectory())
-      OptionT.none
-    else
-      OptionT.liftF(F.delay {
+    OptionT.apply(F.delay {
+      if (file.isDirectory())
+        None
+      else {
         val urlConn = url.openConnection
         val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
         val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
@@ -87,15 +87,17 @@ object StaticFile {
             else `Transfer-Encoding`(TransferCoding.chunked)
           val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
-          Response(
-            headers = headers,
-            body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blocker)
-          )
+          Some(
+            Response(
+              headers = headers,
+              body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blocker)
+            ))
         } else {
           urlConn.getInputStream.close()
-          Response(NotModified)
+          Some(Response(NotModified))
         }
-      })
+      }
+    })
   }
 
   def calcETag[F[_]: Sync]: File => F[String] =
