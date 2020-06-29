@@ -277,7 +277,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       len must returnValue(Some(24005L))
     }
 
-    "Read a directory from a URL" in {
+    "return none from a URL that is a directory" in {
       // val url = getClass.getResource("/foo")
       val s = StaticFile
         .fromURL[IO](getClass.getResource("/foo"), testBlocker)
