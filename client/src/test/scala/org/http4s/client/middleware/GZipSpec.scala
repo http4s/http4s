@@ -34,7 +34,7 @@ class GZipSpec extends Http4sSpec {
       body.unsafeRunSync() must_== "Dummy response"
     }
 
-    "handle correctly the response of a HEAD request" in {
+    "not decompress when the response body is empty" in {
       val request = Request[IO](method = Method.HEAD, uri = Uri.unsafeFromString("/gziptest"))
       val response = gzipClient.run(request).use[IO, String] { response =>
         response.status must_== Status.Ok
