@@ -35,7 +35,7 @@ private[ember] object Encoder {
       }
       // Final CRLF terminates headers and signals body to follow.
       stringBuilder.append(CRLF)
-      stringBuilder.toString.getBytes(StandardCharsets.US_ASCII)
+      stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
     }
     val body = if (resp.isChunked) resp.body.through(ChunkedEncoding.encode[F]) else resp.body
 
@@ -73,7 +73,7 @@ private[ember] object Encoder {
       }
       // Final CRLF terminates headers and signals body to follow.
       stringBuilder.append(CRLF)
-      stringBuilder.toString.getBytes(StandardCharsets.US_ASCII)
+      stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
     }
     val body = if (req.isChunked) req.body.through(ChunkedEncoding.encode[F]) else req.body
 
