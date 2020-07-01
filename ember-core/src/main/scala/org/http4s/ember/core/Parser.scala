@@ -114,25 +114,16 @@ private[ember] object Parser {
               EmberException.ParseError("Invalid Empty Init Line")),
           Applicative[F].pure(_)
         )
+
+        (method, uri, http) <- bvToRequestTopLine[F](methodHttpUri)
+
         // Raw Header Logging
         _ <- logger.trace(s"HeadersSection - ${headersBV.decodeAscii}")
 
         headers <- generateHeaders(headersBV)(Headers.empty)(logger)
         _ <- logger.trace(show"Headers: $headers")
 
-        (method, uri, http) <- bvToRequestTopLine[F](methodHttpUri)
-
-        contentLength = headers.get(org.http4s.headers.`Content-Length`).map(_.length).getOrElse(0L)
         host = headers.get(org.http4s.headers.Host)
-        isChunked =
-          headers
-            .get(org.http4s.headers.`Transfer-Encoding`)
-            .exists(_.values.exists(_ === TransferCoding.chunked))
-
-        body =
-          if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
-          else s.take(contentLength)
-
         // enriched with host
         // seems presumptious
         newUri = uri.copy(
