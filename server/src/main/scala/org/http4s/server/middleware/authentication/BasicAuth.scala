@@ -46,7 +46,7 @@ object BasicAuth {
         case Some(authInfo) =>
           Right(AuthedRequest(authInfo, req))
         case None =>
-          Left(Challenge("Basic", realm, Map.empty))
+          Left(Challenge("Basic", realm, Map("charset" -> "UTF-8")))
       }
     }
 
