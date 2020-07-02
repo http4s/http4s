@@ -15,6 +15,10 @@ import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 import org.http4s.util.{Renderable, Writer}
+import java.nio.charset.CharsetDecoder
+import java.nio.ByteBuffer
+import scala.util.Try
+import java.nio.charset.{Charset => JavaCharset}
 
 sealed abstract class Credentials extends Renderable {
   def authScheme: AuthScheme
@@ -65,9 +69,19 @@ final case class BasicCredentials(username: String, password: String) {
 }
 
 object BasicCredentials {
+  private val utf8Charset = JavaCharset.forName("UTF-8")
+  private val utf8CharsetDecoder = utf8Charset.newDecoder
+  private def decode(bytes: Array[Byte], decoder: CharsetDecoder): Try[String] = {
+    val byteByffer = ByteBuffer.wrap(bytes)
+    Try(decoder.decode(byteByffer).toString)
+  }
+  private def decode(bytes: Array[Byte], charset: JavaCharset): String = 
+    new String(bytes, charset)
+
   def apply(token: String): BasicCredentials = {
     val bytes = Base64.getDecoder.decode(token)
-    val userPass = new String(bytes, StandardCharsets.ISO_8859_1)
+    val userPass: String = decode(bytes, utf8CharsetDecoder)
+      .fold({ _ => decode(bytes, StandardCharsets.ISO_8859_1) }, identity)
     userPass.indexOf(':') match {
       case -1 => apply(userPass, "")
       case ix => apply(userPass.substring(0, ix), userPass.substring(ix + 1))
