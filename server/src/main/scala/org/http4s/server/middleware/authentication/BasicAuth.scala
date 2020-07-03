@@ -20,6 +20,8 @@ import org.http4s.headers.Authorization
   */
 object BasicAuth {
 
+  private val authParams = Map("charset" -> "UTF-8")
+
   /**
     * Validates a plaintext password (presumably by comparing it to a
     * hashed value).  A Some value indicates success; None indicates
@@ -46,7 +48,7 @@ object BasicAuth {
         case Some(authInfo) =>
           Right(AuthedRequest(authInfo, req))
         case None =>
-          Left(Challenge("Basic", realm, Map("charset" -> "UTF-8")))
+          Left(Challenge("Basic", realm, authParams))
       }
     }
 
