@@ -43,4 +43,37 @@ object HSTS {
     val header = `Strict-Transport-Security`.unsafeFromDuration(maxAge, includeSubDomains, preload)
     apply(http, header)
   }
+
+  object httpRoutes {
+    def apply[F[_]: Functor](routes: HttpRoutes[F]): HttpRoutes[F] =
+      HSTS.apply(routes)
+
+    def apply[F[_]: Functor](
+        routes: HttpRoutes[F],
+        header: `Strict-Transport-Security`): HttpRoutes[F] =
+      HSTS.apply(routes, header)
+
+    def unsafeFromDuration[F[_]: Functor](
+        routes: HttpRoutes[F],
+        maxAge: FiniteDuration = 365.days,
+        includeSubDomains: Boolean = true,
+        preload: Boolean = false): HttpRoutes[F] =
+      HSTS.unsafeFromDuration(routes, maxAge, includeSubDomains, preload)
+
+  }
+
+  object httpApp {
+    def apply[F[_]: Functor](app: HttpApp[F]): HttpApp[F] =
+      HSTS.apply(app)
+
+    def apply[F[_]: Functor](app: HttpApp[F], header: `Strict-Transport-Security`): HttpApp[F] =
+      HSTS.apply(app, header)
+
+    def unsafeFromDuration[F[_]: Functor](
+        routes: HttpApp[F],
+        maxAge: FiniteDuration = 365.days,
+        includeSubDomains: Boolean = true,
+        preload: Boolean = false): HttpApp[F] =
+      HSTS.unsafeFromDuration(routes, maxAge, includeSubDomains, preload)
+  }
 }
