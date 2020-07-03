@@ -45,35 +45,35 @@ object HSTS {
   }
 
   object httpRoutes {
-    def apply[F[_]: Functor](routes: HttpRoutes[F]): HttpRoutes[F] =
-      HSTS.apply(routes)
+    def apply[F[_]: Functor](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+      HSTS.apply(httpRoutes)
 
     def apply[F[_]: Functor](
-        routes: HttpRoutes[F],
+        httpRoutes: HttpRoutes[F],
         header: `Strict-Transport-Security`): HttpRoutes[F] =
-      HSTS.apply(routes, header)
+      HSTS.apply(httpRoutes, header)
 
     def unsafeFromDuration[F[_]: Functor](
-        routes: HttpRoutes[F],
+        httpRoutes: HttpRoutes[F],
         maxAge: FiniteDuration = 365.days,
         includeSubDomains: Boolean = true,
         preload: Boolean = false): HttpRoutes[F] =
-      HSTS.unsafeFromDuration(routes, maxAge, includeSubDomains, preload)
+      HSTS.unsafeFromDuration(httpRoutes, maxAge, includeSubDomains, preload)
 
   }
 
   object httpApp {
-    def apply[F[_]: Functor](app: HttpApp[F]): HttpApp[F] =
-      HSTS.apply(app)
+    def apply[F[_]: Functor](httpApp: HttpApp[F]): HttpApp[F] =
+      HSTS.apply(httpApp)
 
-    def apply[F[_]: Functor](app: HttpApp[F], header: `Strict-Transport-Security`): HttpApp[F] =
-      HSTS.apply(app, header)
+    def apply[F[_]: Functor](httpApp: HttpApp[F], header: `Strict-Transport-Security`): HttpApp[F] =
+      HSTS.apply(httpApp, header)
 
     def unsafeFromDuration[F[_]: Functor](
-        routes: HttpApp[F],
+        httpApp: HttpApp[F],
         maxAge: FiniteDuration = 365.days,
         includeSubDomains: Boolean = true,
         preload: Boolean = false): HttpApp[F] =
-      HSTS.unsafeFromDuration(routes, maxAge, includeSubDomains, preload)
+      HSTS.unsafeFromDuration(httpApp, maxAge, includeSubDomains, preload)
   }
 }
