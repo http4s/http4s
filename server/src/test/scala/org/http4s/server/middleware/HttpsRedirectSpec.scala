@@ -34,7 +34,8 @@ class HttpsRedirectSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         val resp = app(req).unsafeRunSync
         val expectedAuthority = Authority(host = RegName("example.com"))
         val expectedLocation =
-          Location(Uri(path = "/", scheme = Some(Scheme.https), authority = Some(expectedAuthority)))
+          Location(
+            Uri(path = "/", scheme = Some(Scheme.https), authority = Some(expectedAuthority)))
         val expectedHeaders = Headers(expectedLocation :: `Content-Type`(MediaType.text.xml) :: Nil)
         resp.status must_== Status.MovedPermanently
         resp.headers must_== expectedHeaders
