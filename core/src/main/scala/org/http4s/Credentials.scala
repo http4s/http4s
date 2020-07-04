@@ -60,17 +60,23 @@ object Credentials {
   }
 }
 
-final case class BasicCredentials(username: String, password: String) {
+final case class BasicCredentials(
+    username: String,
+    password: String,
+    charset: JavaCharset = StandardCharsets.UTF_8) {
   lazy val token = {
     val userPass = username + ':' + password
-    val bytes = userPass.getBytes(StandardCharsets.ISO_8859_1)
+    val bytes = userPass.getBytes(charset)
     Base64.getEncoder.encodeToString(bytes)
   }
 }
 
 object BasicCredentials {
+
   private val utf8Charset = StandardCharsets.UTF_8
   private val utf8CharsetDecoder = utf8Charset.newDecoder
+  private val fallbackCharset = StandardCharsets.ISO_8859_1
+
   private def decode(bytes: Array[Byte], decoder: CharsetDecoder): Try[String] = {
     val byteByffer = ByteBuffer.wrap(bytes)
     Try(decoder.decode(byteByffer).toString)
@@ -80,11 +86,11 @@ object BasicCredentials {
 
   def apply(token: String): BasicCredentials = {
     val bytes = Base64.getDecoder.decode(token)
-    val userPass: String = decode(bytes, utf8CharsetDecoder)
-      .fold(_ => decode(bytes, StandardCharsets.ISO_8859_1), identity)
+    val (userPass, charset) = decode(bytes, utf8CharsetDecoder)
+      .fold(_ => (decode(bytes, fallbackCharset), fallbackCharset), up => (up, utf8Charset))
     userPass.indexOf(':') match {
-      case -1 => apply(userPass, "")
-      case ix => apply(userPass.substring(0, ix), userPass.substring(ix + 1))
+      case -1 => apply(userPass, "", charset)
+      case ix => apply(userPass.substring(0, ix), userPass.substring(ix + 1), charset)
     }
   }
 
