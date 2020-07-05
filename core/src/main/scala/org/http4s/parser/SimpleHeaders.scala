@@ -51,6 +51,21 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
+  def ACCESS_CONTROL_ALLOW_METHODS(value: String): ParseResult[`Access-Control-Allow-Methods`] =
+    new Http4sHeaderParser[`Access-Control-Allow-Methods`](value) {
+      def entry =
+        rule {
+          oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (ts: Seq[String]) =>
+            val ms = ts.map(
+              Method
+                .fromString(_)
+                .toOption
+                .getOrElse(sys.error("Impossible. Please file a bug report.")))
+            `Access-Control-Allow-Methods`(ms.toSet)
+          }
+        }
+    }.parse
+
   def ALLOW(value: String): ParseResult[Allow] =
     new Http4sHeaderParser[Allow](value) {
       def entry =

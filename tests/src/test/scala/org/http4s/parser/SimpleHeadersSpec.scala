@@ -217,5 +217,23 @@ class SimpleHeadersSpec extends Http4sSpec {
       val bad2 = Header("x-forwarded-for", "256.56.56.56")
       HttpHeaderParser.parseHeader(bad2) must beLeft
     }
+
+    "parse Access-Control-Allow-Methods" in {
+      val headers = Seq(
+        `Access-Control-Allow-Methods`(Method.GET, Method.POST),
+        `Access-Control-Allow-Methods`(Method.GET)
+      )
+      foreach(headers) { header =>
+        HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+      }
+
+      //Access-Control-Allow-Methods should not be empty
+      val bad = Header("Access-Control-Allow-Methods", "")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+
+      //FIXME: Invalid Method Name should return a Left Value
+      // val bad3 = Header("Access-Control-Allow-Methods", "invalid, GET")
+      // HttpHeaderParser.parseHeader(bad3) must beLeft
+    }
   }
 }
