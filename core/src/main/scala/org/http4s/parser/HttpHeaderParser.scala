@@ -23,6 +23,7 @@ object HttpHeaderParser
     with AcceptLanguageHeader
     with AuthorizationHeader
     with CacheControlHeader
+    with ContentLanguageHeader
     with ContentLocationHeader
     with ContentTypeHeader
     with CookieHeader
@@ -119,6 +120,7 @@ object HttpHeaderParser
     addParser_(CIString("CONNECTION"), `CONNECTION`)
     addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
     addParser_(CIString("CONTENT-ENCODING"), `CONTENT_ENCODING`)
+    addParser_(CIString("CONTENT-LANGUAGE"), `CONTENT_LANGUAGE`)
     addParser_(CIString("CONTENT-LENGTH"), `CONTENT_LENGTH`)
     addParser_(CIString("CONTENT-LOCATION"), `CONTENT_LOCATION`)
     addParser_(CIString("CONTENT-RANGE"), `CONTENT_RANGE`)
