@@ -15,6 +15,7 @@ object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with He
     HttpHeaderParser.CONTENT_LANGUAGE(s)
 }
 
+//RFC - https://tools.ietf.org/html/rfc3282#page-2
 final case class `Content-Language`(values: NonEmptyList[LanguageTag])
     extends Header.RecurringRenderable {
   override def key: `Content-Language`.type = `Content-Language`
