@@ -77,7 +77,7 @@ object ResponseLogger {
 
                 response.copy(
                   body = response.body
-                  // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                    // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                     .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
                     .onFinalizeWeak {
                       logMessage(response.withBodyStream(newBody))

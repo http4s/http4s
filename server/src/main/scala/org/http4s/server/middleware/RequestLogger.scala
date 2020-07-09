@@ -88,7 +88,7 @@ object RequestLogger {
 
             val changedRequest = req.withBodyStream(
               req.body
-              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.chunks.flatMap(c => Stream.eval_(vec.update(_ :+ c))))
             )
             def logRequest: F[Unit] =

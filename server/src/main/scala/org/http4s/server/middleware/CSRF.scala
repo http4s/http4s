@@ -302,9 +302,7 @@ object CSRF {
       key: SecretKey,
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G]
-  )(implicit
-      F: Sync[F],
-      G: Applicative[G]) {
+  )(implicit F: Sync[F], G: Applicative[G]) {
     private def copy(
         headerName: CaseInsensitiveString = headerName,
         cookieSettings: CookieSettings = cookieSettings,

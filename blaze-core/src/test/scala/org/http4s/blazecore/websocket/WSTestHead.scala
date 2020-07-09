@@ -32,9 +32,7 @@ import scala.concurrent.duration._
   */
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
-    outQueue: Queue[IO, WebSocketFrame])(implicit
-    timer: Timer[IO],
-    cs: ContextShift[IO])
+    outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
     extends HeadStage[WebSocketFrame] {
 
   private[this] val writeSemaphore = Semaphore[IO](1L).unsafeRunSync()
