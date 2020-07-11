@@ -221,11 +221,16 @@ class SimpleHeadersSpec extends Http4sSpec {
     "parse Access-Control-Allow-Methods" in {
       val headers = Seq(
         `Access-Control-Allow-Methods`(Method.GET, Method.POST),
-        `Access-Control-Allow-Methods`(Method.GET)
+        `Access-Control-Allow-Methods`(Method.GET),
+        `Access-Control-Allow-Methods`.`*`
       )
       foreach(headers) { header =>
         HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
       }
+
+      //Wildcard
+      val w = Header("Access-Control-Allow-Methods", "GET, POST, *")
+      HttpHeaderParser.parseHeader(w) must beRight(`Access-Control-Allow-Methods`.`*`)
 
       //Access-Control-Allow-Methods should not be empty
       val bad = Header("Access-Control-Allow-Methods", "")

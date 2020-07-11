@@ -25,6 +25,7 @@ import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
 import org.typelevel.ci.CIString
+import org.http4s.internal.bug
 
 /**
   * parser rules for all headers that can be parsed with one simple rule
@@ -56,12 +57,16 @@ private[parser] trait SimpleHeaders {
       def entry =
         rule {
           oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (ts: Seq[String]) =>
-            val ms = ts.map(
-              Method
-                .fromString(_)
-                .toOption
-                .getOrElse(sys.error("Impossible. Please file a bug report.")))
-            `Access-Control-Allow-Methods`(ms.toSet)
+            ts.find(_.equals("*")) match {
+              case Some(_) => `Access-Control-Allow-Methods`.`*`
+              case None =>
+                val ms = ts.map(
+                  Method
+                    .fromString(_)
+                    .toOption
+                    .getOrElse(throw bug("Impossible. All the parsed tokens are valid methods.")))
+                `Access-Control-Allow-Methods`(ms.head, ms.tail: _*)
+            }
           }
         }
     }.parse
