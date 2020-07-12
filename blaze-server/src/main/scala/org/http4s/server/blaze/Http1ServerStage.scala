@@ -80,9 +80,7 @@ private[blaze] class Http1ServerStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit
-    protected val F: ConcurrentEffect[F],
-    timer: Timer[F])
+    scheduler: TickWheelExecutor)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
   // micro-optimization: unwrap the routes and call its .run directly

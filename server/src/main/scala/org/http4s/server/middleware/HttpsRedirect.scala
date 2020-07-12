@@ -8,7 +8,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.Applicative
+import cats.{Applicative, Monad}
 import cats.implicits._
 import cats.data.Kleisli
 import org.http4s.Status.MovedPermanently
@@ -42,4 +42,10 @@ object HttpsRedirect {
           http(req)
       }
     }
+
+  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(httpRoutes)
+
+  def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
+    apply(httpApp)
 }

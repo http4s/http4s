@@ -33,9 +33,7 @@ private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
     sentClose: AtomicBoolean,
     deadSignal: SignallingRef[F, Boolean]
-)(implicit
-    F: ConcurrentEffect[F],
-    val ec: ExecutionContext)
+)(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
 
   private[this] val writeSemaphore = F.toIO(Semaphore[F](1L)).unsafeRunSync()
