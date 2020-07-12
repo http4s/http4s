@@ -126,6 +126,16 @@ class SimpleHeadersSpec extends Http4sSpec {
       }
     }
 
+    "parse Max-Forwards" in {
+      val headers = Seq(
+        `Max-Forwards`.unsafeFromLong(0),
+        `Max-Forwards`.unsafeFromLong(100)
+      )
+      foreach(headers) { header =>
+        HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+      }
+    }
+
     "parse Transfer-Encoding" in {
       val header = `Transfer-Encoding`(TransferCoding.chunked)
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)

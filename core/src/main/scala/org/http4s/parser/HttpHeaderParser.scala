@@ -136,6 +136,7 @@ object HttpHeaderParser
     addParser_(CIString("LAST-MODIFIED"), `LAST_MODIFIED`)
     addParser_(CIString("LINK"), `LINK`)
     addParser_(CIString("LOCATION"), `LOCATION`)
+    addParser_(CIString("MAX-FORWARDS"), `MAX_FORWARDS`)
     addParser_(CIString("ORIGIN"), `ORIGIN`)
     addParser_(CIString("PROXY-AUTHENTICATE"), `PROXY_AUTHENTICATE`)
     addParser_(CIString("RANGE"), `RANGE`)

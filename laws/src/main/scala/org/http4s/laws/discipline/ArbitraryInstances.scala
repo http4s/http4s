@@ -388,6 +388,13 @@ private[http4s] trait ArbitraryInstances {
       } yield `Content-Length`.unsafeFromLong(long)
     }
 
+  implicit val http4sTestingArbitraryForMaxForwards: Arbitrary[`Max-Forwards`] =
+    Arbitrary {
+      for {
+        value <- Gen.chooseNum(0, Long.MaxValue)
+      } yield `Max-Forwards`.unsafeFromLong(value)
+    }
+
   implicit val http4sTestingArbitraryForXB3TraceId: Arbitrary[`X-B3-TraceId`] =
     Arbitrary {
       for {
