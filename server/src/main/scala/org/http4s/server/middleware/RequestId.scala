@@ -27,7 +27,7 @@ object RequestId {
 
   private[this] val requestIdHeader = CIString("X-Request-ID")
 
-  val requestIdAttrKey: Key[String] = Key.newKey[IO, String].unsafeRunSync
+  val requestIdAttrKey: Key[String] = Key.newKey[IO, String].unsafeRunSync()
 
   def apply[G[_], F[_]](http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
     apply(requestIdHeader)(http)

@@ -89,7 +89,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       |""".stripMargin
       val expected = Request[IO](Method.GET, Uri.unsafeFromString("www.google.com"))
 
-      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync
+      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync()
 
       result.method must_=== expected.method
       result.uri.scheme must_=== expected.uri.scheme
@@ -98,7 +98,8 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       // result.uri.query must_=== expected.uri.query
       result.uri.fragment must_=== expected.uri.fragment
       result.headers must_=== expected.headers
-      result.body.compile.toVector.unsafeRunSync must_=== expected.body.compile.toVector.unsafeRunSync
+      result.body.compile.toVector.unsafeRunSync() must_=== expected.body.compile.toVector
+        .unsafeRunSync()
     }
 
     "Parse a request with a body correctly" in {
@@ -111,7 +112,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       val expected = Request[IO](Method.POST, Uri.unsafeFromString("/foo"))
         .withEntity("Entity Here")
 
-      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync
+      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync()
 
       result.method must_=== expected.method
       result.uri.scheme must_=== expected.uri.scheme
@@ -120,7 +121,8 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       // result.uri.query must_=== expected.uri.query
       result.uri.fragment must_=== expected.uri.fragment
       result.headers must_=== expected.headers
-      result.body.compile.toVector.unsafeRunSync must_=== expected.body.compile.toVector.unsafeRunSync
+      result.body.compile.toVector.unsafeRunSync() must_=== expected.body.compile.toVector
+        .unsafeRunSync()
     }
 
     "handle a response that requires multiple chunks to be read" in {
@@ -164,7 +166,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
 
           _.size must beGreaterThan(0)
         }
-        .unsafeRunSync
+        .unsafeRunSync()
     }
   }
 

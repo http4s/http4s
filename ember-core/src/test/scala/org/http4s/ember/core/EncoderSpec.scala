@@ -43,7 +43,7 @@ class EncoderSpec extends Specification {
       |
       |""".stripMargin
 
-      Helpers.encodeRequestRig(req).unsafeRunSync must_=== expected
+      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
     }
 
     "encode a request with a body correctly" in {
@@ -57,7 +57,7 @@ class EncoderSpec extends Specification {
       |
       |Hello World!""".stripMargin
 
-      Helpers.encodeRequestRig(req).unsafeRunSync must_=== expected
+      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
     }
 
     "encode headers correctly" in {
@@ -72,7 +72,7 @@ class EncoderSpec extends Specification {
         |foo: bar
         |
         |""".stripMargin
-      Helpers.encodeRequestRig(req).unsafeRunSync must_=== expected
+      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
     }
   }
 
@@ -85,7 +85,7 @@ class EncoderSpec extends Specification {
       |
       |""".stripMargin
 
-      Helpers.encodeResponseRig(resp).unsafeRunSync must_=== expected
+      Helpers.encodeResponseRig(resp).unsafeRunSync() must_=== expected
     }
 
     "encode a response with a body correctly" in {
@@ -99,7 +99,7 @@ class EncoderSpec extends Specification {
       |
       |Not Found""".stripMargin
 
-      Helpers.encodeResponseRig(resp).unsafeRunSync must_=== expected
+      Helpers.encodeResponseRig(resp).unsafeRunSync() must_=== expected
     }
   }
 }

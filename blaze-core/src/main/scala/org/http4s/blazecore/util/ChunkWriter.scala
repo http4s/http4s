@@ -37,7 +37,7 @@ private[util] object ChunkWriter {
   def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit
       F: Effect[F],
       ec: ExecutionContext): Future[Boolean] = {
-    val promise = Promise[Boolean]
+    val promise = Promise[Boolean]()
     val f = trailer.map { trailerHeaders =>
       if (trailerHeaders.nonEmpty) {
         val rr = new StringWriter(256)

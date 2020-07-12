@@ -23,7 +23,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
@@ -42,7 +42,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
 
       val req = Request[IO](uri = uri("/bad-request"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.BadRequest)
       resp must haveBody("400 Bad Request")
@@ -60,7 +60,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](uri = uri("/internal-server-error"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.InternalServerError)
       resp must haveBody("500 Internal Server Error")
@@ -78,7 +78,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
@@ -96,7 +96,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = POST, uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
@@ -114,7 +114,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = PUT, uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
@@ -132,7 +132,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = DELETE, uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
@@ -150,7 +150,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/error"))
 
-      val resp = meteredRoutes.orNotFound(req).attempt.unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).attempt.unsafeRunSync()
 
       resp must beLeft
       count(registry, Timer("server.default.errors")) must beEqualTo(1)
@@ -166,10 +166,10 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/abnormal-termination"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
-      resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
+      resp.body.attempt.compile.lastOrError.unsafeRunSync() must beLeft
       count(registry, Timer("server.default.abnormal-terminations")) must beEqualTo(1)
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
       count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
@@ -185,7 +185,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         Metrics[IO](ops = Dropwizard(registry, "server"), classifierF = classifierFunc)(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")

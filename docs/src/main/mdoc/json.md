@@ -80,7 +80,7 @@ val greeting = hello("world")
 We now have a JSON value, but we don't have enough to render it:
 
 ```scala mdoc:fail
-Ok(greeting).unsafeRunSync
+Ok(greeting).unsafeRunSync()
 ```
 
 To encode a Scala value of type `A` into an entity, we need an
@@ -93,7 +93,7 @@ import org.http4s.circe._
 ```
 
 ```scala mdoc
-Ok(greeting).unsafeRunSync
+Ok(greeting).unsafeRunSync()
 ```
 
 The same `EntityEncoder[Json]` we use on server responses is also
@@ -104,7 +104,7 @@ import org.http4s.client.dsl.io._
 ```
 
 ```scala mdoc
-POST(json"""{"name": "Alice"}""", uri"/hello").unsafeRunSync
+POST(json"""{"name": "Alice"}""", uri"/hello").unsafeRunSync()
 ```
 
 ## Encoding case classes as JSON
@@ -160,8 +160,8 @@ Equipped with an `Encoder` and `.asJson`, we can send JSON in requests
 and responses for our case classes:
 
 ```scala mdoc
-Ok(Hello("Alice").asJson).unsafeRunSync
-POST(User("Bob").asJson, uri"/hello").unsafeRunSync
+Ok(Hello("Alice").asJson).unsafeRunSync()
+POST(User("Bob").asJson, uri"/hello").unsafeRunSync()
 ```
 
 If within some route we serve json only, we can use:
@@ -186,8 +186,8 @@ The `org.http4s.circe._` package provides an implicit
 response body to JSON using the [`as` syntax]:
 
 ```scala mdoc
-Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync
-POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[Json]).unsafeRunSync
+Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync()
+POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[Json]).unsafeRunSync()
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -203,9 +203,9 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 
 ```scala mdoc
 implicit val userDecoder = jsonOf[IO, User]
-Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync
+Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync()
 
-POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[User]).unsafeRunSync
+POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[User]).unsafeRunSync()
 ```
 
 If we are always decoding from JSON to a typed model, we can use
@@ -300,7 +300,7 @@ Finally, we post `User("Alice")` to our Hello service and expect
 
 ```scala mdoc
 val helloAlice = helloClient("Alice")
-helloAlice.compile.last.unsafeRunSync
+helloAlice.compile.last.unsafeRunSync()
 ```
 
 Finally, shut down our example server.

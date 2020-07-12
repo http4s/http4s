@@ -160,7 +160,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       // header is split into two chunks, we wait for 10x
       val c = mkClient(h, tail)(responseHeaderTimeout = 1250.millis)
 
-      c.fetchAs[String](FooRequest).unsafeRunSync must_== "done"
+      c.fetchAs[String](FooRequest).unsafeRunSync() must_== "done"
     }
 
     // Regression test for: https://github.com/http4s/http4s/issues/2386

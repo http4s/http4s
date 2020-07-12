@@ -242,7 +242,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
       bracket(IO("foo"))(_ => IO.unit).flatMap { str =>
         val it = str.iterator
         emit {
-          if (it.hasNext) Some(it.next.toByte)
+          if (it.hasNext) Some(it.next().toByte)
           else None
         }
       }.unNoneTerminate

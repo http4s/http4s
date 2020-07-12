@@ -28,7 +28,7 @@ class HSTSSpec extends Http4sSpec {
         HSTS.httpRoutes.unsafeFromDuration(innerRoutes, 365.days).orNotFound,
         HSTS.httpApp.unsafeFromDuration(innerRoutes.orNotFound, 365.days)
       ).map { app =>
-        val resp = app(req).unsafeRunSync
+        val resp = app(req).unsafeRunSync()
         resp.status must_== Status.Ok
         resp.headers.get(`Strict-Transport-Security`) must beSome
       }
@@ -42,7 +42,7 @@ class HSTSSpec extends Http4sSpec {
         HSTS.httpRoutes(innerRoutes).orNotFound,
         HSTS.httpApp(innerRoutes.orNotFound)
       ).map { app =>
-        val resp = app(req).unsafeRunSync
+        val resp = app(req).unsafeRunSync()
         resp.status must_== Status.Ok
         resp.headers.get(`Strict-Transport-Security`) must beSome
       }
@@ -54,7 +54,7 @@ class HSTSSpec extends Http4sSpec {
         HSTS.httpRoutes(innerRoutes).orNotFound,
         HSTS.httpApp(innerRoutes.orNotFound)
       ).map { app =>
-        val resp = app(req).unsafeRunSync
+        val resp = app(req).unsafeRunSync()
         resp.status must_== Status.Ok
         resp.headers.get(`Strict-Transport-Security`) must beSome
       }
