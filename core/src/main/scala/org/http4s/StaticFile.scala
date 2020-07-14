@@ -90,7 +90,7 @@ object StaticFile {
           Some(
             Response(
               headers = headers,
-              body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blocker)
+              body = readInputStream[F](F.delay(urlConn.getInputStream), DefaultBufferSize, blocker)
             ))
         } else {
           urlConn.getInputStream.close()
