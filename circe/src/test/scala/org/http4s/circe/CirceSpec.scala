@@ -26,6 +26,7 @@ import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.specification.core.Fragment
+import io.circe.jawn.CirceSupportParser
 
 // Originally based on ArgonautSpec
 class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO {
@@ -40,6 +41,10 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       InvalidMessageBodyFailure(
         s"Custom Could not decode JSON: ${json.noSpaces}, errors: $failureStr")
     }
+    .build
+  
+  val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
+    .withCirceSupportParser(new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
     .build
 
   testJsonDecoder(jsonDecoder)
@@ -68,8 +73,14 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     Encoder.forProduct2("a", "b")(bar => (bar.a, bar.b))
 
   "json encoder" should {
-    val json = Json.obj("test" -> Json.fromString("CirceSupport"))
+    val json = Json.obj("foo" -> Json.fromString("baz"), "foo" -> Json.fromString("quux"))
+    "should allow duplicate keys" in {
+      writeToString(json) must_== ("""{"foo":"baz","foo":"quux"}""")
+    }
+  }  
 
+  "json encoder" should {
+    val json = Json.obj("test" -> Json.fromString("CirceSupport"))
     "have json content type" in {
       jsonEncoder[IO].headers.get(`Content-Type`) must_== Some(
         `Content-Type`(MediaType.application.json))
