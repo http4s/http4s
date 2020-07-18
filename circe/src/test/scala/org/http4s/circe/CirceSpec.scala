@@ -42,10 +42,6 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
         s"Custom Could not decode JSON: ${json.noSpaces}, errors: $failureStr")
     }
     .build
-  
-  val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
-    .withCirceSupportParser(new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
-    .build
 
   testJsonDecoder(jsonDecoder)
   testJsonDecoderError(CirceInstancesWithCustomErrors.jsonDecoderIncremental)(
@@ -71,13 +67,6 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     Decoder.forProduct2("a", "b")(Bar.apply)
   implicit val barEncoder: Encoder[Bar] =
     Encoder.forProduct2("a", "b")(bar => (bar.a, bar.b))
-
-  "json encoder" should {
-    val json = Json.obj("foo" -> Json.fromString("baz"), "foo" -> Json.fromString("quux"))
-    "should allow duplicate keys" in {
-      writeToString(json) must_== ("""{"foo":"baz","foo":"quux"}""")
-    }
-  }  
 
   "json encoder" should {
     val json = Json.obj("test" -> Json.fromString("CirceSupport"))
@@ -307,6 +296,43 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     "encode without defining EntityEncoder using default printer" in {
       import org.http4s.circe.CirceEntityEncoder._
       writeToString(foo) must_== """{"bar":42}"""
+    }
+  }
+
+  "CirceInstances.builder" should {
+    "should successfully decode when parser allows duplicate keys" in {
+      val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
+        .withCirceSupportParser(
+          new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
+        .build
+      val req = Request[IO]()
+        .withEntity("""{"bar": 1, "bar":2}""")
+        .withContentType(`Content-Type`(MediaType.application.json))
+
+      val decoder = circeInstanceAllowingDuplicateKeys.jsonOf[IO, Foo]
+      val result = decoder.decode(req, true).value.unsafeRunSync
+
+      result must beRight.like {
+        case Foo(2) => ok
+      }
+    }
+    "should should error out when parser does not allow duplicate keys" in {
+      val circeInstanceNotAllowingDuplicateKeys = CirceInstances.builder
+        .withCirceSupportParser(
+          new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false))
+        .build
+      val req = Request[IO]()
+        .withEntity("""{"bar": 1, "bar":2}""")
+        .withContentType(`Content-Type`(MediaType.application.json))
+
+      val decoder = circeInstanceNotAllowingDuplicateKeys.jsonOf[IO, Foo]
+      val result = decoder.decode(req, true).value.unsafeRunSync
+      result must beLeft.like {
+        case MalformedMessageBodyFailure(
+              "Invalid JSON",
+              Some(ParsingFailure("Invalid json, duplicate key name found: bar", _))) =>
+          ok
+      }
     }
   }
 
