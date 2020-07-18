@@ -43,7 +43,10 @@ trait CirceInstances extends JawnInstances {
     EntityDecoder.collectBinary(m).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining)
-        parseByteBuffer(bb).leftMap(circeParseExceptionMessage)
+        circeSupportParser
+          .parseFromByteBuffer(bb)
+          .toEither
+          .leftMap(e => circeParseExceptionMessage(ParsingFailure(e.getMessage(), e)))
       else
         Left(jawnEmptyBodyMessage)
     }
@@ -98,7 +101,7 @@ trait CirceInstances extends JawnInstances {
   implicit def jsonEncoder[F[_]]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
+  def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
     Chunk.byteBuffer(printer.printToByteBuffer(json))
 
   def jsonEncoderWithPrinter[F[_]](printer: Printer): EntityEncoder[F, Json] =
@@ -156,7 +159,8 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
     jawnParseExceptionMessage: ParseException => DecodeFailure =
       JawnInstances.defaultJawnParseExceptionMessage,
     jawnEmptyBodyMessage: DecodeFailure = JawnInstances.defaultJawnEmptyBodyMessage,
-    circeSupportParser: CirceSupportParser = new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
+    circeSupportParser: CirceSupportParser =
+      new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
 ) { self =>
   def withPrinter(pp: Printer): CirceInstancesBuilder =
     this.copy(defaultPrinter = pp)
@@ -173,8 +177,8 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
   def withEmptyBodyMessage(df: DecodeFailure): CirceInstancesBuilder =
     this.copy(jawnEmptyBodyMessage = df)
 
-  def withCirceSupportParser(csp: CirceSupportParser): CirceInstancesBuilder = 
-    this.copy(circeSupportParser = csp)  
+  def withCirceSupportParser(csp: CirceSupportParser): CirceInstancesBuilder =
+    this.copy(circeSupportParser = csp)
 
   protected def copy(
       defaultPrinter: Printer = self.defaultPrinter,
