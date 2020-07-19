@@ -19,6 +19,7 @@ import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
+import scala.util.Try
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -87,11 +88,18 @@ object StaticFile {
             else `Transfer-Encoding`(TransferCoding.chunked)
           val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
-          Some(
-            Response(
-              headers = headers,
-              body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blocker)
-            ))
+          Try(url.openStream()).fold(
+            fa = {
+              case _: FileNotFoundException => None
+            },
+            fb = { inputStream =>
+              Some(
+                Response(
+                  headers = headers,
+                  body = readInputStream[F](F.delay(inputStream), DefaultBufferSize, blocker)
+                ))
+            }
+          )
         } else {
           urlConn.getInputStream.close()
           Some(Response(NotModified))

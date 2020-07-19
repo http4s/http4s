@@ -285,5 +285,13 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         .unsafeRunSync
       s must_== None
     }
+
+    "return none from a URL that points to a resource that does not exist" in {
+      val s = StaticFile
+        .fromURL[IO](new URL("https://github.com/http4s/http4s/fooz"), testBlocker)
+        .value
+        .unsafeRunSync
+      s must_== None
+    }
   }
 }
