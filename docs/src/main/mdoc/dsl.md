@@ -502,7 +502,7 @@ To validate query parsing you can use `ValidatingQueryParamDecoderMatcher` which
 
 ```scala mdoc:nest
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
-  QueryParamDecoder[Int].map(Year.of)
+  QueryParamDecoder[Int].emap(i => Try(Year.of(i)).toEither.leftMap(t => ParseFailure(t.getMessage, t.getMessage)))
 
 object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year]("year")
 
