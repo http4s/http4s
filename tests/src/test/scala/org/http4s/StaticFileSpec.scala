@@ -296,15 +296,10 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "raise exception when url does not exist" in {
-      try {
-        StaticFile
-          .fromURL[IO](new URL("https://quuzgithubfoo.com/http4s/http4s/fooz"), testBlocker)
-          .value
-          .unsafeRunSync
-        ko
-      } catch {
-        case _: UnknownHostException => ok
-      }
+      StaticFile
+        .fromURL[IO](new URL("https://quuzgithubfoo.com/http4s/http4s/fooz"), testBlocker)
+        .value
+        .unsafeRunSync must throwA[UnknownHostException]
     }
   }
 }
