@@ -19,7 +19,6 @@ import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
-import scala.util.Try
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -70,9 +69,9 @@ object StaticFile {
       cs: ContextShift[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
-    OptionT.apply(F.delay {
+    OptionT.apply(F.suspend {
       if (file.isDirectory())
-        None
+        F.pure(None)
       else {
         val urlConn = url.openConnection
         val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
@@ -88,22 +87,24 @@ object StaticFile {
             else `Transfer-Encoding`(TransferCoding.chunked)
           val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
-          Try(url.openStream()).fold(
-            fa = {
-              case _: FileNotFoundException => None
-            },
-            fb = { inputStream =>
-              Some(
-                Response(
-                  headers = headers,
-                  body = readInputStream[F](F.delay(inputStream), DefaultBufferSize, blocker)
-                ))
-            }
-          )
-        } else {
-          urlConn.getInputStream.close()
-          Some(Response(NotModified))
-        }
+          F.delay(url.openStream)
+            .redeem(
+              recover = {
+                case _: FileNotFoundException => None
+                case other => throw other
+              },
+              f = { inputStream =>
+                Some(
+                  Response(
+                    headers = headers,
+                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize, blocker)
+                  ))
+              }
+            )
+        } else
+          blocker
+            .delay(urlConn.getInputStream.close)
+            .as(Some(Response(NotModified)))
       }
     })
   }
