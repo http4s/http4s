@@ -87,7 +87,8 @@ object StaticFile {
             else `Transfer-Encoding`(TransferCoding.chunked)
           val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
-          F.delay(url.openStream)
+          blocker
+            .delay(url.openStream)
             .redeem(
               recover = {
                 case _: FileNotFoundException => None
