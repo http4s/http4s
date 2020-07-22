@@ -138,7 +138,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 timeout
               )(logger)
               .map(response =>
-              // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
+                // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
                 response.copy(body = response.body.onFinalizeCaseWeak {
                   case ExitCase.Completed =>
                     val requestClose = request.headers.get(Connection).exists(_.hasClose)
@@ -151,8 +151,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   case ExitCase.Canceled => Sync[F].unit
                   case ExitCase.Error(_) => Sync[F].unit
                 }))
-        } yield responseResource
-      )
+        } yield responseResource)
       new EmberClient[F](client, pool)
     }
 }
