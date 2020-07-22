@@ -14,7 +14,6 @@ import cats.implicits._
 import cats.effect._
 import scala.concurrent.duration._
 import org.http4s.headers.Connection
-import org.http4s.Response
 import org.http4s.client._
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
@@ -139,6 +138,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 timeout
               )(logger)
               .map(response =>
+              // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
                 response.copy(body = response.body.onFinalizeCaseWeak {
                   case ExitCase.Completed =>
                     val requestClose = request.headers.get(Connection).exists(_.hasClose)
@@ -151,12 +151,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   case ExitCase.Canceled => Sync[F].unit
                   case ExitCase.Error(_) => Sync[F].unit
                 }))
-          response <- Resource.make[F, Response[F]](responseResource.pure[F])(resp =>
-            managed.canBeReused.get.flatMap {
-              case Reusable.Reuse => resp.body.compile.drain.attempt.void
-              case Reusable.DontReuse => Sync[F].unit
-            })
-        } yield response)
+        } yield responseResource
+      )
       new EmberClient[F](client, pool)
     }
 }
