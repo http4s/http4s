@@ -31,7 +31,7 @@ class HttpsRedirectSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         HttpsRedirect.httpRoutes(innerRoutes).orNotFound,
         HttpsRedirect.httpApp(innerRoutes.orNotFound)
       ).map { app =>
-        val resp = app(req).unsafeRunSync
+        val resp = app(req).unsafeRunSync()
         val expectedAuthority = Authority(host = RegName("example.com"))
         val expectedLocation =
           Location(
@@ -49,7 +49,7 @@ class HttpsRedirectSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         HttpsRedirect.httpApp(innerRoutes.orNotFound)
       ).map { app =>
         val noHeadersReq = Request[IO](method = GET, uri = Uri(path = "/"))
-        val resp = app(noHeadersReq).unsafeRunSync
+        val resp = app(noHeadersReq).unsafeRunSync()
         resp.status must_== Status.Ok
         resp.as[String] must returnValue("pong")
       }

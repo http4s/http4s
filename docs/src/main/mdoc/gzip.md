@@ -37,8 +37,8 @@ val service = HttpRoutes.of[IO] {
 val request = Request[IO](Method.GET, uri"/")
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = service.orNotFound(request).unsafeRunSync
-val body = response.as[String].unsafeRunSync
+val response = service.orNotFound(request).unsafeRunSync()
+val body = response.as[String].unsafeRunSync()
 body.length
 ```
 
@@ -49,8 +49,8 @@ import org.http4s.server.middleware._
 val zipService = GZip(service)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(request).unsafeRunSync
-val body = response.as[String].unsafeRunSync
+val response = zipService.orNotFound(request).unsafeRunSync()
+val body = response.as[String].unsafeRunSync()
 body.length
 ```
 
@@ -63,8 +63,8 @@ val acceptHeader = Header("Accept-Encoding", "gzip")
 val zipRequest = request.putHeaders(acceptHeader)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(zipRequest).unsafeRunSync
-val body = response.as[String].unsafeRunSync
+val response = zipService.orNotFound(zipRequest).unsafeRunSync()
+val body = response.as[String].unsafeRunSync()
 body.length
 ```
 

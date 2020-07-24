@@ -65,7 +65,8 @@ lazy val root = project.in(file("."))
 lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
-    MimeLoaderPlugin
+    MimeLoaderPlugin,
+    SilencerPlugin
   )
   .settings(
     description := "Core http4s library for servers and clients",

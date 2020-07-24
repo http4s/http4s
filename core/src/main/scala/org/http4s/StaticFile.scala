@@ -216,5 +216,5 @@ object StaticFile {
       case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
     }
 
-  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync
+  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync()
 }
