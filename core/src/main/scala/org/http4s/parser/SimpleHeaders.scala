@@ -224,6 +224,14 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
+  def MAX_FORWARDS(value: String): ParseResult[`Max-Forwards`] =
+    new Http4sHeaderParser[`Max-Forwards`](value) {
+      def entry =
+        rule {
+          Digits ~ EOL ~> { (s: String) => `Max-Forwards`.unsafeFromLong(s.toLong) }
+        }
+    }.parse
+
   def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
     TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 

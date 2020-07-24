@@ -21,7 +21,7 @@ class EncoderSpec extends Specification {
         .reqToBytes(req)
         .through(fs2.text.utf8Decode[F])
         .compile
-        .foldMonoid
+        .string
         .map(stripLines)
 
     // Only for Use with Text Requests
@@ -30,7 +30,7 @@ class EncoderSpec extends Specification {
         .respToBytes(resp)
         .through(fs2.text.utf8Decode[F])
         .compile
-        .foldMonoid
+        .string
         .map(stripLines)
   }
 
@@ -57,6 +57,21 @@ class EncoderSpec extends Specification {
       |
       |Hello World!""".stripMargin
 
+      Helpers.encodeRequestRig(req).unsafeRunSync must_=== expected
+    }
+
+    "encode headers correctly" in {
+      val req = Request[IO](
+        Method.GET,
+        Uri.unsafeFromString("http://www.google.com"),
+        headers = Headers.of(Header("foo", "bar"))
+      )
+      val expected =
+        """GET http://www.google.com HTTP/1.1
+        |Host: www.google.com
+        |foo: bar
+        |
+        |""".stripMargin
       Helpers.encodeRequestRig(req).unsafeRunSync must_=== expected
     }
   }

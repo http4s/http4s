@@ -42,7 +42,6 @@ object DigestAuth {
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
   /**
-    *
     * @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.

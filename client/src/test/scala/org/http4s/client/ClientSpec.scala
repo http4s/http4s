@@ -31,8 +31,8 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
         .withEntity("foo")
         .pure[IO]
         .flatMap { req =>
-          // This is bad.  Don't do this.
-          client.fetch(req)(IO.pure).flatMap(_.as[String])
+          // This is bad. Don't do this.
+          client.run(req).use(IO.pure).flatMap(_.as[String])
         }
         .attempt
         .unsafeRunSync() must beLeft.like {

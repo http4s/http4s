@@ -306,7 +306,8 @@ private final class Http1Connection[F[_]](
   ///////////////////////// Private helpers /////////////////////////
 
   /** Validates the request, attempting to fix it if possible,
-    * returning an Exception if invalid, None otherwise */
+    * returning an Exception if invalid, None otherwise
+    */
   @tailrec private def validateRequest(req: Request[F]): Either[Exception, Request[F]] = {
     val minor: Int = getHttpMinor(req)
 

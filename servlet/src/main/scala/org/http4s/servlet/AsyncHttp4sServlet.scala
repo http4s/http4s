@@ -47,16 +47,15 @@ class AsyncHttp4sServlet[F[_]](
       // Must be done on the container thread for Tomcat's sake when using async I/O.
       val bodyWriter = servletIo.initWriter(servletResponse)
       F.runAsync(
-          toRequest(servletRequest).fold(
-            onParseFailure(_, servletResponse, bodyWriter),
-            handleRequest(ctx, _, bodyWriter)
-          )) {
-          case Right(()) =>
-            IO(ctx.complete())
-          case Left(t) =>
-            IO(errorHandler(servletRequest, servletResponse)(t))
-        }
-        .unsafeRunSync()
+        toRequest(servletRequest).fold(
+          onParseFailure(_, servletResponse, bodyWriter),
+          handleRequest(ctx, _, bodyWriter)
+        )) {
+        case Right(()) =>
+          IO(ctx.complete())
+        case Left(t) =>
+          IO(errorHandler(servletRequest, servletResponse)(t))
+      }.unsafeRunSync()
     } catch errorHandler(servletRequest, servletResponse)
 
   private def handleRequest(

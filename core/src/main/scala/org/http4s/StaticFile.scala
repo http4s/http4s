@@ -66,31 +66,39 @@ object StaticFile {
 
   def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(implicit
       F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] =
-    OptionT.liftF(F.delay {
-      val urlConn = url.openConnection
-      val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
-      val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
-      val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
+      cs: ContextShift[F]): OptionT[F, Response[F]] = {
+    val fileUrl = url.getFile()
+    val file = new File(fileUrl)
+    OptionT.apply(F.delay {
+      if (file.isDirectory())
+        None
+      else {
+        val urlConn = url.openConnection
+        val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
+        val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
+        val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
 
-      if (expired) {
-        val lastModHeader: List[Header] = lastmod.map(`Last-Modified`(_)).toList
-        val contentType = nameToContentType(url.getPath).toList
-        val len = urlConn.getContentLengthLong
-        val lenHeader =
-          if (len >= 0) `Content-Length`.unsafeFromLong(len)
-          else `Transfer-Encoding`(TransferCoding.chunked)
-        val headers = Headers(lenHeader :: lastModHeader ::: contentType)
+        if (expired) {
+          val lastModHeader: List[Header] = lastmod.map(`Last-Modified`(_)).toList
+          val contentType = nameToContentType(url.getPath).toList
+          val len = urlConn.getContentLengthLong
+          val lenHeader =
+            if (len >= 0) `Content-Length`.unsafeFromLong(len)
+            else `Transfer-Encoding`(TransferCoding.chunked)
+          val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
-        Response(
-          headers = headers,
-          body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blocker)
-        )
-      } else {
-        urlConn.getInputStream.close()
-        Response(NotModified)
+          Some(
+            Response(
+              headers = headers,
+              body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blocker)
+            ))
+        } else {
+          urlConn.getInputStream.close()
+          Some(Response(NotModified))
+        }
       }
     })
+  }
 
   def calcETag[F[_]: Sync]: File => F[String] =
     f =>

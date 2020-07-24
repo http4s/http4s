@@ -17,7 +17,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 /** A simple stage t
-o help test websocket requests
+  * o help test websocket requests
   *
   * This is really disgusting code but bear with me here:
   * `java.util.LinkedBlockingDeque` does NOT have nodes with
@@ -29,7 +29,6 @@ o help test websocket requests
   * nodes are checked by a different thread since node values have no
   * atomicity guarantee by the jvm. I simply want to provide a (blocking)
   * way of reading a websocket frame, to emulate reading from a socket.
-  *
   */
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],

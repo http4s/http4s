@@ -9,9 +9,9 @@ package client
 package middleware
 
 import cats.effect.{Bracket, Sync}
-import fs2.{Pipe, Stream}
-import java.io.EOFException
+import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
+import scala.util.control.NoStackTrace
 
 /**
   * Client middleware for enabling gzip.
@@ -26,7 +26,7 @@ object GZip {
       val responseResource = client.run(reqWithEncoding)
 
       responseResource.map { actualResponse =>
-        decompress(bufferSize, canEntityBodyBeEmpty(req.method), actualResponse)
+        decompress(bufferSize, actualResponse)
       }
     }
 
@@ -39,37 +39,37 @@ object GZip {
           req.headers ++ Headers.of(Header(`Accept-Encoding`.name.toString, supportedCompressions)))
     }
 
-  private def canEntityBodyBeEmpty(requestMethod: Method): Boolean =
-    requestMethod == Method.HEAD
-
-  private def decompress[F[_]](
-      bufferSize: Int,
-      entityBodyCanBeEmpty: Boolean,
-      response: Response[F])(implicit F: Sync[F]): Response[F] =
+  private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
+      F: Sync[F]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =
           _.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content)
-
-        response.withBodyStream(response.body.through(decompressWith(gunzip, entityBodyCanBeEmpty)))
+        response.withBodyStream(response.body.through(decompressWith(gunzip)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
         val deflate: Pipe[F, Byte, Byte] = fs2.compression.deflate(bufferSize)
-
-        response.withBodyStream(
-          response.body.through(decompressWith(deflate, entityBodyCanBeEmpty)))
+        response.withBodyStream(response.body.through(decompressWith(deflate)))
 
       case _ =>
         response
     }
 
-  private def decompressWith[F[_]](
-      decompressor: Pipe[F, Byte, Byte],
-      entityBodyCanBeEmpty: Boolean)(implicit F: Bracket[F, Throwable]): Pipe[F, Byte, Byte] =
-    _.through(decompressor)
+  private def decompressWith[F[_]](decompressor: Pipe[F, Byte, Byte])(implicit
+      F: Bracket[F, Throwable]): Pipe[F, Byte, Byte] =
+    _.pull.peek1
+      .flatMap {
+        case None => Pull.raiseError(EmptyBodyException)
+        case Some((_, fullStream)) => Pull.output1(fullStream)
+      }
+      .stream
+      .flatten
+      .through(decompressor)
       .handleErrorWith {
-        case _: EOFException if entityBodyCanBeEmpty => Stream.empty
+        case EmptyBodyException => Stream.empty
         case error => Stream.raiseError(error)
       }
+
+  private object EmptyBodyException extends Throwable with NoStackTrace
 }

@@ -74,7 +74,7 @@ object Prometheus {
     * *
     * * @param registry a metrics collector registry
     * * @param prefix a prefix that will be added to all metrics
-    **/
+    */
   def metricsOps[F[_]: Sync](
       registry: CollectorRegistry,
       prefix: String = "org_http4s_server",

@@ -187,12 +187,11 @@ private[blaze] class Http1ServerStage[F[_]](
             parser.synchronized {
               cancelToken = Some(
                 F.runCancelable(action) {
-                    case Right(()) => IO.unit
-                    case Left(t) =>
-                      IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                        closeConnection())
-                  }
-                  .unsafeRunSync())
+                  case Right(()) => IO.unit
+                  case Left(t) =>
+                    IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                      closeConnection())
+                }.unsafeRunSync())
             }
           }
         })
@@ -303,10 +302,9 @@ private[blaze] class Http1ServerStage[F[_]](
   private def cancel(): Unit =
     cancelToken.foreach { token =>
       F.runAsync(token) {
-          case Right(_) => IO(logger.debug("Canceled request"))
-          case Left(t) => IO(logger.error(t)("Error canceling request"))
-        }
-        .unsafeRunSync()
+        case Right(_) => IO(logger.debug("Canceled request"))
+        case Left(t) => IO(logger.error(t)("Error canceling request"))
+      }.unsafeRunSync()
     }
 
   final protected def badMessage(

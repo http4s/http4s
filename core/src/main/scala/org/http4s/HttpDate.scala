@@ -91,7 +91,8 @@ object HttpDate {
     fromString(s).fold(throw _, identity)
 
   /** Constructs a date from the seconds since the [[Epoch]]. If out of range,
-    *  returns a ParseFailure. */
+    *  returns a ParseFailure.
+    */
   def fromEpochSecond(epochSecond: Long): ParseResult[HttpDate] =
     if (epochSecond < MinEpochSecond || epochSecond > MaxEpochSecond)
       ParseResult.fail(
@@ -105,7 +106,8 @@ object HttpDate {
     fromEpochSecond(epochSecond).fold(throw _, identity)
 
   /** Constructs a date from an instant, truncating to the most recent second. If
-    *  out of range, returns a ParseFailure. */
+    *  out of range, returns a ParseFailure.
+    */
   def fromInstant(instant: Instant): ParseResult[HttpDate] =
     fromEpochSecond(instant.toEpochMilli / 1000)
 
@@ -114,7 +116,8 @@ object HttpDate {
     unsafeFromEpochSecond(instant.toEpochMilli / 1000)
 
   /** Constructs a date from an zoned date-time, truncating to the most recent
-    *  second. If out of range, returns a ParseFailure. */
+    *  second. If out of range, returns a ParseFailure.
+    */
   def fromZonedDateTime(dateTime: ZonedDateTime): ParseResult[HttpDate] =
     fromInstant(dateTime.toInstant)
 

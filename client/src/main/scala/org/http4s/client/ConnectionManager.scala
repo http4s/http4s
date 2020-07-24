@@ -51,7 +51,7 @@ object ConnectionManager {
   /** Create a [[ConnectionManager]] that creates new connections on each request
     *
     * @param builder generator of new connections
-    * */
+    */
   def basic[F[_]: Sync, A <: Connection[F]](
       builder: ConnectionBuilder[F, A]): ConnectionManager[F, A] =
     new BasicManager[F, A](builder)

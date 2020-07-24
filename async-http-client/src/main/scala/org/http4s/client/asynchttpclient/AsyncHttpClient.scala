@@ -22,15 +22,11 @@ import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
-import org.http4s.internal.invokeCallback
 import org.http4s.internal.bug
 import org.http4s.internal.threads._
-import org.log4s.getLogger
 import org.reactivestreams.Publisher
 
 object AsyncHttpClient {
-  private[this] val logger = getLogger
-
   val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
@@ -86,6 +82,7 @@ object AsyncHttpClient {
       var response: Response[F] = Response()
       val dispose = F.delay { state = State.ABORT }
       val onStreamCalled = Ref.unsafe[F, Boolean](false)
+      val deferredThrowable = Deferred.unsafe[F, Throwable]
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         val eff = for {
@@ -103,6 +100,7 @@ object AsyncHttpClient {
             subscriber
               .stream(bodyDisposal.set(F.unit) >> subscribeF)
               .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+              .mergeHaltBoth(Stream.eval(deferredThrowable.get.flatMap(F.raiseError[Byte])))
 
           responseWithBody = response.copy(body = body)
 
@@ -129,7 +127,12 @@ object AsyncHttpClient {
       }
 
       override def onThrowable(throwable: Throwable): Unit =
-        invokeCallback(logger)(cb(Left(throwable)))
+        onStreamCalled.get
+          .ifM(
+            ifTrue = deferredThrowable.complete(throwable),
+            ifFalse = invokeCallbackF(cb(Left(throwable))))
+          .runAsync(_ => IO.unit)
+          .unsafeRunSync()
 
       override def onCompleted(): Unit =
         onStreamCalled.get

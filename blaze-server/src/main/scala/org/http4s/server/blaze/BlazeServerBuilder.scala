@@ -180,7 +180,8 @@ class BlazeServerBuilder[F[_]](
     copy(sslConfig = new ContextWithClientAuth[F](sslContext, clientAuth))
 
   /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters` */
+    * default `SSLParameters`
+    */
   def withSslContext(sslContext: SSLContext): Self =
     copy(sslConfig = new ContextOnly[F](sslContext))
 

@@ -26,7 +26,8 @@ private[http4s] class QueryParser(
   import QueryParser._
 
   /** Decodes the input into key value pairs.
-    * `flush` signals that this is the last input */
+    * `flush` signals that this is the last input
+    */
   def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
     val acc: Builder[Query.KeyValue, Vector[Query.KeyValue]] = Vector.newBuilder
     decodeBuffer(input, (k, v) => acc += ((k, v)), flush) match {
@@ -120,12 +121,14 @@ private[http4s] object QueryParser {
   private case object VALUE extends State
 
   /** Defines the characters that are allowed unquoted within a query string as
-    * defined in RFC 3986*/
+    * defined in RFC 3986
+    */
   val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq: _*)
 
   /** PHP also includes square brackets ([ and ]) with query strings. This goes
     * against the spec but due to PHP's widespread adoption it is necessary to
-    * support this extension. */
+    * support this extension.
+    */
   val ExtendedQChars = QChars ++ ("[]".map(_.toInt).toSet)
   private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet
   private def Unreserved = "-._~".toSet ++ AlphaNum
