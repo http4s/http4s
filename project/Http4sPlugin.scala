@@ -22,7 +22,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.3"
-  val scala_212 = "2.12.11"
+  val scala_212 = "2.12.12"
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
