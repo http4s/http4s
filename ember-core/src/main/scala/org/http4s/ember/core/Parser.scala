@@ -54,16 +54,13 @@ private[ember] object Parser {
 
   def generateHeaders[F[_]: Monad](byteVector: ByteVector)(acc: Headers)(
       logger: Logger[F]): F[Headers] = {
-    // println(headerO)
 
     def generateHeaderForLine(bv: ByteVector): Option[Header] =
       for {
         line <- bv.decodeAscii.toOption
-        // _ = println(s"Generate Headers - line: ${line}")
         idx <- Some(line.indexOf(':'))
         if idx >= 0
         header = Header(line.substring(0, idx), line.substring(idx + 1).trim)
-        // _ = println(s"generateHeaders - header: ${header}")
       } yield header
 
     splitHeader(byteVector)(logger).flatMap {

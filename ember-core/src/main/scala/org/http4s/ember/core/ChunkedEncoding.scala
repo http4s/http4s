@@ -39,7 +39,6 @@ private[ember] object ChunkedEncoding {
             case Left(header) =>
               val nh = header ++ bv
               val endOfheader = nh.indexOfSlice(`\r\n`)
-              // println(s"header: ${header.decodeAscii}, nh: ${nh.decodeAscii}, endOfHeader: $endOfheader")
               if (endOfheader == 0)
                 go(
                   expect,
@@ -66,14 +65,12 @@ private[ember] object ChunkedEncoding {
               }
 
             case Right(remains) =>
-              // println(s"Right  - Remains: ${remains}, bv: ${bv.decodeAscii}")
               if (remains == bv.size)
                 Pull.output(Chunk.ByteVectorChunk(bv)) >> go(Left(ByteVector.empty), tl)
               else if (remains > bv.size)
                 Pull.output(Chunk.ByteVectorChunk(bv)) >> go(Right(remains - bv.size), tl)
               else {
                 val (out, next) = bv.splitAt(remains.toLong)
-                // println(s"outputing chunk ${out.decodeAscii}")
                 Pull.output(Chunk.ByteVectorChunk(out)) >> go(
                   Left(ByteVector.empty),
                   Stream.chunk(Chunk.ByteVectorChunk(next)) ++ tl)
@@ -135,7 +132,6 @@ private[ember] object ChunkedEncoding {
 
   /** yields to size of header in case the chunked header was succesfully parsed, else yields to None */
   private def readChunkedHeader(hdr: ByteVector): Option[Long] =
-    // println(s"Reading Chunked Header ${hdr.decodeAscii}")
     hdr.decodeUtf8.toOption.flatMap { s =>
       val parts = s.split(';') // lets ignore any extensions
       if (parts.isEmpty) None
