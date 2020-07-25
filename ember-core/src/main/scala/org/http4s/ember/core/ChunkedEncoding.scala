@@ -58,7 +58,7 @@ private[ember] object ChunkedEncoding {
                         s"Failed to parse chunked header : ${hdr.decodeUtf8}"))
                   case Some(0) =>
                     // Done With Message, Now Parse Trailers
-                    parseTrailers[F](logger)(tl).flatMap { hdrs =>
+                    parseTrailers[F](maxChunkHeaderSize, logger)(tl).flatMap { hdrs =>
                       Pull.eval(trailers.complete(hdrs)) >> Pull.done
                     }
                   case Some(sz) => go(Right(sz), Stream.chunk(Chunk.ByteVectorChunk(rem)) ++ tl)
@@ -84,8 +84,9 @@ private[ember] object ChunkedEncoding {
     go(Left(ByteVector.empty), _).stream
   }
 
-  private def parseTrailers[F[_]: Monad](logger: Logger[F])(
-      s: Stream[F, Byte]): Pull[F, Nothing, Headers] = {
+  private def parseTrailers[F[_]: MonadError[*[_], Throwable]](
+      maxHeaderSize: Int,
+      logger: Logger[F])(s: Stream[F, Byte]): Pull[F, Nothing, Headers] = {
     def lookForCRLFCRLF(acc: ByteVector, s: Stream[F, Byte]): Pull[F, Nothing, Headers] =
       s.pull.uncons.flatMap {
         case None =>
@@ -97,6 +98,12 @@ private[ember] object ChunkedEncoding {
           val idx = next.indexOfSlice(`\r\n\r\n`)
           if (idx >= 0)
             Pull.eval(Parser.generateHeaders(next.slice(0, idx))(Headers.empty)(logger))
+          else if (next.size >= maxHeaderSize)
+            Pull.raiseError[F](
+              EmberException.ChunkedEncodingError(
+                s"Failed to get Trailer Header. Size exceeds max($maxHeaderSize) : ${next.size} ${next.decodeUtf8}"
+              )
+            )
           else lookForCRLFCRLF(next, tl)
 
       }
