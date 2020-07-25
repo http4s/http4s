@@ -14,6 +14,7 @@ import org.http4s._
 import cats.effect._
 import Shared._
 import _root_.io.chrisdavenport.log4cats.Logger
+import cats.effect.concurrent._
 
 private[ember] object Parser {
 
@@ -29,7 +30,7 @@ private[ember] object Parser {
             EmberException.ParseError(
               s"Incomplete Header received (sz = ${buff.size}): ${buff.decodeUtf8}"))
         case Some((chunk, tl)) =>
-          val bv = chunk2ByteVector(chunk)
+          val bv = chunk.toByteVector
           val all = buff ++ bv
           val idx = all.indexOfSlice(`\r\n\r\n`)
           if (idx < 0)
@@ -92,7 +93,8 @@ private[ember] object Parser {
   }
 
   object Request {
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(l: Logger[F]): F[Request[F]] =
+    def parser[F[_]: Concurrent](maxHeaderLength: Int)(s: Stream[F, Byte])(
+        l: Logger[F]): F[Request[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
         .evalMap {
           case (bv, body) => headerBlobByteVectorToRequest[F](bv, body, maxHeaderLength)(l)
@@ -104,8 +106,7 @@ private[ember] object Parser {
     private def headerBlobByteVectorToRequest[F[_]](
         b: ByteVector,
         s: Stream[F, Byte],
-        maxHeaderLength: Int)(logger: Logger[F])(implicit
-        F: MonadError[F, Throwable]): F[Request[F]] =
+        maxHeaderLength: Int)(logger: Logger[F])(implicit F: Concurrent[F]): F[Request[F]] =
       for {
         shE <- splitHeader(b)(logger)
         (methodHttpUri, headersBV) <- shE.fold(
@@ -129,6 +130,7 @@ private[ember] object Parser {
         newUri = uri.copy(
           authority = host.map(h => Uri.Authority(host = Uri.RegName(h.host), port = h.port)))
         newHeaders = headers.filterNot(_.is(org.http4s.headers.Host))
+        trailers <- Deferred[F, Headers]
       } yield {
         val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
           method = method,
@@ -136,10 +138,16 @@ private[ember] object Parser {
           httpVersion = http,
           headers = newHeaders
         )
-        val body =
-          if (baseReq.isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
-          else s.take(baseReq.contentLength.getOrElse(0L))
-        baseReq.withBodyStream(body)
+        if (baseReq.isChunked)
+          baseReq
+            .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+            .withBodyStream(
+              s.through(ChunkedEncoding.decode(maxHeaderLength, trailers, logger))
+            )
+        else
+          baseReq.withBodyStream(
+            s.take(baseReq.contentLength.getOrElse(0L))
+          )
       }
 
     private def bvToRequestTopLine[F[_]](b: ByteVector)(implicit
@@ -181,7 +189,7 @@ private[ember] object Parser {
   }
 
   object Response {
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(
+    def parser[F[_]: Concurrent](maxHeaderLength: Int)(s: Stream[F, Byte])(
         logger: Logger[F]): Resource[F, Response[F]] =
       s.through(httpHeaderAndBody[F](maxHeaderLength))
         .evalMap {
@@ -195,8 +203,7 @@ private[ember] object Parser {
     private def headerBlobByteVectorToResponse[F[_]](
         b: ByteVector,
         s: Stream[F, Byte],
-        maxHeaderLength: Int)(logger: Logger[F])(implicit
-        F: MonadError[F, Throwable]): F[Response[F]] =
+        maxHeaderLength: Int)(logger: Logger[F])(implicit F: Concurrent[F]): F[Response[F]] =
       for {
         hE <- splitHeader(b)(logger)
         (methodHttpUri, headersBV) <- hE.fold(
@@ -212,16 +219,20 @@ private[ember] object Parser {
         (httpV, status) <- bvToResponseTopLine[F](methodHttpUri)
 
         _ <- logger.trace(s"HttpVersion: $httpV - Status: $status")
+        trailers <- Deferred[F, Headers]
       } yield {
         val baseResp = org.http4s.Response[F](
           status = status,
           httpVersion = httpV,
           headers = headers
         )
-        val body =
-          if (baseResp.isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
-          else s.take(baseResp.contentLength.getOrElse(0L))
-        baseResp.withBodyStream(body)
+        if (baseResp.isChunked)
+          baseResp
+            .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+            .withBodyStream(s.through(ChunkedEncoding.decode(maxHeaderLength, trailers, logger)))
+        else
+          baseResp
+            .withBodyStream(s.take(baseResp.contentLength.getOrElse(0L)))
       }
 
     private def bvToResponseTopLine[F[_]](
