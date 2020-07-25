@@ -100,36 +100,31 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
       shutdownSignal <- Resource.liftF(SignallingRef[F, Boolean](false))
-      out <- Resource.make(
-        Concurrent[F]
-          .start(
-            org.http4s.ember.server.internal.ServerHelpers
-              .server(
-                bindAddress,
-                httpApp,
-                sg,
-                tlsInfoOpt,
-                onError,
-                onWriteFailure,
-                shutdownSignal.some,
-                maxConcurrency,
-                receiveBufferSize,
-                maxHeaderSize,
-                requestHeaderReceiveTimeout,
-                additionalSocketOptions,
-                logger
-              )
-              .compile
-              .drain
+      _ <- Concurrent[F].background(
+        org.http4s.ember.server.internal.ServerHelpers
+          .server(
+            bindAddress,
+            httpApp,
+            sg,
+            tlsInfoOpt,
+            onError,
+            onWriteFailure,
+            shutdownSignal.some,
+            maxConcurrency,
+            receiveBufferSize,
+            maxHeaderSize,
+            requestHeaderReceiveTimeout,
+            additionalSocketOptions,
+            logger
           )
-          .as(
-            new Server[F] {
-              def address: InetSocketAddress = bindAddress
-              def isSecure: Boolean = false
-            }
-          )
-      )(_ => shutdownSignal.set(true))
-    } yield out
+          .compile
+          .drain
+      )
+      _ <- Resource.make(Applicative[F].unit)(_ => shutdownSignal.set(true))
+    } yield new Server[F] {
+      def address: InetSocketAddress = bindAddress
+      def isSecure: Boolean = tlsInfoOpt.isDefined
+    }
 }
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 

@@ -59,62 +59,63 @@ private[server] object ServerHelpers {
                 readWithTimeout[F](socket, now, readDuration, timeoutSignal.get, receiveBufferSize)
               )(logger)
               .flatMap { req =>
-                // Sync[F].delay(logger.debug(s"Request Processed $req")) *>
                 timeoutSignal.set(false).as(req)
               })
       }
     }
 
+    def upgradeSocket(
+        socketInit: Socket[F],
+        tlsInfoOpt: Option[(TLSContext, TLSParameters)]): Resource[F, Socket[F]] =
+      tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) {
+        case (context, params) =>
+          context
+            .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
+            .widen[Socket[F]]
+      }
+
+    def runApp(socket: Socket[F]): F[(Request[F], Response[F])] =
+      for {
+        req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
+        resp <- httpApp.run(req).handleError(onError)
+      } yield (req, resp)
+
+    def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
+      Encoder
+        .respToBytes[F](resp)
+        .through(socket.writes())
+        .compile
+        .drain
+        .attempt
+        .flatMap {
+          case Left(err) => onWriteFailure(request, resp, err)
+          case Right(()) => Sync[F].pure(())
+        }
+
     Stream
       .eval(termSignal)
       .flatMap(terminationSignal =>
         sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
-          .map(connect =>
-            Stream.eval(
-              connect
-                .flatMap { socketInit =>
-                  tlsInfoOpt.fold(
-                    socketInit.pure[Resource[F, *]]
-                  ) {
-                    case (context, params) =>
-                      context
-                        .server(
-                          socketInit,
-                          params,
-                          { (s: String) =>
-                            logger.trace(s)
-                          }.some)
-                        .widen[Socket[F]]
-                  }
-                }
-                .use { socket =>
-                  val app: F[(Request[F], Response[F])] = for {
-                    req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
-                    resp <-
-                      httpApp
-                        .run(req)
-                        .handleError(onError)
-                  } yield (req, resp)
-                  def send(request: Option[Request[F]], resp: Response[F]): F[Unit] =
-                    Stream(resp)
-                      .covary[F]
-                      .flatMap(Encoder.respToBytes[F])
-                      .through(socket.writes())
-                      .compile
-                      .drain
-                      .attempt
-                      .flatMap {
-                        case Left(err) => onWriteFailure(request, resp, err)
-                        case Right(()) => Sync[F].pure(())
-                      }
-                  app.attempt.flatMap {
-                    case Right((request, response)) => send(Some(request), response)
-                    case Left(err) => send(None, onError(err))
-                  }
-                }
-            ))
+          .map { connect =>
+            Stream.resource {
+              for {
+                socket <- connect.flatMap(upgradeSocket(_, tlsInfoOpt))
+                out <- Resource.liftF(
+                  Stream
+                    .eval(runApp(socket).attempt)
+                    .evalTap {
+                      case Right((request, response)) => send(socket)(Some(request), response)
+                      case Left(err) => send(socket)(None, onError(err))
+                    }
+                    .compile
+                    .drain // In the above Stream is how we reuse connections
+                )
+              } yield out
+            }
+          }
           .parJoin(maxConcurrency)
           .interruptWhen(terminationSignal)
           .drain)
+
   }
 }
