@@ -73,7 +73,7 @@ class AuthenticationSpec extends Http4sSpec {
 
       res.status must_=== Unauthorized
       res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+        Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString)
     }
 
     "Respond to a request with unknown username with 401" in {
@@ -84,7 +84,7 @@ class AuthenticationSpec extends Http4sSpec {
 
       res.status must_=== Unauthorized
       res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+        Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString)
     }
 
     "Respond to a request with wrong password with 401" in {
@@ -95,7 +95,7 @@ class AuthenticationSpec extends Http4sSpec {
 
       res.status must_=== Unauthorized
       res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+        Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString)
     }
 
     "Respond to a request with correct credentials" in {
