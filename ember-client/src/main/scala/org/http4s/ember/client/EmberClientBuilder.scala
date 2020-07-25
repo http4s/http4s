@@ -85,9 +85,9 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOptionMapping[_]]) =
     copy(additionalSocketOptions = additionalSocketOptions)
 
-  def withUserAgent(userAgent: `User-Agent`) = 
+  def withUserAgent(userAgent: `User-Agent`) =
     copy(userAgent = userAgent.some)
-  def withoutUserAgent = 
+  def withoutUserAgent =
     copy(userAgent = None)
 
   def build: Resource[F, Client[F]] =
@@ -183,6 +183,7 @@ object EmberClientBuilder {
     val maxTotal = 100
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
-    val userAgent = Some(`User-Agent`(AgentProduct("http4s-ember", Some(org.http4s.BuildInfo.version))))
+    val userAgent = Some(
+      `User-Agent`(AgentProduct("http4s-ember", Some(org.http4s.BuildInfo.version))))
   }
 }

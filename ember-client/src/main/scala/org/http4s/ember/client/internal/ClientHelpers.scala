@@ -98,7 +98,10 @@ private[client] object ClientHelpers {
           socket.reads(chunkSize, None)
         )(logger)
 
-    def onTimeout(req: Request[F], socket: Socket[F], fin: FiniteDuration): Resource[F, Response[F]] =
+    def onTimeout(
+        req: Request[F],
+        socket: Socket[F],
+        fin: FiniteDuration): Resource[F, Response[F]] =
       for {
         start <- RT.clock.realTime(MILLISECONDS)
         _ <- writeRequestToSocket(req, socket, Option(fin))
@@ -110,32 +113,39 @@ private[client] object ClientHelpers {
         )(logger)
         _ <- Resource.liftF(timeoutSignal.set(false).void)
       } yield resp
- 
-    def writeRead(req: Request[F]) = timeout match {
-      case t: FiniteDuration => onTimeout(req, requestKeySocket.socket, t)
-      case _ => onNoTimeout(req, requestKeySocket.socket)
-    }
+
+    def writeRead(req: Request[F]) =
+      timeout match {
+        case t: FiniteDuration => onTimeout(req, requestKeySocket.socket, t)
+        case _ => onNoTimeout(req, requestKeySocket.socket)
+      }
 
     for {
-      processedReq <-Resource.liftF(preprocessRequest(request, userAgent))
+      processedReq <- Resource.liftF(preprocessRequest(request, userAgent))
       resp <- writeRead(processedReq)
       processedResp <- postProcessResponse(processedReq, resp, reuseable)
     } yield processedResp
   }
 
-  private[internal] def preprocessRequest[F[_]: Monad: Clock](req: Request[F], userAgent: Option[`User-Agent`]): F[Request[F]] = {
-    val connection = req.headers.get(Connection)
+  private[internal] def preprocessRequest[F[_]: Monad: Clock](
+      req: Request[F],
+      userAgent: Option[`User-Agent`]): F[Request[F]] = {
+    val connection = req.headers
+      .get(Connection)
       .fold(Connection(NonEmptyList.of("keep-alive".ci)))(identity)
     val userAgentHeader: Option[`User-Agent`] = req.headers.get(`User-Agent`).orElse(userAgent)
     for {
       date <- req.headers.get(Date).fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
     } yield req
       .putHeaders(date, connection)
-      .putHeaders(userAgentHeader.toSeq:_*)
+      .putHeaders(userAgentHeader.toSeq: _*)
   }
 
-  private[internal] def postProcessResponse[F[_]: Applicative](req: Request[F], resp: Response[F], canBeReused: Ref[F, Reusable]): Resource[F, Response[F]] = {
-    val newResp: Response[F] = resp.copy(
+  private[internal] def postProcessResponse[F[_]: Concurrent](
+      req: Request[F],
+      resp: Response[F],
+      canBeReused: Ref[F, Reusable]): Resource[F, Response[F]] = {
+    val out = resp.copy(
       body = resp.body.onFinalizeCaseWeak {
         case ExitCase.Completed =>
           val requestClose = req.headers.get(Connection).exists(_.hasClose)
@@ -147,8 +157,7 @@ private[client] object ClientHelpers {
         case ExitCase.Error(_) => Applicative[F].unit
       }
     )
-
-    Resource.pure[F, Response[F]](newResp)
+    Resource.pure[F, Response[F]](out)
   }
 
   // https://github.com/http4s/http4s/blob/master/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
