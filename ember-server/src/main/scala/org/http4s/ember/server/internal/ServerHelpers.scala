@@ -15,9 +15,12 @@ import cats.implicits._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import org.http4s._
+import org.http4s.implicits._
+import org.http4s.headers.{Connection, Date}
 import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.io.chrisdavenport.log4cats.Logger
+import cats.data.NonEmptyList
 
 private[server] object ServerHelpers {
   def server[F[_]: Concurrent: ContextShift](
@@ -35,6 +38,7 @@ private[server] object ServerHelpers {
       receiveBufferSize: Int = 256 * 1024,
       maxHeaderSize: Int = 10 * 1024,
       requestHeaderReceiveTimeout: Duration = 5.seconds,
+      idleTimeout: Duration = 60.seconds,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
   )(implicit C: Clock[F]): Stream[F, Nothing] = {
@@ -45,10 +49,12 @@ private[server] object ServerHelpers {
     def socketReadRequest(
         socket: Socket[F],
         requestHeaderReceiveTimeout: Duration,
-        receiveBufferSize: Int
+        receiveBufferSize: Int,
+        isReused: Boolean
     ): F[Request[F]] = {
-      val (initial, readDuration) = requestHeaderReceiveTimeout match {
-        case fin: FiniteDuration => (true, fin)
+      val (initial, readDuration) = (requestHeaderReceiveTimeout, idleTimeout, isReused) match {
+        case (fin: FiniteDuration, idle: FiniteDuration, true) => (true, idle + fin)
+        case (fin: FiniteDuration, _, false) => (true, fin)
         case _ => (false, 0.millis)
       }
       SignallingRef[F, Boolean](initial).flatMap { timeoutSignal =>
@@ -74,9 +80,9 @@ private[server] object ServerHelpers {
             .widen[Socket[F]]
       }
 
-    def runApp(socket: Socket[F]): F[(Request[F], Response[F])] =
+    def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
       for {
-        req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize)
+        req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
         resp <- httpApp.run(req).handleError(onError)
       } yield (req, resp)
 
@@ -92,6 +98,20 @@ private[server] object ServerHelpers {
           case Right(()) => Sync[F].pure(())
         }
 
+    def postProcessResponse(req: Request[F], resp: Response[F]): F[Response[F]] = {
+      val reqHasClose = req.headers.get(Connection).exists(_.hasClose)
+      val respConnection = resp.headers.get(Connection)
+      val connection: Connection =
+        if (reqHasClose) Connection(NonEmptyList.of("close".ci))
+        else
+          respConnection.fold(
+            Connection(NonEmptyList.one("keep-alive".ci))
+          )(identity)
+      for {
+        date <- resp.headers.get(Date).fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
+      } yield resp.putHeaders(connection, date)
+    }
+
     Stream
       .eval(termSignal)
       .flatMap(terminationSignal =>
@@ -101,12 +121,28 @@ private[server] object ServerHelpers {
               for {
                 socket <- connect.flatMap(upgradeSocket(_, tlsInfoOpt))
                 out <- Resource.liftF(
-                  Stream
-                    .eval(runApp(socket).attempt)
+                  (Stream(false) ++ Stream(true).repeat)
+                    .flatMap { isReused =>
+                      Stream
+                        .eval(
+                          runApp(socket, isReused).flatMap {
+                            case (req, resp) =>
+                              postProcessResponse(req, resp)
+                                .map(resp => (req, resp))
+                          }.attempt
+                        )
+                    }
                     .evalTap {
                       case Right((request, response)) => send(socket)(Some(request), response)
                       case Left(err) => send(socket)(None, onError(err))
                     }
+                    .takeWhile {
+                      case Left(_) => false
+                      case Right((req, resp)) =>
+                        req.headers.get(Connection).exists(_.hasClose) ||
+                          resp.headers.get(Connection).exists(_.hasClose)
+                    }
+                    .evalTap(_ => ContextShift[F].shift) // Yield After Each Req/Resp Pair
                     .compile
                     .drain // In the above Stream is how we reuse connections
                 )
