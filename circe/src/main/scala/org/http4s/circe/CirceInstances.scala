@@ -101,7 +101,7 @@ trait CirceInstances extends JawnInstances {
   implicit def jsonEncoder[F[_]]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
+  private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
     Chunk.byteBuffer(printer.printToByteBuffer(json))
 
   def jsonEncoderWithPrinter[F[_]](printer: Printer): EntityEncoder[F, Json] =
