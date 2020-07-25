@@ -38,7 +38,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
           None)
         .map { req =>
           req.headers.get(Date) must beSome.like {
-            case d => d.date === HttpDate.Epoch
+            case d: Date => d.date === HttpDate.Epoch
           }
         }
     }
@@ -46,8 +46,9 @@ class ClientHelpersSpec extends Specification with CatsIO {
       ClientHelpers
         .preprocessRequest(Request[IO](), None)
         .map { req =>
-          req.headers.get(Connection) must beSome.like { c =>
-            c.hasKeepAlive must beTrue
+          req.headers.get(Connection) must beSome.like {
+            case c: Connection =>
+              c.hasKeepAlive must beTrue
           }
         }
     }
@@ -59,8 +60,9 @@ class ClientHelpersSpec extends Specification with CatsIO {
           None
         )
         .map { req =>
-          req.headers.get(Connection) must beSome.like { c =>
-            c.hasKeepAlive must beFalse
+          req.headers.get(Connection) must beSome.like {
+            case c: Connection =>
+              c.hasKeepAlive must beFalse
           }
         }
     }
