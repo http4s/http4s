@@ -82,11 +82,8 @@ private[server] object ServerHelpers {
 
     def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
       for {
-        id <- Sync[F].delay(java.util.UUID.randomUUID())
-        _ <- logger.info(s"Starting HttpApp Processing- isReused: $isReused - $id")
         req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
         resp <- httpApp.run(req).handleError(onError)
-        _ <- logger.info(s"Finished HttpApp Processing - $id")
       } yield (req, resp)
 
     def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
