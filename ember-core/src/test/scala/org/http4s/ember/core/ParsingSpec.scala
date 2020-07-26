@@ -9,6 +9,7 @@ package org.http4s.ember.core
 import org.specs2.mutable.Specification
 import cats.effect._
 import org.http4s._
+import org.http4s.implicits._
 import fs2.{Stream, text}
 import scodec.bits.ByteVector
 import io.chrisdavenport.log4cats.testing.TestingLogger
@@ -207,6 +208,25 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
     //     rest must_=== bv
     //   )
     // }
+  }
+
+  "Request Prelude" should {
+    "parse an expected value" in {
+      val raw =
+        """GET / HTTP/1.1
+          |""".stripMargin
+      val asHttp = Helpers.httpifyString(raw)
+      val bv = ByteVector.encodeAscii(asHttp).fold(throw _, identity)
+
+      Parser.Request.ReqPrelude.preludeInSection(bv) must beRight.like{
+        case (method, uri, http, rest) => 
+          (method must_=== Method.GET) and
+          (uri must_=== uri"/") and
+          (http must_=== HttpVersion.`HTTP/1.1`) and 
+          (rest must beEmpty)
+      }
+      
+    }
   }
 
 }

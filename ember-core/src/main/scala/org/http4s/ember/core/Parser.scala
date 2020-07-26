@@ -125,7 +125,6 @@ private[ember] object Parser {
       if (state == HeadersComplete)
         Completed(Headers(headers.toList), bv.drop(idx))
       else Incomplete(bv, headers.toList, (name.toString, value.toString), idx, state)
-      //throw new Throwable(s"Headers Not Complete ${bv.decodeAscii} - Current: ${headers.toList} - idx: $idx")//(Headers.empty, bv)
     }
   }
 
@@ -142,38 +141,114 @@ private[ember] object Parser {
   }
 
   object Request {
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(l: Logger[F]): F[Request[F]] =
-      s.through(httpHeaderAndBody[F](maxHeaderLength))
-        .evalMap {
-          case (bv, body) => headerBlobByteVectorToRequest[F](bv, body, maxHeaderLength)(l)
+
+    object ReqPrelude {
+
+
+      sealed trait ParsePreludeState
+      case object GetMethod extends ParsePreludeState
+      case object GetUri extends ParsePreludeState
+      case object GetHttpVersion extends ParsePreludeState
+      private val space = ' '.toByte
+      private val cr: Byte = '\r'.toByte
+      private val lf: Byte = '\n'.toByte
+      // Method SP URI SP HttpVersion CRLF - REST
+      def preludeInSection(bv: ByteVector): Either[ByteVector, (Method, Uri, HttpVersion, ByteVector)] = {
+        import scala.collection.mutable.StringBuilder
+        var idx = 0L
+        var state: ParsePreludeState = GetMethod
+        var complete = false
+
+        var method: Method = null
+        var uri: Uri = null
+        var httpVersion: HttpVersion = null
+
+        val buffer = new StringBuilder()
+        while (!complete && idx < bv.size){
+          val value = bv(idx)
+          state match {
+            case GetMethod => 
+              if (value == space){
+                method = Method.fromString(buffer.toString()).fold(throw _, identity)
+                state = GetUri
+                buffer.clear()
+              }
+              else buffer.append(value.toChar)
+            case GetUri => 
+              if (value == space){
+                uri = Uri.fromString(buffer.toString()) match {
+                  case Left(_) => null
+                  case Right(uri) => uri
+                }
+                state = GetHttpVersion
+                buffer.clear()
+              } else buffer.append(value.toChar)
+            case GetHttpVersion => 
+              if (value == cr && ((bv.size >= idx +1) && bv(idx +1) == lf)){
+                httpVersion = HttpVersion.fromString(buffer.toString()).fold(throw _, identity)
+                complete = true
+                idx += 1 // Double Advance
+              } else buffer.append(value.toChar)
+          }
+          idx += 1
         }
-        .take(1)
-        .compile
-        .lastOrError
+
+        if (method != null && uri != null && httpVersion != null){
+          Either.right((method, uri, httpVersion, bv.drop(idx)))
+        } else Either.left(bv)
+      }
+    }
+
+    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(l: Logger[F]): F[Request[F]] =
+      s.pull.uncons.flatMap{
+        // TODO Don't Assume Its in First Chunk
+        case Some((chunk, tail)) => 
+          Pull.eval(headerBlobByteVectorToRequest(chunk.toByteVector, tail, maxHeaderLength)(l)).flatMap{
+            req => Pull.output1(req)
+          }
+        case None => Pull.done
+      }.stream
+      .take(1)
+      .compile
+      .lastOrError
+      // .through(httpHeaderAndBody[F](maxHeaderLength))
+      //   .evalMap {
+      //     case (bv, body) => headerBlobByteVectorToRequest[F](bv, body, maxHeaderLength)(l)
+      //   }
+      //   .take(1)
+      //   .compile
+      //   .lastOrError
 
     private def headerBlobByteVectorToRequest[F[_]](
         b: ByteVector,
-        s: Stream[F, Byte],
+        sInit: Stream[F, Byte],
         maxHeaderLength: Int)(logger: Logger[F])(implicit
-        F: MonadError[F, Throwable]): F[Request[F]] =
-      for {
-        shE <- splitHeader(b)(logger)
-        (methodHttpUri, headersBV) <- shE.fold(
-          _ =>
-            ApplicativeError[F, Throwable].raiseError[(ByteVector, ByteVector)](
-              EmberException.ParseError("Invalid Empty Init Line")),
-          Applicative[F].pure(_)
-        )
-
-        (method, uri, http) <- bvToRequestTopLine[F](methodHttpUri)
-
-        // Raw Header Logging
-        _ <- logger.trace(s"HeadersSection - ${headersBV.decodeAscii}")
-
-        headers = HeaderP.headersInSection(headersBV) match {
-          case Completed(headers, _) => headers
+        F: MonadError[F, Throwable]): F[Request[F]] = {
+      val (method, uri, http, rest) = ReqPrelude.preludeInSection(b) match {
+          case Left(_) => ???
+          case Right(x) => x
+        }
+      val (headers, bodyExtra) = HeaderP.headersInSection(rest) match {
+          case Completed(headers, rest) => (headers, rest)
           case Incomplete(_, _,_, _, _) => ???
         }
+      val s = Stream.chunk(Chunk.ByteVectorChunk(bodyExtra)) ++ sInit
+      for {
+        
+        // shE <- splitHeader(b)(logger)
+        // (methodHttpUri, headersBV) <- shE.fold(
+        //   _ =>
+        //     ApplicativeError[F, Throwable].raiseError[(ByteVector, ByteVector)](
+        //       EmberException.ParseError("Invalid Empty Init Line")),
+        //   Applicative[F].pure(_)
+        // )
+
+        // (method, uri, http) <- bvToRequestTopLine[F](methodHttpUri)
+
+        // Raw Header Logging
+        // _ <- logger.trace(s"HeadersSection - ${headersBV.decodeAscii}")
+
+        
         _ <- logger.trace(show"Headers: $headers")
 
         host = headers.get(org.http4s.headers.Host)
@@ -194,43 +269,44 @@ private[ember] object Parser {
           else s.take(baseReq.contentLength.getOrElse(0L))
         baseReq.withBodyStream(body)
       }
-
-    private def bvToRequestTopLine[F[_]](b: ByteVector)(implicit
-        F: MonadError[F, Throwable]): F[(Method, Uri, HttpVersion)] =
-      for {
-        (method, rest) <- getMethodEmitRest[F](b)
-        (uri, httpVString) <- getUriEmitHttpVersion[F](rest)
-        httpVersion <- HttpVersion.fromString(httpVString).liftTo[F]
-      } yield (method, uri, httpVersion)
-
-    private def getMethodEmitRest[F[_]](b: ByteVector)(implicit
-        F: ApplicativeError[F, Throwable]): F[(Method, String)] = {
-      val opt = for {
-        line <- b.decodeAscii.toOption
-        idx <- Some(line.indexOf(' '))
-        if idx >= 0
-        out <- Method.fromString(line.substring(0, idx)).toOption
-      } yield (out, line.substring(idx + 1))
-
-      opt.fold(
-        ApplicativeError[F, Throwable]
-          .raiseError[(Method, String)](EmberException.ParseError("Missing Method"))
-      )(ApplicativeError[F, Throwable].pure(_))
     }
 
-    private def getUriEmitHttpVersion[F[_]](s: String)(implicit
-        F: ApplicativeError[F, Throwable]): F[(Uri, String)] = {
-      val opt = for {
-        idx <- Some(s.indexOf(' '))
-        if idx >= 0
-        uri <- Uri.fromString(s.substring(0, idx)).toOption
-      } yield (uri, s.substring(idx + 1))
+    // private def bvToRequestTopLine[F[_]](b: ByteVector)(implicit
+    //     F: MonadError[F, Throwable]): F[(Method, Uri, HttpVersion)] =
+    //   for {
+    //     (method, rest) <- getMethodEmitRest[F](b)
+    //     (uri, httpVString) <- getUriEmitHttpVersion[F](rest)
+    //     httpVersion <- HttpVersion.fromString(httpVString).liftTo[F]
+    //   } yield (method, uri, httpVersion)
 
-      opt.fold(
-        ApplicativeError[F, Throwable]
-          .raiseError[(Uri, String)](EmberException.ParseError("Missing URI"))
-      )(ApplicativeError[F, Throwable].pure(_))
-    }
+    // private def getMethodEmitRest[F[_]](b: ByteVector)(implicit
+    //     F: ApplicativeError[F, Throwable]): F[(Method, String)] = {
+    //   val opt = for {
+    //     line <- b.decodeAscii.toOption
+    //     idx <- Some(line.indexOf(' '))
+    //     if idx >= 0
+    //     out <- Method.fromString(line.substring(0, idx)).toOption
+    //   } yield (out, line.substring(idx + 1))
+
+    //   opt.fold(
+    //     ApplicativeError[F, Throwable]
+    //       .raiseError[(Method, String)](EmberException.ParseError("Missing Method"))
+    //   )(ApplicativeError[F, Throwable].pure(_))
+    // }
+
+    // private def getUriEmitHttpVersion[F[_]](s: String)(implicit
+    //     F: ApplicativeError[F, Throwable]): F[(Uri, String)] = {
+    //   val opt = for {
+    //     idx <- Some(s.indexOf(' '))
+    //     if idx >= 0
+    //     uri <- Uri.fromString(s.substring(0, idx)).toOption
+    //   } yield (uri, s.substring(idx + 1))
+
+    //   opt.fold(
+    //     ApplicativeError[F, Throwable]
+    //       .raiseError[(Uri, String)](EmberException.ParseError("Missing URI"))
+    //   )(ApplicativeError[F, Throwable].pure(_))
+    // }
   }
 
   object Response {
