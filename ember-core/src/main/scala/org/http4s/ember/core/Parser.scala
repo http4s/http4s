@@ -14,6 +14,8 @@ import org.http4s._
 import cats.effect._
 import Shared._
 import _root_.io.chrisdavenport.log4cats.Logger
+import org.http4s.ember.core.Parser.HeaderP.Completed
+import org.http4s.ember.core.Parser.HeaderP.Incomplete
 
 private[ember] object Parser {
 
@@ -39,43 +41,91 @@ private[ember] object Parser {
                   s"Size of the header exceeded the limit of $maxHeaderSize (${all.size})"))
             else go(all, tl)
           else {
-            val (h, t) = all.splitAt(idx)
+            val (h, t) = all.splitAt(idx + 4)
             if (h.size > maxHeaderSize)
               Pull.raiseError[F](
                 EmberException.ParseError(
                   s"Size of the header exceeded the limit of $maxHeaderSize (${all.size})"))
             else
-              Pull.output1((h, Stream.chunk(Chunk.ByteVectorChunk(t.drop(`\r\n\r\n`.size))) ++ tl))
+              Pull.output1((h, Stream.chunk(Chunk.ByteVectorChunk(t)) ++ tl))
           }
       }
     src => go(ByteVector.empty, src).stream
   }
+  
+  object HeaderP {
+    sealed trait ParseHeaderState
+    case object HeaderNameOrPostCRLF extends ParseHeaderState
+    case object HeaderValue extends ParseHeaderState
+    case object HeadersComplete extends ParseHeaderState
+    private val colon: Byte = ':'.toByte
+    private val cr: Byte = '\r'.toByte
+    private val lf: Byte = '\n'.toByte
+    private val space: Byte = ' '.toByte
+    sealed trait ParseHeaderResult
+    final case class Completed(headers: Headers, rest: ByteVector) extends ParseHeaderResult
+    final case class Incomplete(bv: ByteVector, accHeaders: List[Header], partialHeader: (String, String), idx: Long, state: ParseHeaderState) extends ParseHeaderResult
 
-  def generateHeaders[F[_]: Monad](byteVector: ByteVector)(acc: Headers)(
-      logger: Logger[F]): F[Headers] = {
-    // println(headerO)
+    def headersInSection(
+      bv: ByteVector,
+      initIndex: Long = 0L,
+      initState: ParseHeaderState = HeaderNameOrPostCRLF,
+      initPartial: Option[(String, String)] = None,
+      initHeaders: List[Header] = List.empty
+    ): ParseHeaderResult = {
+      import scala.collection.mutable.StringBuilder
+      import scala.collection.mutable.ListBuffer
+      var idx = initIndex
+      var state = initState
+      var complete = false
+      val headers = new ListBuffer[Header]()
+      val name = new StringBuilder()
+      val value = new StringBuilder()
+      initPartial.foreach{
+        case (n, v) => 
+          name.append(n)
+          value.append(v)
+      }
+      initHeaders.appendedAll(initHeaders)
+      while (!complete && idx < bv.size){
+        state match {
+          case HeaderNameOrPostCRLF =>
+            val current = bv(idx)
+            if (current == colon){
+              state = HeaderValue
+              if ((bv.size >= idx +1) && (bv(idx + 1) == space)){
+                idx += 1
+              }
+            } else if (current == cr && (bv.size >= idx +1) && (bv(idx + 1) == lf)){
+              idx += 1
+              complete = true
+              state = HeadersComplete
+            } else {
+              name.append(current.toChar)
+            }
+          case HeaderValue => 
+            val current = bv(idx)
+            if (current == cr && ((bv.size >= idx +1) && bv(idx +1) == lf)) {
+              idx += 1
+              val hName = name.toString()
+              val hValue = value.toString()
+              name.clear()
+              value.clear()
+              headers += Header(hName, hValue)
+              state = HeaderNameOrPostCRLF
+            } else {
+              value.append(current.toChar)
+            }
+          case HeadersComplete => 
+            complete = true
+        }
+        idx += 1
+      }
 
-    def generateHeaderForLine(bv: ByteVector): Option[Header] =
-      for {
-        line <- bv.decodeAscii.toOption
-        // _ = println(s"Generate Headers - line: ${line}")
-        idx <- Some(line.indexOf(':'))
-        if idx >= 0
-        header = Header(line.substring(0, idx), line.substring(idx + 1).trim)
-        // _ = println(s"generateHeaders - header: ${header}")
-      } yield header
-
-    splitHeader(byteVector)(logger).flatMap {
-      case Right((lineBV, rest)) =>
-        val headerO = generateHeaderForLine(lineBV)
-        val newHeaders = acc ++ headerO.map(Headers.of(_)).foldMap(identity)
-
-        logger.trace(s"Generate Headers Header0 = $headerO") >>
-          generateHeaders(rest)(newHeaders)(logger)
-      case Left(bv) =>
-        val headerO = generateHeaderForLine(bv)
-        val out = headerO.map(Headers.of(_)).foldMap(identity) ++ acc
-        out.pure[F]
+      if (state == HeadersComplete)
+        Completed(Headers(headers.toList), bv.drop(idx))
+      else Incomplete(bv, headers.toList, (name.toString, value.toString), idx, state)
+      //throw new Throwable(s"Headers Not Complete ${bv.decodeAscii} - Current: ${headers.toList} - idx: $idx")//(Headers.empty, bv)
     }
   }
 
@@ -120,7 +170,10 @@ private[ember] object Parser {
         // Raw Header Logging
         _ <- logger.trace(s"HeadersSection - ${headersBV.decodeAscii}")
 
-        headers <- generateHeaders(headersBV)(Headers.empty)(logger)
+        headers = HeaderP.headersInSection(headersBV) match {
+          case Completed(headers, _) => headers
+          case Incomplete(_, _,_, _, _) => ???
+        }
         _ <- logger.trace(show"Headers: $headers")
 
         host = headers.get(org.http4s.headers.Host)
@@ -206,7 +259,10 @@ private[ember] object Parser {
           Applicative[F].pure(_)
         )
         _ <- logger.trace(s"HeadersSection - ${headersBV.decodeAscii}")
-        headers <- generateHeaders(headersBV)(Headers.empty)(logger)
+        headers = HeaderP.headersInSection(headersBV) match {
+          case Completed(headers, _) => headers
+          case Incomplete(_, _,_, _, _) => ???
+        }
         _ <- logger.trace(show"Headers: $headers")
 
         (httpV, status) <- bvToResponseTopLine[F](methodHttpUri)

@@ -120,7 +120,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       // result.uri.path must_=== expected.uri.path
       // result.uri.query must_=== expected.uri.query
       result.uri.fragment must_=== expected.uri.fragment
-      result.headers must_=== expected.headers
+      result.headers.toList must containTheSameElementsAs(expected.headers.toList)
       result.body.compile.toVector.unsafeRunSync() must_=== expected.body.compile.toVector
         .unsafeRunSync()
     }
@@ -168,6 +168,45 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
         }
         .unsafeRunSync()
     }
+  }
+
+  "Header Parser" should {
+    "handle headers in a section" in {
+      val base = """Content-Type: text/plain; charset=UTF-8
+      |Content-Length: 11
+      |
+      |""".stripMargin
+      val asHttp = Helpers.httpifyString(base)
+      val bv = ByteVector.encodeAscii(asHttp).fold(throw _, identity)
+
+      val (headers, rest) = Parser.HeaderP.headersInSection(bv) match {
+          case Parser.HeaderP.Completed(headers, rest) => 
+            (headers,rest)
+          case Parser.HeaderP.Incomplete(_, _,_, _, _) => ???
+        }
+
+      (
+        headers.toList must_=== List(Header("Content-Type", "text/plain; charset=UTF-8"), Header("Content-Length", "11"))
+      ).and(
+        rest.isEmpty must beTrue
+      )
+
+    }
+
+    // "return original bv if incomplete" in {
+    //   val base = """Content-Type: text/plain; charset=UTF-8
+    //   |Content-Length: 11""".stripMargin
+    //   val asHttp = Helpers.httpifyString(base)
+    //   val bv = ByteVector.encodeAscii(asHttp).fold(throw _, identity)
+
+    //   val (headers, rest) = Parser.headersInSection(bv)
+
+    //   (
+    //     headers.toList must_=== List()
+    //   ).and(
+    //     rest must_=== bv
+    //   )
+    // }
   }
 
 }

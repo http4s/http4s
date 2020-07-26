@@ -24,7 +24,7 @@ class TraversalSpec extends Specification with ScalaCheck {
         )(logger)
         .unsafeRunSync()
 
-      end.headers must_=== req.headers
+      end.headers.toList must containTheSameElementsAs(req.headers.toList)
     }.pendingUntilFixed
 
     "preserve method with known uri" >> prop { (req: Request[IO]) =>
