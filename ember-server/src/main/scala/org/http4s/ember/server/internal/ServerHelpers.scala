@@ -82,8 +82,11 @@ private[server] object ServerHelpers {
 
     def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =
       for {
+        id <- Sync[F].delay(java.util.UUID.randomUUID())
+        _ <- logger.info(s"Starting HttpApp Processing- isReused: $isReused - $id")
         req <- socketReadRequest(socket, requestHeaderReceiveTimeout, receiveBufferSize, isReused)
         resp <- httpApp.run(req).handleError(onError)
+        _ <- logger.info(s"Finished HttpApp Processing - $id")
       } yield (req, resp)
 
     def send(socket: Socket[F])(request: Option[Request[F]], resp: Response[F]): F[Unit] =
@@ -112,42 +115,39 @@ private[server] object ServerHelpers {
       } yield resp.putHeaders(connection, date)
     }
 
+    def withUpgradedSocket(socket: Socket[F]): Stream[F, Nothing] =
+      (Stream(false) ++ Stream(true).repeat)
+        .flatMap { isReused =>
+          Stream
+            .eval(runApp(socket, isReused).attempt)
+            .evalMap {
+              case Right((req, resp)) =>
+                postProcessResponse(req, resp).map(resp => (req, resp).asRight[Throwable])
+              case other => other.pure[F]
+            }
+            .evalTap {
+              case Right((request, response)) => send(socket)(Some(request), response)
+              case Left(err) => send(socket)(None, onError(err))
+            }
+        }
+        .takeWhile {
+          case Left(_) => false
+          case Right((req, resp)) =>
+            !(
+              req.headers.get(Connection).exists(_.hasClose) ||
+                resp.headers.get(Connection).exists(_.hasClose)
+            )
+        }
+        .drain
+
     Stream
       .eval(termSignal)
       .flatMap(terminationSignal =>
         sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
           .map { connect =>
-            Stream.resource {
-              for {
-                socket <- connect.flatMap(upgradeSocket(_, tlsInfoOpt))
-                out <- Resource.liftF(
-                  (Stream(false) ++ Stream(true).repeat)
-                    .flatMap { isReused =>
-                      Stream
-                        .eval(
-                          runApp(socket, isReused).flatMap {
-                            case (req, resp) =>
-                              postProcessResponse(req, resp)
-                                .map(resp => (req, resp))
-                          }.attempt
-                        )
-                    }
-                    .evalTap {
-                      case Right((request, response)) => send(socket)(Some(request), response)
-                      case Left(err) => send(socket)(None, onError(err))
-                    }
-                    .takeWhile {
-                      case Left(_) => false
-                      case Right((req, resp)) =>
-                        req.headers.get(Connection).exists(_.hasClose) ||
-                          resp.headers.get(Connection).exists(_.hasClose)
-                    }
-                    .evalTap(_ => ContextShift[F].shift) // Yield After Each Req/Resp Pair
-                    .compile
-                    .drain // In the above Stream is how we reuse connections
-                )
-              } yield out
-            }
+            Stream
+              .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
+              .flatMap(withUpgradedSocket(_))
           }
           .parJoin(maxConcurrency)
           .interruptWhen(terminationSignal)

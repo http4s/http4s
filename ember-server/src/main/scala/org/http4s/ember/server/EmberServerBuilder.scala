@@ -18,6 +18,8 @@ import org.http4s.server.Server
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import _root_.io.chrisdavenport.log4cats.Logger
+import _root_.io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.http4s.ember.server.internal.ServerHelpers
 
 final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val host: String,
@@ -107,7 +109,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
       shutdownSignal <- Resource.liftF(SignallingRef[F, Boolean](false))
       _ <- Concurrent[F].background(
-        org.http4s.ember.server.internal.ServerHelpers
+        ServerHelpers
           .server(
             bindAddress,
             httpApp,
@@ -133,7 +135,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       def isSecure: Boolean = tlsInfoOpt.isDefined
     }
 }
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 object EmberServerBuilder {
   def default[F[_]: Concurrent: Timer: ContextShift]: EmberServerBuilder[F] =
