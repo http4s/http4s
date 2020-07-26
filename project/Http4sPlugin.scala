@@ -201,6 +201,7 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val argonaut = "6.3.0"
+    val armeria = "0.99.8"
     val asyncHttpClient = "2.12.1"
     val blaze = "0.14.13"
     val boopickle = "1.3.3"
@@ -241,6 +242,7 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
   lazy val argonautJawn                     = "io.argonaut"            %% "argonaut-jawn"             % V.argonaut
+  lazy val armeria                          = "com.linecorp.armeria"   % "armeria"                    % V.armeria
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % V.blaze
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % V.boopickle

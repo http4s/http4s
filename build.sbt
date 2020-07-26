@@ -282,6 +282,13 @@ lazy val tomcat = libraryProject("tomcat")
   )
   .dependsOn(servlet % "compile;test->test")
 
+lazy val armeriaServer = libraryProject("armeria-server")
+  .settings(
+    description := "Armeria implementation for http4s servers",
+    libraryDependencies ++= Seq(armeria, fs2ReactiveStreams)
+  )
+  .dependsOn(server % "compile;test->test")
+
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryProject("dsl")
   .settings(
@@ -489,6 +496,15 @@ lazy val examples = http4sProject("examples")
   )
   .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
+
+lazy val examplesArmeria = exampleProject("examples-armeria")
+  .settings(Revolver.settings)
+  .settings(
+    description := "Example of http4s server on Armeria",
+    fork := true,
+    reStart / mainClass := Some("com.example.http4s.armeria.ArmeriaExample")
+  )
+  .dependsOn(armeriaServer)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .enablePlugins(AlpnBootPlugin)

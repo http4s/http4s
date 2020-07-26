@@ -1,0 +1,18 @@
+<configuration>
+  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+    <resetJUL>true</resetJUL>
+  </contextListener>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n${LOGBACK_EXCEPTION_PATTERN:-%throwable}</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.linecorp.armeria" level="DEBUG" />
+  <logger name="org.http4s.server.armeria" level="DEBUG" />
+
+  <root level="WARN">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
