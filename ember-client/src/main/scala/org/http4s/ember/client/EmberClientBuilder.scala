@@ -136,7 +136,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 chunkSize,
                 maxResponseHeaderSize,
                 timeout
-              )(logger)
+              )
               .map(response =>
                 // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
                 response.copy(body = response.body.onFinalizeCaseWeak {

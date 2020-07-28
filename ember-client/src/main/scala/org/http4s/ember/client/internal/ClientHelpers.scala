@@ -20,7 +20,6 @@ import _root_.org.http4s.ember.core.{Encoder, Parser}
 import _root_.org.http4s.ember.core.Util.readWithTimeout
 import _root_.fs2.io.tcp.SocketGroup
 import _root_.fs2.io.tls._
-import _root_.io.chrisdavenport.log4cats.Logger
 import javax.net.ssl.SNIHostName
 
 private[client] object ClientHelpers {
@@ -71,7 +70,7 @@ private[client] object ClientHelpers {
       chunkSize: Int,
       maxResponseHeaderSize: Int,
       timeout: Duration
-  )(logger: Logger[F]): Resource[F, Response[F]] = {
+  ): Resource[F, Response[F]] = {
     val RT: Timer[Resource[F, *]] = Timer[F].mapK(Resource.liftK[F])
 
     def writeRequestToSocket(
@@ -88,7 +87,7 @@ private[client] object ClientHelpers {
       writeRequestToSocket(socket, None) >>
         Parser.Response.parser(maxResponseHeaderSize)(
           socket.reads(chunkSize, None)
-        )(logger)
+        )
 
     def onTimeout(socket: Socket[F], fin: FiniteDuration): Resource[F, Response[F]] =
       for {
@@ -99,7 +98,7 @@ private[client] object ClientHelpers {
         remains = fin - (sent - start).millis
         resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
           readWithTimeout(socket, start, remains, timeoutSignal.get, chunkSize)
-        )(logger)
+        )
         _ <- Resource.liftF(timeoutSignal.set(false).void)
       } yield resp
 

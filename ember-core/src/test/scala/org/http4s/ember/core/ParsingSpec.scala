@@ -12,13 +12,16 @@ import org.http4s._
 import org.http4s.implicits._
 import fs2.{Stream, text}
 import scodec.bits.ByteVector
-import io.chrisdavenport.log4cats.testing.TestingLogger
+// import io.chrisdavenport.log4cats.testing.TestingLogger
 import org.specs2.concurrent.ExecutionEnv
 import fs2._
 import cats.effect.concurrent._
 import cats.data.OptionT
 import cats.implicits._
 import fs2.Chunk.ByteVectorChunk
+import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
+// import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeError
+// import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeIncomlete
 
 class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
   implicit val cs: ContextShift[IO] = IO.contextShift(ee.ec)
@@ -29,25 +32,25 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
 
     // Only for Use with Text Requests
     def parseRequestRig[F[_]: Sync](s: String): F[Request[F]] = {
-      val logger = TestingLogger.impl[F]()
+      // val logger = TestingLogger.impl[F]()
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Request.parser[F](Int.MaxValue)(byteStream)(logger)
+      Parser.Request.parser[F](Int.MaxValue)(byteStream)
     }
 
     def parseResponseRig[F[_]: Sync](s: String): Resource[F, Response[F]] = {
-      val logger = TestingLogger.impl[F]()
+      // val logger = TestingLogger.impl[F]()
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
         .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Response.parser[F](Int.MaxValue)(byteStream)(logger)
+      Parser.Response.parser[F](Int.MaxValue)(byteStream) //(logger)
     }
 
     def forceScopedParsing[F[_]: Sync](s: String): Stream[F, Byte] = {
@@ -88,7 +91,11 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       |Host: www.google.com
       |
       |""".stripMargin
-      val expected = Request[IO](Method.GET, Uri.unsafeFromString("www.google.com"))
+      val expected = Request[IO](
+        Method.GET,
+        Uri.unsafeFromString("www.google.com"),
+        headers = Headers.of(org.http4s.headers.Host("www.google.com"))
+      )
 
       val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync()
 
@@ -127,7 +134,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
     }
 
     "handle a response that requires multiple chunks to be read" in {
-      val logger = TestingLogger.impl[IO]()
+      // val logger = TestingLogger.impl[IO]()
       val defaultMaxHeaderLength = 4096
       val raw =
         """HTTP/1.1 200 OK
@@ -140,7 +147,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       (for {
         parsed <-
           Parser.Response
-            .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw))(logger)
+            .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw)) //(logger)
             .use { resp =>
               resp.body.through(text.utf8Decode).compile.string
             }
@@ -151,14 +158,14 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
 
   "Parser.Response.parser" should {
     "handle a chunked response" in {
-      val logger = TestingLogger.impl[IO]()
+      // val logger = TestingLogger.impl[IO]()
       val defaultMaxHeaderLength = 4096
       val base =
         "SFRUUC8xLjEgMjAwIE9LDQpBcGktVmVyc2lvbjogMS40MA0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9qc29uDQpEb2NrZXItRXhwZXJpbWVudGFsOiBmYWxzZQ0KT3N0eXBlOiBsaW51eA0KU2VydmVyOiBEb2NrZXIvMTkuMDMuMTEtY2UgKGxpbnV4KQ0KRGF0ZTogRnJpLCAyNiBKdW4gMjAyMCAyMjozNTo0MiBHTVQNClRyYW5zZmVyLUVuY29kaW5nOiBjaHVua2VkDQoNCjhjMw0KeyJJRCI6IllNS0U6MkZZMzpTUUc3OjZSSFo6TFlTVDpRUk9JOkU1NEU6UTdXRjpERElLOlNOSUE6Rk5UTzpJVllSIiwiQ29udGFpbmVycyI6MjUsIkNvbnRhaW5lcnNSdW5uaW5nIjowLCJDb250YWluZXJzUGF1c2VkIjowLCJDb250YWluZXJzU3RvcHBlZCI6MjUsIkltYWdlcyI6ODMsIkRyaXZlciI6Im92ZXJsYXkyIiwiRHJpdmVyU3RhdHVzIjpbWyJCYWNraW5nIEZpbGVzeXN0ZW0iLCJleHRmcyJdLFsiU3VwcG9ydHMgZF90eXBlIiwidHJ1ZSJdLFsiTmF0aXZlIE92ZXJsYXkgRGlmZiIsImZhbHNlIl1dLCJTeXN0ZW1TdGF0dXMiOm51bGwsIlBsdWdpbnMiOnsiVm9sdW1lIjpbImxvY2FsIl0sIk5ldHdvcmsiOlsiYnJpZGdlIiwiaG9zdCIsImlwdmxhbiIsIm1hY3ZsYW4iLCJudWxsIiwib3ZlcmxheSJdLCJBdXRob3JpemF0aW9uIjpudWxsLCJMb2ciOlsiYXdzbG9ncyIsImZsdWVudGQiLCJnY3Bsb2dzIiwiZ2VsZiIsImpvdXJuYWxkIiwianNvbi1maWxlIiwibG9jYWwiLCJsb2dlbnRyaWVzIiwic3BsdW5rIiwic3lzbG9nIl19LCJNZW1vcnlMaW1pdCI6dHJ1ZSwiU3dhcExpbWl0Ijp0cnVlLCJLZXJuZWxNZW1vcnkiOnRydWUsIktlcm5lbE1lbW9yeVRDUCI6dHJ1ZSwiQ3B1Q2ZzUGVyaW9kIjp0cnVlLCJDcHVDZnNRdW90YSI6dHJ1ZSwiQ1BVU2hhcmVzIjp0cnVlLCJDUFVTZXQiOnRydWUsIlBpZHNMaW1pdCI6dHJ1ZSwiSVB2NEZvcndhcmRpbmciOnRydWUsIkJyaWRnZU5mSXB0YWJsZXMiOnRydWUsIkJyaWRnZU5mSXA2dGFibGVzIjp0cnVlLCJEZWJ1ZyI6ZmFsc2UsIk5GZCI6MjQsIk9vbUtpbGxEaXNhYmxlIjp0cnVlLCJOR29yb3V0aW5lcyI6NDAsIlN5c3RlbVRpbWUiOiIyMDIwLTA2LTI2VDE1OjM1OjQyLjU1MjUzMzQzMS0wNzowMCIsIkxvZ2dpbmdEcml2ZXIiOiJqc29uLWZpbGUiLCJDZ3JvdXBEcml2ZXIiOiJjZ3JvdXBmcyIsIk5FdmVudHNMaXN0ZW5lciI6MCwiS2VybmVsVmVyc2lvbiI6IjUuNy42LWFyY2gxLTEiLCJPcGVyYXRpbmdTeXN0ZW0iOiJBcmNoIExpbnV4IiwiT1NUeXBlIjoibGludXgiLCJBcmNoaXRlY3R1cmUiOiJ4ODZfNjQiLCJJbmRleFNlcnZlckFkZHJlc3MiOiJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iLCJSZWdpc3RyeUNvbmZpZyI6eyJBbGxvd05vbmRpc3RyaWJ1dGFibGVBcnRpZmFjdHNDSURScyI6W10sIkFsbG93Tm9uZGlzdHJpYnV0YWJsZUFydGlmYWN0c0hvc3RuYW1lcyI6W10sIkluc2VjdXJlUmVnaXN0cnlDSURScyI6WyIxMjcuMC4wLjAvOCJdLCJJbmRleENvbmZpZ3MiOnsiZG9ja2VyLmlvIjp7Ik5hbWUiOiJkb2NrZXIuaW8iLCJNaXJyb3JzIjpbXSwiU2VjdXJlIjp0cnVlLCJPZmZpY2lhbCI6dHJ1ZX19LCJNaXJyb3JzIjpbXX0sIk5DUFUiOjQsIk1lbVRvdGFsIjo4MjIwOTgzMjk2LCJHZW5lcmljUmVzb3VyY2VzIjpudWxsLCJEb2NrZXJSb290RGlyIjoiL3Zhci9saWIvZG9ja2VyIiwiSHR0cFByb3h5IjoiIiwiSHR0cHNQcm94eSI6IiIsIk5vUHJveHkiOiIiLCJOYW1lIjoiZGF2ZW5wb3J0LWxhcHRvcCIsIkxhYmVscyI6W10sIkV4cGVyaW1lbnRhbEJ1aWxkIjpmYWxzZSwiU2VydmVyVmVyc2lvbiI6IjE5LjAzLjExLWNlIiwiQ2x1c3RlclN0b3JlIjoiIiwiQ2x1c3RlckFkdmVydGlzZSI6IiIsIlJ1bnRpbWVzIjp7InJ1bmMiOnsicGF0aCI6InJ1bmMifX0sIkRlZmF1bHRSdW50aW1lIjoicnVuYyIsIlN3YXJtIjp7Ik5vZGVJRCI6IiIsIk5vZGVBZGRyIjoiIiwiTG9jYWxOb2RlU3RhdGUiOiJpbmFjdGl2ZSIsIkNvbnRyb2xBdmFpbGFibGUiOmZhbHNlLCJFcnJvciI6IiIsIlJlbW90ZU1hbmFnZXJzIjpudWxsfSwiTGl2ZVJlc3RvcmVFbmFibGVkIjpmYWxzZSwiSXNvbGF0aW9uIjoiIiwiSW5pdEJpbmFyeSI6ImRvY2tlci1pbml0IiwiQ29udGFpbmVyZENvbW1pdCI6eyJJRCI6ImQ3NmMxMjFmNzZhNWZjOGE0NjJkYzY0NTk0YWVhNzJmZTE4ZTExNzgubSIsIkV4cGVjdGVkIjoiZDc2YzEyMWY3NmE1ZmM4YTQ2MmRjNjQ1OTRhZWE3MmZlMThlMTE3OC5tIn0sIlJ1bmNDb21taXQiOnsiSUQiOiJkYzkyMDhhMzMwM2ZlZWY1YjM4MzlmNDMyM2Q5YmViMzZkZjBhOWRkIiwiRXhwZWN0ZWQiOiJkYzkyMDhhMzMwM2ZlZWY1YjM4MzlmNDMyM2Q5YmViMzZkZjBhOWRkIn0sIkluaXRDb21taXQiOnsiSUQiOiJmZWMzNjgzIiwiRXhwZWN0ZWQiOiJmZWMzNjgzIn0sIlNlY3VyaXR5T3B0aW9ucyI6WyJuYW1lPXNlY2NvbXAscHJvZmlsZT1kZWZhdWx0Il0sIldhcm5pbmdzIjpudWxsfQoNCjANCg0K"
       val baseBv = ByteVector.fromBase64(base).get
 
       Parser.Response
-        .parser[IO](defaultMaxHeaderLength)(Stream.chunk(ByteVectorChunk(baseBv)))(logger)
+        .parser[IO](defaultMaxHeaderLength)(Stream.chunk(ByteVectorChunk(baseBv)))
         .use { resp =>
           resp.body.through(text.utf8Decode).compile.string
 
@@ -178,36 +185,29 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       |
       |""".stripMargin
       val asHttp = Helpers.httpifyString(base)
-      val bv = ByteVector.encodeAscii(asHttp).fold(throw _, identity)
+      val bv = asHttp.getBytes()
 
-      val (headers, rest) = Parser.HeaderP.headersInSection(bv) match {
-          case Parser.HeaderP.Completed(headers, rest) => 
-            (headers,rest)
-          case Parser.HeaderP.Incomplete(_, _,_, _, _) => ???
-        }
+      val (headers, rest, chunked, length) = Parser.HeaderP.headersInSection(bv) match {
+        case Parser.HeaderP.ParseHeadersCompleted(headers, rest, chunked, length) =>
+          (headers, rest, chunked, length)
+        case _ => ???
+      }
 
       (
-        headers.toList must_=== List(Header("Content-Type", "text/plain; charset=UTF-8"), Header("Content-Length", "11"))
+        headers.toList must_=== List(
+          Header("Content-Type", "text/plain; charset=UTF-8"),
+          Header("Content-Length", "11"))
       ).and(
         rest.isEmpty must beTrue
+      ).and(
+        chunked must beFalse
+      ).and(
+        length must beSome.like {
+          case l => l must_=== 11L
+        }
       )
 
     }
-
-    // "return original bv if incomplete" in {
-    //   val base = """Content-Type: text/plain; charset=UTF-8
-    //   |Content-Length: 11""".stripMargin
-    //   val asHttp = Helpers.httpifyString(base)
-    //   val bv = ByteVector.encodeAscii(asHttp).fold(throw _, identity)
-
-    //   val (headers, rest) = Parser.headersInSection(bv)
-
-    //   (
-    //     headers.toList must_=== List()
-    //   ).and(
-    //     rest must_=== bv
-    //   )
-    // }
   }
 
   "Request Prelude" should {
@@ -216,16 +216,39 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
         """GET / HTTP/1.1
           |""".stripMargin
       val asHttp = Helpers.httpifyString(raw)
-      val bv = ByteVector.encodeAscii(asHttp).fold(throw _, identity)
+      val bv = asHttp.getBytes()
 
-      Parser.Request.ReqPrelude.preludeInSection(bv) must beRight.like{
-        case (method, uri, http, rest) => 
-          (method must_=== Method.GET) and
-          (uri must_=== uri"/") and
-          (http must_=== HttpVersion.`HTTP/1.1`) and 
-          (rest must beEmpty)
+      Parser.Request.ReqPrelude.preludeInSection(bv) match {
+        case ParsePreludeComplete(method, uri, httpVersion, rest) =>
+          (method must_=== Method.GET)
+            .and(uri must_=== uri"/")
+            .and(httpVersion must_=== HttpVersion.`HTTP/1.1`)
+            .and(rest must beEmpty)
+        case _ => ko
+        // case ParsePreludeError(throwable, method, uri, httpVersion) =>
+        // case ParsePreludeIncomlete(idx, bv, buffer, method, uri, httpVersion) =>
       }
-      
+    }
+  }
+
+  "Response Prelude" should {
+    "parse an expected value" in {
+      val raw =
+        """HTTP/1.1 200 OK
+        |""".stripMargin
+      val asHttp = Helpers.httpifyString(raw)
+      val bv = asHttp.getBytes()
+      Parser.Response.RespPrelude.preludeInSection(bv) match {
+        case Parser.Response.RespPrelude.RespPreludeComplete(version, status, rest) =>
+          (version must_=== HttpVersion.`HTTP/1.1`)
+            .and(
+              status must_=== Status.Ok
+            )
+            .and(
+              rest.isEmpty must beTrue
+            )
+        case _ => ko
+      }
     }
   }
 
