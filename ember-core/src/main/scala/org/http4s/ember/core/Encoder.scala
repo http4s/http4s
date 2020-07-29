@@ -77,9 +77,8 @@ private[ember] object Encoder {
       stringBuilder.append(CRLF)
       stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
     }
-    val body = if (req.isChunked) req.body.through(ChunkedEncoding.encode[F]) else req.body
-
-    Stream.chunk(Chunk.array(initSection)) ++
-      body
+    if (req.isChunked) 
+      Stream.chunk(Chunk.array(initSection)) ++ req.body.through(ChunkedEncoding.encode[F]) 
+    else (Stream.chunk(Chunk.array(initSection)) ++ req.body).chunkMin(256 * 1024).flatMap(Stream.chunk)
   }
 }
