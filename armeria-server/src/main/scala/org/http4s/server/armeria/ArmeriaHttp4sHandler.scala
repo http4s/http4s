@@ -161,15 +161,17 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
       )
       .insert(
         ServerRequestKeys.SecureSession,
-        Option.when[SecureSession](secure) {
+        if (secure) {
           val sslSession = ctx.sslSession()
           val cipherSuite = sslSession.getCipherSuite
-          SecureSession(
+          Some(SecureSession(
             ByteVector(sslSession.getId).toHex,
             cipherSuite,
             SSLContextFactory.deduceKeyLength(cipherSuite),
             SSLContextFactory.getCertChain(sslSession)
-          )
+          ))
+        } else {
+          None
         }
       )
   }

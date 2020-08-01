@@ -25,6 +25,7 @@ import java.util.function.{Function => JFunction}
 import javax.net.ssl.KeyManagerFactory
 import org.http4s.server.defaults.{IdleTimeout, ResponseTimeout, ShutdownTimeout}
 import org.log4s.{Logger, getLogger}
+import scala.collection.immutable
 import scala.concurrent.duration.Duration
 
 sealed class ArmeriaServerBuilder[F[_]] private (
@@ -269,7 +270,7 @@ sealed class ArmeriaServerBuilder[F[_]] private (
         }
     }
 
-  override def withBanner(banner: Seq[String]): Self = copy(banner = banner)
+  override def withBanner(banner: immutable.Seq[String]): Self = copy(banner = banner)
 
   private def copy(
       armeriaServerBuilder: ArmeriaBuilder = armeriaServerBuilder,
