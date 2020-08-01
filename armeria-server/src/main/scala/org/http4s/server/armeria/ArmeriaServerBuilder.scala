@@ -11,7 +11,13 @@ package armeria
 import cats.effect.{ConcurrentEffect, Resource}
 import com.linecorp.armeria.common.util.Version
 import com.linecorp.armeria.common.{HttpRequest, HttpResponse, SessionProtocol}
-import com.linecorp.armeria.server.{HttpService, ServerListenerAdapter, ServiceRequestContext, Server => ArmeriaServer, ServerBuilder => ArmeriaBuilder}
+import com.linecorp.armeria.server.{
+  HttpService,
+  ServerListenerAdapter,
+  ServiceRequestContext,
+  Server => ArmeriaServer,
+  ServerBuilder => ArmeriaBuilder
+}
 import io.micrometer.core.instrument.MeterRegistry
 import io.netty.channel.ChannelOption
 import io.netty.handler.ssl.SslContextBuilder
@@ -29,11 +35,12 @@ import scala.collection.immutable
 import scala.concurrent.duration.Duration
 
 sealed class ArmeriaServerBuilder[F[_]] private (
-  armeriaServerBuilder: ArmeriaBuilder,
-  socketAddress: InetSocketAddress,
-  serviceErrorHandler: ServiceErrorHandler[F],
-  banner: Seq[String]
-)(implicit protected val F: ConcurrentEffect[F]) extends ServerBuilder[F] {
+    armeriaServerBuilder: ArmeriaBuilder,
+    socketAddress: InetSocketAddress,
+    serviceErrorHandler: ServiceErrorHandler[F],
+    banner: Seq[String]
+)(implicit protected val F: ConcurrentEffect[F])
+    extends ServerBuilder[F] {
   override type Self = ArmeriaServerBuilder[F]
 
   private[this] val logger: Logger = getLogger
@@ -80,8 +87,8 @@ sealed class ArmeriaServerBuilder[F[_]] private (
     * See [[https://armeria.dev/docs/server-basics#path-patterns]] for detailed information of path pattens.
     */
   def withHttpService(
-    pathPattern: String,
-    service: (ServiceRequestContext, HttpRequest) => HttpResponse): Self = {
+      pathPattern: String,
+      service: (ServiceRequestContext, HttpRequest) => HttpResponse): Self = {
     armeriaServerBuilder.service(
       pathPattern,
       new HttpService {
@@ -123,14 +130,16 @@ sealed class ArmeriaServerBuilder[F[_]] private (
 
   /** Decorates HTTP services under the specified directory with the specified [[DecoratorFunction]]. */
   def withDecoratorUnder(prefix: String, decorator: DecoratorFunction): Self = {
-    armeriaServerBuilder.decoratorUnder(prefix, (delegate, ctx, req) => decorator(delegate, ctx, req))
+    armeriaServerBuilder.decoratorUnder(
+      prefix,
+      (delegate, ctx, req) => decorator(delegate, ctx, req))
     this
   }
 
   /** Decorates HTTP services under the specified directory with the specified `decorator`. */
   def withDecoratorUnder(
-    prefix: String,
-    decorator: JFunction[_ >: HttpService, _ <: HttpService]): Self = {
+      prefix: String,
+      decorator: JFunction[_ >: HttpService, _ <: HttpService]): Self = {
     armeriaServerBuilder.decoratorUnder(prefix, decorator)
     this
   }
@@ -209,8 +218,10 @@ sealed class ArmeriaServerBuilder[F[_]] private (
     *
     * @see [[withTlsCustomizer(scala.Function1)]]
     */
-  def withTls(keyCertChainInputStream: InputStream, keyInputStream: InputStream, keyPassword: Option[String])
-  : Self = {
+  def withTls(
+      keyCertChainInputStream: InputStream,
+      keyInputStream: InputStream,
+      keyPassword: Option[String]): Self = {
     armeriaServerBuilder.tls(keyCertChainInputStream, keyInputStream, keyPassword.orNull)
     this
   }
@@ -282,12 +293,13 @@ sealed class ArmeriaServerBuilder[F[_]] private (
 }
 
 object ArmeriaServerBuilder {
-  def apply[F[_] : ConcurrentEffect]: ArmeriaServerBuilder[F] = {
+  def apply[F[_]: ConcurrentEffect]: ArmeriaServerBuilder[F] = {
     val defaultServerBuilder =
-      ArmeriaServer.builder()
-                   .idleTimeoutMillis(IdleTimeout.toMillis)
-                   .requestTimeoutMillis(ResponseTimeout.toMillis)
-                   .gracefulShutdownTimeoutMillis(ShutdownTimeout.toMillis, ShutdownTimeout.toMillis)
+      ArmeriaServer
+        .builder()
+        .idleTimeoutMillis(IdleTimeout.toMillis)
+        .requestTimeoutMillis(ResponseTimeout.toMillis)
+        .gracefulShutdownTimeoutMillis(ShutdownTimeout.toMillis, ShutdownTimeout.toMillis)
     new ArmeriaServerBuilder(
       armeriaServerBuilder = defaultServerBuilder,
       socketAddress = defaults.SocketAddress,

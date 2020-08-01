@@ -52,7 +52,6 @@ class ArmeriaServerBuilderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     .resource
 
   withResource(serverR) { server =>
-
     // This should be in IO and shifted but I'm tired of fighting this.
     def get(path: String): String =
       Source

@@ -10,7 +10,13 @@ package armeria
 
 import cats.effect.{Async, ConcurrentEffect, IO}
 import cats.implicits._
-import com.linecorp.armeria.common.{HttpData, HttpHeaderNames, HttpRequest, HttpResponse, ResponseHeaders}
+import com.linecorp.armeria.common.{
+  HttpData,
+  HttpHeaderNames,
+  HttpRequest,
+  HttpResponse,
+  ResponseHeaders
+}
 import com.linecorp.armeria.common.util.Version
 import com.linecorp.armeria.server.{HttpService, ServiceRequestContext}
 import io.chrisdavenport.vault._
@@ -26,9 +32,9 @@ import scodec.bits.ByteVector
 
 /** An [[HttpService]] that handles the specified [[HttpApp]] under the specified `prefix`. */
 private[armeria] class ArmeriaHttp4sHandler[F[_]](
-  prefix: String,
-  service: HttpApp[F],
-  serviceErrorHandler: ServiceErrorHandler[F]
+    prefix: String,
+    service: HttpApp[F],
+    serviceErrorHandler: ServiceErrorHandler[F]
 )(implicit F: ConcurrentEffect[F])
     extends HttpService {
 
@@ -47,7 +53,8 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
     HttpResponse.from(future)
   }
 
-  private def handleRequest(request: Request[F], ctx: ServiceRequestContext)(implicit ec: ExecutionContext): F[HttpResponse] =
+  private def handleRequest(request: Request[F], ctx: ServiceRequestContext)(implicit
+      ec: ExecutionContext): F[HttpResponse] =
     raceTimeout(ctx)
       .apply(request)
       .recoverWith(serviceErrorHandler(request))
@@ -56,10 +63,11 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
   /** Cancels a [[Request]] when the request has been timed out.
     * A work around for handling [[IO.never]].
     */
-  private[this] def raceTimeout(ctx: ServiceRequestContext)(implicit ec: ExecutionContext): Request[F] => F[Response[F]] =
-    if (ctx.requestTimeoutMillis == 0) {
+  private[this] def raceTimeout(ctx: ServiceRequestContext)(implicit
+      ec: ExecutionContext): Request[F] => F[Response[F]] =
+    if (ctx.requestTimeoutMillis == 0)
       serviceFn
-    } else {
+    else {
       val timeoutResponse: F[Response[F]] = F.async[Response[F]] { cb =>
         discardReturn {
           ctx.log().whenComplete().thenRun(() => cb(Right(Response.timeout[F])))
@@ -77,10 +85,10 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
   /** Converts http4s' [[Response]] to Armeria's [[HttpResponse]]. */
   private def toHttpResponse(response: Response[F]): HttpResponse = {
     val headers = Stream(toResponseHeaders(response.headers, response.status.some))
-    val body: Stream[F, HttpData] = response.body.chunks.map(chunk => {
+    val body: Stream[F, HttpData] = response.body.chunks.map { chunk =>
       val byteChunk = chunk.toBytes
       HttpData.copyOf(chunk.toBytes.values, byteChunk.offset, byteChunk.length)
-    })
+    }
     val trailers = Stream
       .eval(response.trailerHeaders)
       .flatMap { trailers =>
@@ -103,15 +111,12 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
       method = method,
       uri = uri,
       httpVersion =
-        if (ctx.sessionProtocol().isMultiplex) {
+        if (ctx.sessionProtocol().isMultiplex)
           HttpVersion.`HTTP/2.0`
-        } else {
-          if (req.headers().get(HttpHeaderNames.HOST) != null) {
-            HttpVersion.`HTTP/1.1`
-          } else {
-            HttpVersion.`HTTP/1.0`
-          }
-        },
+        else if (req.headers().get(HttpHeaderNames.HOST) != null)
+          HttpVersion.`HTTP/1.1`
+        else
+          HttpVersion.`HTTP/1.0`,
       headers = toHeaders(req),
       body = toBody(req),
       attributes = requestAttributes(ctx, uri)
@@ -150,8 +155,8 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
   private def requestAttributes(ctx: ServiceRequestContext, uri: Uri): Vault = {
     val secure = ctx.sessionProtocol().isTls
     defaultVault
-       .insert(Request.Keys.PathInfoCaret, uri.path.indexOfString(prefix).getOrElse(-1))
-       .insert(ServiceRequestContextKeys.RequestContext, ctx)
+      .insert(Request.Keys.PathInfoCaret, uri.path.indexOfString(prefix).getOrElse(-1))
+      .insert(ServiceRequestContextKeys.RequestContext, ctx)
       .insert(
         Request.Keys.ConnectionInfo,
         Request.Connection(
@@ -164,15 +169,15 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
         if (secure) {
           val sslSession = ctx.sslSession()
           val cipherSuite = sslSession.getCipherSuite
-          Some(SecureSession(
-            ByteVector(sslSession.getId).toHex,
-            cipherSuite,
-            SSLContextFactory.deduceKeyLength(cipherSuite),
-            SSLContextFactory.getCertChain(sslSession)
-          ))
-        } else {
+          Some(
+            SecureSession(
+              ByteVector(sslSession.getId).toHex,
+              cipherSuite,
+              SSLContextFactory.deduceKeyLength(cipherSuite),
+              SSLContextFactory.getCertChain(sslSession)
+            ))
+        } else
           None
-        }
       )
   }
 
