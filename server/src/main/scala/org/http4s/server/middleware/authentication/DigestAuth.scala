@@ -16,7 +16,10 @@ import cats.implicits._
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.Date
+
 import org.http4s.headers._
+import org.http4s.middleware.authentication.DigestUtil
+
 import scala.concurrent.duration._
 
 /**

@@ -4,14 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package org.http4s
-package server
-package middleware
-package authentication
+package org.http4s.middleware.authentication
 
 import java.security.MessageDigest
 
-private[authentication] object DigestUtil {
+private[http4s] object DigestUtil {
   private def bytes2hex(bytes: Array[Byte]): String = bytes.map("%02x".format(_)).mkString
 
   private def md5(str: String): String =

@@ -15,6 +15,7 @@ import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
+import org.http4s.middleware.authentication.DigestUtil
 import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
