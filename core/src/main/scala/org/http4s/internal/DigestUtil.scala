@@ -4,18 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package org.http4s.server.middleware.authentication
+package org.http4s.internal
 
 import java.security.MessageDigest
 
-private[authentication] object DigestUtil {
+private[http4s] object DigestUtil {
   private def bytes2hex(bytes: Array[Byte]): String = bytes.map("%02x".format(_)).mkString
 
   private def md5(str: String): String =
     bytes2hex(MessageDigest.getInstance("MD5").digest(str.getBytes))
 
-  /**
-    * Computes the response value used in Digest Authentication.
+  /** Computes the response value used in Digest Authentication.
     * @param method
     * @param username
     * @param realm
@@ -27,7 +26,6 @@ private[authentication] object DigestUtil {
     * @param qop
     * @return
     */
-  @deprecated("Use org.http4s.internal.DigestUtil instead", "0.21.7")
   def computeResponse(
       method: String,
       username: String,

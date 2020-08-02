@@ -16,7 +16,9 @@ import cats.implicits._
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.Date
+
 import org.http4s.headers._
+
 import scala.concurrent.duration._
 
 /** Provides Digest Authentication from RFC 2617.
@@ -127,7 +129,7 @@ object DigestAuth {
         store(params("username")).map {
           case None => UserUnknown
           case Some((authInfo, password)) =>
-            val resp = DigestUtil.computeResponse(
+            val resp = org.http4s.internal.DigestUtil.computeResponse(
               method,
               params("username"),
               realm,
