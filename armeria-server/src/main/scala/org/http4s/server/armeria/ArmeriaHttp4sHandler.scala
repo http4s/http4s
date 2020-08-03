@@ -8,6 +8,7 @@ package org.http4s
 package server
 package armeria
 
+import cats.data
 import cats.effect.{Async, ConcurrentEffect, IO}
 import cats.implicits._
 import com.linecorp.armeria.common.{
@@ -73,7 +74,7 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
           ctx.log().whenComplete().thenRun(() => cb(Right(Response.timeout[F])))
         }
       }
-      // Use explicit an execution context to serve the service in Armeria's event loop
+      // Specify Armeria's event loop as an execution context to serve the service
       req => F.race(Async.shift(ec) *> serviceFn(req), timeoutResponse).map(_.merge)
     }
 
@@ -86,8 +87,8 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
   private def toHttpResponse(response: Response[F]): HttpResponse = {
     val headers = Stream(toResponseHeaders(response.headers, response.status.some))
     val body: Stream[F, HttpData] = response.body.chunks.map { chunk =>
-      val byteChunk = chunk.toBytes
-      HttpData.copyOf(chunk.toBytes.values, byteChunk.offset, byteChunk.length)
+      val bytes = chunk.toBytes
+      HttpData.copyOf(bytes.values, bytes.offset, bytes.length)
     }
     val trailers = Stream
       .eval(response.trailerHeaders)
@@ -125,13 +126,10 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
 
   /** Converts http4s' [[Headers]] to Armeria's [[ResponseHeaders]]. */
   private def toResponseHeaders(headers: Headers, status: Option[Status]): ResponseHeaders = {
-    val builder = status
-      .map(s => ResponseHeaders.builder(s.code))
-      .getOrElse(ResponseHeaders.builder())
+    val builder = status.fold(ResponseHeaders.builder())(s => ResponseHeaders.builder(s.code))
 
     for (header <- headers.toList)
       builder.add(header.name.toString, header.value)
-
     builder.build()
   }
 
@@ -145,12 +143,12 @@ private[armeria] class ArmeriaHttp4sHandler[F[_]](
         .toList
     )
 
-  /** Converts a HTTP payload to [[EntityBody]]. */
+  /** Converts an HTTP payload to [[EntityBody]]. */
   private def toBody(req: HttpRequest): EntityBody[F] =
     req
       .toStream[F]
-      .filter(_.isInstanceOf[HttpData])
-      .flatMap(data => Stream.chunk(Chunk.bytes(data.asInstanceOf[HttpData].array())))
+      .collect { case x: HttpData => Chunk.bytes(x.array()) }
+      .flatMap(Stream.chunk)
 
   private def requestAttributes(ctx: ServiceRequestContext, uri: Uri): Vault = {
     val secure = ctx.sessionProtocol().isTls

@@ -52,14 +52,12 @@ class ArmeriaServerBuilderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     .resource
 
   withResource(serverR) { server =>
-    // This should be in IO and shifted but I'm tired of fighting this.
     def get(path: String): String =
       Source
         .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
         .getLines
         .mkString
 
-    // This should be in IO and shifted but I'm tired of fighting this.
     def getStatus(path: String): IO[Status] = {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       for {
@@ -69,7 +67,6 @@ class ArmeriaServerBuilderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       } yield status
     }
 
-    // This too
     def post(path: String, body: String): String = {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
@@ -81,7 +78,6 @@ class ArmeriaServerBuilderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
     }
 
-    // This too
     def postChunkedMultipart(path: String, boundary: String, body: String): IO[String] =
       IO {
         val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
