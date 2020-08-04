@@ -15,7 +15,7 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
   def clientResource = AsyncHttpClient.resource[IO]()
 
   "AsyncHttpClient configure" should {
-    "evaluate to the defaultConfiguration given an identity function as the configuration function" in {
+    "evaluate to the defaultConfiguration given the identity function as the configuration function" in {
       val defaultConfig = AsyncHttpClient.defaultConfig
       val customConfig = AsyncHttpClient.configure(identity)
 
