@@ -26,7 +26,8 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
 
     "be able to configure max connections per host" in {
       val customMaxConnectionsPerHost = 30
-      val customConfig = AsyncHttpClient.configure(_.setMaxConnectionsPerHost(customMaxConnectionsPerHost))
+      val customConfig =
+        AsyncHttpClient.configure(_.setMaxConnectionsPerHost(customMaxConnectionsPerHost))
 
       customConfig.getMaxConnectionsPerHost shouldEqual customMaxConnectionsPerHost
     }
@@ -42,6 +43,22 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
       val customRequestTimeout = defaults.RequestTimeout.toMillis.toInt + 2
       val customConfig = AsyncHttpClient.configure(_.setRequestTimeout(customRequestTimeout))
 
+      customConfig.getRequestTimeout shouldEqual customRequestTimeout
+    }
+
+    "be able to configure more than one parameter at once" in {
+      val customMaxConnectionsPerHost = 25
+      val customMaxConnections = 2
+      val customRequestTimeout = defaults.RequestTimeout.toMillis.toInt + 2
+      val customConfig = AsyncHttpClient.configure { builder =>
+        builder
+          .setMaxConnectionsPerHost(customMaxConnectionsPerHost)
+          .setMaxConnections(customMaxConnections)
+          .setRequestTimeout(customRequestTimeout)
+      }
+
+      customConfig.getMaxConnectionsPerHost shouldEqual customMaxConnectionsPerHost
+      customConfig.getMaxConnections shouldEqual customMaxConnections
       customConfig.getRequestTimeout shouldEqual customRequestTimeout
     }
   }
