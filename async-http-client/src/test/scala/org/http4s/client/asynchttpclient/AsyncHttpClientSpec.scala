@@ -11,7 +11,6 @@ package asynchttpclient
 import cats.effect.IO
 
 class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with Http4sSpec {
-  implicit val testContext = testContext()
 
   def clientResource = AsyncHttpClient.resource[IO]()
 
