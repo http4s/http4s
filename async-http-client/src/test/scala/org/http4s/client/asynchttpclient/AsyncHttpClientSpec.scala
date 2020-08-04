@@ -17,10 +17,32 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
   "AsyncHttpClient configure" should {
     "evaluate to the defaultConfiguration given an identity function as the configuration function" in {
       val defaultConfig = AsyncHttpClient.defaultConfig
-      AsyncHttpClient.configure(identity) shouldEqual defaultConfig
+      val customConfig = AsyncHttpClient.configure(identity)
+
+      defaultConfig.getMaxConnectionsPerHost shouldEqual customConfig.getMaxConnectionsPerHost
+      defaultConfig.getMaxConnections shouldEqual customConfig.getMaxConnections
+      defaultConfig.getRequestTimeout shouldEqual customConfig.getRequestTimeout
+    }
+
+    "be able to configure max connections per host" in {
+      val customMaxConnectionsPerHost = 30
+      val customConfig = AsyncHttpClient.configure(_.setMaxConnectionsPerHost(customMaxConnectionsPerHost))
+
+      customConfig.getMaxConnectionsPerHost shouldEqual customMaxConnectionsPerHost
+    }
+
+    "be able to configure max connections" in {
+      val customMaxConnections = 40
+      val customConfig = AsyncHttpClient.configure(_.setMaxConnections(customMaxConnections))
+
+      customConfig.getMaxConnections shouldEqual customMaxConnections
+    }
+
+    "be able to configure request timeout" in {
+      val customRequestTimeout = defaults.RequestTimeout.toMillis.toInt + 2
+      val customConfig = AsyncHttpClient.configure(_.setRequestTimeout(customRequestTimeout))
+
+      customConfig.getRequestTimeout shouldEqual customRequestTimeout
     }
   }
-
-  // TODO: more tests once I get some feedback
-
 }
