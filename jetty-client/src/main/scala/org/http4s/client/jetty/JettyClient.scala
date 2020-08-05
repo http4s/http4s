@@ -45,11 +45,11 @@ object JettyClient {
     acquire.map((_, dispose))
   }
 
-  def resource[F[_]](client: HttpClient = new HttpClient())(implicit
+  def resource[F[_]](client: HttpClient = defaultHttpClient())(implicit
       F: ConcurrentEffect[F]): Resource[F, Client[F]] =
     Resource(allocate[F](client))
 
-  def stream[F[_]](client: HttpClient = new HttpClient())(implicit
+  def stream[F[_]](client: HttpClient = defaultHttpClient())(implicit
       F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(client))
 
