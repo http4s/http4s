@@ -19,6 +19,7 @@ import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
+import scala.util.Try
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -88,7 +89,7 @@ object StaticFile {
           val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
           blocker
-            .delay(url.openStream)
+            .delay(urlConn.getInputStream)
             .redeem(
               recover = {
                 case _: FileNotFoundException => None
@@ -104,7 +105,7 @@ object StaticFile {
             )
         } else
           blocker
-            .delay(urlConn.getInputStream.close)
+            .delay(Try(urlConn.getInputStream.close()))
             .as(Some(Response(NotModified)))
       }
     })
