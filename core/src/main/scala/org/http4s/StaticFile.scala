@@ -19,7 +19,6 @@ import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
-import scala.util.Try
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -105,7 +104,8 @@ object StaticFile {
             )
         } else
           blocker
-            .delay(Try(urlConn.getInputStream.close()))
+            .delay(urlConn.getInputStream.close())
+            .handleError(_ => ())
             .as(Some(Response(NotModified)))
       }
     })
