@@ -39,11 +39,11 @@ object StaticFile {
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
-    val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists {
-      acceptEncoding =>
+    val tryGzipped =
+      preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists { acceptEncoding =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
           ContentCoding.`x-gzip`)
-    }
+      }
     val normalizedName = name.split("/").filter(_.nonEmpty).mkString("/")
 
     def getResource(name: String) =
@@ -216,5 +216,5 @@ object StaticFile {
       case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
     }
 
-  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync
+  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync()
 }

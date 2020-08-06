@@ -54,7 +54,7 @@ class JettyServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec with Http4sL
         IO(
           Source
             .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-            .getLines
+            .getLines()
             .mkString))
 
     def post(path: String, body: String): IO[String] =
@@ -66,7 +66,7 @@ class JettyServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec with Http4sL
         conn.setRequestProperty("Content-Length", bytes.size.toString)
         conn.setDoOutput(true)
         conn.getOutputStream.write(bytes)
-        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
       })
 
     "A server" should {

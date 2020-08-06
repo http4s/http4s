@@ -21,7 +21,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "StaticFile" should {
     "Determine the media-type based on the files extension" in {
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
-        val r = StaticFile.fromFile[IO](f, testBlocker).value.unsafeRunSync
+        val r = StaticFile.fromFile[IO](f, testBlocker).value.unsafeRunSync()
 
         r must beSome[Response[IO]]
         r.flatMap(_.headers.get(`Content-Type`)) must_== tpe.map(t => `Content-Type`(t))
@@ -111,7 +111,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
@@ -125,7 +125,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
@@ -143,7 +143,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
@@ -158,7 +158,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(Ok)
     }
@@ -177,7 +177,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(Ok)
     }
@@ -196,13 +196,13 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
               None,
               StaticFile.calcETag[IO])
             .value
-            .unsafeRunSync
+            .unsafeRunSync()
 
         r must beSome[Response[IO]]
         // Length is only 1 byte
         r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(1)
         // get the Body to check the actual size
-        r.map(_.body.compile.toVector.unsafeRunSync.length) must beSome(1)
+        r.map(_.body.compile.toVector.unsafeRunSync().length) must beSome(1)
       }
 
       val tests = List(
@@ -234,13 +234,13 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             None,
             StaticFile.calcETag[IO])
           .value
-          .unsafeRunSync
+          .unsafeRunSync()
 
         r must beSome[Response[IO]]
         // Length of the body must match
         r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize - 1)
         // get the Body to check the actual size
-        val body = r.map(_.body.compile.toVector.unsafeRunSync)
+        val body = r.map(_.body.compile.toVector.unsafeRunSync())
         body.map(_.length) must beSome(fileSize - 1)
         // Verify the context
         body.map(bytes =>
@@ -258,7 +258,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val s = StaticFile
         .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"), testBlocker)
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
         .fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body)
       // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
       // saves chunks, which are mutated by naive usage of readInputStream.
@@ -282,7 +282,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val s = StaticFile
         .fromURL[IO](getClass.getResource("/foo"), testBlocker)
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       s must_== None
     }
   }

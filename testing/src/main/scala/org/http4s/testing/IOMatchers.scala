@@ -20,7 +20,7 @@ trait IOMatchers extends RunTimedMatchers[IO] {
   protected implicit def F: Sync[IO] = IO.ioEffect
   protected def runWithTimeout[A](fa: IO[A], timeout: FiniteDuration): Option[A] =
     fa.unsafeRunTimed(timeout)
-  protected def runAwait[A](fa: IO[A]): A = fa.unsafeRunSync
+  protected def runAwait[A](fa: IO[A]): A = fa.unsafeRunSync()
 }
 
 @deprecated("Provided by specs2-cats in org.specs2.matcher.IOMatchers", "0.21.0-RC2")

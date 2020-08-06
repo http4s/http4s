@@ -4,7 +4,7 @@ env:
   CI: true
   CI_SNAPSHOT_RELEASE: +publishSigned
   HUGO_VERSION: 0.26
-  SCALA_VERSION: 2.12.11
+  SCALA_VERSION: 2.12.12
 jobs:
   validate:
     name: Scala ${{ matrix.scala }}, Java ${{ matrix.java }}
@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         java: [adopt@1.8, adopt@1.11, adopt@1.14]
-        scala: [2.12.11, 2.13.2]
+        scala: [2.12.12, 2.13.3]
     env:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:

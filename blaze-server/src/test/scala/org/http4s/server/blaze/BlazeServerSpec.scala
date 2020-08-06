@@ -59,7 +59,7 @@ class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     def get(path: String): String =
       Source
         .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-        .getLines
+        .getLines()
         .mkString
 
     // This should be in IO and shifted but I'm tired of fighting this.
@@ -81,7 +81,7 @@ class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       conn.setRequestProperty("Content-Length", bytes.size.toString)
       conn.setDoOutput(true)
       conn.getOutputStream.write(bytes)
-      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
     }
 
     // This too
@@ -95,7 +95,7 @@ class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         conn.setRequestProperty("Content-Type", s"""multipart/form-data; boundary="$boundary"""")
         conn.setDoOutput(true)
         conn.getOutputStream.write(bytes)
-        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
       }
 
     "A server" should {

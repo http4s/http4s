@@ -94,13 +94,18 @@ class UrlFormSpec extends Http4sSpec {
 
     "withFormField is effectively equal to factory constructor that takes a Map" in {
       (
-        UrlForm.empty +? ("foo", 1) +? ("bar", Some(true)) ++? ("dummy", Chain("a", "b", "c")) ===
+        UrlForm.empty.+?("foo", 1).+?("bar", Some(true)).++?("dummy", Chain("a", "b", "c")) ===
           UrlForm(Map("foo" -> Chain("1"), "bar" -> Chain("true"), "dummy" -> Chain("a", "b", "c")))
       )
 
       (
-        UrlForm.empty +? ("foo", 1) +? ("bar", Option
-          .empty[Boolean]) ++? ("dummy", Chain("a", "b", "c")) ===
+        UrlForm.empty
+          .+?("foo", 1)
+          .+?(
+            "bar",
+            Option
+              .empty[Boolean])
+          .++?("dummy", Chain("a", "b", "c")) ===
           UrlForm(Map("foo" -> Chain("1"), "dummy" -> Chain("a", "b", "c")))
       )
     }

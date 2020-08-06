@@ -220,7 +220,7 @@ private[blaze] class Http1ServerStage[F[_]](
         Connection.from(req.headers).map(checkCloseConnection(_, rr))
       }
       .getOrElse(
-        parser.minorVersion == 0
+        parser.minorVersion() == 0
       ) // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
@@ -235,7 +235,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
         if (req.method == Method.HEAD)
           // write message body header for HEAD response
-          (parser.minorVersion, respTransferCoding, lengthHeader) match {
+          (parser.minorVersion(), respTransferCoding, lengthHeader) match {
             case (minor, Some(enc), _) if minor > 0 && enc.hasChunked =>
               rr << "Transfer-Encoding: chunked\r\n"
             case (_, _, Some(len)) => rr << len << "\r\n"
@@ -243,7 +243,7 @@ private[blaze] class Http1ServerStage[F[_]](
           }
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present
-        rr << (if (!closeOnFinish && parser.minorVersion == 0 && respConn.isEmpty)
+        rr << (if (!closeOnFinish && parser.minorVersion() == 0 && respConn.isEmpty)
                  "Connection: keep-alive\r\n\r\n"
                else "\r\n")
 
@@ -255,7 +255,7 @@ private[blaze] class Http1ServerStage[F[_]](
           lengthHeader,
           resp.trailerHeaders,
           rr,
-          parser.minorVersion,
+          parser.minorVersion(),
           closeOnFinish)
     }
 

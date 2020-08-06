@@ -32,7 +32,7 @@ package object internal {
   // have an ExecutionContext but not a Timer.
   private[http4s] def unsafeRunAsync[F[_], A](fa: F[A])(
       f: Either[Throwable, A] => IO[Unit])(implicit F: Effect[F], ec: ExecutionContext): Unit =
-    F.runAsync(Async.shift(ec) *> fa)(f).unsafeRunSync
+    F.runAsync(Async.shift(ec) *> fa)(f).unsafeRunSync()
 
   private[http4s] def loggingAsyncCallback[A](logger: Logger)(
       attempt: Either[Throwable, A]): IO[Unit] =

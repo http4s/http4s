@@ -127,7 +127,7 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
         conn.setSSLSocketFactory(noAuthClientContext.getSocketFactory)
 
       Try {
-        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
       }.recover {
         case ex: Throwable =>
           ex.getMessage
@@ -161,7 +161,7 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
         conn.setSSLSocketFactory(noAuthClientContext.getSocketFactory)
 
       Try {
-        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
       }.recover {
         case ex: Throwable =>
           ex.getMessage
