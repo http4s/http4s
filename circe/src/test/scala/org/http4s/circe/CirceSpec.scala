@@ -26,6 +26,7 @@ import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.specification.core.Fragment
+import io.circe.jawn.CirceSupportParser
 
 // Originally based on ArgonautSpec
 class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO {
@@ -69,7 +70,6 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
 
   "json encoder" should {
     val json = Json.obj("test" -> Json.fromString("CirceSupport"))
-
     "have json content type" in {
       jsonEncoder[IO].headers.get(`Content-Type`) must_== Some(
         `Content-Type`(MediaType.application.json))
@@ -296,6 +296,43 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     "encode without defining EntityEncoder using default printer" in {
       import org.http4s.circe.CirceEntityEncoder._
       writeToString(foo) must_== """{"bar":42}"""
+    }
+  }
+
+  "CirceInstances.builder" should {
+    "should successfully decode when parser allows duplicate keys" in {
+      val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
+        .withCirceSupportParser(
+          new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
+        .build
+      val req = Request[IO]()
+        .withEntity("""{"bar": 1, "bar":2}""")
+        .withContentType(`Content-Type`(MediaType.application.json))
+
+      val decoder = circeInstanceAllowingDuplicateKeys.jsonOf[IO, Foo]
+      val result = decoder.decode(req, true).value.unsafeRunSync
+
+      result must beRight.like {
+        case Foo(2) => ok
+      }
+    }
+    "should should error out when parser does not allow duplicate keys" in {
+      val circeInstanceNotAllowingDuplicateKeys = CirceInstances.builder
+        .withCirceSupportParser(
+          new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false))
+        .build
+      val req = Request[IO]()
+        .withEntity("""{"bar": 1, "bar":2}""")
+        .withContentType(`Content-Type`(MediaType.application.json))
+
+      val decoder = circeInstanceNotAllowingDuplicateKeys.jsonOf[IO, Foo]
+      val result = decoder.decode(req, true).value.unsafeRunSync
+      result must beLeft.like {
+        case MalformedMessageBodyFailure(
+              "Invalid JSON",
+              Some(ParsingFailure("Invalid json, duplicate key name found: bar", _))) =>
+          ok
+      }
     }
   }
 
