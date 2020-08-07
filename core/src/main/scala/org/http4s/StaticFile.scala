@@ -88,7 +88,7 @@ object StaticFile {
           val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
           blocker
-            .delay(url.openStream)
+            .delay(urlConn.getInputStream)
             .redeem(
               recover = {
                 case _: FileNotFoundException => None
@@ -104,7 +104,8 @@ object StaticFile {
             )
         } else
           blocker
-            .delay(urlConn.getInputStream.close)
+            .delay(urlConn.getInputStream.close())
+            .handleError(_ => ())
             .as(Some(Response(NotModified)))
       }
     })
