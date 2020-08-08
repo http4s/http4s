@@ -67,8 +67,8 @@ val service = HttpRoutes.of[IO] {
 val goodRequest = Request[IO](Method.GET, uri"/")
 val badRequest = Request[IO](Method.GET, uri"/bad")
 
-service.orNotFound(goodRequest).unsafeRunSync
-service.orNotFound(badRequest).unsafeRunSync
+service.orNotFound(goodRequest).unsafeRunSync()
+service.orNotFound(badRequest).unsafeRunSync()
 ```
 
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
@@ -76,8 +76,8 @@ Now, we'll wrap the service in our middleware to create a new service, and try i
 ```scala mdoc
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 
-wrappedService.orNotFound(goodRequest).unsafeRunSync
-wrappedService.orNotFound(badRequest).unsafeRunSync
+wrappedService.orNotFound(goodRequest).unsafeRunSync()
+wrappedService.orNotFound(badRequest).unsafeRunSync()
 ```
 
 Note that the successful response has your header added to it.
@@ -99,8 +99,8 @@ object MyMiddle {
 
 val newService = MyMiddle(service, Header("SomeKey", "SomeValue"))
 
-newService.orNotFound(goodRequest).unsafeRunSync
-newService.orNotFound(badRequest).unsafeRunSync
+newService.orNotFound(goodRequest).unsafeRunSync()
+newService.orNotFound(badRequest).unsafeRunSync()
 ```
 
 It is possible for the wrapped `Service` to have different `Request` and `Response`
@@ -129,8 +129,8 @@ val aggregateService = apiService <+> MyMiddle(service, Header("SomeKey", "SomeV
 
 val apiRequest = Request[IO](Method.GET, uri"/api")
 
-aggregateService.orNotFound(goodRequest).unsafeRunSync
-aggregateService.orNotFound(apiRequest).unsafeRunSync
+aggregateService.orNotFound(goodRequest).unsafeRunSync()
+aggregateService.orNotFound(apiRequest).unsafeRunSync()
 ```
 
 Note that `goodRequest` ran through the `MyMiddle` middleware and the `Result` had

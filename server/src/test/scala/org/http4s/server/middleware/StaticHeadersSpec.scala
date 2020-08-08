@@ -25,7 +25,9 @@ class StaticHeadersSpec extends Http4sSpec {
       val resp = StaticHeaders.`no-cache`(testService).orNotFound(req)
 
       val check =
-        resp.map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache")).unsafeRunSync
+        resp
+          .map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache"))
+          .unsafeRunSync()
       check must_=== true
     }
   }

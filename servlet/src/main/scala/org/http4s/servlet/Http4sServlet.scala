@@ -32,7 +32,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
   private[this] var serverSoftware: ServerSoftware = _
 
   object ServletRequestKeys {
-    val HttpSession: Key[Option[HttpSession]] = Key.newKey[IO, Option[HttpSession]].unsafeRunSync
+    val HttpSession: Key[Option[HttpSession]] = Key.newKey[IO, Option[HttpSession]].unsafeRunSync()
   }
 
   override def init(config: ServletConfig): Unit = {

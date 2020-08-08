@@ -307,7 +307,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
             cb(Right(s))
             IO.pure(Response())
           }
-          .unsafeRunSync
+          .unsafeRunSync()
         ()
       } must returnValue("hooray")
     }
@@ -382,7 +382,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
           req.decodeWith(EntityDecoder.textFile(tmpFile, testBlocker), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
-        }.unsafeRunSync
+        }.unsafeRunSync()
 
         readTextFile(tmpFile) must_== new String(binData)
         response.status must_== Status.Ok
@@ -401,7 +401,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
             req.decodeWith(EntityDecoder.binFile(tmpFile, testBlocker), strict = false) { _ =>
               Response[IO](Ok).withEntity("Hello").pure[IO]
             }
-        }.unsafeRunSync
+        }.unsafeRunSync()
 
         response must beStatus(Status.Ok)
         getBody(response.body) must returnValue("Hello".getBytes)

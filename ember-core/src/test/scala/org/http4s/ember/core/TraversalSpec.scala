@@ -13,8 +13,10 @@ import cats.effect.IO
 import org.http4s._
 import _root_.io.chrisdavenport.log4cats.testing.TestingLogger
 import org.http4s.laws.discipline.ArbitraryInstances._
+import scala.concurrent.ExecutionContext
 
 class TraversalSpec extends Specification with ScalaCheck {
+  implicit val CS = IO.contextShift(ExecutionContext.global)
   "Request Encoder/Parser" should {
     "preserve headers" >> prop { (req: Request[IO]) =>
       val logger = TestingLogger.impl[IO]()
@@ -22,7 +24,7 @@ class TraversalSpec extends Specification with ScalaCheck {
         .parser[IO](Int.MaxValue)(
           Encoder.reqToBytes[IO](req)
         )(logger)
-        .unsafeRunSync
+        .unsafeRunSync()
 
       end.headers must_=== req.headers
     }.pendingUntilFixed
@@ -36,7 +38,7 @@ class TraversalSpec extends Specification with ScalaCheck {
         .parser[IO](Int.MaxValue)(
           Encoder.reqToBytes[IO](newReq)
         )(logger)
-        .unsafeRunSync
+        .unsafeRunSync()
 
       end.method must_=== req.method
     }
@@ -47,7 +49,7 @@ class TraversalSpec extends Specification with ScalaCheck {
         .parser[IO](Int.MaxValue)(
           Encoder.reqToBytes[IO](req)
         )(logger)
-        .unsafeRunSync
+        .unsafeRunSync()
 
       end.uri.scheme must_=== req.uri.scheme
     }.pendingUntilFixed
@@ -61,9 +63,9 @@ class TraversalSpec extends Specification with ScalaCheck {
         .parser[IO](Int.MaxValue)(
           Encoder.reqToBytes[IO](newReq)
         )(logger)
-        .unsafeRunSync
+        .unsafeRunSync()
 
-      end.body.through(fs2.text.utf8Decode).compile.foldMonoid.unsafeRunSync must_=== s
+      end.body.through(fs2.text.utf8Decode).compile.foldMonoid.unsafeRunSync() must_=== s
     }
   }
 }

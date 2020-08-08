@@ -53,7 +53,7 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] with Http4sLegacyMatchersI
     "decode JSON from a Play decoder" in {
       val result = jsonOf[IO, Foo]
         .decode(Request[IO]().withEntity(Json.obj("bar" -> JsNumber(42)): JsValue), strict = true)
-      result.value.unsafeRunSync must_== Right(Foo(42))
+      result.value.unsafeRunSync() must_== Right(Foo(42))
     }
   }
 
@@ -74,7 +74,7 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] with Http4sLegacyMatchersI
 
     "fail on invalid json" in {
       val req = Request[IO]().withEntity(Json.toJson(List(13, 14)))
-      req.decodeJson[Foo].attempt.unsafeRunSync must beLeft
+      req.decodeJson[Foo].attempt.unsafeRunSync() must beLeft
     }
   }
 
@@ -83,7 +83,7 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] with Http4sLegacyMatchersI
       import org.http4s.play.PlayEntityDecoder._
       val request = Request[IO]().withEntity(Json.obj("bar" -> JsNumber(42)): JsValue)
       val result = request.as[Foo]
-      result.unsafeRunSync must_== Foo(42)
+      result.unsafeRunSync() must_== Foo(42)
     }
 
     "encode without defining EntityEncoder using default printer" in {

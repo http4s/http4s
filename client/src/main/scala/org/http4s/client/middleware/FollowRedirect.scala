@@ -151,7 +151,7 @@ object FollowRedirect {
         None
     }
 
-  private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync
+  private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync()
 
   /**
     * Get the redirection URIs for a `response`.

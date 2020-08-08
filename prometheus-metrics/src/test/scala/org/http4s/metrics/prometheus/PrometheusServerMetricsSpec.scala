@@ -163,7 +163,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
           resp <- routes.run(req)
         } yield {
           resp must haveStatus(Status.Ok)
-          resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
+          resp.body.attempt.compile.lastOrError.unsafeRunSync() must beLeft
 
           count(registry, "abnormal_terminations", "server") must beEqualTo(1)
           count(registry, "active_requests", "server") must beEqualTo(0)

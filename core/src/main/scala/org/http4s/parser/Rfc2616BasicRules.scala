@@ -11,6 +11,7 @@
 package org.http4s.parser
 
 import cats.implicits._
+import com.github.ghik.silencer.silent
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
 
@@ -36,12 +37,14 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 
   def LWS = rule(optional(CRLF) ~ oneOrMore(anyOf(" \t")))
 
+  @silent("deprecated")
   def Text = rule(!CTL ~ ANY | LWS)
 
   def Hex = rule("A" - "F" | "a" - "f" | Digit)
 
   def Separator = rule(anyOf("()<>@,;:\\\"/[]?={} \t"))
 
+  @silent("deprecated")
   def Token: Rule1[String] = rule(capture(oneOrMore(!CTL ~ !Separator ~ ANY)))
 
   // TODO What's the replacement for DROP?
@@ -51,6 +54,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
     ()
   }
 
+  @silent("deprecated")
   def CText = rule(!anyOf("()") ~ Text)
 
   // TODO This parser cannot handle strings terminating on \" which is a border case but still valid quoted pair
@@ -61,6 +65,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
       } ~ "\""
     }
 
+  @silent("deprecated")
   def QDText: Rule1[Char] = rule(!ch('"') ~ Text ~ LASTCHAR)
 
   def QuotedPair: Rule1[Char] = rule("\\" ~ Char ~ LASTCHAR)

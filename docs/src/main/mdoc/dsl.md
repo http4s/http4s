@@ -37,6 +37,7 @@ We'll need the following imports to get started:
 
 ```scala mdoc:silent
 import cats.effect._
+import cats.implicits._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 // Provided by `cats.effect.IOApp`
 implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
@@ -85,7 +86,7 @@ run it.
 But here in the REPL, it's up to us to run it:
 
 ```scala mdoc
-val response = io.unsafeRunSync
+val response = io.unsafeRunSync()
 ```
 
 Cool.
@@ -103,7 +104,7 @@ applying a status code:
 
 ```scala mdoc
 val okIo = Ok()
-val ok = okIo.unsafeRunSync
+val ok = okIo.unsafeRunSync()
 ```
 
 This simple `Ok()` expression succinctly says what we mean in a
@@ -112,7 +113,7 @@ service:
 ```scala mdoc
 HttpRoutes.of[IO] {
   case _ => Ok()
-}.orNotFound.run(getRoot).unsafeRunSync
+}.orNotFound.run(getRoot).unsafeRunSync()
 ```
 
 This syntax works for other status codes as well.  In our example, we
@@ -122,7 +123,7 @@ response:
 ```scala mdoc
 HttpRoutes.of[IO] {
   case _ => NoContent()
-}.orNotFound.run(getRoot).unsafeRunSync
+}.orNotFound.run(getRoot).unsafeRunSync()
 ```
 
 ### Headers
@@ -130,7 +131,7 @@ HttpRoutes.of[IO] {
 http4s adds a minimum set of headers depending on the response, e.g:
 
 ```scala mdoc
-Ok("Ok response.").unsafeRunSync.headers
+Ok("Ok response.").unsafeRunSync().headers
 ```
 
 Extra headers can be added using `putHeaders`, for example to specify cache policies:
@@ -142,7 +143,7 @@ import cats.data.NonEmptyList
 ```
 
 ```scala mdoc
-Ok("Ok response.", `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync.headers
+Ok("Ok response.", `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync().headers
 ```
 
 http4s defines all the well known headers directly, but sometimes you need to
@@ -150,7 +151,7 @@ define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand:
 
 ```scala mdoc
-Ok("Ok response.", Header("X-Auth-Token", "value")).unsafeRunSync.headers
+Ok("Ok response.", Header("X-Auth-Token", "value")).unsafeRunSync().headers
 ```
 
 ### Cookies
@@ -159,7 +160,7 @@ http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
 ```scala mdoc
-Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync.headers
+Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync().headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
@@ -171,14 +172,14 @@ val cookieResp = {
     now <- HttpDate.current[IO]
   } yield resp.addCookie(ResponseCookie("foo", "bar", expires = Some(now), httpOnly = true, secure = true))
 }
-cookieResp.unsafeRunSync.headers
+cookieResp.unsafeRunSync().headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
 to empty. http4s can do that with `removeCookie`:
 
 ```scala mdoc
-Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync.headers
+Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync().headers
 ```
 
 ### Responding with a body
@@ -198,10 +199,10 @@ implicit `EntityEncoder` in scope.  http4s provides several out of the
 box:
 
 ```scala mdoc
-Ok("Received request.").unsafeRunSync
+Ok("Received request.").unsafeRunSync()
 
 import java.nio.charset.StandardCharsets.UTF_8
-Ok("binary".getBytes(UTF_8)).unsafeRunSync
+Ok("binary".getBytes(UTF_8)).unsafeRunSync()
 ```
 
 Per the HTTP specification, some status codes don't support a body.
@@ -238,7 +239,7 @@ val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
 })))
-io.unsafeRunSync
+io.unsafeRunSync()
 ```
 
 As good functional programmers who like to delay our side effects, we
@@ -249,7 +250,7 @@ val io = Ok(IO {
   println("I run when the IO is run.")
   "Mission accomplished!"
 })
-io.unsafeRunSync
+io.unsafeRunSync()
 ```
 
 Note that in both cases, a `Content-Length` header is calculated.
@@ -281,7 +282,7 @@ We can see it for ourselves in the REPL:
 
 ```scala mdoc
 val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s => {IO{println(s); s}})).compile.drain
-dripOutIO.unsafeRunSync
+dripOutIO.unsafeRunSync()
 ```
 
 When wrapped in a `Response[F]`, http4s will flush each chunk of a
@@ -414,7 +415,7 @@ val dailyWeatherService = HttpRoutes.of[IO] {
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(uri"/weather/temperature/2016-11-05").flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync)
+println(GET(uri"/weather/temperature/2016-11-05").flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync())
 ```
 
 ### Handling query parameters
@@ -502,7 +503,7 @@ To validate query parsing you can use `ValidatingQueryParamDecoderMatcher` which
 
 ```scala mdoc:nest
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
-  QueryParamDecoder[Int].map(Year.of)
+  QueryParamDecoder[Int].emap(i => Try(Year.of(i)).toEither.leftMap(t => ParseFailure(t.getMessage, t.getMessage)))
 
 object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year]("year")
 
