@@ -9,7 +9,7 @@ package org.http4s
 import cats.{Contravariant, Functor, MonoidK, Show}
 import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
 
@@ -74,6 +74,15 @@ object QueryParamCodec {
     QueryParamCodec
       .from[LocalDate](localDateQueryParamDecoder(formatter), localDateQueryParamEncoder(formatter))
   }
+
+  def zonedDateTimeQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[ZonedDateTime] = {
+    import QueryParamDecoder.zonedDateTimeQueryParamDecoder
+    import QueryParamEncoder.zonedDateTimeQueryParamEncoder
+
+    QueryParamCodec.from[ZonedDateTime](
+      zonedDateTimeQueryParamDecoder(formatter),
+      zonedDateTimeQueryParamEncoder(formatter))
+  }
 }
 
 /**
@@ -113,6 +122,12 @@ object QueryParamEncoder {
   def localDateQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[LocalDate] =
     QueryParamEncoder[String].contramap[LocalDate] { (ld: LocalDate) =>
       formatter.format(ld)
+    }
+
+  def zonedDateTimeQueryParamEncoder(
+      formatter: DateTimeFormatter): QueryParamEncoder[ZonedDateTime] =
+    QueryParamEncoder[String].contramap[ZonedDateTime] { (zdt: ZonedDateTime) =>
+      formatter.format(zdt)
     }
 
   @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
@@ -218,6 +233,19 @@ object QueryParamDecoder {
         }
         .leftMap { e =>
           ParseFailure(s"Failed to decode value: ${value.value} as LocalDate", e.getMessage)
+        }
+        .toValidatedNel
+
+  def zonedDateTimeQueryParamDecoder(
+      formatter: DateTimeFormatter): QueryParamDecoder[ZonedDateTime] =
+    (value: QueryParameterValue) =>
+      Validated
+        .catchOnly[DateTimeParseException] {
+          val x: TemporalAccessor = formatter.parse(value.value)
+          ZonedDateTime.from(x)
+        }
+        .leftMap { e =>
+          ParseFailure(s"Failed to decode value: ${value.value} as ZonedDateTime", e.getMessage)
         }
         .toValidatedNel
 

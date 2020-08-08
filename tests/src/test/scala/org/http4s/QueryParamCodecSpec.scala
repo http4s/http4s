@@ -10,8 +10,11 @@ import cats._
 import cats.data._
 import cats.implicits._
 import cats.laws.discipline.{arbitrary => _, _}
+
+import scala.jdk.CollectionConverters._
+import scala.util.Random
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
@@ -27,6 +30,7 @@ class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   checkAll("String QueryParamCodec", QueryParamCodecLaws[String])
   checkAll("Instant QueryParamCodec", QueryParamCodecLaws[Instant])
   checkAll("LocalDate QueryParamCodec", QueryParamCodecLaws[LocalDate])
+  checkAll("ZonedDateTime QueryParamCodec", QueryParamCodecLaws[ZonedDateTime])
 
   // Law checks for instances.
   checkAll(
@@ -67,6 +71,8 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
 
   implicit val eqLocalDate: Eq[LocalDate] = Eq.fromUniversalEquals[LocalDate]
 
+  implicit val eqZonedDateTime: Eq[ZonedDateTime] = Eq.fromUniversalEquals[ZonedDateTime]
+
   implicit def ArbQueryParamDecoder[A: Arbitrary]: Arbitrary[QueryParamDecoder[A]] =
     Arbitrary(arbitrary[String => A].map(QueryParamDecoder[String].map))
 
@@ -82,6 +88,9 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
   implicit val localDateQueryParamCodec: QueryParamCodec[LocalDate] =
     QueryParamCodec.localDateQueryParamCodec(DateTimeFormatter.ISO_LOCAL_DATE)
 
+  implicit val zonedDateTimeQueryParamCodec: QueryParamCodec[ZonedDateTime] =
+    QueryParamCodec.zonedDateTimeQueryParamCodec(DateTimeFormatter.ISO_ZONED_DATE_TIME)
+
   implicit val ArbitraryInstant: Arbitrary[Instant] =
     Arbitrary(
       Gen
@@ -93,4 +102,14 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
       Gen
         .choose[Long](LocalDate.MIN.toEpochDay, LocalDate.MAX.toEpochDay)
         .map(LocalDate.ofEpochDay))
+
+  implicit val ArbitraryZonedDateTime: Arbitrary[ZonedDateTime] = {
+    val zoneIdStrs = ZoneId.getAvailableZoneIds.asScala.toSeq
+    Arbitrary(Gen.oneOf[String](zoneIdStrs).map { zoneIdStr =>
+      val zoneId: ZoneId = ZoneId.of(zoneIdStr)
+      val secSinceEpoch: Long =
+        Random.between(Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond)
+      ZonedDateTime.ofInstant(Instant.ofEpochSecond(secSinceEpoch), zoneId)
+    })
+  }
 }
