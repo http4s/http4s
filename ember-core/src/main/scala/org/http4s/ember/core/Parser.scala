@@ -28,7 +28,8 @@ private[ember] object Parser {
         case None =>
           Pull.raiseError[F](
             EmberException.ParseError(
-              s"Incomplete Header received (sz = ${buff.size}): ${buff.decodeUtf8}"))
+              s"""Incomplete Header received (sz = ${buff.size}): utf8: ${buff.decodeUtf8} - b64: "${buff.toBase64}"""")
+          )
         case Some((chunk, tl)) =>
           val bv = chunk.toByteVector
           val all = buff ++ bv

@@ -206,7 +206,9 @@ lazy val emberClient = libraryProject("ember-client")
     description := "ember implementation for http4s clients",
     libraryDependencies ++= Seq(keypool, log4catsSlf4j),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
     )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
