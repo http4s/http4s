@@ -35,6 +35,35 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val userAgent: Option[`User-Agent`]
 ) { self =>
 
+  @deprecated("Preserved for binary compatibility", "0.21.7")
+  private[EmberClientBuilder] def this(
+      blockerOpt: Option[Blocker],
+      tlsContextOpt: Option[TLSContext],
+      sgOpt: Option[SocketGroup],
+      maxTotal: Int,
+      maxPerKey: RequestKey => Int,
+      idleTimeInPool: Duration,
+      logger: Logger[F],
+      chunkSize: Int,
+      maxResponseHeaderSize: Int,
+      timeout: Duration,
+      additionalSocketOptions: List[SocketOptionMapping[_]]
+  ) =
+    this(
+      blockerOpt = blockerOpt,
+      tlsContextOpt = tlsContextOpt,
+      sgOpt = sgOpt,
+      maxTotal = maxTotal,
+      maxPerKey = maxPerKey,
+      idleTimeInPool = idleTimeInPool,
+      logger = logger,
+      chunkSize = chunkSize,
+      maxResponseHeaderSize = maxResponseHeaderSize,
+      timeout = timeout,
+      additionalSocketOptions = additionalSocketOptions,
+      userAgent = EmberClientBuilder.Defaults.userAgent
+    )
+
   private def copy(
       blockerOpt: Option[Blocker] = self.blockerOpt,
       tlsContextOpt: Option[TLSContext] = self.tlsContextOpt,
