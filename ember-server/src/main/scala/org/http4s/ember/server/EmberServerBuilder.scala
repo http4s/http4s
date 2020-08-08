@@ -18,6 +18,8 @@ import org.http4s.server.Server
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import _root_.io.chrisdavenport.log4cats.Logger
+import _root_.io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.http4s.ember.server.internal.ServerHelpers
 
 final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val host: String,
@@ -32,9 +34,44 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val receiveBufferSize: Int,
     val maxHeaderSize: Int,
     val requestHeaderReceiveTimeout: Duration,
+    val idleTimeout: Duration,
     val additionalSocketOptions: List[SocketOptionMapping[_]],
     private val logger: Logger[F]
 ) { self =>
+
+  @deprecated("Kept for binary compatibility", "0.21.7")
+  private[EmberServerBuilder] def this(
+      host: String,
+      port: Int,
+      httpApp: HttpApp[F],
+      blockerOpt: Option[Blocker],
+      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      sgOpt: Option[SocketGroup],
+      onError: Throwable => Response[F],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConcurrency: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      additionalSocketOptions: List[SocketOptionMapping[_]],
+      logger: Logger[F]) =
+    this(
+      host = host,
+      port = port,
+      httpApp = httpApp,
+      blockerOpt = blockerOpt,
+      tlsInfoOpt = tlsInfoOpt,
+      sgOpt = sgOpt,
+      onError = onError,
+      onWriteFailure = onWriteFailure,
+      maxConcurrency = maxConcurrency,
+      receiveBufferSize = receiveBufferSize,
+      maxHeaderSize = maxHeaderSize,
+      requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
+      idleTimeout = EmberServerBuilder.Defaults.idleTimeout,
+      additionalSocketOptions = additionalSocketOptions,
+      logger = logger
+    )
 
   private def copy(
       host: String = self.host,
@@ -49,6 +86,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       receiveBufferSize: Int = self.receiveBufferSize,
       maxHeaderSize: Int = self.maxHeaderSize,
       requestHeaderReceiveTimeout: Duration = self.requestHeaderReceiveTimeout,
+      idleTimeout: Duration = self.idleTimeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger
   ): EmberServerBuilder[F] =
@@ -65,6 +103,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       receiveBufferSize = receiveBufferSize,
       maxHeaderSize = maxHeaderSize,
       requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
+      idleTimeout = idleTimeout,
       additionalSocketOptions = additionalSocketOptions,
       logger = logger
     )
@@ -84,6 +123,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withBlocker(blocker: Blocker) =
     copy(blockerOpt = blocker.pure[Option])
 
+  def withIdleTimeout(idleTimeout: Duration) =
+    copy(idleTimeout = idleTimeout)
+
   def withOnError(onError: Throwable => Response[F]) = copy(onError = onError)
   def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
@@ -101,7 +143,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
       shutdownSignal <- Resource.liftF(SignallingRef[F, Boolean](false))
       _ <- Concurrent[F].background(
-        org.http4s.ember.server.internal.ServerHelpers
+        ServerHelpers
           .server(
             bindAddress,
             httpApp,
@@ -114,6 +156,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             receiveBufferSize,
             maxHeaderSize,
             requestHeaderReceiveTimeout,
+            idleTimeout,
             additionalSocketOptions,
             logger
           )
@@ -126,7 +169,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       def isSecure: Boolean = tlsInfoOpt.isDefined
     }
 }
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 object EmberServerBuilder {
   def default[F[_]: Concurrent: Timer: ContextShift]: EmberServerBuilder[F] =
@@ -143,6 +185,7 @@ object EmberServerBuilder {
       receiveBufferSize = Defaults.receiveBufferSize,
       maxHeaderSize = Defaults.maxHeaderSize,
       requestHeaderReceiveTimeout = Defaults.requestHeaderReceiveTimeout,
+      idleTimeout = Defaults.idleTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = Slf4jLogger.getLogger[F]
     )
@@ -163,6 +206,7 @@ object EmberServerBuilder {
     val receiveBufferSize: Int = 256 * 1024
     val maxHeaderSize: Int = 10 * 1024
     val requestHeaderReceiveTimeout: Duration = 5.seconds
+    val idleTimeout: Duration = 60.seconds
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
   }
 }

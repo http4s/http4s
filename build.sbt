@@ -192,7 +192,12 @@ lazy val emberCore = libraryProject("ember-core")
 lazy val emberServer = libraryProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
-    libraryDependencies ++= Seq(log4catsSlf4j)
+    libraryDependencies ++= Seq(log4catsSlf4j),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+    )
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
 
