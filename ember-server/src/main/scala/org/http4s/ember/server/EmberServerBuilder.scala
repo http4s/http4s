@@ -39,6 +39,40 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val logger: Logger[F]
 ) { self =>
 
+  @deprecated("Kept for binary compatibility", "0.21.7")
+  private[EmberServerBuilder] def this(
+      host: String,
+      port: Int,
+      httpApp: HttpApp[F],
+      blockerOpt: Option[Blocker],
+      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      sgOpt: Option[SocketGroup],
+      onError: Throwable => Response[F],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConcurrency: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      additionalSocketOptions: List[SocketOptionMapping[_]],
+      logger: Logger[F]) =
+    this(
+      host = host,
+      port = port,
+      httpApp = httpApp,
+      blockerOpt = blockerOpt,
+      tlsInfoOpt = tlsInfoOpt,
+      sgOpt = sgOpt,
+      onError = onError,
+      onWriteFailure = onWriteFailure,
+      maxConcurrency = maxConcurrency,
+      receiveBufferSize = receiveBufferSize,
+      maxHeaderSize = maxHeaderSize,
+      requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
+      idleTimeout = EmberServerBuilder.Defaults.idleTimeout,
+      additionalSocketOptions = additionalSocketOptions,
+      logger = logger
+    )
+
   private def copy(
       host: String = self.host,
       port: Int = self.port,
