@@ -56,7 +56,6 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
           .setMaxConnections(customMaxConnections)
           .setRequestTimeout(customRequestTimeout)
       }
-
       customConfig.getMaxConnectionsPerHost shouldEqual customMaxConnectionsPerHost
       customConfig.getMaxConnections shouldEqual customMaxConnections
       customConfig.getRequestTimeout shouldEqual customRequestTimeout

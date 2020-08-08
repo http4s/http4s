@@ -9,7 +9,7 @@ package org.http4s
 import cats.{Contravariant, Functor, MonoidK, Show}
 import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
-import java.time.Instant
+import java.time.{Instant, LocalDate}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
 
@@ -66,6 +66,14 @@ object QueryParamCodec {
     QueryParamCodec
       .from[Instant](instantQueryParamDecoder(formatter), instantQueryParamEncoder(formatter))
   }
+
+  def localDateQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[LocalDate] = {
+    import QueryParamDecoder.localDateQueryParamDecoder
+    import QueryParamEncoder.localDateQueryParamEncoder
+
+    QueryParamCodec
+      .from[LocalDate](localDateQueryParamDecoder(formatter), localDateQueryParamEncoder(formatter))
+  }
 }
 
 /**
@@ -100,6 +108,11 @@ object QueryParamEncoder {
   def instantQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[Instant] =
     QueryParamEncoder[String].contramap[Instant] { (i: Instant) =>
       formatter.format(i)
+    }
+
+  def localDateQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[LocalDate] =
+    QueryParamEncoder[String].contramap[LocalDate] { (ld: LocalDate) =>
+      formatter.format(ld)
     }
 
   @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
@@ -195,6 +208,18 @@ object QueryParamDecoder {
           }
           .toValidatedNel
     }
+
+  def localDateQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[LocalDate] =
+    (value: QueryParameterValue) =>
+      Validated
+        .catchOnly[DateTimeParseException] {
+          val x: TemporalAccessor = formatter.parse(value.value)
+          LocalDate.from(x)
+        }
+        .leftMap { e =>
+          ParseFailure(s"Failed to decode value: ${value.value} as LocalDate", e.getMessage)
+        }
+        .toValidatedNel
 
   /** QueryParamDecoder is a covariant functor. */
   implicit val FunctorQueryParamDecoder: Functor[QueryParamDecoder] =

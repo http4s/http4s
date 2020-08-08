@@ -11,7 +11,8 @@ import cats.data._
 import cats.implicits._
 import cats.laws.discipline.{arbitrary => _, _}
 import java.time.format.DateTimeFormatter
-import java.time.Instant
+import java.time.{Instant, LocalDate}
+
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
@@ -25,6 +26,7 @@ class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   checkAll("Long QueryParamCodec", QueryParamCodecLaws[Long])
   checkAll("String QueryParamCodec", QueryParamCodecLaws[String])
   checkAll("Instant QueryParamCodec", QueryParamCodecLaws[Instant])
+  checkAll("LocalDate QueryParamCodec", QueryParamCodecLaws[LocalDate])
 
   // Law checks for instances.
   checkAll(
@@ -63,6 +65,8 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
 
   implicit val eqInstant: Eq[Instant] = Eq.fromUniversalEquals[Instant]
 
+  implicit val eqLocalDate: Eq[LocalDate] = Eq.fromUniversalEquals[LocalDate]
+
   implicit def ArbQueryParamDecoder[A: Arbitrary]: Arbitrary[QueryParamDecoder[A]] =
     Arbitrary(arbitrary[String => A].map(QueryParamDecoder[String].map))
 
@@ -75,9 +79,18 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
   implicit val instantQueryParamCodec: QueryParamCodec[Instant] =
     QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
 
+  implicit val localDateQueryParamCodec: QueryParamCodec[LocalDate] =
+    QueryParamCodec.localDateQueryParamCodec(DateTimeFormatter.ISO_LOCAL_DATE)
+
   implicit val ArbitraryInstant: Arbitrary[Instant] =
     Arbitrary(
       Gen
         .choose[Long](Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond)
         .map(Instant.ofEpochSecond))
+
+  implicit val ArbitraryLocalDate: Arbitrary[LocalDate] =
+    Arbitrary(
+      Gen
+        .choose[Long](LocalDate.MIN.toEpochDay, LocalDate.MAX.toEpochDay)
+        .map(LocalDate.ofEpochDay))
 }
