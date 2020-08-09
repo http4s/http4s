@@ -8,6 +8,27 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M4 (2020-08-09)
+
+This milestone merges the changes in 0.21.7.
+It is not binary compatible with 1.0.0-M3
+
+## Breaking changes
+
+* [#3577](https://github.com/http4s/http4s/pull/3577): Add a model of the `Max-Forwards` header.
+* [#3567](https://github.com/http4s/http4s/pull/3577): Add a model of the `Content-Language` header.
+* [#3555](https://github.com/http4s/http4s/pull/3555): Support for UTF-8 basic authentication, per [RFC7617](https://tools.ietf.org/html/rfc7617). Attempt to decode Basic auth credentials as UTF-8, falling back to ISO-8859-1. Provide a charset to `BasicCredentials` that allows encoding with an arbitrary charset, defaulting to UTF-8. 
+* [#3583](https://github.com/http4s/http4s/pull/3583): Allow configuration of `CirceInstances` to permit duplicate keys
+* [#3587](https://github.com/http4s/http4s/pull/3587): Model `Access-Control-Allow-Headers` header
+
+## Documentation
+
+* [#3571](https://github.com/http4s/http4s/pull/3571): Fix comments in deprecated `AgentToken`, `AgentComment`, and `AgentProduct`.
+
+## Dependency updates
+
+* dropwizard-metrics-4.1.12
+
 # v0.21.7 (2020-08-08)
 
 ## Bugfixes
@@ -52,7 +73,7 @@ it.
 # v1.0.0-M3 (2020-06-27)
 
 This milestone merges the changes in 0.21.6.
-It is binary compatible with 0.21.0-M2.
+It is binary compatible with 1.0.0-M2.
 
 # v0.21.6 (2020-06-27)
 
