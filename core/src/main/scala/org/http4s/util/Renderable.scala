@@ -66,6 +66,11 @@ object Renderer {
           case Right(b) => rb.render(writer, b)
         }
     }
+
+  implicit val ciStringRenderer: Renderer[CIString] = new Renderer[CIString] {
+    override def render(writer: Writer, ciString: CIString): writer.type =
+      writer << ciString
+  }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */

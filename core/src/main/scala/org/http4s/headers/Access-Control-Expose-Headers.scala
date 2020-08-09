@@ -18,17 +18,12 @@ object `Access-Control-Expose-Headers`
 
   override def parse(s: String): ParseResult[`Access-Control-Expose-Headers`] =
     HttpHeaderParser.ACCESS_CONTROL_EXPOSE_HEADERS(s)
-
-  private val ciStringRenderer: Renderer[CIString] = new Renderer[CIString] {
-    override def render(writer: Writer, ciString: CIString): writer.type =
-      writer << ciString
-  }
 }
 
 final case class `Access-Control-Expose-Headers`(values: NonEmptyList[CIString])
     extends Header.RecurringRenderer {
   override type Value = CIString
 
-  override implicit def renderer: Renderer[Value] = `Access-Control-Expose-Headers`.ciStringRenderer
+  override implicit def renderer: Renderer[Value] = Renderer.ciStringRenderer
   override def key: `Access-Control-Expose-Headers`.type = `Access-Control-Expose-Headers`
 }
