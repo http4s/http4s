@@ -75,12 +75,20 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta1"),
+    // Broke binary compatibility with 2.10.5
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
 

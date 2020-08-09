@@ -37,6 +37,7 @@ We'll need the following imports to get started:
 
 ```scala mdoc:silent
 import cats.effect._
+import cats.implicits._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 // Provided by `cats.effect.IOApp`
 implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
@@ -502,7 +503,7 @@ To validate query parsing you can use `ValidatingQueryParamDecoderMatcher` which
 
 ```scala mdoc:nest
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
-  QueryParamDecoder[Int].map(Year.of)
+  QueryParamDecoder[Int].emap(i => Try(Year.of(i)).toEither.leftMap(t => ParseFailure(t.getMessage, t.getMessage)))
 
 object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year]("year")
 
