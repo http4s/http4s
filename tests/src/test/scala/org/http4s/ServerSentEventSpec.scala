@@ -24,7 +24,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data: +2
       |data: 10
       |""".stripMargin('|'))
-      stream.through(ServerSentEvent.decoder).compile.toVector.unsafeRunSync must_== Vector(
+      stream.through(ServerSentEvent.decoder).compile.toVector.unsafeRunSync() must_== Vector(
         ServerSentEvent(data = "YHOO\n+2\n10")
       )
     }
@@ -41,7 +41,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data:  third event
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.through(ServerSentEvent.decoder).compile.toVector.unsafeRunSync must_== Vector(
+      stream.through(ServerSentEvent.decoder).compile.toVector.unsafeRunSync() must_== Vector(
         ServerSentEvent(data = "first event", id = Some(EventId("1"))),
         ServerSentEvent(data = "second event", id = Some(EventId.reset)),
         ServerSentEvent(data = " third event", id = None)
@@ -58,7 +58,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data:
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.through(ServerSentEvent.decoder).compile.toVector.unsafeRunSync must_== Vector(
+      stream.through(ServerSentEvent.decoder).compile.toVector.unsafeRunSync() must_== Vector(
         ServerSentEvent(data = ""),
         ServerSentEvent(data = "\n"),
         ServerSentEvent(data = "")
@@ -72,7 +72,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data: test
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.through(ServerSentEvent.decoder).compile.toVector.unsafeRunSync must_== Vector(
+      stream.through(ServerSentEvent.decoder).compile.toVector.unsafeRunSync() must_== Vector(
         ServerSentEvent(data = "test"),
         ServerSentEvent(data = "test")
       )
@@ -88,7 +88,7 @@ class ServerSentEventSpec extends Http4sSpec {
         .through(ServerSentEvent.decoder)
         .compile
         .toVector
-        .unsafeRunSync
+        .unsafeRunSync()
       roundTrip must_== sses
     }
 
@@ -102,7 +102,7 @@ class ServerSentEventSpec extends Http4sSpec {
         .through(ServerSentEvent.decoder)
         .compile
         .last
-        .unsafeRunSync must beSome(sse)
+        .unsafeRunSync() must beSome(sse)
     }
   }
 
@@ -120,7 +120,7 @@ class ServerSentEventSpec extends Http4sSpec {
         .through(ServerSentEvent.decoder)
         .compile
         .toVector
-        .unsafeRunSync must_== eventStream.compile.toVector.unsafeRunSync
+        .unsafeRunSync() must_== eventStream.compile.toVector.unsafeRunSync()
     }
   }
 }

@@ -25,7 +25,7 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
   private[this] val accumulator = new Accumulator
 
   def readRequest(size: Int): Future[WebSocketFrame] = {
-    val p = Promise[WebSocketFrame]
+    val p = Promise[WebSocketFrame]()
     channelRead(size).onComplete {
       case Success(f) => readLoop(f, p)
       case Failure(t) => p.failure(t)

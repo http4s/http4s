@@ -8,10 +8,72 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M4 (2020-08-09)
+
+This milestone merges the changes in 0.21.7.
+It is not binary compatible with 1.0.0-M3
+
+## Breaking changes
+
+* [#3577](https://github.com/http4s/http4s/pull/3577): Add a model of the `Max-Forwards` header.
+* [#3567](https://github.com/http4s/http4s/pull/3577): Add a model of the `Content-Language` header.
+* [#3555](https://github.com/http4s/http4s/pull/3555): Support for UTF-8 basic authentication, per [RFC7617](https://tools.ietf.org/html/rfc7617). Attempt to decode Basic auth credentials as UTF-8, falling back to ISO-8859-1. Provide a charset to `BasicCredentials` that allows encoding with an arbitrary charset, defaulting to UTF-8. 
+* [#3583](https://github.com/http4s/http4s/pull/3583): Allow configuration of `CirceInstances` to permit duplicate keys
+* [#3587](https://github.com/http4s/http4s/pull/3587): Model `Access-Control-Allow-Headers` header
+
+## Documentation
+
+* [#3571](https://github.com/http4s/http4s/pull/3571): Fix comments in deprecated `AgentToken`, `AgentComment`, and `AgentProduct`.
+
+## Dependency updates
+
+* dropwizard-metrics-4.1.12
+
+# v0.21.7 (2020-08-08)
+
+## Bugfixes
+
+* [#3548](https://github.com/http4s/http4s/pull/3548): Fixes `IllegalStateException` when a path matches a directory in `ResourceService`
+* [#3546](https://github.com/http4s/http4s/pull/3546): In ember, encode headers as ISO-8859-1. Includes performance improvements
+* [#3550](https://github.com/http4s/http4s/pull/3550): Don't attempt to decompress empty response bodies in `GZip` client middleware
+* [#3598](https://github.com/http4s/http4s/pull/3598): Fix connection keep-alives in ember-client
+* [#3594](https://github.com/http4s/http4s/pull/3594): Handle `FileNotFoundException` in `StaticFile.fromURL` by returning a 404 response
+* [#3625](https://github.com/http4s/http4s/pull/3625): Close `URLConnection` in `StaticFile.fromURL` when the resource is not expired
+* [#3624](https://github.com/http4s/http4s/pull/3624): Use client with the http4s defaults instead of a the Jetty defaults in `JettyClientBuilder#resource` and `JettyClientBuilder#stream`
+
+## Enhancements
+
+* [#3552](https://github.com/http4s/http4s/pull/3552): Add `liftKleisli` operation to `Client.` This is useful for integration with [natchez](https://github.com/tpolecat/natchez).
+* [#3566](https://github.com/http4s/http4s/pull/3566): Expose `RetryPolicy.isErrorOrRetriablestatus`
+* [#3558](https://github.com/http4s/http4s/pull/3558): Add `httpRoutes` and `httpApp` convenience constructors to `HSTS` middleware
+* [#3559](https://github.com/http4s/http4s/pull/3559): Add `httpRoutes` and `httpApp` convenience constructors to `HttpsRedirect` middleware
+* [#3623](https://github.com/http4s/http4s/pull/3623): Add `configure` method to allow more configurations of async-http-client
+* [#3607](https://github.com/http4s/http4s/pull/3607): Add request key to the connection manager debug logs in blaze-client
+* [#3602](https://github.com/http4s/http4s/pull/3602): Support trailer headers in Ember.
+* [#3603](https://github.com/http4s/http4s/pull/3603): Enable connection reuse in ember-server.
+* [#3601](https://github.com/http4s/http4s/pull/3601): Improve ember-client by adding `keep-alive`, a `Date` header if not present, and a configurable `User-Agent` header if not present.
+
+## Refactoring
+
+* [#3547](https://github.com/http4s/http4s/pull/3547): Refactor the ember request parser
+
+## Documentation
+
+* [#3545](https://github.com/http4s/http4s/pull/3545): Refresh the getting started guide to match the current template.
+* [#3595](https://github.com/http4s/http4s/pull/3595): Show handling of `Year.of` exceptions in DSL tutorial
+
+## Dependency upgrades
+
+* cats-effect-2.1.4
+* dropwizard-metrics-4.1.11
+* jetty-9.4.31.v20200723
+* okhttp-4.8.1
+* tomcat-9.0.37
+
 # v1.0.0-M3 (2020-06-27)
 
 This milestone merges the changes in 0.21.6.
-It is binary compatible with 0.21.0-M2.
+It is binary compatible with 1.0.0-M2.
 
 # v0.21.6 (2020-06-27)
 

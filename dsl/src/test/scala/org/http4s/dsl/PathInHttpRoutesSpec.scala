@@ -83,7 +83,7 @@ object PathInHttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   }
 
   def serve(req: Request[IO]): Response[IO] =
-    app(req).unsafeRunSync
+    app(req).unsafeRunSync()
 
   "Path DSL within HttpService" should {
     "GET /" in {

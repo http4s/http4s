@@ -16,7 +16,7 @@ import scala.concurrent._
 private[http4s] trait EntityBodyWriter[F[_]] {
   implicit protected def F: Effect[F]
 
-  protected val wroteHeader: Promise[Unit] = Promise[Unit]
+  protected val wroteHeader: Promise[Unit] = Promise[Unit]()
 
   /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
   implicit protected def ec: ExecutionContext

@@ -26,6 +26,7 @@ import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.specification.core.Fragment
+import io.circe.jawn.CirceSupportParser
 
 // Originally based on ArgonautSpec
 class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO {
@@ -69,7 +70,6 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
 
   "json encoder" should {
     val json = Json.obj("test" -> Json.fromString("CirceSupport"))
-
     "have json content type" in {
       jsonEncoder[IO].headers.get(`Content-Type`) must_== Some(
         `Content-Type`(MediaType.application.json))
@@ -194,7 +194,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       // From ArgonautSpec, which tests similar things:
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
-      def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
+      def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync().toArray
       val req = Request[IO]().withEntity(Json.fromDoubleOrNull(157))
       val body = req
         .decode { (json: Json) =>
@@ -202,7 +202,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
             .withEntity(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
             .pure[IO]
         }
-        .unsafeRunSync
+        .unsafeRunSync()
         .body
       new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
@@ -214,7 +214,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
         .decode(
           Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))),
           strict = true)
-      result.value.unsafeRunSync must_== Right(Foo(42))
+      result.value.unsafeRunSync() must_== Right(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -225,7 +225,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
         val json = Json.obj("wort" -> Json.fromString(wort))
         val result =
           jsonOf[IO, Umlaut].decode(Request[IO]().withEntity(json), strict = true)
-        result.value.unsafeRunSync must_== Right(Umlaut(wort))
+        result.value.unsafeRunSync() must_== Right(Umlaut(wort))
       }
     }
 
@@ -233,7 +233,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       val result = CirceInstancesWithCustomErrors
         .jsonOf[IO, Bar]
         .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
-      result.value.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
+      result.value.unsafeRunSync() must beLeft(InvalidMessageBodyFailure(
         "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor"))
     }
   }
@@ -244,14 +244,14 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
         .decode(
           Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))),
           strict = true)
-      result.value.unsafeRunSync must_== Right(Foo(42))
+      result.value.unsafeRunSync() must_== Right(Foo(42))
     }
 
     "return an InvalidMessageBodyFailure with a list of failures on invalid JSON messages" in {
       val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
       val result = accumulatingJsonOf[IO, Bar]
         .decode(Request[IO]().withEntity(json), strict = true)
-      result.value.unsafeRunSync must beLike {
+      result.value.unsafeRunSync() must beLike {
         case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => ok
       }
     }
@@ -260,7 +260,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       val result = CirceInstancesWithCustomErrors
         .accumulatingJsonOf[IO, Bar]
         .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
-      result.value.unsafeRunSync must beLeft(InvalidMessageBodyFailure(
+      result.value.unsafeRunSync() must beLeft(InvalidMessageBodyFailure(
         "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor, DecodingFailure at .b: Attempt to decode value on failed cursor"))
     }
   }
@@ -281,7 +281,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
 
     "fail on invalid json" in {
       val req = Request[IO]().withEntity(List(13, 14).asJson)
-      req.decodeJson[Foo].attempt.unsafeRunSync must beLeft
+      req.decodeJson[Foo].attempt.unsafeRunSync() must beLeft
     }
   }
 
@@ -290,12 +290,49 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       import org.http4s.circe.CirceEntityDecoder._
       val request = Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42)))
       val result = request.attemptAs[Foo]
-      result.value.unsafeRunSync must_== Right(Foo(42))
+      result.value.unsafeRunSync() must_== Right(Foo(42))
     }
 
     "encode without defining EntityEncoder using default printer" in {
       import org.http4s.circe.CirceEntityEncoder._
       writeToString(foo) must_== """{"bar":42}"""
+    }
+  }
+
+  "CirceInstances.builder" should {
+    "should successfully decode when parser allows duplicate keys" in {
+      val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
+        .withCirceSupportParser(
+          new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
+        .build
+      val req = Request[IO]()
+        .withEntity("""{"bar": 1, "bar":2}""")
+        .withContentType(`Content-Type`(MediaType.application.json))
+
+      val decoder = circeInstanceAllowingDuplicateKeys.jsonOf[IO, Foo]
+      val result = decoder.decode(req, true).value.unsafeRunSync()
+
+      result must beRight.like {
+        case Foo(2) => ok
+      }
+    }
+    "should should error out when parser does not allow duplicate keys" in {
+      val circeInstanceNotAllowingDuplicateKeys = CirceInstances.builder
+        .withCirceSupportParser(
+          new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false))
+        .build
+      val req = Request[IO]()
+        .withEntity("""{"bar": 1, "bar":2}""")
+        .withContentType(`Content-Type`(MediaType.application.json))
+
+      val decoder = circeInstanceNotAllowingDuplicateKeys.jsonOf[IO, Foo]
+      val result = decoder.decode(req, true).value.unsafeRunSync()
+      result must beLeft.like {
+        case MalformedMessageBodyFailure(
+              "Invalid JSON",
+              Some(ParsingFailure("Invalid json, duplicate key name found: bar", _))) =>
+          ok
+      }
     }
   }
 
@@ -306,7 +343,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
         .withContentType(`Content-Type`(MediaType.application.json))
 
       val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
-      val result = decoder.decode(req, true).value.unsafeRunSync
+      val result = decoder.decode(req, true).value.unsafeRunSync()
 
       result must beLeft.like {
         case _: MalformedMessageBodyFailure => ok
@@ -318,7 +355,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
         .withEntity(Json.obj())
 
       val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
-      val result = decoder.decode(req, true).value.unsafeRunSync
+      val result = decoder.decode(req, true).value.unsafeRunSync()
 
       result must beLeft.like {
         case _: InvalidMessageBodyFailure => ok

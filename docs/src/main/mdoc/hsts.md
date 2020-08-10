@@ -37,7 +37,7 @@ val service = HttpRoutes.of[IO] {
 val request = Request[IO](Method.GET, uri"/")
 
 // Do not call 'unsafeRunSync' in your code
-val response = service.orNotFound(request).unsafeRunSync
+val response = service.orNotFound(request).unsafeRunSync()
 response.headers
 ```
 
@@ -51,7 +51,7 @@ import org.http4s.server.middleware._
 val hstsService = HSTS(service)
 
 // Do not call 'unsafeRunSync' in your code
-val response = hstsService.orNotFound(request).unsafeRunSync
+val response = hstsService.orNotFound(request).unsafeRunSync()
 response.headers
 ```
 
@@ -78,7 +78,7 @@ val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, include
 val hstsService = HSTS(service, hstsHeader)
 
 // Do not call 'unsafeRunSync' in your code
-val response = hstsService.orNotFound(request).unsafeRunSync
+val response = hstsService.orNotFound(request).unsafeRunSync()
 response.headers
 ```
 

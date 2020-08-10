@@ -99,7 +99,7 @@ class ReadBufferStageSpec extends Http4sSpec {
     var lastRead: Promise[Unit] = _
     val readCount = new AtomicInteger(0)
     override def readRequest(size: Int): Future[Unit] = {
-      lastRead = Promise[Unit]
+      lastRead = Promise[Unit]()
       readCount.incrementAndGet()
       lastRead.future
     }

@@ -17,7 +17,7 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "Add the EntityEncoder headers along with a content-length header" in {
     val body = "foo"
-    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers
+    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync().headers
     EntityEncoder.stringEncoder[IO].headers.foldLeft(ok) { (old, h) =>
       old.and(resultheaders.toList.exists(_ == h) must_=== true)
     }

@@ -21,8 +21,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.2"
-  val scala_212 = "2.12.11"
+  val scala_213 = "2.13.3"
+  val scala_212 = "2.12.12"
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -75,12 +75,20 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta1"),
+    // Broke binary compatibility with 2.10.5
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
 
@@ -211,7 +219,7 @@ object Http4sPlugin extends AutoPlugin {
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.0"
-    val dropwizardMetrics = "4.1.11"
+    val dropwizardMetrics = "4.1.12"
     val fs2 = "2.4.2"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
@@ -222,7 +230,7 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.8.2"
     val mockito = "3.4.6"
-    val okhttp = "4.8.0"
+    val okhttp = "4.8.1"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.0"
     val prometheusClient = "0.9.0"
