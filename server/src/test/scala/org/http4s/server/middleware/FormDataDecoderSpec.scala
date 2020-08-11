@@ -65,6 +65,23 @@ class FormDataDecoderSuite extends Http4sSpec {
       )
     }
 
+    case class FooStrings(a: List[String])
+
+    implicit val fooStringMapper =
+      listOf[String]("a").map(FooStrings.apply)
+
+    "decode list successfully for valid data" in {
+      fooStringMapper(Map("a[]" -> Chain("bar1", "bar2"))) must_=== Valid(
+        FooStrings(List("bar1", "bar2"))
+      )
+    }
+
+    "decode empty list when data is missing" in {
+      fooStringMapper(Map()) must_=== Valid(
+        FooStrings(Nil)
+      )
+    }
+
     case class FooNested(f: Foo, c: String)
 
     val fooNestedMapper = (

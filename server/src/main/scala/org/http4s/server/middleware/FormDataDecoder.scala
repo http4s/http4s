@@ -8,9 +8,10 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Applicative}
+import cats.Applicative
 import cats.data.Validated.Valid
 import cats.data.{Chain, ValidatedNel}
+import cats.effect.Sync
 import cats.implicits._
 
 /**
@@ -64,6 +65,15 @@ object FormDataDecoder {
       def apply(data: FormData): Result[A] = f(data)
     }
 
+  implicit def formEntityDecoder[F[_]: Sync, A](implicit
+      fdd: FormDataDecoder[A]
+  ): EntityDecoder[F, A] =
+    UrlForm.entityDecoder[F].flatMapR { d =>
+      fdd(d.values)
+        .leftMap(es => InvalidMessageBodyFailure(es.map(_.sanitized).mkString_("\n")))
+        .liftTo[DecodeResult[F, *]]
+    }
+
   private def apply[Data, A](extract: FormData => Either[String, Data])(
       decode: Data => Result[A]): FormDataDecoder[Either[String, A]] =
     new FormDataDecoder[Either[String, A]] {
@@ -109,6 +119,16 @@ object FormDataDecoder {
   ): FormDataDecoder[Chain[A]] =
     chainEither(key).mapValidated(_.fold(_ => Valid(Chain.empty), Valid(_)))
 
+  def chainOf[A](
+      key: String
+  )(qd: QueryParamDecoder[A]): FormDataDecoder[Chain[A]] =
+    apply(data =>
+      data
+        .get(key + "[]")
+        .orElse(data.get(key))
+        .getOrElse(Chain.empty)
+        .traverse(v => qd.decode(QueryParameterValue(v))))
+
   def chainEither[A](
       key: String
   )(implicit A: FormDataDecoder[A]): FormDataDecoder[Either[String, Chain[A]]] =
@@ -126,6 +146,9 @@ object FormDataDecoder {
 
   def list[A: FormDataDecoder](key: String) =
     chain(key).map(_.toList)
+
+  def listOf[A](key: String)(implicit A: QueryParamDecoder[A]) =
+    chainOf(key)(A).map(_.toList)
 
   private def extractPrefix(prefix: String)(data: FormData): Either[String, FormData] = {
     val extracted = data.toList.mapFilter {
