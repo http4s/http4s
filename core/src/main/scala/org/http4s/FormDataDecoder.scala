@@ -102,6 +102,13 @@ object FormDataDecoder {
 
     def optional: FormDataDecoder[Option[A]] =
       decoder.map(_.map(Some(_)).getOrElse(None))
+
+    /**
+      * Use a default value when the field is missing
+      * @param defaultValue
+      */
+    def default(defaultValue: A): FormDataDecoder[A] =
+      decoder.map(_.getOrElse(defaultValue))
   }
 
   def fieldEither[A](key: String)(implicit
@@ -117,9 +124,19 @@ object FormDataDecoder {
 
   def fieldOptional[A: QueryParamDecoder](key: String) = fieldEither(key).optional
 
+  /**
+    * For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
+    * E.g. For a field named "bar" inside a nested class under the field "foo",
+    * the parameter name is "foo.bar".
+    */
   def nested[A: FormDataDecoder](key: String): FormDataDecoder[A] =
     nestedEither(key).required
 
+  /**
+    * For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
+    * E.g. For a field named "bar" inside a nested class under the field "foo",
+    * the parameter name is "foo.bar".
+    */
   def nestedOptional[A: FormDataDecoder](key: String): FormDataDecoder[Option[A]] =
     nestedEither(key).optional
 
@@ -157,9 +174,17 @@ object FormDataDecoder {
         .map(_.toMap)
         .traverse(d => A(d)))
 
+  /**
+    * For repeated nested values, assuming that the form parameter name use "[]." as a suffix
+    * E.g. "foos[].bar"
+    */
   def list[A: FormDataDecoder](key: String) =
     chain(key).map(_.toList)
 
+  /**
+    * For repeated primitive values, assuming that the form parameter name use "[]" as a suffix
+    * E.g. "foos[]"
+    */
   def listOf[A](key: String)(implicit A: QueryParamDecoder[A]) =
     chainOf(key)(A).map(_.toList)
 

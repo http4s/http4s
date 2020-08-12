@@ -43,6 +43,14 @@ class FormDataDecoderSuite extends Http4sSpec {
     }
   }
 
+  "Field default Decoder" should {
+    val mapper = fieldEither[Boolean]("a").default(false)
+    "return defaultValue if the field is missing" in {
+      mapper(Map()) must_== Valid(false)
+    }
+
+  }
+
   "mapN to decode case class" should {
     case class Foo(a: String, b: Boolean)
 
