@@ -5,12 +5,11 @@
  */
 
 package org.http4s
-package server.middleware
 
-import FormDataDecoder._
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{Chain, NonEmptyList}
 import cats.implicits._
+import FormDataDecoder._
 
 class FormDataDecoderSuite extends Http4sSpec {
 

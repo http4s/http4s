@@ -5,8 +5,6 @@
  */
 
 package org.http4s
-package server
-package middleware
 
 import cats.Applicative
 import cats.data.Validated.Valid
@@ -15,13 +13,13 @@ import cats.effect.Sync
 import cats.implicits._
 
 /**
-  * A simple middle ware that uses [[QueryParamDecoder]] to decode values in [[org.http4s.UrlForm]]
+  * A decoder ware that uses [[QueryParamDecoder]] to decode values in [[org.http4s.UrlForm]]
   *
   * @example
   * {{{
   * scala> import cats.implicits._
   * scala> import cats.data._
-  * scala> import org.http4s.server.middleware.FormDataDecoder._
+  * scala> import org.http4s.FormDataDecoder._
   * scala> import org.http4s.ParseFailure
   * scala> case class Foo(a: String, b: Boolean)
   * scala> case class Bar(fs: List[Foo], f: Foo, d: Boolean)
@@ -46,6 +44,21 @@ import cats.implicits._
   *      |    "d" -> Chain("true"))
   *      | )
   * res1: ValidatedNel[ParseFailure, Bar] = Valid(Bar(List(Foo(a1,true), Foo(a2,false)),Foo(fa,false),true))
+  *
+  * }}}
+  *
+  * This combined with UrlForm can decode case classes from
+  * HTML form parameters. There is a convenient method in [[FormDataDecoder]] that
+  * provides an [[EntityEncoder]], so that you can write
+  * @example
+  * {{{
+  *   HttpRoutes
+  *    .of[F] {
+  *      case req @ POST -> Root =>
+  *        req.as[MyEntity].flatMap { entity =>
+  *          Ok()
+  *        }
+  *    }
   * }}}
   */
 sealed trait FormDataDecoder[A] {
