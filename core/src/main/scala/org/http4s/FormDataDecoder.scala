@@ -67,6 +67,18 @@ sealed trait FormDataDecoder[A] {
   def mapValidated[B](f: A => ValidatedNel[ParseFailure, B]): FormDataDecoder[B] =
     FormDataDecoder(this(_).andThen(f))
 
+  /**
+    * Filter out empty strings including spaces
+    * Note that these might result in empty Chains as values which will be treated as missing fields.
+    * @return
+    */
+  def sanitized: FormDataDecoder[A] =
+    FormDataDecoder { data =>
+      this(data.map {
+        case (k, v) => (k, v.filter(_.trim.nonEmpty))
+      })
+    }
+
 }
 
 object FormDataDecoder {
@@ -87,8 +99,9 @@ object FormDataDecoder {
         .liftTo[DecodeResult[F, *]]
     }
 
-  private def apply[Data, A](extract: FormData => Either[String, Data])(
-      decode: Data => Result[A]): FormDataDecoder[Either[String, A]] =
+  private def apply[Data, A](
+      extract: FormData => Either[String, Data]
+  )(decode: Data => Result[A]): FormDataDecoder[Either[String, A]] =
     new FormDataDecoder[Either[String, A]] {
       def apply(data: FormData): Result[Either[String, A]] =
         extract(data).traverse(decode(_))
@@ -111,13 +124,16 @@ object FormDataDecoder {
       decoder.map(_.getOrElse(defaultValue))
   }
 
-  def fieldEither[A](key: String)(implicit
-      qpd: QueryParamDecoder[A]): FormDataDecoder[Either[String, A]] =
+  def fieldEither[A](
+      key: String
+  )(implicit
+      qpd: QueryParamDecoder[A]
+  ): FormDataDecoder[Either[String, A]] =
     apply[String, A] { data =>
-      data
+      nonEmptyFields(data)
         .get(key)
         .flatMap(_.headOption)
-        .toRight(s"$key is missing")
+        .toRight(s"$key is missing" + data.toString)
     }(v => qpd.decode(QueryParameterValue(v)))
 
   def field[A: QueryParamDecoder](key: String) = fieldEither(key).required
@@ -140,18 +156,17 @@ object FormDataDecoder {
   def nestedOptional[A: FormDataDecoder](key: String): FormDataDecoder[Option[A]] =
     nestedEither(key).optional
 
-  def nestedEither[A](key: String)(implicit
-      fdd: FormDataDecoder[A]): FormDataDecoder[Either[String, A]] =
+  def nestedEither[A](
+      key: String
+  )(implicit
+      fdd: FormDataDecoder[A]
+  ): FormDataDecoder[Either[String, A]] =
     apply[FormData, A](extractPrefix(key + "."))(fdd.apply)
 
-  def chain[A: FormDataDecoder](
-      key: String
-  ): FormDataDecoder[Chain[A]] =
+  def chain[A: FormDataDecoder](key: String): FormDataDecoder[Chain[A]] =
     chainEither(key).mapValidated(_.fold(_ => Valid(Chain.empty), Valid(_)))
 
-  def chainOf[A](
-      key: String
-  )(qd: QueryParamDecoder[A]): FormDataDecoder[Chain[A]] =
+  def chainOf[A](key: String)(qd: QueryParamDecoder[A]): FormDataDecoder[Chain[A]] =
     apply(data =>
       data
         .get(key + "[]")
@@ -172,7 +187,8 @@ object FormDataDecoder {
         }
         .getOrElse(Chain.empty)
         .map(_.toMap)
-        .traverse(d => A(d)))
+        .traverse(d => A(d))
+    )
 
   /**
     * For repeated nested values, assuming that the form parameter name use "[]." as a suffix
@@ -188,8 +204,13 @@ object FormDataDecoder {
   def listOf[A](key: String)(implicit A: QueryParamDecoder[A]) =
     chainOf(key)(A).map(_.toList)
 
-  private def extractPrefix(prefix: String)(data: FormData): Either[String, FormData] = {
-    val extracted = data.toList.mapFilter {
+  private def nonEmptyFields(data: FormData): FormData =
+    data.filter(_._2.nonEmpty)
+
+  private def extractPrefix(
+      prefix: String
+  )(data: FormData): Either[String, FormData] = {
+    val extracted = nonEmptyFields(data).toList.mapFilter {
       case (k, v) =>
         if (k.startsWith(prefix))
           Some((k.stripPrefix(prefix), v))
