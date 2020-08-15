@@ -104,11 +104,17 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
         .map(LocalDate.ofEpochDay))
 
   implicit val ArbitraryZonedDateTime: Arbitrary[ZonedDateTime] = {
+    // Can't use Random.between because it breaks compatibility with
+    // anything below Scala 2.13
+    def randBetween(start: Long, end: Long): Long = {
+      val diff = end - start
+      start + Random.nextLong(diff + 1)
+    }
+
     val zoneIdStrs = ZoneId.getAvailableZoneIds.asScala.toSeq
     Arbitrary(Gen.oneOf[String](zoneIdStrs).map { zoneIdStr =>
       val zoneId: ZoneId = ZoneId.of(zoneIdStr)
-      val secSinceEpoch: Long =
-        Random.between(Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond)
+      val secSinceEpoch: Long = randBetween(Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond)
       ZonedDateTime.ofInstant(Instant.ofEpochSecond(secSinceEpoch), zoneId)
     })
   }
