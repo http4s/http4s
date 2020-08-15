@@ -11,11 +11,11 @@ import cats.data._
 import cats.implicits._
 import cats.laws.discipline.{arbitrary => _, _}
 
-import scala.jdk.CollectionConverters._
 import scala.util.Random
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
