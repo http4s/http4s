@@ -11,7 +11,7 @@ import cats.data.{Chain, NonEmptyList}
 import cats.implicits._
 import FormDataDecoder._
 
-class FormDataDecoderSuite extends Http4sSpec {
+class FormDataDecoderSpec extends Http4sSpec {
 
   "Field decoder" should {
     val mapper = field[Boolean]("a")

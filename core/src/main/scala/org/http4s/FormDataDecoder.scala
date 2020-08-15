@@ -133,7 +133,7 @@ object FormDataDecoder {
       nonEmptyFields(data)
         .get(key)
         .flatMap(_.headOption)
-        .toRight(s"$key is missing.")
+        .toRight(s"$key is missing")
     }(v => qpd.decode(QueryParameterValue(v)))
 
   def field[A: QueryParamDecoder](key: String) = fieldEither(key).required
