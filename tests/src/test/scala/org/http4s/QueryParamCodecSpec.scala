@@ -11,7 +11,6 @@ import cats.data._
 import cats.implicits._
 import cats.laws.discipline.{arbitrary => _, _}
 
-import scala.util.Random
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
@@ -108,7 +107,7 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
     // anything below Scala 2.13
     def randBetween(start: Long, end: Long): Long = {
       val diff = end - start
-      start + Random.nextLong(diff + 1)
+      (start + math.random() * diff).toLong
     }
 
     val zoneIdStrs = ZoneId.getAvailableZoneIds.asScala.toSeq
