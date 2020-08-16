@@ -106,8 +106,8 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
     val zoneIds: Seq[String] = ZoneId.getAvailableZoneIds.asScala.toSeq
     Arbitrary(
       for {
+        secSinceEpoch <- Gen.choose[Long](Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond)
         zoneId <- Gen.oneOf(zoneIds)
-        secSinceEpoch <- Gen.choose[Long](Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond)
       } yield ZonedDateTime.ofInstant(Instant.ofEpochSecond(secSinceEpoch), ZoneId.of(zoneId))
     )
   }
