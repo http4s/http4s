@@ -20,15 +20,15 @@ import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
 
 class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
-  checkAll("Boolean QueryParamCodec", QueryParamCodecLaws[Boolean])
-  checkAll("Double QueryParamCodec", QueryParamCodecLaws[Double])
-  checkAll("Float QueryParamCodec", QueryParamCodecLaws[Float])
-  checkAll("Short QueryParamCodec", QueryParamCodecLaws[Short])
-  checkAll("Int QueryParamCodec", QueryParamCodecLaws[Int])
-  checkAll("Long QueryParamCodec", QueryParamCodecLaws[Long])
-  checkAll("String QueryParamCodec", QueryParamCodecLaws[String])
-  checkAll("Instant QueryParamCodec", QueryParamCodecLaws[Instant])
-  checkAll("LocalDate QueryParamCodec", QueryParamCodecLaws[LocalDate])
+//  checkAll("Boolean QueryParamCodec", QueryParamCodecLaws[Boolean])
+//  checkAll("Double QueryParamCodec", QueryParamCodecLaws[Double])
+//  checkAll("Float QueryParamCodec", QueryParamCodecLaws[Float])
+//  checkAll("Short QueryParamCodec", QueryParamCodecLaws[Short])
+//  checkAll("Int QueryParamCodec", QueryParamCodecLaws[Int])
+//  checkAll("Long QueryParamCodec", QueryParamCodecLaws[Long])
+//  checkAll("String QueryParamCodec", QueryParamCodecLaws[String])
+//  checkAll("Instant QueryParamCodec", QueryParamCodecLaws[Instant])
+//  checkAll("LocalDate QueryParamCodec", QueryParamCodecLaws[LocalDate])
   checkAll("ZonedDateTime QueryParamCodec", QueryParamCodecLaws[ZonedDateTime])
 
   // Law checks for instances.
@@ -104,11 +104,11 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
 
   implicit val ArbitraryZonedDateTime: Arbitrary[ZonedDateTime] = {
     val zoneIds: Seq[String] = ZoneId.getAvailableZoneIds.asScala.toSeq
-    Arbitrary {
+    Arbitrary(
       for {
         zoneId <- Gen.oneOf(zoneIds)
         secSinceEpoch <- Gen.choose[Long](Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond)
       } yield ZonedDateTime.ofInstant(Instant.ofEpochSecond(secSinceEpoch), ZoneId.of(zoneId))
-    }
+    )
   }
 }
