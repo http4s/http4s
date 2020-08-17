@@ -28,8 +28,8 @@ trait QueryOps {
     _withQueryParam(QueryParam[T].key, Nil)
 
   /** alias for withQueryParam */
-  def +*?[T: QueryParam: QueryParamEncoder](value: T): Self =
-    _withQueryParam(QueryParam[T].key, QueryParamEncoder[T].encode(value) :: Nil)
+  def +*?[T: QueryParamKeyLike: QueryParamEncoder](value: T): Self =
+    _withQueryParam(QueryParamKeyLike[T].getKey(value), QueryParamEncoder[T].encode(value) :: Nil)
 
   /** alias for withQueryParam */
   def +*?[T: QueryParam: QueryParamEncoder](values: collection.Seq[T]): Self =
