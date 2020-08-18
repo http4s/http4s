@@ -47,11 +47,11 @@ import cats.implicits._
   *
   * }}}
   *
-  * This combined with UrlForm can decode case classes from
-  * HTML form parameters. There is a convenient method in [[FormDataDecoder]] that
-  * provides an [[EntityEncoder]], so that you can write
+  * The companion object provides a [[EntityDecoder]] from
+  * HTML form parameters.
   * @example
   * {{{
+  *   import org.http4s.FormDataDecoder.formEntityDecoder
   *   HttpRoutes
   *    .of[F] {
   *      case req @ POST -> Root =>
@@ -60,6 +60,9 @@ import cats.implicits._
   *        }
   *    }
   * }}}
+  *
+  * For more examples, check the tests
+  * https://github.com/http4s/http4s/blob/master/tests/src/test/scala/org/http4s/FormDataDecoderSpec.scala
   */
 sealed trait FormDataDecoder[A] {
   def apply(data: Map[String, Chain[String]]): ValidatedNel[ParseFailure, A]
@@ -68,9 +71,7 @@ sealed trait FormDataDecoder[A] {
     FormDataDecoder(this(_).andThen(f))
 
   /**
-    * Filter out empty strings including spaces
-    * Note that these might result in empty Chains as values which will be treated as missing fields.
-    * @return
+    * Filters out empty strings including spaces before decoding
     */
   def sanitized: FormDataDecoder[A] =
     FormDataDecoder { data =>
