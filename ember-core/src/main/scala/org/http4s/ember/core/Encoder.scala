@@ -9,14 +9,19 @@ package org.http4s.ember.core
 import cats.effect._
 import fs2._
 import org.http4s._
+import org.http4s.headers.`Content-Length`
 import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
 
   private val SPACE = " "
   private val CRLF = "\r\n"
-  def respToBytes[F[_]: Sync](resp: Response[F]): Stream[F, Byte] = {
+  def respToBytes[F[_]: Sync](
+      resp: Response[F],
+      writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+    val chunked = resp.isChunked
     val initSection = {
+      var appliedContentLength = false
       val stringBuilder = new StringBuilder()
 
       // Response Prelude: HTTP-Version SP STATUS CRLF
@@ -28,22 +33,32 @@ private[ember] object Encoder {
 
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
+        if (h.is(`Content-Length`)) appliedContentLength = true
+        else ()
+
         stringBuilder
           .append(h.renderString)
           .append(CRLF)
+        ()
+      }
+      if (!chunked && !appliedContentLength) {
+        stringBuilder.append(`Content-Length`.zero.renderString).append(CRLF)
         ()
       }
       // Final CRLF terminates headers and signals body to follow.
       stringBuilder.append(CRLF)
       stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
     }
-    val body = if (resp.isChunked) resp.body.through(ChunkedEncoding.encode[F]) else resp.body
 
-    Stream.chunk(Chunk.array(initSection)) ++
-      body
+    if (chunked)
+      Stream.chunk(Chunk.array(initSection)) ++ resp.body.through(ChunkedEncoding.encode[F])
+    else
+      (Stream.chunk(Chunk.array(initSection)) ++ resp.body)
+        .chunkMin(writeBufferSize)
+        .flatMap(Stream.chunk)
   }
 
-  def reqToBytes[F[_]: Sync](req: Request[F]): Stream[F, Byte] = {
+  def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     val initSection = {
       val stringBuilder = new StringBuilder()
 
@@ -77,9 +92,11 @@ private[ember] object Encoder {
       stringBuilder.append(CRLF)
       stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
     }
-    val body = if (req.isChunked) req.body.through(ChunkedEncoding.encode[F]) else req.body
-
-    Stream.chunk(Chunk.array(initSection)) ++
-      body
+    if (req.isChunked)
+      Stream.chunk(Chunk.array(initSection)) ++ req.body.through(ChunkedEncoding.encode[F])
+    else
+      (Stream.chunk(Chunk.array(initSection)) ++ req.body)
+        .chunkMin(writeBufferSize)
+        .flatMap(Stream.chunk)
   }
 }
