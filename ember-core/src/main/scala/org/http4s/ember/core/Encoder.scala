@@ -59,7 +59,9 @@ private[ember] object Encoder {
   }
 
   def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+    val chunked = req.isChunked
     val initSection = {
+      var appliedContentLength = false
       val stringBuilder = new StringBuilder()
 
       // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
@@ -82,9 +84,17 @@ private[ember] object Encoder {
 
       // Apply each header followed by a CRLF
       req.headers.foreach { h =>
+        if (h.is(`Content-Length`)) appliedContentLength = true
+        else ()
+
         stringBuilder
           .append(h.renderString)
           .append(CRLF)
+        ()
+      }
+
+      if (!chunked && !appliedContentLength) {
+        stringBuilder.append(`Content-Length`.zero.renderString).append(CRLF)
         ()
       }
 
@@ -92,7 +102,7 @@ private[ember] object Encoder {
       stringBuilder.append(CRLF)
       stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
     }
-    if (req.isChunked)
+    if (chunked)
       Stream.chunk(Chunk.array(initSection)) ++ req.body.through(ChunkedEncoding.encode[F])
     else
       (Stream.chunk(Chunk.array(initSection)) ++ req.body)
