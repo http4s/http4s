@@ -185,21 +185,21 @@ private[ember] object Parser {
       def parsePrelude[F[_]: MonadError[*[_], Throwable]](
           s: Stream[F, Byte],
           maxHeaderLength: Int,
-          acc: Option[Array[Byte]] = None)
+          acc: Option[ParsePreludeIncomlete] = None)
           : Pull[F, Nothing, (Method, Uri, HttpVersion, Stream[F, Byte])] =
         s.pull.uncons.flatMap {
           case Some((chunk, tl)) =>
             val next: Array[Byte] = acc match {
               case None => chunk.toArray
-              case Some(remains) => combineArrays(remains, chunk.toArray)
+              case Some(ic) => combineArrays(ic.bv, chunk.toArray)
             }
             ReqPrelude.preludeInSection(next) match {
               case ParsePreludeComplete(m, u, h, rest) =>
                 Pull.pure((m, u, h, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
               case t @ ParsePreludeError(_, _, _, _) => Pull.raiseError[F](t)
-              case ParsePreludeIncomlete(_, _, method, uri, httpVersion) =>
+              case p @ ParsePreludeIncomlete(_, _, method, uri, httpVersion) =>
                 if (next.size <= maxHeaderLength)
-                  parsePrelude(tl, maxHeaderLength, next.some)
+                  parsePrelude(tl, maxHeaderLength, p.some)
                 else
                   Pull.raiseError[F](
                     ParsePreludeError(
@@ -212,9 +212,9 @@ private[ember] object Parser {
             Pull.raiseError[F](
               ParsePreludeError(
                 new Throwable("Reached Ended of Stream Looking for Request Prelude"),
-                None,
-                None,
-                None))
+                acc.flatMap(_.method),
+                acc.flatMap(_.uri),
+                acc.flatMap(_.httpVersion)))
         }
 
       // sealed trait ParsePreludeState

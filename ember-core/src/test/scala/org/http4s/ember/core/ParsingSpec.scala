@@ -128,6 +128,22 @@ class ParsingSpec extends Specification with CatsIO {
         .unsafeRunSync()
     }
 
+    "Parse a simple request" in {
+      val raw =
+        """GET /foo HTTP/1.1
+        |Host: localhost:8080
+        |User-Agent: curl/7.64.1
+        |Accept: */*
+        |
+        |""".stripMargin
+      val expected = Request[IO](Method.GET, Uri.unsafeFromString("/foo"))
+
+      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync()
+
+      result.method must_=== expected.method
+      result.uri.scheme must_=== expected.uri.scheme
+    }
+
     "handle a response that requires multiple chunks to be read" in {
       // val logger = TestingLogger.impl[IO]()
       val defaultMaxHeaderLength = 4096
