@@ -13,6 +13,7 @@ import org.http4s._
 import cats.effect._
 import cats.effect.concurrent.Deferred
 import scala.annotation.switch
+import scala.collection.mutable
 
 private[ember] object Parser {
 
@@ -25,9 +26,9 @@ private[ember] object Parser {
         : Pull[F, Nothing, (Headers, Boolean, Option[Long], Stream[F, Byte])] =
       s.pull.uncons.flatMap {
         case Some((chunk, tl)) =>
-          val nextArr = acc match {
+          val nextArr: Array[Byte] = acc match {
             case None => chunk.toArray
-            case Some(last) => last.bv ++ chunk.toArray
+            case Some(last) => combineArrays(last.bv, chunk.toArray)
           }
           val result = acc match {
             case None => headersInSection(nextArr)
@@ -111,7 +112,7 @@ private[ember] object Parser {
       var chunked: Boolean = initChunked
       var contentLength: Option[Long] = initContentLength
 
-      val headers = ListBuffer.from(initHeaders)
+      val headers = ListBuffer(initHeaders: _*)
       var name: String = initName.orNull
       var start = initStart
 
@@ -190,7 +191,7 @@ private[ember] object Parser {
           case Some((chunk, tl)) =>
             val next: Array[Byte] = acc match {
               case None => chunk.toArray
-              case Some(remains) => remains ++ chunk.toArray
+              case Some(remains) => combineArrays(remains, chunk.toArray)
             }
             ReqPrelude.preludeInSection(next) match {
               case ParsePreludeComplete(m, u, h, rest) =>
@@ -401,7 +402,7 @@ private[ember] object Parser {
           case Some((chunk, tl)) =>
             val next: Array[Byte] = acc match {
               case None => chunk.toArray
-              case Some(remains) => remains ++ chunk.toArray
+              case Some(remains) => combineArrays(remains, chunk.toArray)
             }
             preludeInSection(next) match {
               case RespPreludeComplete(httpVersion, status, rest) =>
@@ -498,5 +499,12 @@ private[ember] object Parser {
         else RespPreludeIncomplete
       }
     }
+  }
+
+  private def combineArrays[A: scala.reflect.ClassTag](a1: Array[A], a2: Array[A]): Array[A] = {
+    val buff = mutable.ArrayBuffer[A]()
+    buff.++=(a1)
+    buff.++=(a2)
+    buff.toArray
   }
 }
