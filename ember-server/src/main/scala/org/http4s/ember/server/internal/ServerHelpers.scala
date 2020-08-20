@@ -62,7 +62,7 @@ private[server] object ServerHelpers {
       val (initial, readDuration) = (requestHeaderReceiveTimeout, idleTimeout, isReused) match {
         case (fin: FiniteDuration, idle: FiniteDuration, true) => (true, idle + fin)
         case (fin: FiniteDuration, _, false) => (true, fin)
-        case _ => (false, 0.millis)
+        case _ => (false, Duration.Zero)
       }
 
       SignallingRef[F, Boolean](initial).flatMap { timeoutSignal =>
