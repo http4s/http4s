@@ -11,6 +11,7 @@ import cats.implicits._
 import fs2._
 import org.http4s._
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import scala.annotation.switch
 
 private[ember] object Parser {
@@ -32,7 +33,7 @@ private[ember] object Parser {
             case None => headersInSection(nextArr)
             case Some(
                   ParseHeadersIncomplete(
-                    bv,
+                    _,
                     accHeaders,
                     idx,
                     state,
@@ -40,9 +41,8 @@ private[ember] object Parser {
                     start,
                     chunked,
                     contentLength)) =>
-              headersInSection(bv, idx, state, accHeaders, chunked, contentLength, name, start)
+              headersInSection(nextArr, idx, state, accHeaders, chunked, contentLength, name, start)
           }
-
           result match {
             case ParseHeadersCompleted(headers, rest, chunked, length) =>
               Pull.pure((headers, chunked, length, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
@@ -111,10 +111,10 @@ private[ember] object Parser {
       var chunked: Boolean = initChunked
       var contentLength: Option[Long] = initContentLength
 
-      val headers = new ListBuffer[Header]()
+      val headers = ListBuffer.from(initHeaders)
       var name: String = initName.orNull
       var start = initStart
-      initHeaders.appendedAll(initHeaders)
+
       while (!complete && idx < bv.size) {
         (state: @switch) match {
           case 0 => // HeaderNameOrPostCRLF
@@ -129,7 +129,7 @@ private[ember] object Parser {
                 idx += 1 // double advance index here to skip the space
               }
               // double CRLF condition - Termination of headers
-            } else if (current == cr && (bv.size >= idx + 1) && (bv(idx + 1) == lf)) {
+            } else if (current == cr && (idx + 1 < bv.size) && (bv(idx + 1) == lf)) {
               idx += 1 // double advance to drop cr AND lf
               complete = true // completed terminate loop
             }
@@ -323,58 +323,72 @@ private[ember] object Parser {
       }
     }
 
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte]): F[Request[F]] =
-      ReqPrelude
-        .parsePrelude[F](s, maxHeaderLength, None)
-        .flatMap {
-          case (method, uri, httpVersion, rest) =>
-            HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
-              case (headers, chunked, contentLength, rest) =>
-                val body = // Check into finalizer transfer
-                  if (chunked) rest.through(ChunkedEncoding.decode(maxHeaderLength))
-                  else rest.take(contentLength.getOrElse(0L))
-                val req: org.http4s.Request[F] = org.http4s.Request[F](
-                  method = method,
-                  uri = uri,
-                  httpVersion = httpVersion,
-                  headers = headers,
-                  body = body
-                )
-                Pull.output1(req)
-            }
-        }
-        .stream
-        .take(1)
-        .compile
-        .lastOrError
+    def parser[F[_]: Concurrent](maxHeaderLength: Int)(s: Stream[F, Byte]): F[Request[F]] =
+      Deferred[F, Headers].flatMap { trailers =>
+        ReqPrelude
+          .parsePrelude[F](s, maxHeaderLength, None)
+          .flatMap {
+            case (method, uri, httpVersion, rest) =>
+              HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
+                case (headers, chunked, contentLength, rest) =>
+                  val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
+                    method = method,
+                    uri = uri,
+                    httpVersion = httpVersion,
+                    headers = headers
+                  )
+                  val req: org.http4s.Request[F] =
+                    if (chunked)
+                      baseReq
+                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                        .withBodyStream(
+                          rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
+                    else
+                      baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L)))
+
+                  Pull.output1(req)
+              }
+          }
+          .stream
+          .take(1)
+          .compile
+          .lastOrError
+      }
 
   }
 
   object Response {
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte]): Resource[F, Response[F]] =
-      RespPrelude
-        .parsePrelude(s, maxHeaderLength, None)
-        .flatMap {
-          case (httpVersion, status, s) =>
-            HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
-              case (headers, chunked, contentLength, rest) =>
-                val body = // Check into finalizer transfer
-                  if (chunked) rest.through(ChunkedEncoding.decode(maxHeaderLength))
-                  else rest.take(contentLength.getOrElse(0L))
-                val resp: org.http4s.Response[F] = org.http4s.Response[F](
-                  httpVersion = httpVersion,
-                  status = status,
-                  headers = headers,
-                  body = body
-                )
-                Pull.output1(resp)
-            }
-        }
-        .stream
-        .take(1)
-        .compile
-        .resource
-        .lastOrError
+    def parser[F[_]: Concurrent](maxHeaderLength: Int)(
+        s: Stream[F, Byte]): Resource[F, Response[F]] =
+      Resource.liftF(Deferred[F, Headers]).flatMap { trailers =>
+        RespPrelude
+          .parsePrelude(s, maxHeaderLength, None)
+          .flatMap {
+            case (httpVersion, status, s) =>
+              HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
+                case (headers, chunked, contentLength, rest) =>
+                  val baseResp = org.http4s.Response[F](
+                    httpVersion = httpVersion,
+                    status = status,
+                    headers = headers
+                  )
+                  val resp: org.http4s.Response[F] =
+                    if (chunked)
+                      baseResp
+                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                        .withBodyStream(
+                          rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
+                    else
+                      baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
+                  Pull.output1(resp)
+              }
+          }
+          .stream
+          .take(1)
+          .compile
+          .resource
+          .lastOrError
+      }
 
     object RespPrelude {
 

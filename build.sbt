@@ -179,6 +179,11 @@ lazy val emberCore = libraryProject("ember-core")
     description := "Base library for ember http4s clients and servers",
     libraryDependencies ++= Seq(log4catsCore, log4catsTesting % Test),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Shared.chunk2ByteVector"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Request.parser"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
     )
   )
@@ -187,7 +192,12 @@ lazy val emberCore = libraryProject("ember-core")
 lazy val emberServer = libraryProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
-    libraryDependencies ++= Seq(log4catsSlf4j)
+    libraryDependencies ++= Seq(log4catsSlf4j),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+    )
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
 
@@ -196,8 +206,9 @@ lazy val emberClient = libraryProject("ember-client")
     description := "ember implementation for http4s clients",
     libraryDependencies ++= Seq(keypool, log4catsSlf4j),
     mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
     )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")

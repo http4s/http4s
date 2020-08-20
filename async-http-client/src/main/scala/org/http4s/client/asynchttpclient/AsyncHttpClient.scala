@@ -60,7 +60,6 @@ object AsyncHttpClient {
     * Create an HTTP client based on the AsyncHttpClient library
     *
     * @param config configuration for the client
-    * @param ec The ExecutionContext to run responses on
     */
   def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: ConcurrentEffect[F]): Resource[F, Client[F]] =
@@ -70,13 +69,25 @@ object AsyncHttpClient {
     * Create a bracketed HTTP client based on the AsyncHttpClient library.
     *
     * @param config configuration for the client
-    * @param ec The ExecutionContext to run responses on
     * @return a singleton stream of the client.  The client will be
     * shutdown when the stream terminates.
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(config))
+
+  /**
+    * Create a custom AsyncHttpClientConfig
+    *
+    * @param configurationFn function that maps from the builder of the defaultConfig to the custom config's builder
+    * @return a custom configuration.
+    */
+  def configure(
+      configurationFn: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder
+  ): AsyncHttpClientConfig = {
+    val defaultConfigBuilder = new DefaultAsyncHttpClientConfig.Builder(defaultConfig)
+    configurationFn(defaultConfigBuilder).build()
+  }
 
   private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])])(implicit
       F: ConcurrentEffect[F]) =

@@ -13,8 +13,10 @@ import cats.effect.IO
 import org.http4s._
 // import _root_.io.chrisdavenport.log4cats.testing.TestingLogger
 import org.http4s.laws.discipline.ArbitraryInstances._
+import scala.concurrent.ExecutionContext
 
 class TraversalSpec extends Specification with ScalaCheck {
+  implicit val CS = IO.contextShift(ExecutionContext.global)
   "Request Encoder/Parser" should {
     "preserve headers" >> prop { (req: Request[IO]) =>
       // val logger = TestingLogger.impl[IO]()
