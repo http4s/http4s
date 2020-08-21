@@ -51,9 +51,13 @@ private[argonaut] object Parser extends SupportParser[Json] {
             if (key == null)
               key = s.toString
             else {
-              vs = vs + (key, jstring(s)); key = null
+              vs = vs.+(key, jstring(s))
+              key = null
             }
-          def add(v: Json): Unit = { vs = vs + (key, v); key = null }
+          def add(v: Json): Unit = {
+            vs = vs.+(key, v)
+            key = null
+          }
           def finish() = Json.jObject(vs)
           def isObj = true
         }

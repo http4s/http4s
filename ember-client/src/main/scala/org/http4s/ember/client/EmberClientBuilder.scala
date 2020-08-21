@@ -13,9 +13,9 @@ import cats._
 import cats.implicits._
 import cats.effect._
 import scala.concurrent.duration._
-import org.http4s.headers.Connection
-import org.http4s.Response
+import org.http4s.ProductId
 import org.http4s.client._
+import org.http4s.headers.`User-Agent`
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
@@ -32,8 +32,38 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val chunkSize: Int,
     val maxResponseHeaderSize: Int,
     val timeout: Duration,
-    val additionalSocketOptions: List[SocketOptionMapping[_]]
+    val additionalSocketOptions: List[SocketOptionMapping[_]],
+    val userAgent: Option[`User-Agent`]
 ) { self =>
+
+  @deprecated("Preserved for binary compatibility", "0.21.7")
+  private[EmberClientBuilder] def this(
+      blockerOpt: Option[Blocker],
+      tlsContextOpt: Option[TLSContext],
+      sgOpt: Option[SocketGroup],
+      maxTotal: Int,
+      maxPerKey: RequestKey => Int,
+      idleTimeInPool: Duration,
+      logger: Logger[F],
+      chunkSize: Int,
+      maxResponseHeaderSize: Int,
+      timeout: Duration,
+      additionalSocketOptions: List[SocketOptionMapping[_]]
+  ) =
+    this(
+      blockerOpt = blockerOpt,
+      tlsContextOpt = tlsContextOpt,
+      sgOpt = sgOpt,
+      maxTotal = maxTotal,
+      maxPerKey = maxPerKey,
+      idleTimeInPool = idleTimeInPool,
+      logger = logger,
+      chunkSize = chunkSize,
+      maxResponseHeaderSize = maxResponseHeaderSize,
+      timeout = timeout,
+      additionalSocketOptions = additionalSocketOptions,
+      userAgent = EmberClientBuilder.Defaults.userAgent
+    )
 
   private def copy(
       blockerOpt: Option[Blocker] = self.blockerOpt,
@@ -46,7 +76,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       chunkSize: Int = self.chunkSize,
       maxResponseHeaderSize: Int = self.maxResponseHeaderSize,
       timeout: Duration = self.timeout,
-      additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions
+      additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
+      userAgent: Option[`User-Agent`] = self.userAgent
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       blockerOpt = blockerOpt,
@@ -59,7 +90,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       chunkSize = chunkSize,
       maxResponseHeaderSize = maxResponseHeaderSize,
       timeout = timeout,
-      additionalSocketOptions = additionalSocketOptions
+      additionalSocketOptions = additionalSocketOptions,
+      userAgent = userAgent
     )
 
   def withTLSContext(tlsContext: TLSContext) =
@@ -82,6 +114,11 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withTimeout(timeout: Duration) = copy(timeout = timeout)
   def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOptionMapping[_]]) =
     copy(additionalSocketOptions = additionalSocketOptions)
+
+  def withUserAgent(userAgent: `User-Agent`) =
+    copy(userAgent = userAgent.some)
+  def withoutUserAgent =
+    copy(userAgent = None)
 
   def build: Resource[F, Client[F]] =
     for {
@@ -134,34 +171,19 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
               .request[F](
                 request,
                 managed.value._1,
+                managed.canBeReused,
                 chunkSize,
                 maxResponseHeaderSize,
-                timeout
+                timeout,
+                userAgent
               )(logger)
-              .map(response =>
-                response.copy(body = response.body.onFinalizeCaseWeak {
-                  case ExitCase.Completed =>
-                    val requestClose = request.headers.get(Connection).exists(_.hasClose)
-                    val responseClose = response.isChunked || response.headers
-                      .get(Connection)
-                      .exists(_.hasClose)
-
-                    if (requestClose || responseClose) Sync[F].unit
-                    else managed.canBeReused.set(Reusable.Reuse)
-                  case ExitCase.Canceled => Sync[F].unit
-                  case ExitCase.Error(_) => Sync[F].unit
-                }))
-          response <- Resource.make[F, Response[F]](responseResource.pure[F])(resp =>
-            managed.canBeReused.get.flatMap {
-              case Reusable.Reuse => resp.body.compile.drain.attempt.void
-              case Reusable.DontReuse => Sync[F].unit
-            })
-        } yield response)
+        } yield responseResource)
       new EmberClient[F](client, pool)
     }
 }
 
 object EmberClientBuilder {
+
   def default[F[_]: Concurrent: Timer: ContextShift] =
     new EmberClientBuilder[F](
       blockerOpt = None,
@@ -174,7 +196,8 @@ object EmberClientBuilder {
       chunkSize = Defaults.chunkSize,
       maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
       timeout = Defaults.timeout,
-      additionalSocketOptions = Defaults.additionalSocketOptions
+      additionalSocketOptions = Defaults.additionalSocketOptions,
+      userAgent = Defaults.userAgent
     )
 
   private object Defaults {
@@ -190,5 +213,7 @@ object EmberClientBuilder {
     val maxTotal = 100
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
+    val userAgent = Some(
+      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version))))
   }
 }

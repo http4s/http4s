@@ -32,7 +32,7 @@ private[http4s] class QueryParser(
     val acc: Builder[Query.KeyValue, Vector[Query.KeyValue]] = Vector.newBuilder
     decodeBuffer(input, (k, v) => acc += ((k, v)), flush) match {
       case Some(e) => ParseResult.fail("Decoding of url encoded data failed.", e)
-      case None => ParseResult.success(Query.fromVector(acc.result))
+      case None => ParseResult.success(Query.fromVector(acc.result()))
     }
   }
 

@@ -97,11 +97,11 @@ object PushSupport {
   private[PushSupport] final case class PushLocation(location: String, cascade: Boolean)
   private[http4s] final case class PushResponse[F[_]](location: String, resp: Response[F])
 
-  private[PushSupport] val pushLocationKey = Key.newKey[IO, Vector[PushLocation]].unsafeRunSync
+  private[PushSupport] val pushLocationKey = Key.newKey[IO, Vector[PushLocation]].unsafeRunSync()
   private[http4s] def pushResponsesKey[F[_]]: Key[F[Vector[PushResponse[F]]]] =
     Keys.PushResponses.asInstanceOf[Key[F[Vector[PushResponse[F]]]]]
 
   private[this] object Keys {
-    val PushResponses: Key[Any] = Key.newKey[IO, Any].unsafeRunSync
+    val PushResponses: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
   }
 }

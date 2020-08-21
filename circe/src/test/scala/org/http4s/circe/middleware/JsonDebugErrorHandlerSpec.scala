@@ -24,7 +24,7 @@ class JsonDebugErrorHandlerSpec extends Http4sSpec with SilenceOutputStream {
       JsonDebugErrorHandler(service)
         .run(req)
         .attempt
-        .unsafeRunSync must beRight
+        .unsafeRunSync() must beRight
     }
     "handle an message failure" in {
       val service: Kleisli[IO, Request[IO], Response[IO]] =
@@ -36,7 +36,7 @@ class JsonDebugErrorHandlerSpec extends Http4sSpec with SilenceOutputStream {
       JsonDebugErrorHandler(service)
         .run(req)
         .attempt
-        .unsafeRunSync must beRight
+        .unsafeRunSync() must beRight
     }
   }
 }

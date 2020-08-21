@@ -9,7 +9,6 @@ package org.http4s.ember.core
 import org.specs2.mutable.Specification
 import cats.effect._
 import org.http4s._
-import fs2.{Stream, text}
 import scodec.bits.ByteVector
 import io.chrisdavenport.log4cats.testing.TestingLogger
 import org.specs2.concurrent.ExecutionEnv
@@ -18,6 +17,7 @@ import cats.effect.concurrent._
 import cats.data.OptionT
 import cats.implicits._
 import fs2.Chunk.ByteVectorChunk
+import org.http4s.headers.Expires
 
 class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
   implicit val cs: ContextShift[IO] = IO.contextShift(ee.ec)
@@ -27,7 +27,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
     def httpifyString(s: String): String = s.replace("\n", "\r\n")
 
     // Only for Use with Text Requests
-    def parseRequestRig[F[_]: Sync](s: String): F[Request[F]] = {
+    def parseRequestRig[F[_]: Concurrent](s: String): F[Request[F]] = {
       val logger = TestingLogger.impl[F]()
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
@@ -38,7 +38,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       Parser.Request.parser[F](Int.MaxValue)(byteStream)(logger)
     }
 
-    def parseResponseRig[F[_]: Sync](s: String): Resource[F, Response[F]] = {
+    def parseResponseRig[F[_]: Concurrent](s: String): Resource[F, Response[F]] = {
       val logger = TestingLogger.impl[F]()
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
@@ -89,7 +89,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       |""".stripMargin
       val expected = Request[IO](Method.GET, Uri.unsafeFromString("www.google.com"))
 
-      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync
+      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync()
 
       result.method must_=== expected.method
       result.uri.scheme must_=== expected.uri.scheme
@@ -98,7 +98,8 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       // result.uri.query must_=== expected.uri.query
       result.uri.fragment must_=== expected.uri.fragment
       result.headers must_=== expected.headers
-      result.body.compile.toVector.unsafeRunSync must_=== expected.body.compile.toVector.unsafeRunSync
+      result.body.compile.toVector.unsafeRunSync() must_=== expected.body.compile.toVector
+        .unsafeRunSync()
     }
 
     "Parse a request with a body correctly" in {
@@ -111,7 +112,7 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       val expected = Request[IO](Method.POST, Uri.unsafeFromString("/foo"))
         .withEntity("Entity Here")
 
-      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync
+      val result = Helpers.parseRequestRig[IO](raw).unsafeRunSync()
 
       result.method must_=== expected.method
       result.uri.scheme must_=== expected.uri.scheme
@@ -120,7 +121,8 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
       // result.uri.query must_=== expected.uri.query
       result.uri.fragment must_=== expected.uri.fragment
       result.headers must_=== expected.headers
-      result.body.compile.toVector.unsafeRunSync must_=== expected.body.compile.toVector.unsafeRunSync
+      result.body.compile.toVector.unsafeRunSync() must_=== expected.body.compile.toVector
+        .unsafeRunSync()
     }
 
     "handle a response that requires multiple chunks to be read" in {
@@ -164,7 +166,76 @@ class ParsingSpec(implicit ee: ExecutionEnv) extends Specification {
 
           _.size must beGreaterThan(0)
         }
-        .unsafeRunSync
+        .unsafeRunSync()
+    }
+
+    "parse a chunked simple" in {
+      val logger = TestingLogger.impl[IO]()
+      val defaultMaxHeaderLength = 4096
+      val respS =
+        Stream(
+          "HTTP/1.1 200 OK\r\n",
+          "Content-Type: text/plain\r\n",
+          "Transfer-Encoding: chunked\r\n\r\n",
+          // "Trailer: Expires\r\n\r\n",
+          "7\r\n",
+          "Mozilla\r\n",
+          "9\r\n",
+          "Developer\r\n",
+          "7\r\n",
+          "Network\r\n",
+          "0\r\n",
+          "\r\n"
+          // "Expires: Wed, 21 Oct 2015 07:28:00 GMT\r\n\r\n"
+        )
+      val byteStream: Stream[IO, Byte] = respS
+        .flatMap(s =>
+          Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+      Parser.Response
+        .parser[IO](defaultMaxHeaderLength)(byteStream)(logger)
+        .use { resp =>
+          resp.body.through(text.utf8Decode).compile.string.map { body =>
+            body must beEqualTo("MozillaDeveloperNetwork")
+          }
+        }
+        .unsafeRunSync()
+    }
+
+    "parse a chunked with trailer headers" in {
+      val logger = TestingLogger.impl[IO]()
+      val defaultMaxHeaderLength = 4096
+      val respS =
+        Stream(
+          "HTTP/1.1 200 OK\r\n",
+          "Content-Type: text/plain\r\n",
+          "Transfer-Encoding: chunked\r\n",
+          "Trailer: Expires\r\n\r\n",
+          "7\r\n",
+          "Mozilla\r\n",
+          "9\r\n",
+          "Developer\r\n",
+          "7\r\n",
+          "Network\r\n",
+          "0\r\n",
+          "Expires: Wed, 21 Oct 2015 07:28:00 GMT\r\n",
+          "\r\n"
+        )
+      val byteStream: Stream[IO, Byte] = respS
+        .flatMap(s =>
+          Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII))))
+
+      Parser.Response
+        .parser[IO](defaultMaxHeaderLength)(byteStream)(logger)
+        .use { resp =>
+          for {
+            body <- resp.body.through(text.utf8Decode).compile.string
+            trailers <- resp.trailerHeaders
+          } yield (body must beEqualTo("MozillaDeveloperNetwork")).and(
+            trailers.get(Expires) must beSome
+          )
+        }
+        .unsafeRunSync()
     }
   }
 

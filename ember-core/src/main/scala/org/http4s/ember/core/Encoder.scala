@@ -56,13 +56,14 @@ private[ember] object Encoder {
         .append(req.httpVersion.renderString)
         .append(CRLF)
 
-      // Host From Uri Becomes Header
-      req.uri.authority.foreach { auth =>
-        stringBuilder
-          .append("Host: ")
-          .append(auth.renderString)
-          .append(CRLF)
-      }
+      // Host From Uri Becomes Header if not already present in headers
+      if (org.http4s.headers.Host.from(req.headers).isEmpty)
+        req.uri.authority.foreach { auth =>
+          stringBuilder
+            .append("Host: ")
+            .append(auth.renderString)
+            .append(CRLF)
+        }
 
       // Apply each header followed by a CRLF
       req.headers.foreach { h =>
@@ -71,6 +72,7 @@ private[ember] object Encoder {
           .append(CRLF)
         ()
       }
+
       // Final CRLF terminates headers and signals body to follow.
       stringBuilder.append(CRLF)
       stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)

@@ -36,14 +36,14 @@ val service = HttpRoutes.of[IO] {
 
 val request = Request[IO](Method.GET, uri"/")
 
-service.orNotFound(request).unsafeRunSync
+service.orNotFound(request).unsafeRunSync()
 ```
 
 That didn't do all that much. Lets build out our CSRF Middleware by creating a `CSRFBuilder`
 
 ```scala mdoc:silent
 val cookieName = "csrf-token"
-val key  = CSRF.generateSigningKey[IO].unsafeRunSync
+val key  = CSRF.generateSigningKey[IO].unsafeRunSync()
 val defaultOriginCheck: Request[IO] => Boolean =
   CSRF.defaultOriginCheck[IO](_, "localhost", Uri.Scheme.http, None)
 val csrfBuilder = CSRF[IO,IO](key, defaultOriginCheck)

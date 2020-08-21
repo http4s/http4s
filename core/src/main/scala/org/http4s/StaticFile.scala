@@ -39,11 +39,11 @@ object StaticFile {
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
-    val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists {
-      acceptEncoding =>
+    val tryGzipped =
+      preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists { acceptEncoding =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
           ContentCoding.`x-gzip`)
-    }
+      }
     val normalizedName = name.split("/").filter(_.nonEmpty).mkString("/")
 
     def getResource(name: String) =
@@ -69,9 +69,9 @@ object StaticFile {
       cs: ContextShift[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
-    OptionT.apply(F.delay {
+    OptionT.apply(F.suspend {
       if (file.isDirectory())
-        None
+        F.pure(None)
       else {
         val urlConn = url.openConnection
         val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
@@ -87,15 +87,26 @@ object StaticFile {
             else `Transfer-Encoding`(TransferCoding.chunked)
           val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
-          Some(
-            Response(
-              headers = headers,
-              body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blocker)
-            ))
-        } else {
-          urlConn.getInputStream.close()
-          Some(Response(NotModified))
-        }
+          blocker
+            .delay(urlConn.getInputStream)
+            .redeem(
+              recover = {
+                case _: FileNotFoundException => None
+                case other => throw other
+              },
+              f = { inputStream =>
+                Some(
+                  Response(
+                    headers = headers,
+                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize, blocker)
+                  ))
+              }
+            )
+        } else
+          blocker
+            .delay(urlConn.getInputStream.close())
+            .handleError(_ => ())
+            .as(Some(Response(NotModified)))
       }
     })
   }
@@ -216,5 +227,5 @@ object StaticFile {
       case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
     }
 
-  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync
+  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync()
 }

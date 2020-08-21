@@ -50,7 +50,7 @@ private[ember] object Util {
       else
         for {
           start <- Stream.eval(C.realTime(MILLISECONDS))
-          read <- Stream.eval(socket.read(chunkSize, Some(remains)))
+          read <- Stream.eval(socket.read(chunkSize, Some(remains))) //  Each Read Yields
           end <- Stream.eval(C.realTime(MILLISECONDS))
           out <- read.fold[Stream[F, Byte]](
             Stream.empty

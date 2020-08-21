@@ -42,7 +42,7 @@ package object server {
 
   object ServerRequestKeys {
     val SecureSession: Key[Option[SecureSession]] =
-      Key.newKey[IO, Option[SecureSession]].unsafeRunSync
+      Key.newKey[IO, Option[SecureSession]].unsafeRunSync()
   }
 
   /**

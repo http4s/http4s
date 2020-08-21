@@ -30,6 +30,36 @@ class SimpleHeadersSpec extends Http4sSpec {
       HttpHeaderParser.parseHeader(bad) must beLeft
     }
 
+    "parse Access-Control-Allow-Headers" in {
+      val header = `Access-Control-Allow-Headers`(
+        NonEmptyList.of(
+          CIString("Accept"),
+          CIString("Expires"),
+          CIString("X-Custom-Header"),
+          CIString("*")
+        )
+      )
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val invalidHeader = Header(header.name.toString, "(non-token-name), non[&token]name")
+      HttpHeaderParser.parseHeader(invalidHeader) must beLeft
+    }
+
+    "parse Access-Control-Expose-Headers" in {
+      val header = `Access-Control-Expose-Headers`(
+        NonEmptyList.of(
+          CIString("Content-Length"),
+          CIString("Authorization"),
+          CIString("X-Custom-Header"),
+          CIString("*")
+        )
+      )
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val invalidHeader = Header(header.name.toString, "(non-token-name), non[&token]name")
+      HttpHeaderParser.parseHeader(invalidHeader) must beLeft
+    }
+
     "parse Connection" in {
       val header = Connection(CIString("closed"))
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)

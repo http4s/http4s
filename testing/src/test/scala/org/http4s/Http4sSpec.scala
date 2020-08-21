@@ -66,7 +66,7 @@ trait Http4sSpec
       .compile
       .last
       .map(_.getOrElse(""))
-      .unsafeRunSync
+      .unsafeRunSync()
 
   def checkAll(name: String, props: Properties)(implicit
       p: Parameters,
