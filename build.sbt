@@ -177,6 +177,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
 lazy val emberCore = libraryProject("ember-core")
   .settings(
     description := "Base library for ember http4s clients and servers",
+    unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(log4catsCore, log4catsTesting % Test),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
@@ -185,6 +186,17 @@ lazy val emberCore = libraryProject("ember-core")
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Request.parser"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request.parser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.splitHeader"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response.parser")
     )
   )
   .dependsOn(core, testing % "test->test")

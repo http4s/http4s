@@ -23,6 +23,13 @@ import _root_.io.chrisdavenport.log4cats.Logger
 import cats.data.NonEmptyList
 
 private[server] object ServerHelpers {
+
+  private val closeCi = "close".ci
+
+  private val connectionCi = "connection".ci
+  private val close = Connection(NonEmptyList.of(closeCi))
+  private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
+
   def server[F[_]: Concurrent: ContextShift](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
@@ -55,15 +62,16 @@ private[server] object ServerHelpers {
       val (initial, readDuration) = (requestHeaderReceiveTimeout, idleTimeout, isReused) match {
         case (fin: FiniteDuration, idle: FiniteDuration, true) => (true, idle + fin)
         case (fin: FiniteDuration, _, false) => (true, fin)
-        case _ => (false, 0.millis)
+        case _ => (false, Duration.Zero)
       }
+
       SignallingRef[F, Boolean](initial).flatMap { timeoutSignal =>
         C.realTime(MILLISECONDS)
           .flatMap(now =>
             Parser.Request
               .parser(maxHeaderSize)(
                 readWithTimeout[F](socket, now, readDuration, timeoutSignal.get, receiveBufferSize)
-              )(logger)
+              )
               .flatMap { req =>
                 timeoutSignal.set(false).as(req)
               })
@@ -99,17 +107,18 @@ private[server] object ServerHelpers {
         }
 
     def postProcessResponse(req: Request[F], resp: Response[F]): F[Response[F]] = {
-      val reqHasClose = req.headers.get(Connection).exists(_.hasClose)
-      val respConnection = resp.headers.get(Connection)
+      val reqHasClose = req.headers.exists {
+        // We know this is raw because we have not parsed any headers in the underlying alg.
+        // If Headers are being parsed into processed for in ParseHeaders this is incorrect.
+        case Header.Raw(name, values) => name == connectionCi && values.contains(closeCi.value)
+        case _ => false
+      }
       val connection: Connection =
-        if (reqHasClose) Connection(NonEmptyList.of("close".ci))
-        else
-          respConnection.fold(
-            Connection(NonEmptyList.one("keep-alive".ci))
-          )(identity)
+        if (reqHasClose) close
+        else keepAlive
       for {
-        date <- resp.headers.get(Date).fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
-      } yield resp.putHeaders(connection, date)
+        date <- HttpDate.current[F].map(Date(_))
+      } yield resp.withHeaders(Headers.of(date, connection) ++ resp.headers)
     }
 
     def withUpgradedSocket(socket: Socket[F]): Stream[F, Nothing] =

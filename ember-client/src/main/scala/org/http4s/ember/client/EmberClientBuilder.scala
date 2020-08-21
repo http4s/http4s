@@ -18,7 +18,7 @@ import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{AgentProduct, `User-Agent`}
+import org.http4s.headers.{AgentProduct, Connection, `User-Agent`}
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val blockerOpt: Option[Blocker],
@@ -175,7 +175,21 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 maxResponseHeaderSize,
                 timeout,
                 userAgent
-              )(logger)
+              )
+              .map(response =>
+                // TODO If Response Body has a take(1).compile.drain - would leave rest of bytes in root stream for next caller
+                response.copy(body = response.body.onFinalizeCaseWeak {
+                  case ExitCase.Completed =>
+                    val requestClose = request.headers.get(Connection).exists(_.hasClose)
+                    val responseClose = response.isChunked || response.headers
+                      .get(Connection)
+                      .exists(_.hasClose)
+
+                    if (requestClose || responseClose) Sync[F].unit
+                    else managed.canBeReused.set(Reusable.Reuse)
+                  case ExitCase.Canceled => Sync[F].unit
+                  case ExitCase.Error(_) => Sync[F].unit
+                }))
         } yield responseResource)
       new EmberClient[F](client, pool)
     }
