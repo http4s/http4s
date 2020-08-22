@@ -229,7 +229,7 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.2.0"
     val logback = "1.2.3"
     val log4s = "1.8.2"
-    val mockito = "3.5.2"
+    val mockito = "3.5.5"
     val okhttp = "4.8.1"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.0"
