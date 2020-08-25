@@ -76,21 +76,26 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
 
     "allow request to be canceled" in {
 
-      Deferred[IO, Unit].flatMap { cancelSignal =>
-        val routes = HttpRoutes.of[IO] {
-          case _ => cancelSignal.complete(()) >> IO.never
+      Deferred[IO, Unit]
+        .flatMap { cancelSignal =>
+          val routes = HttpRoutes.of[IO] {
+            case _ => cancelSignal.complete(()) >> IO.never
+          }
+
+          val cancelClient = Client.fromHttpApp(routes.orNotFound)
+
+          Deferred[IO, ExitCase[Throwable]]
+            .flatTap { exitCase =>
+              cancelClient
+                .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+                .guaranteeCase(exitCase.complete)
+                .start
+                .flatTap(fiber =>
+                  cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
+            }
+            .flatMap(_.get)
         }
-
-        val cancelClient = Client.fromHttpApp(routes.orNotFound)
-
-        Deferred[IO, ExitCase[Throwable]].flatTap { exitCase =>
-          cancelClient
-            .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
-            .guaranteeCase(exitCase.complete)
-            .start
-            .flatTap(fiber => cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
-        }.flatMap(_.get)
-      }.unsafeRunTimed(2.seconds) must_== Some(ExitCase.Canceled)
+        .unsafeRunTimed(2.seconds) must_== Some(ExitCase.Canceled)
 
     }
   }
