@@ -7,6 +7,8 @@
 package org.http4s
 package client
 
+import scala.concurrent.duration._
+import cats.effect.concurrent.Deferred
 import cats.effect._
 import cats.implicits._
 import java.io.IOException
@@ -70,6 +72,31 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
       hostClient
         .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
         .unsafeRunSync() must_== "http4s.org"
+    }
+
+    "allow request to be canceled" in {
+
+      Deferred[IO, Unit]
+        .flatMap { cancelSignal =>
+          val routes = HttpRoutes.of[IO] {
+            case _ => cancelSignal.complete(()) >> IO.never
+          }
+
+          val cancelClient = Client.fromHttpApp(routes.orNotFound)
+
+          Deferred[IO, ExitCase[Throwable]]
+            .flatTap { exitCase =>
+              cancelClient
+                .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+                .guaranteeCase(exitCase.complete)
+                .start
+                .flatTap(fiber =>
+                  cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
+            }
+            .flatMap(_.get)
+        }
+        .unsafeRunTimed(2.seconds) must_== Some(ExitCase.Canceled)
+
     }
   }
 }
