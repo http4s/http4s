@@ -174,7 +174,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
           newToken <- signToken[F](raw)
         } yield res.addCookie(createResponseCookie(newToken)))
           .recover {
-            case CSRFCheckFailed => Response[G](Status.Forbidden)
+            case CSRFCheckFailed => onFailure
           }
       case None =>
         if (createIfNotFound)
@@ -202,7 +202,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
         newToken <- signToken[F](raw1) //Generate a new token to guard against BREACH.
       } yield response.addCookie(createResponseCookie(newToken)))
         .recover {
-          case CSRFCheckFailed => Response[G](Status.Forbidden)
+          case CSRFCheckFailed => onFailure
         }
 
   /** Check for CSRF validity for an unsafe action. */
