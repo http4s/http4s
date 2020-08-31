@@ -111,9 +111,7 @@ lazy val testing = libraryProject("testing")
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
   .enablePlugins(PrivateProjectPlugin)
-  .settings(
-    description := "Tests for core project",
-  )
+  .settings(description := "Tests for core project")
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
@@ -129,7 +127,7 @@ lazy val server = libraryProject("server")
     ),
     buildInfoPackage := "org.http4s.server.test"
   )
-  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
+  .dependsOn(core, testing % "test->test")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -140,13 +138,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
       prometheusClient
     ),
   )
-  .dependsOn(
-    core % "compile->compile",
-    theDsl % "test->compile",
-    testing % "test->test",
-    server % "test->compile",
-    client % "test->compile"
-  )
+  .dependsOn(core % "compile->compile", testing % "test->test" )
 
 lazy val client = libraryProject("client")
   .enablePlugins(SilencerPlugin)
@@ -157,8 +149,6 @@ lazy val client = libraryProject("client")
   .dependsOn(
     core,
     testing % "test->test",
-    server % "test->compile",
-    theDsl % "test->compile",
     scalaXml % "test->compile")
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
@@ -168,12 +158,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
       dropwizardMetricsCore,
       dropwizardMetricsJson
     ))
-  .dependsOn(
-    core % "compile->compile",
-    testing % "test->test",
-    theDsl % "test->compile",
-    client % "test->compile",
-    server % "test->compile"
+  .dependsOn(core % "compile->compile", testing % "test->test"
   )
 
 lazy val emberCore = libraryProject("ember-core")
@@ -213,7 +198,7 @@ lazy val emberServer = libraryProject("ember-server")
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
     )
   )
-  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", server % "test->test")
 
 lazy val emberClient = libraryProject("ember-client")
   .settings(
@@ -225,7 +210,7 @@ lazy val emberClient = libraryProject("ember-client")
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
     )
   )
-  .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", client % "test->test")
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
@@ -238,13 +223,13 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers"
   )
-  .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", server % "test->test")
 
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients"
   )
-  .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", client % "test->test")
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
@@ -254,7 +239,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
       fs2ReactiveStreams,
     )
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .dependsOn(core, testing % "test->test", client % "test->test")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
@@ -263,7 +248,7 @@ lazy val jettyClient = libraryProject("jetty-client")
       Http4sPlugin.jettyClient
     ),
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .dependsOn(core, testing % "test->test", client % "test->test")
 
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
@@ -272,7 +257,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
       Http4sPlugin.okhttp
     ),
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .dependsOn(core, testing % "test->test", client % "test->test")
 
 lazy val servlet = libraryProject("servlet")
   .settings(
@@ -284,7 +269,7 @@ lazy val servlet = libraryProject("servlet")
       mockito % Test
     ),
   )
-  .dependsOn(server % "compile;test->test")
+  .dependsOn(core, server % "test->test")
 
 lazy val jetty = libraryProject("jetty")
   .settings(
@@ -479,7 +464,7 @@ lazy val docs = http4sProject("docs")
       }
     },
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
+  .dependsOn(core, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
@@ -511,7 +496,7 @@ lazy val examples = http4sProject("examples")
     ),
     TwirlKeys.templateImports := Nil
   )
-  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
+  .dependsOn(core, dropwizardMetrics, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -544,7 +529,7 @@ lazy val examplesDocker = http4sProject("examples-docker")
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
   )
-  .dependsOn(blazeServer, theDsl)
+  .dependsOn(blazeServer)
 
 lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(Revolver.settings)
