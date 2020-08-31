@@ -19,6 +19,16 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
     HttpHeaderParser.CONTENT_TYPE(s)
 }
 
+/**
+  * {{{
+  *   The "Content-Type" header field indicates the media type of the
+  *   associated representation: either the representation enclosed in the
+  *   message payload or the selected representation, as determined by the
+  *   message semantics.
+  * }}}
+  *
+  * [[https://tools.ietf.org/html/rfc7231#section-3.1.1.5 RFC-7231]]
+  */
 final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset])
     extends Header.Parsed {
   override def key: `Content-Type`.type = `Content-Type`
