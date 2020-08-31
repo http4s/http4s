@@ -62,7 +62,7 @@ lazy val root = project.in(file("."))
   )
   .aggregate(modules: _*)
 
-lazy val core = libraryProject("core")
+lazy val core = libraryProject("modules/core")
   .enablePlugins(
     BuildInfoPlugin,
     MimeLoaderPlugin,
@@ -88,7 +88,7 @@ lazy val core = libraryProject("core")
     ),
   )
 
-lazy val laws = libraryProject("laws")
+lazy val laws = libraryProject("modules/laws")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
@@ -116,7 +116,7 @@ lazy val tests = libraryProject("tests")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val server = libraryProject("server")
+lazy val server = libraryProject("modules/server/core")
   .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s servers"
@@ -131,7 +131,7 @@ lazy val server = libraryProject("server")
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
-lazy val prometheusMetrics = libraryProject("prometheus-metrics")
+lazy val prometheusMetrics = libraryProject("modules/prometheus-metrics")
   .settings(
     description := "Support for Prometheus Metrics",
     libraryDependencies ++= Seq(
@@ -148,7 +148,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     client % "test->compile"
   )
 
-lazy val client = libraryProject("client")
+lazy val client = libraryProject("modules/client/core")
   .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s clients",
@@ -161,7 +161,7 @@ lazy val client = libraryProject("client")
     theDsl % "test->compile",
     scalaXml % "test->compile")
 
-lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
+lazy val dropwizardMetrics = libraryProject("modules/dropwizard-metrics")
   .settings(
     description := "Support for Dropwizard Metrics",
     libraryDependencies ++= Seq(
@@ -176,7 +176,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     server % "test->compile"
   )
 
-lazy val emberCore = libraryProject("ember-core")
+lazy val emberCore = libraryProject("modules/ember-core")
   .settings(
     description := "Base library for ember http4s clients and servers",
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
@@ -203,7 +203,7 @@ lazy val emberCore = libraryProject("ember-core")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val emberServer = libraryProject("ember-server")
+lazy val emberServer = libraryProject("modules/server/ember")
   .settings(
     description := "ember implementation for http4s servers",
     libraryDependencies ++= Seq(log4catsSlf4j),
@@ -215,7 +215,7 @@ lazy val emberServer = libraryProject("ember-server")
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
 
-lazy val emberClient = libraryProject("ember-client")
+lazy val emberClient = libraryProject("modules/client/ember")
   .settings(
     description := "ember implementation for http4s clients",
     libraryDependencies ++= Seq(keypool, log4catsSlf4j),
@@ -227,26 +227,26 @@ lazy val emberClient = libraryProject("ember-client")
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
-lazy val blazeCore = libraryProject("blaze-core")
+lazy val blazeCore = libraryProject("modules/blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze,
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val blazeServer = libraryProject("blaze-server")
+lazy val blazeServer = libraryProject("modules/server/blaze")
   .settings(
     description := "blaze implementation for http4s servers"
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
-lazy val blazeClient = libraryProject("blaze-client")
+lazy val blazeClient = libraryProject("modules/client/blaze")
   .settings(
     description := "blaze implementation for http4s clients"
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
-lazy val asyncHttpClient = libraryProject("async-http-client")
+lazy val asyncHttpClient = libraryProject("modules/client/async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
     libraryDependencies ++= Seq(
@@ -256,7 +256,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
-lazy val jettyClient = libraryProject("jetty-client")
+lazy val jettyClient = libraryProject("modules/client/jetty")
   .settings(
     description := "jetty implementation for http4s clients",
     libraryDependencies ++= Seq(
@@ -265,7 +265,7 @@ lazy val jettyClient = libraryProject("jetty-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
-lazy val okHttpClient = libraryProject("okhttp-client")
+lazy val okHttpClient = libraryProject("modules/client/okhttp")
   .settings(
     description := "okhttp implementation for http4s clients",
     libraryDependencies ++= Seq(
@@ -274,7 +274,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
-lazy val servlet = libraryProject("servlet")
+lazy val servlet = libraryProject("modules/server/servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
     libraryDependencies ++= Seq(
@@ -286,7 +286,7 @@ lazy val servlet = libraryProject("servlet")
   )
   .dependsOn(server % "compile;test->test")
 
-lazy val jetty = libraryProject("jetty")
+lazy val jetty = libraryProject("modules/server/jetty")
   .settings(
     description := "Jetty implementation for http4s servers",
     libraryDependencies ++= Seq(
@@ -296,7 +296,7 @@ lazy val jetty = libraryProject("jetty")
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 
-lazy val tomcat = libraryProject("tomcat")
+lazy val tomcat = libraryProject("modules/server/tomcat")
   .settings(
     description := "Tomcat implementation for http4s servers",
     libraryDependencies ++= Seq(
@@ -307,20 +307,20 @@ lazy val tomcat = libraryProject("tomcat")
   .dependsOn(servlet % "compile;test->test")
 
 // `dsl` name conflicts with modern SBT
-lazy val theDsl = libraryProject("dsl")
+lazy val theDsl = libraryProject("modules/dsl")
   .settings(
     description := "Simple DSL for writing http4s services"
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val jawn = libraryProject("jawn")
+lazy val jawn = libraryProject("modules/codecs/jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
     libraryDependencies += jawnFs2
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val argonaut = libraryProject("argonaut")
+lazy val argonaut = libraryProject("modules/codecs/argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
@@ -330,7 +330,7 @@ lazy val argonaut = libraryProject("argonaut")
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
-lazy val boopickle = libraryProject("boopickle")
+lazy val boopickle = libraryProject("modules/codecs/boopickle")
   .settings(
     description := "Provides Boopickle codecs for http4s",
     libraryDependencies ++= Seq(
@@ -339,7 +339,7 @@ lazy val boopickle = libraryProject("boopickle")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val circe = libraryProject("circe")
+lazy val circe = libraryProject("modules/codecs/circe")
   .settings(
     description := "Provides Circe codecs for http4s",
     libraryDependencies ++= Seq(
@@ -373,7 +373,7 @@ lazy val json4sJackson = libraryProject("json4s-jackson")
   )
   .dependsOn(json4s % "compile;test->test")
 
-lazy val playJson = libraryProject("play-json")
+lazy val playJson = libraryProject("modules/codecs/play-json")
   .settings(
     description := "Provides Play json codecs for http4s",
     libraryDependencies ++= Seq(
@@ -383,7 +383,7 @@ lazy val playJson = libraryProject("play-json")
   )
   .dependsOn(jawn % "compile;test->test")
 
-lazy val scalaXml = libraryProject("scala-xml")
+lazy val scalaXml = libraryProject("modules/codecs/scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
     libraryDependencies ++= Seq(
@@ -400,7 +400,7 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
 
-lazy val scalatags = http4sProject("scalatags")
+lazy val scalatags = http4sProject("modules/codecs/scalatags")
   .settings(
     description := "Scalatags template support for http4s",
     libraryDependencies += scalatagsApi,
