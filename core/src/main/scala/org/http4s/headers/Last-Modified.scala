@@ -15,6 +15,12 @@ object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKe
     HttpHeaderParser.LAST_MODIFIED(s)
 }
 
+/**
+  * Response header that indicates the time at which the server believes the
+  * entity was last modified.
+  *
+  * [[https://tools.ietf.org/html/rfc7232#section-2.3 RFC-7232]]
+  */
 final case class `Last-Modified`(date: HttpDate) extends Header.Parsed {
   override def key: `Last-Modified`.type = `Last-Modified`
   override def value: String = Renderer.renderString(date)

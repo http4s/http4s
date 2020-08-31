@@ -10,7 +10,13 @@ package headers
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
-// see https://tools.ietf.org/html/rfc7231#section-5.1.2
+/**
+  * Request header, used with the TRACE and OPTION request methods,
+  * that gives an upper bound on how many times the request can be
+  * forwarded by a proxy before it is rejected.
+  *
+  * [[https://tools.ietf.org/html/rfc7231#section-5.1.2 RFC-7231]]
+  */
 sealed abstract case class `Max-Forwards`(count: Long) extends Header.Parsed {
   override def key: `Max-Forwards`.type = `Max-Forwards`
   override def value: String = count.toString
