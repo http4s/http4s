@@ -11,7 +11,6 @@
 package org.http4s.ember.core
 
 import cats._
-import cats.implicits._
 import cats.effect.concurrent.Deferred
 import fs2._
 import scodec.bits.ByteVector

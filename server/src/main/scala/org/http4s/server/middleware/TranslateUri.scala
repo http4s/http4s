@@ -9,7 +9,7 @@ package server.middleware
 
 import cats.data.Kleisli
 import cats.{Functor, MonoidK}
-import cats.implicits._
+import cats.syntax.all._
 
 /** Removes the given prefix from the beginning of the path of the [[Request]].
   */

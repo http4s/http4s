@@ -5,8 +5,6 @@
  */
 
 package org.http4s
-
-import cats.implicits._
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.Uri.Scheme
 import org.http4s.internal.parboiled2.CharPredicate

@@ -10,7 +10,6 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect._
-import cats.instances.option._
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.alternative._

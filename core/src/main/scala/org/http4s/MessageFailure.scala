@@ -7,7 +7,6 @@
 package org.http4s
 
 import cats.{Eq, MonadError}
-import cats.implicits._
 import scala.util.control.{NoStackTrace, NonFatal}
 
 /** Indicates a failure to handle an HTTP [[Message]]. */

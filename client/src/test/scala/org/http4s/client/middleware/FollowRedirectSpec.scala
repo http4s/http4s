@@ -10,7 +10,7 @@ package middleware
 
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import java.util.concurrent.atomic._
 import org.http4s.Uri.uri

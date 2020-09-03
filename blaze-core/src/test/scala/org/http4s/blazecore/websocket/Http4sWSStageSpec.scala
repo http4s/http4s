@@ -10,7 +10,7 @@ package websocket
 import fs2.Stream
 import fs2.concurrent.{Queue, SignallingRef}
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.http4s.Http4sSpec

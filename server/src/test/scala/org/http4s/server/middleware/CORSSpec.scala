@@ -9,7 +9,7 @@ package server
 package middleware
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.testing.Http4sLegacyMatchersIO

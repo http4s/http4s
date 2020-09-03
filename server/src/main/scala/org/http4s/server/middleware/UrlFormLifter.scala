@@ -10,7 +10,7 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import cats.~>
 
 /** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the

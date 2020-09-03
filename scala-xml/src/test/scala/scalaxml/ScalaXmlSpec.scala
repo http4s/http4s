@@ -8,7 +8,7 @@ package org.http4s
 package scalaxml
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import fs2.text.utf8Encode
 import org.http4s.Status.Ok

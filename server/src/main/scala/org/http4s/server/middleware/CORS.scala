@@ -10,7 +10,7 @@ package middleware
 
 import cats.{Applicative, Monad}
 import cats.data.Kleisli
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.log4s.getLogger

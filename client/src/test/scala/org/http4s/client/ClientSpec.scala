@@ -8,7 +8,7 @@ package org.http4s
 package client
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import java.io.IOException
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host

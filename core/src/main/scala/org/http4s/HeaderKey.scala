@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
 import org.typelevel.ci.CIString
 import scala.annotation.tailrec
 import scala.reflect.ClassTag

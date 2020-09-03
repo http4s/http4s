@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets
 
 import cats.effect._
 import cats.effect.concurrent.Ref
-import cats.instances.string._
 import fs2._
 import org.http4s.headers._
 import org.http4s.util._

@@ -8,7 +8,6 @@ package org.http4s
 
 import cats.Eq
 import cats.effect.IO
-import cats.implicits._
 import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
 import cats.laws.discipline.eq._
 import cats.laws.discipline.arbitrary._

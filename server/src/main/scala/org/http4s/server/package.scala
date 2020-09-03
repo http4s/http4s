@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.IO
 import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}

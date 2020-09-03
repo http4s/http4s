@@ -8,7 +8,7 @@ package org.http4s.server.middleware
 
 import cats.Functor
 import cats.data.Kleisli
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s._
 import org.typelevel.ci.CIString
 

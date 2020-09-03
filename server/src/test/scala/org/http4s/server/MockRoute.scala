@@ -8,7 +8,7 @@ package org.http4s
 package server
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.Status.{Accepted, Ok}
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.syntax.literals._

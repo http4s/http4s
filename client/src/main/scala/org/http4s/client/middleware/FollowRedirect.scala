@@ -9,7 +9,7 @@ package client
 package middleware
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.Method._
 import org.http4s.headers._
 import org.typelevel.ci.CIString

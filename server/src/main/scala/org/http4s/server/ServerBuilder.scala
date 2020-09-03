@@ -7,7 +7,7 @@
 package org.http4s
 package server
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import cats.effect.concurrent.Ref
 import fs2._

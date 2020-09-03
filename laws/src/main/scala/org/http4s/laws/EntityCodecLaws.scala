@@ -7,7 +7,7 @@
 package org.http4s
 package laws
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import cats.effect.implicits._
 import cats.laws._

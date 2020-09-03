@@ -8,7 +8,7 @@ package org.http4s.server.middleware
 
 import cats.data.{NonEmptyList, OptionT}
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.http4s.dsl.io._

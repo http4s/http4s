@@ -7,7 +7,7 @@
 package org.http4s
 package blazecore
 
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets

@@ -8,7 +8,7 @@ package org.http4s.server.middleware
 
 import cats.Functor
 import cats.data.{Kleisli, NonEmptyList}
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.{CacheDirective, Header, Headers, Response}
 import org.http4s.headers.`Cache-Control`
 

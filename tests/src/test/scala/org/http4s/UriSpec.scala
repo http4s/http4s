@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.laws.discipline.{EqTests, SemigroupTests}
 import java.nio.file.Paths
 

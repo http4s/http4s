@@ -10,7 +10,7 @@ package staticcontent
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import java.nio.file.Paths
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger

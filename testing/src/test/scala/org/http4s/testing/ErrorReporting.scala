@@ -9,7 +9,7 @@
 
 package org.http4s.testing
 import java.io.{ByteArrayOutputStream, PrintStream}
-import cats.implicits._
+import cats.syntax.all._
 import cats.Monad
 import org.http4s.{Headers, MessageFailure, Request, Response, Status}
 import org.http4s.headers.{Connection, `Content-Length`}

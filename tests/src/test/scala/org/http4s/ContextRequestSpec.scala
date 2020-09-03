@@ -9,7 +9,7 @@ package org.http4s
 import org.specs2.Specification
 import org.typelevel.discipline.specs2.Discipline
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import cats.laws.discipline.NonEmptyTraverseTests
 import org.http4s.laws.discipline.arbitrary._
 

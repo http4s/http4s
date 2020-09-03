@@ -8,7 +8,7 @@ package org.http4s
 
 import cats._
 import cats.data._
-import cats.implicits._
+import cats.syntax.all._
 import cats.laws.discipline.{arbitrary => _, _}
 
 import java.time.format.DateTimeFormatter

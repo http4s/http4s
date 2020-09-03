@@ -9,7 +9,7 @@ package blazecore
 package util
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import scala.concurrent._
 

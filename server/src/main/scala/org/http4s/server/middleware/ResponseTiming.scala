@@ -10,7 +10,7 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 

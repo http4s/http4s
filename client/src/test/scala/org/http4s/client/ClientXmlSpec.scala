@@ -8,7 +8,7 @@ package org.http4s
 package client
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.Method.GET
 import org.http4s.Status.Ok
 import scala.xml.Elem

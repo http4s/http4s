@@ -9,7 +9,7 @@ package server
 package middleware
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.Stream._
 import java.nio.charset.StandardCharsets

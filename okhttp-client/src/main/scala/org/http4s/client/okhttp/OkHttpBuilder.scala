@@ -9,7 +9,7 @@ package org.http4s.client.okhttp
 import java.io.IOException
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.implicits._
 import fs2.io._
 import okhttp3.{

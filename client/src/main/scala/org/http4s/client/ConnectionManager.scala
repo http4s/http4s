@@ -9,7 +9,7 @@ package client
 
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
+import cats.syntax.all._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration

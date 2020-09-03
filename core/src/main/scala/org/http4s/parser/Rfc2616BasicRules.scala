@@ -9,8 +9,6 @@
  */
 
 package org.http4s.parser
-
-import cats.implicits._
 import com.github.ghik.silencer.silent
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._

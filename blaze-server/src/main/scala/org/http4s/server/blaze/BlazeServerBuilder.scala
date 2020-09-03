@@ -11,7 +11,7 @@ package blaze
 import cats.{Alternative, Applicative}
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.{ConcurrentEffect, Resource, Timer}
 import _root_.io.chrisdavenport.vault._
 import java.io.FileInputStream

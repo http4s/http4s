@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.{Contravariant, Functor, MonoidK, Show}
 import cats.data.{Validated, ValidatedNel}
-import cats.implicits._
+import cats.syntax.all._
 import java.time.{Instant, LocalDate, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor

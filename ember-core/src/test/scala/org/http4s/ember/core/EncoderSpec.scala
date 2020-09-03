@@ -7,7 +7,7 @@
 package org.http4s.ember.core
 
 import org.specs2.mutable.Specification
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.{IO, Sync}
 import org.http4s._
 

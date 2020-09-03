@@ -9,7 +9,7 @@ package org.http4s.server.middleware
 import cats.effect.IO.ioEffect
 import cats.effect.laws.util.TestContext
 import cats.effect.{IO, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.{Http4sSpec, HttpApp, Request, Status}
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._

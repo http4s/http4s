@@ -11,7 +11,7 @@
 package org.http4s
 
 import cats.effect.{Blocker, ContextShift, ExitCase, IO, Resource, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.text._
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}

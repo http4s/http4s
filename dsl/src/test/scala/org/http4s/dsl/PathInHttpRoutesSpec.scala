@@ -9,7 +9,7 @@ package dsl
 
 import cats.data.Validated._
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.testing.Http4sLegacyMatchersIO
 

@@ -9,7 +9,6 @@ package laws
 package discipline
 
 import cats.Eq
-import cats.implicits._
 import cats.laws.discipline._
 import org.scalacheck.{Arbitrary, Prop, Shrink}
 import org.typelevel.discipline.Laws

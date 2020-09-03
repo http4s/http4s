@@ -10,7 +10,6 @@ import cats.Eq
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._
-import cats.implicits._
 import fs2.Chunk
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.testing.fs2Arbitraries._

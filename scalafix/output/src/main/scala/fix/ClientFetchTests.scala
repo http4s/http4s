@@ -2,7 +2,6 @@ package fix
 
 import cats.data.Chain
 import cats.effect._
-import cats.implicits._
 import org.http4s._
 import org.http4s.client.Client
 
