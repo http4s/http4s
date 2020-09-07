@@ -26,6 +26,7 @@ object HttpHeaderParser
     with CacheControlHeader
     with ContentTypeHeader
     with CookieHeader
+    with ForwardedHeader
     with LinkHeader
     with LocationHeader
     with OriginHeader
@@ -123,6 +124,7 @@ object HttpHeaderParser
     addParser_("DATE".ci, `DATE`)
     addParser_("ETAG".ci, `ETAG`)
     addParser_("EXPIRES".ci, `EXPIRES`)
+    addParser_("FORWARDED".ci, `FORWARDED`)
     addParser_("HOST".ci, `HOST`)
     addParser_("IF-MATCH".ci, `IF_MATCH`)
     addParser_("IF-MODIFIED-SINCE".ci, `IF_MODIFIED_SINCE`)
