@@ -30,6 +30,7 @@ class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   checkAll("Instant QueryParamCodec", QueryParamCodecLaws[Instant])
   checkAll("LocalDate QueryParamCodec", QueryParamCodecLaws[LocalDate])
   // The following test fails on CI/CD, adds more trouble than it might be worth
+  // Original issue: https://github.com/http4s/http4s/issues/3664
   // checkAll("ZonedDateTime QueryParamCodec", QueryParamCodecLaws[ZonedDateTime])
 
   // Law checks for instances.
