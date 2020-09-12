@@ -13,7 +13,7 @@ val http = HttpRoutes.of {
 
 Learn more at [http4s.org](https://http4s.org/).
 
-If you run into any difficulties please enable partial unification in your `build.sbt` (not needed for Scala 2.13 and beyond, because Scala 2.13.0+ have partial unification ON by default)
+If you run into any difficulties please enable partial unification in your `build.sbt` (not needed for Scala 2.13 and beyond, because Scala 2.13.0+ has partial unification ON by default)
 
 ```scala
 scalacOptions ++= Seq("-Ypartial-unification")
