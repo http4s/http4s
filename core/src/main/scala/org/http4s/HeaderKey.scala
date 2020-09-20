@@ -91,7 +91,7 @@ object HeaderKey {
       header match {
         case h if runtimeClass.isInstance(h) =>
           Some(header.asInstanceOf[HeaderT])
-        case Header.Raw(name, _) if name == header.name && runtimeClass.isInstance(header.parsed) =>
+        case Header.Raw(_, _) if name == header.name && runtimeClass.isInstance(header.parsed) =>
           Some(header.parsed.asInstanceOf[HeaderT])
         case _ =>
           None
