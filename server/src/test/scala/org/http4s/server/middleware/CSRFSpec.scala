@@ -72,10 +72,14 @@ class CSRFSpec extends Http4sSpec {
 
   val csrfCatchFailure: CSRF[IO, IO] = CSRF
     .withGeneratedKey[IO, IO](defaultOriginCheck)
-    .map(_.withClock(testClock).withCookieName(cookieName).withOnFailure(
-      Response[IO](status = Status.SeeOther, headers = Headers(List(Header("Location", "/"))))
-        .removeCookie(cookieName)
-    ).build)
+    .map(
+      _.withClock(testClock)
+        .withCookieName(cookieName)
+        .withOnFailure(
+          Response[IO](status = Status.SeeOther, headers = Headers(List(Header("Location", "/"))))
+            .removeCookie(cookieName)
+        )
+        .build)
     .unsafeRunSync()
 
   ///
@@ -316,7 +320,8 @@ class CSRFSpec extends Http4sSpec {
       "fail a request with an invalid cookie, despite it being a safe method" in {
         val response =
           csrfCatchFailure
-            .validate()(dummyRoutes)(passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
+            .validate()(dummyRoutes)(
+              passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
             .unsafeRunSync()
 
         response.status must_== Status.SeeOther
@@ -328,12 +333,12 @@ class CSRFSpec extends Http4sSpec {
           (for {
             oldToken <- csrfCatchFailure.generateToken[IO]
             raw1 <- IO.fromEither(csrfCatchFailure.extractRaw(unlift(oldToken)))
-            response <-
-              csrfCatchFailure.validate()(dummyRoutes)(csrf.embedInRequestCookie(passThroughRequest, oldToken))
+            response <- csrfCatchFailure.validate()(dummyRoutes)(
+              csrf.embedInRequestCookie(passThroughRequest, oldToken))
             newCookie =
-            response.cookies
-              .find(_.name == cookieName)
-              .getOrElse(ResponseCookie("invalid", "Invalid2"))
+              response.cookies
+                .find(_.name == cookieName)
+                .getOrElse(ResponseCookie("invalid", "Invalid2"))
             raw2 <- IO.fromEither(csrfCatchFailure.extractRaw(newCookie.content))
           } yield (oldToken, raw1, response, newCookie, raw2)).unsafeRunSync()
 
@@ -383,7 +388,6 @@ class CSRFSpec extends Http4sSpec {
               .addCookie(cookieName, unlift(token2))
           )
         } yield res).unsafeRunSync()
-
 
         response.status must_== Status.SeeOther
         response.cookies.exists(_.name == cookieName) must_== true
