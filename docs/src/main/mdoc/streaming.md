@@ -52,7 +52,7 @@ function, which takes a `Request[F]` and a `Response[F] => Stream[F, A]` and ret
 to consume a stream is just:
 
 ```scala
-client.stream(req).flatMap(_)
+client.stream(req).flatMap(_.body)
 ```
 
 That gives you a `Stream[F, Byte]`, but you probably want something other than a `Byte`.
