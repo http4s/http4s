@@ -35,11 +35,13 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
 }
 
 /**
-  * Constructs a `Retry-After` header.
+  * Response header, used by the server to indicate to the user-agent how long it has to wait before
+  * it can try again with a follow-up request.
   *
-  * The value of this field can be either an HTTP-date or an integer number of seconds (in decimal) after the time of the response.
+  * [[https://tools.ietf.org/html/rfc7231#section-7.1.3 RFC-7231 Section 7.1.3]]
   *
-  * @param retry Either the date of expiration or seconds until expiration
+  * @param retry Indicates the retry time, either as a date of expiration or as a number of seconds from the current time
+  * until that expiration.
   */
 sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long]) extends Header.Parsed {
   val key = `Retry-After`
