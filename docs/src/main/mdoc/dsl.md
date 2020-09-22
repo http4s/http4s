@@ -193,7 +193,7 @@ HTTP manners to provide a `Content-Type` and, where known in advance,
 `Content-Length` header in one's responses.
 
 All of this hassle is neatly handled by http4s' [EntityEncoder]s.
-We'll cover these in more depth in another tut.  The important point
+We'll cover these in more depth in another tutorial.  The important point
 for now is that a response body can be generated for any type with an
 implicit `EntityEncoder` in scope.  http4s provides several out of the
 box:
@@ -230,7 +230,7 @@ suspend it, and the resulting expression would still be side
 effectful, unless we wrap it in `IO`:
 
 `IO.fromFuture` requires an implicit `ContextShift`, to ensure that the
-suspended future is shifted to the corred thread pool.
+suspended future is shifted to the correct thread pool.
 
 ```scala mdoc:nest
 implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
