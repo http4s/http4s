@@ -103,12 +103,23 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
         .map(LocalDate.ofEpochDay))
 
   implicit val ArbitraryZonedDateTime: Arbitrary[ZonedDateTime] = {
-    val zoneIds: Seq[String] = ZoneId.getAvailableZoneIds.asScala.toSeq
+    val zoneIds = {
+      val zoneIdIter = ZoneId.getAvailableZoneIds.asScala.iterator
+      // Workaround for a bug in Java 1.8:
+      //   - https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8138664
+      // See also the original issue:
+      //   - https://github.com/http4s/http4s/issues/3664
+      if (sys.props.get("java.specification.version").contains("1.8"))
+        zoneIdIter.filterNot(_ == "GMT0")
+      else
+        zoneIdIter
+    }.toSeq
+
     Arbitrary(
       for {
-        secSinceEpoch <- Gen.choose[Long](Instant.EPOCH.getEpochSecond, Instant.now.getEpochSecond)
+        instant <- Arbitrary.arbitrary[Instant] // re-use `Gen` from `Arbitrary[Instant]` here
         zoneId <- Gen.oneOf(zoneIds)
-      } yield ZonedDateTime.ofInstant(Instant.ofEpochSecond(secSinceEpoch), ZoneId.of(zoneId))
+      } yield ZonedDateTime.ofInstant(instant, ZoneId.of(zoneId))
     )
   }
 }

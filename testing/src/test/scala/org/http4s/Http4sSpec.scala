@@ -72,6 +72,7 @@ trait Http4sSpec
       p: Parameters,
       f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
+    addBreak
     addFragments(Fragments.foreach(props.properties.toList) {
       case (name, prop) =>
         Fragments(name in check(prop, p, f))
