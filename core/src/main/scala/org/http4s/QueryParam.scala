@@ -20,9 +20,13 @@ final case class QueryParameterValue(value: String) extends AnyVal
 /**
   * type class defining the key of a query parameter
   * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
+  *
+  * Any [[QueryParam]] instance is also a valid [[QueryParamKeyLike]] instance
+  * where the same key is used for all values.
   */
-trait QueryParam[T] {
+trait QueryParam[T] extends QueryParamKeyLike[T] {
   def key: QueryParameterKey
+  override final def getKey(t: T): QueryParameterKey = key
 }
 
 object QueryParam {
