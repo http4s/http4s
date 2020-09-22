@@ -230,7 +230,7 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.8.2"
     val mockito = "3.5.10"
-    val okhttp = "4.8.1"
+    val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
     val prometheusClient = "0.9.0"
