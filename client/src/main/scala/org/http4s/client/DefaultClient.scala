@@ -262,6 +262,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T] =
     fetchAs(req)
 
-  private def defaultOnError(resp: Response[F])(implicit F: Applicative[F]): F[Throwable] =
-    F.pure(UnexpectedStatus(resp.status))
+  private def defaultOnError(resp: Response[F])(implicit F: Sync[F]): F[Throwable] =
+    resp.body.compile.drain.as(UnexpectedStatus(resp.status))
 }
