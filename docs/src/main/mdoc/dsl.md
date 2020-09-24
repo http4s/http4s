@@ -529,7 +529,7 @@ object LongParamMatcher extends OptionalValidatingQueryParamDecoderMatcher[Long]
 val routes = HttpRoutes.of[IO] {
   case GET -> Root / "number" :? YearQueryParamMatcher(maybeNumber) =>
 
-    val _: Option[cats.data.ValidatedNel[org.http4s.ParseFailure, Long]] = number
+    val _: Option[cats.data.ValidatedNel[org.http4s.ParseFailure, Long]] = maybeNumber
 
     maybeNumber match {
         case Some(n) =>
