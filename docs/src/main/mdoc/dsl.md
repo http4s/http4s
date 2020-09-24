@@ -533,7 +533,7 @@ val routes = HttpRoutes.of[IO] {
 
     maybeNumber match {
         case Some(n) =>
-            yearValidated.fold(
+            n.fold(
               parseFailures => BadRequest("unable to parse argument year"),
               year => Ok(n.toString)
             )
