@@ -535,7 +535,7 @@ val routes = HttpRoutes.of[IO] {
         case Some(n) =>
             yearValidated.fold(
               parseFailures => BadRequest("unable to parse argument year"),
-              year => Ok(n.toString))
+              year => Ok(n.toString)
             )
         case None => BadRequest("missing number")
     }
