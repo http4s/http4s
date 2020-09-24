@@ -517,3 +517,27 @@ val routes = HttpRoutes.of[IO] {
 ```
 
 [EntityEncoder]: ../api/org/http4s/EntityEncoder$
+
+#### Optional Invalid query parameter handling
+
+Consider `OptionalValidatingQueryParamDecoderMatcher[A]` given the power that
+  `Option[cats.data.ValidatedNel[org.http4s.ParseFailure, A]]` provides.
+
+```scala mdoc:nest
+object LongParamMatcher extends OptionalValidatingQueryParamDecoderMatcher[Long]("long")
+
+val routes = HttpRoutes.of[IO] {
+  case GET -> Root / "number" :? YearQueryParamMatcher(maybeNumber) =>
+
+    val _: Option[cats.data.ValidatedNel[org.http4s.ParseFailure, Long]] = number
+
+    maybeNumber match {
+        case Some(n) =>
+            yearValidated.fold(
+              parseFailures => BadRequest("unable to parse argument year"),
+              year => Ok(n.toString))
+            )
+        case None => BadRequest("missing number")
+    }
+}
+```
