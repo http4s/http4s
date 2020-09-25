@@ -534,7 +534,7 @@ val routes = HttpRoutes.of[IO] {
     maybeNumber match {
         case Some(n) =>
             n.fold(
-              parseFailures => BadRequest("unable to parse argument year"),
+              parseFailures => BadRequest("unable to parse argument 'long'"),
               year => Ok(n.toString)
             )
         case None => BadRequest("missing number")
