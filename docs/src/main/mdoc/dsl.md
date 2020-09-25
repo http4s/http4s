@@ -516,8 +516,6 @@ val routes = HttpRoutes.of[IO] {
 }
 ```
 
-[EntityEncoder]: ../api/org/http4s/EntityEncoder$
-
 #### Optional Invalid query parameter handling
 
 Consider `OptionalValidatingQueryParamDecoderMatcher[A]` given the power that
@@ -541,3 +539,5 @@ val routes = HttpRoutes.of[IO] {
     }
 }
 ```
+
+[EntityEncoder]: ../api/org/http4s/EntityEncoder$
