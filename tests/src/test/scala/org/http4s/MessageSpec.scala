@@ -124,7 +124,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       "preserve caret in withPathInfo" in {
         val originalReq = Request(
           uri = uri"/foo/bar",
-          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 0))
+          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 1))
         val updatedReq = originalReq.withPathInfo(path"/quux")
 
         updatedReq.scriptName mustEqual path"/foo"

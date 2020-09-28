@@ -30,13 +30,13 @@ object Router {
       default: HttpRoutes[F]): HttpRoutes[F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, routes)) =>
-        val prefixSegments = Uri.Path.fromString(prefix)
-        if (prefixSegments.isEmpty) routes <+> acc
+        val prefixPath = Uri.Path.fromString(prefix)
+        if (prefixPath.isEmpty) routes <+> acc
         else
           Kleisli { req =>
             (
-              if (req.pathInfo.startsWith(prefixSegments))
-                routes.local(translate(prefixSegments)) <+> acc
+              if (req.pathInfo.startsWith(prefixPath))
+                routes.local(translate(prefixPath)) <+> acc
               else
                 acc
             )(req)
@@ -44,7 +44,7 @@ object Router {
     }
 
   private[server] def translate[F[_]: Functor](prefix: Uri.Path)(req: Request[F]): Request[F] = {
-    val newCaret = req.pathInfo.indexOf(prefix)
+    val newCaret = req.pathInfo.findSplit(prefix)
     val oldCaret = req.attributes.lookup(Request.Keys.PathInfoCaret)
     val resultCaret = oldCaret |+| newCaret
     resultCaret match {

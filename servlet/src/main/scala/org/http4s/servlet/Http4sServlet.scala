@@ -133,7 +133,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
         .fromString(req.getContextPath)
         .concat(Uri.Path.fromString(req.getServletPath))
     uri.path
-      .indexOf(pathInfo)
+      .findSplit(pathInfo)
       .getOrElse(-1)
   }
 

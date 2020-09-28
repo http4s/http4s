@@ -51,13 +51,23 @@ class RouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     "/numb" -> middleware(numbers2),
     "/" -> root,
     "/shadow" -> shadow,
-    "/letters" -> letters
+    "/letters" -> letters,
+    "/numbers/v1" -> HttpRoutes.of[IO] {
+      case GET -> Root / "1" => Ok("Yeah")
+    },
+    "/numbers" -> Router[IO](
+      "/v2" -> HttpRoutes.of[IO] {
+        case GET -> Root / "1" => Ok("Indeed")
+      }
+    )
   )
 
   "A router" should {
     "translate mount prefixes" in {
       service.orNotFound(Request[IO](GET, uri"/numbers/1")) must returnBody("one")
       service.orNotFound(Request[IO](GET, uri"/numb/1")) must returnBody("two")
+      service.orNotFound(Request[IO](GET, uri"/numbers/v1/1")) must returnBody("Yeah")
+      service.orNotFound(Request[IO](GET, uri"/numbers/v2/1")) must returnBody("Indeed")
       service.orNotFound(Request[IO](GET, uri"/numbe?block")) must returnStatus(NotFound)
     }
 

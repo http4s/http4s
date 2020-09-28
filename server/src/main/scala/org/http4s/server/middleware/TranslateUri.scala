@@ -22,7 +22,7 @@ object TranslateUri {
       val prefixAsPath = Uri.Path.fromString(prefix)
 
       Kleisli { (req: Request[G]) =>
-        val newCaret = req.pathInfo.indexOf(prefixAsPath)
+        val newCaret = req.pathInfo.findSplit(prefixAsPath)
         val shouldTranslate = req.pathInfo.startsWith(prefixAsPath)
         if (shouldTranslate) http(setCaret(req, newCaret))
         else F.empty
