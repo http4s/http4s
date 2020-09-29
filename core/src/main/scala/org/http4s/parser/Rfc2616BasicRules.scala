@@ -83,7 +83,8 @@ private[http4s] object Rfc2616BasicRules {
   def token(in: ParserInput): ParseResult[String] =
     new Rfc2616BasicRules {
       override def input: ParserInput = in
-    }.Token
+      def Main = rule(Token ~ EOI)
+    }.Main
       .run()(Parser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid token", e.format(in)))
 
