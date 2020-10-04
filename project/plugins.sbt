@@ -3,7 +3,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 // https://github.com/coursier/coursier/issues/450
 classpathTypes += "maven-plugin"
 
-addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.19")
+addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.21")
 addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.1.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.9.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.3")
@@ -20,4 +20,4 @@ addSbtPlugin("io.get-coursier"            %  "sbt-coursier"              % "1.0.
 addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.13")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
 addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.3.7")
-addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.2.0")
+addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.2.9")
