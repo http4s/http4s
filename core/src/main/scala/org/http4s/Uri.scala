@@ -345,15 +345,22 @@ object Uri {
 
     def startsWithString(path: String): Boolean = startsWith(Path.fromString(path))
 
-    def indexOf(path: Path): Option[Int] =
-      if (path.isEmpty) None else Some(segments.indexOfSlice(path.segments)).filterNot(_ == -1)
+    @deprecated("Misnamed, use findSplit(prefix) instead", since = "1.0.0-M5")
+    def indexOf(prefix: Path): Option[Int] = findSplit(prefix)
 
-    def indexOfString(path: String): Option[Int] = indexOf(Path.fromString(path))
+    @deprecated("Misnamed, use findSplitOfString(prefix) instead", since = "1.0.0-M5")
+    def indexOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
+
+    def findSplit(prefix: Path): Option[Int] =
+      if (prefix.isEmpty) None
+      else if (startsWith(prefix)) Some(prefix.segments.size)
+      else None
+    def findSplitOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
 
     def splitAt(idx: Int): (Path, Path) =
       if (idx < 0) (if (absolute) Path.Root else Path.empty, this)
       else {
-        val (start, end) = segments.splitAt(idx + 1)
+        val (start, end) = segments.splitAt(idx)
         Path(start, absolute = absolute) -> Path(end, true, endsWithSlash = endsWithSlash)
       }
     private def copy(

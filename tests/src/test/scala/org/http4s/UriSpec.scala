@@ -1112,6 +1112,17 @@ http://example.org/a file
       checkAll("Uri.Path", SemigroupTests[Uri.Path].semigroup)
       checkAll("Uri.Path", EqTests[Uri.Path].eqv)
     }
+
+    "indexOf / Split" in {
+      val path1 = path"/foo/bar/baz"
+      val path2 = path"/foo"
+      val split = path1.findSplit(path2)
+      split must beSome(1)
+      val (pre, post) = path1.splitAt(split.getOrElse(0))
+      pre must_=== path2
+      post must_=== path"/bar/baz"
+      pre.concat(post) must_=== path1
+    }
   }
 
 }
