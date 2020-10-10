@@ -21,12 +21,14 @@ import scala.util.control.NoStackTrace
   * @param filter To filter which assets from the webjars should be served
   * @param cacheStrategy strategy to use for caching purposes.
   * @param classLoader optional classloader for extracting the resources
+  * @param preferGzipped prefer gzip compression format?
   */
 class WebjarServiceBuilder[F[_]] private (
     blocker: Blocker,
     webjarAssetFilter: WebjarServiceBuilder.WebjarAssetFilter,
     cacheStrategy: CacheStrategy[F],
-    classLoader: Option[ClassLoader]) {
+    classLoader: Option[ClassLoader],
+    preferGzipped: Boolean) {
 
   import WebjarServiceBuilder.{WebjarAsset, WebjarAssetFilter, serveWebjarAsset}
 
@@ -34,8 +36,14 @@ class WebjarServiceBuilder[F[_]] private (
       blocker: Blocker = blocker,
       webjarAssetFilter: WebjarAssetFilter = webjarAssetFilter,
       cacheStrategy: CacheStrategy[F] = cacheStrategy,
-      classLoader: Option[ClassLoader] = classLoader) =
-    new WebjarServiceBuilder[F](blocker, webjarAssetFilter, cacheStrategy, classLoader)
+      classLoader: Option[ClassLoader] = classLoader,
+      preferGzipped: Boolean = preferGzipped) =
+    new WebjarServiceBuilder[F](
+      blocker,
+      webjarAssetFilter,
+      cacheStrategy,
+      classLoader,
+      preferGzipped)
 
   def withWebjarAssetFilter(webjarAssetFilter: WebjarAssetFilter): WebjarServiceBuilder[F] =
     copy(webjarAssetFilter = webjarAssetFilter)
@@ -48,6 +56,9 @@ class WebjarServiceBuilder[F[_]] private (
 
   def withBlocker(blocker: Blocker): WebjarServiceBuilder[F] =
     copy(blocker = blocker)
+
+  def withPreferGzipped(preferGzipped: Boolean): WebjarServiceBuilder[F] =
+    copy(preferGzipped = preferGzipped)
 
   def toRoutes(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
@@ -66,7 +77,7 @@ class WebjarServiceBuilder[F[_]] private (
           })
           .subflatMap(toWebjarAsset)
           .filter(webjarAssetFilter)
-          .flatMap(serveWebjarAsset(blocker, cacheStrategy, classLoader, request)(_))
+          .flatMap(serveWebjarAsset(blocker, cacheStrategy, classLoader, request, preferGzipped)(_))
           .recover {
             case BadTraversal => Response(Status.BadRequest)
           }
@@ -111,7 +122,8 @@ object WebjarServiceBuilder {
       blocker = blocker,
       webjarAssetFilter = _ => true,
       cacheStrategy = NoopCacheStrategy[F],
-      classLoader = None)
+      classLoader = None,
+      preferGzipped = false)
 
   /**
     * A filter callback for Webjar asset
@@ -145,15 +157,22 @@ object WebjarServiceBuilder {
     * @param config The configuration
     * @param request The Request
     * @param optional class loader
+    * @param preferGzipped prefer gzip compression format?
     * @return Either the the Asset, if it exist, or Pass
     */
   private def serveWebjarAsset[F[_]: Sync: ContextShift](
       blocker: Blocker,
       cacheStrategy: CacheStrategy[F],
       classLoader: Option[ClassLoader],
-      request: Request[F])(webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
+      request: Request[F],
+      preferGzipped: Boolean)(webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
-      .fromResource(webjarAsset.pathInJar, blocker, Some(request), classloader = classLoader)
+      .fromResource(
+        webjarAsset.pathInJar,
+        blocker,
+        Some(request),
+        classloader = classLoader,
+        preferGzipped = preferGzipped)
       .semiflatMap(cacheStrategy.cache(request.pathInfo, _))
 }
 
