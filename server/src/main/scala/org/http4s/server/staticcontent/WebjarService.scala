@@ -25,11 +25,13 @@ object WebjarService {
     * @param blocker execution context for blocking I/O
     * @param filter To filter which assets from the webjars should be served
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
+    * @param preferGzipped should the gzip compression format be preferred
     */
   final case class Config[F[_]](
       blocker: Blocker,
       filter: WebjarAssetFilter = _ => true,
-      cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
+      cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
+      preferGzipped: Boolean = false)
 
   /**
     * Contains the information about an asset inside a webjar
@@ -118,6 +120,6 @@ object WebjarService {
   private def serveWebjarAsset[F[_]: Sync: ContextShift](config: Config[F], request: Request[F])(
       webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
-      .fromResource(webjarAsset.pathInJar, config.blocker, Some(request))
+      .fromResource(webjarAsset.pathInJar, config.blocker, Some(request), config.preferGzipped)
       .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
 }
