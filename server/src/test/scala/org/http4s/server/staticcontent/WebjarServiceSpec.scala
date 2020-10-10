@@ -24,6 +24,11 @@ class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sL
       .withClassLoader(Some(classLoader))
       .toRoutes
 
+  def routes(preferGzipped: Boolean): HttpRoutes[IO] =
+    webjarServiceBuilder[IO](testBlocker)
+      .withPreferGzipped(preferGzipped)
+      .toRoutes
+
   val defaultBase =
     test.BuildInfo.test_resourceDirectory.toPath.resolve("META-INF/resources/webjars").toString
 
@@ -103,7 +108,8 @@ class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sL
       val req = Request[IO](POST, uri"/test-lib/1.0.0/testresource.txt")
       routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
-    "Respects ClassLoader passed to it" in {
+
+    "Respect ClassLoader passed to it" in {
       var mockedClassLoaderCallCount = 0
       val realClassLoader = getClass.getClassLoader
       val mockedClassLoader = new ClassLoader {
@@ -116,6 +122,17 @@ class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sL
       val req = Request[IO](uri = uri("/deep+purple/machine+head/space+truckin%27.txt"))
       routes(mockedClassLoader).orNotFound(req) must returnStatus(Status.Ok)
       mockedClassLoaderCallCount mustEqual 1
+    }
+
+    "respect preferredGzip parameter" in {
+      val req = Request[IO](
+        GET,
+        uri"/test-lib/1.0.0/testresource.txt",
+        headers = Headers(List(Header("Accept-Encoding", "gzip"))))
+      val rb = runReq(req, routes = routes(preferGzipped = true))
+
+      rb._1 must_== testWebjarResourceGzipped
+      rb._2.status must_== Status.Ok
     }
   }
 }
