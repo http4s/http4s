@@ -97,5 +97,18 @@ object WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4s
       val req = Request[IO](POST, Uri(path = "/test-lib/1.0.0/testresource.txt"))
       routes.apply(req).value must returnValue(Option.empty[Response[IO]])
     }
+
+    "respect preferredGzip parameter" in {
+      val routes = webjarService(Config[IO](blocker = testBlocker, preferGzipped = true))
+
+      val req = Request[IO](
+        GET,
+        Uri(path = "/test-lib/1.0.0/testresource.txt"),
+        headers = Headers(List(Header("Accept-Encoding", "gzip"))))
+      val rb = runReq(req, rs = routes)
+
+      rb._1 must_== testWebjarResourceGzipped
+      rb._2.status must_== Status.Ok
+    }
   }
 }
