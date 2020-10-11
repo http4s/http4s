@@ -46,7 +46,7 @@ object PrometheusExportService {
 
   def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] =
     HttpRoutes.of[F] {
-      case req if req.method == Method.GET && req.pathInfo == "/metrics" =>
+      case req if req.method == Method.GET && req.pathInfo.toString == "/metrics" =>
         generateResponse(collectorRegistry)
     }
 
