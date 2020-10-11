@@ -17,8 +17,7 @@ object `Proxy-Authenticate`
     HttpHeaderParser.PROXY_AUTHENTICATE(s)
 }
 
-/**
-  * {{{
+/** {{{
   *   The "Proxy-Authenticate" header field consists of at least one
   *   challenge that indicates the authentication scheme(s) and parameters
   *   applicable to the proxy for this effective request URI...

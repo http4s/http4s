@@ -328,27 +328,26 @@ private[ember] object Parser {
       Deferred[F, Headers].flatMap { trailers =>
         ReqPrelude
           .parsePrelude[F](s, maxHeaderLength, None)
-          .flatMap {
-            case (method, uri, httpVersion, rest) =>
-              HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
-                case (headers, chunked, contentLength, rest) =>
-                  val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
-                    method = method,
-                    uri = uri,
-                    httpVersion = httpVersion,
-                    headers = headers
-                  )
-                  val req: org.http4s.Request[F] =
-                    if (chunked)
-                      baseReq
-                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                        .withBodyStream(
-                          rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
-                    else
-                      baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L)))
+          .flatMap { case (method, uri, httpVersion, rest) =>
+            HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
+              case (headers, chunked, contentLength, rest) =>
+                val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
+                  method = method,
+                  uri = uri,
+                  httpVersion = httpVersion,
+                  headers = headers
+                )
+                val req: org.http4s.Request[F] =
+                  if (chunked)
+                    baseReq
+                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                      .withBodyStream(
+                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
+                  else
+                    baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L)))
 
-                  Pull.output1(req)
-              }
+                Pull.output1(req)
+            }
           }
           .stream
           .take(1)
@@ -364,25 +363,24 @@ private[ember] object Parser {
       Resource.liftF(Deferred[F, Headers]).flatMap { trailers =>
         RespPrelude
           .parsePrelude(s, maxHeaderLength, None)
-          .flatMap {
-            case (httpVersion, status, s) =>
-              HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
-                case (headers, chunked, contentLength, rest) =>
-                  val baseResp = org.http4s.Response[F](
-                    httpVersion = httpVersion,
-                    status = status,
-                    headers = headers
-                  )
-                  val resp: org.http4s.Response[F] =
-                    if (chunked)
-                      baseResp
-                        .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                        .withBodyStream(
-                          rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
-                    else
-                      baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
-                  Pull.output1(resp)
-              }
+          .flatMap { case (httpVersion, status, s) =>
+            HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
+              case (headers, chunked, contentLength, rest) =>
+                val baseResp = org.http4s.Response[F](
+                  httpVersion = httpVersion,
+                  status = status,
+                  headers = headers
+                )
+                val resp: org.http4s.Response[F] =
+                  if (chunked)
+                    baseResp
+                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                      .withBodyStream(
+                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
+                  else
+                    baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
+                Pull.output1(resp)
+            }
           }
           .stream
           .take(1)

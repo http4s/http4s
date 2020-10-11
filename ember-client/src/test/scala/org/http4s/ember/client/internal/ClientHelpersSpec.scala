@@ -37,8 +37,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
           ),
           None)
         .map { req =>
-          req.headers.get(Date) must beSome.like {
-            case d: Date => d.date === HttpDate.Epoch
+          req.headers.get(Date) must beSome.like { case d: Date =>
+            d.date === HttpDate.Epoch
           }
         }
     }
@@ -46,9 +46,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
       ClientHelpers
         .preprocessRequest(Request[IO](), None)
         .map { req =>
-          req.headers.get(Connection) must beSome.like {
-            case c: Connection =>
-              c.hasKeepAlive must beTrue
+          req.headers.get(Connection) must beSome.like { case c: Connection =>
+            c.hasKeepAlive must beTrue
           }
         }
     }
@@ -60,9 +59,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
           None
         )
         .map { req =>
-          req.headers.get(Connection) must beSome.like {
-            case c: Connection =>
-              c.hasKeepAlive must beFalse
+          req.headers.get(Connection) must beSome.like { case c: Connection =>
+            c.hasKeepAlive must beFalse
           }
         }
     }
@@ -84,8 +82,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
           ),
           EmberClientBuilder.default[IO].userAgent)
         .map { req =>
-          req.headers.get(`User-Agent`) must beSome.like {
-            case e => e.product.name must_=== name
+          req.headers.get(`User-Agent`) must beSome.like { case e =>
+            e.product.name must_=== name
           }
         }
     }
@@ -106,8 +104,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
             )
             .use { resp =>
               resp.body.compile.drain >>
-                reuse.get.map {
-                  case r => r must beEqualTo(Reusable.Reuse)
+                reuse.get.map { case r =>
+                  r must beEqualTo(Reusable.Reuse)
                 }
             }
       } yield testResult
@@ -125,8 +123,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
               reuse
             )
             .use { _ =>
-              reuse.get.map {
-                case r => r must beEqualTo(Reusable.DontReuse)
+              reuse.get.map { case r =>
+                r must beEqualTo(Reusable.DontReuse)
               }
             }
       } yield testResult
@@ -145,8 +143,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
             )
             .use { resp =>
               resp.body.compile.drain.attempt >>
-                reuse.get.map {
-                  case r => r must beEqualTo(Reusable.DontReuse)
+                reuse.get.map { case r =>
+                  r must beEqualTo(Reusable.DontReuse)
                 }
             }
       } yield testResult
@@ -171,8 +169,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
             )
             .use { resp =>
               resp.body.compile.drain.attempt >>
-                reuse.get.map {
-                  case r => r must beEqualTo(Reusable.DontReuse)
+                reuse.get.map { case r =>
+                  r must beEqualTo(Reusable.DontReuse)
                 }
             }
       } yield testResult
@@ -191,8 +189,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
             )
             .use { resp =>
               resp.body.compile.drain >>
-                reuse.get.map {
-                  case r => r must beEqualTo(Reusable.DontReuse)
+                reuse.get.map { case r =>
+                  r must beEqualTo(Reusable.DontReuse)
                 }
             }
       } yield testResult
@@ -211,8 +209,8 @@ class ClientHelpersSpec extends Specification with CatsIO {
             )
             .use { resp =>
               resp.body.compile.drain >>
-                reuse.get.map {
-                  case r => r must beEqualTo(Reusable.DontReuse)
+                reuse.get.map { case r =>
+                  r must beEqualTo(Reusable.DontReuse)
                 }
             }
       } yield testResult

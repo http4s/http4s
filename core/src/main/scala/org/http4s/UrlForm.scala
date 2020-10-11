@@ -35,8 +35,7 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
     UrlForm(values.updated(kv._1, newValues))
   }
 
-  /**
-    * @param key name of the field
+  /** @param key name of the field
     * @param value value of the field
     * @param ev evidence of the existence of `QueryParamEncoder[T]`
     * @return `UrlForm` updated with `key` and `value` pair if key does not exist in `values`. Otherwise `value` will be added to the existing entry.
@@ -44,8 +43,7 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
   def updateFormField[T](key: String, value: T)(implicit ev: QueryParamEncoder[T]): UrlForm =
     this + (key -> ev.encode(value).value)
 
-  /**
-    * @param key name of the field
+  /** @param key name of the field
     * @param value optional value of the field
     * @param ev evidence of the existence of `QueryParamEncoder[T]`
     * @return `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`, otherwise it is unaltered
@@ -54,8 +52,7 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
       ev: QueryParamEncoder[T]): UrlForm =
     value.fold(this)(updateFormField(key, _))
 
-  /**
-    * @param key name of the field
+  /** @param key name of the field
     * @param vals a Chain of values for the field
     * @param ev evidence of the existence of `QueryParamEncoder[T]`
     * @return `UrlForm` updated with `key` and `vals` if key does not exist in `values`, otherwise `vals` will be appended to the existing entry. If `vals` is empty, `UrlForm` will remain as is
@@ -135,21 +132,20 @@ object UrlForm {
       Uri.encode(s, charset.nioCharset, spaceIsPlus = true, toSkip = Uri.Unreserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
-    urlForm.values.foreach {
-      case (k, vs) =>
-        if (sb.nonEmpty) sb.append('&')
-        val encodedKey = encode(k)
-        if (vs.isEmpty) sb.append(encodedKey)
-        else {
-          var first = true
-          vs.map { v =>
-            if (!first) sb.append('&')
-            else first = false
-            sb.append(encodedKey)
-              .append('=')
-              .append(encode(v))
-          }
+    urlForm.values.foreach { case (k, vs) =>
+      if (sb.nonEmpty) sb.append('&')
+      val encodedKey = encode(k)
+      if (vs.isEmpty) sb.append(encodedKey)
+      else {
+        var first = true
+        vs.map { v =>
+          if (!first) sb.append('&')
+          else first = false
+          sb.append(encodedKey)
+            .append('=')
+            .append(encode(v))
         }
+      }
     }
     sb.result()
   }

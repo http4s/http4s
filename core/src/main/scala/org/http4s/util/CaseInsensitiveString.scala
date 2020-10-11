@@ -9,8 +9,7 @@ package org.http4s.util
 import cats.{Monoid, Order, Show}
 import org.http4s.internal.{hashLower => ciHash}
 
-/**
-  * A String wrapper such that two strings `x` and `y` are equal if
+/** A String wrapper such that two strings `x` and `y` are equal if
   * `x.value.equalsIgnoreCase(y.value)`
   */
 sealed class CaseInsensitiveString private (val value: String)

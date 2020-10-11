@@ -81,11 +81,10 @@ private[server] object ServerHelpers {
     def upgradeSocket(
         socketInit: Socket[F],
         tlsInfoOpt: Option[(TLSContext, TLSParameters)]): Resource[F, Socket[F]] =
-      tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) {
-        case (context, params) =>
-          context
-            .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
-            .widen[Socket[F]]
+      tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
+        context
+          .server(socketInit, params, { (s: String) => logger.trace(s) }.some)
+          .widen[Socket[F]]
       }
 
     def runApp(socket: Socket[F], isReused: Boolean): F[(Request[F], Response[F])] =

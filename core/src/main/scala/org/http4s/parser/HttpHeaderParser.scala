@@ -78,8 +78,7 @@ object HttpHeaderParser
         }
     }
 
-  /**
-    * Warm up the header parsers by triggering the loading of most classes in this package,
+  /** Warm up the header parsers by triggering the loading of most classes in this package,
     * so as to increase the speed of the first usage.
     */
   def warmUp(): Unit = {

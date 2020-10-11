@@ -17,8 +17,8 @@ class AutoSlashSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
   val pingRoutes = {
     import org.http4s.dsl.io._
-    HttpRoutes.of[IO] {
-      case GET -> Root / "ping" => Ok()
+    HttpRoutes.of[IO] { case GET -> Root / "ping" =>
+      Ok()
     }
   }
 

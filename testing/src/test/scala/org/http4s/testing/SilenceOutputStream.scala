@@ -10,8 +10,7 @@ import org.specs2.specification.AroundEach
 import org.specs2.execute.{AsResult, Result}
 import org.http4s.testing.ErrorReporting._
 
-/**
-  * Wraps around each test and silences System.out and System.err output streams.
+/** Wraps around each test and silences System.out and System.err output streams.
   * Restores back the original streams after each test case.
   */
 

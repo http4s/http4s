@@ -12,8 +12,7 @@ import org.http4s.Method.Semantics
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
 
-/**
-  * An HTTP method.
+/** An HTTP method.
   *
   * @see [http://tools.ietf.org/html/rfc7231#section-4 RFC7321, Section 4]
   * @see [http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]

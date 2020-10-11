@@ -139,13 +139,12 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   additionalSocketOptions
                 )
                 .allocated <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            {
-              case (RequestKeySocket(socket, r), shutdown) =>
-                logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
-                  socket.endOfInput.attempt.void >>
-                  socket.endOfOutput.attempt.void >>
-                  socket.close.attempt.void >>
-                  shutdown
+            { case (RequestKeySocket(socket, r), shutdown) =>
+              logger.trace(s"Shutting Down Connection - RequestKey: ${r}") >>
+                socket.endOfInput.attempt.void >>
+                socket.endOfOutput.attempt.void >>
+                socket.close.attempt.void >>
+                shutdown
             }
           )
           .withDefaultReuseState(Reusable.DontReuse)

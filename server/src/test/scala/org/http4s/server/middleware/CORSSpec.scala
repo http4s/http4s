@@ -124,12 +124,11 @@ class CORSSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
     "Not replace vary header if already set" in {
       val req = buildRequest("/")
-      val service = CORS(HttpRoutes.of[IO] {
-        case GET -> Root =>
-          Response[IO](Ok)
-            .putHeaders(Header("Vary", "Origin,Accept"))
-            .withEntity("foo")
-            .pure[IO]
+      val service = CORS(HttpRoutes.of[IO] { case GET -> Root =>
+        Response[IO](Ok)
+          .putHeaders(Header("Vary", "Origin,Accept"))
+          .withEntity("foo")
+          .pure[IO]
       })
 
       service

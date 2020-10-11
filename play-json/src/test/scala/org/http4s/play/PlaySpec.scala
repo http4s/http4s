@@ -34,7 +34,7 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] with Http4sLegacyMatchersI
     }
 
     "write JSON" in {
-      writeToString(json) must_== ("""{"test":"PlaySupport"}""")
+      writeToString(json) must_== """{"test":"PlaySupport"}"""
     }
   }
 
@@ -45,7 +45,7 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] with Http4sLegacyMatchersI
     }
 
     "write compact JSON" in {
-      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== ("""{"bar":42}""")
+      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== """{"bar":42}"""
     }
   }
 

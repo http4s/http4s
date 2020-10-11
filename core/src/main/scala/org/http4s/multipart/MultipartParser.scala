@@ -206,8 +206,7 @@ object MultipartParser {
     }.stream
   }
 
-  /**
-    * @param boundary
+  /** @param boundary
     * @param s
     * @param limit
     * @tparam F
@@ -221,16 +220,15 @@ object MultipartParser {
     val values = DoubleCRLFBytesN
     val expectedBytes = ExpectedBytesN(boundary)
 
-    splitOrFinish[F](values, s, limit).flatMap {
-      case (l, r) =>
-        //We can abuse reference equality here for efficiency
-        //Since `splitOrFinish` returns `empty` on a capped stream
-        //However, we must have at least one part, so `splitOrFinish` on this function
-        //Indicates an error
-        if (r == streamEmpty)
-          Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
-        else
-          tailrecParts[F](boundary, l, r, expectedBytes, limit)
+    splitOrFinish[F](values, s, limit).flatMap { case (l, r) =>
+      //We can abuse reference equality here for efficiency
+      //Since `splitOrFinish` returns `empty` on a capped stream
+      //However, we must have at least one part, so `splitOrFinish` on this function
+      //Indicates an error
+      if (r == streamEmpty)
+        Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
+      else
+        tailrecParts[F](boundary, l, r, expectedBytes, limit)
     }
   }
 
@@ -243,20 +241,19 @@ object MultipartParser {
     Pull
       .eval(parseHeaders(headerStream))
       .flatMap { hdrs =>
-        splitHalf(expectedBytes, rest).flatMap {
-          case (l, r) =>
-            //We hit a boundary, but the rest of the stream is empty
-            //and thus it's not a properly capped multipart body
-            if (r == streamEmpty)
-              Pull.raiseError[F](MalformedMessageBodyFailure("Part not terminated properly"))
-            else
-              Pull.output1(Part[F](hdrs, l)) >> splitOrFinish(DoubleCRLFBytesN, r, limit).flatMap {
-                case (hdrStream, remaining) =>
-                  if (hdrStream == streamEmpty) //Empty returned if it worked fine
-                    Pull.done
-                  else
-                    tailrecParts[F](b, hdrStream, remaining, expectedBytes, limit)
-              }
+        splitHalf(expectedBytes, rest).flatMap { case (l, r) =>
+          //We hit a boundary, but the rest of the stream is empty
+          //and thus it's not a properly capped multipart body
+          if (r == streamEmpty)
+            Pull.raiseError[F](MalformedMessageBodyFailure("Part not terminated properly"))
+          else
+            Pull.output1(Part[F](hdrs, l)) >> splitOrFinish(DoubleCRLFBytesN, r, limit).flatMap {
+              case (hdrStream, remaining) =>
+                if (hdrStream == streamEmpty) //Empty returned if it worked fine
+                  Pull.done
+                else
+                  tailrecParts[F](b, hdrStream, remaining, expectedBytes, limit)
+            }
         }
       }
 
@@ -318,9 +315,8 @@ object MultipartParser {
         rest.pull.uncons.flatMap {
           case Some((chnk, remaining)) =>
             if (chnk.size <= 0)
-              elideEmptyChunks(remaining).flatMap {
-                case (chnk, remaining) =>
-                  checkTwoNonEmpty(c, chnk, remaining)
+              elideEmptyChunks(remaining).flatMap { case (chnk, remaining) =>
+                checkTwoNonEmpty(c, chnk, remaining)
               }
             else checkTwoNonEmpty(c, chnk, remaining)
           case None =>
@@ -370,24 +366,23 @@ object MultipartParser {
     */
   private def parseHeaders[F[_]: Sync](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
-      splitHalf[F](CRLFBytesN, s).flatMap {
-        case (l, r) =>
-          l.through(fs2.text.utf8Decode[F])
-            .fold("")(_ ++ _)
-            .map { string =>
-              val ix = string.indexOf(':')
-              if (ix >= 0)
-                headers.put(Header(string.substring(0, ix), string.substring(ix + 1).trim))
-              else
-                headers
-            }
-            .pull
-            .echo >> r.pull.uncons.flatMap {
-            case Some(_) =>
-              tailrecParse(r, headers)
-            case None =>
-              Pull.done
+      splitHalf[F](CRLFBytesN, s).flatMap { case (l, r) =>
+        l.through(fs2.text.utf8Decode[F])
+          .fold("")(_ ++ _)
+          .map { string =>
+            val ix = string.indexOf(':')
+            if (ix >= 0)
+              headers.put(Header(string.substring(0, ix), string.substring(ix + 1).trim))
+            else
+              headers
           }
+          .pull
+          .echo >> r.pull.uncons.flatMap {
+          case Some(_) =>
+            tailrecParse(r, headers)
+          case None =>
+            Pull.done
+        }
       }
 
     tailrecParse(strim, Headers.empty).stream.compile
@@ -620,8 +615,7 @@ object MultipartParser {
     }.stream
   }
 
-  /**
-    * @param boundary
+  /** @param boundary
     * @param s
     * @param limit
     * @tparam F
@@ -639,27 +633,26 @@ object MultipartParser {
     val values = DoubleCRLFBytesN
     val expectedBytes = ExpectedBytesN(boundary)
 
-    splitOrFinish[F](values, s, limit).flatMap {
-      case (l, r) =>
-        //We can abuse reference equality here for efficiency
-        //Since `splitOrFinish` returns `empty` on a capped stream
-        //However, we must have at least one part, so `splitOrFinish` on this function
-        //Indicates an error
-        if (r == streamEmpty)
-          Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
-        else
-          tailrecPartsFileStream[F](
-            boundary,
-            l,
-            r,
-            expectedBytes,
-            limit,
-            maxBeforeWrite,
-            1,
-            maxParts,
-            failOnLimit,
-            blocker
-          )
+    splitOrFinish[F](values, s, limit).flatMap { case (l, r) =>
+      //We can abuse reference equality here for efficiency
+      //Since `splitOrFinish` returns `empty` on a capped stream
+      //However, we must have at least one part, so `splitOrFinish` on this function
+      //Indicates an error
+      if (r == streamEmpty)
+        Pull.raiseError[F](MalformedMessageBodyFailure("Cannot parse empty stream"))
+      else
+        tailrecPartsFileStream[F](
+          boundary,
+          l,
+          r,
+          expectedBytes,
+          limit,
+          maxBeforeWrite,
+          1,
+          maxParts,
+          failOnLimit,
+          blocker
+        )
     }
   }
 
@@ -707,28 +700,27 @@ object MultipartParser {
                 DoubleCRLFBytesN,
                 rest,
                 headerLimit)
-                .flatMap {
-                  case (hdrStream, remaining) =>
-                    if (hdrStream == streamEmpty) //Empty returned if it worked fine
-                      Pull.done
-                    else if (partsCounter >= partsLimit)
-                      if (failOnLimit)
-                        Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
-                      else
-                        Pull.done
+                .flatMap { case (hdrStream, remaining) =>
+                  if (hdrStream == streamEmpty) //Empty returned if it worked fine
+                    Pull.done
+                  else if (partsCounter >= partsLimit)
+                    if (failOnLimit)
+                      Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
                     else
-                      tailrecPartsFileStream[F](
-                        b,
-                        hdrStream,
-                        remaining,
-                        expectedBytes,
-                        headerLimit,
-                        maxBeforeWrite,
-                        partsCounter + 1,
-                        partsLimit,
-                        failOnLimit,
-                        blocker)
-                        .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError[F](e))
+                      Pull.done
+                  else
+                    tailrecPartsFileStream[F](
+                      b,
+                      hdrStream,
+                      remaining,
+                      expectedBytes,
+                      headerLimit,
+                      maxBeforeWrite,
+                      partsCounter + 1,
+                      partsLimit,
+                      failOnLimit,
+                      blocker)
+                      .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError[F](e))
                 }
         }
       }

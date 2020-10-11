@@ -57,8 +57,8 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
             case Right(hdrs) => // Successful handshake
               val sb = new StringBuilder
               sb.append("HTTP/1.1 101 Switching Protocols\r\n")
-              hdrs.foreach {
-                case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n')
+              hdrs.foreach { case (k, v) =>
+                sb.append(k).append(": ").append(v).append('\r').append('\n')
               }
 
               wsContext.headers.foreach { hdr =>

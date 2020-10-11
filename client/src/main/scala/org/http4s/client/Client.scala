@@ -44,8 +44,7 @@ trait Client[F[_]] {
   @deprecated("Use req.flatMap(run(_).use(f))", "0.21.5")
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
 
-  /**
-    * Returns this client as a [[Kleisli]].  All connections created by this
+  /** Returns this client as a [[Kleisli]].  All connections created by this
     * service are disposed on completion of callback task f.
     *
     * This method effectively reverses the arguments to `run` followed by `use`, and is
@@ -57,8 +56,7 @@ trait Client[F[_]] {
   @deprecated("Use toKleisli", "0.18")
   def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A]
 
-  /**
-    * Returns this client as an [[HttpApp]].  It is the responsibility of
+  /** Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
@@ -68,8 +66,7 @@ trait Client[F[_]] {
     */
   def toHttpApp: HttpApp[F]
 
-  /**
-    * Returns this client as an [[HttpService]].  It is the
+  /** Returns this client as an [[HttpService]].  It is the
     * responsibility of callers of this service to run the response
     * body to dispose of the underlying HTTP connection.
     *
@@ -94,8 +91,7 @@ trait Client[F[_]] {
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A]
 
-  /**
-    * Submits a request and decodes the response on success.  On failure, the
+  /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */
@@ -109,8 +105,7 @@ trait Client[F[_]] {
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A]
 
-  /**
-    * Submits a GET request to the specified URI and decodes the response on
+  /** Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
@@ -119,8 +114,7 @@ trait Client[F[_]] {
   def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A]
 
-  /**
-    * Submits a GET request to the URI specified by the String and decodes the
+  /** Submits a GET request to the URI specified by the String and decodes the
     * response on success.  On failure, the status code is returned.  The
     * underlying HTTP connection is closed at the completion of the decoding.
     */
@@ -130,15 +124,13 @@ trait Client[F[_]] {
       d: EntityDecoder[F, A]): F[Option[A]]
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
-  /**
-    * Submits a request and decodes the response, regardless of the status code.
+  /** Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
-  /**
-    * Submits a request and decodes the response, regardless of the status code.
+  /** Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
@@ -179,15 +171,13 @@ trait Client[F[_]] {
     */
   def get[A](uri: Uri)(f: Response[F] => F[A]): F[A]
 
-  /**
-    * Submits a request and decodes the response on success.  On failure, the
+  /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
-  /**
-    * Submits a GET request and decodes the response.  The underlying HTTP
+  /** Submits a GET request and decodes the response.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
   @deprecated("Use expect", "0.14")
@@ -199,8 +189,7 @@ trait Client[F[_]] {
   @deprecated("Use expect", "0.14")
   def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T]
 
-  /**
-    * Translates the effect type of this client from F to G
+  /** Translates the effect type of this client from F to G
     */
   def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F)(implicit
       b: Bracket[F, Throwable]): Client[G] = {
@@ -260,8 +249,7 @@ object Client {
       }
     }
 
-  /**
-    * This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
+  /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.
     */
   def liftKleisli[F[_]: Bracket[*[_], Throwable]: cats.Defer, A](

@@ -14,8 +14,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.headers.{Date => HDate}
 
-/**
-  * Date Middleware, adds the Date Header to All Responses generated
+/** Date Middleware, adds the Date Header to All Responses generated
   * by the service.
   */
 object Date {

@@ -19,8 +19,7 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
     HttpHeaderParser.CONTENT_TYPE(s)
 }
 
-/**
-  * {{{
+/** {{{
   *   The "Content-Type" header field indicates the media type of the
   *   associated representation: either the representation enclosed in the
   *   message payload or the selected representation, as determined by the

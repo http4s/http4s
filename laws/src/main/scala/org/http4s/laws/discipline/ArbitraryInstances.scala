@@ -243,8 +243,8 @@ private[http4s] trait ArbitraryInstances {
         qValues <- containerOfN[Vector, QValue](
           charsetRanges.size,
           http4sTestingArbitraryForQValue.arbitrary)
-        charsetRangesWithQ = charsetRanges.zip(qValues).map {
-          case (range, q) => range.withQValue(q)
+        charsetRangesWithQ = charsetRanges.zip(qValues).map { case (range, q) =>
+          range.withQValue(q)
         }
       } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail: _*)
     }
@@ -314,8 +314,8 @@ private[http4s] trait ArbitraryInstances {
         qValues <- containerOfN[Vector, QValue](
           contentCodings.size,
           http4sTestingArbitraryForQValue.arbitrary)
-        contentCodingsWithQ = contentCodings.zip(qValues).map {
-          case (coding, q) => coding.withQValue(q)
+        contentCodingsWithQ = contentCodings.zip(qValues).map { case (coding, q) =>
+          coding.withQValue(q)
         }
       } yield `Accept-Encoding`(contentCodingsWithQ.head, contentCodingsWithQ.tail: _*)
     }

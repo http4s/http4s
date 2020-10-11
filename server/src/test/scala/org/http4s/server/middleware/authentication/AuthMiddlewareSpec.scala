@@ -26,8 +26,8 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case _ => Ok()
+        AuthedRoutes.of { case _ =>
+          Ok()
         }
 
       val middleWare = AuthMiddleware(authUser, onAuthFailure)
@@ -48,8 +48,8 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case GET -> Root as user => Ok(user.toString)
+        AuthedRoutes.of { case GET -> Root as user =>
+          Ok(user.toString)
         }
 
       val middleWare = AuthMiddleware(authUser, onAuthFailure)
@@ -70,8 +70,8 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case POST -> Root as _ => Ok()
+        AuthedRoutes.of { case POST -> Root as _ =>
+          Ok()
         }
 
       val middleWare = AuthMiddleware(authUser, onAuthFailure)
@@ -89,8 +89,8 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli.pure(userId)
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case POST -> Root as _ => Ok()
+        AuthedRoutes.of { case POST -> Root as _ =>
+          Ok()
         }
 
       val middleware = AuthMiddleware(authUser)
@@ -107,8 +107,8 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli.pure(userId)
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case POST -> Root as _ => Ok()
+        AuthedRoutes.of { case POST -> Root as _ =>
+          Ok()
         }
 
       val middleware = AuthMiddleware(authUser)
@@ -123,8 +123,8 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli.liftF(OptionT.none)
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case POST -> Root as _ => Ok()
+        AuthedRoutes.of { case POST -> Root as _ =>
+          Ok()
         }
 
       val middleware = AuthMiddleware(authUser)
@@ -139,8 +139,8 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli.liftF(OptionT.none)
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case POST -> Root as _ => Ok()
+        AuthedRoutes.of { case POST -> Root as _ =>
+          Ok()
         }
 
       val middleware = AuthMiddleware(authUser)
@@ -157,13 +157,13 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli.pure(userId)
 
       val authedRoutes1: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case POST -> Root as _ => Ok()
+        AuthedRoutes.of { case POST -> Root as _ =>
+          Ok()
         }
 
       val authedRoutes2: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case GET -> Root as _ => Ok()
+        AuthedRoutes.of { case GET -> Root as _ =>
+          Ok()
         }
 
       val middleware = AuthMiddleware(authUser)
@@ -179,8 +179,8 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli.liftF(OptionT.none)
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case POST -> Root as _ => Ok()
+        AuthedRoutes.of { case POST -> Root as _ =>
+          Ok()
         }
 
       val regularRoutes: HttpRoutes[IO] = HttpRoutes.pure(Response[IO](Ok))
@@ -200,12 +200,12 @@ class AuthMiddlewareSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Kleisli.liftF(OptionT.none)
 
       val authedRoutes: AuthedRoutes[User, IO] =
-        AuthedRoutes.of {
-          case POST -> Root as _ => Ok()
+        AuthedRoutes.of { case POST -> Root as _ =>
+          Ok()
         }
 
-      val regularRoutes: HttpRoutes[IO] = HttpRoutes.of {
-        case GET -> _ => Ok()
+      val regularRoutes: HttpRoutes[IO] = HttpRoutes.of { case GET -> _ =>
+        Ok()
       }
 
       val middleware = AuthMiddleware.withFallThrough(authUser)

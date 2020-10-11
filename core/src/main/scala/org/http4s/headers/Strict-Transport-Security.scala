@@ -11,8 +11,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 import scala.concurrent.duration.FiniteDuration
 
-/**
-  * Defined by http://tools.ietf.org/html/rfc6797
+/** Defined by http://tools.ietf.org/html/rfc6797
   */
 object `Strict-Transport-Security`
     extends HeaderKey.Internal[`Strict-Transport-Security`]

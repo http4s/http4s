@@ -14,8 +14,8 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 
 class ErrorHandlingSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   def routes(t: Throwable) =
-    HttpRoutes.of[IO] {
-      case GET -> Root / "error" => IO.raiseError(t)
+    HttpRoutes.of[IO] { case GET -> Root / "error" =>
+      IO.raiseError(t)
     }
 
   val request = Request[IO](GET, uri("/error"))

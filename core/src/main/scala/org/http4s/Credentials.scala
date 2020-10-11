@@ -38,10 +38,9 @@ object Credentials {
         ()
       }
       renderParam(params.head._1, params.head._2)
-      params.tail.foreach {
-        case (k, v) =>
-          writer.append(',')
-          renderParam(k, v)
+      params.tail.foreach { case (k, v) =>
+        writer.append(',')
+        renderParam(k, v)
       }
       writer
     }

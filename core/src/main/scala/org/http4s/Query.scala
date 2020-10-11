@@ -150,8 +150,8 @@ object Query {
 
   def fromPairs(xs: (String, String)*): Query =
     new Query(
-      xs.toList.foldLeft(Vector.empty[KeyValue]) {
-        case (m, (k, s)) => m :+ (k -> Some(s))
+      xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
+        m :+ (k -> Some(s))
       }
     )
 

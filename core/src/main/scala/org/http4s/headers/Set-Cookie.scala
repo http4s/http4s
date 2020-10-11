@@ -14,8 +14,8 @@ import org.http4s.util.Writer
 
 object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
   def from(headers: Headers): List[`Set-Cookie`] =
-    headers.toList.map(matchHeader).collect {
-      case Some(h) => h
+    headers.toList.map(matchHeader).collect { case Some(h) =>
+      h
     }
 
   def unapply(headers: Headers): Option[NonEmptyList[`Set-Cookie`]] =

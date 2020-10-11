@@ -12,8 +12,7 @@ import cats.effect._
 import fs2.Stream
 import org.http4s.util.CaseInsensitiveString
 
-/**
-  * Simple Middleware for Logging All Requests and Responses
+/** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
   def apply[F[_]: Concurrent](
