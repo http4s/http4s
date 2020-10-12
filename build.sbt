@@ -614,6 +614,7 @@ lazy val scalafixInput = project
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
+    scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) }
   )
   // Syntax matters as much as semantics here.
   .disablePlugins(HeaderPlugin, ScalafmtPlugin)
