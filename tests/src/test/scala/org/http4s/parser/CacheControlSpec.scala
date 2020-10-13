@@ -51,9 +51,8 @@ class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Cont
         v.value must be_==(v.name.toString)
       }
 
-      numberdirectives.zipWithIndex.foreach {
-        case (v, i) =>
-          v.value must be_==(s"${v.name}=$i")
+      numberdirectives.zipWithIndex.foreach { case (v, i) =>
+        v.value must be_==(s"${v.name}=$i")
       }
 
       `max-stale`(None).value must be_==("max-stale")

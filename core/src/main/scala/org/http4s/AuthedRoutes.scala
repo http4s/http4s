@@ -39,8 +39,7 @@ object AuthedRoutes {
       FA: Applicative[F]): AuthedRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(pf.lift(req).sequence)))
 
-  /**
-    * The empty service (all requests fallthrough).
+  /** The empty service (all requests fallthrough).
     *
     * @tparam T - ignored.
     * @return

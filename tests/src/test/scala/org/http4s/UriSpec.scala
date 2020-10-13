@@ -211,7 +211,7 @@ http://example.org/a file
           Some(Authority(host = Ipv6Address.unsafeFromString(s))),
           Uri.Path.fromString("/foo"),
           Query.fromPairs("bar" -> "baz")).toString must_==
-          (s"http://[$s]/foo?bar=baz")
+          s"http://[$s]/foo?bar=baz"
       }
     }
 
@@ -220,7 +220,7 @@ http://example.org/a file
         Some(Scheme.http),
         Some(Authority(host = RegName(CIString("www.foo.com")))),
         Uri.Path.fromString("/foo"),
-        Query.fromPairs("bar" -> "baz")).toString must_== ("http://www.foo.com/foo?bar=baz")
+        Query.fromPairs("bar" -> "baz")).toString must_== "http://www.foo.com/foo?bar=baz"
     }
 
     "render URL with port" in {
@@ -229,15 +229,14 @@ http://example.org/a file
         Some(
           Authority(
             host = RegName(CIString("www.foo.com")),
-            port = Some(80)))).toString must_== ("http://www.foo.com:80")
+            port = Some(80)))).toString must_== "http://www.foo.com:80"
     }
 
     "render URL without port" in {
       Uri(
         Some(Scheme.http),
         Some(
-          Authority(host =
-            RegName(CIString("www.foo.com"))))).toString must_== ("http://www.foo.com")
+          Authority(host = RegName(CIString("www.foo.com"))))).toString must_== "http://www.foo.com"
     }
 
     "render IPv4 URL with parameters" in {
@@ -247,7 +246,7 @@ http://example.org/a file
         Uri.Path.fromString("/c"),
         Query.fromPairs(
           "GB" -> "object",
-          "Class" -> "one")).toString must_== ("http://192.168.1.1:80/c?GB=object&Class=one")
+          "Class" -> "one")).toString must_== "http://192.168.1.1:80/c?GB=object&Class=one"
     }
 
     "render IPv4 URL with port" in {
@@ -256,13 +255,13 @@ http://example.org/a file
         Some(
           Authority(
             host = ipv4"192.168.1.1",
-            port = Some(8080)))).toString must_== ("http://192.168.1.1:8080")
+            port = Some(8080)))).toString must_== "http://192.168.1.1:8080"
     }
 
     "render IPv4 URL without port" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = ipv4"192.168.1.1"))).toString must_== ("http://192.168.1.1")
+        Some(Authority(host = ipv4"192.168.1.1"))).toString must_== "http://192.168.1.1"
     }
 
     "render IPv6 URL with parameters" in {
@@ -272,7 +271,7 @@ http://example.org/a file
         Uri.Path.fromString("/c"),
         Query.fromPairs(
           "GB" -> "object",
-          "Class" -> "one")).toString must_== ("http://[2001:db8::7]/c?GB=object&Class=one")
+          "Class" -> "one")).toString must_== "http://[2001:db8::7]/c?GB=object&Class=one"
     }
 
     "render IPv6 URL with port" in {
@@ -282,7 +281,7 @@ http://example.org/a file
           Authority(
             host = ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344",
             port =
-              Some(8080)))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")
+              Some(8080)))).toString must_== "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080"
     }
 
     "render IPv6 URL without port" in {
@@ -290,11 +289,11 @@ http://example.org/a file
         Some(Scheme.http),
         Some(
           Authority(host =
-            ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
+            ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))).toString must_== "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]"
     }
 
     "not append a '/' unless it's in the path" in {
-      uri("http://www.example.com").toString must_== ("http://www.example.com")
+      uri("http://www.example.com").toString must_== "http://www.example.com"
     }
 
     "render email address" in {
@@ -302,7 +301,7 @@ http://example.org/a file
         Some(scheme"mailto"),
         path =
           Uri.Path.fromString(
-            "John.Doe@example.com")).toString must_== ("mailto:John.Doe@example.com")
+            "John.Doe@example.com")).toString must_== "mailto:John.Doe@example.com"
     }
 
     "render an URL with username and password" in {
@@ -316,7 +315,7 @@ http://example.org/a file
         Uri.Path.fromString("/"),
         Query.empty,
         None
-      ).toString must_== ("http://username:password@some.example.com/")
+      ).toString must_== "http://username:password@some.example.com/"
     }
 
     "render an URL with username and password, path and params" in {
@@ -330,63 +329,62 @@ http://example.org/a file
         Uri.Path.fromString("/some/path"),
         Query.fromString("param1=5&param-without-value"),
         None
-      ).toString must_== ("http://username:password@some.example.com/some/path?param1=5&param-without-value")
+      ).toString must_== "http://username:password@some.example.com/some/path?param1=5&param-without-value"
     }
 
     "render relative URI with empty query string" in {
       Uri(
         path = Uri.Path.fromString("/"),
         query = Query.fromString(""),
-        fragment = None).toString must_== ("/?")
+        fragment = None).toString must_== "/?"
     }
 
     "render relative URI with empty query string and fragment" in {
       Uri(
         path = Uri.Path.Root,
         query = Query.fromString(""),
-        fragment = Some("")).toString must_== ("/?#")
+        fragment = Some("")).toString must_== "/?#"
     }
 
     "render relative URI with empty fragment" in {
-      Uri(path = Uri.Path.Root, query = Query.empty, fragment = Some("")).toString must_== ("/#")
+      Uri(path = Uri.Path.Root, query = Query.empty, fragment = Some("")).toString must_== "/#"
     }
 
     "render relative path with fragment" in {
       Uri(
         path = Uri.Path.fromString("/foo/bar"),
-        fragment = Some("an-anchor")).toString must_== ("/foo/bar#an-anchor")
+        fragment = Some("an-anchor")).toString must_== "/foo/bar#an-anchor"
     }
 
     "render relative path with parameters" in {
       Uri(
         path = Uri.Path.fromString("/foo/bar"),
-        query =
-          Query.fromString("foo=bar&ding=dong")).toString must_== ("/foo/bar?foo=bar&ding=dong")
+        query = Query.fromString("foo=bar&ding=dong")).toString must_== "/foo/bar?foo=bar&ding=dong"
     }
 
     "render relative path with parameters and fragment" in {
       Uri(
         path = Uri.Path.fromString("/foo/bar"),
         query = Query.fromString("foo=bar&ding=dong"),
-        fragment = Some("an_anchor")).toString must_== ("/foo/bar?foo=bar&ding=dong#an_anchor")
+        fragment = Some("an_anchor")).toString must_== "/foo/bar?foo=bar&ding=dong#an_anchor"
     }
 
     "render relative path without parameters" in {
-      Uri(path = Uri.Path.fromString("/foo/bar")).toString must_== ("/foo/bar")
+      Uri(path = Uri.Path.fromString("/foo/bar")).toString must_== "/foo/bar"
     }
 
     "render relative root path without parameters" in {
-      Uri(path = Uri.Path.fromString("/")).toString must_== ("/")
+      Uri(path = Uri.Path.fromString("/")).toString must_== "/"
     }
 
     "render a query string with a single param" in {
-      Uri(query = Query.fromString("param1=test")).toString must_== ("?param1=test")
+      Uri(query = Query.fromString("param1=test")).toString must_== "?param1=test"
     }
 
     "render a query string with multiple value in a param" in {
       Uri(query =
         Query.fromString(
-          "param1=3&param2=2&param2=foo")).toString must_== ("?param1=3&param2=2&param2=foo")
+          "param1=3&param2=2&param2=foo")).toString must_== "?param1=3&param2=2&param2=foo"
     }
 
     "round trip over URI examples from wikipedia" in {
@@ -522,10 +520,9 @@ http://example.org/a file
       }
     }
     "work on empty list" in {
-      foreach(Uri(query = Query.fromString("")).params.toSeq) {
-        case (k, v) =>
-          k must_== ""
-          v must_== ""
+      foreach(Uri(query = Query.fromString("")).params.toSeq) { case (k, v) =>
+        k must_== ""
+        v must_== ""
       }
     }
     "work with empty keys" in {
@@ -733,19 +730,19 @@ http://example.org/a file
         Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param3" must be_==(false)
     }
     "remove a parameter if present" in {
-      val u = Uri(query = Query.fromString("param1=value&param2=value")) -? ("param1")
+      val u = Uri(query = Query.fromString("param1=value&param2=value")) -? "param1"
       u must be_==(Uri(query = Query.fromString("param2=value")))
     }
     "remove an empty parameter from an empty query string" in {
-      val u = Uri(query = Query.fromString("")) -? ("")
+      val u = Uri(query = Query.fromString("")) -? ""
       u must be_==(Uri(query = Query.empty))
     }
     "remove nothing if parameter is not present" in {
       val u = Uri(query = Query.fromString("param1=value&param2=value"))
-      u -? ("param3") must be_==(u)
+      u -? "param3" must be_==(u)
     }
     "remove the last parameter" in {
-      val u = Uri(query = Query.fromString("param1=value")) -? ("param1")
+      val u = Uri(query = Query.fromString("param1=value")) -? "param1"
       u must be_==(Uri())
     }
     "replace a parameter" in {
@@ -755,7 +752,7 @@ http://example.org/a file
     }
     "replace a parameter without a value" in {
       val u =
-        Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")) +? ("param2")
+        Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")) +? "param2"
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }

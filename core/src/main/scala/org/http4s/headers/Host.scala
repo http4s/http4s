@@ -17,8 +17,7 @@ object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
     HttpHeaderParser.HOST(s)
 }
 
-/**
-  * A Request header, that provides the host and port informatio
+/** A Request header, that provides the host and port informatio
   * {{{
   *   The "Host" header field in a request provides the host and port
   *   information from the target URI, enabling the origin server to

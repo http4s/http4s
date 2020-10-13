@@ -91,8 +91,7 @@ class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
   "EntityResponseGenerator() generates Content-Length: 0" in {
 
-    /**
-      * Aside from the cases defined above, in the absence of Transfer-Encoding,
+    /** Aside from the cases defined above, in the absence of Transfer-Encoding,
       * an origin server SHOULD send a Content-Length header field when the
       * payload body size is known prior to sending the complete header section.
       * -- https://tools.ietf.org/html/rfc7230#section-3.3.2

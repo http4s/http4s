@@ -41,8 +41,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
       .append(closeDelimiter(boundary))
       .toChunk
 
-  /**
-    * encapsulation := delimiter CRLF body-part
+  /** encapsulation := delimiter CRLF body-part
     */
   val encapsulationWithoutBody: Boundary => String = boundary =>
     s"${Boundary.CRLF}${dashBoundary(boundary)}${Boundary.CRLF}"

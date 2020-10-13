@@ -63,8 +63,7 @@ trait QueryOps {
   def -?[K: QueryParamKeyLike](key: K): Self =
     _removeQueryParam(QueryParamKeyLike[K].getKey(key))
 
-  /**
-    * Checks if a specified parameter exists in the [[Query]]. A parameter
+  /** Checks if a specified parameter exists in the [[Query]]. A parameter
     * without a name can be checked with an empty string.
     */
   def containsQueryParam[T](implicit key: QueryParam[T]): Boolean =
@@ -77,8 +76,7 @@ trait QueryOps {
     if (query.isEmpty) false
     else query.exists { case (k, _) => k == name.value }
 
-  /**
-    * Creates maybe a new `Self` without the specified parameter in query.
+  /** Creates maybe a new `Self` without the specified parameter in query.
     * If no parameter with the given `key` exists then `this` will be
     * returned.
     */
@@ -92,8 +90,7 @@ trait QueryOps {
       replaceQuery(newQuery)
     }
 
-  /**
-    * Creates maybe a new `Self` with the specified parameters. The entire
+  /** Creates maybe a new `Self` with the specified parameters. The entire
     * [[Query]] will be replaced with the given one.
     */
   def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](
@@ -108,24 +105,21 @@ trait QueryOps {
     replaceQuery(Query.fromVector(vec))
   }
 
-  /**
-    * Creates a new `Self` with the specified parameter in the [[Query]].
+  /** Creates a new `Self` with the specified parameter in the [[Query]].
     * If a parameter with the given `QueryParam.key` already exists the values will be
     * replaced with an empty list.
     */
   def withQueryParam[T: QueryParam]: Self =
     _withQueryParam(QueryParam[T].key, Nil)
 
-  /**
-    * Creates a new `Self` with the specified parameter in the [[Query]].
+  /** Creates a new `Self` with the specified parameter in the [[Query]].
     * If a parameter with the given `key` already exists the values will be
     * replaced with an empty list.
     */
   def withQueryParam[K: QueryParamKeyLike](key: K): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(key), Nil)
 
-  /**
-    * Creates maybe a new `Self` with the specified parameter in the [[Query]].
+  /** Creates maybe a new `Self` with the specified parameter in the [[Query]].
     * If a parameter with the given `key` already exists the values will be
     * replaced. If the parameter to be added equal the existing entry the same
     * instance of `Self` will be returned.
@@ -133,8 +127,7 @@ trait QueryOps {
   def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, value: T): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(key), QueryParamEncoder[T].encode(value) :: Nil)
 
-  /**
-    * Creates maybe a new `Self` with the specified parameters in the [[Query]].
+  /** Creates maybe a new `Self` with the specified parameters in the [[Query]].
     * If a parameter with the given `key` already exists the values will be
     * replaced.
     */
@@ -143,20 +136,18 @@ trait QueryOps {
       values: collection.Seq[T]): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(key), values.map(QueryParamEncoder[T].encode))
 
-  /**
-    * Creates maybe a new `Self` with all the specified parameters in the
+  /** Creates maybe a new `Self` with all the specified parameters in the
     * [[Query]]. If any of the given parameters' keys already exists, the
     * value(s) will be replaced. Parameters from the input map are added
     * left-to-right, so if a parameter with a given key is specified more than
     * once, it will be self-overwriting.
     */
   def withQueryParams[T: QueryParamEncoder, K: QueryParamKeyLike](params: Map[K, T]): Self =
-    params.foldLeft(self) {
-      case (s, (k, v)) => replaceQuery(Query.fromVector(s.withQueryParam(k, v).query.toVector))
+    params.foldLeft(self) { case (s, (k, v)) =>
+      replaceQuery(Query.fromVector(s.withQueryParam(k, v).query.toVector))
     }
 
-  /**
-    * Creates maybe a new `Self` with all the specified parameters in the
+  /** Creates maybe a new `Self` with all the specified parameters in the
     * [[Query]]. If any of the given parameters' keys already exists, the
     * value(s) will be replaced. Parameters from the input map are added
     * left-to-right, so if a parameter with a given key is specified more than
@@ -164,8 +155,8 @@ trait QueryOps {
     */
   def withMultiValueQueryParams[T: QueryParamEncoder, K: QueryParamKeyLike](
       params: Map[K, collection.Seq[T]]): Self =
-    params.foldLeft(self) {
-      case (s, (k, v)) => replaceQuery(Query.fromVector(s.withQueryParam(k, v).query.toVector))
+    params.foldLeft(self) { case (s, (k, v)) =>
+      replaceQuery(Query.fromVector(s.withQueryParam(k, v).query.toVector))
     }
 
   private def _withQueryParam(
@@ -176,8 +167,8 @@ trait QueryOps {
     val vec =
       if (values.isEmpty) baseQuery :+ (name.value -> None)
       else
-        values.toList.foldLeft(baseQuery) {
-          case (vec, v) => vec :+ (name.value -> Some(v.value))
+        values.toList.foldLeft(baseQuery) { case (vec, v) =>
+          vec :+ (name.value -> Some(v.value))
         }
 
     replaceQuery(Query.fromVector(vec))
@@ -204,8 +195,7 @@ trait QueryOps {
     _withMaybeQueryParam(QueryParam[T].key, value map QueryParamEncoder[T].encode)
    */
 
-  /**
-    * Creates maybe a new `Self` with the specified parameter in the [[Query]].
+  /** Creates maybe a new `Self` with the specified parameter in the [[Query]].
     * If the value is empty or if the parameter to be added equal the existing
     * entry the same instance of `Self` will be returned.
     * If a parameter with the given `key` already exists the values will be
@@ -216,8 +206,7 @@ trait QueryOps {
       value: Option[T]): Self =
     _withOptionQueryParam(QueryParamKeyLike[K].getKey(key), value.map(QueryParamEncoder[T].encode))
 
-  /**
-    * Creates maybe a new `Self` with the specified parameter in the [[Query]].
+  /** Creates maybe a new `Self` with the specified parameter in the [[Query]].
     * If the value is empty or if the parameter to be added equal the existing
     * entry the same instance of `Self` will be returned.
     * If a parameter with the given `name` already exists the values will be

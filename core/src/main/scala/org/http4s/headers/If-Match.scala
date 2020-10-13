@@ -24,8 +24,7 @@ object `If-Match` extends HeaderKey.Internal[`If-Match`] with HeaderKey.Singleto
     HttpHeaderParser.IF_MATCH(s)
 }
 
-/**
-  * Request header to make the request conditional on the current contents of the origin server
+/** Request header to make the request conditional on the current contents of the origin server
   * at the given target resource (URI).
   *
   * [[https://tools.ietf.org/html/rfc7232#section-3.1 RFC-7232 Section 3.1]]

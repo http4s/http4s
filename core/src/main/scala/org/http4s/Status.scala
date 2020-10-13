@@ -130,8 +130,7 @@ object Status {
     def all: List[Status] = registry.collect { case Right(status) => status }.toList
   }
 
-  /**
-    * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
+  /** Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
     */
   // scalastyle:off magic.number
   val Continue: Status = register(Status(100, "Continue", isEntityAllowed = false))

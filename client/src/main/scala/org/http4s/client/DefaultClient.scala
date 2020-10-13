@@ -41,8 +41,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
     req.flatMap(run(_).use(f))
 
-  /**
-    * Returns this client as a [[Kleisli]].  All connections created by this
+  /** Returns this client as a [[Kleisli]].  All connections created by this
     * service are disposed on completion of callback task f.
     *
     * This method effectively reverses the arguments to `run` followed by `use`, and is
@@ -52,8 +51,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A] =
     Kleisli(run(_).use(f))
 
-  /**
-    * Returns this client as an [[HttpApp]].  It is the responsibility of
+  /** Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
@@ -63,9 +61,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     */
   def toHttpApp: HttpApp[F] =
     Kleisli { req =>
-      run(req).allocated.map {
-        case (resp, release) =>
-          resp.withBodyStream(resp.body.onFinalizeWeak(release))
+      run(req).allocated.map { case (resp, release) =>
+        resp.withBodyStream(resp.body.onFinalizeWeak(release))
       }
     }
 
@@ -93,8 +90,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     }
   }
 
-  /**
-    * Submits a request and decodes the response on success.  On failure, the
+  /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */
@@ -112,8 +108,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
       d: EntityDecoder[F, A]): F[A] =
     expectOr(Request[F](Method.GET, uri))(onError)
 
-  /**
-    * Submits a GET request to the specified URI and decodes the response on
+  /** Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
@@ -124,8 +119,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
       d: EntityDecoder[F, A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => expectOr[A](uri)(onError))
 
-  /**
-    * Submits a GET request to the URI specified by the String and decodes the
+  /** Submits a GET request to the URI specified by the String and decodes the
     * response on success.  On failure, the status code is returned.  The
     * underlying HTTP connection is closed at the completion of the decoding.
     */
@@ -154,8 +148,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]] =
     expectOptionOr(req)(defaultOnError)
 
-  /**
-    * Submits a request and decodes the response, regardless of the status code.
+  /** Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
@@ -170,8 +163,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     }
   }
 
-  /**
-    * Submits a request and decodes the response, regardless of the status code.
+  /** Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
@@ -217,8 +209,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def get[A](uri: Uri)(f: Response[F] => F[A]): F[A] =
     run(Request[F](Method.GET, uri)).use(f)
 
-  /**
-    * Submits a request and decodes the response on success.  On failure, the
+  /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */

@@ -49,16 +49,14 @@ object TransferCoding {
   val gzip: TransferCoding = new TransferCodingImpl("gzip")
   val identity: TransferCoding = new TransferCodingImpl("identity")
 
-  /**
-    * Parse a Transfer Coding
+  /** Parse a Transfer Coding
     */
   def parse(s: String): ParseResult[TransferCoding] =
     new Http4sParser[TransferCoding](s, "Invalid Transfer Coding") with TransferCodingParser {
       def main = codingRule
     }.parse
 
-  /**
-    * Parse a list of Transfer Coding entries
+  /** Parse a list of Transfer Coding entries
     */
   def parseList(s: String): ParseResult[NonEmptyList[TransferCoding]] =
     new Http4sParser[NonEmptyList[TransferCoding]](s, "Invalid Transfer Coding")

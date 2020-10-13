@@ -18,8 +18,7 @@ import org.http4s.websocket.{
 }
 import org.http4s.{Headers, Response, Status}
 
-/**
-  * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
+/** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
   * @param headers Handshake response headers, such as such as:Sec-WebSocket-Protocol.
   * @param onNonWebSocketRequest The status code to return to a client making a non-websocket HTTP request to this route.
@@ -48,8 +47,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
         )
       )
 
-  /**
-    * @param sendReceive The send-receive stream represents transforming of incoming messages to outgoing for a single websocket
+  /** @param sendReceive The send-receive stream represents transforming of incoming messages to outgoing for a single websocket
     *                    Once the stream have terminated, the server will initiate a close of the websocket connection.
     *                    As defined in the websocket specification, this means the server
     *                    will send a CloseFrame to the client and wait for a CloseFrame in response before closing the
@@ -80,8 +78,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
     buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose))
   }
 
-  /**
-    * @param send     The send side of the Exchange represents the outgoing stream of messages that should be sent to the client
+  /** @param send     The send side of the Exchange represents the outgoing stream of messages that should be sent to the client
     * @param receive  The receive side of the Exchange is a sink to which the framework will push the incoming websocket messages
     *                 Once both streams have terminated, the server will initiate a close of the websocket connection.
     *                 As defined in the websocket specification, this means the server

@@ -97,8 +97,7 @@ object EntityEncoder {
       def headers: Headers = Headers.empty
     }
 
-  /**
-    * A stream encoder is intended for streaming, and does not calculate its
+  /** A stream encoder is intended for streaming, and does not calculate its
     * bodies in advance.  As such, it does not calculate the Content-Length in
     * advance.  This is for use with chunked transfer encoding.
     */

@@ -17,8 +17,7 @@ import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
-/**
-  * CORS middleware config options.
+/** CORS middleware config options.
   * You can give an instance of this class to the CORS middleware,
   * to specify its behavior
   */
@@ -41,8 +40,7 @@ object CORS {
   def DefaultCORSConfig =
     CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
 
-  /**
-    * CORS middleware
+  /** CORS middleware
     * This middleware provides clients with CORS information
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details

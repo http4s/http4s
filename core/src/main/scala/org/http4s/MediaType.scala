@@ -50,7 +50,7 @@ sealed class MediaRange private[http4s] (
       case x: MediaRange =>
         (this eq x) ||
           mainType === x.mainType &&
-            extensions === x.extensions
+          extensions === x.extensions
       case _ =>
         false
     }
@@ -101,8 +101,7 @@ object MediaRange {
       `text/*`,
       `video/*`).map(x => (x.mainType, x)).toMap
 
-  /**
-    * Parse a MediaRange
+  /** Parse a MediaRange
     */
   def parse(s: String): ParseResult[MediaRange] =
     new Http4sParser[MediaRange](s, "Invalid Media Range") with MediaRangeParser {
@@ -184,7 +183,7 @@ sealed class MediaType(
       case mediaType: MediaType =>
         (this eq mediaType) ||
           mainType === mediaType.mainType &&
-            subType === mediaType.subType
+          subType === mediaType.subType
 
       case _ => false
     }
@@ -194,8 +193,8 @@ sealed class MediaType(
       case x: MediaType =>
         (this eq x) ||
           mainType === x.mainType &&
-            subType === x.subType &&
-            extensions === x.extensions
+          subType === x.subType &&
+          extensions === x.extensions
       case _ => false
     }
 
@@ -228,16 +227,15 @@ object MediaType extends MimeDB {
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
 
   lazy val all: Map[(String, String), MediaType] =
-    (`text/event-stream` :: allMediaTypes).map {
-      case m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m
+    (`text/event-stream` :: allMediaTypes).map { case m =>
+      (m.mainType.toLowerCase, m.subType.toLowerCase) -> m
     }.toMap
 
-  val extensionMap: Map[String, MediaType] = allMediaTypes.flatMap {
-    case m => m.fileExtensions.map(_ -> m)
+  val extensionMap: Map[String, MediaType] = allMediaTypes.flatMap { case m =>
+    m.fileExtensions.map(_ -> m)
   }.toMap
 
-  /**
-    * Parse a MediaType
+  /** Parse a MediaType
     */
   def parse(s: String): ParseResult[MediaType] =
     new Http4sParser[MediaType](s, "Invalid Media Type") with MediaTypeParser {
@@ -306,8 +304,7 @@ object MediaType extends MimeDB {
       }
   }
 
-  /**
-    * Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
+  /** Literal syntax for MediaTypes.  Invalid or non-literal arguments are rejected
     * at compile time.
     */
   @deprecated("""use mediaType"" string interpolation instead""", "0.20")

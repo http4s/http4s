@@ -21,8 +21,7 @@ sealed trait CacheDirective extends Product with Renderable {
   def render(writer: Writer): writer.type = writer.append(value)
 }
 
-/**
-  * A registry of cache-directives, as listed in
+/** A registry of cache-directives, as listed in
   * http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
   */
 object CacheDirective {

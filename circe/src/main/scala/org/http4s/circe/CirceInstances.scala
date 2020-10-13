@@ -82,8 +82,7 @@ trait CirceInstances extends JawnInstances {
         )
     }
 
-  /**
-    * An [[EntityDecoder]] that uses circe's accumulating decoder for decoding the JSON.
+  /** An [[EntityDecoder]] that uses circe's accumulating decoder for decoding the JSON.
     *
     * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing
     * a [[DecodingFailures]] exception, from which the errors can be extracted.

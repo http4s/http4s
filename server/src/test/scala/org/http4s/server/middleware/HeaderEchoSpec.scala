@@ -18,8 +18,8 @@ class HeaderEchoSpec extends Http4sSpec {
   object someHeaderKey extends HeaderKey.Default
   object anotherHeaderKey extends HeaderKey.Default
 
-  val testService = HttpRoutes.of[IO] {
-    case GET -> Root / "request" => Ok("request response")
+  val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
+    Ok("request response")
   }
 
   def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {

@@ -25,8 +25,7 @@ private[impl] object ResponseGenerator {
     }
 }
 
-/**
-  *  Helper for the generation of a [[org.http4s.Response]] which will not contain a body
+/**  Helper for the generation of a [[org.http4s.Response]] which will not contain a body
   *
   * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
   * offer shortcut syntax to make intention clear and concise.

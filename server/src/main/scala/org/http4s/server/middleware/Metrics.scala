@@ -18,8 +18,7 @@ import org.http4s._
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
 
-/**
-  * Server middleware to record metrics for the http4s server.
+/** Server middleware to record metrics for the http4s server.
   *
   * This middleware will record:
   * - Number of active requests
@@ -31,8 +30,7 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
   */
 object Metrics {
 
-  /**
-    * A server middleware capable of recording metrics
+  /** A server middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match

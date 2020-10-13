@@ -12,8 +12,7 @@ import org.http4s.parser.{AdditionalRules, Http4sParser}
 import org.http4s.util.Writer
 import scala.reflect.macros.blackbox
 
-/**
-  * A Quality Value.  Represented as thousandths for an exact representation rounded to three
+/** A Quality Value.  Represented as thousandths for an exact representation rounded to three
   * decimal places.
   *
   * @param thousandths between 0 (for q=0) and 1000 (for q=1)
@@ -121,8 +120,7 @@ object QValue {
       }
   }
 
-  /**
-    * Supports a literal syntax for validated QValues.
+  /** Supports a literal syntax for validated QValues.
     *
     * Example:
     * {{{

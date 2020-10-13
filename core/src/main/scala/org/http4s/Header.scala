@@ -17,8 +17,7 @@ import org.http4s.util._
 import org.typelevel.ci.CIString
 import scala.util.hashing.MurmurHash3
 
-/**
-  * Abstract representation o the HTTP header
+/** Abstract representation o the HTTP header
   * @see org.http4s.HeaderKey
   */
 sealed trait Header extends Renderable with Product {
@@ -72,8 +71,7 @@ object Header {
 
   def apply(name: String, value: String): Raw = Raw(CIString(name), value)
 
-  /**
-    * Raw representation of the Header
+  /** Raw representation of the Header
     *
     * This can be considered the simplest representation where the header is specified as the product of
     * a key and a value
@@ -97,8 +95,7 @@ object Header {
     def parsed: this.type = this
   }
 
-  /**
-    * A recurring header that satisfies this clause of the Spec:
+  /** A recurring header that satisfies this clause of the Spec:
     *
     * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
     * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible

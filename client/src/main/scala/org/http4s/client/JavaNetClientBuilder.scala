@@ -108,8 +108,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
           _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
           _ <- F.delay(conn.setRequestMethod(req.method.renderString))
-          _ <- F.delay(req.headers.foreach {
-            case Header(name, value) => conn.setRequestProperty(name.toString, value)
+          _ <- F.delay(req.headers.foreach { case Header(name, value) =>
+            conn.setRequestProperty(name.toString, value)
           })
           _ <- F.delay(conn.setInstanceFollowRedirects(false))
           _ <- F.delay(conn.setDoInput(true))
@@ -119,8 +119,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       for {
         url <- Resource.liftF(F.delay(new URL(req.uri.toString)))
         conn <- Resource.make(openConnection(url)) { conn =>
-          F.delay(conn.getInputStream().close()).recoverWith {
-            case _: IOException => F.delay(Option(conn.getErrorStream()).foreach(_.close()))
+          F.delay(conn.getInputStream().close()).recoverWith { case _: IOException =>
+            F.delay(Option(conn.getErrorStream()).foreach(_.close()))
           }
         }
         resp <- Resource.liftF(respond(conn))
@@ -205,8 +205,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`. */
 object JavaNetClientBuilder {
 
-  /**
-    * @param blockingExecutionContext An `ExecutionContext` on which
+  /** @param blockingExecutionContext An `ExecutionContext` on which
     * blocking operations will be performed.
     */
   def apply[F[_]: Async: ContextShift](blocker: Blocker): JavaNetClientBuilder[F] =

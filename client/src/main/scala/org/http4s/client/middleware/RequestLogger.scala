@@ -15,8 +15,7 @@ import fs2._
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-/**
-  * Simple Middleware for Logging Requests As They Are Processed
+/** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
   private[this] val logger = getLogger

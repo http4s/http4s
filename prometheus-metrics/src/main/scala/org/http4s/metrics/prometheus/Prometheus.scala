@@ -15,8 +15,7 @@ import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
 
-/**
-  * [[MetricsOps]] algebra capable of recording Prometheus metrics
+/** [[MetricsOps]] algebra capable of recording Prometheus metrics
   *
   * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a [[org.http4s.server.middleware.Metrics]]
   * that records metrics to a given metric registry.
@@ -69,8 +68,7 @@ object Prometheus {
   def collectorRegistry[F[_]](implicit F: Sync[F]): Resource[F, CollectorRegistry] =
     Resource.make(F.delay(new CollectorRegistry()))(cr => F.delay(cr.clear()))
 
-  /**
-    * Creates a  [[MetricsOps]] that supports Prometheus metrics
+  /** Creates a  [[MetricsOps]] that supports Prometheus metrics
     * *
     * * @param registry a metrics collector registry
     * * @param prefix a prefix that will be added to all metrics

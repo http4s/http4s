@@ -28,8 +28,7 @@ trait ElemInstances {
       .contramap[Elem](xml => xml.buildString(false))
       .withContentType(`Content-Type`(MediaType.application.xml))
 
-  /**
-    * Handles a message body as XML.
+  /** Handles a message body as XML.
     *
     * TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
     *
