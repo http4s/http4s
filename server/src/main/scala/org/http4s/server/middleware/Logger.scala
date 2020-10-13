@@ -18,8 +18,7 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-/**
-  * Simple Middleware for Logging All Requests and Responses
+/** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
   private[this] val logger = getLogger

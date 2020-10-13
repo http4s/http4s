@@ -7,8 +7,7 @@
 package org.http4s
 package headers
 
-/**
-  * {{{
+/** {{{
   *   The "Proxy-Authorization" header field allows the client to identify
   *   itself (or its user) to a proxy that requires authentication.
   * }}}

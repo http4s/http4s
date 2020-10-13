@@ -17,8 +17,7 @@ import java.time.Instant
 
 private[ember] object Util {
 
-  /**
-    * The issue with a normal http body is that there is no termination character,
+  /** The issue with a normal http body is that there is no termination character,
     * thus unless you have content-length and the client still has their input side open,
     * the server cannot know whether more data follows or not
     * This means this Stream MUST be infinite and additional parsing is required.

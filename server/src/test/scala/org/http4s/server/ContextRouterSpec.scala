@@ -13,22 +13,18 @@ import org.http4s.dsl.io._
 import org.http4s.testing.Http4sLegacyMatchersIO
 
 class ContextRouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
-  val numbers = ContextRoutes.of[Unit, IO] {
-    case GET -> Root / "1" as _ =>
-      Ok("one")
+  val numbers = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
+    Ok("one")
   }
-  val numbers2 = ContextRoutes.of[Unit, IO] {
-    case GET -> Root / "1" as _ =>
-      Ok("two")
+  val numbers2 = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
+    Ok("two")
   }
 
-  val letters = ContextRoutes.of[Unit, IO] {
-    case GET -> Root / "/b" as _ =>
-      Ok("bee")
+  val letters = ContextRoutes.of[Unit, IO] { case GET -> Root / "/b" as _ =>
+    Ok("bee")
   }
-  val shadow = ContextRoutes.of[Unit, IO] {
-    case GET -> Root / "shadowed" as _ =>
-      Ok("visible")
+  val shadow = ContextRoutes.of[Unit, IO] { case GET -> Root / "shadowed" as _ =>
+    Ok("visible")
   }
   val root = ContextRoutes.of[Unit, IO] {
     case GET -> Root / "about" as _ =>
@@ -37,8 +33,8 @@ class ContextRouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       Ok("invisible")
   }
 
-  val notFound = ContextRoutes.of[Unit, IO] {
-    case _ as _ => NotFound("Custom NotFound")
+  val notFound = ContextRoutes.of[Unit, IO] { case _ as _ =>
+    NotFound("Custom NotFound")
   }
 
   def middleware(routes: ContextRoutes[Unit, IO]): ContextRoutes[Unit, IO] =

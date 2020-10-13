@@ -14,8 +14,7 @@ import org.typelevel.ci.CIString
 
 object HeaderEcho {
 
-  /**
-    * Simple server middleware that adds selected headers present on the request to the response.
+  /** Simple server middleware that adds selected headers present on the request to the response.
     *
     * @param echoHeadersWhen the function that selects which headers to echo on the response
     * @param http [[Http]] to transform

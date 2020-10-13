@@ -21,8 +21,8 @@ class ErrorActionSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val remote = "192.168.0.1"
 
   def httpRoutes(error: Throwable = new RuntimeException()) =
-    HttpRoutes.of[IO] {
-      case GET -> Root / "error" => IO.raiseError(error)
+    HttpRoutes.of[IO] { case GET -> Root / "error" =>
+      IO.raiseError(error)
     }
 
   val req = Request[IO](

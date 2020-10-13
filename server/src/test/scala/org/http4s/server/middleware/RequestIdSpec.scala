@@ -57,7 +57,7 @@ class RequestIdSpec extends Http4sSpec {
         .unsafeRunSync()
 
       (reqReqId must_=== respReqId).and(
-        Either.catchNonFatal(UUID.fromString(respReqId)) must (beRight))
+        Either.catchNonFatal(UUID.fromString(respReqId)) must beRight)
     }
     "generate different request ids on subsequent requests" in {
       val req = Request[IO](uri = uri("/request"))
@@ -93,7 +93,7 @@ class RequestIdSpec extends Http4sSpec {
         .unsafeRunSync()
 
       (reqReqId must_=== respReqId).and(
-        Either.catchNonFatal(UUID.fromString(respReqId)) must (beRight))
+        Either.catchNonFatal(UUID.fromString(respReqId)) must beRight)
     }
     "generate X-Request-ID header when unset using supplied generator" in {
       val uuid = UUID.fromString("00000000-0000-0000-0000-000000000000")

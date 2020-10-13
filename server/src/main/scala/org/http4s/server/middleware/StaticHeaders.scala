@@ -12,8 +12,7 @@ import cats.implicits._
 import org.http4s.{CacheDirective, Header, Headers, Response}
 import org.http4s.headers.`Cache-Control`
 
-/**
-  * Simple middleware for adding a static set of headers to responses
+/** Simple middleware for adding a static set of headers to responses
   * returned by a kleisli.
   */
 object StaticHeaders {

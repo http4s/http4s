@@ -12,8 +12,7 @@ package org.http4s.testing
 import cats.effect.{IO, Sync}
 import scala.concurrent.duration.FiniteDuration
 
-/**
-  * Matchers for cats.effect.IO
+/** Matchers for cats.effect.IO
   */
 @deprecated("Provided by specs2-cats in org.specs2.matcher.IOMatchers", "0.21.0-RC2")
 trait IOMatchers extends RunTimedMatchers[IO] {

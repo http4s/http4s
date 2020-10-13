@@ -58,8 +58,7 @@ package object http4s {
 
   type AuthedRequest[F[_], T] = ContextRequest[F, T]
 
-  /**
-    * The type parameters need to be in this order to make partial unification
+  /** The type parameters need to be in this order to make partial unification
     * trigger. See https://github.com/http4s/http4s/issues/1506
     */
   type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, *], AuthedRequest[F, T], Response[F]]

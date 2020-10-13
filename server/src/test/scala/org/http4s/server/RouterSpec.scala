@@ -13,22 +13,18 @@ import org.http4s.dsl.io._
 import org.http4s.testing.Http4sLegacyMatchersIO
 
 class RouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
-  val numbers = HttpRoutes.of[IO] {
-    case GET -> Root / "1" =>
-      Ok("one")
+  val numbers = HttpRoutes.of[IO] { case GET -> Root / "1" =>
+    Ok("one")
   }
-  val numbers2 = HttpRoutes.of[IO] {
-    case GET -> Root / "1" =>
-      Ok("two")
+  val numbers2 = HttpRoutes.of[IO] { case GET -> Root / "1" =>
+    Ok("two")
   }
 
-  val letters = HttpRoutes.of[IO] {
-    case GET -> Root / "/b" =>
-      Ok("bee")
+  val letters = HttpRoutes.of[IO] { case GET -> Root / "/b" =>
+    Ok("bee")
   }
-  val shadow = HttpRoutes.of[IO] {
-    case GET -> Root / "shadowed" =>
-      Ok("visible")
+  val shadow = HttpRoutes.of[IO] { case GET -> Root / "shadowed" =>
+    Ok("visible")
   }
   val root = HttpRoutes.of[IO] {
     case GET -> Root / "about" =>
@@ -37,8 +33,8 @@ class RouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       Ok("invisible")
   }
 
-  val notFound = HttpRoutes.of[IO] {
-    case _ => NotFound("Custom NotFound")
+  val notFound = HttpRoutes.of[IO] { case _ =>
+    NotFound("Custom NotFound")
   }
 
   def middleware(routes: HttpRoutes[IO]): HttpRoutes[IO] =
@@ -51,13 +47,23 @@ class RouterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     "/numb" -> middleware(numbers2),
     "/" -> root,
     "/shadow" -> shadow,
-    "/letters" -> letters
+    "/letters" -> letters,
+    "/numbers/v1" -> HttpRoutes.of[IO] { case GET -> Root / "1" =>
+      Ok("Yeah")
+    },
+    "/numbers" -> Router[IO](
+      "/v2" -> HttpRoutes.of[IO] { case GET -> Root / "1" =>
+        Ok("Indeed")
+      }
+    )
   )
 
   "A router" should {
     "translate mount prefixes" in {
       service.orNotFound(Request[IO](GET, uri"/numbers/1")) must returnBody("one")
       service.orNotFound(Request[IO](GET, uri"/numb/1")) must returnBody("two")
+      service.orNotFound(Request[IO](GET, uri"/numbers/v1/1")) must returnBody("Yeah")
+      service.orNotFound(Request[IO](GET, uri"/numbers/v2/1")) must returnBody("Indeed")
       service.orNotFound(Request[IO](GET, uri"/numbe?block")) must returnStatus(NotFound)
     }
 

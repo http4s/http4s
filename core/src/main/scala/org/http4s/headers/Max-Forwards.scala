@@ -10,8 +10,7 @@ package headers
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
-/**
-  * Request header, used with the TRACE and OPTION request methods,
+/** Request header, used with the TRACE and OPTION request methods,
   * that gives an upper bound on how many times the request can be
   * forwarded by a proxy before it is rejected.
   *

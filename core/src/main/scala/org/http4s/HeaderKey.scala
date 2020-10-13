@@ -31,16 +31,14 @@ object HeaderKey {
     final def unapply(headers: Headers): Option[HeaderT] = from(headers)
   }
 
-  /**
-    * Represents a Header that should not be repeated.
+  /** Represents a Header that should not be repeated.
     */
   trait Singleton extends Extractable {
     final def from(headers: Headers): Option[HeaderT] =
       headers.collectFirst(Function.unlift(matchHeader))
   }
 
-  /**
-    * Represents a header key whose multiple headers can be combined by joining
+  /** Represents a header key whose multiple headers can be combined by joining
     * their values with a comma.  See RFC 2616, Section 4.2.
     */
   trait Recurring extends Extractable {

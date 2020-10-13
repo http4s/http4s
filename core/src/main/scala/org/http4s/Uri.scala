@@ -45,8 +45,7 @@ final case class Uri(
     extends QueryOps
     with Renderable {
 
-  /**
-    * Adds the path exactly as described. Any path element must be urlencoded ahead of time.
+  /** Adds the path exactly as described. Any path element must be urlencoded ahead of time.
     * @param path the path string to replace
     */
   @deprecated("Use {withPath(Uri.Path)} instead", "1.0.0-M1")
@@ -58,21 +57,18 @@ final case class Uri(
 
   def withoutFragment: Uri = copy(fragment = Option.empty[Uri.Fragment])
 
-  /**
-    * Urlencodes and adds a path segment to the Uri
+  /** Urlencodes and adds a path segment to the Uri
     *
     * @param newSegment the segment to add.
     * @return a new uri with the segment added to the path
     */
   def addSegment(newSegment: String): Uri = copy(path = toSegment(path, newSegment))
 
-  /**
-    * This is an alias to [[addSegment(Path)]]
+  /** This is an alias to [[addSegment(Path)]]
     */
   def /(newSegment: String): Uri = addSegment(newSegment)
 
-  /**
-    * Splits the path segments and adds each of them to the path url-encoded.
+  /** Splits the path segments and adds each of them to the path url-encoded.
     * A segment is delimited by /
     * @param morePath the path to add
     * @return a new uri with the segments added to the path
@@ -86,8 +82,7 @@ final case class Uri(
 
   def resolve(relative: Uri): Uri = Uri.resolve(this, relative)
 
-  /**
-    * Representation of the query string as a map
+  /** Representation of the query string as a map
     *
     * In case a parameter is available in query string but no value is there the
     * sequence will be empty. If the value is empty the the sequence contains an
@@ -108,8 +103,7 @@ final case class Uri(
     */
   def multiParams: Map[String, immutable.Seq[String]] = query.multiParams
 
-  /**
-    * View of the head elements of the URI parameters in query string.
+  /** View of the head elements of the URI parameters in query string.
     *
     * In case a parameter has no value the map returns an empty string.
     *
@@ -345,15 +339,22 @@ object Uri {
 
     def startsWithString(path: String): Boolean = startsWith(Path.fromString(path))
 
-    def indexOf(path: Path): Option[Int] =
-      if (path.isEmpty) None else Some(segments.indexOfSlice(path.segments)).filterNot(_ == -1)
+    @deprecated("Misnamed, use findSplit(prefix) instead", since = "1.0.0-M5")
+    def indexOf(prefix: Path): Option[Int] = findSplit(prefix)
 
-    def indexOfString(path: String): Option[Int] = indexOf(Path.fromString(path))
+    @deprecated("Misnamed, use findSplitOfString(prefix) instead", since = "1.0.0-M5")
+    def indexOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
+
+    def findSplit(prefix: Path): Option[Int] =
+      if (prefix.isEmpty) None
+      else if (startsWith(prefix)) Some(prefix.segments.size)
+      else None
+    def findSplitOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
 
     def splitAt(idx: Int): (Path, Path) =
       if (idx < 0) (if (absolute) Path.Root else Path.empty, this)
       else {
-        val (start, end) = segments.splitAt(idx + 1)
+        val (start, end) = segments.splitAt(idx)
         Path(start, absolute = absolute) -> Path(end, true, endsWithSlash = endsWithSlash)
       }
     private def copy(
@@ -397,8 +398,7 @@ object Uri {
       def encoded(value: String): Segment = new Segment(value)
     }
 
-    /**
-      * This constructor allows you to construct the path directly.
+    /** This constructor allows you to construct the path directly.
       * Each path segment needs to be encoded for it to be used here.
       *
       * @param segments the segments that this path consists of. MUST be Urlencoded.

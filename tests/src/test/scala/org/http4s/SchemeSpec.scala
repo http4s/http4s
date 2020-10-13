@@ -47,8 +47,8 @@ class SchemeSpec extends Http4sSpec {
   "fromString" should {
     "reject all invalid schemes" in { (s: String) =>
       (s.isEmpty ||
-      !CharPredicate.Alpha(s.charAt(0)) ||
-      !s.forall(CharPredicate.Alpha ++ CharPredicate(".-+"))) ==>
+        !CharPredicate.Alpha(s.charAt(0)) ||
+        !s.forall(CharPredicate.Alpha ++ CharPredicate(".-+"))) ==>
         (Scheme.fromString(s) must beLeft)
     }
 

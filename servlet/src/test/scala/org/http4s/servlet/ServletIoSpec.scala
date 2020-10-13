@@ -25,7 +25,7 @@ class ServletIoSpec extends Http4sSpec {
       val body = io.reader(request)
       val bytes = body.compile.toList.unsafeRunSync()
 
-      new String(bytes.toArray, UTF_8) must_== ("test")
+      new String(bytes.toArray, UTF_8) must_== "test"
     }
 
     "decode request body which is bigger than chunk size correctly" in {
@@ -37,7 +37,7 @@ class ServletIoSpec extends Http4sSpec {
       val body = io.reader(request)
       val bytes = body.compile.toList.unsafeRunSync()
 
-      new String(bytes.toArray, UTF_8) must_== ("testtesttest")
+      new String(bytes.toArray, UTF_8) must_== "testtesttest"
     }
   }
 

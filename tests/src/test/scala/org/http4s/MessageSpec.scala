@@ -124,7 +124,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       "preserve caret in withPathInfo" in {
         val originalReq = Request(
           uri = uri"/foo/bar",
-          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 0))
+          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 1))
         val updatedReq = originalReq.withPathInfo(path"/quux")
 
         updatedReq.scriptName mustEqual path"/foo"
@@ -171,13 +171,13 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       "redact an Authorization header" in {
         val request =
           Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
-        request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
+        request.toString must_== "Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))"
       }
 
       "redact Cookie Headers" in {
         val request =
           Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
-        request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
+        request.toString must_== "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))"
       }
     }
 
@@ -257,7 +257,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     "toString" should {
       "redact a `Set-Cookie` header" in {
         val resp = Response().putHeaders(headers.`Set-Cookie`(ResponseCookie("token", "value")))
-        resp.toString must_== ("Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
+        resp.toString must_== "Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))"
       }
     }
 

@@ -12,7 +12,7 @@ class AcceptCharsetSpec extends HeaderLaws {
 
   "is satisfied by a charset if the q value is > 0" in {
     prop { (h: `Accept-Charset`, cs: Charset) =>
-      h.qValue(cs) > QValue.Zero ==> { h.satisfiedBy(cs) }
+      h.qValue(cs) > QValue.Zero ==> h.satisfiedBy(cs)
     }
   }
 

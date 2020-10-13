@@ -17,8 +17,7 @@ final case class QueryParameterKey(value: String) extends AnyVal
 
 final case class QueryParameterValue(value: String) extends AnyVal
 
-/**
-  * type class defining the key of a query parameter
+/** type class defining the key of a query parameter
   * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
   *
   * Any [[QueryParam]] instance is also a valid [[QueryParamKeyLike]] instance
@@ -89,8 +88,7 @@ object QueryParamCodec {
   }
 }
 
-/**
-  * Type class defining how to encode a `T` as a [[QueryParameterValue]]s
+/** Type class defining how to encode a `T` as a [[QueryParameterValue]]s
   * @see QueryParamCodecLaws
   */
 trait QueryParamEncoder[T] { outer =>
@@ -165,8 +163,7 @@ object QueryParamEncoder {
     QueryParamEncoder[String].contramap(_.renderString)
 }
 
-/**
-  * Type class defining how to decode a [[QueryParameterValue]] into a `T`
+/** Type class defining how to decode a [[QueryParameterValue]] into a `T`
   * @see QueryParamCodecLaws
   */
 trait QueryParamDecoder[T] { outer =>

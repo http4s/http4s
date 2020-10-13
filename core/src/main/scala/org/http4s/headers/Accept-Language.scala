@@ -15,8 +15,7 @@ object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with Head
     HttpHeaderParser.ACCEPT_LANGUAGE(s)
 }
 
-/**
-  * Request header used to indicate which natural language would be preferred for the response
+/** Request header used to indicate which natural language would be preferred for the response
   * to be translated into.
   *
   * [[https://tools.ietf.org/html/rfc7231#section-5.3.5 RFC-7231 Section 5.3.5]]

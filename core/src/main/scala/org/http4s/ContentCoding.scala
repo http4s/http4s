@@ -88,8 +88,7 @@ object ContentCoding {
       .map(c => c.coding -> c)
       .toMap
 
-  /**
-    * Parse a Content Coding
+  /** Parse a Content Coding
     */
   def parse(s: String): ParseResult[ContentCoding] =
     new Http4sParser[ContentCoding](s, "Invalid Content Coding") with ContentCodingParser {

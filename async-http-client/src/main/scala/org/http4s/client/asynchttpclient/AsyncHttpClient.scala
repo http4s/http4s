@@ -37,8 +37,7 @@ object AsyncHttpClient {
     .setCookieStore(new NoOpCookieStore)
     .build()
 
-  /**
-    * Allocates a Client and its shutdown mechanism for freeing resources.
+  /** Allocates a Client and its shutdown mechanism for freeing resources.
     */
   def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
@@ -53,8 +52,7 @@ object AsyncHttpClient {
           },
           F.delay(c.close)))
 
-  /**
-    * Create an HTTP client based on the AsyncHttpClient library
+  /** Create an HTTP client based on the AsyncHttpClient library
     *
     * @param config configuration for the client
     */
@@ -62,8 +60,7 @@ object AsyncHttpClient {
       F: ConcurrentEffect[F]): Resource[F, Client[F]] =
     Resource(allocate(config))
 
-  /**
-    * Create a bracketed HTTP client based on the AsyncHttpClient library.
+  /** Create a bracketed HTTP client based on the AsyncHttpClient library.
     *
     * @param config configuration for the client
     * @return a singleton stream of the client.  The client will be
@@ -73,8 +70,7 @@ object AsyncHttpClient {
       F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(config))
 
-  /**
-    * Create a custom AsyncHttpClientConfig
+  /** Create a custom AsyncHttpClientConfig
     *
     * @param configurationFn function that maps from the builder of the defaultConfig to the custom config's builder
     * @return a custom configuration.

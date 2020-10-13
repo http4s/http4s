@@ -23,9 +23,8 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
 
   "Accept-Encoding parser" should {
     "parse all encodings" in {
-      foreach(ContentCoding.standard) {
-        case (_, coding) =>
-          parse(coding.renderString).values.head should be_==(coding)
+      foreach(ContentCoding.standard) { case (_, coding) =>
+        parse(coding.renderString).values.head should be_==(coding)
       }
     }
   }

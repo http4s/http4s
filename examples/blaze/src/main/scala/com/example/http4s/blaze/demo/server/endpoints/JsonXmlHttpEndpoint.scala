@@ -19,8 +19,7 @@ import scala.xml._
 class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
   case class Person(name: String, age: Int)
 
-  /**
-    * XML Example for Person:
+  /** XML Example for Person:
     *
     * <person>
     *   <name>gvolpe</name>

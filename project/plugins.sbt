@@ -3,7 +3,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 // https://github.com/coursier/coursier/issues/450
 classpathTypes += "maven-plugin"
 
-addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.19")
+addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.21")
 addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.1.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.10.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.3")
@@ -15,9 +15,9 @@ addSbtPlugin("com.typesafe"               %  "sbt-mima-plugin"           % "0.8.
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-ghpages"               % "0.6.3")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-twirl"                 % "1.5.0")
-addSbtPlugin("com.typesafe.sbt"           %  "sbt-native-packager"       % "1.7.5")
+addSbtPlugin("com.typesafe.sbt"           %  "sbt-native-packager"       % "1.7.6")
 addSbtPlugin("de.heikoseeberger"          %  "sbt-header"                % "5.6.0")
-addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.13")
+addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.14")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
 addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.2.5")
 addSbtPlugin("org.scalameta"              %  "sbt-scalafmt"              % "2.4.2")

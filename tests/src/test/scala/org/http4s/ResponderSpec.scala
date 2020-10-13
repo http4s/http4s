@@ -31,17 +31,17 @@ class ResponderSpec extends Specification {
         .withContentType(`Content-Type`(MediaType.text.plain))
         .putHeaders(Host("foo"))
 
-      c1.headers.count(_.is(`Content-Type`)) must_== (1)
-      c1.headers.count(_.is(`Content-Length`)) must_== (1)
+      c1.headers.count(_.is(`Content-Type`)) must_== 1
+      c1.headers.count(_.is(`Content-Length`)) must_== 1
       (c1.headers.toList must have).length(3)
       c1.contentType must beSome(`Content-Type`(MediaType.text.plain))
 
       val c2 = c1.withContentType(`Content-Type`(MediaType.application.json, `UTF-8`))
 
       c2.contentType must beSome(`Content-Type`(MediaType.application.json, `UTF-8`))
-      c2.headers.count(_.is(`Content-Type`)) must_== (1)
-      c2.headers.count(_.is(`Content-Length`)) must_== (1)
-      c2.headers.count(_.is(Host)) must_== (1)
+      c2.headers.count(_.is(`Content-Type`)) must_== 1
+      c2.headers.count(_.is(`Content-Length`)) must_== 1
+      c2.headers.count(_.is(Host)) must_== 1
     }
 
     "Remove headers" in {

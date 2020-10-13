@@ -20,12 +20,11 @@ import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
   def nukeService(launchTheNukes: => Unit) =
-    AuthedRoutes.of[String, IO] {
-      case GET -> Root / "launch-the-nukes" as user =>
-        for {
-          _ <- IO(launchTheNukes)
-          r <- Gone(s"Oops, $user launched the nukes.")
-        } yield r
+    AuthedRoutes.of[String, IO] { case GET -> Root / "launch-the-nukes" as user =>
+      for {
+        _ <- IO(launchTheNukes)
+        r <- Gone(s"Oops, $user launched the nukes.")
+      } yield r
     }
 
   val realm = "Test Realm"

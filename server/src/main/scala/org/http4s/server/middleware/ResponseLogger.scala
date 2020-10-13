@@ -20,8 +20,7 @@ import fs2.{Chunk, Stream}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-/**
-  * Simple middleware for logging responses as they are processed
+/** Simple middleware for logging responses as they are processed
   */
 object ResponseLogger {
   private[this] val logger = getLogger

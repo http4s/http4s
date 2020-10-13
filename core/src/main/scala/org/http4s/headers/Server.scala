@@ -18,8 +18,7 @@ object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
     HttpHeaderParser.SERVER(s)
 }
 
-/**
-  * Server header
+/** Server header
   * https://tools.ietf.org/html/rfc7231#section-7.4.2
   */
 final case class Server(product: ProductId, rest: List[ProductIdOrComment]) extends Header.Parsed {

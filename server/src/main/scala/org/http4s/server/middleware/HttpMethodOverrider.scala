@@ -21,8 +21,7 @@ import org.typelevel.ci.CIString
 
 object HttpMethodOverrider {
 
-  /**
-    * HttpMethodOverrider middleware config options.
+  /** HttpMethodOverrider middleware config options.
     */
   class HttpMethodOverriderConfig[F[_], G[_]](
       val overrideStrategy: OverrideStrategy[F, G],
