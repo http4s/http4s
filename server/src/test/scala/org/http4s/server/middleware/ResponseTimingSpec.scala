@@ -20,10 +20,9 @@ class ResponseTimingSpec extends Http4sSpec {
 
   private val artificialDelay = 10
 
-  private val thisService = HttpApp[IO] {
-    case GET -> Root / "request" =>
-      List.fill(artificialDelay)(Sys.tick()).sequence_ *>
-        Ok("request response")
+  private val thisService = HttpApp[IO] { case GET -> Root / "request" =>
+    List.fill(artificialDelay)(Sys.tick()).sequence_ *>
+      Ok("request response")
   }
 
   "ResponseTiming middleware" should {

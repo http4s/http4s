@@ -28,7 +28,7 @@ class CharsetRangeSpec extends Http4sSpec {
 
     "not be satisfied by any other charsets" in {
       prop { (range: CharsetRange.Atom, cs: Charset) =>
-        range.charset != cs ==> { !range.matches(cs) }
+        range.charset != cs ==> !range.matches(cs)
       }
     }
   }

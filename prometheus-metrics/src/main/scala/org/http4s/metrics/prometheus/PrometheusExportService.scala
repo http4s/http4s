@@ -49,8 +49,8 @@ object PrometheusExportService {
     object dsl extends Http4sDsl[F]
     import dsl._
 
-    HttpRoutes.of[F] {
-      case GET -> Root / "metrics" => generateResponse(collectorRegistry)
+    HttpRoutes.of[F] { case GET -> Root / "metrics" =>
+      generateResponse(collectorRegistry)
     }
   }
 

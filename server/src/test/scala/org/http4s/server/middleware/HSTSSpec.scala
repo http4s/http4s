@@ -14,9 +14,8 @@ import org.http4s.headers._
 import scala.concurrent.duration._
 
 class HSTSSpec extends Http4sSpec {
-  val innerRoutes = HttpRoutes.of[IO] {
-    case GET -> Root =>
-      Ok("pong")
+  val innerRoutes = HttpRoutes.of[IO] { case GET -> Root =>
+    Ok("pong")
   }
 
   val req = Request[IO](Method.GET, Uri.uri("/"))

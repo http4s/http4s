@@ -82,8 +82,7 @@ final case class RequestCookie(name: String, content: String) extends Renderable
   }
 }
 
-/**
-  * @param extension The extension attributes of the cookie.  If there is more
+/** @param extension The extension attributes of the cookie.  If there is more
   * than one, they are joined by semi-colon, which must not appear in an
   * attribute value.
   */

@@ -20,8 +20,7 @@ import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 import cats.effect.Sync._
 
-/**
-  * Simple Middleware for Logging Requests As They Are Processed
+/** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
   private[this] val logger = getLogger

@@ -15,8 +15,7 @@ import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import _root_.io.chrisdavenport.vault._
 
-/**
-  * Client middleware to follow redirect responses.
+/** Client middleware to follow redirect responses.
   *
   * A 301 or 302 response is followed by:
   * - a GET if the request was GET or POST
@@ -67,8 +66,8 @@ object FollowRedirect {
 
       def propagateCookies(req: Request[F]): Request[F] =
         if (req.uri.authority == nextUri.authority)
-          cookies.foldLeft(req) {
-            case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
+          cookies.foldLeft(req) { case (nextReq, cookie) =>
+            nextReq.addCookie(cookie.name, cookie.content)
           }
         else
           req
@@ -153,8 +152,7 @@ object FollowRedirect {
 
   private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync()
 
-  /**
-    * Get the redirection URIs for a `response`.
+  /** Get the redirection URIs for a `response`.
     * Excludes the initial request URI
     */
   def getRedirectUris[F[_]](response: Response[F]): List[Uri] =

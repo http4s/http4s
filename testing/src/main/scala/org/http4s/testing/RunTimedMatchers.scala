@@ -14,8 +14,7 @@ import org.specs2.matcher._
 import org.specs2.matcher.ValueChecks._
 import scala.concurrent.duration.FiniteDuration
 
-/**
-  * Matchers for cats.effect.F_
+/** Matchers for cats.effect.F_
   */
 @deprecated("Provided by specs2-cats in org.specs2.matcher.RunTimedMatchers", "0.21.0-RC2")
 trait RunTimedMatchers[F[_]] {

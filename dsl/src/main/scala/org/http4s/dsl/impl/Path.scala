@@ -86,8 +86,7 @@ object :? {
 /** File extension extractor */
 object ~ {
 
-  /**
-    * File extension extractor for Path:
+  /** File extension extractor for Path:
     *   Path("example.json") match {
     *     case Root / "example" ~ "json" => ...
     */
@@ -95,13 +94,12 @@ object ~ {
     path match {
       case Root => None
       case parent / last =>
-        unapply(last).map {
-          case (base, ext) => (parent / base, ext)
+        unapply(last).map { case (base, ext) =>
+          (parent / base, ext)
         }
     }
 
-  /**
-    * File extension matcher for String:
+  /** File extension matcher for String:
     * {{{
     *   "example.json" match {
     *      case => "example" ~ "json" => ...
@@ -131,8 +129,7 @@ final case class /(parent: Path, child: String) extends Path {
 
 object -> {
 
-  /**
-    * HttpMethod extractor:
+  /** HttpMethod extractor:
     * {{{
     *   (request.method, Path(request.path)) match {
     *     case Method.GET -> Root / "test.json" => ...
@@ -144,8 +141,7 @@ object -> {
 
 class MethodConcat(val methods: Set[Method]) {
 
-  /**
-    * HttpMethod 'or' extractor:
+  /** HttpMethod 'or' extractor:
     * {{{
     *  val request: Request = ???
     *  request match {
@@ -157,8 +153,7 @@ class MethodConcat(val methods: Set[Method]) {
     Some(method).filter(methods)
 }
 
-/**
-  * Root extractor:
+/** Root extractor:
   * {{{
   *   Path("/") match {
   *     case Root => ...
@@ -177,8 +172,7 @@ case object Root extends Path {
   def startsWith(other: Path): Boolean = other == Root
 }
 
-/**
-  * Path separator extractor:
+/** Path separator extractor:
   * {{{
   *   Path("/1/2/3/test.json") match {
   *     case "1" /: "2" /: _ =>  ...
@@ -200,8 +194,7 @@ protected class PathVar[A](cast: String => Try[A]) {
       None
 }
 
-/**
-  * Integer extractor of a path variable:
+/** Integer extractor of a path variable:
   * {{{
   *   Path("/user/123") match {
   *      case Root / "user" / IntVar(userId) => ...
@@ -209,8 +202,7 @@ protected class PathVar[A](cast: String => Try[A]) {
   */
 object IntVar extends PathVar(str => Try(str.toInt))
 
-/**
-  * Long extractor of a path variable:
+/** Long extractor of a path variable:
   * {{{
   *   Path("/user/123") match {
   *      case Root / "user" / LongVar(userId) => ...
@@ -218,8 +210,7 @@ object IntVar extends PathVar(str => Try(str.toInt))
   */
 object LongVar extends PathVar(str => Try(str.toLong))
 
-/**
-  * UUID extractor of a path variable:
+/** UUID extractor of a path variable:
   * {{{
   *   Path("/user/13251d88-7a73-4fcf-b935-54dfae9f023e") match {
   *      case Root / "user" / UUIDVar(userId) => ...
@@ -227,8 +218,7 @@ object LongVar extends PathVar(str => Try(str.toLong))
   */
 object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
 
-/**
-  * Multiple param extractor:
+/** Multiple param extractor:
   * {{{
   *   object A extends QueryParamDecoderMatcher[String]("a")
   *   object B extends QueryParamDecoderMatcher[Int]("b")
@@ -242,8 +232,7 @@ object +& {
     Some((params, params))
 }
 
-/**
-  * param extractor using [[QueryParamDecoder]]:
+/** param extractor using [[QueryParamDecoder]]:
   * {{{
   *   case class Foo(i: Int)
   *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
@@ -267,8 +256,7 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
       .flatMap(s => QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption)
 }
 
-/**
-  * param extractor using [[QueryParamDecoder]]:
+/** param extractor using [[QueryParamDecoder]]:
   *
   * {{{
   *   case class Foo(i: Int)
@@ -292,16 +280,14 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
       .toOption
 }
 
-/**
-  * Flag (value-less) query param extractor
+/** Flag (value-less) query param extractor
   */
 abstract class FlagQueryParamMatcher(name: String) {
   def unapply(params: Map[String, collection.Seq[String]]): Option[Boolean] =
     Some(params.contains(name))
 }
 
-/**
-  * Capture a query parameter that appears 0 or more times.
+/** Capture a query parameter that appears 0 or more times.
   *
   * {{{
   *   case class Foo(i: Int)
@@ -333,8 +319,7 @@ abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name:
 abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
     extends OptionalQueryParamDecoderMatcher[T](QueryParam[T].key.value)
 
-/**
-  *  param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will return a
+/**  param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will return a
   *  [[ParseFailure]] if the parameter cannot be decoded.
   *
   * {{{
@@ -357,8 +342,7 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
     }
 }
 
-/**
-  *  param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will _always_ match, but will return
+/**  param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will _always_ match, but will return
   *  an Option possibly containing the result of the conversion to T
   *
   * {{{

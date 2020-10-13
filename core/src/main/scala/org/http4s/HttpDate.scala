@@ -14,8 +14,7 @@ import cats.implicits._
 import cats.effect.Clock
 import scala.concurrent.duration.SECONDS
 
-/**
-  * An HTTP-date value represents time as an instance of Coordinated Universal
+/** An HTTP-date value represents time as an instance of Coordinated Universal
   * Time (UTC). It expresses time at a resolution of one second.  By using it
   * over java.time.Instant in the model, we assure that if two headers render
   * equally, their values are equal.
@@ -58,8 +57,7 @@ object HttpDate {
   /** The latest value reprsentable by RFC1123, `Fri, 31 Dec 9999 23:59:59 GMT`. */
   val MaxValue = HttpDate.unsafeFromEpochSecond(MaxEpochSecond)
 
-  /**
-    * Constructs an `HttpDate` from the current time. Starting on January 1,n
+  /** Constructs an `HttpDate` from the current time. Starting on January 1,n
     * 10000, this will throw an exception. The author intends to leave this
     * problem for future generations.
     */
@@ -67,8 +65,7 @@ object HttpDate {
   def now: HttpDate =
     unsafeFromInstant(Instant.now)
 
-  /**
-    * Constructs an [[HttpDate]] from the current time. Starting on January 1,n
+  /** Constructs an [[HttpDate]] from the current time. Starting on January 1,n
     * 10000, this will throw an exception. The author intends to leave this
     * problem for future generations.
     */

@@ -19,13 +19,11 @@ import java.util.Date
 import org.http4s.headers._
 import scala.concurrent.duration._
 
-/**
-  * Provides Digest Authentication from RFC 2617.
+/** Provides Digest Authentication from RFC 2617.
   */
 object DigestAuth {
 
-  /**
-    * A function mapping username to a user object and password, or
+  /** A function mapping username to a user object and password, or
     * None if no user exists.  Requires that the server can recover
     * the password in clear text, which is _strongly_ discouraged.
     */
@@ -41,8 +39,7 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  /**
-    * @param realm The realm used for authentication purposes.
+  /** @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.
     * @param nonceCleanupInterval Interval (in milliseconds) at which stale

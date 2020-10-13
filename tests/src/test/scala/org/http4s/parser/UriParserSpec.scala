@@ -22,9 +22,8 @@ class IpParserImpl(val input: ParserInput, val charset: NioCharset) extends Pars
 class UriParserSpec extends Http4sSpec {
   "Uri.requestTarget" should {
     def check(items: Seq[(String, Uri)]) =
-      foreach(items) {
-        case (str, uri) =>
-          Uri.requestTarget(str) must beRight(uri)
+      foreach(items) { case (str, uri) =>
+        Uri.requestTarget(str) must beRight(uri)
       }
 
     // RFC 3986 examples
@@ -210,9 +209,8 @@ class UriParserSpec extends Http4sSpec {
 
   "Uri.fromString" should {
     def check(items: Seq[(String, Uri)]) =
-      foreach(items) {
-        case (str, uri) =>
-          Uri.fromString(str) must beRight(uri)
+      foreach(items) { case (str, uri) =>
+        Uri.fromString(str) must beRight(uri)
       }
 
     "parse absolute URIs" in {
@@ -249,39 +247,33 @@ class UriParserSpec extends Http4sSpec {
     }
 
     "parse a path-noscheme uri" in {
-      Uri.fromString("q") must beRight.like {
-        case u =>
-          u must_== Uri(path = "q")
+      Uri.fromString("q") must beRight.like { case u =>
+        u must_== Uri(path = "q")
       }
-      Uri.fromString("a/b") must beRight.like {
-        case u =>
-          u must_== Uri(path = "a/b")
+      Uri.fromString("a/b") must beRight.like { case u =>
+        u must_== Uri(path = "a/b")
       }
     }
 
     "parse a path-noscheme uri with query" in {
-      Uri.fromString("a/b?foo") must beRight.like {
-        case u =>
-          u must_== Uri(path = "a/b", query = Query(("foo", None)))
+      Uri.fromString("a/b?foo") must beRight.like { case u =>
+        u must_== Uri(path = "a/b", query = Query(("foo", None)))
       }
     }
 
     "parse a path-absolute uri" in {
-      Uri.fromString("/a/b") must beRight.like {
-        case u =>
-          u must_== Uri(path = "/a/b")
+      Uri.fromString("/a/b") must beRight.like { case u =>
+        u must_== Uri(path = "/a/b")
       }
     }
     "parse a path-absolute uri with query" in {
-      Uri.fromString("/a/b?foo") must beRight.like {
-        case u =>
-          u must_== Uri(path = "/a/b", query = Query(("foo", None)))
+      Uri.fromString("/a/b?foo") must beRight.like { case u =>
+        u must_== Uri(path = "/a/b", query = Query(("foo", None)))
       }
     }
     "parse a path-absolute uri with query and fragment" in {
-      Uri.fromString("/a/b?foo#bar") must beRight.like {
-        case u =>
-          u must_== Uri(path = "/a/b", query = Query(("foo", None)), fragment = Some("bar"))
+      Uri.fromString("/a/b?foo#bar") must beRight.like { case u =>
+        u must_== Uri(path = "/a/b", query = Query(("foo", None)), fragment = Some("bar"))
       }
     }
   }

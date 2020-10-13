@@ -22,8 +22,7 @@ import org.http4s.util.CaseInsensitiveString
 
 import scala.util.hashing.MurmurHash3
 
-/**
-  * Represents a HTTP Message. The interesting subclasses are Request and Response.
+/** Represents a HTTP Message. The interesting subclasses are Request and Response.
   */
 sealed trait Message[F[_]] extends Media[F] { self =>
   type SelfF[F2[_]] <: Message[F2] { type SelfF[F3[_]] = self.SelfF[F3] }
@@ -136,8 +135,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def withoutTrailerHeaders: Self =
     withoutAttribute(Message.Keys.TrailerHeaders[F])
 
-  /**
-    * The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
+  /** The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
     * F might not complete until the entire body has been consumed.
     */
   def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
@@ -173,8 +171,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def withAttribute[A](key: Key[A], value: A): Self =
     change(attributes = attributes.insert(key, value))
 
-  /**
-    * Returns a new message object without the specified key in the [[AttributeMap]]
+  /** Returns a new message object without the specified key in the [[AttributeMap]]
     *
     * @param key [[Key]] to remove
     * @return a new message object without the key
@@ -182,8 +179,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def withoutAttribute(key: Key[_]): Self =
     change(attributes = attributes.delete(key))
 
-  /**
-    * Lifts this Message's body to the specified effect type.
+  /** Lifts this Message's body to the specified effect type.
     */
   override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
 }
@@ -309,8 +305,7 @@ final class Request[F[_]](
     s"curl ${elements.filter(_.nonEmpty).mkString(" ")}"
   }
 
-  /**
-    * Representation of the query string as a map
+  /** Representation of the query string as a map
     *
     * In case a parameter is available in query string but no value is there the
     * sequence will be empty. If the value is empty the the sequence contains an
@@ -339,8 +334,7 @@ final class Request[F[_]](
     */
   def params: Map[String, String] = uri.params
 
-  /**
-    * Parses all available [[Cookie]] headers into a list of [[RequestCookie]] objects. This
+  /** Parses all available [[Cookie]] headers into a list of [[RequestCookie]] objects. This
     * implementation is compatible with cookie headers formatted per HTTP/1 and HTTP/2, or even both
     * at the same time.
     */
@@ -369,8 +363,7 @@ final class Request[F[_]](
 
   def remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
 
-  /**
-    * Returns the the X-Forwarded-For value if present, else the remote address.
+  /** Returns the the X-Forwarded-For value if present, else the remote address.
     */
   def from: Option[InetAddress] =
     headers

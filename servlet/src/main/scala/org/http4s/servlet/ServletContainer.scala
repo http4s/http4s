@@ -16,8 +16,7 @@ import org.http4s.server.ServerBuilder
 abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
   type Self <: ServletContainer[F]
 
-  /**
-    * Mounts a servlet to the server.
+  /** Mounts a servlet to the server.
     *
     * The http4s way is to create [[HttpRoutes]], which runs not just on servlet containers,
     * but all supported backends.  This method is good for legacy scenarios, or for reusing parts
@@ -25,8 +24,7 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
     */
   def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): Self
 
-  /**
-    * Mounts a filter to the server.
+  /** Mounts a filter to the server.
     *
     * The http4s way is to create a middleware around an [[HttpRoutes]], which runs not just on
     * servlet containers, but all supported backends.  This method is good for legacy scenarios,
@@ -43,8 +41,7 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
         DispatcherType.INCLUDE,
         DispatcherType.ASYNC)): Self
 
-  /**
-    * Sets the servlet I/O mode for reads and writes within the servlet.
+  /** Sets the servlet I/O mode for reads and writes within the servlet.
     * Not to be confused with the server connectors.
     *
     * @see [[org.http4s.servlet.ServletIo]]
@@ -55,8 +52,7 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
 object ServletContainer {
   def DefaultServletIo[F[_]: Effect]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
 
-  /**
-    * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to
+  /** Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to
     * mountService into a standard servlet prefix mapping.
     */
   def prefixMapping(prefix: String): String = prefix.replaceAll("/?$", "") + "/*"

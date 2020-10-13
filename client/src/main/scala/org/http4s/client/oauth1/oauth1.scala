@@ -51,10 +51,9 @@ package object oauth1 {
       token: Option[Token])(implicit
       F: MonadError[F, Throwable],
       W: EntityDecoder[F, UrlForm]): F[Request[F]] =
-    getUserParams(req).map {
-      case (req, params) =>
-        val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
-        req.putHeaders(auth)
+    getUserParams(req).map { case (req, params) =>
+      val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
+      req.putHeaders(auth)
     }
 
   def signRequest[F[_]](
@@ -83,8 +82,8 @@ package object oauth1 {
         nonceGenerator,
         callback,
         verifier,
-        params.map {
-          case (k, v) => Custom(k, v)
+        params.map { case (k, v) =>
+          Custom(k, v)
         }
       )
     } yield req.putHeaders(auth)
@@ -175,8 +174,8 @@ package object oauth1 {
     val baseString = genBaseString(
       method,
       uri,
-      params ++ userParams.map {
-        case (k, v) => (encode(k), encode(v))
+      params ++ userParams.map { case (k, v) =>
+        (encode(k), encode(v))
       })
     val sig = makeSHASig(baseString, consumer, token)
     val creds =

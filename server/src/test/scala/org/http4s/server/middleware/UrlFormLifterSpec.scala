@@ -17,14 +17,13 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 class UrlFormLifterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val urlForm = UrlForm("foo" -> "bar")
 
-  val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] {
-    case r @ POST -> _ =>
-      r.uri.multiParams.get("foo") match {
-        case Some(ps) =>
-          Ok(ps.mkString(","))
-        case None =>
-          BadRequest("No Foo")
-      }
+  val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] { case r @ POST -> _ =>
+    r.uri.multiParams.get("foo") match {
+      case Some(ps) =>
+        Ok(ps.mkString(","))
+      case None =>
+        BadRequest("No Foo")
+    }
   }).orNotFound
 
   "UrlFormLifter" should {

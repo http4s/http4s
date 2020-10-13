@@ -52,8 +52,7 @@ object ContextRoutes {
       pf: PartialFunction[ContextRequest[F, T], F[Response[F]]]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(pf.lift(req).sequence))
 
-  /**
-    * The empty service (all requests fallthrough).
+  /** The empty service (all requests fallthrough).
     *
     * @tparam T - ignored.
     * @return

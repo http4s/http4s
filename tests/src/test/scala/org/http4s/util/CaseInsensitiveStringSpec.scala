@@ -94,9 +94,8 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
           i <- Gen.choose(0, s.length - 1)
           j <- Gen.choose(i, s.length - 1)
         } yield (s, i, j)
-      Prop.forAll(gen) {
-        case (s, i, j) =>
-          s.ci.subSequence(i, j).equals(s.subSequence(i, j).toString.ci)
+      Prop.forAll(gen) { case (s, i, j) =>
+        s.ci.subSequence(i, j).equals(s.subSequence(i, j).toString.ci)
       }
     }
   }

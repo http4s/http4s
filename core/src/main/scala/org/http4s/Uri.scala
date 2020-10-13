@@ -46,8 +46,7 @@ final case class Uri(
     with Renderable {
   import Uri._
 
-  /**
-    * Adds the path exactly as described. Any path element must be urlencoded ahead of time.
+  /** Adds the path exactly as described. Any path element must be urlencoded ahead of time.
     * @param path the path string to replace
     */
   def withPath(path: Path): Uri = copy(path = path)
@@ -56,21 +55,18 @@ final case class Uri(
 
   def withoutFragment: Uri = copy(fragment = Option.empty[Fragment])
 
-  /**
-    * Urlencodes and adds a path segment to the Uri
+  /** Urlencodes and adds a path segment to the Uri
     *
     * @param newSegment the segment to add.
     * @return a new uri with the segment added to the path
     */
   def addSegment(newSegment: Path): Uri = copy(path = toSegment(path, newSegment))
 
-  /**
-    * This is an alias to [[addSegment(Path)]]
+  /** This is an alias to [[addSegment(Path)]]
     */
   def /(newSegment: Path): Uri = addSegment(newSegment)
 
-  /**
-    * Splits the path segments and adds each of them to the path url-encoded.
+  /** Splits the path segments and adds each of them to the path url-encoded.
     * A segment is delimited by /
     * @param morePath the path to add
     * @return a new uri with the segments added to the path
@@ -84,8 +80,7 @@ final case class Uri(
 
   def resolve(relative: Uri): Uri = Uri.resolve(this, relative)
 
-  /**
-    * Representation of the query string as a map
+  /** Representation of the query string as a map
     *
     * In case a parameter is available in query string but no value is there the
     * sequence will be empty. If the value is empty the the sequence contains an
@@ -106,8 +101,7 @@ final case class Uri(
     */
   def multiParams: Map[String, immutable.Seq[String]] = query.multiParams
 
-  /**
-    * View of the head elements of the URI parameters in query string.
+  /** View of the head elements of the URI parameters in query string.
     *
     * In case a parameter has no value the map returns an empty string.
     *

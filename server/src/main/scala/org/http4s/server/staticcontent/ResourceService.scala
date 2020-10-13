@@ -45,36 +45,35 @@ object ResourceService {
 
     Try(Paths.get(basePath)) match {
       case Success(rootPath) =>
-        TranslateUri(config.pathPrefix)(Kleisli {
-          case request =>
-            request.pathInfo.split("/") match {
-              case Array(head, segments @ _*) if head.isEmpty =>
-                OptionT
-                  .liftF(F.catchNonFatal {
-                    segments.foldLeft(rootPath) {
-                      case (_, "" | "." | "..") => throw BadTraversal
-                      case (path, segment) =>
-                        path.resolve(Uri.decode(segment, plusIsSpace = true))
-                    }
-                  })
-                  .collect {
-                    case path if path.startsWith(rootPath) => path
+        TranslateUri(config.pathPrefix)(Kleisli { case request =>
+          request.pathInfo.split("/") match {
+            case Array(head, segments @ _*) if head.isEmpty =>
+              OptionT
+                .liftF(F.catchNonFatal {
+                  segments.foldLeft(rootPath) {
+                    case (_, "" | "." | "..") => throw BadTraversal
+                    case (path, segment) =>
+                      path.resolve(Uri.decode(segment, plusIsSpace = true))
                   }
-                  .flatMap { path =>
-                    StaticFile.fromResource(
-                      path.toString,
-                      config.blocker,
-                      Some(request),
-                      preferGzipped = config.preferGzipped
-                    )
-                  }
-                  .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-                  .recoverWith {
-                    case BadTraversal => OptionT.some(Response(Status.BadRequest))
-                  }
-              case _ =>
-                OptionT.none
-            }
+                })
+                .collect {
+                  case path if path.startsWith(rootPath) => path
+                }
+                .flatMap { path =>
+                  StaticFile.fromResource(
+                    path.toString,
+                    config.blocker,
+                    Some(request),
+                    preferGzipped = config.preferGzipped
+                  )
+                }
+                .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+                .recoverWith { case BadTraversal =>
+                  OptionT.some(Response(Status.BadRequest))
+                }
+            case _ =>
+              OptionT.none
+          }
         })
 
       case Failure(e) =>

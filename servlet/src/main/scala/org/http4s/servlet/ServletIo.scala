@@ -18,8 +18,7 @@ import org.http4s.util.execution.trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
 
-/**
-  * Determines the mode of I/O used for reading request bodies and writing response bodies.
+/** Determines the mode of I/O used for reading request bodies and writing response bodies.
   */
 sealed abstract class ServletIo[F[_]: Async] {
   protected[servlet] val F = Async[F]
@@ -30,8 +29,7 @@ sealed abstract class ServletIo[F[_]: Async] {
   protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter[F]
 }
 
-/**
-  * Use standard blocking reads and writes.
+/** Use standard blocking reads and writes.
   *
   * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
   * require a larger request thread pool for the same load.
@@ -60,8 +58,7 @@ final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, b
   }
 }
 
-/**
-  * Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.
+/** Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.
   *
   * This can support more concurrent connections on a smaller request thread pool than [[BlockingServletIo]],
   * but consumes more CPU per request.  It is also known to cause IllegalStateExceptions in the logs

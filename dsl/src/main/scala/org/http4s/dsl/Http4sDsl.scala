@@ -20,8 +20,7 @@ trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, 
   val /: : impl./:.type = impl./:
   val +& : impl.+&.type = impl.+&
 
-  /**
-    * Alias for `->`.
+  /** Alias for `->`.
     *
     * Note: Due to infix operation precedence, `→` has a lower priority than `/`. So you have to use parentheses in
     * pattern matching when using this operator.

@@ -14,8 +14,7 @@ import cats.implicits._
 @deprecated("Deprecated in favor of Kleisli", "0.18")
 object Service {
 
-  /**
-    * Lifts a total function to a `Service`. The function is expected to handle
+  /** Lifts a total function to a `Service`. The function is expected to handle
     * all requests it is given.  If `f` is a `PartialFunction`, use `apply`
     * instead.
     */
@@ -29,14 +28,12 @@ object Service {
       F: Applicative[F]): Service[F, A, B] =
     lift(req => pf.applyOrElse(req, Function.const(F.pure(Monoid[B].empty))))
 
-  /**
-    * Lifts a F into a [[Service]].
+  /** Lifts a F into a [[Service]].
     */
   def const[F[_], A, B](b: F[B]): Service[F, A, B] =
     lift(_ => b)
 
-  /**
-    *  Lifts a value into a [[Service]].
+  /**  Lifts a value into a [[Service]].
     */
   def constVal[F[_], A, B](b: => B)(implicit F: Sync[F]): Service[F, A, B] =
     lift(_ => F.delay(b))

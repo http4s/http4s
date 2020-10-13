@@ -26,8 +26,7 @@ import java.security.{
 
 object ErrorReporting {
 
-  /**
-    * Silences System.out and System.err streams for the duration of thunk.
+  /** Silences System.out and System.err streams for the duration of thunk.
     * Restores the original streams before exiting.
     */
   def silenceOutputStreams[R](thunk: => R): R =
@@ -64,8 +63,7 @@ object ErrorReporting {
       }
     }
 
-  /**
-    * Returns an ErrorHandler that does not log
+  /** Returns an ErrorHandler that does not log
     */
   def silentErrorHandler[F[_], G[_]](implicit
       F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[G]]] =
@@ -84,8 +82,7 @@ object ErrorReporting {
             )))
     }
 
-  /**
-    * Silences `System.err`, only printing the output in case exceptions are
+  /** Silences `System.err`, only printing the output in case exceptions are
     * thrown by the executed `thunk`.
     */
   def silenceSystemErr[A](thunk: => A): A =
@@ -110,8 +107,7 @@ object ErrorReporting {
       }
     }
 
-  /**
-    * Catches `System.err` output, for testing purposes.
+  /** Catches `System.err` output, for testing purposes.
     */
   def catchSystemErr(thunk: => Unit): String =
     synchronized {

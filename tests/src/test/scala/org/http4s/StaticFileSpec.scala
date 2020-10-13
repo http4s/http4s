@@ -35,9 +35,8 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val tests = Seq(
         "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.image.png),
         "/test.fiddlefaddle" -> None)
-      forall(tests) {
-        case (p, om) =>
-          check(new File(getClass.getResource(p).toURI), om)
+      forall(tests) { case (p, om) =>
+        check(new File(getClass.getResource(p).toURI), om)
       }
     }
     "load from resource" in {
@@ -62,8 +61,8 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         "/missing.html" -> NotFound
       )
 
-      forall(tests) {
-        case (resource, status) => check(resource, status)
+      forall(tests) { case (resource, status) =>
+        check(resource, status)
       }
     }
 
@@ -93,8 +92,8 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         "/missing.html" -> NotFound
       )
 
-      forall(tests) {
-        case (resource, status) => check(resource, status)
+      forall(tests) { case (resource, status) =>
+        check(resource, status)
       }
     }
 

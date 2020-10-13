@@ -18,8 +18,7 @@ import org.http4s.metrics.TerminationType.{Error, Timeout}
 
 import scala.concurrent.TimeoutException
 
-/**
-  * Client middleware to record metrics for the http4s client.
+/** Client middleware to record metrics for the http4s client.
   *
   * This middleware will record:
   * - Number of active requests
@@ -31,8 +30,7 @@ import scala.concurrent.TimeoutException
   */
 object Metrics {
 
-  /**
-    * Wraps a [[Client]] with a middleware capable of recording metrics
+  /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
     * @param classifierF a function that allows to add a classifier that can be customized per request

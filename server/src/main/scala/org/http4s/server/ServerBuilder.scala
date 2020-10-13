@@ -44,8 +44,7 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server[F]] {
     */
   def resource: Resource[F, Server[F]]
 
-  /**
-    * Runs the server as a process that never emits.  Useful for a server
+  /** Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
     */
   final def serve: Stream[F, ExitCode] =
@@ -55,8 +54,7 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server[F]] {
       serve <- serveWhile(signal, exitCode)
     } yield serve
 
-  /**
-    * Runs the server as a Stream that emits only when the terminated signal becomes true.
+  /** Runs the server as a Stream that emits only when the terminated signal becomes true.
     * Useful for servers with associated lifetime behaviors.
     */
   final def serveWhile(

@@ -6,8 +6,7 @@
 
 package org.http4s.server
 
-/**
-  * Client Auth mode for mTLS
+/** Client Auth mode for mTLS
   */
 sealed trait SSLClientAuthMode extends Product with Serializable
 

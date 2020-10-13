@@ -12,8 +12,7 @@ import fs2.{Pipe, Stream}
 import org.http4s.websocket.{WebSocket, WebSocketContext, WebSocketFrame}
 import org.http4s.{Headers, Response, Status}
 
-/**
-  * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
+/** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
   * @param send     The send side of the Exchange represents the outgoing stream of messages that should be sent to the client
   * @param receive  The receive side of the Exchange is a sink to which the framework will push the incoming websocket messages

@@ -41,19 +41,17 @@ class ChunkAggregatorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
     def checkAppResponse(app: HttpApp[IO])(
         responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] =
-      ChunkAggregator.httpApp(app).run(Request()).unsafeRunSync() must beLike {
-        case response =>
-          response.status must_== Ok
-          responseCheck(response)
+      ChunkAggregator.httpApp(app).run(Request()).unsafeRunSync() must beLike { case response =>
+        response.status must_== Ok
+        responseCheck(response)
       }
 
     def checkRoutesResponse(routes: HttpRoutes[IO])(
         responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] =
       ChunkAggregator.httpRoutes(routes).run(Request()).value.unsafeRunSync() must beSome
-        .like {
-          case response =>
-            response.status must_== Ok
-            responseCheck(response)
+        .like { case response =>
+          response.status must_== Ok
+          responseCheck(response)
         }
 
     "handle an empty body" in {

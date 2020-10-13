@@ -21,8 +21,7 @@ import scala.util.Try
 import scala.concurrent.ExecutionContext.global
 import org.http4s.testing.SilenceOutputStream
 
-/**
-  * Test cases for mTLS support in blaze server
+/** Test cases for mTLS support in blaze server
   */
 class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
   {
@@ -96,8 +95,7 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
     sc
   }
 
-  /**
-    * Used for no mTLS client. Required to trust self-signed certificate.
+  /** Used for no mTLS client. Required to trust self-signed certificate.
     */
   lazy val noAuthClientContext: SSLContext = {
     val js = KeyStore.getInstance("JKS")
@@ -112,8 +110,7 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
     sc
   }
 
-  /**
-    * Test "required" auth mode
+  /** Test "required" auth mode
     */
   withResource(serverR(TLSParameters(needClientAuth = true).toSSLParameters)) { server =>
     def get(path: String, clientAuth: Boolean = true): String = {
@@ -128,9 +125,8 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
 
       Try {
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
-      }.recover {
-        case ex: Throwable =>
-          ex.getMessage
+      }.recover { case ex: Throwable =>
+        ex.getMessage
       }.toOption
         .getOrElse("")
     }
@@ -146,8 +142,7 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
     }
   }
 
-  /**
-    * Test "requested" auth mode
+  /** Test "requested" auth mode
     */
   withResource(serverR(TLSParameters(wantClientAuth = true).toSSLParameters)) { server =>
     def get(path: String, clientAuth: Boolean = true): String = {
@@ -162,9 +157,8 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
 
       Try {
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
-      }.recover {
-        case ex: Throwable =>
-          ex.getMessage
+      }.recover { case ex: Throwable =>
+        ex.getMessage
       }.toOption
         .getOrElse("")
     }
