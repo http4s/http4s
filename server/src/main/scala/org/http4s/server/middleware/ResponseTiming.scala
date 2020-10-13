@@ -17,8 +17,7 @@ import scala.concurrent.duration._
 
 object ResponseTiming {
 
-  /**
-    * Simple middleware for adding a custom header with timing information to a response.
+  /** Simple middleware for adding a custom header with timing information to a response.
     *
     * This middleware captures the time starting from when the request headers are parsed and supplied
     * to the wrapped service and ending when the response is started. Metrics middleware, like this one,

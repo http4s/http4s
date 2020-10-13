@@ -25,14 +25,12 @@ trait Json4sInstances[J] {
       DecodeResult(
         F.delay(reader.read(json))
           .map[Either[DecodeFailure, A]](Right(_))
-          .recover {
-            case e: MappingException =>
-              Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
+          .recover { case e: MappingException =>
+            Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
           })
     }
 
-  /**
-    * Uses formats to extract a value from JSON.
+  /** Uses formats to extract a value from JSON.
     *
     * Editorial: This is heavily dependent on reflection. This is more idiomatic json4s, but less
     * idiomatic http4s, than [[jsonOf]].

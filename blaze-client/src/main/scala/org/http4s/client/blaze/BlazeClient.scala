@@ -106,15 +106,14 @@ object BlazeClient {
                         .guarantee(manager.invalidate(next.connection))
                   }
                 }
-                .recoverWith {
-                  case Command.EOF =>
-                    invalidate(next.connection).flatMap { _ =>
-                      if (next.fresh)
-                        F.raiseError(
-                          new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
-                      else
-                        loop
-                    }
+                .recoverWith { case Command.EOF =>
+                  invalidate(next.connection).flatMap { _ =>
+                    if (next.fresh)
+                      F.raiseError(
+                        new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
+                    else
+                      loop
+                  }
                 }
 
               responseHeaderTimeout match {

@@ -28,8 +28,7 @@ private[http4s] object UrlCodingUtils {
   private val toSkip =
     org.http4s.Uri.Unreserved ++ "!$&'()*+,;=:/?@"
 
-  /**
-    * Percent-encodes a string.  Depending on the parameters, this method is
+  /** Percent-encodes a string.  Depending on the parameters, this method is
     * appropriate for URI or URL form encoding.  Any resulting percent-encodings
     * are normalized to uppercase.
     *
@@ -53,8 +52,7 @@ private[http4s] object UrlCodingUtils {
   def pathEncode(s: String, charset: Charset = UTF_8): String =
     org.http4s.Uri.pathEncode(s, charset)
 
-  /**
-    * Percent-decodes a string.
+  /** Percent-decodes a string.
     *
     * @param toDecode the string to decode
     * @param charset the charset of percent-encoded characters

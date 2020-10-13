@@ -36,10 +36,9 @@ private[parser] trait ContentTypeHeader {
             var charset: Option[Charset] = None
             var ext = Map.empty[String, String]
 
-            exts.foreach(_.foreach {
-              case p @ (k, v) =>
-                if (k == "charset") charset = Charset.fromString(v).toOption
-                else ext += p
+            exts.foreach(_.foreach { case p @ (k, v) =>
+              if (k == "charset") charset = Charset.fromString(v).toOption
+              else ext += p
             })
 
             `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)

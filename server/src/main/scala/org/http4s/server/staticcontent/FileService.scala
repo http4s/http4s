@@ -60,31 +60,30 @@ object FileService {
     object BadTraversal extends Exception with NoStackTrace
     Try(Paths.get(config.systemPath).toRealPath()) match {
       case Success(rootPath) =>
-        TranslateUri(config.pathPrefix)(Kleisli {
-          case request =>
-            def resolvedPath: OptionT[F, Path] =
-              request.pathInfo.split("/") match {
-                case Array() => OptionT.some(rootPath)
-                case Array(head, segments @ _*) if head.isEmpty =>
-                  OptionT
-                    .liftF(F.catchNonFatal {
-                      segments.foldLeft(rootPath) {
-                        case (_, "" | "." | "..") => throw BadTraversal
-                        case (path, segment) =>
-                          path.resolve(Uri.decode(segment, plusIsSpace = true))
-                      }
-                    })
-                case _ => OptionT.none
-              }
-            resolvedPath
-              .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
-              .collect { case path if path.startsWith(rootPath) => path.toFile }
-              .flatMap(f => config.pathCollector(f, config, request))
-              .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-              .recoverWith {
-                case _: NoSuchFileException => OptionT.none
-                case BadTraversal => OptionT.some(Response(Status.BadRequest))
-              }
+        TranslateUri(config.pathPrefix)(Kleisli { case request =>
+          def resolvedPath: OptionT[F, Path] =
+            request.pathInfo.split("/") match {
+              case Array() => OptionT.some(rootPath)
+              case Array(head, segments @ _*) if head.isEmpty =>
+                OptionT
+                  .liftF(F.catchNonFatal {
+                    segments.foldLeft(rootPath) {
+                      case (_, "" | "." | "..") => throw BadTraversal
+                      case (path, segment) =>
+                        path.resolve(Uri.decode(segment, plusIsSpace = true))
+                    }
+                  })
+              case _ => OptionT.none
+            }
+          resolvedPath
+            .semiflatMap(path => F.delay(path.toRealPath(LinkOption.NOFOLLOW_LINKS)))
+            .collect { case path if path.startsWith(rootPath) => path.toFile }
+            .flatMap(f => config.pathCollector(f, config, request))
+            .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+            .recoverWith {
+              case _: NoSuchFileException => OptionT.none
+              case BadTraversal => OptionT.some(Response(Status.BadRequest))
+            }
         })
 
       case Failure(_: NoSuchFileException) =>

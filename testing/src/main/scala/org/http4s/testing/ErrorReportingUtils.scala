@@ -15,8 +15,7 @@ import scala.util.control.NonFatal
 @deprecated("Not related to HTTP, and will be removed from public interface.", "0.21.0-RC2")
 trait ErrorReportingUtils {
 
-  /**
-    * Silences `System.err`, only printing the output in case exceptions are
+  /** Silences `System.err`, only printing the output in case exceptions are
     * thrown by the executed `thunk`.
     */
   def silenceSystemErr[A](thunk: => A): A =
@@ -41,8 +40,7 @@ trait ErrorReportingUtils {
       }
     }
 
-  /**
-    * Catches `System.err` output, for testing purposes.
+  /** Catches `System.err` output, for testing purposes.
     */
   def catchSystemErr(thunk: => Unit): String =
     synchronized {

@@ -50,18 +50,17 @@ abstract class ClientRouteTestBattery(name: String)
     withResource(clientResource) { client =>
       val address = jetty.addresses.head
 
-      Fragments.foreach(GetRoutes.getPaths.toSeq) {
-        case (path, expected) =>
-          s"Execute GET: $path" in {
-            val name = address.getHostName
-            val port = address.getPort
-            val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
-            client
-              .run(req)
-              .use(resp => checkResponse(resp, expected))
-              .unsafeRunTimed(timeout)
-              .get
-          }
+      Fragments.foreach(GetRoutes.getPaths.toSeq) { case (path, expected) =>
+        s"Execute GET: $path" in {
+          val name = address.getHostName
+          val port = address.getPort
+          val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
+          client
+            .run(req)
+            .use(resp => checkResponse(resp, expected))
+            .unsafeRunTimed(timeout)
+            .get
+        }
       }
 
       name should {

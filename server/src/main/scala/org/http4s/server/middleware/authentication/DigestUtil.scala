@@ -17,8 +17,7 @@ private[authentication] object DigestUtil {
   private def md5(str: String): String =
     bytes2hex(MessageDigest.getInstance("MD5").digest(str.getBytes))
 
-  /**
-    * Computes the response value used in Digest Authentication.
+  /** Computes the response value used in Digest Authentication.
     * @param method
     * @param username
     * @param realm

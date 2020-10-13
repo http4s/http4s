@@ -43,7 +43,7 @@ object GZip {
     val contentType = resp.headers.get(`Content-Type`)
     resp.headers.get(`Content-Encoding`).isEmpty &&
     (contentType.isEmpty || contentType.get.mediaType.compressible ||
-    (contentType.get.mediaType eq MediaType.application.`octet-stream`))
+      (contentType.get.mediaType eq MediaType.application.`octet-stream`))
   }
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =

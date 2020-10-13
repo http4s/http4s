@@ -14,8 +14,7 @@ import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
 
-/**
-  * [[MetricsOps]] algebra capable of recording Dropwizard metrics
+/** [[MetricsOps]] algebra capable of recording Dropwizard metrics
   *
   * For example, the following code would wrap a [[org.http4s.HttpRoutes]] with a [[org.http4s.server.middleware.Metrics]]
   * that records metrics to a given metric registry.
@@ -62,8 +61,7 @@ import org.http4s.metrics.TerminationType.{Abnormal, Error, Timeout}
   */
 object Dropwizard {
 
-  /**
-    * Creates a [[MetricsOps]] that supports Dropwizard metrics
+  /** Creates a [[MetricsOps]] that supports Dropwizard metrics
     *
     * @param registry a dropwizard metric registry
     * @param prefix a prefix that will be added to all metrics

@@ -64,17 +64,15 @@ object EmberClientSimpleExample extends IOApp {
           .map(bv => resp.copy(body = Stream.chunk(Chunk.ByteVectorChunk(bv)))))
 
   def logTimed[F[_]: Clock: Monad, A](logger: Logger[F], name: String, fa: F[A]): F[A] =
-    timedMS(fa).flatMap {
-      case (time, action) =>
-        logger.info(s"Action $name took $time").as(action)
+    timedMS(fa).flatMap { case (time, action) =>
+      logger.info(s"Action $name took $time").as(action)
     }
 
   def timedMS[F[_]: Clock: Applicative, A](fa: F[A]): F[(FiniteDuration, A)] = {
     val nowMS = Clock[F].monotonic(TimeUnit.MILLISECONDS)
-    (nowMS, fa, nowMS).mapN {
-      case (before, result, after) =>
-        val time = (after - before).millis
-        (time, result)
+    (nowMS, fa, nowMS).mapN { case (before, result, after) =>
+      val time = (after - before).millis
+      (time, result)
     }
   }
 

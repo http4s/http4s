@@ -6,8 +6,7 @@
 
 package org.http4s
 
-/**
-  * This package is the start of a multipart implementation for http4s.
+/** This package is the start of a multipart implementation for http4s.
   * It is still deficient in a few ways:
   *
   * - All encoding is chunked transfers, except for entities small

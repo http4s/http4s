@@ -45,8 +45,7 @@ package object server {
       Key.newKey[IO, Option[SecureSession]].unsafeRunSync()
   }
 
-  /**
-    * A middleware is a function of one [[Service]] to another, possibly of a
+  /** A middleware is a function of one [[Service]] to another, possibly of a
     * different [[Request]] and [[Response]] type.  http4s comes with several
     * middlewares for composing common functionality into services.
     *
@@ -64,26 +63,22 @@ package object server {
       service => Kleisli(req => f(req, service))
   }
 
-  /**
-    * An HTTP middleware converts an [[HttpRoutes]] to another.
+  /** An HTTP middleware converts an [[HttpRoutes]] to another.
     */
   type HttpMiddleware[F[_]] =
     Middleware[OptionT[F, *], Request[F], Response[F], Request[F], Response[F]]
 
-  /**
-    * An HTTP middleware that authenticates users.
+  /** An HTTP middleware that authenticates users.
     */
   type AuthMiddleware[F[_], T] =
     Middleware[OptionT[F, *], AuthedRequest[F, T], Response[F], Request[F], Response[F]]
 
-  /**
-    * An HTTP middleware that adds a context.
+  /** An HTTP middleware that adds a context.
     */
   type ContextMiddleware[F[_], T] =
     Middleware[OptionT[F, *], ContextRequest[F, T], Response[F], Request[F], Response[F]]
 
-  /**
-    * Old name for SSLConfig
+  /** Old name for SSLConfig
     */
   @deprecated("Use SSLConfig", "2016-12-31")
   type SSLBits = SSLConfig

@@ -19,8 +19,7 @@ import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
 import org.http4s.syntax.string._
 
-/**
-  * parser rules for all headers that can be parsed with one simple rule
+/** parser rules for all headers that can be parsed with one simple rule
   */
 private[parser] trait SimpleHeaders {
   def ALLOW(value: String): ParseResult[Allow] =
@@ -131,7 +130,7 @@ private[parser] trait SimpleHeaders {
         rule {
           (Token | IpLiteral) ~ OptWS ~
             optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOL ~> (org.http4s.headers
-            .Host(_: String, _: Option[Int]))
+              .Host(_: String, _: Option[Int]))
         }
     }.parse
 
@@ -234,8 +233,8 @@ private[parser] trait SimpleHeaders {
             }) |
               ("unknown" ~ push(None))).separatedBy(ListSep) ~
             EOL ~> { (xs: Seq[Option[InetAddress]]) =>
-            `X-Forwarded-For`(xs.head, xs.tail: _*)
-          }
+              `X-Forwarded-For`(xs.head, xs.tail: _*)
+            }
         }
     }.parse
 }

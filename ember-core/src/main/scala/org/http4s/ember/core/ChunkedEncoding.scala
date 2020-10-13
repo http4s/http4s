@@ -101,8 +101,7 @@ private[ember] object ChunkedEncoding {
   private val lastChunk: Chunk[Byte] =
     Chunk.ByteVectorChunk((ByteVector('0') ++ `\r\n` ++ `\r\n`).compact)
 
-  /**
-    * Encodes chunk of bytes to http chunked encoding.
+  /** Encodes chunk of bytes to http chunked encoding.
     */
   def encode[F[_]]: Pipe[F, Byte, Byte] = {
     def encodeChunk(bv: ByteVector): Chunk[Byte] =

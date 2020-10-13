@@ -262,10 +262,10 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
     "composing EntityDecoders with <+>" >> {
       "A message with a MediaType that is not supported by any of the decoders" +
         " will be attempted by the last decoder" in {
-        val reqMediaType = MediaType.application.`atom+xml`
-        val req = Request[IO](headers = Headers.of(`Content-Type`(reqMediaType)))
-        (decoder1 <+> decoder2).decode(req, strict = false) must returnRight(2)
-      }
+          val reqMediaType = MediaType.application.`atom+xml`
+          val req = Request[IO](headers = Headers.of(`Content-Type`(reqMediaType)))
+          (decoder1 <+> decoder2).decode(req, strict = false) must returnRight(2)
+        }
       "A catch all decoder will always attempt to decode a message" in {
         val reqSomeOtherMediaType =
           Request[IO](headers = Headers.of(`Content-Type`(`text/x-h`)))
@@ -282,16 +282,17 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
       }
       "if decode is called with strict, will produce a MediaTypeMissing or MediaTypeMismatch " +
         "with ALL supported media types of the composite decoder" in {
-        val reqMediaType = `text/x-h`
-        val expectedMediaRanges = failDecoder.consumes ++ decoder1.consumes ++ decoder2.consumes
-        val reqSomeOtherMediaType = Request[IO](headers = Headers.of(`Content-Type`(reqMediaType)))
-        (decoder1 <+> decoder2 <+> failDecoder)
-          .decode(reqSomeOtherMediaType, strict = true) must returnLeft(
-          MediaTypeMismatch(reqMediaType, expectedMediaRanges))
+          val reqMediaType = `text/x-h`
+          val expectedMediaRanges = failDecoder.consumes ++ decoder1.consumes ++ decoder2.consumes
+          val reqSomeOtherMediaType =
+            Request[IO](headers = Headers.of(`Content-Type`(reqMediaType)))
+          (decoder1 <+> decoder2 <+> failDecoder)
+            .decode(reqSomeOtherMediaType, strict = true) must returnLeft(
+            MediaTypeMismatch(reqMediaType, expectedMediaRanges))
 
-        (decoder1 <+> decoder2 <+> failDecoder).decode(Request(), strict = true) must returnLeft(
-          MediaTypeMissing(expectedMediaRanges))
-      }
+          (decoder1 <+> decoder2 <+> failDecoder).decode(Request(), strict = true) must returnLeft(
+            MediaTypeMissing(expectedMediaRanges))
+        }
     }
   }
 
@@ -396,11 +397,10 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo", "bar")
       try {
-        val response = mockServe(Request()) {
-          case req =>
-            req.decodeWith(EntityDecoder.binFile(tmpFile, testBlocker), strict = false) { _ =>
-              Response[IO](Ok).withEntity("Hello").pure[IO]
-            }
+        val response = mockServe(Request()) { case req =>
+          req.decodeWith(EntityDecoder.binFile(tmpFile, testBlocker), strict = false) { _ =>
+            Response[IO](Ok).withEntity("Hello").pure[IO]
+          }
         }.unsafeRunSync()
 
         response must beStatus(Status.Ok)

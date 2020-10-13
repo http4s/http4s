@@ -92,8 +92,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     (requestTimeout.isFinite && elapsed >= requestTimeout.toMillis) || (responseHeaderTimeout.isFinite && elapsed >= responseHeaderTimeout.toMillis)
   }
 
-  /**
-    * This method is the core method for creating a connection which increments allocated synchronously
+  /** This method is the core method for creating a connection which increments allocated synchronously
     * then builds the connection with the given callback and completes the callback.
     *
     * If we can create a connection then it initially increments the allocated value within a region
@@ -136,8 +135,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
       idleQueues.update(key, q)
     }
 
-  /**
-    * This generates a effect of Next Connection. The following calls are executed asynchronously
+  /** This generates a effect of Next Connection. The following calls are executed asynchronously
     * with respect to whenever the execution of this task can occur.
     *
     * If the pool is closed the effect failure is executed.
@@ -265,8 +263,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
             s"Connection could not be recycled for $key, no pending requests. Shrinking pool: $stats"))
       }
 
-  /**
-    * This is how connections are returned to the ConnectionPool.
+  /** This is how connections are returned to the ConnectionPool.
     *
     * If the pool is closed the connection is shutdown and logged.
     * If it is not closed we check if the connection is recyclable.
@@ -309,8 +306,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
       }
     }
 
-  /**
-    * This invalidates a Connection. This is what is exposed externally, and
+  /** This invalidates a Connection. This is what is exposed externally, and
     * is just an effect wrapper around disposing the connection.
     *
     * @param connection The connection to invalidate
@@ -334,8 +330,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         }
     }
 
-  /**
-    * Synchronous Immediate Disposal of a Connection and Its Resources.
+  /** Synchronous Immediate Disposal of a Connection and Its Resources.
     *
     * By taking an Option of a connection this also serves as a synchronized allocated decrease.
     *
@@ -353,8 +348,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         }
     }
 
-  /**
-    * Shuts down the connection pool permanently.
+  /** Shuts down the connection pool permanently.
     *
     * Changes isClosed to true, no methods can reopen a closed Pool.
     * Shutdowns all connections in the IdleQueue and Sets Allocated to Zero

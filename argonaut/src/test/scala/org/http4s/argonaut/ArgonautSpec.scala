@@ -46,7 +46,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
     }
 
     "write compact JSON" in {
-      writeToString(json) must_== ("""{"test":"ArgonautSupport"}""")
+      writeToString(json) must_== """{"test":"ArgonautSupport"}"""
     }
 
     "write JSON according to custom encoders" in {
@@ -71,7 +71,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
     }
 
     "write compact JSON" in {
-      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== ("""{"bar":42}""")
+      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== """{"bar":42}"""
     }
 
     "write JSON according to custom encoders" in {

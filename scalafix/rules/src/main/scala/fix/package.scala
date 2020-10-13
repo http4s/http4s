@@ -20,8 +20,8 @@ package object fix {
     // Matches if the term has curly braces.
     object IsBlockOrPartFunc {
       def unapply(term: Term): Boolean =
-        PartialFunction.cond(term) {
-          case Term.Block(_) | Term.PartialFunction(_) => true
+        PartialFunction.cond(term) { case Term.Block(_) | Term.PartialFunction(_) =>
+          true
         }
     }
   }

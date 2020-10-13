@@ -15,8 +15,7 @@ import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 
-/**
-  * Simple Middleware for Logging Requests As They Are Processed
+/** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
   private[this] val logger = getLogger

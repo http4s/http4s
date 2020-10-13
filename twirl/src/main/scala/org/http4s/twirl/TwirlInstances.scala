@@ -16,8 +16,7 @@ trait TwirlInstances {
       charset: Charset = DefaultCharset): EntityEncoder[F, Html] =
     contentEncoder(MediaType.text.html)
 
-  /**
-    * Note: Twirl uses a media type of `text/javascript`.  This is obsolete, so we instead return
+  /** Note: Twirl uses a media type of `text/javascript`.  This is obsolete, so we instead return
     * [[org.http4s.MediaType.application/javascript]].
     */
   implicit def jsContentEncoder[F[_]](implicit

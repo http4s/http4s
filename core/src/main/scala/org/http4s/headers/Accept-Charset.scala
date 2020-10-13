@@ -17,8 +17,7 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
     HttpHeaderParser.ACCEPT_CHARSET(s)
 }
 
-/**
-  * {{{
+/** {{{
   *   The "Accept-Charset" header field can be sent by a user agent to
   *   indicate what charsets are acceptable in textual response content.
   *   This field allows user agents capable of understanding more

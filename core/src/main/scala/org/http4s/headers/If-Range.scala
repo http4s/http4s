@@ -7,7 +7,6 @@
 package org.http4s
 package headers
 
-/**
-  * [[https://tools.ietf.org/html/rfc7233#section-3.2 RFC-7233 Section 3.2]]
+/** [[https://tools.ietf.org/html/rfc7233#section-3.2 RFC-7233 Section 3.2]]
   */
 object `If-Range` extends HeaderKey.Default

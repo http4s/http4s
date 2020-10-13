@@ -13,48 +13,40 @@ import cats.effect.concurrent._
 import org.http4s._
 import org.http4s.client.Client
 
-/**
-  * Algebra for Interfacing with the Cookie Jar.
+/** Algebra for Interfacing with the Cookie Jar.
   * Allows manual intervention and eviction.
   */
 trait CookieJar[F[_]] {
 
-  /**
-    * Default Expiration Approach, Removes Expired Cookies
+  /** Default Expiration Approach, Removes Expired Cookies
     */
   def evictExpired: F[Unit]
 
-  /**
-    * Available for Use To Relieve Memory Pressure
+  /** Available for Use To Relieve Memory Pressure
     */
   def evictAll: F[Unit]
 
-  /**
-    * Add Cookie to the cookie jar
+  /** Add Cookie to the cookie jar
     */
   def addCookie(c: ResponseCookie, uri: Uri): F[Unit] =
     addCookies(List((c, uri)))
 
-  /**
-    * Like addCookie but puts several in at once
+  /** Like addCookie but puts several in at once
     */
   def addCookies[G[_]: Foldable](cookies: G[(ResponseCookie, Uri)]): F[Unit]
 
-  /**
-    * Enrich a Request with the cookies available
+  /** Enrich a Request with the cookies available
     */
   def enrichRequest[G[_]](r: Request[G]): F[Request[G]]
 }
 
-/**
-  * Cookie Jar Companion Object
+/** Cookie Jar Companion Object
   * Contains constructors for client middleware or raw
   * jar creation, as well as the middleware
   */
 object CookieJar {
 
-  /**
-    * Middleware Constructor Using a Provided [[CookieJar]].
+  /** Middleware Constructor Using a Provided [[CookieJar]].
     */
   def apply[F[_]: Sync](
       alg: CookieJar[F]
@@ -74,28 +66,24 @@ object CookieJar {
       } yield out
     }
 
-  /**
-    * Constructor which builds a non-exposed CookieJar
+  /** Constructor which builds a non-exposed CookieJar
     * and applies it to the client.
     */
   def impl[F[_]: Sync: Timer](c: Client[F]): F[Client[F]] =
     in[F, F](c)
 
-  /**
-    * Like [[impl]] except it allows the creation of the middleware in a
+  /** Like [[impl]] except it allows the creation of the middleware in a
     * different HKT than the client is in.
     */
   def in[F[_]: Sync: Timer, G[_]: Sync](c: Client[F]): G[Client[F]] =
     jarIn[F, G].map(apply(_)(c))
 
-  /**
-    * Jar Constructor
+  /** Jar Constructor
     */
   def jarImpl[F[_]: Sync: Clock]: F[CookieJar[F]] =
     jarIn[F, F]
 
-  /**
-    * Like [[jarImpl]] except it allows the creation of the CookieJar in a
+  /** Like [[jarImpl]] except it allows the creation of the CookieJar in a
     * different HKT than the client is in.
     */
   def jarIn[F[_]: Sync: Clock, G[_]: Sync]: G[CookieJar[F]] =
@@ -177,8 +165,8 @@ object CookieJar {
       httpDate: HttpDate
   ): Map[CookieKey, CookieValue] =
     cookies
-      .foldRight(Eval.now(m)) {
-        case ((rc, uri), eM) => eM.map(m => extractFromResponseCookie(m)(rc, httpDate, uri))
+      .foldRight(Eval.now(m)) { case ((rc, uri), eM) =>
+        eM.map(m => extractFromResponseCookie(m)(rc, httpDate, uri))
       }
       .value
 
@@ -222,9 +210,8 @@ object CookieJar {
       r: Request[N],
       l: List[ResponseCookie]
   ): List[RequestCookie] =
-    l.foldLeft(List.empty[RequestCookie]) {
-      case (list, cookie) =>
-        if (cookieAppliesToRequest(r, cookie)) responseCookieToRequestCookie(cookie) :: list
-        else list
+    l.foldLeft(List.empty[RequestCookie]) { case (list, cookie) =>
+      if (cookieAppliesToRequest(r, cookie)) responseCookieToRequestCookie(cookie) :: list
+      else list
     }
 }

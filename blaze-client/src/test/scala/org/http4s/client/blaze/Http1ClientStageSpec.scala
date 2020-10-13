@@ -77,16 +77,16 @@ class Http1ClientStageSpec extends Http4sSpec {
       d <- Deferred[IO, Unit]
       _ <- IO(LeafBuilder(stage).base(h))
       _ <- (d.get >> Stream
-          .emits(resp.toList)
-          .map { c =>
-            val b = ByteBuffer.allocate(1)
-            b.put(c.toByte).flip()
-            b
-          }
-          .noneTerminate
-          .through(q.enqueue)
-          .compile
-          .drain).start
+        .emits(resp.toList)
+        .map { c =>
+          val b = ByteBuffer.allocate(1)
+          b.put(c.toByte).flip()
+          b
+        }
+        .noneTerminate
+        .through(q.enqueue)
+        .compile
+        .drain).start
       req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(())))
       response <- stage.runRequest(req0, IO.never)
       result <- response.as[String]

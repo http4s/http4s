@@ -20,8 +20,7 @@ import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-/**
-  * BlazeBuilder is the component for the builder pattern aggregating
+/** BlazeBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.
   *
   * Variables:
@@ -184,9 +183,8 @@ class BlazeBuilder[F[_]](
       .withHttpApp(httpApp)
       .withServiceErrorHandler(serviceErrorHandler)
       .withBanner(banner)
-    getContext().foreach {
-      case (ctx, clientAuth) =>
-        b = b.withSSLContext(ctx, clientAuth)
+    getContext().foreach { case (ctx, clientAuth) =>
+      b = b.withSSLContext(ctx, clientAuth)
     }
     b.resource
   }
