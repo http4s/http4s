@@ -201,7 +201,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
         r must beSome[Response[IO]]
         // Length is only 1 byte
-        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(1)
+        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(1L)
         // get the Body to check the actual size
         r.map(_.body.compile.toVector.unsafeRunSync().length) must beSome(1)
       }
@@ -239,7 +239,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
         r must beSome[Response[IO]]
         // Length of the body must match
-        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize - 1)
+        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize.toLong - 1L)
         // get the Body to check the actual size
         val body = r.map(_.body.compile.toVector.unsafeRunSync())
         body.map(_.length) must beSome(fileSize - 1)

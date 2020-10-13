@@ -39,7 +39,7 @@ class EntityLimiterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         .apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1L)
         .value
-        .handleError { case EntityTooLarge(i) => Some(i) } must returnValue(Some(3))
+        .handleError { case EntityTooLarge(i) => Some(i) } must returnValue(Some(3.0))
     }
 
     "Chain correctly with other HttpRoutes" in {
@@ -73,10 +73,10 @@ class EntityLimiterSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val app: HttpApp[IO] = routes.orNotFound
 
       EntityLimiter
-        .httpApp(app, 3)
+        .httpApp(app, 3L)
         .apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1L)
-        .handleError { case EntityTooLarge(i) => i } must returnValue(3)
+        .handleError { case EntityTooLarge(i) => i } must returnValue(3L)
     }
   }
 }

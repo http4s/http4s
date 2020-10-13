@@ -72,7 +72,8 @@ class HeaderSpec extends Http4sSpec {
       h.render(new StringWriter << "\r\n")
         .result
         .getBytes(ISO_8859_1)
-        .length must_== h.renderedLength
+        .length
+        .toLong must_== h.renderedLength
     }
   }
 }
