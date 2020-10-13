@@ -23,14 +23,13 @@ class MultipartSpec extends Specification {
   val url = uri"https://example.com/path/to/some/where"
 
   implicit def partIOEq: Eq[Part[IO]] =
-    Eq.instance[Part[IO]] {
-      case (a, b) =>
-        a.headers === b.headers && {
-          for {
-            abv <- a.body.compile.toVector
-            bbv <- b.body.compile.toVector
-          } yield abv === bbv
-        }.unsafeRunSync()
+    Eq.instance[Part[IO]] { case (a, b) =>
+      a.headers === b.headers && {
+        for {
+          abv <- a.body.compile.toVector
+          bbv <- b.body.compile.toVector
+        } yield abv === bbv
+      }.unsafeRunSync()
     }
 
   implicit def multipartIOEq: Eq[Multipart[IO]] =
@@ -55,9 +54,8 @@ class MultipartSpec extends Specification {
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value.unsafeRunSync()
 
-        result must beRight.like {
-          case mp =>
-            mp === multipart
+        result must beRight.like { case mp =>
+          mp === multipart
         }
       }
 
@@ -72,9 +70,8 @@ class MultipartSpec extends Specification {
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value.unsafeRunSync()
 
-        result must beRight.like {
-          case mp =>
-            mp === multipart
+        result must beRight.like { case mp =>
+          mp === multipart
         }
       }
 
@@ -95,9 +92,8 @@ class MultipartSpec extends Specification {
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
         val result = decoded.value.unsafeRunSync()
 
-        result must beRight.like {
-          case mp =>
-            mp === multipart
+        result must beRight.like { case mp =>
+          mp === multipart
         }
       }
 

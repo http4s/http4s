@@ -17,8 +17,7 @@ import org.http4s.headers.{Host, Location, `Content-Type`, `X-Forwarded-Proto`}
 
 import org.log4s.getLogger
 
-/**
-  * [[Middleware]] to redirect http traffic to https.
+/** [[Middleware]] to redirect http traffic to https.
   * Inspects `X-Forwarded-Proto` header and if it is set to `http`,
   * redirects to `Host` with same URL with https schema; otherwise does nothing.
   * This middleware is useful when a service is deployed behind a load balancer

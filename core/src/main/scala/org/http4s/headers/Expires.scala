@@ -15,8 +15,7 @@ object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
     HttpHeaderParser.EXPIRES(s)
 }
 
-/**
-  * A Response header that _gives the date/time after which the response is considered stale_.
+/** A Response header that _gives the date/time after which the response is considered stale_.
   *
   * The HTTP RFCs indicate that Expires should be in the range of now to 1 year in the future.
   * However, it is a usual practice to set it to the past of far in the future

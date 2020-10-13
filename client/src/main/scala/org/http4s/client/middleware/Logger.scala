@@ -12,8 +12,7 @@ import cats.effect._
 import fs2.Stream
 import org.typelevel.ci.CIString
 
-/**
-  * Simple Middleware for Logging All Requests and Responses
+/** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
   def apply[F[_]: Concurrent](

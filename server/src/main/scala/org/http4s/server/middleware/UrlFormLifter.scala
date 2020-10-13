@@ -26,8 +26,8 @@ object UrlFormLifter {
       strictDecode: Boolean = false): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       def addUrlForm(form: UrlForm): F[Response[G]] = {
-        val flatForm = form.values.toVector.flatMap {
-          case (k, vs) => vs.toVector.map(v => (k, Some(v)))
+        val flatForm = form.values.toVector.flatMap { case (k, vs) =>
+          vs.toVector.map(v => (k, Some(v)))
         }
         val params = req.uri.query.toVector ++ flatForm: Vector[(String, Option[String])]
         val newQuery = Query(params: _*)

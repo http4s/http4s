@@ -28,8 +28,8 @@ private[parser] trait ZipkinHeader {
           capture(16.times(HexDigit)) ~
             optional(capture(16.times(HexDigit))) ~
             EOL ~> { (idMsb: String, idLsb: Option[String]) =>
-            `X-B3-TraceId`(idStringToLong(idMsb), idLsb.map(idStringToLong))
-          }
+              `X-B3-TraceId`(idStringToLong(idMsb), idLsb.map(idStringToLong))
+            }
         }
     }.parse
 
@@ -69,8 +69,8 @@ private[parser] trait ZipkinHeader {
         rule {
           capture("0" | "1") ~!~
             EOL ~> { (s: String) =>
-            `X-B3-Sampled`(s == "1")
-          }
+              `X-B3-Sampled`(s == "1")
+            }
         }
     }.parse
 }

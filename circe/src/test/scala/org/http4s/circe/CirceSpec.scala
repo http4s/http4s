@@ -76,7 +76,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     }
 
     "write compact JSON" in {
-      writeToString(json) must_== ("""{"test":"CirceSupport"}""")
+      writeToString(json) must_== """{"test":"CirceSupport"}"""
     }
 
     "write JSON according to custom encoders" in {
@@ -101,7 +101,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     }
 
     "write compact JSON" in {
-      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== ("""{"bar":42}""")
+      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== """{"bar":42}"""
     }
 
     "write JSON according to custom encoders" in {
@@ -131,7 +131,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     }
 
     "write compact JSON" in {
-      writeToString(jsons) must_== ("""[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""")
+      writeToString(jsons) must_== """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]"""
     }
 
     "write JSON according to custom encoders" in {
@@ -165,9 +165,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
     }
 
     "write compact JSON" in {
-      writeToString(foos)(streamJsonArrayEncoderOf[IO, Foo]) must_== (
+      writeToString(foos)(streamJsonArrayEncoderOf[IO, Foo]) must_==
         """[{"bar":42},{"bar":350}]"""
-      )
     }
 
     "write JSON according to custom encoders" in {
@@ -312,8 +311,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       val decoder = circeInstanceAllowingDuplicateKeys.jsonOf[IO, Foo]
       val result = decoder.decode(req, true).value.unsafeRunSync()
 
-      result must beRight.like {
-        case Foo(2) => ok
+      result must beRight.like { case Foo(2) =>
+        ok
       }
     }
     "should should error out when parser does not allow duplicate keys" in {
@@ -345,8 +344,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
       val result = decoder.decode(req, true).value.unsafeRunSync()
 
-      result must beLeft.like {
-        case _: MalformedMessageBodyFailure => ok
+      result must beLeft.like { case _: MalformedMessageBodyFailure =>
+        ok
       }
     }
 
@@ -357,8 +356,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
       val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
       val result = decoder.decode(req, true).value.unsafeRunSync()
 
-      result must beLeft.like {
-        case _: InvalidMessageBodyFailure => ok
+      result must beLeft.like { case _: InvalidMessageBodyFailure =>
+        ok
       }
     }
   }

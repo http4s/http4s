@@ -25,8 +25,7 @@ import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-/**
-  * @param sslContext Some custom `SSLContext`, or `None` if the
+/** @param sslContext Some custom `SSLContext`, or `None` if the
   * default SSL context is to be lazily instantiated.
   */
 sealed abstract class BlazeClientBuilder[F[_]] private (

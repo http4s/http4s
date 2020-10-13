@@ -30,8 +30,7 @@ import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
 import scala.concurrent.ExecutionContext
 
-/**
-  * Common stack for http4s' own specs.
+/** Common stack for http4s' own specs.
   *
   * Not published in testing's main, because it doesn't depend on specs2.
   */
@@ -73,18 +72,16 @@ trait Http4sSpec
       f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
     addBreak
-    addFragments(Fragments.foreach(props.properties.toList) {
-      case (name, prop) =>
-        Fragments(name in check(prop, p, f))
+    addFragments(Fragments.foreach(props.properties.toList) { case (name, prop) =>
+      Fragments(name in check(prop, p, f))
     })
   }
 
   def checkAll(
       props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"${props.name} must satisfy"))
-    addFragments(Fragments.foreach(props.properties.toList) {
-      case (name, prop) =>
-        Fragments(name in check(prop, p, f))
+    addFragments(Fragments.foreach(props.properties.toList) { case (name, prop) =>
+      Fragments(name in check(prop, p, f))
     })
   }
 
@@ -105,9 +102,8 @@ trait Http4sSpec
     r match {
       case Resource.Allocate(alloc) =>
         alloc
-          .map {
-            case (a, release) =>
-              fs(a).append(step(release(ExitCase.Completed).unsafeRunSync()))
+          .map { case (a, release) =>
+            fs(a).append(step(release(ExitCase.Completed).unsafeRunSync()))
           }
           .unsafeRunSync()
       case Resource.Bind(r, f) =>

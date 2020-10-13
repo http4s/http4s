@@ -13,8 +13,7 @@ import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
 import scala.util.control.NoStackTrace
 
-/**
-  * Client middleware for enabling gzip.
+/** Client middleware for enabling gzip.
   */
 object GZip {
   private val supportedCompressions =

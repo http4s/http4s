@@ -27,8 +27,7 @@ trait MessageFailure extends RuntimeException {
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F]
 }
 
-/**
-  * Indicates an error parsing an HTTP [[Message]].
+/** Indicates an error parsing an HTTP [[Message]].
   *
   * @param sanitized May safely be displayed to a client to describe an error
   *                  condition.  Should not echo any part of a Request.

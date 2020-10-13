@@ -15,8 +15,7 @@ object `Content-Location` extends HeaderKey.Internal[`Content-Location`] with He
     HttpHeaderParser.CONTENT_LOCATION(s)
 }
 
-/**
-  * {{{
+/** {{{
   *   The "Content-Location" header field references a URI that can be used
   *   as an identifier for a specific resource corresponding to the
   *   representation in this message's payload

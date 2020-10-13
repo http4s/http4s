@@ -280,8 +280,8 @@ class ParsingSpec extends Specification with CatsIO {
       ).and(
         chunked must beFalse
       ).and(
-        length must beSome.like {
-          case l => l must_=== 11L
+        length must beSome.like { case l =>
+          l must_=== 11L
         }
       )
 
@@ -302,8 +302,8 @@ class ParsingSpec extends Specification with CatsIO {
 
       val headers = Parser.HeaderP
         .parseHeaders(byteStream, defaultMaxHeaderLength, None)
-        .flatMap {
-          case (headers, _, _, _) => Pull.output1(headers)
+        .flatMap { case (headers, _, _, _) =>
+          Pull.output1(headers)
         }
         .stream
         .compile

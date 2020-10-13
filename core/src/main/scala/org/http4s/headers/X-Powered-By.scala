@@ -7,8 +7,7 @@
 package org.http4s
 package headers
 
-/**
-  * Non-Standard Http Header, which is often added to a Response
+/** Non-Standard Http Header, which is often added to a Response
   * to indicate that the response was built with a certain scripting
   * technology, such as "ASP".
   *

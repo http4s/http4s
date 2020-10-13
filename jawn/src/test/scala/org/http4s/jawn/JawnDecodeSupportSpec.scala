@@ -19,11 +19,11 @@ trait JawnDecodeSupportSpec[J] extends Http4sSpec {
       }
 
       testErrors(decoder)(
-        emptyBody = {
-          case MalformedMessageBodyFailure("Invalid JSON: empty body", _) => ok
+        emptyBody = { case MalformedMessageBodyFailure("Invalid JSON: empty body", _) =>
+          ok
         },
-        parseError = {
-          case MalformedMessageBodyFailure("Invalid JSON", _) => ok
+        parseError = { case MalformedMessageBodyFailure("Invalid JSON", _) =>
+          ok
         }
       )
     }

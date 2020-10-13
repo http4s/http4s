@@ -102,8 +102,8 @@ class ResourceServiceBuilder[F[_]] private (
                 )
               }
               .semiflatMap(cacheStrategy.cache(request.pathInfo, _))
-              .recoverWith {
-                case BadTraversal => OptionT.some(Response(Status.BadRequest))
+              .recoverWith { case BadTraversal =>
+                OptionT.some(Response(Status.BadRequest))
               }
           case _ => OptionT.none
         })
@@ -180,8 +180,8 @@ object ResourceService {
                 )
               }
               .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-              .recoverWith {
-                case BadTraversal => OptionT.some(Response(Status.BadRequest))
+              .recoverWith { case BadTraversal =>
+                OptionT.some(Response(Status.BadRequest))
               }
           case _ => OptionT.none
         })

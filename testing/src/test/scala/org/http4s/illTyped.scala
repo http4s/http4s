@@ -9,8 +9,7 @@ package org.http4s
 import java.util.regex.Pattern
 import scala.reflect.macros.{ParseException, TypecheckException, blackbox}
 
-/**
-  * A utility which ensures that a code fragment does not typecheck.
+/** A utility which ensures that a code fragment does not typecheck.
   *
   * Credit: Stefan Zeiger (@StefanZeiger)
   */

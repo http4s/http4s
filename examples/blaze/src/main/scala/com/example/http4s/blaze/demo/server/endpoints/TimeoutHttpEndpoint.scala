@@ -15,9 +15,8 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
 class TimeoutHttpEndpoint[F[_]](implicit F: Async[F], timer: Timer[F]) extends Http4sDsl[F] {
-  val service: HttpRoutes[F] = HttpRoutes.of {
-    case GET -> Root / ApiVersion / "timeout" =>
-      val randomDuration = FiniteDuration(Random.nextInt(3) * 1000L, TimeUnit.MILLISECONDS)
-      timer.sleep(randomDuration) *> Ok("delayed response")
+  val service: HttpRoutes[F] = HttpRoutes.of { case GET -> Root / ApiVersion / "timeout" =>
+    val randomDuration = FiniteDuration(Random.nextInt(3) * 1000L, TimeUnit.MILLISECONDS)
+    timer.sleep(randomDuration) *> Ok("delayed response")
   }
 }

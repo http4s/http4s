@@ -11,8 +11,7 @@ import cats.implicits._
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
 
-/**
-  * Instances of [[QueryParamDecoder]] and [[QueryParamEncoder]]
+/** Instances of [[QueryParamDecoder]] and [[QueryParamEncoder]]
   * must satisfy the following properties
   */
 object QueryParamCodecLaws {

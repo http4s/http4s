@@ -33,14 +33,12 @@ trait ConnectionManager[F[_], A <: Connection[F]] {
   /** Get a connection for the provided request key. */
   def borrow(requestKey: RequestKey): F[NextConnection]
 
-  /**
-    * Release a connection.  The connection manager may choose to keep the connection for
+  /** Release a connection.  The connection manager may choose to keep the connection for
     * subsequent calls to [[borrow]], or dispose of the connection.
     */
   def release(connection: A): F[Unit]
 
-  /**
-    * Invalidate a connection, ensuring that its resources are freed.  The connection
+  /** Invalidate a connection, ensuring that its resources are freed.  The connection
     * manager may not return this connection on another borrow.
     */
   def invalidate(connection: A): F[Unit]

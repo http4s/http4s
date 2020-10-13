@@ -78,15 +78,14 @@ class WebjarServiceBuilder[F[_]] private (
           .subflatMap(toWebjarAsset)
           .filter(webjarAssetFilter)
           .flatMap(serveWebjarAsset(blocker, cacheStrategy, classLoader, request, preferGzipped)(_))
-          .recover {
-            case BadTraversal => Response(Status.BadRequest)
+          .recover { case BadTraversal =>
+            Response(Status.BadRequest)
           }
       case _ => OptionT.none
     }
   }
 
-  /**
-    * Returns an Option(WebjarAsset) for a Request, or None if it couldn't be mapped
+  /** Returns an Option(WebjarAsset) for a Request, or None if it couldn't be mapped
     *
     * @param p The request path without the prefix
     * @return The WebjarAsset, or None if it couldn't be mapped
@@ -125,15 +124,13 @@ object WebjarServiceBuilder {
       classLoader = None,
       preferGzipped = false)
 
-  /**
-    * A filter callback for Webjar asset
+  /** A filter callback for Webjar asset
     * It's a function that takes the WebjarAsset and returns whether or not the asset
     * should be served to the client.
     */
   type WebjarAssetFilter = WebjarAsset => Boolean
 
-  /**
-    * Contains the information about an asset inside a webjar
+  /** Contains the information about an asset inside a webjar
     *
     * @param library The webjar's library name
     * @param version The version of the webjar
@@ -141,8 +138,7 @@ object WebjarServiceBuilder {
     */
   final case class WebjarAsset(library: String, version: String, asset: String) {
 
-    /**
-      * Constructs a full path for an asset inside a webjar asset
+    /** Constructs a full path for an asset inside a webjar asset
       *
       * @return The full name in the Webjar
       */
@@ -150,8 +146,7 @@ object WebjarServiceBuilder {
       s"/META-INF/resources/webjars/$library/$version/$asset"
   }
 
-  /**
-    * Returns an asset that matched the request if it's found in the webjar path
+  /** Returns an asset that matched the request if it's found in the webjar path
     *
     * @param webjarAsset The WebjarAsset
     * @param config The configuration
@@ -189,8 +184,7 @@ object WebjarService {
       filter: WebjarAssetFilter = _ => true,
       cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
 
-  /**
-    * Contains the information about an asset inside a webjar
+  /** Contains the information about an asset inside a webjar
     *
     * @param library The webjar's library name
     * @param version The version of the webjar
@@ -198,8 +192,7 @@ object WebjarService {
     */
   final case class WebjarAsset(library: String, version: String, asset: String) {
 
-    /**
-      * Constructs a full path for an asset inside a webjar asset
+    /** Constructs a full path for an asset inside a webjar asset
       *
       * @return The full name in the Webjar
       */
@@ -207,15 +200,13 @@ object WebjarService {
       s"/META-INF/resources/webjars/$library/$version/$asset"
   }
 
-  /**
-    * A filter callback for Webjar asset
+  /** A filter callback for Webjar asset
     * It's a function that takes the WebjarAsset and returns whether or not the asset
     * should be served to the client.
     */
   type WebjarAssetFilter = WebjarAsset => Boolean
 
-  /**
-    * Creates a new [[HttpRoutes]] that will filter the webjars
+  /** Creates a new [[HttpRoutes]] that will filter the webjars
     *
     * @param config The configuration for this service
     * @return The HttpRoutes
@@ -239,15 +230,14 @@ object WebjarService {
           .subflatMap(toWebjarAsset)
           .filter(config.filter)
           .flatMap(serveWebjarAsset(config, request)(_))
-          .recover {
-            case BadTraversal => Response(Status.BadRequest)
+          .recover { case BadTraversal =>
+            Response(Status.BadRequest)
           }
       case _ => OptionT.none
     }
   }
 
-  /**
-    * Returns an Option(WebjarAsset) for a Request, or None if it couldn't be mapped
+  /** Returns an Option(WebjarAsset) for a Request, or None if it couldn't be mapped
     *
     * @param p The request path without the prefix
     * @return The WebjarAsset, or None if it couldn't be mapped
@@ -263,8 +253,7 @@ object WebjarService {
       None
   }
 
-  /**
-    * Returns an asset that matched the request if it's found in the webjar path
+  /** Returns an asset that matched the request if it's found in the webjar path
     *
     * @param webjarAsset The WebjarAsset
     * @param config The configuration

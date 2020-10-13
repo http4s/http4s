@@ -18,8 +18,8 @@ import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
 
 class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
-  val app = HttpApp[IO] {
-    case r => Response[IO](Ok).withEntity(r.body).pure[IO]
+  val app = HttpApp[IO] { case r =>
+    Response[IO](Ok).withEntity(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpApp(app)
 
@@ -37,8 +37,8 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
           client.run(req).use(IO.pure).flatMap(_.as[String])
         }
         .attempt
-        .unsafeRunSync() must beLeft.like {
-        case e: IOException => e.getMessage == "response was disposed"
+        .unsafeRunSync() must beLeft.like { case e: IOException =>
+        e.getMessage == "response was disposed"
       }
     }
 
@@ -53,8 +53,8 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
     }
 
     "include a Host header with a port when the port is non-standard" in {
-      val hostClient = Client.fromHttpApp(HttpApp[IO] {
-        case r => Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+      val hostClient = Client.fromHttpApp(HttpApp[IO] { case r =>
+        Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
       })
 
       hostClient
@@ -63,8 +63,8 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
     }
 
     "cooperate with the VirtualHost server middleware" in {
-      val routes = HttpRoutes.of[IO] {
-        case r => Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+      val routes = HttpRoutes.of[IO] { case r =>
+        Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
       }
 
       val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
@@ -78,8 +78,8 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
 
       Deferred[IO, Unit]
         .flatMap { cancelSignal =>
-          val routes = HttpRoutes.of[IO] {
-            case _ => cancelSignal.complete(()) >> IO.never
+          val routes = HttpRoutes.of[IO] { case _ =>
+            cancelSignal.complete(()) >> IO.never
           }
 
           val cancelClient = Client.fromHttpApp(routes.orNotFound)

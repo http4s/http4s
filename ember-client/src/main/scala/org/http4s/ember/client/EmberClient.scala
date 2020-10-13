@@ -17,8 +17,7 @@ final class EmberClient[F[_]] private[client] (
 )(implicit F: Bracket[F, Throwable])
     extends DefaultClient[F] {
 
-  /**
-    * The reason for this extra class. This allows you to see the present state
+  /** The reason for this extra class. This allows you to see the present state
     * of the underlying Pool, without having access to the pool itself.
     *
     * The first element represents total connections in the pool, the second
