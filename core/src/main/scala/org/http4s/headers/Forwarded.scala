@@ -54,15 +54,12 @@ object Forwarded
         checkPortNum(num).toLeft(C(num))
 
       def unapply(port: Port): Option[Int] =
-        PartialFunction.condOpt(port) {
-          case C(num) => num
-        }
+        PartialFunction.condOpt(port) { case C(num) => num }
     }
 
     sealed trait Obfuscated extends Name with Port { _: Product =>
 
-      /**
-        * Obfuscated value must start with '_' (underscore) symbol.
+      /** Obfuscated value must start with '_' (underscore) symbol.
         */
       def value: String
     }
@@ -131,8 +128,7 @@ object Forwarded
     override def render(writer: Writer): writer.type = renderElement(writer, this)
   }
 
-  /**
-    * Enables the following construction syntax (while preserving type safety and consistency):
+  /** Enables the following construction syntax (while preserving type safety and consistency):
     * {{{
     *   Element
     *     .withBy(<by-node>)

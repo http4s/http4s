@@ -51,7 +51,9 @@ private[http4s] trait ForwardedModelParsing { model: Forwarded.type =>
 
     protected final def ModelNodeObfuscated: Rule1[model.Node.Obfuscated] =
       rule {
-        capture('_' ~ oneOrMore(AlphaNum | '.' | '_' | '-')) ~> { model.Node.Obfuscated(_) }
+        capture('_' ~ oneOrMore(AlphaNum | '.' | '_' | '-')) ~> { str =>
+          model.Node.Obfuscated(str)
+        }
       }
 
     protected final def ModelHost: Rule1[model.Host] =

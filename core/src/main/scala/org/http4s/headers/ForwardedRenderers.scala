@@ -14,8 +14,7 @@ import org.http4s.Uri
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderer, Writer}
 
-/**
-  * Renderers for the [[Forwarded]] header models.
+/** Renderers for the [[Forwarded]] header models.
   */
 private[http4s] trait ForwardedRenderers {
   import Forwarded._

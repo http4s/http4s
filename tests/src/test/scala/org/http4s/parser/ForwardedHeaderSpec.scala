@@ -39,58 +39,58 @@ class ForwardedHeaderSpec extends Specification with Tables {
           "proto=http" ! Element.withProto(scheme"http") |
           "proto=\"https\"" ! Element.withProto(scheme"https") |
           "prOtO=gopher" ! Element.withProto(scheme"gopher") |> { (headerStr, parsedMod) =>
-          parse(headerStr) must beRight((_: Forwarded).values ==== NEL(parsedMod))
-        }
+            parse(headerStr) must beRight((_: Forwarded).values ==== NEL(parsedMod))
+          }
       }
       "single compound elements" in {
         "Header String" | "Parsed Model" |
           "by=_abra;for=_kadabra" !
-            Element.withBy(uri"//_abra").withFor(uri"//_kadabra") |
+          Element.withBy(uri"//_abra").withFor(uri"//_kadabra") |
           "by=_abra;for=_kadabra;host=http4s.org" !
-            Element.withBy(uri"//_abra").withFor(uri"//_kadabra").withHost(uri"//http4s.org") |
+          Element.withBy(uri"//_abra").withFor(uri"//_kadabra").withHost(uri"//http4s.org") |
           "by=_abra;for=_kadabra;host=\"http4s.org\";proto=http" !
-            Element
-              .withBy(uri"//_abra")
-              .withFor(uri"//_kadabra")
-              .withHost(uri"//http4s.org")
-              .withProto(scheme"http") |
+          Element
+            .withBy(uri"//_abra")
+            .withFor(uri"//_kadabra")
+            .withHost(uri"//http4s.org")
+            .withProto(scheme"http") |
           "for=_kadabra;by=_abra;proto=http;host=http4s.org" !
-            Element
-              .withBy(uri"//_abra")
-              .withFor(uri"//_kadabra")
-              .withHost(uri"//http4s.org")
-              .withProto(scheme"http") |
+          Element
+            .withBy(uri"//_abra")
+            .withFor(uri"//_kadabra")
+            .withHost(uri"//http4s.org")
+            .withProto(scheme"http") |
           "host=http4s.org;for=_kadabra;proto=http;by=_abra" !
-            Element
-              .withBy(uri"//_abra")
-              .withFor(uri"//_kadabra")
-              .withHost(uri"//http4s.org")
-              .withProto(scheme"http") |> { (headerStr, parsedMod) =>
-          parse(headerStr) must beRight((_: Forwarded).values ==== NEL(parsedMod))
-        }
+          Element
+            .withBy(uri"//_abra")
+            .withFor(uri"//_kadabra")
+            .withHost(uri"//http4s.org")
+            .withProto(scheme"http") |> { (headerStr, parsedMod) =>
+            parse(headerStr) must beRight((_: Forwarded).values ==== NEL(parsedMod))
+          }
       }
       "multi elements" in {
         "Header String" | "Parsed Model" |
           "by=_foo, for=_bar , host=foo.bar ,proto=foobar" !
-            NEL(
-              Element.withBy(uri"//_foo"),
-              Element.withFor(uri"//_bar"),
-              Element.withHost(uri"//foo.bar"),
-              Element.withProto(scheme"foobar")
-            ) |
+          NEL(
+            Element.withBy(uri"//_foo"),
+            Element.withFor(uri"//_bar"),
+            Element.withHost(uri"//foo.bar"),
+            Element.withProto(scheme"foobar")
+          ) |
           "by=_foo;for=_bar , host=foo.bar;proto=foobar" !
-            NEL(
-              Element.withBy(uri"//_foo").withFor(uri"//_bar"),
-              Element.withHost(uri"//foo.bar").withProto(scheme"foobar")
-            ) |
+          NEL(
+            Element.withBy(uri"//_foo").withFor(uri"//_bar"),
+            Element.withHost(uri"//foo.bar").withProto(scheme"foobar")
+          ) |
           "by=_foo ,for=_bar;host=foo.bar, proto=foobar" !
-            NEL(
-              Element.withBy(uri"//_foo"),
-              Element.withFor(uri"//_bar").withHost(uri"//foo.bar"),
-              Element.withProto(scheme"foobar")
-            ) |> { (headerStr, parsedMod) =>
-          parse(headerStr) must beRight((_: Forwarded).values ==== parsedMod)
-        }
+          NEL(
+            Element.withBy(uri"//_foo"),
+            Element.withFor(uri"//_bar").withHost(uri"//foo.bar"),
+            Element.withProto(scheme"foobar")
+          ) |> { (headerStr, parsedMod) =>
+            parse(headerStr) must beRight((_: Forwarded).values ==== parsedMod)
+          }
       }
     }
     "fail to parse" >> {
@@ -142,8 +142,8 @@ object ForwardedHeaderSpec {
       uri.port.flatMap(Node.Port.fromInt(_).toOption).orElse {
         // Convention: use the URI fragment to define an obfuscated port.
         uri.fragment.flatMap {
-          PartialFunction.condOpt(_) {
-            case ObfuscatedRe(obfuscatedPort) => Node.Obfuscated(obfuscatedPort)
+          PartialFunction.condOpt(_) { case ObfuscatedRe(obfuscatedPort) =>
+            Node.Obfuscated(obfuscatedPort)
           }
         }
       }

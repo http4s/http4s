@@ -82,9 +82,7 @@ class ForwardedRenderersSpec
       val rendered = Renderer.renderString(elem)
       rendered must not be empty
 
-      Forwarded.parse(rendered) must beRight.like {
-        case Forwarded(NonEmptyList(`elem`, Nil)) => ok
-      }
+      Forwarded.parse(rendered) must beRight(Forwarded(NonEmptyList(elem, Nil)))
     }
   }
   "Forwarded" in {

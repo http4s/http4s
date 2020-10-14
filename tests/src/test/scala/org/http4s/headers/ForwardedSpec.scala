@@ -37,15 +37,15 @@ class ForwardedSpec
           "[1:2:3::4:5:6]" ! Name(1, 2, 3, 0, 0, 4, 5, 6) |
           "_a.b1-r2a_" ! Obfuscated("_a.b1-r2a_") |
           "unknown" ! Name.Unknown |> { (nameStr, parsedName) =>
-          Node.fromString(nameStr) must beRight(Node(parsedName))
+            Node.fromString(nameStr) must beRight(Node(parsedName))
 
-          "Node Port String" | "Parsed Node Port" |
-            "000" ! Port(0) |
-            "567" ! Port(567) |
-            "__k3a.d4ab5.r6a-" ! Obfuscated("__k3a.d4ab5.r6a-") |> { (portStr, parsedPort) =>
-            Node.fromString(s"$nameStr:$portStr") must beRight(Node(parsedName, parsedPort))
+            "Node Port String" | "Parsed Node Port" |
+              "000" ! Port(0) |
+              "567" ! Port(567) |
+              "__k3a.d4ab5.r6a-" ! Obfuscated("__k3a.d4ab5.r6a-") |> { (portStr, parsedPort) =>
+                Node.fromString(s"$nameStr:$portStr") must beRight(Node(parsedName, parsedPort))
+              }
           }
-        }
       }
       "fail to parse invalid node definitions" in {
         val invalidNodes = Seq(
