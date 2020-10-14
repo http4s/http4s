@@ -70,9 +70,7 @@ private[http4s] trait ForwardedRenderers {
           writer << name << '='
 
           val rendered = Renderer.renderString(value)
-          // TODO: Rfc2616BasicRules.isToken should be used instead, but as for now it works not as expected.
-          //       See: https://gitter.im/http4s/http4s-dev?at=5f55d832ec534f584fea2572
-          if (Rfc2616BasicRules.token(rendered).getOrElse(null) == rendered)
+          if (Rfc2616BasicRules.isToken(rendered))
             writer << rendered
           else
             writer <<# rendered // quote non-token values

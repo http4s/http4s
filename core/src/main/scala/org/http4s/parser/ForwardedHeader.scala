@@ -31,10 +31,6 @@ private[parser] trait ForwardedHeader {
         }
       }
 
-    // TODO: remove this override once the original `ListSet` gets fixed.
-    //       See also #3657.
-    override def ListSep: Rule0 = rule(OptWS ~ ',' ~ OptWS)
-
     private type MaybeElement = Option[Forwarded.Element]
 
     private def ELEMENT: Rule1[Forwarded.Element] =
