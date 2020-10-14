@@ -59,10 +59,17 @@ private[http4s] trait ArbitraryInstances {
 
   val genCrLf: Gen[String] = const("\r\n")
 
-  val genRightLws: Gen[String] = nonEmptyListOf(oneOf(lws)).map(_.mkString)
+  val genRightLws: Gen[String] =
+    // No need to produce very long whitespaces
+    resize(5, nonEmptyListOf(oneOf(lws)).map(_.mkString))
 
   val genLws: Gen[String] =
     oneOf(sequence[List[String], String](List(genCrLf, genRightLws)).map(_.mkString), genRightLws)
+
+  val genOptWs: Gen[String] = option(genLws).map(_.orEmpty)
+
+  val genListSep: Gen[String] =
+    sequence[List[String], String](List(genOptWs, const(","), genOptWs)).map(_.mkString)
 
   val octets: List[Char] = ('\u0000' to '\u00FF').toList
 
