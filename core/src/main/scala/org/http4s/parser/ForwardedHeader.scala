@@ -63,7 +63,7 @@ private[parser] trait ForwardedHeader {
       CreateOrAssignParam(
         "by",
         Forwarded.Node.fromString,
-        Forwarded.Element.withBy,
+        Forwarded.Element.fromBy,
         _.`by`,
         _.withBy)
 
@@ -71,7 +71,7 @@ private[parser] trait ForwardedHeader {
       CreateOrAssignParam(
         "for",
         Forwarded.Node.fromString,
-        Forwarded.Element.withFor,
+        Forwarded.Element.fromFor,
         _.`for`,
         _.withFor)
 
@@ -79,7 +79,7 @@ private[parser] trait ForwardedHeader {
       CreateOrAssignParam(
         "host",
         Forwarded.Host.fromString,
-        Forwarded.Element.withHost,
+        Forwarded.Element.fromHost,
         _.`host`,
         _.withHost)
 
@@ -87,7 +87,7 @@ private[parser] trait ForwardedHeader {
       CreateOrAssignParam(
         "proto",
         UriModel.Scheme.fromString,
-        Forwarded.Element.withProto,
+        Forwarded.Element.fromProto,
         _.`proto`,
         _.withProto)
 

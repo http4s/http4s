@@ -57,43 +57,34 @@ object Forwarded
         PartialFunction.condOpt(port) { case C(num) => num }
     }
 
-    sealed trait Obfuscated extends Name with Port { _: Product =>
+    /** Opaque type for obfuscated identifiers.
+      *
+      * @param value obfuscated identifier with leading '_' (underscore) symbol.
+      *
+      * @see [[https://tools.ietf.org/html/rfc7239#section-6.3]]
+      */
+    sealed abstract case class Obfuscated private (value: String) extends Name with Port
 
-      /** Obfuscated value must start with '_' (underscore) symbol.
-        */
-      def value: String
-    }
     object Obfuscated {
-      private[this] final case class C(value: String) extends Obfuscated {
-        override def productPrefix: String = "Obfuscated"
-      }
-
       def fromString(s: String): ParseResult[Obfuscated] =
         new ModelNodeObfuscatedParser(s).parse
 
-      def unapply(o: Obfuscated): Option[String] = Some(o.value)
-
-      // Referenced by model parsers.
-      private[http4s] def apply(s: String): Obfuscated = C(s)
+      /** Unsafe constructor for internal use only. */
+      private[http4s] def apply(s: String): Obfuscated = new Obfuscated(s) {}
     }
 
     def fromString(s: String): ParseResult[Node] = new ModelNodeParser(s).parse
   }
 
-  sealed trait Host { _: Product =>
-    def host: Uri.Host
-    def port: Option[Int]
-  }
+  sealed abstract case class Host private (host: Uri.Host, port: Option[Int])
 
   object Host {
-    private[this] final case class C(host: Uri.Host, port: Option[Int]) extends Host {
-      override def productPrefix: String = "Host"
-    }
+    private[this] def apply(host: Uri.Host, port: Option[Int]) = new Host(host, port) {}
 
-    def apply(uriHost: Uri.Host): Host = C(uriHost, None)
+    def apply(uriHost: Uri.Host): Host = apply(uriHost, None)
 
     def from(uriHost: Uri.Host, port: Int): ParseResult[Host] =
-      checkPortNum(port).toLeft(C(uriHost, Some(port)))
+      checkPortNum(port).toLeft(apply(uriHost, Some(port)))
 
     def from(uriHost: Uri.Host, port: Option[Int]): ParseResult[Host] =
       port.fold(apply(uriHost).asRight[ParseFailure])(from(uriHost, _))
@@ -102,8 +93,6 @@ object Forwarded
       uri.host.toRight(Failures.missingHost(uri)).flatMap(from(_, uri.port))
 
     def fromString(s: String): ParseResult[Host] = new ModelHostParser(s).parse
-
-    def unapply(host: Host): Option[(Uri.Host, Option[Int])] = Some((host.host, host.port))
   }
 
   type Proto = Uri.Scheme
@@ -120,18 +109,13 @@ object Forwarded
     def withHost(value: Host): Element
     def withProto(value: Proto): Element
 
-    def withoutBy: Element
-    def withoutFor: Element
-    def withoutHost: Element
-    def withoutProto: Element
-
     override def render(writer: Writer): writer.type = renderElement(writer, this)
   }
 
-  /** Enables the following construction syntax (while preserving type safety and consistency):
+  /** Enables the following construction syntax (which preserves type safety and consistency):
     * {{{
     *   Element
-    *     .withBy(<by-node>)
+    *     .fromBy(<by-node>)
     *     .withFor(<for-node>)
     *     .withHost(<host>)
     *     .withProto(<schema>)`
@@ -152,18 +136,13 @@ object Forwarded
       def withHost(value: Host): Element = copy(`host` = Some(value))
       def withProto(value: Proto): Element = copy(`proto` = Some(value))
 
-      def withoutBy: Element = copy(`by` = None)
-      def withoutFor: Element = copy(`for` = None)
-      def withoutHost: Element = copy(`host` = None)
-      def withoutProto: Element = copy(`proto` = None)
-
       override def productPrefix: String = "Element"
     }
 
-    def withBy(value: Node): Element = C(`by` = Some(value))
-    def withFor(value: Node): Element = C(`for` = Some(value))
-    def withHost(value: Host): Element = C(`host` = Some(value))
-    def withProto(value: Proto): Element = C(`proto` = Some(value))
+    def fromBy(value: Node): Element = C(`by` = Some(value))
+    def fromFor(value: Node): Element = C(`for` = Some(value))
+    def fromHost(value: Host): Element = C(`host` = Some(value))
+    def fromProto(value: Proto): Element = C(`proto` = Some(value))
 
     def unapply(elem: Element): Option[(Option[Node], Option[Node], Option[Host], Option[Proto])] =
       Some((elem.`by`, elem.`for`, elem.`host`, elem.`proto`))

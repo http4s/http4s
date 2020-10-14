@@ -81,10 +81,10 @@ private[http4s] trait ForwardedArbitraryInstances
     Arbitrary(
       Gen
         .atLeastOne(
-          Arbitrary.arbitrary[Node].map(Element.withFor),
-          Arbitrary.arbitrary[Node].map(Element.withBy),
-          Arbitrary.arbitrary[Host].map(Element.withHost),
-          Arbitrary.arbitrary[Proto].map(Element.withProto)
+          Arbitrary.arbitrary[Node].map(Element.fromFor),
+          Arbitrary.arbitrary[Node].map(Element.fromBy),
+          Arbitrary.arbitrary[Host].map(Element.fromHost),
+          Arbitrary.arbitrary[Proto].map(Element.fromProto)
         )
         .map(_.reduceLeft[Element] {
           case (elem @ Element(None, _, _, _), Element(Some(forItem), None, None, None)) =>

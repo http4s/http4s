@@ -26,43 +26,43 @@ class ForwardedHeaderSpec extends Specification with Tables {
     "parse" >> {
       "single simple elements" in {
         "Header String" | "Parsed Model" |
-          "by=4.3.2.1" ! Element.withBy(uri"//4.3.2.1") |
-          "for=\"[1:2:0::0:3:4]:56\"" ! Element.withFor(uri"//[1:2::3:4]:56") |
-          "BY=\"_a.b-r.a_:_k.a-d._.b-r.a\"" ! Element.withBy(uri"//_a.b-r.a_#_k.a-d._.b-r.a") |
-          "for=unknown" ! Element.withFor(uri"//unknown") |
-          "by=\"unknown:451\"" ! Element.withBy(uri"//unknown:451") |
-          "For=\"unknown:__p.0_r.t-\"" ! Element.withFor(uri"//unknown#__p.0_r.t-") |
-          "host=http4s.org" ! Element.withHost(uri"//http4s.org") |
-          "hOSt=\"http4s.org:12345\"" ! Element.withHost(uri"//http4s.org:12345") |
-          "host=\"1.2.3.4:567\"" ! Element.withHost(uri"//1.2.3.4:567") |
-          "host=\"[8:7:6:5:4:3:2:1]\"" ! Element.withHost(uri"//[8:7:6:5:4:3:2:1]") |
-          "proto=http" ! Element.withProto(scheme"http") |
-          "proto=\"https\"" ! Element.withProto(scheme"https") |
-          "prOtO=gopher" ! Element.withProto(scheme"gopher") |> { (headerStr, parsedMod) =>
+          "by=4.3.2.1" ! Element.fromBy(uri"//4.3.2.1") |
+          "for=\"[1:2:0::0:3:4]:56\"" ! Element.fromFor(uri"//[1:2::3:4]:56") |
+          "BY=\"_a.b-r.a_:_k.a-d._.b-r.a\"" ! Element.fromBy(uri"//_a.b-r.a_#_k.a-d._.b-r.a") |
+          "for=unknown" ! Element.fromFor(uri"//unknown") |
+          "by=\"unknown:451\"" ! Element.fromBy(uri"//unknown:451") |
+          "For=\"unknown:__p.0_r.t-\"" ! Element.fromFor(uri"//unknown#__p.0_r.t-") |
+          "host=http4s.org" ! Element.fromHost(uri"//http4s.org") |
+          "hOSt=\"http4s.org:12345\"" ! Element.fromHost(uri"//http4s.org:12345") |
+          "host=\"1.2.3.4:567\"" ! Element.fromHost(uri"//1.2.3.4:567") |
+          "host=\"[8:7:6:5:4:3:2:1]\"" ! Element.fromHost(uri"//[8:7:6:5:4:3:2:1]") |
+          "proto=http" ! Element.fromProto(scheme"http") |
+          "proto=\"https\"" ! Element.fromProto(scheme"https") |
+          "prOtO=gopher" ! Element.fromProto(scheme"gopher") |> { (headerStr, parsedMod) =>
             parse(headerStr) must beRight((_: Forwarded).values ==== NEL(parsedMod))
           }
       }
       "single compound elements" in {
         "Header String" | "Parsed Model" |
           "by=_abra;for=_kadabra" !
-          Element.withBy(uri"//_abra").withFor(uri"//_kadabra") |
+          Element.fromBy(uri"//_abra").withFor(uri"//_kadabra") |
           "by=_abra;for=_kadabra;host=http4s.org" !
-          Element.withBy(uri"//_abra").withFor(uri"//_kadabra").withHost(uri"//http4s.org") |
+          Element.fromBy(uri"//_abra").withFor(uri"//_kadabra").withHost(uri"//http4s.org") |
           "by=_abra;for=_kadabra;host=\"http4s.org\";proto=http" !
           Element
-            .withBy(uri"//_abra")
+            .fromBy(uri"//_abra")
             .withFor(uri"//_kadabra")
             .withHost(uri"//http4s.org")
             .withProto(scheme"http") |
           "for=_kadabra;by=_abra;proto=http;host=http4s.org" !
           Element
-            .withBy(uri"//_abra")
+            .fromBy(uri"//_abra")
             .withFor(uri"//_kadabra")
             .withHost(uri"//http4s.org")
             .withProto(scheme"http") |
           "host=http4s.org;for=_kadabra;proto=http;by=_abra" !
           Element
-            .withBy(uri"//_abra")
+            .fromBy(uri"//_abra")
             .withFor(uri"//_kadabra")
             .withHost(uri"//http4s.org")
             .withProto(scheme"http") |> { (headerStr, parsedMod) =>
@@ -73,21 +73,21 @@ class ForwardedHeaderSpec extends Specification with Tables {
         "Header String" | "Parsed Model" |
           "by=_foo, for=_bar , host=foo.bar ,proto=foobar" !
           NEL(
-            Element.withBy(uri"//_foo"),
-            Element.withFor(uri"//_bar"),
-            Element.withHost(uri"//foo.bar"),
-            Element.withProto(scheme"foobar")
+            Element.fromBy(uri"//_foo"),
+            Element.fromFor(uri"//_bar"),
+            Element.fromHost(uri"//foo.bar"),
+            Element.fromProto(scheme"foobar")
           ) |
           "by=_foo;for=_bar , host=foo.bar;proto=foobar" !
           NEL(
-            Element.withBy(uri"//_foo").withFor(uri"//_bar"),
-            Element.withHost(uri"//foo.bar").withProto(scheme"foobar")
+            Element.fromBy(uri"//_foo").withFor(uri"//_bar"),
+            Element.fromHost(uri"//foo.bar").withProto(scheme"foobar")
           ) |
           "by=_foo ,for=_bar;host=foo.bar, proto=foobar" !
           NEL(
-            Element.withBy(uri"//_foo"),
-            Element.withFor(uri"//_bar").withHost(uri"//foo.bar"),
-            Element.withProto(scheme"foobar")
+            Element.fromBy(uri"//_foo"),
+            Element.fromFor(uri"//_bar").withHost(uri"//foo.bar"),
+            Element.fromProto(scheme"foobar")
           ) |> { (headerStr, parsedMod) =>
             parse(headerStr) must beRight((_: Forwarded).values ==== parsedMod)
           }
