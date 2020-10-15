@@ -27,8 +27,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       } yield {
         resp must beRight(contain("200 OK"))
 
-        count(registry, "2xx_responses", "client") must beEqualTo(1)
-        count(registry, "active_requests", "client") must beEqualTo(0)
+        count(registry, "2xx_responses", "client") must beEqualTo(1.0)
+        count(registry, "active_requests", "client") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "client") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "client") must beEqualTo(0.1)
       }
@@ -42,8 +42,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
           e must beLike { case UnexpectedStatus(Status.BadRequest) => ok }
         }
 
-        count(registry, "4xx_responses", "client") must beEqualTo(1)
-        count(registry, "active_requests", "client") must beEqualTo(0)
+        count(registry, "4xx_responses", "client") must beEqualTo(1.0)
+        count(registry, "active_requests", "client") must beEqualTo(0.0)
         count(registry, "4xx_headers_duration", "client") must beEqualTo(0.05)
         count(registry, "4xx_total_duration", "client") must beEqualTo(0.1)
       }
@@ -57,8 +57,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
           e must beLike { case UnexpectedStatus(Status.InternalServerError) => ok }
         }
 
-        count(registry, "5xx_responses", "client") must beEqualTo(1)
-        count(registry, "active_requests", "client") must beEqualTo(0)
+        count(registry, "5xx_responses", "client") must beEqualTo(1.0)
+        count(registry, "active_requests", "client") must beEqualTo(0.0)
         count(registry, "5xx_headers_duration", "client") must beEqualTo(0.05)
         count(registry, "5xx_total_duration", "client") must beEqualTo(0.1)
       }
@@ -70,8 +70,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       } yield {
         resp must beRight(contain("200 OK"))
 
-        count(registry, "2xx_responses", "client", "get") must beEqualTo(1)
-        count(registry, "active_requests", "client", "get") must beEqualTo(0)
+        count(registry, "2xx_responses", "client", "get") must beEqualTo(1.0)
+        count(registry, "active_requests", "client", "get") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "client", "get") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "client", "get") must beEqualTo(0.1)
       }
@@ -83,8 +83,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       } yield {
         resp must beRight(contain("200 OK"))
 
-        count(registry, "2xx_responses", "client", "post") must beEqualTo(1)
-        count(registry, "active_requests", "client", "post") must beEqualTo(0)
+        count(registry, "2xx_responses", "client", "post") must beEqualTo(1.0)
+        count(registry, "active_requests", "client", "post") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "client", "post") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "client", "post") must beEqualTo(0.1)
       }
@@ -96,8 +96,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       } yield {
         resp must beRight(contain("200 OK"))
 
-        count(registry, "2xx_responses", "client", "put") must beEqualTo(1)
-        count(registry, "active_requests", "client", "put") must beEqualTo(0)
+        count(registry, "2xx_responses", "client", "put") must beEqualTo(1.0)
+        count(registry, "active_requests", "client", "put") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "client", "put") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "client", "put") must beEqualTo(0.1)
       }
@@ -109,8 +109,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       } yield {
         resp must beRight(contain("200 OK"))
 
-        count(registry, "2xx_responses", "client", "delete") must beEqualTo(1)
-        count(registry, "active_requests", "client", "delete") must beEqualTo(0)
+        count(registry, "2xx_responses", "client", "delete") must beEqualTo(1.0)
+        count(registry, "active_requests", "client", "delete") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "client", "delete") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "client", "delete") must beEqualTo(0.1)
       }
@@ -124,8 +124,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
           e must beAnInstanceOf[IOException]
         }
 
-        count(registry, "errors", "client", cause = "java.io.IOException") must beEqualTo(1)
-        count(registry, "active_requests", "client") must beEqualTo(0)
+        count(registry, "errors", "client", cause = "java.io.IOException") must beEqualTo(1.0)
+        count(registry, "active_requests", "client") must beEqualTo(0.0)
       }
     }
 
@@ -137,8 +137,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
           e must beAnInstanceOf[TimeoutException]
         }
 
-        count(registry, "timeouts", "client") must beEqualTo(1)
-        count(registry, "active_requests", "client") must beEqualTo(0)
+        count(registry, "timeouts", "client") must beEqualTo(1.0)
+        count(registry, "active_requests", "client") must beEqualTo(0.0)
       }
     }
 
@@ -152,8 +152,8 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
           } yield {
             resp must beRight(contain("200 OK"))
 
-            count(registry, "2xx_responses", "client", "get", "classifier") must beEqualTo(1)
-            count(registry, "active_requests", "client", "get", "classifier") must beEqualTo(0)
+            count(registry, "2xx_responses", "client", "get", "classifier") must beEqualTo(1.0)
+            count(registry, "active_requests", "client", "get", "classifier") must beEqualTo(0.0)
             count(registry, "2xx_headers_duration", "client", "get", "classifier") must beEqualTo(
               0.05)
             count(registry, "2xx_total_duration", "client", "get", "classifier") must beEqualTo(0.1)
@@ -167,10 +167,10 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         .use { case (cr, client) => client.expect[String]("ok").as(cr) }
         .unsafeRunSync()
 
-      count(registry, "2xx_responses", "client") must beEqualTo(0)
-      count(registry, "active_requests", "client") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "client") must beEqualTo(0)
-      count(registry, "2xx_total_duration", "client") must beEqualTo(0)
+      count(registry, "2xx_responses", "client") must beEqualTo(0.0)
+      count(registry, "active_requests", "client") must beEqualTo(0.0)
+      count(registry, "2xx_headers_duration", "client") must beEqualTo(0.0)
+      count(registry, "2xx_total_duration", "client") must beEqualTo(0.0)
     }
   }
 
