@@ -9,6 +9,7 @@ package parser
 
 import cats.implicits._
 import org.http4s.internal.parboiled2._
+import org.http4s.laws.discipline.ArbitraryInstances._
 import org.scalacheck.{Gen, Prop}
 
 final case class BasicRulesParser(input: ParserInput) extends Parser with Rfc2616BasicRules {
