@@ -250,6 +250,16 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.asyncHttpClient,
       fs2ReactiveStreams,
+      // We've pinned AHC due to binary compatibility, but the
+      // underlying Netty has a vulnerability flaw, so forcibly
+      // upgrade those.
+      nettyCodec % Runtime,
+      nettyCodecSocks % Runtime,
+      nettyHandlerProxy % Runtime,
+      nettyCommon % Runtime,
+      nettyTransport % Runtime,
+      nettyHandler % Runtime,
+      nettyResolverDns % Runtime
     )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
