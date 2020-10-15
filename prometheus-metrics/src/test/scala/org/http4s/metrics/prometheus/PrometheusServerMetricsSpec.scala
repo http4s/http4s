@@ -29,8 +29,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         resp must haveStatus(Status.Ok)
         resp must haveBody("200 OK")
 
-        count(registry, "2xx_responses", "server") must beEqualTo(1)
-        count(registry, "active_requests", "server") must beEqualTo(0)
+        count(registry, "2xx_responses", "server") must beEqualTo(1.0)
+        count(registry, "active_requests", "server") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "server") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "server") must beEqualTo(0.1)
       }
@@ -45,8 +45,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         resp must haveStatus(Status.BadRequest)
         resp must haveBody("400 Bad Request")
 
-        count(registry, "4xx_responses", "server") must beEqualTo(1)
-        count(registry, "active_requests", "server") must beEqualTo(0)
+        count(registry, "4xx_responses", "server") must beEqualTo(1.0)
+        count(registry, "active_requests", "server") must beEqualTo(0.0)
         count(registry, "4xx_headers_duration", "server") must beEqualTo(0.05)
         count(registry, "4xx_total_duration", "server") must beEqualTo(0.1)
       }
@@ -61,8 +61,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         resp must haveStatus(Status.InternalServerError)
         resp must haveBody("500 Internal Server Error")
 
-        count(registry, "5xx_responses", "server") must beEqualTo(1)
-        count(registry, "active_requests", "server") must beEqualTo(0)
+        count(registry, "5xx_responses", "server") must beEqualTo(1.0)
+        count(registry, "active_requests", "server") must beEqualTo(0.0)
         count(registry, "5xx_headers_duration", "server") must beEqualTo(0.05)
         count(registry, "5xx_total_duration", "server") must beEqualTo(0.1)
       }
@@ -77,8 +77,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         resp must haveStatus(Status.Ok)
         resp must haveBody("200 OK")
 
-        count(registry, "2xx_responses", "server", "get") must beEqualTo(1)
-        count(registry, "active_requests", "server", "get") must beEqualTo(0)
+        count(registry, "2xx_responses", "server", "get") must beEqualTo(1.0)
+        count(registry, "active_requests", "server", "get") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "server", "get") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "server", "get") must beEqualTo(0.1)
       }
@@ -93,8 +93,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         resp must haveStatus(Status.Ok)
         resp must haveBody("200 OK")
 
-        count(registry, "2xx_responses", "server", "post") must beEqualTo(1)
-        count(registry, "active_requests", "server", "post") must beEqualTo(0)
+        count(registry, "2xx_responses", "server", "post") must beEqualTo(1.0)
+        count(registry, "active_requests", "server", "post") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "server", "post") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "server", "post") must beEqualTo(0.1)
       }
@@ -109,8 +109,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         resp must haveStatus(Status.Ok)
         resp must haveBody("200 OK")
 
-        count(registry, "2xx_responses", "server", "put") must beEqualTo(1)
-        count(registry, "active_requests", "server", "put") must beEqualTo(0)
+        count(registry, "2xx_responses", "server", "put") must beEqualTo(1.0)
+        count(registry, "active_requests", "server", "put") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "server", "put") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "server", "put") must beEqualTo(0.1)
       }
@@ -125,8 +125,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         resp must haveStatus(Status.Ok)
         resp must haveBody("200 OK")
 
-        count(registry, "2xx_responses", "server", "delete") must beEqualTo(1)
-        count(registry, "active_requests", "server", "delete") must beEqualTo(0)
+        count(registry, "2xx_responses", "server", "delete") must beEqualTo(1.0)
+        count(registry, "active_requests", "server", "delete") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "server", "delete") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "server", "delete") must beEqualTo(0.1)
       }
@@ -140,8 +140,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       } yield {
         resp must beLeft
 
-        count(registry, "errors", "server") must beEqualTo(1)
-        count(registry, "active_requests", "server") must beEqualTo(0)
+        count(registry, "errors", "server") must beEqualTo(1.0)
+        count(registry, "active_requests", "server") must beEqualTo(0.0)
         count(registry, "5xx_headers_duration", "server") must beEqualTo(0.05)
         count(registry, "5xx_total_duration", "server") must beEqualTo(0.1)
       }
@@ -156,8 +156,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         resp must haveStatus(Status.Ok)
         resp.body.attempt.compile.lastOrError.unsafeRunSync() must beLeft
 
-        count(registry, "abnormal_terminations", "server") must beEqualTo(1)
-        count(registry, "active_requests", "server") must beEqualTo(0)
+        count(registry, "abnormal_terminations", "server") must beEqualTo(1.0)
+        count(registry, "active_requests", "server") must beEqualTo(0.0)
         count(registry, "2xx_headers_duration", "server") must beEqualTo(0.05)
         count(registry, "2xx_total_duration", "server") must beEqualTo(0.1)
       }
@@ -176,8 +176,8 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
             resp must haveStatus(Status.Ok)
             resp must haveBody("200 OK")
 
-            count(registry, "2xx_responses", "server", "get", "classifier") must beEqualTo(1)
-            count(registry, "active_requests", "server", "get", "classifier") must beEqualTo(0)
+            count(registry, "2xx_responses", "server", "get", "classifier") must beEqualTo(1.0)
+            count(registry, "active_requests", "server", "get", "classifier") must beEqualTo(0.0)
             count(registry, "2xx_headers_duration", "server", "get", "classifier") must beEqualTo(
               0.05)
             count(registry, "2xx_total_duration", "server", "get", "classifier") must beEqualTo(0.1)
@@ -193,10 +193,10 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         .use { case (cr, routes) => routes.run(req).as(cr) }
         .unsafeRunSync()
 
-      count(registry, "2xx_responses", "server") must beEqualTo(0)
-      count(registry, "active_requests", "server") must beEqualTo(0)
-      count(registry, "2xx_headers_duration", "server") must beEqualTo(0)
-      count(registry, "2xx_total_duration", "server") must beEqualTo(0)
+      count(registry, "2xx_responses", "server") must beEqualTo(0.0)
+      count(registry, "active_requests", "server") must beEqualTo(0.0)
+      count(registry, "2xx_headers_duration", "server") must beEqualTo(0.0)
+      count(registry, "2xx_total_duration", "server") must beEqualTo(0.0)
     }
   }
 

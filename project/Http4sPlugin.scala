@@ -78,21 +78,26 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0-alpha0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta2"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0-alpha0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta2"),
     // Broke binary compatibility with 2.10.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
     // No release notes. If it's compatible with 6.2.5, prove it and PR it.
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.1"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Dropped joda-time support, wait for next breaking release
@@ -218,36 +223,36 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.13"
     val boopickle = "1.3.3"
-    val cats = "2.1.1"
-    val catsEffect = "2.1.4"
+    val cats = "2.2.0"
+    val catsEffect = "2.2.0"
     val catsEffectTesting = "0.4.1"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.0"
-    val dropwizardMetrics = "4.1.12.1"
-    val fs2 = "2.4.2"
+    val dropwizardMetrics = "4.1.13"
+    val fs2 = "2.4.4"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.31.v20200723"
-    val json4s = "3.6.9"
+    val jetty = "9.4.32.v20200930"
+    val json4s = "3.6.10"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
     val log4s = "1.8.2"
-    val mockito = "3.5.11"
+    val mockito = "3.5.13"
     val netty = "4.1.53.Final"
-    val okhttp = "4.8.1"
+    val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
-    val playJson = "2.8.1"
+    val playJson = "2.9.1"
     val prometheusClient = "0.8.1"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.14.3"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    val scalatags = "0.9.1"
+    val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
     val servlet = "3.1.0"
-    val specs2 = "4.10.2"
-    val tomcat = "9.0.38"
+    val specs2 = "4.10.5"
+    val tomcat = "9.0.39"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
