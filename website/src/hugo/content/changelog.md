@@ -8,6 +8,41 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.8
+
+## Bugfixes
+
+* [#3666](https://github.com/http4s/http4s/pull/3666): In CSRF middleware, always use the `onFailure` handler instead of a hardcoded 403 response
+* [#3716](https://github.com/http4s/http4s/pull/3716): Fail in `Method.fromString` when a token is succeeded by non-token characters.
+* [#3743](https://github.com/http4s/http4s/pull/3743): Fix `ListSep` parser according to RFC.
+
+## Enhancements
+
+* [#3605](https://github.com/http4s/http4s/pull/3605): Improve header parsing in Ember
+* [#3634](https://github.com/http4s/http4s/pull/3634): Query parameter codecs for `LocalDate` and `ZonedDate`
+* [#3659](https://github.com/http4s/http4s/pull/3659): Make requests to mock client cancelable
+* [#3701](https://github.com/http4s/http4s/pull/3701): In `matchHeader`, only parse headers with matching names. This improves parsing laziness.
+
+## Documentation
+
+* [#3693](https://github.com/http4s/http4s/pull/3693): Fix some typos
+* [#3703](https://github.com/http4s/http4s/pull/3703): Fix non-compiling example in streaming.md
+* [#3670](https://github.com/http4s/http4s/pull/3670): Add scaladocs for various headers, including RFC links
+* [#3692](https://github.com/http4s/http4s/pull/3692): Mention partial unification is no longer needed in Scala 2.13
+* [#3710](https://github.com/http4s/http4s/pull/3710): Add docs for `OptionalValidatingQueryParamDecoderMatcher`
+* [#3712](https://github.com/http4s/http4s/pull/3712): Add integrations.md with feature comparison of backends
+
+## Miscellaneous
+
+* [#3742](https://github.com/http4s/http4s/pull/3742): Drop JDK14 tests for JDK15
+
+## Dependency updates
+
+* dropwizard-metrics-4.1.12.1
+* fs2-2.4.3
+* scalafix-0.9.21
+* tomcat-9.0.38
+
 # v0.21.7 (2020-08-08)
 
 ## Bugfixes
