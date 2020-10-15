@@ -74,7 +74,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 
   def OptWS = rule(zeroOrMore(LWS))
 
-  def ListSep = rule(oneOrMore("," ~ OptWS))
+  def ListSep = rule(OptWS ~ "," ~ OptWS)
 
   def LASTCHAR: Rule1[Char] = rule(push(input.charAt(cursor - 1)))
 }
