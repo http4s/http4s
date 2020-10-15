@@ -47,7 +47,7 @@ class AgeSpec extends HeaderLaws {
 
   "parse" should {
     "accept duration on seconds" in {
-      Age.parse("120").map(_.age) must beRight(120)
+      Age.parse("120").map(_.age) must beRight(120L)
     }
     "reject negative values" in {
       Age.parse("-120").map(_.age) must beLeft
