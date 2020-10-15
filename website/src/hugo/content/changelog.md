@@ -8,6 +8,37 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M5 (unreleased)
+
+## Bugfixes
+
+* [#3714](https://github.com/http4s/http4s/pull/3638): Use correct prefix when composing with `Router`
+* [#3738](https://github.com/http4s/http4s/pull/3738): In `PrometheusExportService`, correctly match the `/metrics` endpoint
+
+## Breaking changes
+
+* [#3649](https://github.com/http4s/http4s/pull/3649): Make `QueryParam` a subclass of `QueryParamLike`
+* [#3440](https://github.com/http4s/http4s/pull/3440): Simplify `Method` model. Drop `PermitsBody`, `NoBody`, and `Semantics` mixins. No longer a case class.
+
+## Enhancements
+
+* [#3638](https://github.com/http4s/http4s/pull/3638): Model `Access-Control-Expose-Headers`
+* [#3735](https://github.com/http4s/http4s/pull/3735): Add `preferGzipped` parameter to `WebjarServiceBuilder`
+
+## Documentation
+
+* [#3670](https://github.com/http4s/http4s/pull/3670):
+
+## Dependency updates
+
+* argonaut-6.3.1
+* fs2-2.4.4
+* jetty-9.4.32.v20200930
+* json4s-3.6.10
+* okhttp-4.9.0
+* play-json-2.9.1
+* tomcat-9.0.39
+
 # v0.21.8 (unreleased)
 
 ## Bugfixes
