@@ -39,10 +39,17 @@ it.
 
 ## Dependency updates
 
-* dropwizard-metrics-4.1.12.1
-* fs2-2.4.3
+* dropwizard-metrics-4.1.13
+* cats-2.2.0
+* cats-effect-2.2.0
+* fs2-2.4.4
+* jetty-9.4.32.v20200930
+* json4s-3.6.10
+* okhttp-4.9.0
+* play-json-2.9.1
 * scalafix-0.9.21
-* tomcat-9.0.38
+* scalatags-0.9.2
+* tomcat-9.0.39
 
 # v0.21.7 (2020-08-08)
 
