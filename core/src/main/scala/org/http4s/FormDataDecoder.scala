@@ -12,8 +12,7 @@ import cats.data.{Chain, ValidatedNel}
 import cats.effect.Sync
 import cats.implicits._
 
-/**
-  * A decoder ware that uses [[QueryParamDecoder]] to decode values in [[org.http4s.UrlForm]]
+/** A decoder ware that uses [[QueryParamDecoder]] to decode values in [[org.http4s.UrlForm]]
   *
   * @example
   * {{{
@@ -70,13 +69,12 @@ sealed trait FormDataDecoder[A] {
   def mapValidated[B](f: A => ValidatedNel[ParseFailure, B]): FormDataDecoder[B] =
     FormDataDecoder(this(_).andThen(f))
 
-  /**
-    * Filters out empty strings including spaces before decoding
+  /** Filters out empty strings including spaces before decoding
     */
   def sanitized: FormDataDecoder[A] =
     FormDataDecoder { data =>
-      this(data.map {
-        case (k, v) => (k, v.filter(_.trim.nonEmpty))
+      this(data.map { case (k, v) =>
+        (k, v.filter(_.trim.nonEmpty))
       })
     }
 
@@ -117,8 +115,7 @@ object FormDataDecoder {
     def optional: FormDataDecoder[Option[A]] =
       decoder.map(_.map(Some(_)).getOrElse(None))
 
-    /**
-      * Use a default value when the field is missing
+    /** Use a default value when the field is missing
       * @param defaultValue
       */
     def default(defaultValue: A): FormDataDecoder[A] =
@@ -141,16 +138,14 @@ object FormDataDecoder {
 
   def fieldOptional[A: QueryParamDecoder](key: String) = fieldEither(key).optional
 
-  /**
-    * For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
+  /** For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
     * E.g. For a field named "bar" inside a nested class under the field "foo",
     * the parameter name is "foo.bar".
     */
   def nested[A: FormDataDecoder](key: String): FormDataDecoder[A] =
     nestedEither(key).required
 
-  /**
-    * For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
+  /** For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
     * E.g. For a field named "bar" inside a nested class under the field "foo",
     * the parameter name is "foo.bar".
     */
@@ -180,8 +175,8 @@ object FormDataDecoder {
   )(implicit A: FormDataDecoder[A]): FormDataDecoder[Either[String, Chain[A]]] =
     apply[FormData, Chain[A]](extractPrefix(key + "[]."))(
       _.toList
-        .map {
-          case (k, cv) => cv.map(v => List((k, Chain(v))))
+        .map { case (k, cv) =>
+          cv.map(v => List((k, Chain(v))))
         }
         .reduceOption { (left, right) =>
           left.zipWith(right)(_ ++ _)
@@ -191,15 +186,13 @@ object FormDataDecoder {
         .traverse(d => A(d))
     )
 
-  /**
-    * For repeated nested values, assuming that the form parameter name use "[]." as a suffix
+  /** For repeated nested values, assuming that the form parameter name use "[]." as a suffix
     * E.g. "foos[].bar"
     */
   def list[A: FormDataDecoder](key: String) =
     chain(key).map(_.toList)
 
-  /**
-    * For repeated primitive values, assuming that the form parameter name use "[]" as a suffix
+  /** For repeated primitive values, assuming that the form parameter name use "[]" as a suffix
     * E.g. "foos[]"
     */
   def listOf[A](key: String)(implicit A: QueryParamDecoder[A]) =
@@ -211,11 +204,10 @@ object FormDataDecoder {
   private def extractPrefix(
       prefix: String
   )(data: FormData): Either[String, FormData] = {
-    val extracted = nonEmptyFields(data).toList.mapFilter {
-      case (k, v) =>
-        if (k.startsWith(prefix))
-          Some((k.stripPrefix(prefix), v))
-        else None
+    val extracted = nonEmptyFields(data).toList.mapFilter { case (k, v) =>
+      if (k.startsWith(prefix))
+        Some((k.stripPrefix(prefix), v))
+      else None
     }.toMap
 
     if (extracted.isEmpty)

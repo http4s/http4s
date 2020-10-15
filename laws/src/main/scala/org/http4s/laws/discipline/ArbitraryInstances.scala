@@ -65,7 +65,9 @@ private[http4s] trait ArbitraryInstances {
 
   val genCrLf: Gen[String] = const("\r\n")
 
-  val genRightLws: Gen[String] = nonEmptyListOf(oneOf(lws)).map(_.mkString)
+  val genRightLws: Gen[String] =
+    // No need to produce very long whitespaces
+    resize(5, nonEmptyListOf(oneOf(lws)).map(_.mkString))
 
   val genLws: Gen[String] =
     oneOf(sequence[List[String], String](List(genCrLf, genRightLws)).map(_.mkString), genRightLws)
@@ -915,4 +917,11 @@ private[http4s] trait ArbitraryInstances {
     }
 }
 
-object ArbitraryInstances extends ArbitraryInstances
+object ArbitraryInstances extends ArbitraryInstances {
+  // http4s-0.21: add extra values here to prevent binary incompatibility.
+
+  val genOptWs: Gen[String] = option(genLws).map(_.orEmpty)
+
+  val genListSep: Gen[String] =
+    sequence[List[String], String](List(genOptWs, const(","), genOptWs)).map(_.mkString)
+}
