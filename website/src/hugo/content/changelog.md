@@ -22,6 +22,7 @@ it.
 * [#3634](https://github.com/http4s/http4s/pull/3634): Query parameter codecs for `LocalDate` and `ZonedDate`
 * [#3659](https://github.com/http4s/http4s/pull/3659): Make requests to mock client cancelable
 * [#3701](https://github.com/http4s/http4s/pull/3701): In `matchHeader`, only parse headers with matching names. This improves parsing laziness.
+* [#3641](https://github.com/http4s/http4s/pull/3641): Add `FormDataDecoder` to decode `UrlForm` to case classes via `QueryParamDecoder`
 
 ## Documentation
 
