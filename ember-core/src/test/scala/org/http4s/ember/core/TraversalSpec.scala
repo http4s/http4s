@@ -16,18 +16,18 @@ import org.http4s.laws.discipline.ArbitraryInstances._
 import scala.concurrent.ExecutionContext
 
 class TraversalSpec extends Specification with ScalaCheck {
+
   implicit val CS = IO.contextShift(ExecutionContext.global)
   "Request Encoder/Parser" should {
-    "preserve headers" >> prop { (req: Request[IO]) =>
-      // val logger = TestingLogger.impl[IO]()
+    "preserve existing headers" >> prop { (req: Request[IO]) =>
       val end = Parser.Request
         .parser[IO](Int.MaxValue)(
           Encoder.reqToBytes[IO](req)
         ) //(logger)
         .unsafeRunSync()
 
-      end.headers.toList must containTheSameElementsAs(req.headers.toList)
-    }.pendingUntilFixed
+      end.headers.toList must containAllOf(req.headers.toList)
+    }
 
     "preserve method with known uri" >> prop { (req: Request[IO]) =>
       // val logger = TestingLogger.impl[IO]()

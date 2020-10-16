@@ -12,7 +12,7 @@ it.
 
 ## Security
 
-* [GHSA-8hxh-r6f7-jf45](https://github.com/http4s/http4s/security/advisories/GHSA-8hxh-r6f7-jf45: The version of Netty used by async-http-client is affected by [CVE-2020-11612](https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-564897).  A server we connect to with http4s-async-http-client could theoretically respond with a large or malicious compressed stream and exhaust memory in the client JVM. This does not affect any release in the 1.x series.
+* [GHSA-8hxh-r6f7-jf45](https://github.com/http4s/http4s/security/advisories/GHSA-8hxh-r6f7-jf45): The version of Netty used by async-http-client is affected by [CVE-2020-11612](https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-564897).  A server we connect to with http4s-async-http-client could theoretically respond with a large or malicious compressed stream and exhaust memory in the client JVM. This does not affect any release in the 1.x series.
 
 ## Bugfixes
 
