@@ -240,6 +240,7 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.8.2"
     val mockito = "3.5.13"
+    val netty = "4.1.53.Final"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
@@ -297,6 +298,13 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % V.mockito
+  lazy val nettyCodec                       = "io.netty"               %  "netty-codec"               % V.netty
+  lazy val nettyCodecSocks                  = "io.netty"               %  "netty-codec-socks"         % V.netty
+  lazy val nettyHandlerProxy                = "io.netty"               %  "netty-handler-proxy"       % V.netty
+  lazy val nettyCommon                      = "io.netty"               %  "netty-common"              % V.netty
+  lazy val nettyTransport                   = "io.netty"               %  "netty-transport"           % V.netty
+  lazy val nettyHandler                     = "io.netty"               %  "netty-handler"             % V.netty
+  lazy val nettyResolverDns                 = "io.netty"               %  "netty-resolver-dns"        % V.netty
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % V.okhttp
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % V.playJson
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % V.prometheusClient
