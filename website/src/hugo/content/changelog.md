@@ -29,7 +29,11 @@ it.
 
 * argonaut-6.3.1
 
-# v0.21.8 (unreleased)
+# v0.21.8 (2020-10-16)
+
+## Security
+
+* [GHSA-8hxh-r6f7-jf45](https://github.com/http4s/http4s/security/advisories/GHSA-8hxh-r6f7-jf45): The version of Netty used by async-http-client is affected by [CVE-2020-11612](https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-564897).  A server we connect to with http4s-async-http-client could theoretically respond with a large or malicious compressed stream and exhaust memory in the client JVM. This does not affect any release in the 1.x series.
 
 ## Bugfixes
 
@@ -66,6 +70,7 @@ it.
 * fs2-2.4.4
 * jetty-9.4.32.v20200930
 * json4s-3.6.10
+* netty-4.1.53.Final (async-http-client transitive dependency)
 * okhttp-4.9.0
 * play-json-2.9.1
 * scalafix-0.9.21
