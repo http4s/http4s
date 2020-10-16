@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M5 (unreleased)
+# v1.0.0-M5 (2020-10-16)
 
 ## Bugfixes
 
