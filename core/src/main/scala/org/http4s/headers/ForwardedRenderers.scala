@@ -79,10 +79,10 @@ private[http4s] trait ForwardedRenderers {
 
     {
       import elem._
-      renderParamEval("by", `by`) :::
-        renderParamEval("for", `for`) :::
-        renderParamEval("host", `host`) :::
-        renderParamEval("proto", `proto`)
+      renderParamEval("by", maybeBy) :::
+        renderParamEval("for", maybeFor) :::
+        renderParamEval("host", maybeHost) :::
+        renderParamEval("proto", maybeProto)
     }.reduceLeft { (leftParamEval, rightParamEval) =>
       // Interleave every couple of parameters with ';'
       leftParamEval >> Eval.always(writer << ';') >> rightParamEval

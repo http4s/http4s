@@ -118,10 +118,10 @@ object Forwarded
   val Proto: Uri.Scheme.type = Uri.Scheme
 
   sealed trait Element extends Renderable { _: Product =>
-    def `by`: Option[Node]
-    def `for`: Option[Node]
-    def `host`: Option[Host]
-    def `proto`: Option[Proto]
+    def maybeBy: Option[Node]
+    def maybeFor: Option[Node]
+    def maybeHost: Option[Host]
+    def maybeProto: Option[Proto]
 
     def withBy(value: Node): Element
     def withFor(value: Node): Element
@@ -144,27 +144,27 @@ object Forwarded
     // Since at least one of the fields must be set to `Some`,
     // the `Element` trait implementation is hidden.
     private[this] final case class C(
-        `by`: Option[Node] = None,
-        `for`: Option[Node] = None,
-        `host`: Option[Host] = None,
-        `proto`: Option[Proto] = None)
+        maybeBy: Option[Node] = None,
+        maybeFor: Option[Node] = None,
+        maybeHost: Option[Host] = None,
+        maybeProto: Option[Proto] = None)
         extends Element {
 
-      def withBy(value: Node): Element = copy(`by` = Some(value))
-      def withFor(value: Node): Element = copy(`for` = Some(value))
-      def withHost(value: Host): Element = copy(`host` = Some(value))
-      def withProto(value: Proto): Element = copy(`proto` = Some(value))
+      def withBy(value: Node): Element = copy(maybeBy = Some(value))
+      def withFor(value: Node): Element = copy(maybeFor = Some(value))
+      def withHost(value: Host): Element = copy(maybeHost = Some(value))
+      def withProto(value: Proto): Element = copy(maybeProto = Some(value))
 
       override def productPrefix: String = "Element"
     }
 
-    def fromBy(value: Node): Element = C(`by` = Some(value))
-    def fromFor(value: Node): Element = C(`for` = Some(value))
-    def fromHost(value: Host): Element = C(`host` = Some(value))
-    def fromProto(value: Proto): Element = C(`proto` = Some(value))
+    def fromBy(value: Node): Element = C(maybeBy = Some(value))
+    def fromFor(value: Node): Element = C(maybeFor = Some(value))
+    def fromHost(value: Host): Element = C(maybeHost = Some(value))
+    def fromProto(value: Proto): Element = C(maybeProto = Some(value))
 
     def unapply(elem: Element): Option[(Option[Node], Option[Node], Option[Host], Option[Proto])] =
-      Some((elem.`by`, elem.`for`, elem.`host`, elem.`proto`))
+      Some((elem.maybeBy, elem.maybeFor, elem.maybeHost, elem.maybeProto))
   }
 
   final val PortMin = 0
