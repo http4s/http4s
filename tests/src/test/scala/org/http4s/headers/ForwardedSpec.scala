@@ -33,8 +33,8 @@ class ForwardedSpec
     "fromString" should {
       "parse valid node definitions" in {
         "Node Name String" | "Parsed Node Name" |
-          "1.2.3.4" ! Name(1, 2, 3, 4) |
-          "[1:2:3::4:5:6]" ! Name(1, 2, 3, 0, 0, 4, 5, 6) |
+          "1.2.3.4" ! Name.ofIpv4Address(1, 2, 3, 4) |
+          "[1:2:3::4:5:6]" ! Name.ofIpv6Address(1, 2, 3, 0, 0, 4, 5, 6) |
           "_a.b1-r2a_" ! Obfuscated("_a.b1-r2a_") |
           "unknown" ! Name.Unknown |> { (nameStr, parsedName) =>
             Node.fromString(nameStr) must beRight(Node(parsedName))

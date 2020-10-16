@@ -131,8 +131,8 @@ object ForwardedHeaderSpec {
   implicit def convertUriToNode(uri: Uri): Node =
     Node(
       uri.host match {
-        case Some(ipv4: Uri.Ipv4Address) => Node.Name(ipv4)
-        case Some(ipv6: Uri.Ipv6Address) => Node.Name(ipv6)
+        case Some(ipv4: Uri.Ipv4Address) => Node.Name.Ipv4(ipv4)
+        case Some(ipv6: Uri.Ipv6Address) => Node.Name.Ipv6(ipv6)
         case Some(Uri.RegName(UnCIString("unknown"))) => Node.Name.Unknown
         case Some(Uri.RegName(UnCIString(ObfuscatedRe(obfuscatedName)))) =>
           Node.Obfuscated(obfuscatedName)

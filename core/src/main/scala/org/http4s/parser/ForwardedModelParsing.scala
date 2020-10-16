@@ -59,7 +59,7 @@ private[http4s] trait ForwardedModelParsing { model: Forwarded.type =>
     protected final def ModelHost: Rule1[model.Host] =
       rule {
         rfc.Host ~ rfc.Port ~> { (uriHost: UriModel.Host, portNum: Option[Int]) =>
-          model.Host.from(uriHost, portNum) match {
+          model.Host.fromHostAndMaybePort(uriHost, portNum) match {
             case Left(failure) => failX(failure.message)
             case Right(modelHost) => push(modelHost)
           }

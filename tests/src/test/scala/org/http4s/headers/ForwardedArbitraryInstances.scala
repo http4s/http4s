@@ -34,8 +34,8 @@ private[http4s] trait ForwardedArbitraryInstances
   implicit val http4sTestingArbitraryForForwardedNodeName: Arbitrary[Node.Name] =
     Arbitrary(
       Gen.oneOf(
-        Arbitrary.arbitrary[Uri.Ipv4Address].map(Node.Name(_)),
-        Arbitrary.arbitrary[Uri.Ipv6Address].map(Node.Name(_)),
+        Arbitrary.arbitrary[Uri.Ipv4Address].map(Node.Name.Ipv4),
+        Arbitrary.arbitrary[Uri.Ipv6Address].map(Node.Name.Ipv6),
         Arbitrary.arbitrary[Node.Obfuscated],
         Gen.const(Node.Name.Unknown)
       ) :| "Node.Name")
@@ -73,7 +73,7 @@ private[http4s] trait ForwardedArbitraryInstances
         // TODO: consider implementing it in `Gen[Uri.Host]` directly.
         uriHost <- Gen.oneOf(uriHostGen, Gen.const(Uri.RegName("")))
         portNum <- Gen.option(portNumGen)
-      } yield Host.from(uriHost, portNum).yolo
+      } yield Host.fromHostAndMaybePort(uriHost, portNum).yolo
     } :| "Host")
   }
 

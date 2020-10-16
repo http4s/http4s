@@ -33,14 +33,18 @@ object Forwarded
       case class Ipv6(address: Uri.Ipv6Address) extends Name
       case object Unknown extends Name
 
-      def apply(address: Uri.Ipv4Address): Name = Name.Ipv4(address)
-      def apply(address: Inet4Address): Name = apply(Uri.Ipv4Address.fromInet4Address(address))
-      def apply(a: Byte, b: Byte, c: Byte, d: Byte): Name = apply(Uri.Ipv4Address(a, b, c, d))
+      def ofInet4Address(address: Inet4Address): Name = Ipv4(
+        Uri.Ipv4Address.fromInet4Address(address))
+      def ofIpv4Address(a: Byte, b: Byte, c: Byte, d: Byte): Name = Ipv4(
+        Uri.Ipv4Address(a, b, c, d))
 
-      def apply(address: Uri.Ipv6Address): Name = Name.Ipv6(address)
-      def apply(address: Inet6Address): Name = apply(Uri.Ipv6Address.fromInet6Address(address))
-      def apply(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
-          : Name = apply(Uri.Ipv6Address(a, b, c, d, e, f, g, h))
+      def ofInet6Address(address: Inet6Address): Name = Ipv6(
+        Uri.Ipv6Address.fromInet6Address(address))
+      // format: off
+      def ofIpv6Address(
+          a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short
+      ): Name = Ipv6(Uri.Ipv6Address(a, b, c, d, e, f, g, h))
+      // format: on
     }
 
     sealed trait Port { _: Product => }
@@ -81,17 +85,32 @@ object Forwarded
   object Host {
     private[this] def apply(host: Uri.Host, port: Option[Int]) = new Host(host, port) {}
 
-    def apply(uriHost: Uri.Host): Host = apply(uriHost, None)
+    /** Creates [[Host]] from [[Uri.Host]].
+      * Assumes that the latter is always valid so no further validation is necessary.
+      */
+    def ofHost(uriHost: Uri.Host): Host = apply(uriHost, None)
 
-    def from(uriHost: Uri.Host, port: Int): ParseResult[Host] =
+    /** Creates [[Host]] from [[Uri.Host]] and port number.
+      * Validates the latter and returns [[ParseFailure]] if it is invalid.
+      */
+    def fromHostAndPort(uriHost: Uri.Host, port: Int): ParseResult[Host] =
       checkPortNum(port).toLeft(apply(uriHost, Some(port)))
 
-    def from(uriHost: Uri.Host, port: Option[Int]): ParseResult[Host] =
-      port.fold(apply(uriHost).asRight[ParseFailure])(from(uriHost, _))
+    /** Creates [[Host]] from [[Uri.Host]] and optional port number.
+      * For internal use in parsers in generators only.
+      */
+    private[http4s] def fromHostAndMaybePort(
+        uriHost: Uri.Host,
+        port: Option[Int]): ParseResult[Host] =
+      port.fold(ofHost(uriHost).asRight[ParseFailure])(fromHostAndPort(uriHost, _))
 
+    /** Creates [[Host]] from [[Uri.host]] and [[Uri.port]] parts of the given [[Uri]].
+      */
     def fromUri(uri: Uri): ParseResult[Host] =
-      uri.host.toRight(Failures.missingHost(uri)).flatMap(from(_, uri.port))
+      uri.host.toRight(Failures.missingHost(uri)).flatMap(fromHostAndMaybePort(_, uri.port))
 
+    /** Parses host and optional port number from the given string according to RFC3986.
+      */
     def fromString(s: String): ParseResult[Host] = new ModelHostParser(s).parse
   }
 
