@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -5,7 +11,6 @@ import cats.{Monad, MonadError, Show}
 import cats.data.NonEmptyList
 import cats.implicits._
 import java.nio.charset.StandardCharsets
-
 import javax.crypto
 import org.http4s.client.oauth1.ProtocolParameter.{
   Callback,
@@ -18,7 +23,7 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Version
 }
 import org.http4s.headers.Authorization
-import org.http4s.syntax.string._
+import org.typelevel.ci.CIString
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
@@ -35,19 +40,19 @@ package object oauth1 {
   /** Sign the request with an OAuth Authorization header
     *
     * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
-    *            will be entirely buffered due to signing requirements. */
+    *            will be entirely buffered due to signing requirements.
+    */
   def signRequest[F[_]](
       req: Request[F],
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token])(
-      implicit F: MonadError[F, Throwable],
+      token: Option[Token])(implicit
+      F: MonadError[F, Throwable],
       W: EntityDecoder[F, UrlForm]): F[Request[F]] =
-    getUserParams(req).map {
-      case (req, params) =>
-        val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
-        req.putHeaders(auth)
+    getUserParams(req).map { case (req, params) =>
+      val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
+      req.putHeaders(auth)
     }
 
   def signRequest[F[_]](
@@ -76,8 +81,8 @@ package object oauth1 {
         nonceGenerator,
         callback,
         verifier,
-        params.map {
-          case (k, v) => Custom(k, v)
+        params.map { case (k, v) =>
+          Custom(k, v)
         }
       )
     } yield req.putHeaders(auth)
@@ -130,7 +135,7 @@ package object oauth1 {
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
       val sig = makeSHASig(baseStr, consumer.secret, token.map(_.secret))
       val creds = Credentials.AuthParams(
-        "OAuth".ci,
+        CIString("OAuth"),
         NonEmptyList(
           "oauth_signature" -> encode(sig),
           realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)) toList)
@@ -165,12 +170,17 @@ package object oauth1 {
       params.result()
     }
 
-    val baseString = genBaseString(method, uri, params ++ userParams.map {
-      case (k, v) => (encode(k), encode(v))
-    })
+    val baseString = genBaseString(
+      method,
+      uri,
+      params ++ userParams.map { case (k, v) =>
+        (encode(k), encode(v))
+      })
     val sig = makeSHASig(baseString, consumer, token)
     val creds =
-      Credentials.AuthParams("OAuth".ci, NonEmptyList("oauth_signature" -> encode(sig), params))
+      Credentials.AuthParams(
+        CIString("OAuth"),
+        NonEmptyList("oauth_signature" -> encode(sig), params))
 
     Authorization(creds)
   }
@@ -214,8 +224,8 @@ package object oauth1 {
   private[oauth1] def encode(str: String): String =
     Uri.encode(str, spaceIsPlus = false, toSkip = Uri.Unreserved)
 
-  private[oauth1] def getUserParams[F[_]](req: Request[F])(
-      implicit F: MonadError[F, Throwable],
+  private[oauth1] def getUserParams[F[_]](req: Request[F])(implicit
+      F: MonadError[F, Throwable],
       W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
     val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 

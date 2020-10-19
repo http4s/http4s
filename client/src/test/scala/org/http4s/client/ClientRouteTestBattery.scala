@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -24,52 +30,54 @@ abstract class ClientRouteTestBattery(name: String)
 
   def clientResource: Resource[IO, Client[IO]]
 
-  def testServlet = new HttpServlet {
-    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-      GetRoutes.getPaths.get(req.getRequestURI) match {
-        case Some(r) => renderResponse(srv, r)
-        case None => srv.sendError(404)
-      }
+  def testServlet =
+    new HttpServlet {
+      override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
+        GetRoutes.getPaths.get(req.getRequestURI) match {
+          case Some(r) => renderResponse(srv, r)
+          case None => srv.sendError(404)
+        }
 
-    override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
-      srv.setStatus(200)
-      val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
-      srv.getWriter.print(s)
-      srv.getWriter.flush()
+      override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
+        srv.setStatus(200)
+        val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
+        srv.getWriter.print(s)
+        srv.getWriter.flush()
+      }
     }
-  }
 
   withResource(JettyScaffold[IO](1, false, testServlet)) { jetty =>
     withResource(clientResource) { client =>
       val address = jetty.addresses.head
 
-      Fragments.foreach(GetRoutes.getPaths.toSeq) {
-        case (path, expected) =>
-          s"Execute GET: $path" in {
-            val name = address.getHostName
-            val port = address.getPort
-            val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
-            client
-              .fetch(req)(resp => checkResponse(resp, expected))
-              .unsafeRunTimed(timeout)
-              .get
-          }
+      Fragments.foreach(GetRoutes.getPaths.toSeq) { case (path, expected) =>
+        s"Execute GET: $path" in {
+          val name = address.getHostName
+          val port = address.getPort
+          val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
+          client
+            .run(req)
+            .use(resp => checkResponse(resp, expected))
+            .unsafeRunTimed(timeout)
+            .get
+        }
       }
 
       name should {
         "Strip fragments from URI" in {
           skipped("Can only reproduce against external resource.  Help wanted.")
           val uri = Uri.uri("https://en.wikipedia.org/wiki/Buckethead_discography#Studio_albums")
-          val body = client.fetch(Request[IO](uri = uri))(e => IO.pure(e.status))
+          val body = client.run(Request[IO](uri = uri)).use(e => IO.pure(e.status))
           body must returnValue(Ok)
         }
 
         "Repeat a simple request" in {
           val path = GetRoutes.SimplePath
 
-          def fetchBody = client.toKleisli(_.as[String]).local { (uri: Uri) =>
-            Request(uri = uri)
-          }
+          def fetchBody =
+            client.toKleisli(_.as[String]).local { (uri: Uri) =>
+              Request(uri = uri)
+            }
 
           val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
           (0 until 10).toVector

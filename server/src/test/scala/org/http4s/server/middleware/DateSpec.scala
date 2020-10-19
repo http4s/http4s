@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats.data.OptionT
@@ -10,8 +16,8 @@ import cats.effect.testing.specs2.CatsIO
 class DateSpec extends Http4sSpec with CatsIO {
   override implicit val timer: Timer[IO] = Http4sSpec.TestTimer
 
-  val service: HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case _ => Response[IO](Status.Ok).pure[IO]
+  val service: HttpRoutes[IO] = HttpRoutes.of[IO] { case _ =>
+    Response[IO](Status.Ok).pure[IO]
   }
 
   // Hack for https://github.com/typelevel/cats-effect/pull/682
@@ -25,12 +31,9 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- testService(req).value
         now <- HttpDate.current[IO]
-      } yield {
-        out.flatMap(_.headers.get(HDate)) must beSome.like {
-          case date =>
-            val diff = now.epochSecond - date.date.epochSecond
-            diff must be_<=(2L)
-        }
+      } yield out.flatMap(_.headers.get(HDate)) must beSome.like { case date =>
+        val diff = now.epochSecond - date.date.epochSecond
+        diff must be_<=(2L)
       }
     }
 
@@ -38,22 +41,18 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- testApp(req)
         now <- HttpDate.current[IO]
-      } yield {
-        out.headers.get(HDate) must beSome.like {
-          case date =>
-            val diff = now.epochSecond - date.date.epochSecond
-            diff must be_<=(2L)
-        }
+      } yield out.headers.get(HDate) must beSome.like { case date =>
+        val diff = now.epochSecond - date.date.epochSecond
+        diff must be_<=(2L)
       }
     }
 
     "not override a set date header" in {
       val service = HttpRoutes
-        .of[IO] {
-          case _ =>
-            Response[IO](Status.Ok)
-              .putHeaders(HDate(HttpDate.Epoch))
-              .pure[IO]
+        .of[IO] { case _ =>
+          Response[IO](Status.Ok)
+            .putHeaders(HDate(HttpDate.Epoch))
+            .pure[IO]
         }
         .orNotFound
       val test = Date(service)
@@ -61,13 +60,10 @@ class DateSpec extends Http4sSpec with CatsIO {
       for {
         out <- test(req)
         nowD <- HttpDate.current[IO]
-      } yield {
-        out.headers.get(HDate) must beSome.like {
-          case date =>
-            val now = nowD.epochSecond
-            val diff = now - date.date.epochSecond
-            now must_=== diff
-        }
+      } yield out.headers.get(HDate) must beSome.like { case date =>
+        val now = nowD.epochSecond
+        val diff = now - date.date.epochSecond
+        now must_=== diff
       }
     }
 
@@ -76,9 +72,7 @@ class DateSpec extends Http4sSpec with CatsIO {
 
       for {
         response <- httpRoute(req).value
-      } yield {
-        response.flatMap(_.headers.get(HDate)) must beSome
-      }
+      } yield response.flatMap(_.headers.get(HDate)) must beSome
     }
 
     "be created via httpApp constructor" in {
@@ -86,9 +80,7 @@ class DateSpec extends Http4sSpec with CatsIO {
 
       for {
         response <- httpApp(req)
-      } yield {
-        response.headers.get(HDate) must beSome
-      }
+      } yield response.headers.get(HDate) must beSome
     }
   }
 }

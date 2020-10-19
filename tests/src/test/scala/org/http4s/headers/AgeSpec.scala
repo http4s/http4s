@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.headers
 
 import org.http4s.{ParseFailure, ParseResult}
@@ -41,7 +47,7 @@ class AgeSpec extends HeaderLaws {
 
   "parse" should {
     "accept duration on seconds" in {
-      Age.parse("120").map(_.age) must beRight(120)
+      Age.parse("120").map(_.age) must beRight(120L)
     }
     "reject negative values" in {
       Age.parse("-120").map(_.age) must beLeft

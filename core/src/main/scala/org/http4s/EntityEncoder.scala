@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Contravariant, Show}
@@ -28,10 +34,11 @@ trait EntityEncoder[F[_], A] { self =>
   def headers: Headers
 
   /** Make a new [[EntityEncoder]] using this type as a foundation */
-  def contramap[B](f: B => A): EntityEncoder[F, B] = new EntityEncoder[F, B] {
-    override def toEntity(a: B): Entity[F] = self.toEntity(f(a))
-    override def headers: Headers = self.headers
-  }
+  def contramap[B](f: B => A): EntityEncoder[F, B] =
+    new EntityEncoder[F, B] {
+      override def toEntity(a: B): Entity[F] = self.toEntity(f(a))
+      override def headers: Headers = self.headers
+    }
 
   /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
   def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
@@ -40,10 +47,11 @@ trait EntityEncoder[F[_], A] { self =>
   def charset: Option[Charset] = headers.get(`Content-Type`).flatMap(_.charset)
 
   /** Generate a new EntityEncoder that will contain the `Content-Type` header */
-  def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] = new EntityEncoder[F, A] {
-    override def toEntity(a: A): Entity[F] = self.toEntity(a)
-    override val headers: Headers = self.headers.put(tpe)
-  }
+  def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] =
+    new EntityEncoder[F, A] {
+      override def toEntity(a: A): Entity[F] = self.toEntity(a)
+      override val headers: Headers = self.headers.put(tpe)
+    }
 }
 
 object EntityEncoder {
@@ -76,8 +84,8 @@ object EntityEncoder {
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
-  def showEncoder[F[_], A](
-      implicit charset: Charset = DefaultCharset,
+  def showEncoder[F[_], A](implicit
+      charset: Charset = DefaultCharset,
       show: Show[A]): EntityEncoder[F, A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
@@ -89,13 +97,12 @@ object EntityEncoder {
       def headers: Headers = Headers.empty
     }
 
-  /**
-    * A stream encoder is intended for streaming, and does not calculate its
+  /** A stream encoder is intended for streaming, and does not calculate its
     * bodies in advance.  As such, it does not calculate the Content-Length in
     * advance.  This is for use with chunked transfer encoding.
     */
-  implicit def streamEncoder[F[_], A](
-      implicit W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
+  implicit def streamEncoder[F[_], A](implicit
+      W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
         Entity(a.flatMap(W.toEntity(_).body))
@@ -112,14 +119,14 @@ object EntityEncoder {
   implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
     emptyEncoder[F, Unit]
 
-  implicit def stringEncoder[F[_]](
-      implicit charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
+  implicit def stringEncoder[F[_]](implicit
+      charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
   }
 
-  implicit def charArrayEncoder[F[_]](
-      implicit charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
+  implicit def charArrayEncoder[F[_]](implicit
+      charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
 
   implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
@@ -158,8 +165,8 @@ object EntityEncoder {
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(
-      implicit F: Sync[F],
+  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(implicit
+      F: Sync[F],
       cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
@@ -207,6 +214,6 @@ object EntityEncoder {
 
   implicit def serverSentEventEncoder[F[_]]: EntityEncoder[F, EventStream[F]] =
     entityBodyEncoder[F]
-      .contramap[EventStream[F]] { _.through(ServerSentEvent.encoder) }
+      .contramap[EventStream[F]](_.through(ServerSentEvent.encoder))
       .withContentType(`Content-Type`(MediaType.`text/event-stream`))
 }

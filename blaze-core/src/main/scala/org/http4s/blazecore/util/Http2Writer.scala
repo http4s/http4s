@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 package util
@@ -34,15 +40,13 @@ private[http4s] class Http2Writer[F[_]](
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (chunk.isEmpty) FutureUnit
+    else if (headers == null) tail.channelWrite(DataFrame(endStream = false, chunk.toByteBuffer))
     else {
-      if (headers == null) tail.channelWrite(DataFrame(endStream = false, chunk.toByteBuffer))
-      else {
-        val hs = headers
-        headers = null
-        tail.channelWrite(
-          HeadersFrame(Priority.NoPriority, endStream = false, hs)
-            :: DataFrame(endStream = false, chunk.toByteBuffer)
-            :: Nil)
-      }
+      val hs = headers
+      headers = null
+      tail.channelWrite(
+        HeadersFrame(Priority.NoPriority, endStream = false, hs)
+          :: DataFrame(endStream = false, chunk.toByteBuffer)
+          :: Nil)
     }
 }

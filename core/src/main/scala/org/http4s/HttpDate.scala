@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import java.time.{Instant, ZonedDateTime}
@@ -8,8 +14,7 @@ import cats.implicits._
 import cats.effect.Clock
 import scala.concurrent.duration.SECONDS
 
-/**
-  * An HTTP-date value represents time as an instance of Coordinated Universal
+/** An HTTP-date value represents time as an instance of Coordinated Universal
   * Time (UTC). It expresses time at a resolution of one second.  By using it
   * over java.time.Instant in the model, we assure that if two headers render
   * equally, their values are equal.
@@ -52,8 +57,7 @@ object HttpDate {
   /** The latest value reprsentable by RFC1123, `Fri, 31 Dec 9999 23:59:59 GMT`. */
   val MaxValue = HttpDate.unsafeFromEpochSecond(MaxEpochSecond)
 
-  /**
-    * Constructs an `HttpDate` from the current time. Starting on January 1,n
+  /** Constructs an `HttpDate` from the current time. Starting on January 1,n
     * 10000, this will throw an exception. The author intends to leave this
     * problem for future generations.
     */
@@ -61,8 +65,7 @@ object HttpDate {
   def now: HttpDate =
     unsafeFromInstant(Instant.now)
 
-  /**
-    * Constructs an [[HttpDate]] from the current time. Starting on January 1,n
+  /** Constructs an [[HttpDate]] from the current time. Starting on January 1,n
     * 10000, this will throw an exception. The author intends to leave this
     * problem for future generations.
     */
@@ -85,7 +88,8 @@ object HttpDate {
     fromString(s).fold(throw _, identity)
 
   /** Constructs a date from the seconds since the [[Epoch]]. If out of range,
-    *  returns a ParseFailure. */
+    *  returns a ParseFailure.
+    */
   def fromEpochSecond(epochSecond: Long): ParseResult[HttpDate] =
     if (epochSecond < MinEpochSecond || epochSecond > MaxEpochSecond)
       ParseResult.fail(
@@ -99,7 +103,8 @@ object HttpDate {
     fromEpochSecond(epochSecond).fold(throw _, identity)
 
   /** Constructs a date from an instant, truncating to the most recent second. If
-    *  out of range, returns a ParseFailure. */
+    *  out of range, returns a ParseFailure.
+    */
   def fromInstant(instant: Instant): ParseResult[HttpDate] =
     fromEpochSecond(instant.toEpochMilli / 1000)
 
@@ -108,7 +113,8 @@ object HttpDate {
     unsafeFromEpochSecond(instant.toEpochMilli / 1000)
 
   /** Constructs a date from an zoned date-time, truncating to the most recent
-    *  second. If out of range, returns a ParseFailure. */
+    *  second. If out of range, returns a ParseFailure.
+    */
   def fromZonedDateTime(dateTime: ZonedDateTime): ParseResult[HttpDate] =
     fromInstant(dateTime.toInstant)
 

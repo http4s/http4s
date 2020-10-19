@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats.effect._
@@ -19,7 +25,9 @@ class StaticHeadersSpec extends Http4sSpec {
       val resp = StaticHeaders.`no-cache`(testService).orNotFound(req)
 
       val check =
-        resp.map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache")).unsafeRunSync
+        resp
+          .map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache"))
+          .unsafeRunSync()
       check must_=== true
     }
   }

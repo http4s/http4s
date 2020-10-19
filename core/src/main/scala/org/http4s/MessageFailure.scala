@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Eq, MonadError}
@@ -21,8 +27,7 @@ trait MessageFailure extends RuntimeException {
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F]
 }
 
-/**
-  * Indicates an error parsing an HTTP [[Message]].
+/** Indicates an error parsing an HTTP [[Message]].
   *
   * @param sanitized May safely be displayed to a client to describe an error
   *                  condition.  Should not echo any part of a Request.
@@ -66,7 +71,8 @@ object ParseResult {
 }
 
 /** Indicates a problem decoding a [[Message]].  This may either be a problem with
-  * the entity headers or with the entity itself.   */
+  * the entity headers or with the entity itself.
+  */
 trait DecodeFailure extends MessageFailure
 
 object DecodeFailure {
@@ -114,7 +120,8 @@ sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoS
 }
 
 /** Indicates that a [[Message]] attempting to be decoded has no [[MediaType]] and no
-  * [[EntityDecoder]] was lenient enough to accept it. */
+  * [[EntityDecoder]] was lenient enough to accept it.
+  */
 final case class MediaTypeMissing(expected: Set[MediaRange]) extends UnsupportedMediaTypeFailure {
   def sanitizedResponsePrefix: String = "No media type specified in Content-Type header"
   def message: String = responseMsg

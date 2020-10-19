@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package blaze
@@ -68,7 +74,7 @@ object BlazeClient {
           }
 
         def idleTimeoutStage(conn: A) =
-          Resource.makeCase({
+          Resource.makeCase {
             idleTimeout match {
               case d: FiniteDuration =>
                 val stage = new IdleTimeoutStage[ByteBuffer](d, scheduler, ec)
@@ -76,7 +82,7 @@ object BlazeClient {
               case _ =>
                 F.pure(None)
             }
-          }) {
+          } {
             case (_, ExitCase.Completed) => F.unit
             case (stageOpt, _) => F.delay(stageOpt.foreach(_.removeStage()))
           }
@@ -100,16 +106,14 @@ object BlazeClient {
                         .guarantee(manager.invalidate(next.connection))
                   }
                 }
-                .recoverWith {
-                  case Command.EOF =>
-                    invalidate(next.connection).flatMap { _ =>
-                      if (next.fresh)
-                        F.raiseError(
-                          new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
-                      else {
-                        loop
-                      }
-                    }
+                .recoverWith { case Command.EOF =>
+                  invalidate(next.connection).flatMap { _ =>
+                    if (next.fresh)
+                      F.raiseError(
+                        new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
+                    else
+                      loop
+                  }
                 }
 
               responseHeaderTimeout match {
@@ -117,18 +121,17 @@ object BlazeClient {
                   Deferred[F, Unit].flatMap { gate =>
                     val responseHeaderTimeoutF: F[TimeoutException] =
                       F.delay {
-                          val stage =
-                            new ResponseHeaderTimeoutStage[ByteBuffer](
-                              responseHeaderTimeout,
-                              scheduler,
-                              ec)
-                          next.connection.spliceBefore(stage)
-                          stage
-                        }
-                        .bracket(stage =>
-                          F.asyncF[TimeoutException] { cb =>
-                            F.delay(stage.init(cb)) >> gate.complete(())
-                          })(stage => F.delay(stage.removeStage()))
+                        val stage =
+                          new ResponseHeaderTimeoutStage[ByteBuffer](
+                            responseHeaderTimeout,
+                            scheduler,
+                            ec)
+                        next.connection.spliceBefore(stage)
+                        stage
+                      }.bracket(stage =>
+                        F.asyncF[TimeoutException] { cb =>
+                          F.delay(stage.init(cb)) >> gate.complete(())
+                        })(stage => F.delay(stage.removeStage()))
 
                     F.racePair(gate.get *> res, responseHeaderTimeoutF)
                       .flatMap[Resource[F, Response[F]]] {
@@ -145,20 +148,22 @@ object BlazeClient {
         requestTimeout match {
           case d: FiniteDuration =>
             F.racePair(
-                res,
-                F.cancelable[TimeoutException] { cb =>
-                  val c = scheduler.schedule(new Runnable {
+              res,
+              F.cancelable[TimeoutException] { cb =>
+                val c = scheduler.schedule(
+                  new Runnable {
                     def run() =
                       cb(Right(
                         new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
-                  }, ec, d)
-                  F.delay(c.cancel)
-                }
-              )
-              .flatMap[Resource[F, Response[F]]] {
-                case Left((r, fiber)) => fiber.cancel.as(r)
-                case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+                  },
+                  ec,
+                  d)
+                F.delay(c.cancel())
               }
+            ).flatMap[Resource[F, Response[F]]] {
+              case Left((r, fiber)) => fiber.cancel.as(r)
+              case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+            }
           case _ =>
             res
         }

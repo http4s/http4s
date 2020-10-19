@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -6,7 +12,6 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import org.http4s.Method._
-import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.Uri.uri
 import org.http4s.client.dsl.Http4sClientDsl
@@ -21,15 +26,15 @@ class ClientSyntaxSpec
     with Http4sLegacyMatchersIO {
   val app = HttpRoutes
     .of[IO] {
-      case r if r.method == GET && r.pathInfo == "/" =>
+      case r if r.method == GET && r.pathInfo == path"/" =>
         Response[IO](Ok).withEntity("hello").pure[IO]
-      case r if r.method == PUT && r.pathInfo == "/put" =>
+      case r if r.method == PUT && r.pathInfo == path"/put" =>
         Response[IO](Created).withEntity(r.body).pure[IO]
-      case r if r.method == GET && r.pathInfo == "/echoheaders" =>
+      case r if r.method == GET && r.pathInfo == path"/echoheaders" =>
         r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
           Response[IO](Ok).withEntity(m.toString).pure[IO]
         }
-      case r if r.pathInfo == "/status/500" =>
+      case r if r.pathInfo == path"/status/500" =>
         Response[IO](InternalServerError).withEntity("Oops").pure[IO]
     }
     .orNotFound
@@ -61,22 +66,8 @@ class ClientSyntaxSpec
       } must returnValue("Ok")
     }
 
-    "match responses to requests with fetch" in {
-      client.fetch(req) {
-        case Ok(_) => IO.pure("Ok")
-        case _ => IO.pure("fail")
-      } must returnValue("Ok")
-    }
-
-    "match responses to request tasks with fetch" in {
-      client.fetch(IO.pure(req)) {
-        case Ok(_) => IO.pure("Ok")
-        case _ => IO.pure("fail")
-      } must returnValue("Ok")
-    }
-
-    "match responses to request tasks with fetch" in {
-      client.fetch(IO.pure(req)) {
+    "match responses to requests with run" in {
+      client.run(req).use {
         case Ok(_) => IO.pure("Ok")
         case _ => IO.pure("fail")
       } must returnValue("Ok")
@@ -100,44 +91,26 @@ class ClientSyntaxSpec
       })
     }
 
-    "fetch disposes of the response on success" in {
-      assertDisposes(_.fetch(req) { _ =>
+    "run disposes of the response on success" in {
+      assertDisposes(_.run(req).use { _ =>
         IO.unit
       })
     }
 
-    "fetch disposes of the response on failure" in {
-      assertDisposes(_.fetch(req) { _ =>
+    "run disposes of the response on failure" in {
+      assertDisposes(_.run(req).use { _ =>
         IO.raiseError(SadTrombone)
       })
     }
 
-    "fetch disposes of the response on uncaught exception" in {
-      assertDisposes(_.fetch(req) { _ =>
+    "run disposes of the response on uncaught exception" in {
+      assertDisposes(_.run(req).use { _ =>
         sys.error("Don't do this at home, kids")
       })
     }
 
-    "fetch on task disposes of the response on success" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ =>
-        IO.unit
-      })
-    }
-
-    "fetch on task disposes of the response on failure" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ =>
-        IO.raiseError(SadTrombone)
-      })
-    }
-
-    "fetch on task disposes of the response on uncaught exception" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ =>
-        sys.error("Don't do this at home, kids")
-      })
-    }
-
-    "fetch on task that does not match results in failed task" in {
-      client.fetch(IO.pure(req))(PartialFunction.empty).attempt.unsafeRunSync() must beLeft {
+    "run that does not match results in failed task" in {
+      client.run(req).use(PartialFunction.empty).attempt.unsafeRunSync() must beLeft {
         e: Throwable =>
           e must beAnInstanceOf[MatchError]
       }
@@ -230,13 +203,13 @@ class ClientSyntaxSpec
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
-        "Accept: text/*")
+      client.expect[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
-        "Accept: text/*")
+      client.expect[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
     "combine entity decoder media types correctly" in {
@@ -248,11 +221,13 @@ class ClientSyntaxSpec
     }
 
     "return empty with expectOption and not found" in {
-      client.expectOption[String](Request[IO](GET, uri("http://www.foo.com/random-not-found"))) must returnValue(
+      client.expectOption[String](
+        Request[IO](GET, uri("http://www.foo.com/random-not-found"))) must returnValue(
         Option.empty[String])
     }
     "return expected value with expectOption and a response" in {
-      client.expectOption[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
+      client.expectOption[String](
+        Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
         "Accept: text/*".some
       )
     }

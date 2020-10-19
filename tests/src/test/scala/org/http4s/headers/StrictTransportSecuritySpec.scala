@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.headers
 
 import org.http4s.ParseFailure
@@ -85,7 +91,8 @@ class StrictTransportSecuritySpec extends HeaderLaws {
         `Strict-Transport-Security`.unsafeFromDuration(365.days, true))
     }
     "accept age, subdomains and preload" in {
-      `Strict-Transport-Security`.parse("max-age=31536000; includeSubDomains; preload") must beRight(
+      `Strict-Transport-Security`.parse(
+        "max-age=31536000; includeSubDomains; preload") must beRight(
         `Strict-Transport-Security`.unsafeFromDuration(365.days, true, true))
     }
   }

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package dsl
 package impl
@@ -19,8 +25,7 @@ private[impl] object ResponseGenerator {
     }
 }
 
-/**
-  *  Helper for the generation of a [[org.http4s.Response]] which will not contain a body
+/**  Helper for the generation of a [[org.http4s.Response]] which will not contain a body
   *
   * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
   * offer shortcut syntax to make intention clear and concise.
@@ -53,8 +58,8 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
     F.flatMap(liftG(body))(apply[A](_))
 
-  def apply[A](body: A, headers: Header*)(
-      implicit F: Applicative[F],
+  def apply[A](body: A, headers: Header*)(implicit
+      F: Applicative[F],
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(headers.toList)
     val entity = w.toEntity(body)
@@ -80,8 +85,8 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
     F.pure(
       Response[G](status, headers = Headers(`Content-Length`.zero :: location :: headers.toList)))
 
-  def apply[A](location: Location, body: A, headers: Header*)(
-      implicit F: Applicative[F],
+  def apply[A](location: Location, body: A, headers: Header*)(implicit
+      F: Applicative[F],
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(location +: headers.toList)
     val entity = w.toEntity(body)
@@ -97,8 +102,8 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
   */
 trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   @deprecated("Use ``apply(`WWW-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
-  def apply(challenge: Challenge, challenges: Challenge*)(
-      implicit F: Applicative[F]): F[Response[G]] =
+  def apply(challenge: Challenge, challenges: Challenge*)(implicit
+      F: Applicative[F]): F[Response[G]] =
     F.pure(
       Response[G](
         status = status,
@@ -106,15 +111,15 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
           Headers(`Content-Length`.zero :: `WWW-Authenticate`(challenge, challenges: _*) :: Nil)
       ))
 
-  def apply(authenticate: `WWW-Authenticate`, headers: Header*)(
-      implicit F: Applicative[F]): F[Response[G]] =
+  def apply(authenticate: `WWW-Authenticate`, headers: Header*)(implicit
+      F: Applicative[F]): F[Response[G]] =
     F.pure(
       Response[G](
         status,
         headers = Headers(`Content-Length`.zero :: authenticate :: headers.toList)))
 
-  def apply[A](authenticate: `WWW-Authenticate`, body: A, headers: Header*)(
-      implicit F: Applicative[F],
+  def apply[A](authenticate: `WWW-Authenticate`, body: A, headers: Header*)(implicit
+      F: Applicative[F],
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(authenticate +: headers.toList)
     val entity = w.toEntity(body)
@@ -132,8 +137,8 @@ trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(allow: Allow, headers: Header*)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status, headers = Headers(`Content-Length`.zero +: allow +: headers.toList)))
 
-  def apply[A](allow: Allow, body: A, headers: Header*)(
-      implicit F: Applicative[F],
+  def apply[A](allow: Allow, body: A, headers: Header*)(implicit
+      F: Applicative[F],
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(allow +: headers.toList)
     val entity = w.toEntity(body)
@@ -149,8 +154,8 @@ trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   */
 trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   @deprecated("Use ``apply(`Proxy-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
-  def apply(challenge: Challenge, challenges: Challenge*)(
-      implicit F: Applicative[F]): F[Response[G]] =
+  def apply(challenge: Challenge, challenges: Challenge*)(implicit
+      F: Applicative[F]): F[Response[G]] =
     F.pure(
       Response[G](
         status = status,
@@ -158,15 +163,15 @@ trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGe
           Headers(`Content-Length`.zero :: `Proxy-Authenticate`(challenge, challenges: _*) :: Nil)
       ))
 
-  def apply(authenticate: `Proxy-Authenticate`, headers: Header*)(
-      implicit F: Applicative[F]): F[Response[G]] =
+  def apply(authenticate: `Proxy-Authenticate`, headers: Header*)(implicit
+      F: Applicative[F]): F[Response[G]] =
     F.pure(
       Response[G](
         status,
         headers = Headers(`Content-Length`.zero +: authenticate +: headers.toList)))
 
-  def apply[A](authenticate: `Proxy-Authenticate`, body: A, headers: Header*)(
-      implicit F: Applicative[F],
+  def apply[A](authenticate: `Proxy-Authenticate`, body: A, headers: Header*)(implicit
+      F: Applicative[F],
       w: EntityEncoder[G, A]): F[Response[G]] = {
     val h = w.headers ++ Headers(authenticate +: headers.toList)
     val entity = w.toEntity(body)

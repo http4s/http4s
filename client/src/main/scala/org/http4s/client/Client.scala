@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -24,6 +30,7 @@ trait Client[F[_]] {
     *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
+  @deprecated("Use run(req).use(f)", "0.21.5")
   def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A]
 
   /** Submits a request, and provides a callback to process the response.
@@ -34,46 +41,31 @@ trait Client[F[_]] {
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
+  @deprecated("Use req.flatMap(run(_).use(f))", "0.21.5")
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
 
-  /**
-    * Returns this client as a [[Kleisli]].  All connections created by this
+  /** Returns this client as a [[Kleisli]].  All connections created by this
     * service are disposed on completion of callback task f.
     *
-    * This method effectively reverses the arguments to `fetch`, and is
+    * This method effectively reverses the arguments to `run` followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A]
 
-  @deprecated("Use toKleisli", "0.18")
-  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A]
-
-  /**
-    * Returns this client as an [[HttpApp]].  It is the responsibility of
+  /** Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
+    * This is intended for use in proxy servers.  `run`, `fetchAs`,
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpApp: HttpApp[F]
 
-  /**
-    * Returns this client as an [[HttpService]].  It is the
-    * responsibility of callers of this service to run the response
-    * body to dispose of the underlying HTTP connection.
-    *
-    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
-    */
-  @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
-  def toHttpService: HttpService[F]
-
   /** Run the request as a stream.  The response lifecycle is equivalent
-    * to the returned Stream's. */
+    * to the returned Stream's.
+    */
   def stream(req: Request[F]): Stream[F, Response[F]]
 
   @deprecated("Use `client.stream(req).flatMap(f)`", "0.19.0-M4")
@@ -82,54 +74,49 @@ trait Client[F[_]] {
   @deprecated("Use `Stream.eval(req).flatMap(client.stream).flatMap(f)`", "0.19.0-M4")
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
-  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A]
+  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A]
 
-  /**
-    * Submits a request and decodes the response on success.  On failure, the
+  /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A]
+  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A]
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A]
+  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A]
 
-  /**
-    * Submits a GET request to the specified URI and decodes the response on
+  /** Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[A]
+  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[A]
 
-  /**
-    * Submits a GET request to the URI specified by the String and decodes the
+  /** Submits a GET request to the URI specified by the String and decodes the
     * response on success.  On failure, the status code is returned.  The
     * underlying HTTP connection is closed at the completion of the decoding.
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
-  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
-      implicit d: EntityDecoder[F, A]): F[Option[A]]
+  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]): F[Option[A]]
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
-  /**
-    * Submits a request and decodes the response, regardless of the status code.
+  /** Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
-  /**
-    * Submits a request and decodes the response, regardless of the status code.
+  /** Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
@@ -148,11 +135,13 @@ trait Client[F[_]] {
   def statusFromString(s: String): F[Status]
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: Request[F]): F[Boolean]
 
   /** Submits a request and returns true if and only if the response status is
-    * successful */
+    * successful
+    */
   def successful(req: F[Request[F]]): F[Boolean]
 
   /** Submits a GET request, and provides a callback to process the response.
@@ -165,15 +154,13 @@ trait Client[F[_]] {
     */
   def get[A](uri: Uri)(f: Response[F] => F[A]): F[A]
 
-  /**
-    * Submits a request and decodes the response on success.  On failure, the
+  /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
-  /**
-    * Translates the effect type of this client from F to G
+  /** Translates the effect type of this client from F to G
     */
   def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F): Client[G] =
     Client((req: Request[G]) =>
@@ -184,10 +171,11 @@ trait Client[F[_]] {
 }
 
 object Client {
-  def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(
-      implicit F: Bracket[F, Throwable]): Client[F] = new DefaultClient[F] {
-    def run(req: Request[F]): Resource[F, Response[F]] = f(req)
-  }
+  def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
+      F: Bracket[F, Throwable]): Client[F] =
+    new DefaultClient[F] {
+      def run(req: Request[F]): Resource[F, Response[F]] = f(req)
+    }
 
   /** Creates a client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.
@@ -222,9 +210,24 @@ object Client {
           val req0 =
             addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
           Resource
-            .make(app(req0))(_ => disposed.set(true))
+            .liftF(app(req0))
+            .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
             .map(resp => resp.copy(body = go(resp.body).stream))
         }
+      }
+    }
+
+  /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
+    * form the backend of tracing and these transformations are non-trivial.
+    */
+  def liftKleisli[F[_]: Bracket[*[_], Throwable]: cats.Defer, A](
+      client: Client[F]): Client[Kleisli[F, A, *]] =
+    Client { req: Request[Kleisli[F, A, *]] =>
+      Resource.liftF(Kleisli.ask[F, A]).flatMap { a =>
+        client
+          .run(req.mapK(Kleisli.applyK(a)))
+          .mapK(Kleisli.liftK[F, A])
+          .map(_.mapK(Kleisli.liftK))
       }
     }
 

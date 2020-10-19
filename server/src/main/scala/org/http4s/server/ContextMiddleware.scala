@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 
@@ -10,8 +16,7 @@ object ContextMiddleware {
       getContext: Kleisli[OptionT[F, *], Request[F], T]): ContextMiddleware[F, T] =
     _.compose(Kleisli((r: Request[F]) => getContext(r).map(ContextRequest(_, r))))
 
-  /**
-    * Useful for Testing, Construct a Middleware from a single
+  /** Useful for Testing, Construct a Middleware from a single
     * value T to use as the context
     *
     * @param t The value to use as the context

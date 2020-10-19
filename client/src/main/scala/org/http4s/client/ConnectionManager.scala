@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
@@ -27,14 +33,12 @@ trait ConnectionManager[F[_], A <: Connection[F]] {
   /** Get a connection for the provided request key. */
   def borrow(requestKey: RequestKey): F[NextConnection]
 
-  /**
-    * Release a connection.  The connection manager may choose to keep the connection for
+  /** Release a connection.  The connection manager may choose to keep the connection for
     * subsequent calls to [[borrow]], or dispose of the connection.
     */
   def release(connection: A): F[Unit]
 
-  /**
-    * Invalidate a connection, ensuring that its resources are freed.  The connection
+  /** Invalidate a connection, ensuring that its resources are freed.  The connection
     * manager may not return this connection on another borrow.
     */
   def invalidate(connection: A): F[Unit]
@@ -45,7 +49,7 @@ object ConnectionManager {
   /** Create a [[ConnectionManager]] that creates new connections on each request
     *
     * @param builder generator of new connections
-    * */
+    */
   def basic[F[_]: Sync, A <: Connection[F]](
       builder: ConnectionBuilder[F, A]): ConnectionManager[F, A] =
     new BasicManager[F, A](builder)

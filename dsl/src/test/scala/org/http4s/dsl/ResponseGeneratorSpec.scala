@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package dsl
 
@@ -11,7 +17,7 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "Add the EntityEncoder headers along with a content-length header" in {
     val body = "foo"
-    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers
+    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync().headers
     EntityEncoder.stringEncoder[IO].headers.foldLeft(ok) { (old, h) =>
       old.and(resultheaders.toList.exists(_ == h) must_=== true)
     }
@@ -85,8 +91,7 @@ class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
   "EntityResponseGenerator() generates Content-Length: 0" in {
 
-    /**
-      * Aside from the cases defined above, in the absence of Transfer-Encoding,
+    /** Aside from the cases defined above, in the absence of Transfer-Encoding,
       * an origin server SHOULD send a Content-Length header field when the
       * payload body size is known prior to sending the complete header section.
       * -- https://tools.ietf.org/html/rfc7230#section-3.3.2

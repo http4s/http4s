@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.Semigroup
@@ -33,11 +39,11 @@ object StaticFile {
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
-    val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists {
-      acceptEncoding =>
+    val tryGzipped =
+      preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists { acceptEncoding =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
           ContentCoding.`x-gzip`)
-    }
+      }
     val normalizedName = name.split("/").filter(_.nonEmpty).mkString("/")
 
     def getResource(name: String) =
@@ -58,33 +64,52 @@ object StaticFile {
         .flatMap(fromURL(_, blocker, req)))
   }
 
-  def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(
-      implicit F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] =
-    OptionT.liftF(F.delay {
-      val urlConn = url.openConnection
-      val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
-      val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
-      val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
+  def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(implicit
+      F: Sync[F],
+      cs: ContextShift[F]): OptionT[F, Response[F]] = {
+    val fileUrl = url.getFile()
+    val file = new File(fileUrl)
+    OptionT.apply(F.suspend {
+      if (file.isDirectory())
+        F.pure(None)
+      else {
+        val urlConn = url.openConnection
+        val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
+        val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
+        val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
 
-      if (expired) {
-        val lastModHeader: List[Header] = lastmod.map(`Last-Modified`(_)).toList
-        val contentType = nameToContentType(url.getPath).toList
-        val len = urlConn.getContentLengthLong
-        val lenHeader =
-          if (len >= 0) `Content-Length`.unsafeFromLong(len)
-          else `Transfer-Encoding`(TransferCoding.chunked)
-        val headers = Headers(lenHeader :: lastModHeader ::: contentType)
+        if (expired) {
+          val lastModHeader: List[Header] = lastmod.map(`Last-Modified`(_)).toList
+          val contentType = nameToContentType(url.getPath).toList
+          val len = urlConn.getContentLengthLong
+          val lenHeader =
+            if (len >= 0) `Content-Length`.unsafeFromLong(len)
+            else `Transfer-Encoding`(TransferCoding.chunked)
+          val headers = Headers(lenHeader :: lastModHeader ::: contentType)
 
-        Response(
-          headers = headers,
-          body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blocker)
-        )
-      } else {
-        urlConn.getInputStream.close()
-        Response(NotModified)
+          blocker
+            .delay(urlConn.getInputStream)
+            .redeem(
+              recover = {
+                case _: FileNotFoundException => None
+                case other => throw other
+              },
+              f = { inputStream =>
+                Some(
+                  Response(
+                    headers = headers,
+                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize, blocker)
+                  ))
+              }
+            )
+        } else
+          blocker
+            .delay(urlConn.getInputStream.close())
+            .handleError(_ => ())
+            .as(Some(Response(NotModified)))
       }
     })
+  }
 
   def calcETag[F[_]: Sync]: File => F[String] =
     f =>
@@ -119,8 +144,8 @@ object StaticFile {
       buffsize: Int,
       blocker: Blocker,
       req: Option[Request[F]],
-      etagCalculator: File => F[String])(
-      implicit F: Sync[F],
+      etagCalculator: File => F[String])(implicit
+      F: Sync[F],
       cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
@@ -151,9 +176,8 @@ object StaticFile {
             logger.trace(s"Static file generated response: $r")
             Some(r)
           }
-        } else {
+        } else
           None
-        }
       }
     } yield res)
 
@@ -203,5 +227,5 @@ object StaticFile {
       case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
     }
 
-  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync
+  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync()
 }

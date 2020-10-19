@@ -1,7 +1,14 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package fix
 
-import scalafix.testkit.SemanticRuleSuite
+import org.scalatest.FunSpecLike
+import scalafix.testkit.AbstractSemanticRuleSuite
 
-class RuleSuite extends SemanticRuleSuite() {
+class RuleSuite extends AbstractSemanticRuleSuite with FunSpecLike {
   runAllTests()
 }

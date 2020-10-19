@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package argonaut.test // Get out of argonaut package so we can import custom instances
 
@@ -40,7 +46,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
     }
 
     "write compact JSON" in {
-      writeToString(json) must_== ("""{"test":"ArgonautSupport"}""")
+      writeToString(json) must_== """{"test":"ArgonautSupport"}"""
     }
 
     "write JSON according to custom encoders" in {
@@ -65,7 +71,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
     }
 
     "write compact JSON" in {
-      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== ("""{"bar":42}""")
+      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== """{"bar":42}"""
     }
 
     "write JSON according to custom encoders" in {
@@ -102,8 +108,9 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts with Http4
   "jsonOf" should {
     "decode JSON from an Argonaut decoder" in {
       jsonOf[IO, Foo]
-        .decode(Request[IO]().withEntity(jObjectFields("bar" -> jNumberOrNull(42))), strict = true) must returnRight(
-        Foo(42))
+        .decode(
+          Request[IO]().withEntity(jObjectFields("bar" -> jNumberOrNull(42))),
+          strict = true) must returnRight(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514

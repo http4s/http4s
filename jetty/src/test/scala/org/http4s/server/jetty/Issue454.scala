@@ -1,4 +1,9 @@
-/* https://github.com/http4s/http4s/issues/454#issuecomment-160144299 */
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package jetty
@@ -46,8 +51,8 @@ object Issue454 {
 
   val servlet = new AsyncHttp4sServlet[IO](
     service = HttpRoutes
-      .of[IO] {
-        case GET -> Root => Ok(insanelyHugeData)
+      .of[IO] { case GET -> Root =>
+        Ok(insanelyHugeData)
       }
       .orNotFound,
     servletIo = org.http4s.servlet.NonBlockingServletIo(4096),

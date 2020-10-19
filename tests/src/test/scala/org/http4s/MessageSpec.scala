@@ -1,14 +1,19 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
-
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.testing.Http4sLegacyMatchersIO
 import _root_.io.chrisdavenport.vault._
-import org.http4s.Uri.{Authority, Scheme}
+import org.typelevel.ci.CIString
 
 class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "Request" >> {
@@ -64,7 +69,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Request(Method.GET)
           .addCookie(RequestCookie("token", "value"))
           .headers
-          .get("Cookie".ci)
+          .get(CIString("Cookie"))
           .map(_.value) must beSome("token=value")
       }
 
@@ -73,7 +78,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
           .addCookie(RequestCookie("token1", "value1"))
           .addCookie(RequestCookie("token2", "value2"))
           .headers
-          .get("Cookie".ci)
+          .get(CIString("Cookie"))
           .map(_.value) must beSome("token1=value1; token2=value2")
       }
 
@@ -81,7 +86,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         Request(Method.GET)
           .addCookie("token", "value")
           .headers
-          .get("Cookie".ci)
+          .get(CIString("Cookie"))
           .map(_.value) must beSome("token=value")
       }
 
@@ -90,40 +95,40 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
           .addCookie("token1", "value1")
           .addCookie("token2", "value2")
           .headers
-          .get("Cookie".ci)
+          .get(CIString("Cookie"))
           .map(_.value) must beSome("token1=value1; token2=value2")
       }
     }
 
     "Request.with..." should {
-      val path1 = "/path1"
-      val path2 = "/somethingelse"
-      val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 3)
+      val path1 = uri"/path1"
+      val path2 = path"/somethingelse"
+      val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 0)
 
       "reset pathInfo if uri is changed" in {
-        val originalReq = Request(uri = Uri(path = path1), attributes = attributes)
-        val updatedReq = originalReq.withUri(uri = Uri(path = path2))
+        val originalReq = Request(uri = path1, attributes = attributes)
+        val updatedReq = originalReq.withUri(uri = Uri().withPath(path2))
 
-        updatedReq.scriptName mustEqual ""
+        updatedReq.scriptName mustEqual Uri.Path.Root
         updatedReq.pathInfo mustEqual path2
       }
 
       "not modify pathInfo if uri is unchanged" in {
-        val originalReq = Request(uri = Uri(path = path1), attributes = attributes)
+        val originalReq = Request(uri = path1, attributes = attributes)
         val updatedReq = originalReq.withMethod(method = Method.DELETE)
 
-        originalReq.pathInfo mustEqual updatedReq.pathInfo
         originalReq.scriptName mustEqual updatedReq.scriptName
+        originalReq.pathInfo mustEqual updatedReq.pathInfo
       }
 
       "preserve caret in withPathInfo" in {
         val originalReq = Request(
-          uri = Uri(path = "/foo/bar"),
-          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 4))
-        val updatedReq = originalReq.withPathInfo("/quux")
+          uri = uri"/foo/bar",
+          attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 1))
+        val updatedReq = originalReq.withPathInfo(path"/quux")
 
-        updatedReq.scriptName mustEqual "/foo"
-        updatedReq.pathInfo mustEqual "/quux"
+        updatedReq.scriptName mustEqual path"/foo"
+        updatedReq.pathInfo mustEqual path"/quux"
       }
     }
 
@@ -155,7 +160,8 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       "parse HTTP/1 and HTTP/2 Cookie headers on a single request into corresponding RequestCookies" in {
         val cookies = Headers.of(
           Header("Cookie", "test1=value1; test2=value2"), // HTTP/1 style
-          Header("Cookie", "test3=value3")) // HTTP/2 style (separate headers for separate cookies)
+          Header("Cookie", "test3=value3")
+        ) // HTTP/2 style (separate headers for separate cookies)
         val request = Request(Method.GET, headers = cookies)
         request.cookies mustEqual cookieList
       }
@@ -165,13 +171,13 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       "redact an Authorization header" in {
         val request =
           Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
-        request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
+        request.toString must_== "Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))"
       }
 
       "redact Cookie Headers" in {
         val request =
           Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
-        request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
+        request.toString must_== "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))"
       }
     }
 
@@ -190,12 +196,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     }
 
     "asCurl" should {
-      val port = 1234
-      val uri = Uri(
-        path = "/foo",
-        scheme = Some(Scheme.http),
-        authority = Some(Authority(port = Some(port)))
-      )
+      val uri = uri"http://localhost:1234/foo"
       val request = Request[IO](Method.GET, uri)
 
       "build cURL representation with scheme and authority" in {
@@ -222,7 +223,8 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             Header("Cookie", "k3=v3; k4=v4"),
             Header("k5", "v5"),
             Authorization(BasicCredentials("user", "pass")))
-          .asCurl(_ => false) mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
+          .asCurl(_ =>
+            false) mustEqual "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
       }
 
       "escape quotation marks in header" in {
@@ -255,7 +257,7 @@ class MessageSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     "toString" should {
       "redact a `Set-Cookie` header" in {
         val resp = Response().putHeaders(headers.`Set-Cookie`(ResponseCookie("token", "value")))
-        resp.toString must_== ("Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
+        resp.toString must_== "Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))"
       }
     }
 

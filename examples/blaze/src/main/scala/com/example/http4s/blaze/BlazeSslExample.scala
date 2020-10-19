@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s
 package blaze
 
@@ -5,6 +11,7 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.server.Server
 import org.http4s.server.blaze.BlazeServerBuilder
+import scala.concurrent.ExecutionContext.global
 
 object BlazeSslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -17,7 +24,7 @@ object BlazeSslExampleApp {
 
   def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: F[BlazeServerBuilder[F]] =
     context.map { sslContext =>
-      BlazeServerBuilder[F]
+      BlazeServerBuilder[F](global)
         .bindHttp(8443)
         .withSslContext(sslContext)
     }

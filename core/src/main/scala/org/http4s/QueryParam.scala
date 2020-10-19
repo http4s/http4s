@@ -1,9 +1,15 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Contravariant, Functor, MonoidK, Show}
 import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
-import java.time.Instant
+import java.time.{Instant, LocalDate, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
 
@@ -11,12 +17,15 @@ final case class QueryParameterKey(value: String) extends AnyVal
 
 final case class QueryParameterValue(value: String) extends AnyVal
 
-/**
-  * type class defining the key of a query parameter
+/** type class defining the key of a query parameter
   * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
+  *
+  * Any [[QueryParam]] instance is also a valid [[QueryParamKeyLike]] instance
+  * where the same key is used for all values.
   */
-trait QueryParam[T] {
+trait QueryParam[T] extends QueryParamKeyLike[T] {
   def key: QueryParameterKey
+  override final def getKey(t: T): QueryParameterKey = key
 }
 
 object QueryParam {
@@ -24,9 +33,10 @@ object QueryParam {
   /** summon an implicit [[QueryParam]] */
   def apply[T](implicit ev: QueryParam[T]): QueryParam[T] = ev
 
-  def fromKey[T](k: String): QueryParam[T] = new QueryParam[T] {
-    def key: QueryParameterKey = QueryParameterKey(k)
-  }
+  def fromKey[T](k: String): QueryParam[T] =
+    new QueryParam[T] {
+      def key: QueryParameterKey = QueryParameterKey(k)
+    }
 }
 
 trait QueryParamKeyLike[T] {
@@ -59,10 +69,26 @@ object QueryParamCodec {
     QueryParamCodec
       .from[Instant](instantQueryParamDecoder(formatter), instantQueryParamEncoder(formatter))
   }
+
+  def localDateQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[LocalDate] = {
+    import QueryParamDecoder.localDateQueryParamDecoder
+    import QueryParamEncoder.localDateQueryParamEncoder
+
+    QueryParamCodec
+      .from[LocalDate](localDateQueryParamDecoder(formatter), localDateQueryParamEncoder(formatter))
+  }
+
+  def zonedDateTimeQueryParamCodec(formatter: DateTimeFormatter): QueryParamCodec[ZonedDateTime] = {
+    import QueryParamDecoder.zonedDateTimeQueryParamDecoder
+    import QueryParamEncoder.zonedDateTimeQueryParamEncoder
+
+    QueryParamCodec.from[ZonedDateTime](
+      zonedDateTimeQueryParamDecoder(formatter),
+      zonedDateTimeQueryParamEncoder(formatter))
+  }
 }
 
-/**
-  * Type class defining how to encode a `T` as a [[QueryParameterValue]]s
+/** Type class defining how to encode a `T` as a [[QueryParameterValue]]s
   * @see QueryParamCodecLaws
   */
 trait QueryParamEncoder[T] { outer =>
@@ -95,9 +121,20 @@ object QueryParamEncoder {
       formatter.format(i)
     }
 
+  def localDateQueryParamEncoder(formatter: DateTimeFormatter): QueryParamEncoder[LocalDate] =
+    QueryParamEncoder[String].contramap[LocalDate] { (ld: LocalDate) =>
+      formatter.format(ld)
+    }
+
+  def zonedDateTimeQueryParamEncoder(
+      formatter: DateTimeFormatter): QueryParamEncoder[ZonedDateTime] =
+    QueryParamEncoder[String].contramap[ZonedDateTime] { (zdt: ZonedDateTime) =>
+      formatter.format(zdt)
+    }
+
   @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
-  def encodeBy[T, U](f: T => U)(
-      implicit qpe: QueryParamEncoder[U]
+  def encodeBy[T, U](f: T => U)(implicit
+      qpe: QueryParamEncoder[U]
   ): QueryParamEncoder[T] =
     qpe.contramap(f)
 
@@ -105,8 +142,8 @@ object QueryParamEncoder {
   def encode[T](f: T => String): QueryParamEncoder[T] =
     stringQueryParamEncoder.contramap(f)
 
-  def fromShow[T](
-      implicit sh: Show[T]
+  def fromShow[T](implicit
+      sh: Show[T]
   ): QueryParamEncoder[T] =
     stringQueryParamEncoder.contramap(sh.show)
 
@@ -126,8 +163,7 @@ object QueryParamEncoder {
     QueryParamEncoder[String].contramap(_.renderString)
 }
 
-/**
-  * Type class defining how to decode a [[QueryParameterValue]] into a `T`
+/** Type class defining how to decode a [[QueryParameterValue]] into a `T`
   * @see QueryParamCodecLaws
   */
 trait QueryParamDecoder[T] { outer =>
@@ -189,6 +225,31 @@ object QueryParamDecoder {
           .toValidatedNel
     }
 
+  def localDateQueryParamDecoder(formatter: DateTimeFormatter): QueryParamDecoder[LocalDate] =
+    (value: QueryParameterValue) =>
+      Validated
+        .catchOnly[DateTimeParseException] {
+          val x: TemporalAccessor = formatter.parse(value.value)
+          LocalDate.from(x)
+        }
+        .leftMap { e =>
+          ParseFailure(s"Failed to decode value: ${value.value} as LocalDate", e.getMessage)
+        }
+        .toValidatedNel
+
+  def zonedDateTimeQueryParamDecoder(
+      formatter: DateTimeFormatter): QueryParamDecoder[ZonedDateTime] =
+    (value: QueryParameterValue) =>
+      Validated
+        .catchOnly[DateTimeParseException] {
+          val x: TemporalAccessor = formatter.parse(value.value)
+          ZonedDateTime.from(x)
+        }
+        .leftMap { e =>
+          ParseFailure(s"Failed to decode value: ${value.value} as ZonedDateTime", e.getMessage)
+        }
+        .toValidatedNel
+
   /** QueryParamDecoder is a covariant functor. */
   implicit val FunctorQueryParamDecoder: Functor[QueryParamDecoder] =
     new Functor[QueryParamDecoder] {
@@ -206,8 +267,8 @@ object QueryParamDecoder {
     }
 
   @deprecated("Use QueryParamDecoder[T].map(f)", "0.16")
-  def decodeBy[U, T](f: T => U)(
-      implicit qpd: QueryParamDecoder[T]
+  def decodeBy[U, T](f: T => U)(implicit
+      qpd: QueryParamDecoder[T]
   ): QueryParamDecoder[U] =
     qpd.map(f)
 

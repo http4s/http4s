@@ -4,7 +4,7 @@ env:
   CI: true
   CI_SNAPSHOT_RELEASE: +publishSigned
   HUGO_VERSION: 0.26
-  SCALA_VERSION: 2.12.11
+  SCALA_VERSION: 2.12.12
 jobs:
   validate:
     name: Scala ${{ matrix.scala }}, Java ${{ matrix.java }}
@@ -12,12 +12,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: [adopt@1.8, adopt@1.11, adopt@1.14]
-        scala: [2.12.11, 2.13.1]
+        java: [adopt@1.8, adopt@1.11, adopt@1.15]
+        scala: [2.12.12, 2.13.3]
     env:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: olafurpg/setup-scala@v7
         with:
           java-version: ${{ matrix.java }}
@@ -34,6 +36,9 @@ jobs:
       - name: Check formatting
         if: startsWith(matrix.scala, '2.12.') && (matrix.java == 'adopt@1.8')
         run: sbt ++$SCALA_VERSION scalafmtCheckAll
+      - name: Check headers
+        if: matrix.java == 'adopt@1.8'
+        run: sbt ++$SCALA_VERSION headerCheck test:headerCheck
       - name: Compile
         run: sbt ++$SCALA_VERSION test:compile
       - name: Check compatibility
@@ -44,28 +49,9 @@ jobs:
         run: sbt ++$SCALA_VERSION test
       - name: Scaladoc
         run: sbt ++$SCALA_VERSION doc
-  scalafix:
-    name: Scalafix
-    runs-on: ubuntu-latest    
-    steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v5
-      - name: Cache Coursier
-        uses: actions/cache@v1
-        with:
-          path: ~/.cache/coursier
-          key: sbt-coursier-cache
-      - name: Cache SBT
-        uses: actions/cache@v1
-        with:
-          path: ~/.sbt
-          key: sbt-${{ hashFiles('**/build.sbt') }}
-      - name: Scalafix
-        working-directory: ./scalafix
-        run: sbt ++$SCALA_VERSION test
   project-site:
     name: Project Site
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v5

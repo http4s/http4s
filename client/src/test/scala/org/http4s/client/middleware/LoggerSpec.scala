@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
@@ -9,8 +15,7 @@ import org.http4s.dsl.io._
 import org.http4s.testing.Http4sLegacyMatchersIO
 import scala.io.Source
 
-/**
-  * Common Tests for Logger, RequestLogger, and ResponseLogger
+/** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
 class LoggerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   val testApp = HttpApp[IO] {

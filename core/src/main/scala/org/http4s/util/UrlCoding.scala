@@ -1,7 +1,13 @@
-/**
-  * Taken from https://github.com/scalatra/rl/blob/v0.4.10/core/src/main/scala/rl/UrlCodingUtils.scala
-  * Copyright (c) 2011 Mojolly Ltd.
-  */
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/scalatra/rl/blob/v0.4.10/core/src/main/scala/rl/UrlCodingUtils.scala
+ * Copyright (c) 2011 Mojolly Ltd.
+ * See licenses/LICENSE_rl
+ */
+
 package org.http4s.util
 
 import java.nio.charset.Charset
@@ -22,8 +28,7 @@ private[http4s] object UrlCodingUtils {
   private val toSkip =
     org.http4s.Uri.Unreserved ++ "!$&'()*+,;=:/?@"
 
-  /**
-    * Percent-encodes a string.  Depending on the parameters, this method is
+  /** Percent-encodes a string.  Depending on the parameters, this method is
     * appropriate for URI or URL form encoding.  Any resulting percent-encodings
     * are normalized to uppercase.
     *
@@ -47,8 +52,7 @@ private[http4s] object UrlCodingUtils {
   def pathEncode(s: String, charset: Charset = UTF_8): String =
     org.http4s.Uri.pathEncode(s, charset)
 
-  /**
-    * Percent-decodes a string.
+  /** Percent-decodes a string.
     *
     * @param toDecode the string to decode
     * @param charset the charset of percent-encoded characters

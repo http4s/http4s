@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
@@ -44,7 +50,8 @@ class RetrySpec extends Http4sSpec with Tables with Http4sLegacyMatchersIO {
     val retryClient = Retry[IO](policy)(client)
     val req = Request[IO](method, uri("http://localhost/") / status.code.toString).withEntity(body)
     retryClient
-      .fetch(req) { _ =>
+      .run(req)
+      .use { _ =>
         IO.unit
       }
       .attempt
@@ -82,10 +89,11 @@ class RetrySpec extends Http4sSpec with Tables with Http4sLegacyMatchersIO {
             case true => IO.pure("OK")
           })
           val req = Request[IO](method, uri("http://localhost/status-from-body")).withEntity(body)
-          val policy = RetryPolicy[IO]({ (attempts: Int) =>
-            if (attempts >= 2) None
-            else Some(Duration.Zero)
-          }, retriable)
+          val policy = RetryPolicy[IO](
+            (attempts: Int) =>
+              if (attempts >= 2) None
+              else Some(Duration.Zero),
+            retriable)
           val retryClient = Retry[IO](policy)(defaultClient)
           retryClient.status(req)
         }

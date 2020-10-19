@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
@@ -13,12 +19,12 @@ import scala.concurrent.duration._
 import scala.io.Source
 import org.specs2.execute.Result
 import org.http4s.multipart.Multipart
+import scala.concurrent.ExecutionContext.global
 
 class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   def builder =
-    BlazeServerBuilder[IO]
+    BlazeServerBuilder[IO](global)
       .withResponseHeaderTimeout(1.second)
-      .withExecutionContext(testExecutionContext)
 
   val service: HttpApp[IO] = HttpApp {
     case GET -> Root / "thread" / "routing" =>
@@ -53,7 +59,7 @@ class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     def get(path: String): String =
       Source
         .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-        .getLines
+        .getLines()
         .mkString
 
     // This should be in IO and shifted but I'm tired of fighting this.
@@ -75,21 +81,22 @@ class BlazeServerSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       conn.setRequestProperty("Content-Length", bytes.size.toString)
       conn.setDoOutput(true)
       conn.getOutputStream.write(bytes)
-      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
     }
 
     // This too
-    def postChunkedMultipart(path: String, boundary: String, body: String): IO[String] = IO {
-      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
-      val conn = url.openConnection().asInstanceOf[HttpURLConnection]
-      val bytes = body.getBytes(StandardCharsets.UTF_8)
-      conn.setRequestMethod("POST")
-      conn.setChunkedStreamingMode(-1)
-      conn.setRequestProperty("Content-Type", s"""multipart/form-data; boundary="$boundary"""")
-      conn.setDoOutput(true)
-      conn.getOutputStream.write(bytes)
-      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
-    }
+    def postChunkedMultipart(path: String, boundary: String, body: String): IO[String] =
+      IO {
+        val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+        val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+        val bytes = body.getBytes(StandardCharsets.UTF_8)
+        conn.setRequestMethod("POST")
+        conn.setChunkedStreamingMode(-1)
+        conn.setRequestProperty("Content-Type", s"""multipart/form-data; boundary="$boundary"""")
+        conn.setDoOutput(true)
+        conn.getOutputStream.write(bytes)
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
+      }
 
     "A server" should {
       "route requests on the service executor" in {

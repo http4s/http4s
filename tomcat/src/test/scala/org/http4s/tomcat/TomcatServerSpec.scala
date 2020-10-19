@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package tomcat
@@ -13,6 +19,7 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.concurrent.ExecutionEnv
 import scala.concurrent.duration._
 import scala.io.Source
+import org.http4s.testing.ErrorReporting._
 
 class TomcatServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec with Http4sLegacyMatchersIO {
   // Prevents us from loading jar and war URLs, but lets us
@@ -48,48 +55,53 @@ class TomcatServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec with Http4s
       )
       .resource
 
-  withResource(serverR) { server =>
-    def get(path: String): IO[String] =
-      testBlocker.blockOn(
-        IO(
+  silenceOutputStreams {
+    withResource(serverR) { server =>
+      def get(path: String): IO[String] =
+        testBlocker.blockOn(
+          IO(
+            Source
+              .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+              .getLines()
+              .mkString))
+
+      def post(path: String, body: String): IO[String] =
+        testBlocker.blockOn(IO {
+          val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+          val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+          val bytes = body.getBytes(StandardCharsets.UTF_8)
+          conn.setRequestMethod("POST")
+          conn.setRequestProperty("Content-Length", bytes.size.toString)
+          conn.setDoOutput(true)
+          conn.getOutputStream.write(bytes)
           Source
-            .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-            .getLines
-            .mkString))
+            .fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
+            .getLines()
+            .mkString
+        })
 
-    def post(path: String, body: String): IO[String] =
-      testBlocker.blockOn(IO {
-        val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
-        val conn = url.openConnection().asInstanceOf[HttpURLConnection]
-        val bytes = body.getBytes(StandardCharsets.UTF_8)
-        conn.setRequestMethod("POST")
-        conn.setRequestProperty("Content-Length", bytes.size.toString)
-        conn.setDoOutput(true)
-        conn.getOutputStream.write(bytes)
-        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
-      })
-
-    "A server" should {
-      "route requests on the service executor" in {
-        get("/thread/routing") must returnValue(startWith("http4s-spec-"))
-      }
-
-      "execute the service task on the service executor" in {
-        get("/thread/effect") must returnValue(startWith("http4s-spec-"))
-      }
-
-      "be able to echo its input" in {
-        val input = """{ "Hello": "world" }"""
-        post("/echo", input) must returnValue(startWith(input))
-      }
-
-      "Timeout" should {
-        "not fire prematurely" in {
-          get("/slow") must returnValue("slow")
+      "A server" should {
+        "route requests on the service executor" in {
+          get("/thread/routing") must returnValue(startWith("http4s-spec-"))
         }
 
-        "fire on timeout" in {
-          get("/never").unsafeToFuture() must throwAn[IOException].awaitFor(5.seconds)
+        "execute the service task on the service executor" in {
+          get("/thread/effect") must returnValue(startWith("http4s-spec-"))
+        }
+
+        "be able to echo its input" in {
+          val input = """{ "Hello": "world" }"""
+          post("/echo", input) must returnValue(startWith(input))
+        }
+
+        "Timeout" should {
+          "not fire prematurely" in {
+            get("/slow") must returnValue("slow")
+          }
+
+          "fire on timeout" in {
+            get("/never").unsafeToFuture() must throwAn[IOException].awaitFor(5.seconds)
+          }
         }
       }
     }

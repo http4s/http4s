@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -12,9 +18,8 @@ object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Sing
     HttpHeaderParser.USER_AGENT(s)
 }
 
-/**
-  * User-Agent header
-  * https://tools.ietf.org/html/rfc7231#section-5.5.3
+/** User-Agent header
+  * [[https://tools.ietf.org/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
   */
 final case class `User-Agent`(product: ProductId, rest: List[ProductIdOrComment])
     extends Header.Parsed {

@@ -1,11 +1,20 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package parser
 
 import cats.implicits._
 import org.http4s.internal.parboiled2._
-import org.scalacheck.Prop
+import org.http4s.laws.discipline.ArbitraryInstances._
+import org.scalacheck.{Gen, Prop}
 
-final case class BasicRulesParser(input: ParserInput) extends Parser with Rfc2616BasicRules
+final case class BasicRulesParser(input: ParserInput) extends Parser with Rfc2616BasicRules {
+  def ListSepOnly = rule(ListSep ~ EOI)
+}
 
 class Rfc2616ParserSpec extends Http4sSpec {
   "Rfc2616 parser" should {
@@ -52,6 +61,36 @@ class Rfc2616ParserSpec extends Http4sSpec {
           Some(withoutQuotes))
           .or(beRight(withoutQuotes.lastOption.map(_.toString)))
           .or(beRight(Some(""))))
+      }
+    }
+    "Parse list separator" in {
+      Prop.forAll(genListSep) { listSep =>
+        Either.fromTry(BasicRulesParser(listSep).ListSepOnly.run()) must beRight
+      }
+    }
+    "Not parse list separator without a comma" in {
+      Prop.forAll(genOptWs) { listSep =>
+        Either.fromTry(BasicRulesParser(listSep).ListSepOnly.run()) must beLeft
+      }
+    }
+    "Not parse list separator with more than one comma" in {
+      val genBadListSep =
+        for {
+          initListSep <- genListSep
+          moreCommas <- Gen.nonEmptyListOf {
+            Gen.sequence[List[String], String](List(Gen.const(","), genOptWs))
+          }
+        } yield initListSep + moreCommas.flatten.mkString
+
+      Prop.forAll(genBadListSep) { listSep =>
+        Either.fromTry(BasicRulesParser(listSep).ListSepOnly.run()) must beLeft
+      }
+    }
+    "Not parse a non-comma list separator" in {
+      val genBadListSep = Gen.asciiPrintableChar.filterNot(_ == ',').map(_.toString)
+
+      Prop.forAll(genBadListSep) { listSep =>
+        Either.fromTry(BasicRulesParser(listSep).ListSepOnly.run()) must beLeft
       }
     }
   }

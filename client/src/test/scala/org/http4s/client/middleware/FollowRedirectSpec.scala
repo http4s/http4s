@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
@@ -13,6 +19,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.mutable.Tables
+import org.typelevel.ci.CIString
 
 class FollowRedirectSpec
     extends Http4sSpec
@@ -28,9 +35,8 @@ class FollowRedirectSpec
         if (iteration < 3) {
           val uri = Uri.unsafeFromString(s"/loop/${iteration + 1}")
           MovedPermanently(Location(uri)).map(_.withEntity(iteration.toString))
-        } else {
+        } else
           Ok(iteration.toString)
-        }
 
       case req @ _ -> Root / "ok" =>
         Ok(
@@ -70,7 +76,7 @@ class FollowRedirectSpec
       ) = {
         val u = uri("http://localhost") / status.code.toString
         val req: Request[IO] = method match {
-          case _: Method.PermitsBody if body.nonEmpty =>
+          case (OPTIONS | PATCH | POST | PUT) if body.nonEmpty =>
             val bodyBytes = body.getBytes.toList
             Request[IO](
               method,
@@ -82,9 +88,10 @@ class FollowRedirectSpec
             Request(method, u)
         }
         client
-          .fetch(req) {
+          .run(req)
+          .use {
             case Ok(resp) =>
-              val method = resp.headers.get("X-Original-Method".ci).fold("")(_.value)
+              val method = resp.headers.get(CIString("X-Original-Method")).fold("")(_.toString)
               val body = resp.as[String]
               body.map(RedirectResponse(method, _))
             case resp =>
@@ -136,18 +143,18 @@ class FollowRedirectSpec
         PUT ! PermanentRedirect ! "foo" ! true ! Right(RedirectResponse("PUT", "foo")) |
         PUT ! PermanentRedirect ! "foo" ! false ! Left(
           UnexpectedStatus(PermanentRedirect, PUT, Uri.unsafeFromString("foo"))) | {
-        (method, status, body, pure, response) =>
-          doIt(method, status, body, pure, response)
-      }
+          (method, status, body, pure, response) =>
+            doIt(method, status, body, pure, response)
+        }
     }.pendingUntilFixed
 
     "Strip payload headers when switching to GET" in {
       // We could test others, and other scenarios, but this was a pain.
       val req = Request[IO](PUT, uri("http://localhost/303")).withEntity("foo")
       client
-        .fetch(req) {
-          case Ok(resp) =>
-            resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[IO]
+        .run(req)
+        .use { case Ok(resp) =>
+          resp.headers.get(CIString("X-Original-Content-Length")).map(_.value).pure[IO]
         }
         .unsafeRunSync()
         .get must be("0")
@@ -155,14 +162,13 @@ class FollowRedirectSpec
 
     "Not redirect more than 'maxRedirects' iterations" in {
       val statefulApp = HttpRoutes
-        .of[IO] {
-          case GET -> Root / "loop" =>
-            val body = loopCounter.incrementAndGet.toString
-            MovedPermanently(Location(uri("/loop"))).map(_.withEntity(body))
+        .of[IO] { case GET -> Root / "loop" =>
+          val body = loopCounter.incrementAndGet.toString
+          MovedPermanently(Location(uri("/loop"))).map(_.withEntity(body))
         }
         .orNotFound
       val client = FollowRedirect(3)(Client.fromHttpApp(statefulApp))
-      client.fetch(Request[IO](uri = uri("http://localhost/loop"))) {
+      client.run(Request[IO](uri = uri("http://localhost/loop"))).use {
         case MovedPermanently(resp) => resp.as[String].map(_.toInt)
         case _ => IO.pure(-1)
       } must returnValue(4)
@@ -194,10 +200,9 @@ class FollowRedirectSpec
         "Don't expose mah secrets!",
         uri("http://localhost/different-authority"),
         Header("Authorization", "Bearer s3cr3t"))
-      client.fetch(req) {
-        case Ok(resp) =>
-          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
-      } must returnValue(Some(""))
+      req.flatMap(client.run(_).use { case Ok(resp) =>
+        resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
+      }) must returnValue(Some(""))
     }
 
     "Send sensitive headers when redirecting to same authority" in {
@@ -205,15 +210,14 @@ class FollowRedirectSpec
         "You already know mah secrets!",
         uri("http://localhost/307"),
         Header("Authorization", "Bearer s3cr3t"))
-      client.fetch(req) {
-        case Ok(resp) =>
-          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
-      } must returnValue(Some("Bearer s3cr3t"))
+      req.flatMap(client.run(_).use { case Ok(resp) =>
+        resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
+      }) must returnValue(Some("Bearer s3cr3t"))
     }
 
     "Record the intermediate URIs" in {
-      client.fetch(Request[IO](uri = uri("http://localhost/loop/0"))) {
-        case Ok(resp) => IO.pure(FollowRedirect.getRedirectUris(resp))
+      client.run(Request[IO](uri = uri("http://localhost/loop/0"))).use { case Ok(resp) =>
+        IO.pure(FollowRedirect.getRedirectUris(resp))
       } must returnValue(
         List(
           uri("http://localhost/loop/1"),
@@ -223,8 +227,8 @@ class FollowRedirectSpec
     }
 
     "Not add any URIs when there are no redirects" in {
-      client.fetch(Request[IO](uri = uri("http://localhost/loop/100"))) {
-        case Ok(resp) => IO.pure(FollowRedirect.getRedirectUris(resp))
+      client.run(Request[IO](uri = uri("http://localhost/loop/100"))).use { case Ok(resp) =>
+        IO.pure(FollowRedirect.getRedirectUris(resp))
       } must returnValue(List.empty[Uri])
     }
   }

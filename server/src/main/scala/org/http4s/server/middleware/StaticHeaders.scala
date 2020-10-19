@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats.Functor
@@ -6,8 +12,7 @@ import cats.implicits._
 import org.http4s.{CacheDirective, Header, Headers, Response}
 import org.http4s.headers.`Cache-Control`
 
-/**
-  * Simple middleware for adding a static set of headers to responses
+/** Simple middleware for adding a static set of headers to responses
   * returned by a kleisli.
   */
 object StaticHeaders {

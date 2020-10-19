@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -11,6 +17,14 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
     HttpHeaderParser.ACCEPT_CHARSET(s)
 }
 
+/** {{{
+  *   The "Accept-Charset" header field can be sent by a user agent to
+  *   indicate what charsets are acceptable in textual response content.
+  *   This field allows user agents capable of understanding more
+  * }}}
+  *
+  * From [http//tools.ietf.org/html/rfc7231#section-5.3.3 RFC-7231].
+  */
 final case class `Accept-Charset`(values: NonEmptyList[CharsetRange])
     extends Header.RecurringRenderable {
   def key: `Accept-Charset`.type = `Accept-Charset`

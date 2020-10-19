@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -5,8 +11,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 import scala.concurrent.duration.FiniteDuration
 
-/**
-  * Defined by http://tools.ietf.org/html/rfc6797
+/** Defined by http://tools.ietf.org/html/rfc6797
   */
 object `Strict-Transport-Security`
     extends HeaderKey.Internal[`Strict-Transport-Security`]
@@ -21,13 +26,12 @@ object `Strict-Transport-Security`
       maxAge: Long,
       includeSubDomains: Boolean = true,
       preload: Boolean = false): ParseResult[`Strict-Transport-Security`] =
-    if (maxAge >= 0) {
+    if (maxAge >= 0)
       ParseResult.success(new StrictTransportSecurityImpl(maxAge, includeSubDomains, preload))
-    } else {
+    else
       ParseResult.fail(
         "Invalid maxAge value",
         s"Strict-Transport-Security param $maxAge must be more or equal to 0 seconds")
-    }
 
   def unsafeFromDuration(
       maxAge: FiniteDuration,

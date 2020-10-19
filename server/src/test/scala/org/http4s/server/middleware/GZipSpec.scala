@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -16,8 +22,8 @@ import org.scalacheck.Prop.forAll
 class GZipSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "GZip" should {
     "fall through if the route doesn't match" in {
-      val routes = GZip(HttpRoutes.empty[IO]) <+> HttpRoutes.of[IO] {
-        case GET -> Root => Ok("pong")
+      val routes = GZip(HttpRoutes.empty[IO]) <+> HttpRoutes.of[IO] { case GET -> Root =>
+        Ok("pong")
       }
       val req =
         Request[IO](Method.GET, Uri.uri("/")).putHeaders(`Accept-Encoding`(ContentCoding.gzip))
@@ -28,12 +34,11 @@ class GZipSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
     "encodes random content-type if given isZippable is true" in {
       val response = "Response string"
-      val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
-        case GET -> Root =>
-          Ok(response, Header("Content-Type", "random-type; charset=utf-8"))
+      val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
+        Ok(response, Header("Content-Type", "random-type; charset=utf-8"))
       }
 
-      val gzipRoutes: HttpRoutes[IO] = GZip(routes, isZippable = (_) => true)
+      val gzipRoutes: HttpRoutes[IO] = GZip(routes, isZippable = _ => true)
 
       val req: Request[IO] = Request[IO](Method.GET, Uri.uri("/"))
         .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
@@ -51,10 +56,10 @@ class GZipSpec extends Http4sSpec with Http4sLegacyMatchersIO {
     checkAll(
       "encoding",
       new Properties("GZip") {
-        property("middleware encoding == GZIPOutputStream encoding") = forAll {
-          vector: Vector[Array[Byte]] =>
-            val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
-              case GET -> Root => Ok(Stream.emits(vector).covary[IO])
+        property("middleware encoding == GZIPOutputStream encoding") =
+          forAll { vector: Vector[Array[Byte]] =>
+            val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
+              Ok(Stream.emits(vector).covary[IO])
             }
             val gzipRoutes: HttpRoutes[IO] = GZip(routes)
             val req: Request[IO] = Request[IO](Method.GET, Uri.uri("/"))
@@ -69,7 +74,7 @@ class GZipSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             val expected = byteArrayStream.toByteArray
 
             actual must returnValue(expected)
-        }
+          }
       }
     )
   }

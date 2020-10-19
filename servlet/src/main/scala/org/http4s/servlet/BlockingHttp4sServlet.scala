@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package servlet
 
@@ -16,16 +22,15 @@ class BlockingHttp4sServlet[F[_]](
       servletRequest: HttpServletRequest,
       servletResponse: HttpServletResponse): Unit =
     F.suspend {
-        val bodyWriter = servletIo.initWriter(servletResponse)
+      val bodyWriter = servletIo.initWriter(servletResponse)
 
-        val render = toRequest(servletRequest).fold(
-          onParseFailure(_, servletResponse, bodyWriter),
-          handleRequest(_, servletResponse, bodyWriter)
-        )
+      val render = toRequest(servletRequest).fold(
+        onParseFailure(_, servletResponse, bodyWriter),
+        handleRequest(_, servletResponse, bodyWriter)
+      )
 
-        render
-      }
-      .handleErrorWith(errorHandler(servletResponse))
+      render
+    }.handleErrorWith(errorHandler(servletResponse))
       .toIO
       .unsafeRunSync()
 

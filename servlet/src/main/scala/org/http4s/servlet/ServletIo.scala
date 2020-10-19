@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package servlet
 
@@ -7,13 +13,12 @@ import fs2._
 import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{ReadListener, WriteListener}
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import org.http4s.internal.bug
 import org.http4s.internal.Trampoline
-import org.http4s.util.bug
 import org.log4s.getLogger
 import scala.annotation.tailrec
 
-/**
-  * Determines the mode of I/O used for reading request bodies and writing response bodies.
+/** Determines the mode of I/O used for reading request bodies and writing response bodies.
   */
 sealed abstract class ServletIo[F[_]: Async] {
   protected[servlet] val F = Async[F]
@@ -24,8 +29,7 @@ sealed abstract class ServletIo[F[_]: Async] {
   protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter[F]
 }
 
-/**
-  * Use standard blocking reads and writes.
+/** Use standard blocking reads and writes.
   *
   * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
   * require a larger request thread pool for the same load.
@@ -54,8 +58,7 @@ final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, b
   }
 }
 
-/**
-  * Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.
+/** Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.
   *
   * This can support more concurrent connections on a smaller request thread pool than [[BlockingServletIo]],
   * but consumes more CPU per request.  It is also known to cause IllegalStateExceptions in the logs
@@ -102,9 +105,9 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
           // Shift execution to a different EC
           Async.shift(Trampoline) *>
             F.async[Option[Chunk[Byte]]] { cb =>
-              if (!state.compareAndSet(Init, Blocked(cb))) {
+              if (!state.compareAndSet(Init, Blocked(cb)))
                 cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
-              } else
+              else
                 in.setReadListener(
                   new ReadListener {
                     override def onDataAvailable(): Unit =
@@ -134,34 +137,35 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
             Async.shift(Trampoline) *>
               F.async[Option[Chunk[Byte]]] { cb =>
                 @tailrec
-                def go(): Unit = state.get match {
-                  case Ready if in.isReady => read(cb)
+                def go(): Unit =
+                  state.get match {
+                    case Ready if in.isReady => read(cb)
 
-                  case Ready => // wasn't ready so set the callback and double check that we're still not ready
-                    val blocked = Blocked(cb)
-                    if (state.compareAndSet(Ready, blocked)) {
-                      if (in.isReady && state.compareAndSet(blocked, Ready)) {
-                        read(cb) // data became available while we were setting up the callbacks
-                      } else {
-                        /* NOOP: our callback is either still needed or has been handled */
-                      }
-                    } else go() // Our state transitioned so try again.
+                    case Ready => // wasn't ready so set the callback and double check that we're still not ready
+                      val blocked = Blocked(cb)
+                      if (state.compareAndSet(Ready, blocked))
+                        if (in.isReady && state.compareAndSet(blocked, Ready))
+                          read(cb) // data became available while we were setting up the callbacks
+                        else {
+                          /* NOOP: our callback is either still needed or has been handled */
+                        }
+                      else go() // Our state transitioned so try again.
 
-                  case Complete => cb(rightNone)
+                    case Complete => cb(rightNone)
 
-                  case Errored(t) => cb(Left(t))
+                    case Errored(t) => cb(Left(t))
 
-                  // This should never happen so throw a huge fit if it does.
-                  case Blocked(c1) =>
-                    val t = bug("Two callbacks found in read state")
-                    cb(Left(t))
-                    c1(Left(t))
-                    logger.error(t)("This should never happen. Please report.")
-                    throw t
+                    // This should never happen so throw a huge fit if it does.
+                    case Blocked(c1) =>
+                      val t = bug("Two callbacks found in read state")
+                      cb(Left(t))
+                      c1(Left(t))
+                      logger.error(t)("This should never happen. Please report.")
+                      throw t
 
-                  case Init =>
-                    cb(Left(bug("Should have left Init state by now")))
-                }
+                    case Init =>
+                      cb(Left(bug("Should have left Init state by now")))
+                  }
                 go()
               })
         readStream.unNoneTerminate.flatMap(Stream.chunk)
@@ -188,9 +192,9 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
     @volatile var autoFlush = false
 
     val writeChunk = Right { (chunk: Chunk[Byte]) =>
-      if (!out.isReady) {
+      if (!out.isReady)
         logger.error(s"writeChunk called while out was not ready, bytes will be lost!")
-      } else {
+      else {
         out.write(chunk.toArray)
         if (autoFlush && out.isReady)
           out.flush()
@@ -238,19 +242,18 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
           // Shift execution to a different EC
           Async.shift(Trampoline) *>
             F.async[Chunk[Byte] => Unit] { cb =>
-                val blocked = Blocked(cb)
-                state.getAndSet(blocked) match {
-                  case Ready if out.isReady =>
-                    if (state.compareAndSet(blocked, Ready))
-                      cb(writeChunk)
-                  case e @ Errored(t) =>
-                    if (state.compareAndSet(blocked, e))
-                      cb(Left(t))
-                  case _ =>
-                    ()
-                }
+              val blocked = Blocked(cb)
+              state.getAndSet(blocked) match {
+                case Ready if out.isReady =>
+                  if (state.compareAndSet(blocked, Ready))
+                    cb(writeChunk)
+                case e @ Errored(t) =>
+                  if (state.compareAndSet(blocked, e))
+                    cb(Left(t))
+                case _ =>
+                  ()
               }
-              .map(_(chunk))
+            }.map(_(chunk))
         }
         .append(awaitLastWrite)
         .compile

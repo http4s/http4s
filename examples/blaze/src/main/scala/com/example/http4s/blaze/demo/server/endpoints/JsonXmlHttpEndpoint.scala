@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s.blaze.demo.server.endpoints
 
 import cats.effect.Effect
@@ -13,14 +19,13 @@ import scala.xml._
 class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
   case class Person(name: String, age: Int)
 
-  /**
-    * XML Example for Person:
+  /** XML Example for Person:
     *
     * <person>
     *   <name>gvolpe</name>
     *   <age>30</age>
     * </person>
-    * */
+    */
   object Person {
     def fromXml(elem: Elem): Person = {
       val name = (elem \\ "name").text

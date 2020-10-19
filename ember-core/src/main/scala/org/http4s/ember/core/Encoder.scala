@@ -1,44 +1,112 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.ember.core
 
 import cats.effect._
 import fs2._
 import org.http4s._
-import cats.implicits._
-import Shared._
+import org.http4s.headers.`Content-Length`
+import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
-  def respToBytes[F[_]: Sync](resp: Response[F]): Stream[F, Byte] = {
-    val headerStrings: List[String] =
-      resp.headers.toList.map(h => h.name.show + ": " + h.value).toList
 
-    val initSection = Stream(show"${resp.httpVersion.renderString} ${resp.status.renderString}") ++
-      Stream.emits(headerStrings)
+  private val SPACE = " "
+  private val CRLF = "\r\n"
+  def respToBytes[F[_]: Sync](
+      resp: Response[F],
+      writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+    val chunked = resp.isChunked
+    val initSection = {
+      var appliedContentLength = false
+      val stringBuilder = new StringBuilder()
 
-    val body = if (resp.isChunked) resp.body.through(ChunkedEncoding.encode[F]) else resp.body
+      // Response Prelude: HTTP-Version SP STATUS CRLF
+      stringBuilder
+        .append(resp.httpVersion.renderString)
+        .append(SPACE)
+        .append(resp.status.renderString)
+        .append(CRLF)
 
-    initSection.covary[F].intersperse("\r\n").through(text.utf8Encode) ++
-      Stream.chunk(Chunk.ByteVectorChunk(`\r\n\r\n`)) ++
-      body
+      // Apply each header followed by a CRLF
+      resp.headers.foreach { h =>
+        if (h.is(`Content-Length`)) appliedContentLength = true
+        else ()
+
+        stringBuilder
+          .append(h.renderString)
+          .append(CRLF)
+        ()
+      }
+      if (!chunked && !appliedContentLength) {
+        stringBuilder.append(`Content-Length`.zero.renderString).append(CRLF)
+        ()
+      }
+      // Final CRLF terminates headers and signals body to follow.
+      stringBuilder.append(CRLF)
+      stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
+    }
+
+    if (chunked)
+      Stream.chunk(Chunk.array(initSection)) ++ resp.body.through(ChunkedEncoding.encode[F])
+    else
+      (Stream.chunk(Chunk.array(initSection)) ++ resp.body)
+        .chunkMin(writeBufferSize)
+        .flatMap(Stream.chunk)
   }
 
-  def reqToBytes[F[_]: Sync](req: Request[F]): Stream[F, Byte] = {
-    // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
-    val requestLine =
-      show"${req.method.renderString} ${req.uri.renderString} ${req.httpVersion.renderString}"
+  def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+    val chunked = req.isChunked
+    val initSection = {
+      var appliedContentLength = false
+      val stringBuilder = new StringBuilder()
 
-    val finalHeaders =
-      req.uri.authority
-        .fold(Headers.of())(auth => Headers.of(Header("Host", auth.renderString))) ++ req.headers
+      // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
+      stringBuilder
+        .append(req.method.renderString)
+        .append(SPACE)
+        .append(req.uri.renderString)
+        .append(SPACE)
+        .append(req.httpVersion.renderString)
+        .append(CRLF)
 
-    val headerStrings: List[String] =
-      finalHeaders.toList.map(h => h.name.show + ": " + h.value).toList
+      // Host From Uri Becomes Header if not already present in headers
+      if (org.http4s.headers.Host.from(req.headers).isEmpty)
+        req.uri.authority.foreach { auth =>
+          stringBuilder
+            .append("Host: ")
+            .append(auth.renderString)
+            .append(CRLF)
+        }
 
-    val initSection = Stream(requestLine) ++ Stream.emits(headerStrings)
+      // Apply each header followed by a CRLF
+      req.headers.foreach { h =>
+        if (h.is(`Content-Length`)) appliedContentLength = true
+        else ()
 
-    val body = if (req.isChunked) req.body.through(ChunkedEncoding.encode[F]) else req.body
+        stringBuilder
+          .append(h.renderString)
+          .append(CRLF)
+        ()
+      }
 
-    initSection.covary[F].intersperse("\r\n").through(text.utf8Encode) ++
-      Stream.chunk(Chunk.ByteVectorChunk(`\r\n\r\n`)) ++
-      body
+      if (!chunked && !appliedContentLength) {
+        stringBuilder.append(`Content-Length`.zero.renderString).append(CRLF)
+        ()
+      }
+
+      // Final CRLF terminates headers and signals body to follow.
+      stringBuilder.append(CRLF)
+      stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
+    }
+    if (chunked)
+      Stream.chunk(Chunk.array(initSection)) ++ req.body.through(ChunkedEncoding.encode[F])
+    else
+      (Stream.chunk(Chunk.array(initSection)) ++ req.body)
+        .chunkMin(writeBufferSize)
+        .flatMap(Stream.chunk)
   }
 }

@@ -1,14 +1,23 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.ApplicativeError
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.StandardCharsets
+import org.http4s.internal.skipUtf8ByteOrderMark
+import org.typelevel.ci.CIString
 import scala.concurrent.ExecutionContextExecutor
 
 package object util {
-  private val utf8Bom: Chunk[Byte] = Chunk(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
-
+  @deprecated(
+    "Can fall into an infinite loop, which can't be fixed without a RaiseThrowable constraint. A corrected version will be contributed to fs2.",
+    "0.21.5")
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
     val decoder = charset.nioCharset.newDecoder
     val maxCharsPerByte = math.ceil(decoder.maxCharsPerByte().toDouble).toInt
@@ -26,54 +35,44 @@ package object util {
           else Pull.output1(outputString).as(None)
         case Some((chunk, stream)) =>
           if (chunk.nonEmpty) {
-            val chunkWithoutBom = skipByteOrderMark(chunk)
+            val chunkWithoutBom = skipUtf8ByteOrderMark(chunk)
             val bytes = chunkWithoutBom.toArray
             val byteBuffer = ByteBuffer.wrap(bytes)
             val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
             decoder.decode(byteBuffer, charBuffer, false)
             val nextStream = stream.consChunk(Chunk.byteBuffer(byteBuffer.slice()))
             Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
-          } else {
+          } else
             Pull.output(Chunk.empty[String]).as(Some(stream))
-          }
       }
     }
   }
 
-  private def skipByteOrderMark[F[_]](chunk: Chunk[Byte]): Chunk[Byte] =
-    if (chunk.size >= 3 && chunk.take(3) == utf8Bom) {
-      chunk.drop(3)
-    } else chunk
-
   /** Converts ASCII encoded byte stream to a stream of `String`. */
-  private[http4s] def asciiDecode[F[_]](
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Byte, String] =
+  private[http4s] def asciiDecode[F[_]](implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, String] =
     _.chunks.through(asciiDecodeC)
 
   private def asciiCheck(b: Byte) = 0x80 & b
 
   /** Converts ASCII encoded `Chunk[Byte]` inputs to `String`. */
-  private[http4s] def asciiDecodeC[F[_]](
-      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Chunk[Byte], String] = { in =>
+  private[http4s] def asciiDecodeC[F[_]](implicit
+      F: ApplicativeError[F, Throwable]): Pipe[F, Chunk[Byte], String] = { in =>
     def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
       if (i == bytes.length)
         Stream.emit(new String(bytes, StandardCharsets.US_ASCII))
-      else {
-        if (asciiCheck(bytes(i)) == 0x80) {
-          Stream.raiseError[F](
-            new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
-        } else {
-          tailRecAsciiCheck(i + 1, bytes)
-        }
-      }
+      else if (asciiCheck(bytes(i)) == 0x80)
+        Stream.raiseError[F](
+          new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
+      else
+        tailRecAsciiCheck(i + 1, bytes)
 
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
 
   /** Constructs an assertion error with a reference back to our issue tracker. Use only with head hung low. */
-  def bug(message: String): AssertionError =
-    new AssertionError(
-      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+  @deprecated("For internal use only. Will be removed from public API.", "0.20.22")
+  def bug(message: String): AssertionError = org.http4s.internal.bug(message)
 
   @deprecated("Moved to org.http4s.syntax.StringOps", "0.16")
   type CaseInsensitiveStringOps = org.http4s.syntax.StringOps
@@ -92,6 +91,7 @@ package object util {
   /* This is nearly identical to the hashCode of java.lang.String, but converting
    * to lower case on the fly to avoid copying `value`'s character storage.
    */
+  @deprecated("Not a good hash. Prefer org.typelevel.ci.CIString.", "0.21.5")
   def hashLower(s: String): Int = {
     var h = 0
     var i = 0
@@ -107,4 +107,9 @@ package object util {
     }
     h
   }
+
+  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  type CaseInsensitiveString = CIString
+  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  val CaseInsensitiveString = CIString
 }

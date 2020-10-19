@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.client
 package blaze
 
@@ -89,8 +95,7 @@ object BlazeClientConfig {
       group = None
     )
 
-  /**
-    * Creates an SSLContext that trusts all certificates and disables
+  /** Creates an SSLContext that trusts all certificates and disables
     * endpoint identification.  This is convenient in some development
     * environments for testing with untrusted certificates, but is
     * not recommended for production use.

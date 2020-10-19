@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package booPickle
 
@@ -66,7 +72,7 @@ class BoopickleSpec extends Http4sSpec with BooPickleInstances {
     "decode a class from a boopickle decoder" in {
       val result = booOf[IO, Fruit]
         .decode(Request[IO]().withEntity(Banana(10.0): Fruit), strict = true)
-      result.value.unsafeRunSync must_== Right(Banana(10.0))
+      result.value.unsafeRunSync() must_== Right(Banana(10.0))
     }
   }
 

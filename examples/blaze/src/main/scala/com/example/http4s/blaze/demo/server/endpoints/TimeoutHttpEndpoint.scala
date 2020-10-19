@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s.blaze.demo.server.endpoints
 
 import cats.effect.{Async, Timer}
@@ -9,9 +15,8 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
 class TimeoutHttpEndpoint[F[_]](implicit F: Async[F], timer: Timer[F]) extends Http4sDsl[F] {
-  val service: HttpRoutes[F] = HttpRoutes.of {
-    case GET -> Root / ApiVersion / "timeout" =>
-      val randomDuration = FiniteDuration(Random.nextInt(3) * 1000L, TimeUnit.MILLISECONDS)
-      timer.sleep(randomDuration) *> Ok("delayed response")
+  val service: HttpRoutes[F] = HttpRoutes.of { case GET -> Root / ApiVersion / "timeout" =>
+    val randomDuration = FiniteDuration(Random.nextInt(3) * 1000L, TimeUnit.MILLISECONDS)
+    timer.sleep(randomDuration) *> Ok("delayed response")
   }
 }

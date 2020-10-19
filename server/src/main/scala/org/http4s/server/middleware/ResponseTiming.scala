@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -5,14 +11,12 @@ package middleware
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import org.http4s.util.CaseInsensitiveString
-
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 object ResponseTiming {
 
-  /**
-    * Simple middleware for adding a custom header with timing information to a response.
+  /** Simple middleware for adding a custom header with timing information to a response.
     *
     * This middleware captures the time starting from when the request headers are parsed and supplied
     * to the wrapped service and ending when the response is started. Metrics middleware, like this one,
@@ -25,15 +29,15 @@ object ResponseTiming {
   def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
-      headerName: CaseInsensitiveString = CaseInsensitiveString("X-Response-Time"))(
-      implicit F: Sync[F],
+      headerName: CIString = CIString("X-Response-Time"))(implicit
+      F: Sync[F],
       clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
       for {
         before <- clock.monotonic(timeUnit)
         resp <- http(req)
         after <- clock.monotonic(timeUnit)
-        header = Header(headerName.value, s"${after - before}")
+        header = Header(headerName.toString, s"${after - before}")
       } yield resp.putHeaders(header)
     }
 }

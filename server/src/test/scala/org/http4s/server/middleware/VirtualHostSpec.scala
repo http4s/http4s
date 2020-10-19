@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -11,16 +17,16 @@ import org.http4s.headers.Host
 import org.http4s.testing.Http4sLegacyMatchersIO
 
 class VirtualHostSpec extends Http4sSpec with Http4sLegacyMatchersIO {
-  val default = HttpRoutes.of[IO] {
-    case _ => Response[IO](Ok).withEntity("default").pure[IO]
+  val default = HttpRoutes.of[IO] { case _ =>
+    Response[IO](Ok).withEntity("default").pure[IO]
   }
 
-  val routesA = HttpRoutes.of[IO] {
-    case _ => Response[IO](Ok).withEntity("routesA").pure[IO]
+  val routesA = HttpRoutes.of[IO] { case _ =>
+    Response[IO](Ok).withEntity("routesA").pure[IO]
   }
 
-  val routesB = HttpRoutes.of[IO] {
-    case _ => Response[IO](Ok).withEntity("routesB").pure[IO]
+  val routesB = HttpRoutes.of[IO] { case _ =>
+    Response[IO](Ok).withEntity("routesB").pure[IO]
   }
 
   "VirtualHost" >> {

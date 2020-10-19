@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 
@@ -7,7 +13,7 @@ import cats.effect._
 
 package object websocket {
   private[this] object Keys {
-    val WebSocket: Key[Any] = Key.newKey[IO, Any].unsafeRunSync
+    val WebSocket: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
   }
 
   def websocketKey[F[_]]: Key[WebSocketContext[F]] =

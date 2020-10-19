@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.ember.client
 
 import cats.effect._
@@ -11,8 +17,7 @@ final class EmberClient[F[_]] private[client] (
 )(implicit F: Bracket[F, Throwable])
     extends DefaultClient[F] {
 
-  /**
-    * The reason for this extra class. This allows you to see the present state
+  /** The reason for this extra class. This allows you to see the present state
     * of the underlying Pool, without having access to the pool itself.
     *
     * The first element represents total connections in the pool, the second

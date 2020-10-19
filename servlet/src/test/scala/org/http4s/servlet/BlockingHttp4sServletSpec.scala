@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package servlet
 
@@ -33,7 +39,7 @@ class BlockingHttp4sServletSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       testBlocker.delay[IO, String](
         Source
           .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
-          .getLines
+          .getLines()
           .mkString)
 
     def post(path: String, body: String): IO[String] =
@@ -45,7 +51,7 @@ class BlockingHttp4sServletSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         conn.setRequestProperty("Content-Length", bytes.size.toString)
         conn.setDoOutput(true)
         conn.getOutputStream.write(bytes)
-        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
       }
 
     "Http4sBlockingServlet" should {
@@ -70,7 +76,7 @@ class BlockingHttp4sServletSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   )
 
   lazy val serverPortR = Resource
-    .make(IO { new Server })(server => IO { server.stop() })
+    .make(IO(new Server))(server => IO(server.stop()))
     .evalMap { server =>
       IO {
         val connector =

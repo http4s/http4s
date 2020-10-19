@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 package util
@@ -20,14 +26,16 @@ class DumpingWriter(implicit protected val F: Effect[IO]) extends EntityBodyWrit
 
   private val buffer = Buffer[Chunk[Byte]]()
 
-  def toArray: Array[Byte] = buffer.synchronized {
-    Chunk.concatBytes(buffer.toSeq).toArray
-  }
+  def toArray: Array[Byte] =
+    buffer.synchronized {
+      Chunk.concatBytes(buffer.toSeq).toArray
+    }
 
-  override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = buffer.synchronized {
-    buffer += chunk
-    Future.successful(false)
-  }
+  override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =
+    buffer.synchronized {
+      buffer += chunk
+      Future.successful(false)
+    }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     buffer.synchronized {

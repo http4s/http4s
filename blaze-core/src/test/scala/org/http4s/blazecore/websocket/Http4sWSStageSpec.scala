@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.blazecore
 package websocket
 
@@ -6,11 +12,13 @@ import fs2.concurrent.{Queue, SignallingRef}
 import cats.effect.IO
 import cats.implicits._
 import java.util.concurrent.atomic.AtomicBoolean
+
 import org.http4s.Http4sSpec
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.websocket.{WebSocket, WebSocketFrame}
+import org.http4s.websocket.{WebSocketFrame, WebSocketSeparatePipe}
 import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
@@ -58,7 +66,7 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
         outQ <- Queue.unbounded[IO, WebSocketFrame]
         backendInQ <- Queue.unbounded[IO, WebSocketFrame]
         closeHook = new AtomicBoolean(false)
-        ws = WebSocket[IO](outQ.dequeue, backendInQ.enqueue, IO(closeHook.set(true)))
+        ws = WebSocketSeparatePipe[IO](outQ.dequeue, backendInQ.enqueue, IO(closeHook.set(true)))
         deadSignal <- SignallingRef[IO, Boolean](false)
         wsHead <- WSTestHead()
         head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(wsHead)
@@ -132,11 +140,12 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
       out = Stream.eval(socket.sendWSOutbound(Text("."))).repeat.take(200)
       _ <- in.merge(out).compile.drain
       _ <- socket.sendInbound(Close(reasonSent))
-      reasonReceived <- socket.outStream
-        .collectFirst { case Close(reasonReceived) => reasonReceived }
-        .compile
-        .toList
-        .timeout(5.seconds)
+      reasonReceived <-
+        socket.outStream
+          .collectFirst { case Close(reasonReceived) => reasonReceived }
+          .compile
+          .toList
+          .timeout(5.seconds)
       _ = reasonReceived must_== (List(reasonSent))
     } yield ok)
   }

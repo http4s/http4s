@@ -107,10 +107,10 @@ replacements from libraries such as Scalaz or Dogs.
 
 When a list must not be empty, use `cats.data.NonEmptyList`.
 
-#### `CaseInsensitiveString`
+#### `CIString`
 
 Many parts of the HTTP spec require case-insensitive semantics. Use
-`org.http4s.util.CaseInsensitiveString` to represent these. This is important to
+`org.typelevel.ci.CIString` to represent these. This is important to
 get correct matching semantics when using case class extractors.
 
 ### Case classes
@@ -219,8 +219,8 @@ markdown via GitHub.
 
 Each branch `master` and `series/X.Y`, publishes documentation per
 minor version into the `/vX.Y` directory of http4s.org.  The Hugo site
-chrome lives in the `docs/src/hugo` directory, and the [tut] content
-lives in `docs/src/main/tut`.  Tut is used to typecheck our
+chrome lives in the `docs/src/hugo` directory, and the [mdoc] content
+lives in `docs/src/main/mdoc`.  Tut is used to typecheck our
 documentation as part of the build.
 
 #### Editing the versioned site
@@ -229,7 +229,7 @@ All pages have an edit link at the top right for direct editing of the
 markdown via GitHub.  Be aware that the Travis build will fail if invalid
 code is added.
 
-[tut]: https://github.com/tpolecat/tut
+[mdoc]: https://github.com/scalameta/mdoc
 
 ## Submit a pull request
 

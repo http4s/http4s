@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.servlet
 
 import java.io.ByteArrayInputStream
@@ -19,7 +25,7 @@ class ServletIoSpec extends Http4sSpec {
       val body = io.reader(request)
       val bytes = body.compile.toList.unsafeRunSync()
 
-      new String(bytes.toArray, UTF_8) must_== ("test")
+      new String(bytes.toArray, UTF_8) must_== "test"
     }
 
     "decode request body which is bigger than chunk size correctly" in {
@@ -31,7 +37,7 @@ class ServletIoSpec extends Http4sSpec {
       val body = io.reader(request)
       val bytes = body.compile.toList.unsafeRunSync()
 
-      new String(bytes.toArray, UTF_8) must_== ("testtesttest")
+      new String(bytes.toArray, UTF_8) must_== "testtesttest"
     }
   }
 
@@ -50,9 +56,8 @@ class ServletIoSpec extends Http4sSpec {
 
     override def read(): Int = {
       val result = in.read()
-      if (in.available() == 0) {
+      if (in.available() == 0)
         readListener.onAllDataRead()
-      }
       result
     }
   }

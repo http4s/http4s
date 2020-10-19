@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.effect.IO
@@ -10,12 +16,13 @@ import org.http4s.headers.ETag.EntityTag
 import org.http4s.headers._
 import org.http4s.testing.Http4sLegacyMatchersIO
 import org.specs2.matcher.MatchResult
+import java.net.UnknownHostException
 
 class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   "StaticFile" should {
     "Determine the media-type based on the files extension" in {
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
-        val r = StaticFile.fromFile[IO](f, testBlocker).value.unsafeRunSync
+        val r = StaticFile.fromFile[IO](f, testBlocker).value.unsafeRunSync()
 
         r must beSome[Response[IO]]
         r.flatMap(_.headers.get(`Content-Type`)) must_== tpe.map(t => `Content-Type`(t))
@@ -28,9 +35,8 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val tests = Seq(
         "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.image.png),
         "/test.fiddlefaddle" -> None)
-      forall(tests) {
-        case (p, om) =>
-          check(new File(getClass.getResource(p).toURI), om)
+      forall(tests) { case (p, om) =>
+        check(new File(getClass.getResource(p).toURI), om)
       }
     }
     "load from resource" in {
@@ -55,8 +61,8 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         "/missing.html" -> NotFound
       )
 
-      forall(tests) {
-        case (resource, status) => check(resource, status)
+      forall(tests) { case (resource, status) =>
+        check(resource, status)
       }
     }
 
@@ -86,8 +92,8 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         "/missing.html" -> NotFound
       )
 
-      forall(tests) {
-        case (resource, status) => check(resource, status)
+      forall(tests) { case (resource, status) =>
+        check(resource, status)
       }
     }
 
@@ -105,7 +111,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
@@ -119,7 +125,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
@@ -137,7 +143,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
@@ -152,7 +158,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(Ok)
     }
@@ -171,7 +177,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val response = StaticFile
         .fromFile[IO](emptyFile, testBlocker, Some(request))
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(Ok)
     }
@@ -190,13 +196,13 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
               None,
               StaticFile.calcETag[IO])
             .value
-            .unsafeRunSync
+            .unsafeRunSync()
 
         r must beSome[Response[IO]]
         // Length is only 1 byte
-        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(1)
+        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(1L)
         // get the Body to check the actual size
-        r.map(_.body.compile.toVector.unsafeRunSync.length) must beSome(1)
+        r.map(_.body.compile.toVector.unsafeRunSync().length) must beSome(1)
       }
 
       val tests = List(
@@ -228,13 +234,13 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             None,
             StaticFile.calcETag[IO])
           .value
-          .unsafeRunSync
+          .unsafeRunSync()
 
         r must beSome[Response[IO]]
         // Length of the body must match
-        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize - 1)
+        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize.toLong - 1L)
         // get the Body to check the actual size
-        val body = r.map(_.body.compile.toVector.unsafeRunSync)
+        val body = r.map(_.body.compile.toVector.unsafeRunSync())
         body.map(_.length) must beSome(fileSize - 1)
         // Verify the context
         body.map(bytes =>
@@ -252,7 +258,7 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       val s = StaticFile
         .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"), testBlocker)
         .value
-        .unsafeRunSync
+        .unsafeRunSync()
         .fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body)
       // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
       // saves chunks, which are mutated by naive usage of readInputStream.
@@ -269,6 +275,30 @@ class StaticFileSpec extends Http4sSpec with Http4sLegacyMatchersIO {
           .value
           .map(_.flatMap(_.contentLength))
       len must returnValue(Some(24005L))
+    }
+
+    "return none from a URL that is a directory" in {
+      // val url = getClass.getResource("/foo")
+      val s = StaticFile
+        .fromURL[IO](getClass.getResource("/foo"), testBlocker)
+        .value
+        .unsafeRunSync()
+      s must beNone
+    }
+
+    "return none from a URL that points to a resource that does not exist" in {
+      val s = StaticFile
+        .fromURL[IO](new URL("https://github.com/http4s/http4s/fooz"), testBlocker)
+        .value
+        .unsafeRunSync()
+      s must beNone
+    }
+
+    "raise exception when url does not exist" in {
+      StaticFile
+        .fromURL[IO](new URL("https://quuzgithubfoo.com/http4s/http4s/fooz"), testBlocker)
+        .value
+        .unsafeRunSync() must throwA[UnknownHostException]
     }
   }
 }

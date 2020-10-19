@@ -1,6 +1,12 @@
-/* Derived from https://raw.githubusercontent.com/etorreborre/specs2/c0cbfc71390b644db1a5deeedc099f74a237ebde/matcher-extra/src/main/scala-scalaz-7.0.x/org/specs2/matcher/TaskMatchers.scala
- * License: https://raw.githubusercontent.com/etorreborre/specs2/master/LICENSE.txt
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://raw.githubusercontent.com/etorreborre/specs2/c0cbfc71390b644db1a5deeedc099f74a237ebde/matcher-extra/src/main/scala-scalaz-7.0.x/org/specs2/matcher/TaskMatchers.scala
+ * Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
  */
+
 package org.http4s.testing
 
 import cats.effect.Sync
@@ -8,8 +14,7 @@ import org.specs2.matcher._
 import org.specs2.matcher.ValueChecks._
 import scala.concurrent.duration.FiniteDuration
 
-/**
-  * Matchers for cats.effect.F_
+/** Matchers for cats.effect.F_
   */
 @deprecated("Provided by specs2-cats in org.specs2.matcher.RunTimedMatchers", "0.21.0-RC2")
 trait RunTimedMatchers[F[_]] {
@@ -42,13 +47,14 @@ trait RunTimedMatchers[F[_]] {
       duration: Option[FiniteDuration]
   ) extends Matcher[F[T]] {
     override final def apply[S <: F[T]](expected: Expectable[S]): MatchResult[S] = {
-      def checkOrFail[A](res: Either[Throwable, T]): MatchResult[S] = res match {
-        case Left(error) =>
-          val message = s"an exception was thrown ${error.getMessage.notNull}"
-          result(false, message, message, expected)
-        case Right(actual) =>
-          result(check.check(actual), expected)
-      }
+      def checkOrFail[A](res: Either[Throwable, T]): MatchResult[S] =
+        res match {
+          case Left(error) =>
+            val message = s"an exception was thrown ${error.getMessage.notNull}"
+            result(false, message, message, expected)
+          case Right(actual) =>
+            result(check.check(actual), expected)
+        }
 
       val theAttempt = F.attempt(expected.value)
       duration match {

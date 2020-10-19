@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -19,10 +25,9 @@ object PushSupport {
     def push(url: String, cascade: Boolean = true)(implicit req: Request[F]): Response[F] = {
       val newUrl = {
         val script = req.scriptName
-        if (script.length > 0) {
+        if (script.nonEmpty) {
           val sb = new StringBuilder()
-          sb.append(script)
-          if (!url.startsWith("/")) sb.append('/')
+          sb.append(script.toAbsolute)
           sb.append(url).result()
         } else url
       }
@@ -48,7 +53,7 @@ object PushSupport {
     val emptyCollect: F[Vector[PushResponse[F]]] = F.pure(Vector.empty[PushResponse[F]])
 
     def fetchAndAdd(facc: F[Vector[PushResponse[F]]], v: PushLocation): F[Vector[PushResponse[F]]] =
-      routes(req.withPathInfo(v.location)).value.flatMap {
+      routes(req.withPathInfo(Uri.Path.fromString(v.location))).value.flatMap {
         case None => emptyCollect
         case Some(response) if !v.cascade =>
           facc.map(_ :+ PushResponse(v.location, response))
@@ -92,11 +97,11 @@ object PushSupport {
   private[PushSupport] final case class PushLocation(location: String, cascade: Boolean)
   private[http4s] final case class PushResponse[F[_]](location: String, resp: Response[F])
 
-  private[PushSupport] val pushLocationKey = Key.newKey[IO, Vector[PushLocation]].unsafeRunSync
+  private[PushSupport] val pushLocationKey = Key.newKey[IO, Vector[PushLocation]].unsafeRunSync()
   private[http4s] def pushResponsesKey[F[_]]: Key[F[Vector[PushResponse[F]]]] =
     Keys.PushResponses.asInstanceOf[Key[F[Vector[PushResponse[F]]]]]
 
   private[this] object Keys {
-    val PushResponses: Key[Any] = Key.newKey[IO, Any].unsafeRunSync
+    val PushResponses: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
   }
 }

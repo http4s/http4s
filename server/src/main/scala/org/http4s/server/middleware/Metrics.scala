@@ -1,7 +1,12 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{Clock, ExitCase, Sync}
 import cats.effect.concurrent.Ref
 import cats.effect.implicits._
 import cats.effect.{Clock, ExitCase, Sync}
@@ -13,8 +18,7 @@ import org.http4s._
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
 
-/**
-  * Server middleware to record metrics for the http4s server.
+/** Server middleware to record metrics for the http4s server.
   *
   * This middleware will record:
   * - Number of active requests
@@ -26,8 +30,7 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
   */
 object Metrics {
 
-  /**
-    * A server middleware capable of recording metrics
+  /** A server middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
@@ -52,61 +55,63 @@ object Metrics {
       emptyResponseHandler: Option[Status],
       errorResponseHandler: Throwable => Option[Status],
       classifierF: Request[F] => Option[String]
-  )(req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] = OptionT {
-    for {
-      initialTime <- clock.monotonic(TimeUnit.NANOSECONDS)
-      decreaseActiveRequestsOnce <- decreaseActiveRequestsAtMostOnce(ops, classifierF(req))
-      result <- ops
-        .increaseActiveRequests(classifierF(req))
-        .bracketCase { _ =>
-          for {
-            responseOpt <- routes(req).value
-            headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
-            result <- responseOpt.fold(
-              onEmpty[F](
-                req.method,
-                initialTime,
-                headersElapsed,
-                ops,
-                emptyResponseHandler,
-                classifierF(req),
-                decreaseActiveRequestsOnce)
-                .as(Option.empty[Response[F]])
-            )(
-              onResponse(
-                req.method,
-                initialTime,
-                headersElapsed,
-                ops,
-                classifierF(req),
-                decreaseActiveRequestsOnce)(_).some
-                .pure[F]
-            )
-          } yield result
-        } {
-          case (_, ExitCase.Completed) => Sync[F].unit
-          case (_, ExitCase.Canceled) =>
-            onServiceCanceled(
-              initialTime,
-              ops,
-              classifierF(req)
-            ) *> decreaseActiveRequestsOnce
-          case (_, ExitCase.Error(e)) =>
-            for {
-              headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
-              out <- onServiceError(
-                req.method,
-                initialTime,
-                headersElapsed,
-                ops,
-                errorResponseHandler(e),
-                classifierF(req),
-                e
-              ) *> decreaseActiveRequestsOnce
-            } yield out
-        }
-    } yield result
-  }
+  )(req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] =
+    OptionT {
+      for {
+        initialTime <- clock.monotonic(TimeUnit.NANOSECONDS)
+        decreaseActiveRequestsOnce <- decreaseActiveRequestsAtMostOnce(ops, classifierF(req))
+        result <-
+          ops
+            .increaseActiveRequests(classifierF(req))
+            .bracketCase { _ =>
+              for {
+                responseOpt <- routes(req).value
+                headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
+                result <- responseOpt.fold(
+                  onEmpty[F](
+                    req.method,
+                    initialTime,
+                    headersElapsed,
+                    ops,
+                    emptyResponseHandler,
+                    classifierF(req),
+                    decreaseActiveRequestsOnce)
+                    .as(Option.empty[Response[F]])
+                )(
+                  onResponse(
+                    req.method,
+                    initialTime,
+                    headersElapsed,
+                    ops,
+                    classifierF(req),
+                    decreaseActiveRequestsOnce)(_).some
+                    .pure[F]
+                )
+              } yield result
+            } {
+              case (_, ExitCase.Completed) => Sync[F].unit
+              case (_, ExitCase.Canceled) =>
+                onServiceCanceled(
+                  initialTime,
+                  ops,
+                  classifierF(req)
+                ) *> decreaseActiveRequestsOnce
+              case (_, ExitCase.Error(e)) =>
+                for {
+                  headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
+                  out <- onServiceError(
+                    req.method,
+                    initialTime,
+                    headersElapsed,
+                    ops,
+                    errorResponseHandler(e),
+                    classifierF(req),
+                    e
+                  ) *> decreaseActiveRequestsOnce
+                } yield out
+            }
+      } yield result
+    }
 
   private def onEmpty[F[_]: Sync](
       method: Method,

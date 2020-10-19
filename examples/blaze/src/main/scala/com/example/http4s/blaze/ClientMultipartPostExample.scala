@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s.blaze
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
@@ -21,7 +27,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
     val url = Uri(
       scheme = Some(Scheme.http),
       authority = Some(Authority(host = RegName("ptsv2.com"))),
-      path = "/t/http4s/post")
+      path = Uri.Path.fromString("/t/http4s/post"))
 
     val multipart = Multipart[IO](
       Vector(

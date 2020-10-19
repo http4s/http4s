@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package bench
 
@@ -20,9 +26,7 @@ class NioCharsetBench {
     for {
       cs <- NioCharset.availableCharsets.values.asScala
       name <- cs.name :: cs.aliases.asScala.toList
-    } {
-      map.put(name.toLowerCase(Locale.ROOT), cs)
-    }
+    } map.put(name.toLowerCase(Locale.ROOT), cs)
     map
   }
 

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package parser
 
@@ -5,11 +11,57 @@ import cats.data.NonEmptyList
 import java.net.InetAddress
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
+import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSpec {
   "SimpleHeaders" should {
+    "parse Accept-Patch" in {
+      val header =
+        `Accept-Patch`(
+          NonEmptyList.of(new MediaType("text", "example", extensions = Map("charset" -> "utf-8"))))
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+      val multipleMediaTypes =
+        `Accept-Patch`(
+          NonEmptyList
+            .of(new MediaType("application", "example"), new MediaType("text", "example")))
+      HttpHeaderParser.parseHeader(multipleMediaTypes.toRaw) must beRight(multipleMediaTypes)
+
+      val bad = Header(header.name.toString, "foo; bar")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+    }
+
+    "parse Access-Control-Allow-Headers" in {
+      val header = `Access-Control-Allow-Headers`(
+        NonEmptyList.of(
+          CIString("Accept"),
+          CIString("Expires"),
+          CIString("X-Custom-Header"),
+          CIString("*")
+        )
+      )
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val invalidHeader = Header(header.name.toString, "(non-token-name), non[&token]name")
+      HttpHeaderParser.parseHeader(invalidHeader) must beLeft
+    }
+
+    "parse Access-Control-Expose-Headers" in {
+      val header = `Access-Control-Expose-Headers`(
+        NonEmptyList.of(
+          CIString("Content-Length"),
+          CIString("Authorization"),
+          CIString("X-Custom-Header"),
+          CIString("*")
+        )
+      )
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val invalidHeader = Header(header.name.toString, "(non-token-name), non[&token]name")
+      HttpHeaderParser.parseHeader(invalidHeader) must beLeft
+    }
+
     "parse Connection" in {
-      val header = Connection("closed".ci)
+      val header = Connection(CIString("closed"))
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
     }
 
@@ -53,6 +105,17 @@ class SimpleHeadersSpec extends Http4sSpec {
       HttpHeaderParser.parseHeader(bad) must beLeft
     }
 
+    "parse Access-Control-Allow-Credentials" in {
+      val header = `Access-Control-Allow-Credentials`().toRaw.parsed
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+
+      val bad = Header(header.name.toString, "false")
+      HttpHeaderParser.parseHeader(bad) must beLeft
+      // it is case sensitive
+      val bad2 = Header(header.name.toString, "True")
+      HttpHeaderParser.parseHeader(bad2) must beLeft
+    }
+
     "parse Last-Modified" in {
       val header = `Last-Modified`(HttpDate.Epoch).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
@@ -87,6 +150,16 @@ class SimpleHeadersSpec extends Http4sSpec {
         `If-None-Match`(EntityTag("123-999"), EntityTag("hash")),
         `If-None-Match`(EntityTag("123-999", weak = true), EntityTag("hash")),
         `If-None-Match`.`*`
+      )
+      foreach(headers) { header =>
+        HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+      }
+    }
+
+    "parse Max-Forwards" in {
+      val headers = Seq(
+        `Max-Forwards`.unsafeFromLong(0),
+        `Max-Forwards`.unsafeFromLong(100)
       )
       foreach(headers) { header =>
         HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)

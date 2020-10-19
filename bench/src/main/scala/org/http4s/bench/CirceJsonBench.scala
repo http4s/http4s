@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package bench
 
@@ -17,18 +23,18 @@ class CirceJsonBench {
 
   @Benchmark
   def decode_byte_buffer(in: BenchState): Either[DecodeFailure, Json] =
-    jsonDecoderByteBuffer[IO].decode(in.req, strict = true).value.unsafeRunSync
+    jsonDecoderByteBuffer[IO].decode(in.req, strict = true).value.unsafeRunSync()
 
   @Benchmark
   def decode_incremental(in: BenchState): Either[DecodeFailure, Json] =
-    jsonDecoderIncremental[IO].decode(in.req, strict = true).value.unsafeRunSync
+    jsonDecoderIncremental[IO].decode(in.req, strict = true).value.unsafeRunSync()
 
   @Benchmark
   def decode_adaptive(in: BenchState): Either[DecodeFailure, Json] =
     jsonDecoderAdaptive[IO](in.cutoff, MediaType.application.json)
       .decode(in.req, strict = true)
       .value
-      .unsafeRunSync
+      .unsafeRunSync()
 }
 
 object CirceJsonBench {

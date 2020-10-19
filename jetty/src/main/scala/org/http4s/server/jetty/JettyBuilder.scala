@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package jetty
@@ -48,6 +54,33 @@ sealed class JettyBuilder[F[_]] private (
 
   private[this] val logger = getLogger
 
+  @deprecated("Retained for binary compatibility", "0.20.23")
+  private[JettyBuilder] def this(
+      socketAddress: InetSocketAddress,
+      threadPool: ThreadPool,
+      idleTimeout: Duration,
+      asyncTimeout: Duration,
+      shutdownTimeout: Duration,
+      servletIo: ServletIo[F],
+      sslConfig: SslConfig,
+      mounts: Vector[Mount[F]],
+      serviceErrorHandler: ServiceErrorHandler[F],
+      banner: immutable.Seq[String]
+  )(implicit F: ConcurrentEffect[F]) =
+    this(
+      socketAddress = socketAddress,
+      threadPool = threadPool,
+      idleTimeout = idleTimeout,
+      asyncTimeout = asyncTimeout,
+      shutdownTimeout = shutdownTimeout,
+      servletIo = servletIo,
+      sslConfig = sslConfig,
+      mounts = mounts,
+      serviceErrorHandler = serviceErrorHandler,
+      supportHttp2 = false,
+      banner = banner
+    )
+
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
       threadPool: ThreadPool = threadPool,
@@ -96,12 +129,14 @@ sealed class JettyBuilder[F[_]] private (
     copy(sslConfig = new ContextWithClientAuth(sslContext, clientAuth))
 
   /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters` */
+    * default `SSLParameters`
+    */
   def withSslContext(sslContext: SSLContext): Self =
     copy(sslConfig = new ContextOnly(sslContext))
 
   /** Configures the server with TLS, using the provided `SSLContext` and its
-    * default `SSLParameters` */
+    * default `SSLParameters`
+    */
   def withSslContextAndParameters(sslContext: SSLContext, sslParameters: SSLParameters): Self =
     copy(sslConfig = new ContextWithParameters(sslContext, sslParameters))
 
@@ -160,7 +195,8 @@ sealed class JettyBuilder[F[_]] private (
     copy(asyncTimeout = asyncTimeout)
 
   /** Sets the graceful shutdown timeout for Jetty.  Closing the resource
-    * will wait this long before a forcible stop. */
+    * will wait this long before a forcible stop.
+    */
   def withShutdownTimeout(shutdownTimeout: Duration): Self =
     copy(shutdownTimeout = shutdownTimeout)
 
@@ -171,7 +207,8 @@ sealed class JettyBuilder[F[_]] private (
     copy(serviceErrorHandler = serviceErrorHandler)
 
   /** Enables HTTP/2 connection upgrade over plain text (no TLS).
-    * See https://webtide.com/introduction-to-http2-in-jetty */
+    * See https://webtide.com/introduction-to-http2-in-jetty
+    */
   def withHttp2c: Self =
     copy(supportHttp2 = true)
 
@@ -258,19 +295,20 @@ sealed class JettyBuilder[F[_]] private (
 }
 
 object JettyBuilder {
-  def apply[F[_]: ConcurrentEffect] = new JettyBuilder[F](
-    socketAddress = defaults.SocketAddress,
-    threadPool = new QueuedThreadPool(),
-    idleTimeout = defaults.IdleTimeout,
-    asyncTimeout = defaults.ResponseTimeout,
-    shutdownTimeout = defaults.ShutdownTimeout,
-    servletIo = ServletContainer.DefaultServletIo,
-    sslConfig = NoSsl,
-    mounts = Vector.empty,
-    serviceErrorHandler = DefaultServiceErrorHandler,
-    supportHttp2 = false,
-    banner = defaults.Banner
-  )
+  def apply[F[_]: ConcurrentEffect] =
+    new JettyBuilder[F](
+      socketAddress = defaults.SocketAddress,
+      threadPool = new QueuedThreadPool(),
+      idleTimeout = defaults.IdleTimeout,
+      asyncTimeout = defaults.ResponseTimeout,
+      shutdownTimeout = defaults.ShutdownTimeout,
+      servletIo = ServletContainer.DefaultServletIo,
+      sslConfig = NoSsl,
+      mounts = Vector.empty,
+      serviceErrorHandler = DefaultServiceErrorHandler,
+      supportHttp2 = false,
+      banner = defaults.Banner
+    )
 
   private sealed trait SslConfig {
     def makeSslContextFactory: Option[SslContextFactory.Server]

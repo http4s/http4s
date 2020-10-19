@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package internal
 
@@ -10,9 +16,10 @@ abstract class ExecutionSpec extends Specification {
   def ec: ExecutionContext
   def ecName: String
 
-  def toRunnable(f: => Unit): Runnable = new Runnable {
-    override def run(): Unit = f
-  }
+  def toRunnable(f: => Unit): Runnable =
+    new Runnable {
+      override def run(): Unit = f
+    }
 
   def submit(f: => Unit): Unit = ec.execute(toRunnable(f))
 
@@ -30,11 +37,10 @@ abstract class ExecutionSpec extends Specification {
     "submit multiple working jobs" in {
       var i = 0
 
-      for (_ <- 0 until 10) {
+      for (_ <- 0 until 10)
         submit {
           i += 1
         }
-      }
 
       (i must be).equalTo(10)
     }
@@ -43,11 +49,10 @@ abstract class ExecutionSpec extends Specification {
       var i = 0
 
       submit {
-        for (_ <- 0 until 10) {
+        for (_ <- 0 until 10)
           submit {
             i += 1
           }
-        }
       }
 
       (i must be).equalTo(10)
@@ -70,11 +75,11 @@ abstract class ExecutionSpec extends Specification {
 
       silenceSystemErr {
         submit {
-          for (j <- 0 until 10) {
+          for (j <- 0 until 10)
             submit {
-              if (j % 2 == 0) submit { i += 1 } else submit { sys.error("Boom") }
+              if (j % 2 == 0) submit(i += 1)
+              else submit(sys.error("Boom"))
             }
-          }
         }
       }
 
@@ -92,12 +97,13 @@ class TrampolineSpec extends ExecutionSpec {
       val iterations = 500000
       var i = 0
 
-      def go(j: Int): Unit = submit {
-        if (j < iterations) {
-          i += 1
-          go(j + 1)
+      def go(j: Int): Unit =
+        submit {
+          if (j < iterations) {
+            i += 1
+            go(j + 1)
+          }
         }
-      }
 
       go(0)
 

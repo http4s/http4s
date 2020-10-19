@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -24,6 +30,9 @@ object DefaultHead {
         case _ => http(req)
       }
     }
+
+  def httpRoutes[F[_]: Concurrent](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(httpRoutes)
 
   private[this] def drainBody[G[_]: Concurrent](response: Response[G]): Response[G] =
     response.copy(body = response.body.interruptWhen[G](Stream(true)).drain)

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -9,6 +15,11 @@ object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with Head
     HttpHeaderParser.ACCEPT_LANGUAGE(s)
 }
 
+/** Request header used to indicate which natural language would be preferred for the response
+  * to be translated into.
+  *
+  * [[https://tools.ietf.org/html/rfc7231#section-5.3.5 RFC-7231 Section 5.3.5]]
+  */
 final case class `Accept-Language`(values: NonEmptyList[LanguageTag])
     extends Header.RecurringRenderable {
   def key: `Accept-Language`.type = `Accept-Language`

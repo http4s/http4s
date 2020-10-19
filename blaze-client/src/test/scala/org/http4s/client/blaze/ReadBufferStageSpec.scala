@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.client.blaze
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -93,7 +99,7 @@ class ReadBufferStageSpec extends Http4sSpec {
     var lastRead: Promise[Unit] = _
     val readCount = new AtomicInteger(0)
     override def readRequest(size: Int): Future[Unit] = {
-      lastRead = Promise[Unit]
+      lastRead = Promise[Unit]()
       readCount.incrementAndGet()
       lastRead.future
     }

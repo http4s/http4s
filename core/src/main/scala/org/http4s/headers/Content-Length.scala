@@ -1,11 +1,16 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
-/**
-  * Constructs a `Content-Length` header.
+/** Constructs a `Content-Length` header.
   *
   * The HTTP RFCs do not specify a maximum length.  We have decided that `Long.MaxValue`
   * bytes ought to be good enough for anybody in order to avoid the irritations of `BigInt`.

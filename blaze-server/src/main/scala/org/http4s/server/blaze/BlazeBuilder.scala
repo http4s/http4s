@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
@@ -14,8 +20,7 @@ import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-/**
-  * BlazeBuilder is the component for the builder pattern aggregating
+/** BlazeBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.
   *
   * Variables:
@@ -178,47 +183,47 @@ class BlazeBuilder[F[_]](
       .withHttpApp(httpApp)
       .withServiceErrorHandler(serviceErrorHandler)
       .withBanner(banner)
-    getContext().foreach {
-      case (ctx, clientAuth) =>
-        b = b.withSSLContext(ctx, clientAuth)
+    getContext().foreach { case (ctx, clientAuth) =>
+      b = b.withSSLContext(ctx, clientAuth)
     }
     b.resource
   }
 
-  private def getContext(): Option[(SSLContext, SSLClientAuthMode)] = sslBits.map {
-    case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
-      val ksStream = new FileInputStream(keyStore.path)
-      val ks = KeyStore.getInstance("JKS")
-      ks.load(ksStream, keyStore.password.toCharArray)
-      ksStream.close()
-
-      val tmf = trustStore.map { auth =>
-        val ksStream = new FileInputStream(auth.path)
-
+  private def getContext(): Option[(SSLContext, SSLClientAuthMode)] =
+    sslBits.map {
+      case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
+        val ksStream = new FileInputStream(keyStore.path)
         val ks = KeyStore.getInstance("JKS")
-        ks.load(ksStream, auth.password.toCharArray)
+        ks.load(ksStream, keyStore.password.toCharArray)
         ksStream.close()
 
-        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+        val tmf = trustStore.map { auth =>
+          val ksStream = new FileInputStream(auth.path)
 
-        tmf.init(ks)
-        tmf.getTrustManagers
-      }
+          val ks = KeyStore.getInstance("JKS")
+          ks.load(ksStream, auth.password.toCharArray)
+          ksStream.close()
 
-      val kmf = KeyManagerFactory.getInstance(
-        Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-          .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+          val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
 
-      kmf.init(ks, keyManagerPassword.toCharArray)
+          tmf.init(ks)
+          tmf.getTrustManagers
+        }
 
-      val context = SSLContext.getInstance(protocol)
-      context.init(kmf.getKeyManagers, tmf.orNull, null)
+        val kmf = KeyManagerFactory.getInstance(
+          Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
+            .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
 
-      (context, clientAuth)
+        kmf.init(ks, keyManagerPassword.toCharArray)
 
-    case SSLContextBits(context, clientAuth) =>
-      (context, clientAuth)
-  }
+        val context = SSLContext.getInstance(protocol)
+        context.init(kmf.getKeyManagers, tmf.orNull, null)
+
+        (context, clientAuth)
+
+      case SSLContextBits(context, clientAuth) =>
+        (context, clientAuth)
+    }
 }
 
 @deprecated("Use BlazeServerBuilder instead", "0.20.0-RC1")

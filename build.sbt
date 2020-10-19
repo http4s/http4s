@@ -1,11 +1,10 @@
 import com.typesafe.tools.mima.core._
-import org.http4s.build.Http4sPlugin._
+import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
+import org.http4s.sbt.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / organization := "org.http4s"
 ThisBuild / scalaVersion := scala_213
-Global / cancelable := true
 
 lazy val modules: List[ProjectReference] = List(
   core,
@@ -47,7 +46,11 @@ lazy val modules: List[ProjectReference] = List(
   examplesEmber,
   examplesJetty,
   examplesTomcat,
-  examplesWar
+  examplesWar,
+  scalafixInput,
+  scalafixOutput,
+  scalafixRules,
+  scalafixTests
 )
 
 lazy val root = project.in(file("."))
@@ -62,7 +65,8 @@ lazy val root = project.in(file("."))
 lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
-    MimeLoaderPlugin
+    MimeLoaderPlugin,
+    SilencerPlugin
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -72,9 +76,8 @@ lazy val core = libraryProject("core")
       BuildInfoKey.map(http4sApiVersion) { case (_, v) => "apiVersion" -> v }
     ),
     buildInfoPackage := organization.value,
-    resolvers += "Sonatype OSS Snapshots".at(
-      "https://oss.sonatype.org/content/repositories/snapshots"),
     libraryDependencies ++= Seq(
+      caseInsensitive,
       cats,
       catsEffect,
       fs2Io,
@@ -89,6 +92,7 @@ lazy val laws = libraryProject("laws")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
+      caseInsensitiveTesting,
       catsEffectLaws,
     ),
   )
@@ -113,10 +117,10 @@ lazy val tests = libraryProject("tests")
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
+  .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s servers"
   )
-  .settings(silencerSettings)
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
@@ -143,12 +147,13 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     server % "test->compile",
     client % "test->compile"
   )
+
 lazy val client = libraryProject("client")
+  .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s clients",
-    libraryDependencies += jettyServlet % "test"
+    libraryDependencies += jettyServlet % Test
   )
-  .settings(silencerSettings)
   .dependsOn(
     core,
     testing % "test->test",
@@ -174,21 +179,51 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
 lazy val emberCore = libraryProject("ember-core")
   .settings(
     description := "Base library for ember http4s clients and servers",
-    libraryDependencies ++= Seq(log4catsCore, log4catsTesting % Test)
+    unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
+    libraryDependencies ++= Seq(log4catsCore, log4catsTesting % Test),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Shared.chunk2ByteVector"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Request.parser"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request.parser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.splitHeader"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response.parser")
+    )
   )
   .dependsOn(core, testing % "test->test")
 
 lazy val emberServer = libraryProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
-    libraryDependencies ++= Seq(log4catsSlf4j)
+    libraryDependencies ++= Seq(log4catsSlf4j),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
+    )
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
 
 lazy val emberClient = libraryProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
-    libraryDependencies ++= Seq(keypool, log4catsSlf4j)
+    libraryDependencies ++= Seq(keypool, log4catsSlf4j),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
+    )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -196,10 +231,6 @@ lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze,
-    mimaBinaryIssueFilters ++= List(
-      // Private API
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.blazecore.ResponseHeaderTimeoutStage.this")
-    ),
   )
   .dependsOn(core, testing % "test->test")
 
@@ -231,7 +262,6 @@ lazy val jettyClient = libraryProject("jetty-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient
     ),
-    mimaPreviousArtifacts := Set.empty // remove me once merged
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
@@ -248,10 +278,10 @@ lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
     libraryDependencies ++= Seq(
-      javaxServletApi % "provided",
-      jettyServer % "test",
-      jettyServlet % "test",
-      mockito % "test"
+      javaxServletApi % Provided,
+      jettyServer % Test,
+      jettyServlet % Test,
+      mockito % Test
     ),
   )
   .dependsOn(server % "compile;test->test")
@@ -294,7 +324,8 @@ lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sPlugin.argonaut
+      Http4sPlugin.argonaut,
+      Http4sPlugin.argonautJawn
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -313,7 +344,7 @@ lazy val circe = libraryProject("circe")
     description := "Provides Circe codecs for http4s",
     libraryDependencies ++= Seq(
       circeJawn,
-      circeTesting % "test"
+      circeTesting % Test
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -382,6 +413,8 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser,
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.openjdk.jmh"),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "pl.project13.scala", name = "sbt-jmh-extras"),
   )
   .dependsOn(core, circe)
 
@@ -391,7 +424,7 @@ lazy val docs = http4sProject("docs")
     HugoPlugin,
     PrivateProjectPlugin,
     ScalaUnidocPlugin,
-    TutPlugin
+    MdocPlugin
   )
   .settings(
     crossScalaVersions := List(scala_212),
@@ -411,40 +444,18 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
+        scalafixInput,
+        scalafixOutput,
+        scalafixRules,
+        scalafixTests
       ),
-    Tut / scalacOptions ~= {
-      val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
+    Compile / scalacOptions ~= {
+      val unwanted = Set("-Ywarn-unused:params", "-Xlint:missing-interpolator", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
       _.filterNot(unwanted) :+ "-Xfatal-warnings"
     },
-    Compile / doc / scalacOptions ++= {
-      scmInfo.value match {
-        case Some(s) =>
-          val isMaster = git.gitCurrentBranch.value == "master"
-          val isSnapshot =
-            git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
-          val gitHeadCommit = git.gitHeadCommit.value
-          val v = version.value
-          val path =
-            if (isSnapshot && isMaster)
-              s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
-            else if (isSnapshot)
-              s"${s.browseUrl}/blob/${gitHeadCommit.get}€{FILE_PATH}.scala"
-            else
-              s"${s.browseUrl}/blob/v${v}€{FILE_PATH}.scala"
-
-          Seq(
-            "-implicits",
-            "-doc-source-url",
-            path,
-            "-sourcepath",
-            (ThisBuild / baseDirectory).value.getAbsolutePath
-          )
-        case _ => Seq.empty
-      }
-    },
-    Compile / doc / scalacOptions -= "-Ywarn-unused:imports",
-    makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
+    mdocIn := (sourceDirectory in Compile).value / "mdoc",
+    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     Hugo / baseURL := {
       val docsPrefix = extractDocsPrefix(version.value)
       if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
@@ -495,9 +506,8 @@ lazy val examples = http4sProject("examples")
   .settings(
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
-      circeGeneric,
-      logbackClassic % "runtime",
-      jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
+      circeGeneric % Runtime,
+      logbackClassic % Runtime
     ),
     TwirlKeys.templateImports := Nil
   )
@@ -505,12 +515,14 @@ lazy val examples = http4sProject("examples")
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
+  .enablePlugins(AlpnBootPlugin)
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",
     fork := true,
-    libraryDependencies ++= Seq(alpnBoot, dropwizardMetricsJson),
-    run / javaOptions ++= addAlpnPath((Runtime / managedClasspath).value)
+    libraryDependencies ++= Seq(
+      circeGeneric,
+    ),
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -558,10 +570,88 @@ lazy val examplesWar = exampleProject("examples-war")
   .settings(
     description := "Example of a WAR deployment of an http4s service",
     fork := true,
-    libraryDependencies += javaxServletApi % "provided",
+    libraryDependencies += javaxServletApi % Provided,
     Jetty / containerLibs := List(jettyRunner),
   )
   .dependsOn(servlet)
+
+lazy val scalafixSettings: Seq[Setting[_]] = Seq(
+  developers ++= List(
+    Developer(
+      "amarrella",
+      "Alessandro Marrella",
+      "hello@alessandromarrella.com",
+      url("https://alessandromarrella.com")
+    ),
+    Developer(
+      "satorg",
+      "Sergey Torgashov",
+      "satorg@gmail.com",
+      url("https://github.com/satorg")
+    ),
+  ),
+  addCompilerPlugin(scalafixSemanticdb),
+  scalacOptions += "-Yrangepos",
+  mimaPreviousArtifacts := Set.empty,
+)
+
+lazy val scalafixRules = project
+  .in(file("scalafix/rules"))
+  .settings(scalafixSettings)
+  .settings(
+    moduleName := "http4s-scalafix",
+    libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafix,
+  )
+  .enablePlugins(AutomateHeaderPlugin)
+
+lazy val scalafixInput = project
+  .in(file("scalafix/input"))
+  .settings(scalafixSettings)
+  .settings(
+    skip in publish := true,
+    libraryDependencies ++= List(
+      "http4s-blaze-client",
+      "http4s-blaze-server",
+      "http4s-dsl",
+    ).map("org.http4s" %% _ % "0.21.7"),
+    // TODO: I think these are false positives
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
+    scalacOptions -= "-Xfatal-warnings",
+    scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) }
+  )
+  // Syntax matters as much as semantics here.
+  .disablePlugins(HeaderPlugin, ScalafmtPlugin)
+
+lazy val scalafixOutput = project
+  .in(file("scalafix/output"))
+  .settings(scalafixSettings)
+  .settings(
+    skip in publish := true,
+    skip in compile := true,
+    Compile / doc / sources := Nil
+  )
+  // Auto-formatting prevents the tests from passing
+  .disablePlugins(HeaderPlugin, ScalafmtPlugin)
+
+lazy val scalafixTests = project
+  .in(file("scalafix/tests"))
+  .settings(commonSettings)
+  .settings(scalafixSettings)
+  .settings(
+    skip in publish := true,
+    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafix % Test cross CrossVersion.full,
+    Compile / compile :=
+      (Compile / compile).dependsOn(scalafixInput / Compile / compile).value,
+    scalafixTestkitOutputSourceDirectories :=
+      (scalafixOutput / Compile / sourceDirectories).value,
+    scalafixTestkitInputSourceDirectories :=
+      (scalafixInput / Compile / sourceDirectories).value,
+    scalafixTestkitInputClasspath :=
+      (scalafixInput / Compile / fullClasspath).value,
+  )
+  .dependsOn(scalafixRules)
+  .enablePlugins(ScalafixTestkitPlugin)
+  .enablePlugins(AutomateHeaderPlugin)
 
 def http4sProject(name: String) =
   Project(name, file(name))
@@ -571,6 +661,7 @@ def http4sProject(name: String) =
       Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
       initCommands()
     )
+    .enablePlugins(AutomateHeaderPlugin)
 
 def libraryProject(name: String) = http4sProject(name)
 
@@ -578,25 +669,12 @@ def exampleProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
     .enablePlugins(PrivateProjectPlugin)
-    .settings(libraryDependencies += logbackClassic % "runtime")
+    .settings(libraryDependencies += logbackClassic % Runtime)
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(
-  http4sJvmTarget := scalaVersion.map {
-    VersionNumber(_).numbers match {
-      case Seq(2, 10, _*) => "1.7"
-      case _ => "1.8"
-    }
-  }.value,
-  Compile / scalacOptions ++= Seq(
-    s"-target:jvm-${http4sJvmTarget.value}"
-  ),
   Compile / doc / scalacOptions += "-no-link-warnings",
   javacOptions ++= Seq(
-    "-source",
-    http4sJvmTarget.value,
-    "-target",
-    http4sJvmTarget.value,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
   ),
@@ -611,8 +689,7 @@ lazy val commonSettings = Seq(
     specs2Core,
     specs2MatcherExtra,
     specs2Scalacheck
-  ).map(_ % "test"),
-  ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
+  ).map(_ % Test),
   git.remoteRepo := "git@github.com:http4s/http4s.git",
   Hugo / includeFilter := (
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |

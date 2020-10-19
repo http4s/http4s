@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package scalaxml
 
@@ -9,7 +15,7 @@ import org.http4s.Status.Ok
 import scala.xml.Elem
 
 class ScalaXmlSpec extends Http4sSpec {
-  def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
+  def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync().toArray
 
   def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8Encode)
 
@@ -32,7 +38,7 @@ class ScalaXmlSpec extends Http4sSpec {
         .parTraverse(_ =>
           server(Request(body = strBody(
             """<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><h1>h1</h1></html>"""))))
-        .unsafeRunSync
+        .unsafeRunSync()
       resp.forall(_.status must_== Ok)
       resp.forall(x => getBody(x.body) must_== "html".getBytes)
     }
@@ -40,7 +46,7 @@ class ScalaXmlSpec extends Http4sSpec {
     "return 400 on parse error" in {
       val body = strBody("This is not XML.")
       val tresp = server(Request[IO](body = body))
-      tresp.unsafeRunSync.status must_== Status.BadRequest
+      tresp.unsafeRunSync().status must_== Status.BadRequest
     }
   }
 

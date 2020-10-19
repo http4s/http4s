@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.middleware
 
 import cats.effect.IO
@@ -7,7 +13,7 @@ import org.http4s.dsl.io._
 import org.http4s.server.Router
 import org.http4s.server.middleware.HttpMethodOverrider._
 import org.http4s.testing.Http4sLegacyMatchersIO
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 
 class HttpMethodOverriderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   private final val overrideHeader = "X-HTTP-Method-Override"
@@ -16,7 +22,7 @@ class HttpMethodOverriderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
   private final val customHeader = "X-Custom-Header"
 
   private def headerOverrideStrategy[F[_], G[_]] =
-    HeaderOverrideStrategy[F, G](CaseInsensitiveString(overrideHeader))
+    HeaderOverrideStrategy[F, G](CIString(overrideHeader))
   private def queryOverrideStrategy[F[_], G[_]] = QueryOverrideStrategy[F, G](overrideParam)
   private val formOverrideStrategy = FormOverrideStrategy(
     overrideParam,
@@ -277,7 +283,7 @@ class HttpMethodOverriderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       res must returnBody(
         mkResponseText(msg = "resource deleted", reqMethod = DELETE, overriddenMethod = Some(POST)))
 
-      res must returnValue(doesntContainHeader(CaseInsensitiveString(varyHeader)))
+      res must returnValue(doesntContainHeader(CIString(varyHeader)))
     }
 
     "not update vary header when using query method overrider strategy and vary header comes pre-populated" in {
@@ -305,7 +311,7 @@ class HttpMethodOverriderSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       res must returnBody(
         mkResponseText(msg = "resource deleted", reqMethod = DELETE, overriddenMethod = Some(POST)))
 
-      res must returnValue(doesntContainHeader(CaseInsensitiveString(varyHeader)))
+      res must returnValue(doesntContainHeader(CIString(varyHeader)))
     }
 
     "not update vary header when using form method overrider strategy and vary header comes pre-populated" in {

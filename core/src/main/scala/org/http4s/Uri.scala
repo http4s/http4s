@@ -1,15 +1,29 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/scalatra/rl/blob/v0.4.10/core/src/main/scala/rl/UrlCodingUtils.scala
+ * Copyright (c) 2011 Mojolly Ltd.
+ * See licenses/LICENSE_rl
+ */
+
 package org.http4s
 
 import cats.{Eq, Hash, Order, Show}
 import cats.syntax.either._
+import com.github.ghik.silencer.silent
 import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset, StandardCharsets}
+import org.http4s.internal.{bug, hashLower}
+import cats.kernel.Semigroup
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
-import org.http4s.syntax.string._
 import org.http4s.util._
+import org.typelevel.ci.CIString
+
 import scala.collection.immutable
 import scala.math.Ordered
 import scala.reflect.macros.blackbox
@@ -22,57 +36,53 @@ import scala.reflect.macros.blackbox
   * @param query      optional Query. url-encoded.
   * @param fragment   optional Uri Fragment. url-encoded.
   */
-// TODO fix Location header, add unit tests
 final case class Uri(
     scheme: Option[Uri.Scheme] = None,
     authority: Option[Uri.Authority] = None,
-    path: Uri.Path = "",
+    path: Uri.Path = Uri.Path.empty,
     query: Query = Query.empty,
     fragment: Option[Uri.Fragment] = None)
     extends QueryOps
     with Renderable {
-  import Uri._
 
-  /**
-    * Adds the path exactly as described. Any path element must be urlencoded ahead of time.
+  /** Adds the path exactly as described. Any path element must be urlencoded ahead of time.
     * @param path the path string to replace
     */
-  def withPath(path: Path): Uri = copy(path = path)
+  @deprecated("Use {withPath(Uri.Path)} instead", "1.0.0-M1")
+  def withPath(path: String): Uri = copy(path = Uri.Path.fromString(path))
 
-  def withFragment(fragment: Fragment): Uri = copy(fragment = Option(fragment))
+  def withPath(path: Uri.Path): Uri = copy(path = path)
 
-  def withoutFragment: Uri = copy(fragment = Option.empty[Fragment])
+  def withFragment(fragment: Uri.Fragment): Uri = copy(fragment = Option(fragment))
 
-  /**
-    * Urlencodes and adds a path segment to the Uri
+  def withoutFragment: Uri = copy(fragment = Option.empty[Uri.Fragment])
+
+  /** Urlencodes and adds a path segment to the Uri
     *
     * @param newSegment the segment to add.
     * @return a new uri with the segment added to the path
     */
-  def addSegment(newSegment: Path): Uri = copy(path = toSegment(path, newSegment))
+  def addSegment(newSegment: String): Uri = copy(path = toSegment(path, newSegment))
 
-  /**
-    * This is an alias to [[addSegment(Path)]]
+  /** This is an alias to [[addSegment(Path)]]
     */
-  def /(newSegment: Path): Uri = addSegment(newSegment)
+  def /(newSegment: String): Uri = addSegment(newSegment)
 
-  /**
-    * Splits the path segments and adds each of them to the path url-encoded.
+  /** Splits the path segments and adds each of them to the path url-encoded.
     * A segment is delimited by /
     * @param morePath the path to add
     * @return a new uri with the segments added to the path
     */
-  def addPath(morePath: Path): Uri =
+  def addPath(morePath: String): Uri =
     copy(path = morePath.split("/").foldLeft(path)((p, segment) => toSegment(p, segment)))
 
-  def host: Option[Host] = authority.map(_.host)
+  def host: Option[Uri.Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
-  def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)
+  def userInfo: Option[Uri.UserInfo] = authority.flatMap(_.userInfo)
 
   def resolve(relative: Uri): Uri = Uri.resolve(this, relative)
 
-  /**
-    * Representation of the query string as a map
+  /** Representation of the query string as a map
     *
     * In case a parameter is available in query string but no value is there the
     * sequence will be empty. If the value is empty the the sequence contains an
@@ -93,8 +103,7 @@ final case class Uri(
     */
   def multiParams: Map[String, immutable.Seq[String]] = query.multiParams
 
-  /**
-    * View of the head elements of the URI parameters in query string.
+  /** View of the head elements of the URI parameters in query string.
     *
     * In case a parameter has no value the map returns an empty string.
     *
@@ -106,7 +115,7 @@ final case class Uri(
     super.renderString
 
   override def render(writer: Writer): writer.type = {
-    def renderScheme(s: Scheme): writer.type =
+    def renderScheme(s: Uri.Scheme): writer.type =
       writer << s << ':'
 
     this match {
@@ -123,7 +132,7 @@ final case class Uri(
     }
 
     this match {
-      case Uri(_, Some(_), p, _, _) if p.nonEmpty && !p.startsWith("/") =>
+      case Uri(_, Some(_), p, _, _) if p.nonEmpty && !p.absolute =>
         writer << "/" << p
       case Uri(_, _, p, _, _) =>
         writer << p
@@ -131,7 +140,7 @@ final case class Uri(
 
     if (query.nonEmpty) writer << '?' << query
     fragment.foreach { f =>
-      writer << '#' << encode(f, spaceIsPlus = false)
+      writer << '#' << Uri.encode(f, spaceIsPlus = false)
     }
     writer
   }
@@ -143,13 +152,8 @@ final case class Uri(
 
   override protected def replaceQuery(query: Query): Self = copy(query = query)
 
-  private def toSegment(path: Path, newSegment: Path): Path = {
-    val encoded = pathEncode(newSegment)
-    val newPath =
-      if (path.isEmpty || path.last != '/') s"$path/$encoded"
-      else s"$path$encoded"
-    newPath
-  }
+  private def toSegment(path: Uri.Path, newSegment: String): Uri.Path =
+    path / Uri.Path.Segment(newSegment)
 }
 
 object Uri {
@@ -204,16 +208,16 @@ object Uri {
     * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.1
     */
   final class Scheme private (val value: String) extends Ordered[Scheme] {
-    override def equals(o: Any) = o match {
-      case that: Scheme => this.value.equalsIgnoreCase(that.value)
-      case _ => false
-    }
+    override def equals(o: Any) =
+      o match {
+        case that: Scheme => this.value.equalsIgnoreCase(that.value)
+        case _ => false
+      }
 
     private[this] var hash = 0
     override def hashCode(): Int = {
-      if (hash == 0) {
+      if (hash == 0)
         hash = hashLower(value)
-      }
       hash
     }
 
@@ -239,12 +243,14 @@ object Uri {
     def unsafeFromString(s: String): Scheme =
       fromString(s).fold(throw _, identity)
 
+    @silent("deprecated")
     private[http4s] trait Parser { self: PbParser =>
-      def scheme = rule {
-        "https" ~ !Alpha ~ push(https) |
-          "http" ~ !Alpha ~ push(http) |
-          capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new Scheme(_))
-      }
+      def scheme =
+        rule {
+          "https" ~ !Alpha ~ push(https) |
+            "http" ~ !Alpha ~ push(http) |
+            capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new Scheme(_))
+        }
     }
 
     implicit val http4sOrderForScheme: Order[Scheme] =
@@ -261,7 +267,6 @@ object Uri {
       }
   }
 
-  type Path = String
   type Fragment = String
 
   final case class Authority(
@@ -269,13 +274,165 @@ object Uri {
       host: Host = RegName("localhost"),
       port: Option[Int] = None)
       extends Renderable {
-    override def render(writer: Writer): writer.type = this match {
-      case Authority(Some(u), h, None) => writer << u << '@' << h
-      case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
-      case Authority(None, h, Some(p)) => writer << h << ':' << p
-      case Authority(_, h, _) => writer << h
-      case _ => writer
+    override def render(writer: Writer): writer.type =
+      this match {
+        case Authority(Some(u), h, None) => writer << u << '@' << h
+        case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
+        case Authority(None, h, Some(p)) => writer << h << ':' << p
+        case Authority(_, h, _) => writer << h
+        case _ => writer
+      }
+  }
+
+  final class Path private (
+      val segments: Vector[Path.Segment],
+      val absolute: Boolean,
+      val endsWithSlash: Boolean)
+      extends Renderable {
+
+    def isEmpty: Boolean = segments.isEmpty
+    def nonEmpty: Boolean = segments.nonEmpty
+
+    override def equals(obj: Any): Boolean =
+      obj match {
+        case p: Path => doEquals(p)
+        case _ => false
+      }
+
+    private def doEquals(path: Path): Boolean =
+      this.segments == path.segments && path.absolute == this.absolute && path.endsWithSlash == this.endsWithSlash
+
+    override def hashCode(): Int = {
+      var hash = segments.hashCode()
+      hash += 31 * java.lang.Boolean.hashCode(absolute)
+      hash += 31 * java.lang.Boolean.hashCode(endsWithSlash)
+      hash
     }
+
+    def render(writer: Writer): writer.type = {
+      val start = if (absolute) "/" else ""
+      writer << start << segments.iterator.mkString("/")
+      if (endsWithSlash) writer << "/" else writer
+    }
+
+    override val renderString: String = super.renderString
+    override def toString: String = renderString
+
+    def /(segment: Path.Segment): Path = addSegment(segment)
+    def addSegment(segment: Path.Segment): Path =
+      addSegments(List(segment))
+    def addSegments(value: Seq[Path.Segment]): Path =
+      Path(this.segments ++ value, absolute = absolute || this.segments.isEmpty)
+
+    def normalize: Path = Path(segments.filterNot(_.isEmpty))
+
+    /* Merge paths per RFC 3986 5.2.3 */
+    def merge(path: Path): Path = {
+      val merge = if (isEmpty) segments else segments.init
+      Path(merge ++ path.segments, absolute = absolute, endsWithSlash = path.endsWithSlash)
+    }
+
+    def concat(path: Path): Path =
+      Path(segments ++ path.segments, absolute = absolute, endsWithSlash = path.endsWithSlash)
+
+    def startsWith(path: Path): Boolean = segments.startsWith(path.segments)
+
+    def startsWithString(path: String): Boolean = startsWith(Path.fromString(path))
+
+    @deprecated("Misnamed, use findSplit(prefix) instead", since = "1.0.0-M5")
+    def indexOf(prefix: Path): Option[Int] = findSplit(prefix)
+
+    @deprecated("Misnamed, use findSplitOfString(prefix) instead", since = "1.0.0-M5")
+    def indexOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
+
+    def findSplit(prefix: Path): Option[Int] =
+      if (prefix.isEmpty) None
+      else if (startsWith(prefix)) Some(prefix.segments.size)
+      else None
+    def findSplitOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
+
+    def splitAt(idx: Int): (Path, Path) =
+      if (idx < 0) (if (absolute) Path.Root else Path.empty, this)
+      else {
+        val (start, end) = segments.splitAt(idx)
+        Path(start, absolute = absolute) -> Path(end, true, endsWithSlash = endsWithSlash)
+      }
+    private def copy(
+        segments: Vector[Path.Segment] = segments,
+        absolute: Boolean = absolute,
+        endsWithSlash: Boolean = endsWithSlash) =
+      new Path(segments, absolute, endsWithSlash)
+
+    def dropEndsWithSlash = copy(endsWithSlash = false)
+    def addEndsWithSlash = copy(endsWithSlash = true)
+
+    def toAbsolute = copy(absolute = true)
+    def toRelative = copy(absolute = false)
+  }
+
+  object Path {
+    val empty = Path(Vector.empty)
+    val Root = Path(Vector.empty, absolute = true)
+
+    final class Segment private (val encoded: String) {
+      def isEmpty = encoded.isEmpty
+
+      override def equals(obj: Any): Boolean =
+        obj match {
+          case s: Segment => s.encoded == encoded
+        }
+
+      override def hashCode(): Int = encoded.hashCode
+
+      def decoded(
+          charset: JCharset = StandardCharsets.UTF_8,
+          plusIsSpace: Boolean = false,
+          toSkip: Char => Boolean = Function.const(false)): String =
+        Uri.decode(encoded, charset, plusIsSpace, toSkip)
+
+      override val toString: String = encoded
+    }
+
+    object Segment extends (String => Segment) {
+      def apply(value: String): Segment = new Segment(pathEncode(value))
+      def encoded(value: String): Segment = new Segment(value)
+    }
+
+    /** This constructor allows you to construct the path directly.
+      * Each path segment needs to be encoded for it to be used here.
+      *
+      * @param segments the segments that this path consists of. MUST be Urlencoded.
+      * @param absolute if the path is absolute. I.E starts with a "/"
+      * @param endsWithSlash if the path is a "directory", ends with a "/"
+      * @return a Uri.Path that can be used in Uri, or by itself.
+      */
+    def apply(
+        segments: Vector[Segment],
+        absolute: Boolean = false,
+        endsWithSlash: Boolean = false): Path =
+      new Path(segments, absolute, endsWithSlash)
+
+    def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
+      Some((path.segments, path.absolute, path.endsWithSlash))
+
+    def fromString(fromPath: String): Path =
+      fromPath match {
+        case "" => empty
+        case "/" => Root
+        case pth =>
+          val absolute = pth.startsWith("/")
+          val relative = if (absolute) pth.substring(1) else pth
+          Path(
+            segments = relative
+              .split("/")
+              .foldLeft(Vector.empty[Segment])((path, segment) => path :+ Segment.encoded(segment)),
+            absolute = absolute,
+            endsWithSlash = relative.endsWith("/")
+          )
+      }
+
+    implicit val eq: Eq[Path] = Eq.fromUniversalEquals[Path]
+    implicit val semigroup: Semigroup[Path] = (a: Path, b: Path) => a.concat(b)
   }
 
   /** The userinfo subcomponent may consist of a user name and,
@@ -315,14 +472,13 @@ object Uri {
       }.parse
 
     private[http4s] trait Parser { self: Rfc3986Parser =>
-      def userInfo: Rule1[UserInfo] = rule {
-        capture(zeroOrMore(Unreserved | PctEncoded | SubDelims)) ~
-          (":" ~ capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":"))).? ~>
-          (
-              (
-                  username: String,
-                  password: Option[String]) => UserInfo(decode(username), password.map(decode)))
-      }
+      def userInfo: Rule1[UserInfo] =
+        rule {
+          capture(zeroOrMore(Unreserved | PctEncoded | SubDelims)) ~
+            (":" ~ capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":"))).? ~>
+            ((username: String, password: Option[String]) =>
+              UserInfo(decode(username), password.map(decode)))
+        }
     }
 
     implicit val http4sInstancesForUserInfo
@@ -359,12 +515,13 @@ object Uri {
   sealed trait Host extends Renderable {
     def value: String
 
-    override def render(writer: Writer): writer.type = this match {
-      case RegName(n) => writer << n
-      case a: Ipv4Address => writer << a.value
-      case a: Ipv6Address => writer << '[' << a << ']'
-      case _ => writer
-    }
+    override def render(writer: Writer): writer.type =
+      this match {
+        case RegName(n) => writer << n
+        case a: Ipv4Address => writer << a.value
+        case a: Ipv6Address => writer << '[' << a << ']'
+        case _ => writer
+      }
   }
 
   @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
@@ -373,8 +530,8 @@ object Uri {
   @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
   object IPv4 {
     @deprecated("Use Ipv4Address.fromString(ciString.value)", "0.21.0-M2")
-    def apply(ciString: CaseInsensitiveString): ParseResult[Ipv4Address] =
-      Ipv4Address.fromString(ciString.value)
+    def apply(ciString: CIString): ParseResult[Ipv4Address] =
+      Ipv4Address.fromString(ciString.toString)
   }
 
   final case class Ipv4Address(a: Byte, b: Byte, c: Byte, d: Byte)
@@ -436,14 +593,15 @@ object Uri {
       }
 
     private[http4s] trait Parser { self: PbParser with IpParser =>
-      def ipv4Address: Rule1[Ipv4Address] = rule {
-        // format: off
+      def ipv4Address: Rule1[Ipv4Address] =
+        rule {
+          // format: off
         decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~>
         { (a: Byte, b: Byte, c: Byte, d: Byte) => new Ipv4Address(a, b, c, d) }
         // format:on
       }
 
-      private def decOctet = rule { capture(DecOctet) ~> (_.toInt.toByte) }
+      private def decOctet = rule {capture(DecOctet) ~> (_.toInt.toByte)}
     }
 
     implicit val http4sInstancesForIpv4Address
@@ -468,8 +626,8 @@ object Uri {
   @deprecated("Renamed to Ipv6Address, modeled as case class of bytes", "0.21.0-M2")
   object IPv6 {
     @deprecated("Use Ipv6Address.fromString(ciString.value)", "0.21.0-M2")
-    def apply(ciString: CaseInsensitiveString): ParseResult[Ipv6Address] =
-      Ipv6Address.fromString(ciString.value)
+    def apply(ciString: CIString): ParseResult[Ipv6Address] =
+      Ipv6Address.fromString(ciString.toString)
   }
 
   final case class Ipv6Address(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
@@ -620,7 +778,7 @@ object Uri {
             Ipv6Address(a, b, c, d, e, f, g, h)
         }
 
-      private def decOctet = rule { capture(DecOctet) ~> (_.toInt.toByte) }
+      private def decOctet = rule {capture(DecOctet) ~> (_.toInt.toByte)}
     }
 
     implicit val http4sInstancesForIpv6Address
@@ -639,29 +797,24 @@ object Uri {
       }
   }
 
-  final case class RegName(host: CaseInsensitiveString) extends Host {
+  final case class RegName(host: CIString) extends Host {
     def value: String = host.toString
   }
 
-  object RegName { def apply(name: String): RegName = new RegName(name.ci) }
+  object RegName { def apply(name: String): RegName = new RegName(CIString(name)) }
 
   /**
     * Resolve a relative Uri reference, per RFC 3986 sec 5.2
     */
   def resolve(base: Uri, reference: Uri): Uri = {
-
-    /* Merge paths per RFC 3986 5.2.3 */
-    def merge(base: Path, reference: Path): Path =
-      base.substring(0, base.lastIndexOf('/') + 1) + reference
-
     val target = (base, reference) match {
       case (_, Uri(Some(_), _, _, _, _)) => reference
       case (Uri(s, _, _, _, _), Uri(_, a @ Some(_), p, q, f)) => Uri(s, a, p, q, f)
-      case (Uri(s, a, p, q, _), Uri(_, _, "", Query.empty, f)) => Uri(s, a, p, q, f)
-      case (Uri(s, a, p, _, _), Uri(_, _, "", q, f)) => Uri(s, a, p, q, f)
+      case (Uri(s, a, p, q, _), Uri(_, _, pa, Query.empty, f)) if pa.isEmpty => Uri(s, a, p, q, f)
+      case (Uri(s, a, p, _, _), Uri(_, _, pa, q, f)) if pa.isEmpty => Uri(s, a, p, q, f)
       case (Uri(s, a, bp, _, _), Uri(_, _, p, q, f)) =>
-        if (p.headOption.fold(false)(_ == '/')) Uri(s, a, p, q, f)
-        else Uri(s, a, merge(bp, p), q, f)
+        if (p.absolute) Uri(s, a, p, q, f)
+        else Uri(s, a, bp.merge(p), q, f)
     }
 
     target.withPath(removeDotSegments(target.path))
@@ -672,13 +825,13 @@ object Uri {
     * Adapted from"
     * https://github.com/Norconex/commons-lang/blob/c83fdeac7a60ac99c8602e0b47056ad77b08f570/norconex-commons-lang/src/main/java/com/norconex/commons/lang/url/URLNormalizer.java#L429
     */
-  def removeDotSegments(path: String): String = {
+  def removeDotSegments(path: Uri.Path): Uri.Path = {
     // (Bulleted comments are from RFC3986, section-5.2.4)
 
     // 1.  The input buffer is initialized with the now-appended path
     //     components and the output buffer is initialized to the empty
     //     string.
-    val in = new StringBuilder(path)
+    val in = new StringBuilder(path.renderString)
     val out = new StringBuilder
 
     // 2.  While the input buffer is not empty, loop as follows:
@@ -736,7 +889,7 @@ object Uri {
 
     // 3.  Finally, the output buffer is returned as the result of
     //     remove_dot_segments.
-    out.toString
+    Uri.Path.fromString(out.toString)
   }
 
   // Helper functions for removeDotSegments
@@ -756,21 +909,15 @@ object Uri {
       case n => b.setLength(n)
     }
 
-  /**
-    * Taken from https://github.com/scalatra/rl/blob/v0.4.10/core/src/main/scala/rl/UrlCodingUtils.scala
-    * Copyright (c) 2011 Mojolly Ltd.
-    */
   private[http4s] val Unreserved =
     CharPredicate.AlphaNum ++ "-_.~"
 
   private val toSkip =
     Unreserved ++ "!$&'()*+,;=:/?@"
 
-  // scalastyle:off magic.number
   private val HexUpperCaseChars = (0 until 16).map { i =>
     Character.toUpperCase(Character.forDigit(i, 16))
   }
-  // scalastyle:on magic.number
 
   /**
     * Percent-encodes a string.  Depending on the parameters, this method is
@@ -839,10 +986,8 @@ object Uri {
         if (in.remaining() >= 2) {
           val xc = in.get()
           val yc = in.get()
-          // scalastyle:off magic.number
           val x = Character.digit(xc, 0x10)
           val y = Character.digit(yc, 0x10)
-          // scalastyle:on magic.number
           if (x != -1 && y != -1) {
             val oo = (x << 4) + y
             if (!toSkip(oo.toChar)) {

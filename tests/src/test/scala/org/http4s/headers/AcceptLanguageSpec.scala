@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -7,7 +13,7 @@ class AcceptLanguageSpec extends HeaderLaws {
 
   "is satisfied by a language tag if the q value is > 0" in {
     prop { (h: `Accept-Language`, cc: LanguageTag) =>
-      h.qValue(cc) > QValue.Zero ==> { h.satisfiedBy(cc) }
+      h.qValue(cc) > QValue.Zero ==> h.satisfiedBy(cc)
     }
   }
 

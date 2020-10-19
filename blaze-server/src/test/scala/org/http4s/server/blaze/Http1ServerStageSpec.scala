@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
@@ -17,16 +23,18 @@ import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.specs2.specification.AfterAll
 import org.specs2.specification.core.Fragment
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import _root_.io.chrisdavenport.vault._
+import org.http4s.testing.ErrorReporting._
 
 class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   sequential
 
   val tickWheel = new TickWheelExecutor()
 
-  def afterAll = tickWheel.shutdown()
+  def afterAll() = tickWheel.shutdown()
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
@@ -58,7 +66,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       maxReqLine,
       maxHeaders,
       10 * 1024,
-      DefaultServiceErrorHandler,
+      silentErrorHandler,
       30.seconds,
       30.seconds,
       tickWheel
@@ -73,8 +81,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     val req = "GET /foo HTTP/1.1\r\nheader: value\r\n\r\n"
 
     val routes = HttpRoutes
-      .of[IO] {
-        case _ => Ok("foo!")
+      .of[IO] { case _ =>
+        Ok("foo!")
       }
       .orNotFound
 
@@ -100,7 +108,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
           s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
             val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
             parseAndDropDate(result) must_== ((status, headers, resp))
-          } else
+          }
+        else
           s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
             val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
             parseAndDropDate(result) must_== ((status, headers, resp))
@@ -123,12 +132,11 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     def runError(path: String) =
       runRequest(List(path), exceptionService).result
         .map(parseAndDropDate)
-        .map {
-          case (s, h, r) =>
-            val close = h.exists { h =>
-              h.toRaw.name == "connection".ci && h.toRaw.value == "close"
-            }
-            (s, close, r)
+        .map { case (s, h, r) =>
+          val close = h.exists { h =>
+            h.toRaw.name == CIString("connection") && h.toRaw.value == "close"
+          }
+          (s, close, r)
         }
 
     "Deal with synchronous errors" in {
@@ -170,11 +178,10 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   "Http1ServerStage: routes" should {
     "Do not send `Transfer-Encoding: identity` response" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case _ =>
-            val headers = Headers.of(H.`Transfer-Encoding`(TransferCoding.identity))
-            IO.pure(Response[IO](headers = headers)
-              .withEntity("hello world"))
+        .of[IO] { case _ =>
+          val headers = Headers.of(H.`Transfer-Encoding`(TransferCoding.identity))
+          IO.pure(Response[IO](headers = headers)
+            .withEntity("hello world"))
         }
         .orNotFound
 
@@ -194,12 +201,11 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     "Do not send an entity or entity-headers for a status that doesn't permit it" in {
       val routes: HttpApp[IO] = HttpRoutes
-        .of[IO] {
-          case _ =>
-            IO.pure(
-              Response[IO](status = Status.NotModified)
-                .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
-                .withEntity("Foo!"))
+        .of[IO] { case _ =>
+          IO.pure(
+            Response[IO](status = Status.NotModified)
+              .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+              .withEntity("Foo!"))
         }
         .orNotFound
 
@@ -216,8 +222,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     "Add a date header" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case req => IO.pure(Response(body = req.body))
+        .of[IO] { case req =>
+          IO.pure(Response(body = req.body))
         }
         .orNotFound
 
@@ -234,8 +240,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     "Honor an explicitly added date header" in {
       val dateHeader = Date(HttpDate.Epoch)
       val routes = HttpRoutes
-        .of[IO] {
-          case req => IO.pure(Response(body = req.body).withHeaders(dateHeader))
+        .of[IO] { case req =>
+          IO.pure(Response(body = req.body).withHeaders(dateHeader))
         }
         .orNotFound
 
@@ -252,8 +258,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     "Handle routes that echos full request body for non-chunked" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case req => IO.pure(Response(body = req.body))
+        .of[IO] { case req =>
+          IO.pure(Response(body = req.body))
         }
         .orNotFound
 
@@ -269,11 +275,10 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     "Handle routes that consumes the full request body for non-chunked" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case req =>
-            req.as[String].map { s =>
-              Response().withEntity("Result: " + s)
-            }
+        .of[IO] { case req =>
+          req.as[String].map { s =>
+            Response().withEntity("Result: " + s)
+          }
         }
         .orNotFound
 
@@ -295,8 +300,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     "Maintain the connection if the body is ignored but was already read to completion by the Http1Stage" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case _ => IO.pure(Response().withEntity("foo"))
+        .of[IO] { case _ =>
+          IO.pure(Response().withEntity("foo"))
         }
         .orNotFound
 
@@ -316,8 +321,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     "Drop the connection if the body is ignored and was not read to completion by the Http1Stage" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case _ => IO.pure(Response().withEntity("foo"))
+        .of[IO] { case _ =>
+          IO.pure(Response().withEntity("foo"))
         }
         .orNotFound
 
@@ -339,8 +344,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     "Handle routes that runs the request body for non-chunked" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case req => req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
+        .of[IO] { case req =>
+          req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
         }
         .orNotFound
 
@@ -362,9 +367,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     // Think of this as drunk HTTP pipelining
     "Not die when two requests come in back to back" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case req =>
-            IO.pure(Response(body = req.body))
+        .of[IO] { case req =>
+          IO.pure(Response(body = req.body))
         }
         .orNotFound
 
@@ -389,8 +393,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
     "Handle using the request body as the response body" in {
       val routes = HttpRoutes
-        .of[IO] {
-          case req => IO.pure(Response(body = req.body))
+        .of[IO] { case req =>
+          IO.pure(Response(body = req.body))
         }
         .orNotFound
 
@@ -423,14 +427,14 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
       val routes = HttpRoutes
         .of[IO] {
-          case req if req.pathInfo == "/foo" =>
+          case req if req.pathInfo == path"/foo" =>
             for {
               _ <- req.body.compile.drain
               hs <- req.trailerHeaders
               resp <- Ok(hs.toList.mkString)
             } yield resp
 
-          case req if req.pathInfo == "/bar" =>
+          case req if req.pathInfo == path"/bar" =>
             for {
               // Don't run the body
               hs <- req.trailerHeaders

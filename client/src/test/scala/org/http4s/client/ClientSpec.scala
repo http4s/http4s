@@ -1,6 +1,14 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 
+import scala.concurrent.duration._
+import cats.effect.concurrent.Deferred
 import cats.effect._
 import cats.implicits._
 import java.io.IOException
@@ -10,8 +18,8 @@ import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
 
 class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
-  val app = HttpApp[IO] {
-    case r => Response[IO](Ok).withEntity(r.body).pure[IO]
+  val app = HttpApp[IO] { case r =>
+    Response[IO](Ok).withEntity(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpApp(app)
 
@@ -25,12 +33,12 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
         .withEntity("foo")
         .pure[IO]
         .flatMap { req =>
-          // This is bad.  Don't do this.
-          client.fetch(req)(IO.pure).flatMap(_.as[String])
+          // This is bad. Don't do this.
+          client.run(req).use(IO.pure).flatMap(_.as[String])
         }
         .attempt
-        .unsafeRunSync() must beLeft.like {
-        case e: IOException => e.getMessage == "response was disposed"
+        .unsafeRunSync() must beLeft.like { case e: IOException =>
+        e.getMessage == "response was disposed"
       }
     }
 
@@ -45,8 +53,8 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
     }
 
     "include a Host header with a port when the port is non-standard" in {
-      val hostClient = Client.fromHttpApp(HttpApp[IO] {
-        case r => Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+      val hostClient = Client.fromHttpApp(HttpApp[IO] { case r =>
+        Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
       })
 
       hostClient
@@ -55,8 +63,8 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
     }
 
     "cooperate with the VirtualHost server middleware" in {
-      val routes = HttpRoutes.of[IO] {
-        case r => Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
+      val routes = HttpRoutes.of[IO] { case r =>
+        Ok(r.headers.get(Host).map(_.value).getOrElse("None"))
       }
 
       val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
@@ -64,6 +72,31 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
       hostClient
         .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
         .unsafeRunSync() must_== "http4s.org"
+    }
+
+    "allow request to be canceled" in {
+
+      Deferred[IO, Unit]
+        .flatMap { cancelSignal =>
+          val routes = HttpRoutes.of[IO] { case _ =>
+            cancelSignal.complete(()) >> IO.never
+          }
+
+          val cancelClient = Client.fromHttpApp(routes.orNotFound)
+
+          Deferred[IO, ExitCase[Throwable]]
+            .flatTap { exitCase =>
+              cancelClient
+                .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+                .guaranteeCase(exitCase.complete)
+                .start
+                .flatTap(fiber =>
+                  cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
+            }
+            .flatMap(_.get)
+        }
+        .unsafeRunTimed(2.seconds) must_== Some(ExitCase.Canceled)
+
     }
   }
 }

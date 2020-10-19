@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.ember.core
 
 import org.specs2.mutable.Specification
@@ -15,7 +21,7 @@ class EncoderSpec extends Specification {
         .reqToBytes(req)
         .through(fs2.text.utf8Decode[F])
         .compile
-        .foldMonoid
+        .string
         .map(stripLines)
 
     // Only for Use with Text Requests
@@ -24,7 +30,7 @@ class EncoderSpec extends Specification {
         .respToBytes(resp)
         .through(fs2.text.utf8Decode[F])
         .compile
-        .foldMonoid
+        .string
         .map(stripLines)
   }
 
@@ -34,10 +40,11 @@ class EncoderSpec extends Specification {
       val expected =
         """GET http://www.google.com HTTP/1.1
       |Host: www.google.com
+      |Content-Length: 0
       |
       |""".stripMargin
 
-      Helpers.encodeRequestRig(req).unsafeRunSync must_=== expected
+      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
     }
 
     "encode a request with a body correctly" in {
@@ -51,7 +58,23 @@ class EncoderSpec extends Specification {
       |
       |Hello World!""".stripMargin
 
-      Helpers.encodeRequestRig(req).unsafeRunSync must_=== expected
+      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
+    }
+
+    "encode headers correctly" in {
+      val req = Request[IO](
+        Method.GET,
+        Uri.unsafeFromString("http://www.google.com"),
+        headers = Headers.of(Header("foo", "bar"))
+      )
+      val expected =
+        """GET http://www.google.com HTTP/1.1
+        |Host: www.google.com
+        |foo: bar
+        |Content-Length: 0
+        |
+        |""".stripMargin
+      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
     }
   }
 
@@ -61,10 +84,11 @@ class EncoderSpec extends Specification {
 
       val expected =
         """HTTP/1.1 200 OK
+      |Content-Length: 0
       |
       |""".stripMargin
 
-      Helpers.encodeResponseRig(resp).unsafeRunSync must_=== expected
+      Helpers.encodeResponseRig(resp).unsafeRunSync() must_=== expected
     }
 
     "encode a response with a body correctly" in {
@@ -78,7 +102,7 @@ class EncoderSpec extends Specification {
       |
       |Not Found""".stripMargin
 
-      Helpers.encodeResponseRig(resp).unsafeRunSync must_=== expected
+      Helpers.encodeResponseRig(resp).unsafeRunSync() must_=== expected
     }
   }
 }

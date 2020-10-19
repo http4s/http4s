@@ -1,36 +1,27 @@
 /*
- * Derived from https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/CacheDirective.scala
+ * Copyright 2013-2020 http4s.org
  *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Based on https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/CacheDirective.scala
  * Copyright (C) 2011-2012 spray.io
- * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team
  */
+
 package org.http4s
 
-import org.http4s.syntax.string._
-import org.http4s.util.{CaseInsensitiveString, Renderable, Writer}
+import org.http4s.util.{Renderable, Writer}
+import org.typelevel.ci.CIString
 import scala.concurrent.duration.Duration
 
 sealed trait CacheDirective extends Product with Renderable {
-  val name = productPrefix.replace("$minus", "-").ci
+  val name = CIString(productPrefix.replace("$minus", "-"))
   def value: String = name.toString
   override def toString: String = value
   def render(writer: Writer): writer.type = writer.append(value)
 }
 
-/**
-  * A registry of cache-directives, as listed in
+/** A registry of cache-directives, as listed in
   * http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
   */
 object CacheDirective {
@@ -48,8 +39,7 @@ object CacheDirective {
 
   case object `must-revalidate` extends CacheDirective
 
-  final case class `no-cache`(fieldNames: List[CaseInsensitiveString] = Nil)
-      extends CacheDirective {
+  final case class `no-cache`(fieldNames: List[CIString] = Nil) extends CacheDirective {
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
@@ -60,7 +50,7 @@ object CacheDirective {
 
   case object `only-if-cached` extends CacheDirective
 
-  final case class `private`(fieldNames: List[CaseInsensitiveString] = Nil) extends CacheDirective {
+  final case class `private`(fieldNames: List[CIString] = Nil) extends CacheDirective {
     override def value: String =
       name.toString + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
@@ -81,16 +71,16 @@ object CacheDirective {
     override def value: String = name.toString + "=" + deltaSeconds.toSeconds
   }
 
-  def apply(name: CaseInsensitiveString, argument: Option[String] = None): CacheDirective =
+  def apply(name: CIString, argument: Option[String] = None): CacheDirective =
     new CustomCacheDirective(name, argument)
 
   def apply(name: String, argument: Option[String]): CacheDirective =
-    apply(name.ci, argument)
+    apply(CIString(name), argument)
 
   def apply(name: String): CacheDirective = apply(name, None)
 
   private final case class CustomCacheDirective(
-      override val name: CaseInsensitiveString,
+      override val name: CIString,
       argument: Option[String] = None)
       extends CacheDirective {
     override def value: String = name.toString + argument.fold("")("=\"" + _ + '"')

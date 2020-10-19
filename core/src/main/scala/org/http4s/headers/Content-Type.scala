@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -13,13 +19,23 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
     HttpHeaderParser.CONTENT_TYPE(s)
 }
 
+/** {{{
+  *   The "Content-Type" header field indicates the media type of the
+  *   associated representation: either the representation enclosed in the
+  *   message payload or the selected representation, as determined by the
+  *   message semantics.
+  * }}}
+  *
+  * [[https://tools.ietf.org/html/rfc7231#section-3.1.1.5 RFC-7231]]
+  */
 final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset])
     extends Header.Parsed {
   override def key: `Content-Type`.type = `Content-Type`
-  override def renderValue(writer: Writer): writer.type = charset match {
-    case Some(cs) => writer << mediaType << "; charset=" << cs
-    case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, mediaType)
-  }
+  override def renderValue(writer: Writer): writer.type =
+    charset match {
+      case Some(cs) => writer << mediaType << "; charset=" << cs
+      case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, mediaType)
+    }
 
   def withMediaType(mediaType: MediaType): `Content-Type` =
     if (mediaType != this.mediaType) copy(mediaType = mediaType) else this

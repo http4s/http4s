@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s.ember
 
 import cats._
@@ -27,7 +33,7 @@ object EmberClientSimpleExample extends IOApp {
 
   val logger = Slf4jLogger.getLogger[IO]
 
-  def run(args: List[String]): IO[ExitCode] = {
+  def run(args: List[String]): IO[ExitCode] =
     EmberClientBuilder
       .default[IO]
       .build
@@ -47,8 +53,7 @@ object EmberClientSimpleExample extends IOApp {
             "Large Response - HttpBin PNG",
             getRequestBufferedBody(client, httpBinPng)) >>
           IO(println("Done")))
-
-  }.as(ExitCode.Success)
+      .as(ExitCode.Success)
 
   def getRequestBufferedBody[F[_]: Sync](client: Client[F], req: Request[F]): F[Response[F]] =
     client
@@ -59,17 +64,15 @@ object EmberClientSimpleExample extends IOApp {
           .map(bv => resp.copy(body = Stream.chunk(Chunk.ByteVectorChunk(bv)))))
 
   def logTimed[F[_]: Clock: Monad, A](logger: Logger[F], name: String, fa: F[A]): F[A] =
-    timedMS(fa).flatMap {
-      case (time, action) =>
-        logger.info(s"Action $name took $time").as(action)
+    timedMS(fa).flatMap { case (time, action) =>
+      logger.info(s"Action $name took $time").as(action)
     }
 
   def timedMS[F[_]: Clock: Applicative, A](fa: F[A]): F[(FiniteDuration, A)] = {
     val nowMS = Clock[F].monotonic(TimeUnit.MILLISECONDS)
-    (nowMS, fa, nowMS).mapN {
-      case (before, result, after) =>
-        val time = (after - before).millis
-        (time, result)
+    (nowMS, fa, nowMS).mapN { case (before, result, after) =>
+      val time = (after - before).millis
+      (time, result)
     }
   }
 

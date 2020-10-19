@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -13,13 +19,11 @@ import java.util.Date
 import org.http4s.headers._
 import scala.concurrent.duration._
 
-/**
-  * Provides Digest Authentication from RFC 2617.
+/** Provides Digest Authentication from RFC 2617.
   */
 object DigestAuth {
 
-  /**
-    * A function mapping username to a user object and password, or
+  /** A function mapping username to a user object and password, or
     * None if no user exists.  Requires that the server can recover
     * the password in clear text, which is _strongly_ discouraged.
     */
@@ -35,9 +39,7 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  /**
-    *
-    * @param realm The realm used for authentication purposes.
+  /** @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.
     * @param nonceCleanupInterval Interval (in milliseconds) at which stale
@@ -89,8 +91,8 @@ object DigestAuth {
         F.pure(NoAuthorizationHeader)
     }
 
-  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeper, staleNonce: Boolean)(
-      implicit F: Sync[F]): F[Map[String, String]] =
+  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeper, staleNonce: Boolean)(implicit
+      F: Sync[F]): F[Map[String, String]] =
     F.delay {
       val nonce = nonceKeeper.newNonce()
       val m = Map("qop" -> "auth", "nonce" -> nonce)

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package headers
 
@@ -6,7 +12,7 @@ class AcceptCharsetSpec extends HeaderLaws {
 
   "is satisfied by a charset if the q value is > 0" in {
     prop { (h: `Accept-Charset`, cs: Charset) =>
-      h.qValue(cs) > QValue.Zero ==> { h.satisfiedBy(cs) }
+      h.qValue(cs) > QValue.Zero ==> h.satisfiedBy(cs)
     }
   }
 

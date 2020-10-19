@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 
@@ -23,7 +29,8 @@ import scala.util.{Failure, Success}
 private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
   /** ExecutionContext to be used for all Future continuations
-    * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
+    * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows
+    */
   protected implicit def executionContext: ExecutionContext
 
   protected implicit def F: Effect[F]
@@ -68,7 +75,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   }
 
   /** Get the proper body encoder based on the message headers,
-    * adding the appropriate Connection and Transfer-Encoding headers along the way */
+    * adding the appropriate Connection and Transfer-Encoding headers along the way
+    */
   final protected def getEncoder(
       connectionHeader: Option[Connection],
       bodyEncoding: Option[`Transfer-Encoding`],
@@ -76,56 +84,57 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       trailer: F[Headers],
       rr: StringWriter,
       minor: Int,
-      closeOnFinish: Boolean): Http1Writer[F] = lengthHeader match {
-    case Some(h) if bodyEncoding.forall(!_.hasChunked) || minor == 0 =>
-      // HTTP 1.1: we have a length and no chunked encoding
-      // HTTP 1.0: we have a length
+      closeOnFinish: Boolean): Http1Writer[F] =
+    lengthHeader match {
+      case Some(h) if bodyEncoding.forall(!_.hasChunked) || minor == 0 =>
+        // HTTP 1.1: we have a length and no chunked encoding
+        // HTTP 1.0: we have a length
 
-      bodyEncoding.foreach(enc =>
-        logger.warn(
-          s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."))
+        bodyEncoding.foreach(enc =>
+          logger.warn(
+            s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."))
 
-      logger.trace("Using static encoder")
+        logger.trace("Using static encoder")
 
-      rr << h << "\r\n" // write Content-Length
+        rr << h << "\r\n" // write Content-Length
 
-      // add KeepAlive to Http 1.0 responses if the header isn't already present
-      rr << (if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty)
-               "Connection: keep-alive\r\n\r\n"
-             else "\r\n")
+        // add KeepAlive to Http 1.0 responses if the header isn't already present
+        rr << (if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty)
+                 "Connection: keep-alive\r\n\r\n"
+               else "\r\n")
 
-      new IdentityWriter[F](h.length, this)
+        new IdentityWriter[F](h.length, this)
 
-    case _ => // No Length designated for body or Transfer-Encoding included for HTTP 1.1
-      if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
-        if (closeOnFinish) { // HTTP 1.0 uses a static encoder
-          logger.trace("Using static encoder")
-          rr << "\r\n"
-          new IdentityWriter[F](-1, this)
-        } else { // HTTP 1.0, but request was Keep-Alive.
-          logger.trace("Using static encoder without length")
-          new CachingStaticWriter[F](this) // will cache for a bit, then signal close if the body is long
-        }
-      } else
-        bodyEncoding match { // HTTP >= 1.1 request without length and/or with chunked encoder
-          case Some(enc) => // Signaling chunked means flush every chunk
-            if (!enc.hasChunked) {
-              logger.warn(
-                s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header.")
-            }
+      case _ => // No Length designated for body or Transfer-Encoding included for HTTP 1.1
+        if (minor == 0) // we are replying to a HTTP 1.0 request see if the length is reasonable
+          if (closeOnFinish) { // HTTP 1.0 uses a static encoder
+            logger.trace("Using static encoder")
+            rr << "\r\n"
+            new IdentityWriter[F](-1, this)
+          } else { // HTTP 1.0, but request was Keep-Alive.
+            logger.trace("Using static encoder without length")
+            new CachingStaticWriter[F](
+              this
+            ) // will cache for a bit, then signal close if the body is long
+          }
+        else
+          bodyEncoding match { // HTTP >= 1.1 request without length and/or with chunked encoder
+            case Some(enc) => // Signaling chunked means flush every chunk
+              if (!enc.hasChunked)
+                logger.warn(
+                  s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header.")
 
-            if (lengthHeader.isDefined) {
-              logger.warn(
-                s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length.")
-            }
+              if (lengthHeader.isDefined)
+                logger.warn(
+                  s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length.")
 
-            new FlushingChunkWriter(this, trailer)
+              new FlushingChunkWriter(this, trailer)
 
-          case None => // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
-            logger.trace("Using Caching Chunk Encoder")
-            new CachingChunkWriter(this, trailer, chunkBufferMaxSize)
-        }
-  }
+            case None => // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
+              logger.trace("Using Caching Chunk Encoder")
+              new CachingChunkWriter(this, trailer, chunkBufferMaxSize)
+          }
+    }
 
   /** Makes a [[EntityBody]] and a function used to drain the line if terminated early.
     *
@@ -138,10 +147,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       buffer: ByteBuffer,
       eofCondition: () => Either[Throwable, Option[Chunk[Byte]]])
       : (EntityBody[F], () => Future[ByteBuffer]) =
-    if (contentComplete()) {
+    if (contentComplete())
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
-    }
     // try parsing the existing buffer: many requests will come as a single chunk
     else if (buffer.hasRemaining) doParseContent(buffer) match {
       case Some(buff) if contentComplete() =>
@@ -269,7 +277,8 @@ object Http1Stage {
     * `Content-Length` headers, which are left for the body encoder. Adds
     * `Date` header if one is missing and this is a server response.
     *
-    * Note: this method is very niche but useful for both server and client. */
+    * Note: this method is very niche but useful for both server and client.
+    */
   def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
     headers.foreach { h =>
@@ -279,9 +288,8 @@ object Http1Stage {
       }
     }
 
-    if (isServer && !dateEncoded) {
+    if (isServer && !dateEncoded)
       rr << Date.name << ": " << currentDate << "\r\n"
-    }
     ()
   }
 }

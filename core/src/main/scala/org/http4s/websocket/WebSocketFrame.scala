@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.websocket
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -11,13 +17,14 @@ abstract class WebSocketFrame {
 
   final def length: Int = data.length.toInt
 
-  override def equals(obj: Any): Boolean = obj match {
-    case wf: WebSocketFrame =>
-      this.opcode == wf.opcode &&
-        this.last == wf.last &&
-        this.data == wf.data
-    case _ => false
-  }
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case wf: WebSocketFrame =>
+        this.opcode == wf.opcode &&
+          this.last == wf.last &&
+          this.data == wf.data
+      case _ => false
+    }
 
   override def hashCode: Int = {
     var hash = WebSocketFrame.hashSeed
@@ -85,9 +92,9 @@ object WebSocketFrame {
     def opcode = CLOSE
 
     def closeCode: Int =
-      if (data.length > 0) {
+      if (data.length > 0)
         (data(0) << 8 & 0xff00) | (data(1) & 0xff) // 16-bit unsigned
-      } else 1005 // No code present
+      else 1005 // No code present
 
     override def toString: String =
       if (data.length > 0) s"Close(Array(${data.length}))"
@@ -98,15 +105,14 @@ object WebSocketFrame {
   class InvalidCloseCodeException(val i: Int) extends InvalidCloseDataException
   class ReasonTooLongException(val s: String) extends InvalidCloseDataException
 
-  private def toUnsignedShort(x: Int) = Array[Byte](((x >> 8) & 0xFF).toByte, (x & 0xFF).toByte)
+  private def toUnsignedShort(x: Int) = Array[Byte](((x >> 8) & 0xff).toByte, (x & 0xff).toByte)
 
   private def reasonToBytes(reason: String) = {
     val asBytes = ByteVector.view(reason.getBytes(UTF_8))
-    if (asBytes.length > 123) {
+    if (asBytes.length > 123)
       Left(new ReasonTooLongException(reason))
-    } else {
+    else
       Right(asBytes)
-    }
   }
 
   private def closeCodeToBytes(code: Int): Either[InvalidCloseCodeException, ByteVector] =

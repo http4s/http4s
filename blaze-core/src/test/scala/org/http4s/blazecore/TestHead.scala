@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package blazecore
 
@@ -14,7 +20,7 @@ import scodec.bits.ByteVector
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   private var acc = ByteVector.empty
-  private val p = Promise[ByteBuffer]
+  private val p = Promise[ByteBuffer]()
 
   var closed = false
 
@@ -24,20 +30,22 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   val result = p.future
 
-  override def writeRequest(data: ByteBuffer): Future[Unit] = synchronized {
-    if (closed) Future.failed(EOF)
-    else {
-      acc ++= ByteVector.view(data)
-      util.FutureUnit
+  override def writeRequest(data: ByteBuffer): Future[Unit] =
+    synchronized {
+      if (closed) Future.failed(EOF)
+      else {
+        acc ++= ByteVector.view(data)
+        util.FutureUnit
+      }
     }
-  }
 
-  override def stageShutdown(): Unit = synchronized {
-    closed = true
-    super.stageShutdown()
-    p.trySuccess(ByteBuffer.wrap(getBytes()))
-    ()
-  }
+  override def stageShutdown(): Unit =
+    synchronized {
+      closed = true
+      super.stageShutdown()
+      p.trySuccess(ByteBuffer.wrap(getBytes()))
+      ()
+    }
 
   override def doClosePipeline(cause: Option[Throwable]): Unit = {
     closeCauses :+= cause
@@ -49,25 +57,29 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   private val bodyIt = body.iterator
 
-  override def readRequest(size: Int): Future[ByteBuffer] = synchronized {
-    if (!closed && bodyIt.hasNext) Future.successful(bodyIt.next())
-    else {
-      stageShutdown()
-      sendInboundCommand(Disconnected)
-      Future.failed(EOF)
+  override def readRequest(size: Int): Future[ByteBuffer] =
+    synchronized {
+      if (!closed && bodyIt.hasNext) Future.successful(bodyIt.next())
+      else {
+        stageShutdown()
+        sendInboundCommand(Disconnected)
+        Future.failed(EOF)
+      }
     }
-  }
 }
 
 final class QueueTestHead(queue: Queue[IO, Option[ByteBuffer]]) extends TestHead("QueueTestHead") {
-  private val closedP = Promise[Nothing]
+  private val closedP = Promise[Nothing]()
 
   override def readRequest(size: Int): Future[ByteBuffer] = {
-    val p = Promise[ByteBuffer]
-    p.completeWith(queue.dequeue1.flatMap {
-      case Some(bb) => IO.pure(bb)
-      case None => IO.raiseError(EOF)
-    }.unsafeToFuture)
+    val p = Promise[ByteBuffer]()
+    p.completeWith(
+      queue.dequeue1
+        .flatMap {
+          case Some(bb) => IO.pure(bb)
+          case None => IO.raiseError(EOF)
+        }
+        .unsafeToFuture())
     p.completeWith(closedP.future)
     p.future
   }
@@ -89,34 +101,40 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
     currentRequest = None
   }
 
-  private def clear(): Unit = synchronized {
-    while (bodyIt.hasNext) bodyIt.next()
-    resolvePending(Failure(EOF))
-  }
-
-  override def stageShutdown(): Unit = synchronized {
-    clear()
-    super.stageShutdown()
-  }
-
-  override def readRequest(size: Int): Future[ByteBuffer] = self.synchronized {
-    currentRequest match {
-      case Some(_) =>
-        Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
-      case None =>
-        val p = Promise[ByteBuffer]
-        currentRequest = Some(p)
-
-        scheduler.schedule(new Runnable {
-          override def run(): Unit = self.synchronized {
-            resolvePending {
-              if (!closed && bodyIt.hasNext) Success(bodyIt.next())
-              else Failure(EOF)
-            }
-          }
-        }, pause)
-
-        p.future
+  private def clear(): Unit =
+    synchronized {
+      while (bodyIt.hasNext) bodyIt.next()
+      resolvePending(Failure(EOF))
     }
-  }
+
+  override def stageShutdown(): Unit =
+    synchronized {
+      clear()
+      super.stageShutdown()
+    }
+
+  override def readRequest(size: Int): Future[ByteBuffer] =
+    self.synchronized {
+      currentRequest match {
+        case Some(_) =>
+          Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
+        case None =>
+          val p = Promise[ByteBuffer]()
+          currentRequest = Some(p)
+
+          scheduler.schedule(
+            new Runnable {
+              override def run(): Unit =
+                self.synchronized {
+                  resolvePending {
+                    if (!closed && bodyIt.hasNext) Success(bodyIt.next())
+                    else Failure(EOF)
+                  }
+                }
+            },
+            pause)
+
+          p.future
+      }
+    }
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.server.blaze
 
 import java.io.ByteArrayInputStream
@@ -7,13 +13,11 @@ import javax.net.ssl.SSLSession
 
 import scala.util.Try
 
-/**
-  * Based on SSLContextFactory from jetty.
+/** Based on SSLContextFactory from jetty.
   */
 private[blaze] object SSLContextFactory {
 
-  /**
-    * Return X509 certificates for the session.
+  /** Return X509 certificates for the session.
     *
     * @param sslSession Session from which certificate to be read
     * @return Empty array if no certificates can be read from {{{sslSession}}}
@@ -27,8 +31,7 @@ private[blaze] object SSLContextFactory {
       }
     }.toOption.getOrElse(Array.empty).toList
 
-  /**
-    * Given the name of a TLS/SSL cipher suite, return an int representing it effective stream
+  /** Given the name of a TLS/SSL cipher suite, return an int representing it effective stream
     * cipher key strength. i.e. How much entropy material is in the key material being fed into the
     * encryption routines.
     *

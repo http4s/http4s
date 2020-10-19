@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package middleware
@@ -6,11 +12,10 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.Method._
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 import _root_.io.chrisdavenport.vault._
 
-/**
-  * Client middleware to follow redirect responses.
+/** Client middleware to follow redirect responses.
   *
   * A 301 or 302 response is followed by:
   * - a GET if the request was GET or POST
@@ -39,8 +44,8 @@ import _root_.io.chrisdavenport.vault._
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
-      sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
-      client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
+      sensitiveHeaderFilter: CIString => Boolean = Headers.SensitiveHeaders)(client: Client[F])(
+      implicit F: Concurrent[F]): Client[F] = {
     def nextRequest(
         req: Request[F],
         uri: Uri,
@@ -60,13 +65,12 @@ object FollowRedirect {
           req
 
       def propagateCookies(req: Request[F]): Request[F] =
-        if (req.uri.authority == nextUri.authority) {
-          cookies.foldLeft(req) {
-            case (nextReq, cookie) => nextReq.addCookie(cookie.name, cookie.content)
+        if (req.uri.authority == nextUri.authority)
+          cookies.foldLeft(req) { case (nextReq, cookie) =>
+            nextReq.addCookie(cookie.name, cookie.content)
           }
-        } else {
+        else
           req
-        }
 
       def clearBodyFromGetHead(req: Request[F]): Request[F] =
         method match {
@@ -146,10 +150,9 @@ object FollowRedirect {
         None
     }
 
-  private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync
+  private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync()
 
-  /**
-    * Get the redirection URIs for a `response`.
+  /** Get the redirection URIs for a `response`.
     * Excludes the initial request URI
     */
   def getRedirectUris[F[_]](response: Response[F]): List[Uri] =

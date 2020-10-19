@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client.testroutes
 
@@ -26,7 +32,7 @@ object GetRoutes {
           .pure[IO],
         DelayedPath ->
           timer.sleep(1.second) *>
-            Response[IO](Ok).withEntity("delayed path").pure[IO],
+          Response[IO](Ok).withEntity("delayed path").pure[IO],
         NoContentPath -> Response[IO](NoContent).pure[IO],
         NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
         EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],

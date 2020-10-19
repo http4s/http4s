@@ -1,8 +1,14 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
 
-import cats.Applicative
+import cats.{Applicative, Monad}
 import cats.implicits._
 import cats.data.Kleisli
 import org.http4s.Status.MovedPermanently
@@ -11,8 +17,7 @@ import org.http4s.headers.{Host, Location, `Content-Type`, `X-Forwarded-Proto`}
 
 import org.log4s.getLogger
 
-/**
-  * [[Middleware]] to redirect http traffic to https.
+/** [[Middleware]] to redirect http traffic to https.
   * Inspects `X-Forwarded-Proto` header and if it is set to `http`,
   * redirects to `Host` with same URL with https schema; otherwise does nothing.
   * This middleware is useful when a service is deployed behind a load balancer
@@ -36,4 +41,10 @@ object HttpsRedirect {
           http(req)
       }
     }
+
+  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(httpRoutes)
+
+  def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
+    apply(httpApp)
 }

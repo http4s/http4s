@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -9,30 +15,33 @@ import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
-  def nukeService(launchTheNukes: => Unit) = AuthedRoutes.of[String, IO] {
-    case GET -> Root / "launch-the-nukes" as user =>
+  def nukeService(launchTheNukes: => Unit) =
+    AuthedRoutes.of[String, IO] { case GET -> Root / "launch-the-nukes" as user =>
       for {
         _ <- IO(launchTheNukes)
         r <- Gone(s"Oops, $user launched the nukes.")
       } yield r
-  }
+    }
 
   val realm = "Test Realm"
   val username = "Test User"
   val password = "Test Password"
 
-  def authStore(u: String) = IO.pure {
-    if (u === username) Some(u -> password)
-    else None
-  }
+  def authStore(u: String) =
+    IO.pure {
+      if (u === username) Some(u -> password)
+      else None
+    }
 
-  def validatePassword(creds: BasicCredentials) = IO.pure {
-    if (creds.username == username && creds.password == password) Some(creds.username)
-    else None
-  }
+  def validatePassword(creds: BasicCredentials) =
+    IO.pure {
+      if (creds.username == username && creds.password == password) Some(creds.username)
+      else None
+    }
 
   val service = AuthedRoutes.of[String, IO] {
     case GET -> Root as user => Ok(user)
@@ -43,12 +52,12 @@ class AuthenticationSpec extends Http4sSpec {
 
   "Failure to authenticate" should {
     "not run unauthorized routes" in {
-      val req = Request[IO](uri = Uri(path = "/launch-the-nukes"))
+      val req = Request[IO](uri = uri"/launch-the-nukes")
       var isNuked = false
       val authedValidateNukeService = basicAuthMiddleware(nukeService {
         isNuked = true
       })
-      val res = authedValidateNukeService.orNotFound(req).unsafeRunSync
+      val res = authedValidateNukeService.orNotFound(req).unsafeRunSync()
       isNuked must_=== false
       res.status must_=== Unauthorized
     }
@@ -58,41 +67,41 @@ class AuthenticationSpec extends Http4sSpec {
     val basicAuthedService = basicAuthMiddleware(service)
 
     "Respond to a request without authentication with 401" in {
-      val req = Request[IO](uri = Uri(path = "/"))
-      val res = basicAuthedService.orNotFound(req).unsafeRunSync
+      val req = Request[IO](uri = uri"/")
+      val res = basicAuthedService.orNotFound(req).unsafeRunSync()
 
       res.status must_=== Unauthorized
       res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+        Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString)
     }
 
     "Respond to a request with unknown username with 401" in {
       val req = Request[IO](
-        uri = Uri(path = "/"),
+        uri = uri"/",
         headers = Headers.of(Authorization(BasicCredentials("Wrong User", password))))
-      val res = basicAuthedService.orNotFound(req).unsafeRunSync
+      val res = basicAuthedService.orNotFound(req).unsafeRunSync()
 
       res.status must_=== Unauthorized
       res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+        Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString)
     }
 
     "Respond to a request with wrong password with 401" in {
       val req = Request[IO](
-        uri = Uri(path = "/"),
+        uri = uri"/",
         headers = Headers.of(Authorization(BasicCredentials(username, "Wrong Password"))))
-      val res = basicAuthedService.orNotFound(req).unsafeRunSync
+      val res = basicAuthedService.orNotFound(req).unsafeRunSync()
 
       res.status must_=== Unauthorized
       res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+        Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString)
     }
 
     "Respond to a request with correct credentials" in {
       val req = Request[IO](
-        uri = Uri(path = "/"),
+        uri = uri"/",
         headers = Headers.of(Authorization(BasicCredentials(username, password))))
-      val res = basicAuthedService.orNotFound(req).unsafeRunSync
+      val res = basicAuthedService.orNotFound(req).unsafeRunSync()
 
       res.status must_=== Ok
     }
@@ -108,8 +117,8 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request without authentication with 401" in {
       val authedService = digestAuthMiddleware(service)
-      val req = Request[IO](uri = Uri(path = "/"))
-      val res = authedService.orNotFound(req).unsafeRunSync
+      val req = Request[IO](uri = uri"/")
+      val res = authedService.orNotFound(req).unsafeRunSync()
 
       res.status must_=== Unauthorized
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
@@ -126,8 +135,8 @@ class AuthenticationSpec extends Http4sSpec {
     // Send a request without authorization, receive challenge.
     def doDigestAuth1(digest: HttpApp[IO]) = {
       // Get auth data
-      val req = Request[IO](uri = Uri(path = "/"))
-      val res = digest(req).unsafeRunSync
+      val req = Request[IO](uri = uri"/")
+      val res = digest(req).unsafeRunSync()
 
       res.status must_=== Unauthorized
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
@@ -159,13 +168,13 @@ class AuthenticationSpec extends Http4sSpec {
         "response" -> response,
         "method" -> method
       )
-      val header = Authorization(Credentials.AuthParams("Digest".ci, params))
+      val header = Authorization(Credentials.AuthParams(CIString("Digest"), params))
 
-      val req2 = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
-      val res2 = digest(req2).unsafeRunSync
+      val req2 = Request[IO](uri = uri"/", headers = Headers.of(header))
+      val res2 = digest(req2).unsafeRunSync()
 
       if (withReplay) {
-        val res3 = digest(req2).unsafeRunSync
+        val res3 = digest(req2).unsafeRunSync()
         (res2, res3)
       } else
         (res2, null)
@@ -209,7 +218,7 @@ class AuthenticationSpec extends Http4sSpec {
             res.status mustNotEqual NotFound
           })
         .toList
-      results.parSequence.unsafeRunSync
+      results.parSequence.unsafeRunSync()
 
       ok
     }
@@ -226,7 +235,7 @@ class AuthenticationSpec extends Http4sSpec {
           })
         .toList
 
-      val res = results.parSequence.unsafeRunSync
+      val res = results.parSequence.unsafeRunSync()
       res.filter(s => s == Ok).size must_=== 1
       res.filter(s => s == Unauthorized).size must_=== n - 1
 
@@ -261,10 +270,9 @@ class AuthenticationSpec extends Http4sSpec {
       val result = (0 to params.size).map { i =>
         val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
         val header = Authorization(
-          Credentials.AuthParams("Digest".ci, invalidParams.head, invalidParams.tail: _*))
-        val req = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
-        val res = digestAuthService.orNotFound(req).unsafeRunSync
-
+          Credentials.AuthParams(CIString("Digest"), invalidParams.head, invalidParams.tail: _*))
+        val req = Request[IO](uri = uri"/", headers = Headers.of(header))
+        val res = digestAuthService.orNotFound(req).unsafeRunSync()
         res.status
       }
 

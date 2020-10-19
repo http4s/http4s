@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.bench
 
 import java.util.concurrent.TimeUnit
@@ -11,8 +17,8 @@ import org.openjdk.jmh.annotations._
 @State(Scope.Benchmark)
 class QueryParamBench {
   @Benchmark def withQueryParam(in: QueryParamInput): Query =
-    in.queryParams.foldLeft(Query.empty) {
-      case (query, (key, value)) => query.withQueryParam(key, value)
+    in.queryParams.foldLeft(Query.empty) { case (query, (key, value)) =>
+      query.withQueryParam(key, value)
     }
 
   @Benchmark def setQueryParams(in: QueryParamInput): Query =

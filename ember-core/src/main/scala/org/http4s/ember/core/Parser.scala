@@ -1,264 +1,508 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.ember.core
 
 import cats._
 import cats.implicits._
 import fs2._
-import scodec.bits.ByteVector
 import org.http4s._
 import cats.effect._
-import Shared._
-import _root_.io.chrisdavenport.log4cats.Logger
+import cats.effect.concurrent.Deferred
+import scala.annotation.switch
+import scala.collection.mutable
 
 private[ember] object Parser {
 
-  /**
-    * From the stream of bytes this extracts Http Header and body part.
-    */
-  def httpHeaderAndBody[F[_]](maxHeaderSize: Int)(
-      implicit
-      F: ApplicativeError[F, Throwable]): Pipe[F, Byte, (ByteVector, Stream[F, Byte])] = {
-    def go(buff: ByteVector, in: Stream[F, Byte]): Pull[F, (ByteVector, Stream[F, Byte]), Unit] =
-      in.pull.uncons.flatMap {
+  object HeaderP {
+
+    def parseHeaders[F[_]: MonadError[*[_], Throwable]](
+        s: Stream[F, Byte],
+        maxHeaderLength: Int,
+        acc: Option[ParseHeadersIncomplete])
+        : Pull[F, Nothing, (Headers, Boolean, Option[Long], Stream[F, Byte])] =
+      s.pull.uncons.flatMap {
+        case Some((chunk, tl)) =>
+          val nextArr: Array[Byte] = acc match {
+            case None => chunk.toArray
+            case Some(last) => combineArrays(last.bv, chunk.toArray)
+          }
+          val result = acc match {
+            case None => headersInSection(nextArr)
+            case Some(
+                  ParseHeadersIncomplete(
+                    _,
+                    accHeaders,
+                    idx,
+                    state,
+                    name,
+                    start,
+                    chunked,
+                    contentLength)) =>
+              headersInSection(nextArr, idx, state, accHeaders, chunked, contentLength, name, start)
+          }
+          result match {
+            case ParseHeadersCompleted(headers, rest, chunked, length) =>
+              Pull.pure((headers, chunked, length, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
+            case p @ ParseHeadersError(_) => Pull.raiseError[F](p)
+            case p @ ParseHeadersIncomplete(_, _, _, _, _, _, _, _) =>
+              if (nextArr.size <= maxHeaderLength) parseHeaders(tl, maxHeaderLength, p.some)
+              else
+                Pull.raiseError[F](
+                  ParseHeadersError(
+                    new Throwable(
+                      s"Parse Headers Exceeded Max Content-Length current size: ${nextArr.size}, only allow ${maxHeaderLength}")
+                  )
+                )
+          }
         case None =>
           Pull.raiseError[F](
-            EmberException.ParseError(
-              s"Incomplete Header received (sz = ${buff.size}): ${buff.decodeUtf8}"))
-        case Some((chunk, tl)) =>
-          val bv = chunk2ByteVector(chunk)
-          val all = buff ++ bv
-          val idx = all.indexOfSlice(`\r\n\r\n`)
-          if (idx < 0) {
-            if (all.size > maxHeaderSize)
-              Pull.raiseError[F](
-                EmberException.ParseError(
-                  s"Size of the header exceeded the limit of $maxHeaderSize (${all.size})"))
-            else go(all, tl)
-          } else {
-            val (h, t) = all.splitAt(idx)
-            if (h.size > maxHeaderSize)
-              Pull.raiseError[F](
-                EmberException.ParseError(
-                  s"Size of the header exceeded the limit of $maxHeaderSize (${all.size})"))
-            else
-              Pull.output1((h, Stream.chunk(Chunk.ByteVectorChunk(t.drop(`\r\n\r\n`.size))) ++ tl))
-          }
+            ParseHeadersError(new Throwable("Reached Ended of Stream Looking for Headers")))
       }
-    src => go(ByteVector.empty, src).stream
-  }
 
-  def generateHeaders[F[_]: Monad](byteVector: ByteVector)(acc: Headers)(
-      logger: Logger[F]): F[Headers] = {
-    // println(headerO)
+    private val colon: Byte = ':'.toByte
+    private val cr: Byte = '\r'.toByte
+    private val lf: Byte = '\n'.toByte
+    private val space: Byte = ' '.toByte
+    private val contentLengthS = "Content-Length"
+    private val transferEncodingS = "Transfer-Encoding"
+    private val chunkedS = "chunked"
 
-    def generateHeaderForLine(bv: ByteVector): Option[Header] =
-      for {
-        line <- bv.decodeAscii.toOption
-        // _ = println(s"Generate Headers - line: ${line}")
-        idx <- Some(line.indexOf(':'))
-        if idx >= 0
-        header = Header(line.substring(0, idx), line.substring(idx + 1).trim)
-        // _ = println(s"generateHeaders - header: ${header}")
-      } yield header
+    sealed trait ParseHeaderResult
+    final case class ParseHeadersError(cause: Throwable)
+        extends Throwable(
+          s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
+          cause)
+        with ParseHeaderResult
+    final case class ParseHeadersCompleted(
+        headers: Headers,
+        rest: Array[Byte],
+        chunked: Boolean,
+        length: Option[Long])
+        extends ParseHeaderResult
+    final case class ParseHeadersIncomplete(
+        bv: Array[Byte],
+        accHeaders: List[Header],
+        idx: Int,
+        state: Byte,
+        name: Option[String],
+        start: Int,
+        chunked: Boolean,
+        contentLength: Option[Long])
+        extends ParseHeaderResult
 
-    splitHeader(byteVector)(logger).flatMap {
-      case Right((lineBV, rest)) =>
-        val headerO = generateHeaderForLine(lineBV)
-        val newHeaders = acc ++ headerO.map(Headers.of(_)).foldMap(identity)
+    def headersInSection(
+        bv: Array[Byte],
+        initIndex: Int = 0,
+        initState: Byte = 0, //HeaderNameOrPostCRLF,
+        initHeaders: List[Header] = List.empty,
+        initChunked: Boolean = false,
+        initContentLength: Option[Long] = None,
+        initName: Option[String] = None,
+        initStart: Int = 0
+    ): ParseHeaderResult = {
+      import scala.collection.mutable.ListBuffer
+      var idx = initIndex
+      var state = initState
+      var throwable: Throwable = null
+      var complete = false
+      var chunked: Boolean = initChunked
+      var contentLength: Option[Long] = initContentLength
 
-        logger.trace(s"Generate Headers Header0 = $headerO") >>
-          generateHeaders(rest)(newHeaders)(logger)
-      case Left(bv) =>
-        val headerO = generateHeaderForLine(bv)
-        val out = headerO.map(Headers.of(_)).foldMap(identity) ++ acc
-        out.pure[F]
-    }
-  }
+      val headers = ListBuffer(initHeaders: _*)
+      var name: String = initName.orNull
+      var start = initStart
 
-  def splitHeader[F[_]: Applicative](byteVector: ByteVector)(
-      logger: Logger[F]): F[Either[ByteVector, (ByteVector, ByteVector)]] = {
-    val index = byteVector.indexOfSlice(`\r\n`)
-    if (index >= 0L) {
-      val (line, rest) = byteVector.splitAt(index)
-      logger
-        .trace(s"splitHeader - Slice: ${line.decodeAscii}- Rest: ${rest.decodeAscii}")
-        .as(Either.right[ByteVector, (ByteVector, ByteVector)]((line, rest.drop(`\r\n`.length))))
-    } else {
-      Either.left[ByteVector, (ByteVector, ByteVector)](byteVector).pure[F]
+      while (!complete && idx < bv.size) {
+        (state: @switch) match {
+          case 0 => // HeaderNameOrPostCRLF
+            val current = bv(idx)
+            // if current index is colon our name is complete
+            if (current == colon) {
+              state = 1 // set state to check for header value
+              name = new String(bv, start, idx - start) // extract name string
+              start = idx + 1 // advance past colon for next start
+              if ((bv.size >= idx + 1) && (bv(idx + 1) == space)) {
+                start += 1 // if colon is followed by space advance again
+                idx += 1 // double advance index here to skip the space
+              }
+              // double CRLF condition - Termination of headers
+            } else if (current == cr && (idx + 1 < bv.size) && (bv(idx + 1) == lf)) {
+              idx += 1 // double advance to drop cr AND lf
+              complete = true // completed terminate loop
+            }
+          case 1 => // HeaderValue
+            val current = bv(idx)
+            // If crlf is next we have completed the header value
+            if (current == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
+              val hValue = new String(bv, start, idx - start) // extract header value
+
+              val hName = name // copy var to val
+              name = null // set name back to null
+              val newHeader = Header(hName, hValue) // create header
+              if (hName.equalsIgnoreCase(contentLengthS)) // Check if this is content-length.
+                try contentLength = hValue.toLong.some
+                catch {
+                  case scala.util.control.NonFatal(e) =>
+                    throwable = e
+                    complete = true
+                }
+
+              if (hName.equalsIgnoreCase(transferEncodingS)) // Check if this is Transfer-encoding
+                chunked = hValue.contains(chunkedS)
+              start = idx + 2 // Next Start is after the CRLF
+              idx += 1 // Double advance to skip CRLF
+              headers += newHeader // Add Header
+              state = 0 // Go back to Looking for HeaderName or Termination
+            }
+        }
+        idx += 1 // Single Advance Every Iteration
+      }
+
+      if (throwable != null) ParseHeadersError(throwable)
+      else if (complete)
+        ParseHeadersCompleted(Headers(headers.toList), bv.drop(idx), chunked, contentLength)
+      else
+        ParseHeadersIncomplete(
+          bv,
+          headers.toList,
+          idx,
+          state,
+          Option(name),
+          start,
+          chunked,
+          contentLength)
     }
   }
 
   object Request {
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(l: Logger[F]): F[Request[F]] =
-      s.through(httpHeaderAndBody[F](maxHeaderLength))
-        .evalMap {
-          case (bv, body) => headerBlobByteVectorToRequest[F](bv, body, maxHeaderLength)(l)
+
+    object ReqPrelude {
+
+      def parsePrelude[F[_]: MonadError[*[_], Throwable]](
+          s: Stream[F, Byte],
+          maxHeaderLength: Int,
+          acc: Option[ParsePreludeIncomlete] = None)
+          : Pull[F, Nothing, (Method, Uri, HttpVersion, Stream[F, Byte])] =
+        s.pull.uncons.flatMap {
+          case Some((chunk, tl)) =>
+            val next: Array[Byte] = acc match {
+              case None => chunk.toArray
+              case Some(ic) => combineArrays(ic.bv, chunk.toArray)
+            }
+            ReqPrelude.preludeInSection(next) match {
+              case ParsePreludeComplete(m, u, h, rest) =>
+                Pull.pure((m, u, h, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
+              case t @ ParsePreludeError(_, _, _, _) => Pull.raiseError[F](t)
+              case p @ ParsePreludeIncomlete(_, _, method, uri, httpVersion) =>
+                if (next.size <= maxHeaderLength)
+                  parsePrelude(tl, maxHeaderLength, p.some)
+                else
+                  Pull.raiseError[F](
+                    ParsePreludeError(
+                      new Throwable("Reached Max Header Length Looking for Request Prelude"),
+                      method,
+                      uri,
+                      httpVersion))
+            }
+          case None =>
+            Pull.raiseError[F](
+              ParsePreludeError(
+                new Throwable("Reached Ended of Stream Looking for Request Prelude"),
+                acc.flatMap(_.method),
+                acc.flatMap(_.uri),
+                acc.flatMap(_.httpVersion)))
         }
-        .take(1)
-        .compile
-        .lastOrError
 
-    private def headerBlobByteVectorToRequest[F[_]](
-        b: ByteVector,
-        s: Stream[F, Byte],
-        maxHeaderLength: Int)(logger: Logger[F])(
-        implicit F: MonadError[F, Throwable]): F[Request[F]] =
-      for {
-        shE <- splitHeader(b)(logger)
-        (methodHttpUri, headersBV) <- shE.fold(
-          _ =>
-            ApplicativeError[F, Throwable].raiseError[(ByteVector, ByteVector)](
-              EmberException.ParseError("Invalid Empty Init Line")),
-          Applicative[F].pure(_)
-        )
-        // Raw Header Logging
-        _ <- logger.trace(s"HeadersSection - ${headersBV.decodeAscii}")
+      // sealed trait ParsePreludeState
+      // 0 case object GetMethod extends ParsePreludeState
+      // 1 case object GetUri extends ParsePreludeState
+      // 2 case object GetHttpVersion extends ParsePreludeState
+      private val space = ' '.toByte
+      private val cr: Byte = '\r'.toByte
+      private val lf: Byte = '\n'.toByte
 
-        headers <- generateHeaders(headersBV)(Headers.empty)(logger)
-        _ <- logger.trace(show"Headers: $headers")
+      sealed trait ParsePreludeResult
+      final case class ParsePreludeError(
+          throwable: Throwable,
+          method: Option[Method],
+          uri: Option[Uri],
+          httpVersion: Option[HttpVersion]
+      ) extends Throwable(
+            s"Parse Prelude Error Encountered - Partially Decoded: $method $uri $httpVersion",
+            throwable)
+          with ParsePreludeResult
+      final case class ParsePreludeIncomlete(
+          idx: Int,
+          bv: Array[Byte],
+          // buffer: String,
+          method: Option[Method],
+          uri: Option[Uri],
+          httpVersion: Option[HttpVersion]
+      ) extends ParsePreludeResult
+      final case class ParsePreludeComplete(
+          method: Method,
+          uri: Uri,
+          httpVersion: HttpVersion,
+          rest: Array[Byte]
+      ) extends ParsePreludeResult
+      // Method SP URI SP HttpVersion CRLF - REST
+      def preludeInSection(
+          bv: Array[Byte],
+          initIdx: Int = 0,
+          initMethod: Option[Method] = None,
+          initUri: Option[Uri] = None,
+          initHttpVersion: Option[HttpVersion] = None
+      ): ParsePreludeResult = {
+        var idx = initIdx
+        var state: Byte = 0
+        var complete = false
 
-        (method, uri, http) <- bvToRequestTopLine[F](methodHttpUri)
+        var throwable: Throwable = null
+        var method: Method = initMethod.orNull
+        var uri: Uri = initUri.orNull
+        var httpVersion: HttpVersion = initHttpVersion.orNull
 
-        contentLength = headers.get(org.http4s.headers.`Content-Length`).map(_.length).getOrElse(0L)
-        host = headers.get(org.http4s.headers.Host)
-        isChunked = headers
-          .get(org.http4s.headers.`Transfer-Encoding`)
-          .exists(_.value.toList.contains(TransferCoding.chunked))
+        var start = 0
+        while (!complete && idx < bv.size) {
+          val value = bv(idx)
+          (state: @switch) match {
+            case 0 =>
+              if (value == space) {
+                Method.fromString(new String(bv, start, idx - start)) match {
+                  case Left(e) =>
+                    throwable = e
+                    complete = true
+                  case Right(m) =>
+                    method = m
+                }
+                start = idx + 1
+                state = 1
+              }
+            case 1 =>
+              if (value == space) {
+                Uri.fromString(new String(bv, start, idx - start)) match {
+                  case Left(e) =>
+                    throwable = e
+                    complete = true
+                  case Right(u) =>
+                    uri = u
+                }
+                start = idx + 1
+                state = 2
+              }
+            case 2 =>
+              if (value == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
+                HttpVersion.fromString(new String(bv, start, idx - start)) match {
+                  case Left(e) =>
+                    throwable = e
+                    complete = true
+                  case Right(h) =>
+                    httpVersion = h
+                }
+                complete = true
+                idx += 1 // Double Advance
+              }
+          }
+          idx += 1
+        }
 
-        body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
-        else s.take(contentLength)
-
-        // enriched with host
-        // seems presumptious
-        newUri = uri.copy(
-          authority = host.map(h => Uri.Authority(host = Uri.RegName(h.host), port = h.port)))
-        newHeaders = headers.filterNot(_.is(org.http4s.headers.Host))
-      } yield org.http4s.Request[F](
-        method = method,
-        uri = newUri,
-        httpVersion = http,
-        headers = newHeaders,
-        body = body
-      )
-
-    private def bvToRequestTopLine[F[_]](b: ByteVector)(
-        implicit F: MonadError[F, Throwable]): F[(Method, Uri, HttpVersion)] =
-      for {
-        (method, rest) <- getMethodEmitRest[F](b)
-        (uri, httpVString) <- getUriEmitHttpVersion[F](rest)
-        httpVersion <- HttpVersion.fromString(httpVString).liftTo[F]
-      } yield (method, uri, httpVersion)
-
-    private def getMethodEmitRest[F[_]](b: ByteVector)(
-        implicit F: ApplicativeError[F, Throwable]): F[(Method, String)] = {
-      val opt = for {
-        line <- b.decodeAscii.toOption
-        idx <- Some(line.indexOf(' '))
-        if idx >= 0
-        out <- Method.fromString(line.substring(0, idx)).toOption
-      } yield (out, line.substring(idx + 1))
-
-      opt.fold(
-        ApplicativeError[F, Throwable]
-          .raiseError[(Method, String)](EmberException.ParseError("Missing Method"))
-      )(ApplicativeError[F, Throwable].pure(_))
+        if (throwable != null)
+          ParsePreludeError(
+            throwable,
+            Option(method),
+            Option(uri),
+            Option(httpVersion)
+          )
+        else if (method != null && uri != null && httpVersion != null)
+          ParsePreludeComplete(method, uri, httpVersion, bv.drop(idx))
+        else
+          ParsePreludeIncomlete(idx, bv, Option(method), Option(uri), Option(httpVersion))
+      }
     }
 
-    private def getUriEmitHttpVersion[F[_]](s: String)(
-        implicit F: ApplicativeError[F, Throwable]): F[(Uri, String)] = {
-      val opt = for {
-        idx <- Some(s.indexOf(' '))
-        if idx >= 0
-        uri <- Uri.fromString(s.substring(0, idx)).toOption
-      } yield (uri, s.substring(idx + 1))
+    def parser[F[_]: Concurrent](maxHeaderLength: Int)(s: Stream[F, Byte]): F[Request[F]] =
+      Deferred[F, Headers].flatMap { trailers =>
+        ReqPrelude
+          .parsePrelude[F](s, maxHeaderLength, None)
+          .flatMap { case (method, uri, httpVersion, rest) =>
+            HeaderP.parseHeaders(rest, maxHeaderLength, None).flatMap {
+              case (headers, chunked, contentLength, rest) =>
+                val baseReq: org.http4s.Request[F] = org.http4s.Request[F](
+                  method = method,
+                  uri = uri,
+                  httpVersion = httpVersion,
+                  headers = headers
+                )
+                val req: org.http4s.Request[F] =
+                  if (chunked)
+                    baseReq
+                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                      .withBodyStream(
+                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
+                  else
+                    baseReq.withBodyStream(rest.take(contentLength.getOrElse(0L)))
 
-      opt.fold(
-        ApplicativeError[F, Throwable]
-          .raiseError[(Uri, String)](EmberException.ParseError("Missing URI"))
-      )(ApplicativeError[F, Throwable].pure(_))
-    }
+                Pull.output1(req)
+            }
+          }
+          .stream
+          .take(1)
+          .compile
+          .lastOrError
+      }
+
   }
 
   object Response {
-    def parser[F[_]: Sync](maxHeaderLength: Int)(s: Stream[F, Byte])(
-        logger: Logger[F]): Resource[F, Response[F]] =
-      s.through(httpHeaderAndBody[F](maxHeaderLength))
-        .evalMap {
-          case (bv, body) => headerBlobByteVectorToResponse[F](bv, body, maxHeaderLength)(logger)
-        }
-        .take(1)
-        .compile
-        .resource
-        .lastOrError
-
-    private def headerBlobByteVectorToResponse[F[_]](
-        b: ByteVector,
-        s: Stream[F, Byte],
-        maxHeaderLength: Int)(logger: Logger[F])(
-        implicit F: MonadError[F, Throwable]): F[Response[F]] =
-      for {
-        hE <- splitHeader(b)(logger)
-        (methodHttpUri, headersBV) <- hE.fold(
-          _ =>
-            ApplicativeError[F, Throwable].raiseError[(ByteVector, ByteVector)](
-              EmberException.ParseError("Invalid Empty Init Line")),
-          Applicative[F].pure(_)
-        )
-        headers <- generateHeaders(headersBV)(Headers.empty)(logger)
-        (httpV, status) <- bvToResponseTopLine[F](methodHttpUri)
-
-        contentLength = headers.get(org.http4s.headers.`Content-Length`).map(_.length).getOrElse(0L)
-        isChunked = headers
-          .get(org.http4s.headers.`Transfer-Encoding`)
-          .exists(_.value.toList.contains(TransferCoding.chunked))
-
-        body = if (isChunked) s.through(ChunkedEncoding.decode(maxHeaderLength))
-        else s.take(contentLength)
-      } yield org.http4s.Response[F](
-        status = status,
-        httpVersion = httpV,
-        headers = headers,
-        body = body
-      )
-
-    private def bvToResponseTopLine[F[_]](
-        b: ByteVector
-    )(implicit F: MonadError[F, Throwable]): F[(HttpVersion, Status)] =
-      // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
-      for {
-        (httpV, restS) <- getHttpVersionEmitRest[F](b)
-        status <- getStatus[F](restS)
-      } yield (httpV, status)
-
-    private def getHttpVersionEmitRest[F[_]](
-        b: ByteVector
-    )(implicit F: MonadError[F, Throwable]): F[(HttpVersion, String)] = {
-      val opt = for {
-        line <- b.decodeAscii.toOption
-        idx <- Some(line.indexOf(' '))
-        if idx >= 0
-      } yield (line.substring(0, idx), line.substring(idx + 1))
-
-      for {
-        (httpS, rest) <- opt.fold(
-          ApplicativeError[F, Throwable]
-            .raiseError[(String, String)](EmberException.ParseError("Missing HttpVersion"))
-        )(Applicative[F].pure(_))
-        httpV <- HttpVersion.fromString(httpS).liftTo[F]
-      } yield (httpV, rest)
-    }
-
-    private def getStatus[F[_]](s: String)(implicit F: MonadError[F, Throwable]): F[Status] = {
-      def getFirstWord(text: String): String = {
-        val index = text.indexOf(' ')
-        if (index >= 0) {
-          text.substring(0, index)
-        } else text
+    def parser[F[_]: Concurrent](maxHeaderLength: Int)(
+        s: Stream[F, Byte]): Resource[F, Response[F]] =
+      Resource.liftF(Deferred[F, Headers]).flatMap { trailers =>
+        RespPrelude
+          .parsePrelude(s, maxHeaderLength, None)
+          .flatMap { case (httpVersion, status, s) =>
+            HeaderP.parseHeaders(s, maxHeaderLength, None).flatMap {
+              case (headers, chunked, contentLength, rest) =>
+                val baseResp = org.http4s.Response[F](
+                  httpVersion = httpVersion,
+                  status = status,
+                  headers = headers
+                )
+                val resp: org.http4s.Response[F] =
+                  if (chunked)
+                    baseResp
+                      .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
+                      .withBodyStream(
+                        rest.through(ChunkedEncoding.decode(maxHeaderLength, trailers)))
+                  else
+                    baseResp.withBodyStream(rest.take(contentLength.getOrElse(0L)))
+                Pull.output1(resp)
+            }
+          }
+          .stream
+          .take(1)
+          .compile
+          .resource
+          .lastOrError
       }
-      for {
-        word <- Either.catchNonFatal(getFirstWord(s)).liftTo[F]
-        code <- Either.catchNonFatal(word.toInt).liftTo[F]
-        status <- Status.fromInt(code).liftTo[F]
-      } yield status
+
+    object RespPrelude {
+
+      def parsePrelude[F[_]: MonadError[*[_], Throwable]](
+          s: Stream[F, Byte],
+          maxHeaderLength: Int,
+          acc: Option[Array[Byte]] = None)
+          : Pull[F, Nothing, (HttpVersion, Status, Stream[F, Byte])] =
+        s.pull.uncons.flatMap {
+          case Some((chunk, tl)) =>
+            val next: Array[Byte] = acc match {
+              case None => chunk.toArray
+              case Some(remains) => combineArrays(remains, chunk.toArray)
+            }
+            preludeInSection(next) match {
+              case RespPreludeComplete(httpVersion, status, rest) =>
+                Pull.pure((httpVersion, status, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
+              case t @ RespPreludeError(_) => Pull.raiseError[F](t)
+              case RespPreludeIncomplete =>
+                if (next.size <= maxHeaderLength)
+                  parsePrelude(tl, maxHeaderLength, next.some)
+                else
+                  Pull.raiseError[F](
+                    RespPreludeError(
+                      new Throwable("Reached Max Header Length Looking for Response Prelude")))
+            }
+          case None =>
+            Pull.raiseError[F](
+              RespPreludeError(
+                new Throwable("Reached Ended of Stream Looking for Response Prelude")))
+        }
+
+      private val space = ' '.toByte
+      private val cr: Byte = '\r'.toByte
+      private val lf: Byte = '\n'.toByte
+
+      sealed trait RespPreludeResult
+      case class RespPreludeComplete(httpVersion: HttpVersion, status: Status, rest: Array[Byte])
+          extends RespPreludeResult
+      case object RespPreludeIncomplete extends RespPreludeResult
+      case class RespPreludeError(cause: Throwable)
+          extends Throwable(s"Received Error while parsing prelude - ${cause.getMessage}", cause)
+          with RespPreludeResult
+
+      // HTTP/1.1 200 OK
+      // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+      def preludeInSection(bv: Array[Byte]): RespPreludeResult = {
+        var complete = false
+        var idx = 0
+        var throwable: Throwable = null
+        var httpVersion: HttpVersion = null
+
+        var codeS: String = null
+        // val reason: String = null
+        var status: Status = null
+        var start = 0
+        var state = 0 // 0 Is for HttpVersion, 1 for Status Code, 2 For Reason Phrase
+
+        while (!complete && idx < bv.size) {
+          val value = bv(idx)
+          (state: @switch) match {
+            case 0 =>
+              if (value == space) {
+                val s = new String(bv, start, idx - start)
+                HttpVersion.fromString(s) match {
+                  case Left(e) =>
+                    throwable = e
+                    complete = true
+                  case Right(h) =>
+                    httpVersion = h
+                }
+                start = idx + 1
+                state = 1
+              }
+            case 1 =>
+              if (value == space) {
+                codeS = new String(bv, start, idx - start)
+                state = 2
+                start = idx + 1
+              }
+            case 2 =>
+              if (value == cr && ((bv.size >= idx + 1) && bv(idx + 1) == lf)) {
+                val reason = new String(bv, start, idx - start)
+                try {
+                  val codeInt = codeS.toInt
+                  Status.fromIntAndReason(codeInt, reason) match {
+                    case Left(e) =>
+                      throw e
+                    case Right(s) =>
+                      status = s
+                      complete = true
+                      idx += 1 // Double Advance
+                  }
+                } catch {
+                  case scala.util.control.NonFatal(e) =>
+                    throwable = e
+                    complete = true
+                }
+              }
+          }
+          idx += 1
+        }
+
+        if (throwable != null) RespPreludeError(throwable)
+        if (httpVersion != null && status != null)
+          RespPreludeComplete(httpVersion, status, bv.drop(idx))
+        else RespPreludeIncomplete
+      }
     }
+  }
+
+  private def combineArrays[A: scala.reflect.ClassTag](a1: Array[A], a2: Array[A]): Array[A] = {
+    val buff = mutable.ArrayBuffer[A]()
+    buff.++=(a1)
+    buff.++=(a2)
+    buff.toArray
   }
 }

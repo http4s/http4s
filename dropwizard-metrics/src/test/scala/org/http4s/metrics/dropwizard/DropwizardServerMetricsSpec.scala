@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.metrics.dropwizard
 
 import cats.effect.IO
@@ -17,13 +23,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, Timer("server.default.2xx-responses")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.default.2xx-responses")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
       valuesOf(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -36,13 +42,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
 
       val req = Request[IO](uri = uri("/bad-request"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.BadRequest)
       resp must haveBody("400 Bad Request")
-      count(registry, Timer("server.default.4xx-responses")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.default.4xx-responses")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
       valuesOf(registry, Timer("server.default.4xx-responses")) must beSome(Array(100000000L))
@@ -54,13 +60,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](uri = uri("/internal-server-error"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.InternalServerError)
       resp must haveBody("500 Internal Server Error")
-      count(registry, Timer("server.default.5xx-responses")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.default.5xx-responses")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
       valuesOf(registry, Timer("server.default.5xx-responses")) must beSome(Array(100000000L))
@@ -72,13 +78,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, Timer("server.default.get-requests")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.default.get-requests")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
       valuesOf(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -90,13 +96,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = POST, uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, Timer("server.default.post-requests")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.default.post-requests")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.post-requests")) must beSome(Array(100000000L))
       valuesOf(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -108,13 +114,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = PUT, uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, Timer("server.default.put-requests")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.default.put-requests")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.put-requests")) must beSome(Array(100000000L))
       valuesOf(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -126,13 +132,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = DELETE, uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, Timer("server.default.delete-requests")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.default.delete-requests")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.delete-requests")) must beSome(Array(100000000L))
       valuesOf(registry, Timer("server.default.2xx-responses")) must beSome(Array(100000000L))
@@ -144,12 +150,12 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/error"))
 
-      val resp = meteredRoutes.orNotFound(req).attempt.unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).attempt.unsafeRunSync()
 
       resp must beLeft
-      count(registry, Timer("server.default.errors")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.default.errors")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
     }
@@ -160,13 +166,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(testRoutes)
       val req = Request[IO](method = GET, uri = uri("/abnormal-termination"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
-      resp.body.attempt.compile.lastOrError.unsafeRunSync must beLeft
-      count(registry, Timer("server.default.abnormal-terminations")) must beEqualTo(1)
-      count(registry, Counter("server.default.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.default.requests.total")) must beEqualTo(1)
+      resp.body.attempt.compile.lastOrError.unsafeRunSync() must beLeft
+      count(registry, Timer("server.default.abnormal-terminations")) must beEqualTo(1L)
+      count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
     }
@@ -179,13 +185,13 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         Metrics[IO](ops = Dropwizard(registry, "server"), classifierF = classifierFunc)(testRoutes)
       val req = Request[IO](uri = uri("/ok"))
 
-      val resp = meteredRoutes.orNotFound(req).unsafeRunSync
+      val resp = meteredRoutes.orNotFound(req).unsafeRunSync()
 
       resp must haveStatus(Status.Ok)
       resp must haveBody("200 OK")
-      count(registry, Timer("server.classifier.2xx-responses")) must beEqualTo(1)
-      count(registry, Counter("server.classifier.active-requests")) must beEqualTo(0)
-      count(registry, Timer("server.classifier.requests.total")) must beEqualTo(1)
+      count(registry, Timer("server.classifier.2xx-responses")) must beEqualTo(1L)
+      count(registry, Counter("server.classifier.active-requests")) must beEqualTo(0L)
+      count(registry, Timer("server.classifier.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.classifier.requests.headers")) must beSome(Array(50000000L))
       valuesOf(registry, Timer("server.classifier.get-requests")) must beSome(Array(100000000L))
       valuesOf(registry, Timer("server.classifier.2xx-responses")) must beSome(Array(100000000L))

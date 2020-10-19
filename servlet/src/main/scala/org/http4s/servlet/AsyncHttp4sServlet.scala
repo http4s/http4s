@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package servlet
 
@@ -16,7 +22,8 @@ class AsyncHttp4sServlet[F[_]](
     private[this] var servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: ConcurrentEffect[F])
     extends Http4sServlet[F](service, servletIo) {
-  private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1 // -1 == Inf
+  private val asyncTimeoutMillis =
+    if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1 // -1 == Inf
 
   override def init(config: ServletConfig): Unit = {
     super.init(config)
@@ -40,35 +47,35 @@ class AsyncHttp4sServlet[F[_]](
       // Must be done on the container thread for Tomcat's sake when using async I/O.
       val bodyWriter = servletIo.initWriter(servletResponse)
       F.runAsync(
-          toRequest(servletRequest).fold(
-            onParseFailure(_, servletResponse, bodyWriter),
-            handleRequest(ctx, _, bodyWriter)
-          )) {
-          case Right(()) =>
-            IO(ctx.complete())
-          case Left(t) =>
-            IO(errorHandler(servletRequest, servletResponse)(t))
-        }
-        .unsafeRunSync()
+        toRequest(servletRequest).fold(
+          onParseFailure(_, servletResponse, bodyWriter),
+          handleRequest(ctx, _, bodyWriter)
+        )) {
+        case Right(()) =>
+          IO(ctx.complete())
+        case Left(t) =>
+          IO(errorHandler(servletRequest, servletResponse)(t))
+      }.unsafeRunSync()
     } catch errorHandler(servletRequest, servletResponse)
 
   private def handleRequest(
       ctx: AsyncContext,
       request: Request[F],
-      bodyWriter: BodyWriter[F]): F[Unit] = Deferred[F, Unit].flatMap { gate =>
-    // It is an error to add a listener to an async context that is
-    // already completed, so we must take care to add the listener
-    // before the response can complete.
-    val timeout =
-      F.asyncF[Response[F]](cb => gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb))))
-    val response =
-      gate.get *>
-        Sync[F]
-          .suspend(serviceFn(request))
-          .recoverWith(serviceErrorHandler(request))
-    val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-    F.race(timeout, response).flatMap(r => renderResponse(r.merge, servletResponse, bodyWriter))
-  }
+      bodyWriter: BodyWriter[F]): F[Unit] =
+    Deferred[F, Unit].flatMap { gate =>
+      // It is an error to add a listener to an async context that is
+      // already completed, so we must take care to add the listener
+      // before the response can complete.
+      val timeout =
+        F.asyncF[Response[F]](cb => gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb))))
+      val response =
+        gate.get *>
+          Sync[F]
+            .suspend(serviceFn(request))
+            .recoverWith(serviceErrorHandler(request))
+      val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
+      F.race(timeout, response).flatMap(r => renderResponse(r.merge, servletResponse, bodyWriter))
+    }
 
   private def errorHandler(
       servletRequest: ServletRequest,

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats._
@@ -5,8 +11,7 @@ import cats.implicits._
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
 
-/**
-  * Instances of [[QueryParamDecoder]] and [[QueryParamEncoder]]
+/** Instances of [[QueryParamDecoder]] and [[QueryParamEncoder]]
   * must satisfy the following properties
   */
 object QueryParamCodecLaws {

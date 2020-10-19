@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package json4s
 
@@ -19,20 +25,18 @@ trait Json4sInstances[J] {
       DecodeResult(
         F.delay(reader.read(json))
           .map[Either[DecodeFailure, A]](Right(_))
-          .recover {
-            case e: MappingException =>
-              Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
+          .recover { case e: MappingException =>
+            Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
           })
     }
 
-  /**
-    * Uses formats to extract a value from JSON.
+  /** Uses formats to extract a value from JSON.
     *
     * Editorial: This is heavily dependent on reflection. This is more idiomatic json4s, but less
     * idiomatic http4s, than [[jsonOf]].
     */
-  def jsonExtract[F[_], A](
-      implicit F: Sync[F],
+  def jsonExtract[F[_], A](implicit
+      F: Sync[F],
       formats: Formats,
       manifest: Manifest[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>

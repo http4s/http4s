@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.{Eval, Foldable}
@@ -122,7 +128,11 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
 object Query {
   type KeyValue = (String, Option[String])
 
+  /** Represents the absence of a query string. */
   val empty: Query = new Query(Vector.empty)
+
+  /** Represents a query string with no keys or values: `?` */
+  val blank = new Query(Vector("" -> None))
 
   /*
    * "The characters slash ("/") and question mark ("?") may represent data
@@ -140,8 +150,8 @@ object Query {
 
   def fromPairs(xs: (String, String)*): Query =
     new Query(
-      xs.toList.foldLeft(Vector.empty[KeyValue]) {
-        case (m, (k, s)) => m :+ (k -> Some(s))
+      xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
+        m :+ (k -> Some(s))
       }
     )
 

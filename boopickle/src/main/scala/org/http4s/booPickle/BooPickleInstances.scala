@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package booPickle
 
@@ -11,32 +17,29 @@ import org.http4s.EntityEncoder.chunkEncoder
 import org.http4s.headers.`Content-Type`
 import scala.util.{Failure, Success}
 
-/**
-  * Generic factories for http4s encoders/decoders for boopickle
+/** Generic factories for http4s encoders/decoders for boopickle
   * Note that the media type is set for application/octet-stream
   */
 trait BooPickleInstances {
-  private def booDecoderByteBuffer[F[_]: Sync, A](m: Media[F])(
-      implicit pickler: Pickler[A]): DecodeResult[F, A] =
+  private def booDecoderByteBuffer[F[_]: Sync, A](m: Media[F])(implicit
+      pickler: Pickler[A]): DecodeResult[F, A] =
     EntityDecoder.collectBinary(m).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
-      if (bb.hasRemaining) {
+      if (bb.hasRemaining)
         Unpickle[A](pickler).tryFromBytes(bb) match {
           case Success(bb) => Right(bb)
           case Failure(pf) => Left(MalformedMessageBodyFailure("Invalid binary body", Some(pf)))
         }
-      } else
+      else
         Left(MalformedMessageBodyFailure("Invalid binary: empty body", None))
     }
 
-  /**
-    * Create an `EntityDecoder` for `A` given a `Pickler[A]`
+  /** Create an `EntityDecoder` for `A` given a `Pickler[A]`
     */
   def booOf[F[_]: Sync, A: Pickler]: EntityDecoder[F, A] =
     EntityDecoder.decodeBy(MediaType.application.`octet-stream`)(booDecoderByteBuffer[F, A])
 
-  /**
-    * Create an `EntityEncoder` for `A` given a `Pickler[A]`
+  /** Create an `EntityEncoder` for `A` given a `Pickler[A]`
     */
   def booEncoderOf[F[_], A: Pickler]: EntityEncoder[F, A] =
     chunkEncoder[F]

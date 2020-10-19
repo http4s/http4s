@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package blaze
@@ -16,7 +22,7 @@ import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.{End, Http2Writer}
-import org.http4s.syntax.string._
+import org.typelevel.ci.CIString
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -194,17 +200,16 @@ private class Http2NodeStage[F[_]](
               error += s"HTTP/2.0 forbids TE header values other than 'trailers'. "
           // ignore otherwise
 
-          case (k, v) => headers += Raw(k.ci, v)
+          case (k, v) => headers += Raw(CIString(k), v)
         }
     }
 
-    if (method == null || scheme == null || path == null) {
+    if (method == null || scheme == null || path == null)
       error += s"Invalid request: missing pseudo headers. Method: $method, Scheme: $scheme, path: $path. "
-    }
 
-    if (error.length > 0) {
+    if (error.length > 0)
       closePipeline(Some(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
-    } else {
+    else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())
@@ -234,7 +239,7 @@ private class Http2NodeStage[F[_]](
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
       if (h.name != headers.`Transfer-Encoding`.name &&
         h.name != headers.Connection.name) {
-        hs += ((h.name.value.toLowerCase(Locale.ROOT), h.value))
+        hs += ((h.name.toString.toLowerCase(Locale.ROOT), h.value))
         ()
       }
     }

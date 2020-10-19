@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -52,9 +58,8 @@ class TimeoutSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
     "cancel the loser" in {
       val canceled = new AtomicBoolean(false)
-      val routes = HttpRoutes.of[IO] {
-        case _ =>
-          IO.never.guarantee(IO(canceled.set(true)))
+      val routes = HttpRoutes.of[IO] { case _ =>
+        IO.never.guarantee(IO(canceled.set(true)))
       }
       val app = TimeoutMiddleware(1.millis)(routes).orNotFound
       checkStatus(app(Request[IO]()), Status.ServiceUnavailable)

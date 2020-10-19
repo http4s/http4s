@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.client
 package blaze
 
@@ -34,46 +40,53 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
-  ) =
-    BlazeClientBuilder[IO](testExecutionContext)
-      .withSslContextOption(sslContextOption)
-      .withCheckEndpointAuthentication(false)
-      .withResponseHeaderTimeout(responseHeaderTimeout)
-      .withRequestTimeout(requestTimeout)
-      .withMaxTotalConnections(maxTotalConnections)
-      .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
-      .withChunkBufferMaxSize(chunkBufferMaxSize)
-      .withScheduler(scheduler = tickWheel)
-      .resource
+  ) = {
+    val builder: BlazeClientBuilder[IO] =
+      BlazeClientBuilder[IO](testExecutionContext)
+        .withCheckEndpointAuthentication(false)
+        .withResponseHeaderTimeout(responseHeaderTimeout)
+        .withRequestTimeout(requestTimeout)
+        .withMaxTotalConnections(maxTotalConnections)
+        .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
+        .withChunkBufferMaxSize(chunkBufferMaxSize)
+        .withScheduler(scheduler = tickWheel)
 
-  private def testServlet = new HttpServlet {
-    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-      GetRoutes.getPaths.get(req.getRequestURI) match {
-        case Some(resp) =>
-          srv.setStatus(resp.status.code)
-          resp.headers.foreach { h =>
-            srv.addHeader(h.name.toString, h.value)
-          }
+    val builderWithMaybeSSLContext: BlazeClientBuilder[IO] =
+      sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(
+        builder.withSslContext)
 
-          val os: ServletOutputStream = srv.getOutputStream
-
-          val writeBody: IO[Unit] = resp.body
-            .evalMap { byte =>
-              IO(os.write(Array(byte)))
-            }
-            .compile
-            .drain
-          val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> flushOutputStream).unsafeRunSync()
-
-        case None => srv.sendError(404)
-      }
-
-    override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
-      resp.setStatus(Status.Ok.code)
-      req.getInputStream.close()
-    }
+    builderWithMaybeSSLContext.resource
   }
+
+  private def testServlet =
+    new HttpServlet {
+      override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
+        GetRoutes.getPaths.get(req.getRequestURI) match {
+          case Some(resp) =>
+            srv.setStatus(resp.status.code)
+            resp.headers.foreach { h =>
+              srv.addHeader(h.name.toString, h.value)
+            }
+
+            val os: ServletOutputStream = srv.getOutputStream
+
+            val writeBody: IO[Unit] = resp.body
+              .evalMap { byte =>
+                IO(os.write(Array(byte)))
+              }
+              .compile
+              .drain
+            val flushOutputStream: IO[Unit] = IO(os.flush())
+            (writeBody *> flushOutputStream).unsafeRunSync()
+
+          case None => srv.sendError(404)
+        }
+
+      override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
+        resp.setStatus(Status.Ok.code)
+        req.getInputStream.close()
+      }
+    }
 
   "Blaze Http1Client" should {
     withResource(
@@ -82,9 +95,9 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
         JettyScaffold[IO](1, true, testServlet)
       ).tupled) {
       case (
-          jettyServer,
-          jettySslServer
-          ) => {
+            jettyServer,
+            jettySslServer
+          ) =>
         val addresses = jettyServer.addresses
         val sslAddress = jettySslServer.addresses.head
 
@@ -306,7 +319,8 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
             .use { client =>
               val req = Request[IO](uri = uri)
               client
-                .fetch(req) { _ =>
+                .run(req)
+                .use { _ =>
                   IO.never
                 }
                 .timeout(250.millis)
@@ -343,12 +357,10 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
               client.status(Request[IO](uri = uri"http://example.invalid/"))
             }
             .attempt
-            .unsafeRunSync() must beLike {
-            case Left(e: ConnectionFailure) =>
-              e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
+            .unsafeRunSync() must beLike { case Left(e: ConnectionFailure) =>
+            e.getMessage must_== "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
           }
         }
-      }
     }
   }
 }

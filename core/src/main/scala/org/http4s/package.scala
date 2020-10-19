@@ -1,11 +1,18 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org
 
 import cats.data.{EitherT, Kleisli, OptionT}
 import fs2.Stream
+import org.typelevel.ci.CIString
 
-package object http4s { // scalastyle:ignore
+package object http4s {
 
-  type AuthScheme = util.CaseInsensitiveString
+  type AuthScheme = CIString
 
   type EntityBody[+F[_]] = Stream[F, Byte]
 
@@ -49,22 +56,12 @@ package object http4s { // scalastyle:ignore
     */
   type HttpRoutes[F[_]] = Http[OptionT[F, *], F]
 
-  @deprecated("Deprecated in favor of just using Kleisli", "0.18")
-  type Service[F[_], A, B] = Kleisli[F, A, B]
-
-  @deprecated("Deprecated in favor of HttpRoutes", "0.19")
-  type HttpService[F[_]] = HttpRoutes[F]
-
   type AuthedRequest[F[_], T] = ContextRequest[F, T]
 
-  /**
-    * The type parameters need to be in this order to make partial unification
+  /** The type parameters need to be in this order to make partial unification
     * trigger. See https://github.com/http4s/http4s/issues/1506
     */
   type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, *], AuthedRequest[F, T], Response[F]]
-
-  @deprecated("Deprecated in favor of AuthedRoutes", "0.20.1")
-  type AuthedService[T, F[_]] = AuthedRoutes[T, F]
 
   type ContextRoutes[T, F[_]] = Kleisli[OptionT[F, *], ContextRequest[F, T], Response[F]]
 

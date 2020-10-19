@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package multipart
 
@@ -35,8 +41,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
       .append(closeDelimiter(boundary))
       .toChunk
 
-  /**
-    * encapsulation := delimiter CRLF body-part
+  /** encapsulation := delimiter CRLF body-part
     */
   val encapsulationWithoutBody: Boundary => String = boundary =>
     s"${Boundary.CRLF}${dashBoundary(boundary)}${Boundary.CRLF}"
@@ -57,9 +62,9 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
       part.body
 
   def renderParts(boundary: Boundary)(parts: Vector[Part[F]]): Stream[F, Byte] =
-    if (parts.isEmpty) {
+    if (parts.isEmpty)
       Stream.empty.covary[F]
-    } else {
+    else
       parts.tail
         .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
           acc ++
@@ -67,5 +72,4 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
               Chunk.bytes(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8)))(
               part)
         } ++ Stream.chunk(end(boundary))
-    }
 }

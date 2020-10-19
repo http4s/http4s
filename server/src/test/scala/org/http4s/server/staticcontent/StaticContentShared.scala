@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package staticcontent
@@ -41,6 +47,15 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
         .getBytes(StandardCharsets.UTF_8))
   }
 
+  lazy val testWebjarResourceGzipped: Chunk[Byte] = {
+    val url =
+      getClass.getResource("/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt.gz")
+    require(url != null, "Couldn't acquire resource!")
+
+    val bytes = Files.readAllBytes(Paths.get(url.toURI))
+    Chunk.bytes(bytes)
+  }
+
   lazy val testWebjarSubResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream(
       "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt")
@@ -53,9 +68,9 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
         .getBytes(StandardCharsets.UTF_8))
   }
 
-  def runReq(req: Request[IO]): (Chunk[Byte], Response[IO]) = {
-    val resp = routes.orNotFound(req).unsafeRunSync
-    val chunk = Chunk.bytes(resp.body.compile.to(Array).unsafeRunSync)
+  def runReq(req: Request[IO], routes: HttpRoutes[IO] = routes): (Chunk[Byte], Response[IO]) = {
+    val resp = routes.orNotFound(req).unsafeRunSync()
+    val chunk = Chunk.bytes(resp.body.compile.to(Array).unsafeRunSync())
     (chunk, resp)
   }
 }

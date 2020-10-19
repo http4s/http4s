@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s.websocket
 
 import java.nio.charset.StandardCharsets._
@@ -26,15 +32,15 @@ private[http4s] object WebSocketHandshake {
 
     /** Check if the server response is a websocket handshake response */
     def checkResponse(headers: Iterable[(String, String)]): Either[String, Unit] =
-      if (!headers.exists {
-          case (k, v) => k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
-        }) {
+      if (!headers.exists { case (k, v) =>
+          k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
+        })
         Left("Bad Connection header")
-      } else if (!headers.exists {
-          case (k, v) => k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
-        }) {
+      else if (!headers.exists { case (k, v) =>
+          k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
+        })
         Left("Bad Upgrade header")
-      } else
+      else
         headers
           .find { case (k, _) => k.equalsIgnoreCase("Sec-WebSocket-Accept") }
           .map {
@@ -47,43 +53,41 @@ private[http4s] object WebSocketHandshake {
   /** Checks the headers received from the client and if they are valid, generates response headers */
   def serverHandshake(headers: Iterable[(String, String)])
       : Either[(Int, String), collection.Seq[(String, String)]] =
-    if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") }) {
+    if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") })
       Left((-1, "Missing Host Header"))
-    } else if (!headers.exists {
-        case (k, v) => k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
-      }) {
+    else if (!headers.exists { case (k, v) =>
+        k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
+      })
       Left((-1, "Bad Connection header"))
-    } else if (!headers.exists {
-        case (k, v) => k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
-      }) {
+    else if (!headers.exists { case (k, v) =>
+        k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
+      })
       Left((-1, "Bad Upgrade header"))
-    } else if (!headers.exists {
-        case (k, v) => k.equalsIgnoreCase("Sec-WebSocket-Version") && valueContains("13", v)
-      }) {
+    else if (!headers.exists { case (k, v) =>
+        k.equalsIgnoreCase("Sec-WebSocket-Version") && valueContains("13", v)
+      })
       Left((-1, "Bad Websocket Version header"))
-    } // we are past most of the 'just need them' headers
+    // we are past most of the 'just need them' headers
     else
       headers
-        .find {
-          case (k, v) =>
-            k.equalsIgnoreCase("Sec-WebSocket-Key") && decodeLen(v) == 16
+        .find { case (k, v) =>
+          k.equalsIgnoreCase("Sec-WebSocket-Key") && decodeLen(v) == 16
         }
-        .map {
-          case (_, v) =>
-            val respHeaders = collection.Seq(
-              ("Upgrade", "websocket"),
-              ("Connection", "Upgrade"),
-              ("Sec-WebSocket-Accept", genAcceptKey(v))
-            )
+        .map { case (_, v) =>
+          val respHeaders = collection.Seq(
+            ("Upgrade", "websocket"),
+            ("Connection", "Upgrade"),
+            ("Sec-WebSocket-Accept", genAcceptKey(v))
+          )
 
-            Right(respHeaders)
+          Right(respHeaders)
         }
         .getOrElse(Left((-1, "Bad Sec-WebSocket-Key header")))
 
   /** Check if the headers contain an 'Upgrade: websocket' header */
   def isWebSocketRequest(headers: Iterable[(String, String)]): Boolean =
-    headers.exists {
-      case (k, v) => k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
+    headers.exists { case (k, v) =>
+      k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
     }
 
   private def decodeLen(key: String): Int = Base64.getDecoder.decode(key).length

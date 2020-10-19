@@ -1,45 +1,51 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.implicits._
-import cats.{Eq, Show}
-import org.http4s.Method.Semantics
+import cats.{Eq, Hash, Show}
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
+import scala.util.hashing.MurmurHash3
 
-/**
-  * An HTTP method.
+/** An HTTP method.
+  *
+  * @param name The name of the method
+  *
+  * @param isSafe Request methods are considered "safe" if their defined
+  * semantics are essentially read-only; i.e., the client does not request, and
+  * does not expect, any state change on the origin server as a result of
+  * applying a safe method to a target resource.
+  *
+  * @param isIdempotent A request method is considered "idempotent" if the
+  * intended effect on the server of multiple identical requests with that
+  * method is the same as the effect for a single such request.
   *
   * @see [http://tools.ietf.org/html/rfc7231#section-4 RFC7321, Section 4]
   * @see [http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]
   */
-sealed abstract case class Method private (name: String) extends Renderable with Semantics {
+final class Method private (val name: String, val isSafe: Boolean, val isIdempotent: Boolean)
+    extends Renderable
+    with Serializable {
+  override def equals(that: Any): Boolean =
+    that match {
+      case that: Method => this.name == that.name
+      case _ => false
+    }
+
+  override def hashCode(): Int = MurmurHash3.stringHash(name, Method.HashSeed)
+
+  override def toString(): String = name
+
   final override def render(writer: Writer): writer.type = writer << name
 }
 
 object Method {
-  sealed trait Semantics {
-    def isIdempotent: Boolean
-    def isSafe: Boolean
-  }
-
-  object Semantics {
-    trait Default extends Semantics {
-      def isIdempotent: Boolean = false
-      def isSafe: Boolean = false
-    }
-    trait Idempotent extends Semantics {
-      def isIdempotent: Boolean = true
-      def isSafe: Boolean = false
-    }
-    trait Safe extends Semantics {
-      def isIdempotent: Boolean = true
-      def isSafe: Boolean = true
-    }
-  }
-
-  // Type tags for a method allowing a body or not
-  sealed trait PermitsBody extends Method
-  sealed trait NoBody extends Method
+  private final val HashSeed = 0x892abd01
 
   def fromString(s: String): ParseResult[Method] =
     allByKey.getOrElse(
@@ -48,60 +54,55 @@ object Method {
         .token(s)
         .bimap(
           e => ParseFailure("Invalid method", e.details),
-          new Method(_) with Semantics.Default
+          apply(_)
         ))
 
-  import Semantics._
+  private def apply(name: String) =
+    new Method(name, isSafe = false, isIdempotent = false)
+  private def idempotent(name: String) =
+    new Method(name, isSafe = false, isIdempotent = true)
+  private def safe(name: String) =
+    new Method(name, isSafe = true, isIdempotent = true)
 
-  type IdempotentMethod = Method with Idempotent
-  type IdempotentMethodNoBody = IdempotentMethod with NoBody
-  type IdempotentMethodWithBody = IdempotentMethod with PermitsBody
-  type SafeMethod = Method with Safe
-  type SafeMethodNoBody = SafeMethod with NoBody
-  type SafeMethodWithBody = SafeMethod with PermitsBody
-  type DefaultMethod = Method with Default
-  type DefaultMethodNoBody = DefaultMethod with NoBody
-  type DefaultMethodWithBody = DefaultMethod with PermitsBody
-
-  // TODO: find out the rest of the body permissions. http://www.iana.org/assignments/http-methods/http-methods.xhtml#methods
-  val ACL: IdempotentMethod = new Method("ACL") with Idempotent
-  val `BASELINE-CONTROL`: IdempotentMethod = new Method("BASELINE-CONTROL") with Idempotent
-  val BIND: IdempotentMethod = new Method("BIND") with Idempotent
-  val CHECKIN: IdempotentMethod = new Method("CHECKIN") with Idempotent
-  val CHECKOUT: IdempotentMethod = new Method("CHECKOUT") with Idempotent
-  val CONNECT: DefaultMethodWithBody = new Method("CONNECT") with Default with PermitsBody
-  val COPY: IdempotentMethod = new Method("COPY") with Idempotent
-  val DELETE: IdempotentMethodWithBody = new Method("DELETE") with Idempotent with PermitsBody
-  val GET: SafeMethodWithBody = new Method("GET") with Safe with PermitsBody
-  val HEAD: SafeMethodWithBody = new Method("HEAD") with Safe with PermitsBody
-  val LABEL: IdempotentMethodWithBody = new Method("LABEL") with Idempotent with PermitsBody
-  val LINK: IdempotentMethod = new Method("LINK") with Idempotent
-  val LOCK: DefaultMethod = new Method("LOCK") with Default
-  val MERGE: IdempotentMethod = new Method("MERGE") with Idempotent
-  val MKACTIVITY: IdempotentMethod = new Method("MKACTIVITY") with Idempotent
-  val MKCALENDAR: IdempotentMethod = new Method("MKCALENDAR") with Idempotent
-  val MKCOL: IdempotentMethod = new Method("MKCOL") with Idempotent
-  val MKREDIRECTREF: IdempotentMethod = new Method("MKREDIRECTREF") with Idempotent
-  val MKWORKSPACE: IdempotentMethod = new Method("MKWORKSPACE") with Idempotent
-  val MOVE: IdempotentMethod = new Method("MOVE") with Idempotent
-  val OPTIONS: SafeMethodWithBody = new Method("OPTIONS") with Safe with PermitsBody
-  val ORDERPATCH: IdempotentMethod = new Method("ORDERPATCH") with Idempotent
-  val PATCH: DefaultMethodWithBody = new Method("PATCH") with Default with PermitsBody
-  val POST: DefaultMethodWithBody = new Method("POST") with Default with PermitsBody
-  val PROPFIND: SafeMethod = new Method("PROPFIND") with Safe
-  val PROPPATCH: IdempotentMethod = new Method("PROPPATCH") with Idempotent
-  val PUT: IdempotentMethodWithBody = new Method("PUT") with Idempotent with PermitsBody
-  val REBIND: IdempotentMethod = new Method("REBIND") with Idempotent
-  val REPORT: SafeMethod = new Method("REPORT") with Safe
-  val SEARCH: SafeMethod = new Method("SEARCH") with Safe
-  val TRACE: SafeMethodWithBody = new Method("TRACE") with Safe with PermitsBody
-  val UNBIND: IdempotentMethod = new Method("UNBIND") with Idempotent
-  val UNCHECKOUT: IdempotentMethod = new Method("UNCHECKOUT") with Idempotent
-  val UNLINK: IdempotentMethod = new Method("UNLINK") with Idempotent
-  val UNLOCK: IdempotentMethod = new Method("UNLOCK") with Idempotent
-  val UPDATE: IdempotentMethod = new Method("UPDATE") with Idempotent
-  val UPDATEREDIRECTREF: IdempotentMethod = new Method("UPDATEREDIRECTREF") with Idempotent
-  val `VERSION-CONTROL`: IdempotentMethod = new Method("VERSION-CONTROL") with Idempotent
+  val ACL: Method = idempotent("ACL")
+  val `BASELINE-CONTROL`: Method = idempotent("BASELINE-CONTROL")
+  val BIND: Method = idempotent("BIND")
+  val CHECKIN: Method = idempotent("CHECKIN")
+  val CHECKOUT: Method = idempotent("CHECKOUT")
+  val CONNECT: Method = apply("CONNECT")
+  val COPY: Method = idempotent("COPY")
+  val DELETE: Method = idempotent("DELETE")
+  val GET: Method = safe("GET")
+  val HEAD: Method = safe("HEAD")
+  val LABEL: Method = idempotent("LABEL")
+  val LINK: Method = idempotent("LINK")
+  val LOCK: Method = apply("LOCK")
+  val MERGE: Method = idempotent("MERGE")
+  val MKACTIVITY: Method = idempotent("MKACTIVITY")
+  val MKCALENDAR: Method = idempotent("MKCALENDAR")
+  val MKCOL: Method = idempotent("MKCOL")
+  val MKREDIRECTREF: Method = idempotent("MKREDIRECTREF")
+  val MKWORKSPACE: Method = idempotent("MKWORKSPACE")
+  val MOVE: Method = idempotent("MOVE")
+  val OPTIONS: Method = safe("OPTIONS")
+  val ORDERPATCH: Method = idempotent("ORDERPATCH")
+  val PATCH: Method = apply("PATCH")
+  val POST: Method = apply("POST")
+  val PRI: Method = safe("PRI")
+  val PROPFIND: Method = safe("PROPFIND")
+  val PROPPATCH: Method = idempotent("PROPPATCH")
+  val PUT: Method = idempotent("PUT")
+  val REBIND: Method = idempotent("REBIND")
+  val REPORT: Method = safe("REPORT")
+  val SEARCH: Method = safe("SEARCH")
+  val TRACE: Method = safe("TRACE")
+  val UNBIND: Method = idempotent("UNBIND")
+  val UNCHECKOUT: Method = idempotent("UNCHECKOUT")
+  val UNLINK: Method = idempotent("UNLINK")
+  val UNLOCK: Method = idempotent("UNLOCK")
+  val UPDATE: Method = idempotent("UPDATE")
+  val UPDATEREDIRECTREF: Method = idempotent("UPDATEREDIRECTREF")
+  val `VERSION-CONTROL`: Method = idempotent("VERSION-CONTROL")
 
   val all = List(
     ACL,
@@ -128,6 +129,7 @@ object Method {
     ORDERPATCH,
     PATCH,
     POST,
+    PRI,
     PROPFIND,
     PROPPATCH,
     PUT,
@@ -145,6 +147,10 @@ object Method {
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap
 
-  implicit val http4sEqForMethod: Eq[Method] = Eq.fromUniversalEquals
+  implicit val catsHashForHttp4sMethod: Hash[Method] = Hash.fromUniversalHashCode
+
+  @deprecated("Upgraded to hash. Kept for binary compatibility", "0.21.5")
+  def http4sEqForMethod: Eq[Method] = catsHashForHttp4sMethod
+
   implicit val http4sShowForMethod: Show[Method] = Show.fromToString
 }

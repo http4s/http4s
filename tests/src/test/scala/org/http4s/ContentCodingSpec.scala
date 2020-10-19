@@ -1,9 +1,18 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 
 import cats.implicits._
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer
+
+import org.specs2.scalacheck.Parameters
+import org.scalacheck.rng.Seed
 
 class ContentCodingSpec extends Http4sSpec {
   "equals" should {
@@ -72,10 +81,16 @@ class ContentCodingSpec extends Http4sSpec {
   "render" should {
     "return coding and quality" in
       prop { (s: ContentCoding) =>
-        Renderer.renderString(s) must_== s"${s.coding.toLowerCase}${Renderer.renderString(s.qValue)}"
+        Renderer
+          .renderString(s) must_== s"${s.coding.toLowerCase}${Renderer.renderString(s.qValue)}"
       }
   }
 
   checkAll("Order[ContentCoding]", OrderTests[ContentCoding].order)
   checkAll("HttpCodec[ContentCoding]", HttpCodecTests[ContentCoding].httpCodec)
+
+  checkAll("Order[ContentCoding] for #3328", OrderTests[ContentCoding].order)(
+    Parameters(
+      seed = Seed.fromBase64("2kpw5tJ8tADijqPv2GG3pUWPhjzpJUnaypQufFSWHBB=").toOption,
+      minTestsOk = 1))
 }

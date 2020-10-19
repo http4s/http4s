@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package server
 package middleware
@@ -9,20 +15,19 @@ import cats.effect.Sync
 import cats.implicits._
 import org.http4s.headers.Authorization
 
-/**
-  * Provides Basic Authentication from RFC 2617.
+/** Provides Basic Authentication from RFC 2617.
   */
 object BasicAuth {
 
-  /**
-    * Validates a plaintext password (presumably by comparing it to a
+  private val authParams = Map("charset" -> "UTF-8")
+
+  /** Validates a plaintext password (presumably by comparing it to a
     * hashed value).  A Some value indicates success; None indicates
     * the password failed to validate.
     */
   type BasicAuthenticator[F[_], A] = BasicCredentials => F[Option[A]]
 
-  /**
-    * Construct authentication middleware that can validate the client-provided
+  /** Construct authentication middleware that can validate the client-provided
     * plaintext password against something else (like a stored, hashed password).
     * @param realm The realm used for authentication purposes.
     * @param validate Function that validates a plaintext password
@@ -40,7 +45,7 @@ object BasicAuth {
         case Some(authInfo) =>
           Right(AuthedRequest(authInfo, req))
         case None =>
-          Left(Challenge("Basic", realm, Map.empty))
+          Left(Challenge("Basic", realm, authParams))
       }
     }
 

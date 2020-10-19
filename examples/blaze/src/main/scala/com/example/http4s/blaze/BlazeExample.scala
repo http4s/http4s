@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.example.http4s.blaze
 
 import cats.effect._
@@ -6,6 +12,7 @@ import org.http4s.HttpApp
 import org.http4s.server.{Router, Server}
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
+import scala.concurrent.ExecutionContext.global
 
 object BlazeExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -22,7 +29,7 @@ object BlazeExampleApp {
     for {
       blocker <- Blocker[F]
       app = httpApp[F](blocker)
-      server <- BlazeServerBuilder[F]
+      server <- BlazeServerBuilder[F](global)
         .bindHttp(8080)
         .withHttpApp(app)
         .resource

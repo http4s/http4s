@@ -1,3 +1,9 @@
+/*
+ * Copyright 2013-2020 http4s.org
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.http4s
 package client
 package asynchttpclient
@@ -16,17 +22,11 @@ import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
-import org.http4s.internal.invokeCallback
-import org.http4s.util.threads._
-import org.log4s.getLogger
+import org.http4s.internal.bug
+import org.http4s.internal.threads._
 import org.reactivestreams.Publisher
-import _root_.io.netty.handler.codec.http.cookie.Cookie
-import org.asynchttpclient.uri.Uri
-import org.asynchttpclient.cookie.CookieStore
 
 object AsyncHttpClient {
-  private[this] val logger = getLogger
-
   val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
@@ -37,49 +37,59 @@ object AsyncHttpClient {
     .setCookieStore(new NoOpCookieStore)
     .build()
 
-  /**
-    * Allocates a Client and its shutdown mechanism for freeing resources.
+  /** Allocates a Client and its shutdown mechanism for freeing resources.
     */
-  def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
+  def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
+      F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
     F.delay(new DefaultAsyncHttpClient(config))
       .map(c =>
-        (Client[F] { req =>
-          Resource(F.async[(Response[F], F[Unit])] { cb =>
-            c.executeRequest(toAsyncRequest(req), asyncHandler(cb))
-            ()
-          })
-        }, F.delay(c.close)))
+        (
+          Client[F] { req =>
+            Resource(F.async[(Response[F], F[Unit])] { cb =>
+              c.executeRequest(toAsyncRequest(req), asyncHandler(cb))
+              ()
+            })
+          },
+          F.delay(c.close)))
 
-  /**
-    * Create an HTTP client based on the AsyncHttpClient library
+  /** Create an HTTP client based on the AsyncHttpClient library
     *
     * @param config configuration for the client
-    * @param ec The ExecutionContext to run responses on
     */
-  def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+  def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
+      F: ConcurrentEffect[F]): Resource[F, Client[F]] =
     Resource(allocate(config))
 
-  /**
-    * Create a bracketed HTTP client based on the AsyncHttpClient library.
+  /** Create a bracketed HTTP client based on the AsyncHttpClient library.
     *
     * @param config configuration for the client
-    * @param ec The ExecutionContext to run responses on
     * @return a singleton stream of the client.  The client will be
     * shutdown when the stream terminates.
     */
-  def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+  def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
+      F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(config))
 
-  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])])(
-      implicit F: ConcurrentEffect[F]) =
+  /** Create a custom AsyncHttpClientConfig
+    *
+    * @param configurationFn function that maps from the builder of the defaultConfig to the custom config's builder
+    * @return a custom configuration.
+    */
+  def configure(
+      configurationFn: DefaultAsyncHttpClientConfig.Builder => DefaultAsyncHttpClientConfig.Builder
+  ): AsyncHttpClientConfig = {
+    val defaultConfigBuilder = new DefaultAsyncHttpClientConfig.Builder(defaultConfig)
+    configurationFn(defaultConfigBuilder).build()
+  }
+
+  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])])(implicit
+      F: ConcurrentEffect[F]) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
       val dispose = F.delay { state = State.ABORT }
       val onStreamCalled = Ref.unsafe[F, Boolean](false)
+      val deferredThrowable = Deferred.unsafe[F, Throwable]
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         val eff = for {
@@ -93,14 +103,16 @@ object AsyncHttpClient {
             subscriber.stream(subscribeF).pull.uncons.void.stream.compile.drain
           }
 
-          body = subscriber
-            .stream(bodyDisposal.set(F.unit) >> subscribeF)
-            .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+          body =
+            subscriber
+              .stream(bodyDisposal.set(F.unit) >> subscribeF)
+              .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+              .mergeHaltBoth(Stream.eval(deferredThrowable.get.flatMap(F.raiseError[Byte])))
 
           responseWithBody = response.copy(body = body)
 
-          _ <- invokeCallbackF[F](
-            cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
+          _ <-
+            invokeCallbackF[F](cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
         } yield ()
 
         eff.runAsync(_ => IO.unit).unsafeRunSync()
@@ -109,7 +121,7 @@ object AsyncHttpClient {
       }
 
       override def onBodyPartReceived(httpResponseBodyPart: HttpResponseBodyPart): State =
-        throw org.http4s.util.bug("Expected it to call onStream instead.")
+        throw bug("Expected it to call onStream instead.")
 
       override def onStatusReceived(status: HttpResponseStatus): State = {
         response = response.copy(status = getStatus(status))
@@ -122,7 +134,12 @@ object AsyncHttpClient {
       }
 
       override def onThrowable(throwable: Throwable): Unit =
-        invokeCallback(logger)(cb(Left(throwable)))
+        onStreamCalled.get
+          .ifM(
+            ifTrue = deferredThrowable.complete(throwable),
+            ifFalse = invokeCallbackF(cb(Left(throwable))))
+          .runAsync(_ => IO.unit)
+          .unsafeRunSync()
 
       override def onCompleted(): Unit =
         onStreamCalled.get
@@ -138,7 +155,7 @@ object AsyncHttpClient {
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers.toList)
-      headers.add(h.name.value, h.value)
+      headers.add(h.name.toString, h.value)
     new RequestBuilder(request.method.renderString)
       .setUrl(request.uri.renderString)
       .setHeaders(headers)
@@ -164,12 +181,4 @@ object AsyncHttpClient {
     Headers(headers.asScala.map { header =>
       Header(header.getKey, header.getValue)
     }.toList)
-  private class NoOpCookieStore extends CookieStore {
-    val empty: java.util.List[Cookie] = new java.util.ArrayList()
-    override def add(uri: Uri, cookie: Cookie): Unit = ()
-    override def get(uri: Uri): java.util.List[Cookie] = empty
-    override def getAll(): java.util.List[Cookie] = empty
-    override def remove(pred: java.util.function.Predicate[Cookie]): Boolean = false
-    override def clear(): Boolean = false
-  }
 }
