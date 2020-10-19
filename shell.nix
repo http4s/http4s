@@ -1,11 +1,12 @@
-{ pkgs ? import ./nix }:
-
-with pkgs;
-mkShell {
+let
+  pkgs = import ./nix;
+  hugo = pkgs.callPackage ./nix/hugo.nix {};
+in
+pkgs.mkShell {
   buildInputs = [
-    git
+    pkgs.git
+    pkgs.openjdk8_headless
+    pkgs.sbt
     hugo
-    openjdk8_headless
-    sbt
   ];
 }

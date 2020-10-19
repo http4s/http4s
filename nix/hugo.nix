@@ -1,18 +1,18 @@
-self: super:
-{
-  hugo = self.buildGoPackage rec {
-    name = "hugo-${version}";
-    version = "0.27";
+{ stdenv, buildGoPackage, fetchFromGitHub }:
 
-    goPackagePath = "github.com/gohugoio/hugo";
+buildGoPackage rec {
+  name = "hugo-${version}";
+  version = "0.27";
 
-    src = self.fetchFromGitHub {
-      owner = "gohugoio";
-      repo = "hugo";
-      rev = "v${version}";
-      sha256 = "1r64pwk5g50gwriawmsgza6j8m4jymg8mwgwh1rplpsdfxqdfrbx";
-    };
+  goPackagePath = "github.com/gohugoio/hugo";
 
-    goDeps = ./hugo-deps.nix;
+  src = fetchFromGitHub {
+    owner = "gohugoio";
+    repo = "hugo";
+    rev = "v${version}";
+    sha256 = "1r64pwk5g50gwriawmsgza6j8m4jymg8mwgwh1rplpsdfxqdfrbx";
   };
+
+  deleteVendor = true;
+  goDeps = ./hugo-deps.nix;
 }
