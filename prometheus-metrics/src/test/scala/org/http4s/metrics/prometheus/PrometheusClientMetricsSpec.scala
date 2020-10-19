@@ -39,11 +39,11 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         resp <- client.expect[String]("bad-request").attempt
       } yield {
         resp must beLeft { (e: Throwable) =>
-          e must beLike { case UnexpectedStatus(Status.BadRequest) => ok }
+          e must beLike { case UnexpectedStatus(Status.BadRequest, _, _) => ok }
         }
 
-        count(registry, "4xx_responses", "client") must beEqualTo(1.0)
-        count(registry, "active_requests", "client") must beEqualTo(0.0)
+        count(registry, "4xx_responses", "client") must beEqualTo(1)
+        count(registry, "active_requests", "client") must beEqualTo(0)
         count(registry, "4xx_headers_duration", "client") must beEqualTo(0.05)
         count(registry, "4xx_total_duration", "client") must beEqualTo(0.1)
       }
@@ -54,7 +54,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
         resp <- client.expect[String]("internal-server-error").attempt
       } yield {
         resp must beLeft { (e: Throwable) =>
-          e must beLike { case UnexpectedStatus(Status.InternalServerError) => ok }
+          e must beLike { case UnexpectedStatus(Status.InternalServerError, _, _) => ok }
         }
 
         count(registry, "5xx_responses", "client") must beEqualTo(1.0)

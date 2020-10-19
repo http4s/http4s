@@ -239,6 +239,9 @@ object Client {
     }
 }
 
-final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace {
-  override def getMessage: String = s"unexpected HTTP status: $status"
+final case class UnexpectedStatus(status: Status, requestMethod: Method, requestUri: Uri)
+    extends RuntimeException
+    with NoStackTrace {
+  override def getMessage: String =
+    s"unexpected HTTP status: $status for request $requestMethod $requestUri"
 }

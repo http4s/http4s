@@ -180,7 +180,12 @@ class ClientSyntaxSpec
 
     "return an unexpected status when expecting a URI returns unsuccessful status" in {
       client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(
-        Left(UnexpectedStatus(Status.InternalServerError)))
+        Left(
+          UnexpectedStatus(
+            Status.InternalServerError,
+            Method.GET,
+            Uri.unsafeFromString("http://www.foo.com/status/500")
+          )))
     }
 
     "handle an unexpected status when calling a URI with expectOr" in {
