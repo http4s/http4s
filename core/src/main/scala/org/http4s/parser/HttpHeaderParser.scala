@@ -27,6 +27,7 @@ object HttpHeaderParser
     with ContentLocationHeader
     with ContentTypeHeader
     with CookieHeader
+    with ForwardedHeader
     with LinkHeader
     with LocationHeader
     with OriginHeader
@@ -130,6 +131,7 @@ object HttpHeaderParser
     addParser_(CIString("DATE"), `DATE`)
     addParser_(CIString("ETAG"), `ETAG`)
     addParser_(CIString("EXPIRES"), `EXPIRES`)
+    addParser_(CIString("FORWARDED"), `FORWARDED`)
     addParser_(CIString("HOST"), `HOST`)
     addParser_(CIString("IF-MATCH"), `IF_MATCH`)
     addParser_(CIString("IF-MODIFIED-SINCE"), `IF_MODIFIED_SINCE`)
