@@ -634,31 +634,31 @@ http://example.org/a file
 
   "Uri parameter convenience methods" should {
     "add a parameter if no query is available" in {
-      val u = Uri(query = Query.empty).+?("param1", "value")
+      val u = Uri(query = Query.empty) +? ("param1", "value")
       u must be_==(Uri(query = Query.fromString("param1=value")))
     }
     "add a parameter" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2", "value")
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param2", "value")
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")))
     }
     "add a parameter with boolean value" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2", true)
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param2", true)
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2=true")))
     }
     "add a parameter without a value" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2")
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? "param2"
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")))
     }
     "add a parameter with many values" in {
-      val u = Uri().+?("param1", Seq("value1", "value2"))
+      val u = Uri() +? ("param1", Seq("value1", "value2"))
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2")))
     }
     "add a parameter with many long values" in {
-      val u = Uri().+?("param1", Seq(1L, -1L))
+      val u = Uri() +? ("param1", Seq(1L, -1L))
       u must be_==(Uri(query = Query.fromString(s"param1=1&param1=-1")))
     }
     "add a query parameter with a QueryParamEncoder" in {
-      val u = Uri().+?("test", Ttl(2))
+      val u = Uri() +? ("test", Ttl(2))
       u must be_==(Uri(query = Query.fromString(s"test=2")))
     }
     "add a query parameter with a QueryParamEncoder and an implicit key" in {
@@ -670,11 +670,11 @@ http://example.org/a file
       u must be_==(Uri(query = Query.fromString(s"ttl")))
     }
     "add an optional query parameter (Just)" in {
-      val u = Uri().+??("param1", Some(2))
+      val u = Uri() +?? ("param1", Some(2))
       u must be_==(Uri(query = Query.fromString(s"param1=2")))
     }
     "add an optional query parameter (Empty)" in {
-      val u = Uri().+??("param1", None: Option[Int])
+      val u = Uri() +?? ("param1", None: Option[Int])
       u must be_==(Uri(query = Query.empty))
     }
     "add multiple query parameters at once" in {
@@ -746,7 +746,7 @@ http://example.org/a file
       u must be_==(Uri())
     }
     "replace a parameter" in {
-      val u = Uri(query = Query.fromString("param1=value&param2=value")).+?("param1", "newValue")
+      val u = Uri(query = Query.fromString("param1=value&param2=value")) +? ("param1", "newValue")
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=newValue&param2=value")).multiParams)
     }
@@ -757,18 +757,18 @@ http://example.org/a file
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2"))
-        .+?("param1", Seq("value1", "value2"))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) +?
+        ("param1", Seq("value1", "value2"))
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter without a value" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")).+?("param2")
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) +? "param2"
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace a parameter set" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param1", "value")
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param1", "value")
       u.multiParams must be_==(Uri(query = Query.fromString("param1=value")).multiParams)
     }
     "set a parameter with a value" in {
