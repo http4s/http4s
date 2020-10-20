@@ -36,20 +36,24 @@ trait QueryOps {
     _withQueryParam(QueryParam[T].key, values.map(QueryParamEncoder[T].encode))
 
   /** alias for withQueryParam */
-  def +?[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, value: T): Self =
-    ++?(name, value :: Nil)
+  def +?[K: QueryParamKeyLike, T: QueryParamEncoder](param: (K, T)): Self =
+    ++?((param._1, param._2 :: Nil))
 
   /** alias for withQueryParam */
   def +?[K: QueryParamKeyLike](name: K): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(name), Nil)
 
   /** alias for withQueryParam */
-  def ++?[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, values: collection.Seq[T]): Self =
-    _withQueryParam(QueryParamKeyLike[K].getKey(name), values.map(QueryParamEncoder[T].encode))
+  def ++?[K: QueryParamKeyLike, T: QueryParamEncoder](param: (K, collection.Seq[T])): Self =
+    _withQueryParam(
+      QueryParamKeyLike[K].getKey(param._1),
+      param._2.map((t: T) => QueryParamEncoder[T].encode(t)))
 
   /** alias for withOptionQueryParam */
-  def +??[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, value: Option[T]): Self =
-    _withOptionQueryParam(QueryParamKeyLike[K].getKey(name), value.map(QueryParamEncoder[T].encode))
+  def +??[K: QueryParamKeyLike, T: QueryParamEncoder](param: (K, Option[T])): Self =
+    _withOptionQueryParam(
+      QueryParamKeyLike[K].getKey(param._1),
+      param._2.map(QueryParamEncoder[T].encode))
 
   /** alias for withOptionQueryParam */
   def +??[T: QueryParam: QueryParamEncoder](value: Option[T]): Self =
