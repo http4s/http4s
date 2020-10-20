@@ -650,11 +650,11 @@ http://example.org/a file
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")))
     }
     "add a parameter with many values" in {
-      val u = Uri() +? ("param1", Seq("value1", "value2"))
+      val u = Uri() ++? ("param1", Seq("value1", "value2"))
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2")))
     }
     "add a parameter with many long values" in {
-      val u = Uri() +? ("param1", Seq(1L, -1L))
+      val u = Uri() ++? ("param1", Seq(1L, -1L))
       u must be_==(Uri(query = Query.fromString(s"param1=1&param1=-1")))
     }
     "add a query parameter with a QueryParamEncoder" in {
@@ -757,7 +757,7 @@ http://example.org/a file
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) +?
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) ++?
         ("param1", Seq("value1", "value2"))
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)

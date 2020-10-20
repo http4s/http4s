@@ -37,14 +37,14 @@ trait QueryOps {
 
   /** alias for withQueryParam */
   def +?[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, value: T): Self =
-    +?(name, value :: Nil)
+    ++?(name, value :: Nil)
 
   /** alias for withQueryParam */
   def +?[K: QueryParamKeyLike](name: K): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(name), Nil)
 
   /** alias for withQueryParam */
-  def +?[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, values: collection.Seq[T]): Self =
+  def ++?[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, values: collection.Seq[T]): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(name), values.map(QueryParamEncoder[T].encode))
 
   /** alias for withOptionQueryParam */
