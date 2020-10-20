@@ -47,7 +47,7 @@ trait QueryOps {
   def ++?[K: QueryParamKeyLike, T: QueryParamEncoder](param: (K, collection.Seq[T])): Self =
     _withQueryParam(
       QueryParamKeyLike[K].getKey(param._1),
-      param._2.map((t: T) => QueryParamEncoder[T].encode(t)))
+      param._2.map(QueryParamEncoder[T].encode))
 
   /** alias for withOptionQueryParam */
   def +??[K: QueryParamKeyLike, T: QueryParamEncoder](param: (K, Option[T])): Self =
