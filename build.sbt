@@ -85,6 +85,7 @@ lazy val core = libraryProject("core")
       scalaReflect(scalaVersion.value) % Provided,
       vault,
     ),
+    unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
 
 lazy val laws = libraryProject("laws")
