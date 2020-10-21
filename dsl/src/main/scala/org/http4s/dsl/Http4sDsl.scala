@@ -36,6 +36,16 @@ trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, 
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
   val UUIDVar: impl.UUIDVar.type = impl.UUIDVar
+
+  // Restore binary compatibility with mixin forwarder
+  // TODO remove in 1.0
+  override implicit def http4sMethodSyntax(method: Method): Http4sDsl.MethodOps =
+    new Http4sDsl.MethodOps(method)
+
+  // Restore binary compatibility with mixin forwarder
+  // TODO remove in 1.0
+  override implicit def http4sMethodConcatSyntax(methods: MethodConcat): Http4sDsl.MethodConcatOps =
+    new Http4sDsl.MethodConcatOps(methods)
 }
 
 trait Http4sDsl[F[_]] extends Http4sDsl2[F, F] {
