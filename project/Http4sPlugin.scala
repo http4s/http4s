@@ -35,10 +35,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
-    crossScalaVersions := Seq(scala_213, scala_212),
-
-    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+    crossScalaVersions := Seq(scala_213, scala_212, "0.27.0-RC1"),
 
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
@@ -148,7 +145,7 @@ object Http4sPlugin extends AutoPlugin {
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
           "src/test/scala/org/http4s/UriSpec.scala"
         )
-      }
+      },
   )
 
   def extractApiVersion(version: String) = {
