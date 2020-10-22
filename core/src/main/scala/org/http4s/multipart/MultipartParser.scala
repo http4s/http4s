@@ -7,11 +7,11 @@
 package org.http4s
 package multipart
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.kernel.Sync
 import cats.implicits._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
-import fs2.io.file.{readAll, writeAll}
-import java.nio.file.{Files, Path, StandardOpenOption}
+import fs2.io.file.Files
+import java.nio.file.{Files => NioFiles, Path, StandardOpenOption}
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -536,7 +536,7 @@ object MultipartParser {
   /** Same as the other streamed parsing, except
     * after a particular size, it buffers on a File.
     */
-  def parseStreamedFile[F[_]: Sync](
+  def parseStreamedFile[F[_]: Sync: Files](
       boundary: Boundary,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
@@ -547,7 +547,7 @@ object MultipartParser {
       .map(Multipart(_, boundary))
   }
 
-  def parseToPartsStreamedFile[F[_]: Sync](
+  def parseToPartsStreamedFile[F[_]: Sync: Files](
       boundary: Boundary,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
@@ -561,7 +561,7 @@ object MultipartParser {
     * Ignore the prelude and remove the first boundary. Only traverses until the first
     * part
     */
-  private[this] def ignorePreludeFileStream[F[_]: Sync](
+  private[this] def ignorePreludeFileStream[F[_]: Sync: Files](
       b: Boundary,
       stream: Stream[F, Byte],
       limit: Int,
@@ -597,7 +597,7 @@ object MultipartParser {
     * @tparam F
     * @return
     */
-  private def pullPartsFileStream[F[_]: Sync](
+  private def pullPartsFileStream[F[_]: Sync: Files](
       boundary: Boundary,
       s: Stream[F, Byte],
       limit: Int,
@@ -639,14 +639,14 @@ object MultipartParser {
     }
 
   private[this] def cleanupFile[F[_]](path: Path)(implicit F: Sync[F]): F[Unit] =
-    F.delay(Files.delete(path))
+    F.delay(NioFiles.delete(path))
       .handleErrorWith { err =>
         logger.error(err)("Caught error during file cleanup for multipart")
         //Swallow and report io exceptions in case
         F.unit
       }
 
-  private[this] def tailrecPartsFileStream[F[_]: Sync](
+  private[this] def tailrecPartsFileStream[F[_]: Sync: Files](
       b: Boundary,
       headerStream: Stream[F, Byte],
       rest: Stream[F, Byte],
@@ -698,13 +698,13 @@ object MultipartParser {
   private[this] def makePart[F[_]](hdrs: Headers, body: Stream[F, Byte], path: Option[Path])(
       implicit F: Sync[F]): Part[F] =
     path match {
-      case Some(p) => Part(hdrs, body.onFinalizeWeak(F.delay(Files.delete(p))))
+      case Some(p) => Part(hdrs, body.onFinalizeWeak(F.delay(NioFiles.delete(p))))
       case None => Part(hdrs, body)
     }
 
   /** Split the stream on `values`, but when
     */
-  private def splitWithFileStream[F[_]](
+  private def splitWithFileStream[F[_]: Files](
       values: Array[Byte],
       stream: Stream[F, Byte],
       maxBeforeWrite: Int)(implicit F: Sync[F]): SplitFileStream[F] = {
@@ -718,13 +718,14 @@ object MultipartParser {
       if (state == values.length)
         Pull.eval(
           lacc
-            .through(writeAll[F](fileRef, List(StandardOpenOption.APPEND)))
+            .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
             .compile
-            .drain) >> Pull.pure((readAll[F](fileRef, maxBeforeWrite), racc ++ s, Some(fileRef)))
+            .drain) >> Pull.pure(
+          (Files[F].readAll(fileRef, maxBeforeWrite), racc ++ s, Some(fileRef)))
       else if (limitCTR >= maxBeforeWrite)
         Pull.eval(
           lacc
-            .through(writeAll[F](fileRef, List(StandardOpenOption.APPEND)))
+            .through(Files[F].writeAll(fileRef, List(StandardOpenOption.APPEND)))
             .compile
             .drain) >> streamAndWrite(s, state, Stream.empty, racc, 0, fileRef)
       else
@@ -733,7 +734,7 @@ object MultipartParser {
             val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
             streamAndWrite(str, ix, l, r, limitCTR + add, fileRef)
           case None =>
-            Pull.eval(F.delay(Files.delete(fileRef)).attempt) >> Pull.raiseError[F](
+            Pull.eval(F.delay(NioFiles.delete(fileRef)).attempt) >> Pull.raiseError[F](
               MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
         }
 
@@ -745,10 +746,10 @@ object MultipartParser {
         limitCTR: Int): SplitFileStream[F] =
       if (limitCTR >= maxBeforeWrite)
         Pull
-          .eval(F.delay(Files.createTempFile("", "")))
+          .eval(F.delay(NioFiles.createTempFile("", "")))
           .flatMap { path =>
             (for {
-              _ <- Pull.eval(lacc.through(writeAll[F](path)).compile.drain)
+              _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
               split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
             } yield split)
               .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError[F](e))

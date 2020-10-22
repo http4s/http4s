@@ -15,20 +15,16 @@ import java.util.concurrent.{
 
 import cats.effect.implicits._
 import cats.effect.std.Dispatcher
-import cats.effect.kernel.{Async, Concurrent, Sync}
-import cats.effect.IO
+import cats.effect.kernel.{Async, Sync}
 import cats.implicits._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
-import org.http4s.util.execution.direct
 import org.log4s.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NoStackTrace
-import scala.util.{Failure, Success}
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
-import cats.effect.std.Dispatcher
 
 package object internal {
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
@@ -37,7 +33,7 @@ package object internal {
       f: Either[Throwable, A] => F[Unit])(implicit
       dispatcher: Dispatcher[F],
       ec: ExecutionContext): Unit =
-    dispatcher.unsafeRunSync(fa.evalOn(ec).attemptTap(f))
+    dispatcher.unsafeRunSync(fa.evalOn(ec).attemptTap(f).void)
 
   private[http4s] def loggingAsyncCallback[F[_], A](logger: Logger)(attempt: Either[Throwable, A])(
       implicit F: Sync[F]): F[Unit] =
@@ -50,7 +46,7 @@ package object internal {
   private[http4s] def invokeCallback[F[_]](logger: Logger)(
       f: => Unit)(implicit F: Async[F], dispatcher: Dispatcher[F]): Unit =
     dispatcher.unsafeRunSync(
-      F.start(F.delay(f)).flatMap(_.join).attemptTap(loggingAsyncCallback(logger)(_)(F))
+      F.start(F.delay(f)).flatMap(_.join).attemptTap(loggingAsyncCallback(logger)(_)(F)).void
     )
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */

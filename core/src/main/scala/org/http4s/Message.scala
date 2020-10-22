@@ -186,6 +186,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 object Message {
   private[http4s] val logger = getLogger
   object Keys {
+    import cats.effect.unsafe.implicits.global
     private[this] val trailerHeaders: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
     def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]
   }
@@ -495,6 +496,7 @@ object Request {
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
   object Keys {
+    import cats.effect.unsafe.implicits.global
     val PathInfoCaret: Key[Int] = Key.newKey[IO, Int].unsafeRunSync()
     val PathTranslated: Key[File] = Key.newKey[IO, File].unsafeRunSync()
     val ConnectionInfo: Key[Connection] = Key.newKey[IO, Connection].unsafeRunSync()

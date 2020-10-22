@@ -7,10 +7,10 @@
 package org.http4s
 package multipart
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.kernel.Sync
 import fs2.Stream
 import fs2.io.readInputStream
-import fs2.io.file.readAll
+import fs2.io.file.Files
 import fs2.text.utf8Encode
 import java.io.{File, InputStream}
 import java.net.URL
@@ -41,8 +41,8 @@ object Part {
       Headers(`Content-Disposition`("form-data", Map("name" -> name)) :: headers.toList),
       Stream.emit(value).through(utf8Encode))
 
-  def fileData[F[_]: Sync](name: String, file: File, headers: Header*): Part[F] =
-    fileData(name, file.getName, readAll[F](file.toPath, ChunkSize), headers: _*)
+  def fileData[F[_]: Sync: Files](name: String, file: File, headers: Header*): Part[F] =
+    fileData(name, file.getName, Files[F].readAll(file.toPath, ChunkSize), headers: _*)
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)

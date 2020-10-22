@@ -10,6 +10,8 @@ package multipart
 import cats.effect.kernel.Sync
 import cats.implicits._
 
+import fs2.io.file.Files
+
 private[http4s] object MultipartDecoder {
   def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
@@ -59,7 +61,7 @@ private[http4s] object MultipartDecoder {
     * @return A multipart/form-data encoded vector of parts with some part bodies held in
     *         temporary files.
     */
-  def mixedMultipart[F[_]: Sync](
+  def mixedMultipart[F[_]: Sync: Files](
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,

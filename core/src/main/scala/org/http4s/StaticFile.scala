@@ -13,7 +13,7 @@ import cats.effect.kernel.Sync
 import cats.implicits._
 import fs2.Stream
 import fs2.io._
-import fs2.io.file.readRange
+import fs2.io.file.Files
 import io.chrisdavenport.vault._
 import java.io._
 import java.net.URL
@@ -26,7 +26,9 @@ object StaticFile {
 
   val DefaultBufferSize = 10240
 
-  def fromString[F[_]: Sync](url: String, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+  def fromString[F[_]: Files: Sync](
+      url: String,
+      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(new File(url), req)
 
   def fromResource[F[_]: Sync](
@@ -109,23 +111,25 @@ object StaticFile {
       Sync[F].delay(
         if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
-  def fromFile[F[_]: Sync](f: File, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+  def fromFile[F[_]: Files: Sync](
+      f: File,
+      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req, calcETag[F])
 
-  def fromFile[F[_]: Sync](
+  def fromFile[F[_]: Files: Sync](
       f: File,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req, etagCalculator)
 
-  def fromFile[F[_]: Sync](
+  def fromFile[F[_]: Files: Sync](
       f: File,
       buffsize: Int,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromFile(f, 0, f.length(), buffsize, req, etagCalculator)
 
-  def fromFile[F[_]](
+  def fromFile[F[_]: Files](
       f: File,
       start: Long,
       end: Long,
@@ -198,8 +202,8 @@ object StaticFile {
         s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm")
     } yield notModified
 
-  private def fileToBody[F[_]: Sync](f: File, start: Long, end: Long): EntityBody[F] =
-    readRange[F](f.toPath, DefaultBufferSize, start, end)
+  private def fileToBody[F[_]: Files](f: File, start: Long, end: Long): EntityBody[F] =
+    Files[F].readRange(f.toPath, DefaultBufferSize, start, end)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =
     name.lastIndexOf('.') match {
@@ -208,5 +212,5 @@ object StaticFile {
     }
 
   private[http4s] val staticFileKey =
-    Key.newKey[IO, File].unsafeRunSync()
+    Key.newKey[IO, File].unsafeRunSync()(cats.effect.unsafe.implicits.global)
 }
