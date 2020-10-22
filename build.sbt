@@ -66,7 +66,7 @@ lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
     MimeLoaderPlugin,
-    // SilencerPlugin
+    SilencerPlugin
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -119,7 +119,7 @@ lazy val tests = libraryProject("tests")
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
-  // .enablePlugins(SilencerPlugin)
+  .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s servers"
   )
@@ -151,7 +151,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   )
 
 lazy val client = libraryProject("client")
-  // .enablePlugins(SilencerPlugin)
+  .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s clients",
     libraryDependencies += jettyServlet % Test withDottyCompat(scalaVersion.value)
@@ -691,13 +691,6 @@ def exampleProject(name: String) =
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",
   scalacOptions ++= { if (isDotty.value) Seq("-source:3.0-migration") else Nil },
-  scalacOptions := {
-    val prev = scalacOptions.value
-    // TODO We hope 12 isn't an argument to something else!!!
-    // This would be better fixed in sbt-http4s-org
-    if (isDotty.value) prev.filterNot(Set("-Ybackend-parallelism", "12"))
-    else prev
-  },
   libraryDependencies ++= {
     if (isDotty.value) Seq.empty
     else Seq(
