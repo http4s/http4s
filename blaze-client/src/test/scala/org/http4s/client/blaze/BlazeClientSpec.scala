@@ -112,7 +112,7 @@ class BlazeClientSpec extends Http4sSpec with Http4sLegacyMatchersIO {
           resp.map(_.length > 0) must beSome(true)
         }
 
-        "reject https requests when no SSLContext is configured" in {
+        "reject https requests when no SSLContext is configured" in skipOnCi {
           val name = sslAddress.getHostName
           val port = sslAddress.getPort
           val u = Uri.fromString(s"https://$name:$port/simple").yolo
