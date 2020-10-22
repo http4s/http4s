@@ -6,7 +6,10 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 // Global settings
 ThisBuild / scalaVersion := scala_213
 
+lazy val parsley = ProjectRef(uri("https://github.com/http4s/Parsley.git#085fef476a2d2a01019b2f3d9ea615730245e52f"), "root")
+
 lazy val modules: List[ProjectReference] = List(
+  parsley,
   core,
   laws,
   testing,
@@ -81,12 +84,11 @@ lazy val core = libraryProject("core")
       catsEffect,
       fs2Io,
       log4s,
-      parboiled,
       scalaReflect(scalaVersion.value) % Provided,
       vault,
     ),
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
-  )
+  ).dependsOn(parsley)
 
 lazy val laws = libraryProject("laws")
   .settings(
