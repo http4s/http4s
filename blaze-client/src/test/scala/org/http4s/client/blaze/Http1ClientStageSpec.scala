@@ -192,7 +192,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       response must_== "done"
     }
 
-    "Insert a User-Agent header" in {
+    "Insert a User-Agent header" in skipOnCi {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
       val (request, response) = getSubmission(FooRequest, resp, DefaultUserAgent).unsafeRunSync()
