@@ -246,7 +246,7 @@ object Uri {
     def unsafeFromString(s: String): Scheme =
       fromString(s).fold(throw _, identity)
 
-    @nowarn("deprecated")
+    @nowarn("msg=deprecated")
     private[http4s] trait Parser { self: PbParser =>
       def scheme =
         rule {

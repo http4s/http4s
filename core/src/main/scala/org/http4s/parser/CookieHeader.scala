@@ -112,7 +112,7 @@ private[parser] trait CookieHeader {
 
     def DomainNamePart: Rule0 = rule(AlphaNum ~ zeroOrMore(AlphaNum | ch('-')))
 
-    @nowarn("deprecated")
+    @nowarn("msg=deprecated")
     def StringValue: Rule1[String] = rule(capture(oneOrMore((!(CTL | ch(';'))) ~ Char)))
 
     def SameSite: Rule1[SameSite] =

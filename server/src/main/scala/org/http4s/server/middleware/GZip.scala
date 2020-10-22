@@ -60,7 +60,7 @@ object GZip {
       case resp => resp // Don't touch it, Content-Encoding already set
     }
 
-  @nowarn("deprecated")
+  @nowarn("msg=deprecated")
   private def zipResponse[F[_]: Functor](
       bufferSize: Int,
       level: Int,
