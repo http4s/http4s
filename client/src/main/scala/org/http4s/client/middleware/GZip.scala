@@ -40,7 +40,7 @@ object GZip {
           req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
     }
 
-  @nowarn("msg=deprecated")
+  @nowarn("cat=deprecation")
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
       F: Bracket[F, Throwable]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
