@@ -159,7 +159,7 @@ private[client] object ClientHelpers {
     Resource.pure[F, Response[F]](out)
   }
 
-  // https://github.com/http4s/http4s/blob/master/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
+  // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
   private def getAddress[F[_]: Sync](requestKey: RequestKey): F[InetSocketAddress] =
     requestKey match {
       case RequestKey(s, auth) =>

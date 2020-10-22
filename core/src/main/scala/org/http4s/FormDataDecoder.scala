@@ -61,7 +61,7 @@ import cats.implicits._
   * }}}
   *
   * For more examples, check the tests
-  * https://github.com/http4s/http4s/blob/master/tests/src/test/scala/org/http4s/FormDataDecoderSpec.scala
+  * https://github.com/http4s/http4s/blob/main/tests/src/test/scala/org/http4s/FormDataDecoderSpec.scala
   */
 sealed trait FormDataDecoder[A] {
   def apply(data: Map[String, Chain[String]]): ValidatedNel[ParseFailure, A]
