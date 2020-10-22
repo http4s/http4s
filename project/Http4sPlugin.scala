@@ -208,6 +208,19 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
+  def docsProjectSettings: Seq[Setting[_]] = {
+    import com.typesafe.sbt.site.hugo.HugoPlugin.autoImport._
+    Seq(
+      git.remoteRepo := "git@github.com:http4s/http4s.git",
+      Hugo / includeFilter := (
+        "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
+          "*.js" | "*.swf" | "*.json" | "*.md" |
+          "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
+          "CNAME" | "_config.yml" | "_redirects"
+      )
+    )
+  }
+
   object V { // Dependency versions
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
