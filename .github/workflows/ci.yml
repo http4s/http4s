@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         java: [adopt@1.8, adopt@1.11, adopt@1.15]
-        scala: [2.12.12, 2.13.3]
+        scala: [2.12.12, 2.13.3, 0.27.0-RC1]
     env:
       SCALA_VERSION: ${{ matrix.scala }}
     steps:
