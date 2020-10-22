@@ -30,20 +30,22 @@ object Http4sPlugin extends AutoPlugin {
     isCi := sys.env.get("CI").isDefined,
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
-    }.value
+    }.value,
   )
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
     crossScalaVersions := Seq(scala_213, scala_212),
-    addCompilerPlugin(("org.typelevel" % "kind-projector" % "0.11.0").cross(CrossVersion.full)),
+
+    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = http4sApiVersion.value
 
       val releases = latestPerMinorVersion(baseDirectory.value)
-        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.toString}"""" }
+        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.toString}""""}
         .mkString("\n")
 
       // Would be more elegant if `[versions.http4s]` was nested, but then
@@ -64,80 +66,41 @@ object Http4sPlugin extends AutoPlugin {
 
       IO.write(dest, buildData)
     },
+
     // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
     // Jetty prereleases appear because of their non-semver prod releases
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "=10.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "10.0.0.alpha1"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "10.0.0.alpha2"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "10.0.0.beta0"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "10.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "10.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "11.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "11.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty",
-      revision = "11.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "10.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "10.0.0.alpha1"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "10.0.0.alpha2"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "10.0.0.beta0"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "10.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "10.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "11.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "11.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.eclipse.jetty.http2",
-      revision = "11.0.0.beta2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "=10.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta2"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0-alpha0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta2"),
     // Broke binary compatibility with 2.10.5
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.asynchttpclient",
-      revision = "2.11.0"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.asynchttpclient",
-      revision = "2.12.0"),
-    dependencyUpdatesFilter -= moduleFilter(
-      organization = "org.asynchttpclient",
-      revision = "2.12.1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
+
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
-        def accept(file: File) =
+        def accept(file: File) = {
           attributedSources.contains(baseDirectory.value.toPath.relativize(file.toPath).toString)
+        }
 
         val attributedSources = Set(
           "src/main/scala/org/http4s/argonaut/Parser.scala",
@@ -191,7 +154,8 @@ object Http4sPlugin extends AutoPlugin {
   def extractDocsPrefix(version: String) =
     extractApiVersion(version).productIterator.mkString("/v", ".", "")
 
-  /** @return the version we want to document, for example in tuts,
+  /**
+    * @return the version we want to document, for example in tuts,
     * given the version being built.
     *
     * For snapshots after a stable release, return the previous stable
@@ -222,28 +186,26 @@ object Http4sPlugin extends AutoPlugin {
 
     // M before RC before final
     def patchSortKey(v: VersionNumber) = v match {
-      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q.startsWith("M") =>
+      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q startsWith "M" =>
         (patch, 0L, q.drop(1).toLong)
-      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q.startsWith("RC") =>
+      case VersionNumber(Seq(_, _, patch), Seq(q), _) if q startsWith "RC" =>
         (patch, 1L, q.drop(2).toLong)
       case VersionNumber(Seq(_, _, patch), Seq(), _) => (patch, 2L, 0L)
       case _ => (-1L, -1L, -1L)
     }
 
-    JGit(file).tags
-      .collect {
-        case ref if ref.getName.startsWith("refs/tags/v") =>
-          VersionNumber(ref.getName.substring("refs/tags/v".size))
-      }
-      .foldLeft(Map.empty[(Long, Long), VersionNumber]) { case (m, v) =>
+    JGit(file).tags.collect {
+      case ref if ref.getName.startsWith("refs/tags/v") =>
+        VersionNumber(ref.getName.substring("refs/tags/v".size))
+    }.foldLeft(Map.empty[(Long, Long), VersionNumber]) {
+      case (m, v) =>
         majorMinor(v) match {
           case Some(key) =>
-            val max =
-              m.get(key).fold(v)(v0 => Ordering[(Long, Long, Long)].on(patchSortKey).max(v, v0))
+            val max = m.get(key).fold(v) { v0 => Ordering[(Long, Long, Long)].on(patchSortKey).max(v, v0) }
             m.updated(key, max)
           case None => m
         }
-      }
+    }
   }
 
   object V { // Dependency versions
@@ -256,13 +218,13 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.3.3"
     val caseInsensitive = "0.3.0"
     val cats = "2.2.0"
-    val catsEffect = "3.0-d5a2213"
+    val catsEffect = "2.2.0"
     val catsEffectTesting = "0.4.1"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.0"
     val dropwizardMetrics = "4.1.13"
-    val fs2 = "3.0-5158029"
+    val fs2 = "2.4.4"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.32.v20200930"
@@ -289,70 +251,68 @@ object Http4sPlugin extends AutoPlugin {
     val vault = "2.0.0"
   }
 
-  lazy val argonaut = "io.argonaut" %% "argonaut" % V.argonaut
-  lazy val argonautJawn = "io.argonaut" %% "argonaut-jawn" % V.argonaut
-  lazy val asyncHttpClient = "org.asynchttpclient" % "async-http-client" % V.asyncHttpClient
-  lazy val blaze = "org.http4s" %% "blaze-http" % V.blaze
-  lazy val boopickle = "io.suzaku" %% "boopickle" % V.boopickle
-  lazy val caseInsensitive = "org.typelevel" %% "case-insensitive" % V.caseInsensitive
-  lazy val caseInsensitiveTesting =
-    "org.typelevel" %% "case-insensitive-testing" % V.caseInsensitive
-  lazy val cats = "org.typelevel" %% "cats-core" % V.cats
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % V.catsEffect
-  lazy val catsEffectLaws = "org.typelevel" %% "cats-effect-laws" % V.catsEffect
-  lazy val catsEffectTestingSpecs2 =
-    "com.codecommit" %% "cats-effect-testing-specs2" % V.catsEffectTesting
-  lazy val catsKernelLaws = "org.typelevel" %% "cats-kernel-laws" % V.cats
-  lazy val catsLaws = "org.typelevel" %% "cats-laws" % V.cats
-  lazy val circeGeneric = "io.circe" %% "circe-generic" % V.circe
-  lazy val circeJawn = "io.circe" %% "circe-jawn" % V.circe
-  lazy val circeLiteral = "io.circe" %% "circe-literal" % V.circe
-  lazy val circeParser = "io.circe" %% "circe-parser" % V.circe
-  lazy val circeTesting = "io.circe" %% "circe-testing" % V.circe
-  lazy val cryptobits = "org.reactormonk" %% "cryptobits" % V.cryptobits
-  lazy val disciplineSpecs2 = "org.typelevel" %% "discipline-specs2" % V.disciplineSpecs2
-  lazy val dropwizardMetricsCore = "io.dropwizard.metrics" % "metrics-core" % V.dropwizardMetrics
-  lazy val dropwizardMetricsJson = "io.dropwizard.metrics" % "metrics-json" % V.dropwizardMetrics
-  lazy val fs2Io = "co.fs2" %% "fs2-io" % V.fs2
-  lazy val fs2ReactiveStreams = "co.fs2" %% "fs2-reactive-streams" % V.fs2
-  lazy val javaxServletApi = "javax.servlet" % "javax.servlet-api" % V.servlet
-  lazy val jawnFs2 = "org.http4s" %% "jawn-fs2" % V.jawnFs2
-  lazy val jawnJson4s = "org.typelevel" %% "jawn-json4s" % V.jawn
-  lazy val jawnPlay = "org.typelevel" %% "jawn-play" % V.jawn
-  lazy val jettyClient = "org.eclipse.jetty" % "jetty-client" % V.jetty
-  lazy val jettyHttp2Server = "org.eclipse.jetty.http2" % "http2-server" % V.jetty
-  lazy val jettyRunner = "org.eclipse.jetty" % "jetty-runner" % V.jetty
-  lazy val jettyServer = "org.eclipse.jetty" % "jetty-server" % V.jetty
-  lazy val jettyServlet = "org.eclipse.jetty" % "jetty-servlet" % V.jetty
-  lazy val json4sCore = "org.json4s" %% "json4s-core" % V.json4s
-  lazy val json4sJackson = "org.json4s" %% "json4s-jackson" % V.json4s
-  lazy val json4sNative = "org.json4s" %% "json4s-native" % V.json4s
-  lazy val keypool = "io.chrisdavenport" %% "keypool" % V.keypool
-  lazy val log4catsCore = "io.chrisdavenport" %% "log4cats-core" % V.log4cats
-  lazy val log4catsSlf4j = "io.chrisdavenport" %% "log4cats-slf4j" % V.log4cats
-  lazy val log4catsTesting = "io.chrisdavenport" %% "log4cats-testing" % V.log4cats
-  lazy val log4s = "org.log4s" %% "log4s" % V.log4s
-  lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % V.logback
-  lazy val mockito = "org.mockito" % "mockito-core" % V.mockito
-  lazy val okhttp = "com.squareup.okhttp3" % "okhttp" % V.okhttp
-  lazy val playJson = "com.typesafe.play" %% "play-json" % V.playJson
-  lazy val prometheusClient = "io.prometheus" % "simpleclient" % V.prometheusClient
-  lazy val prometheusCommon = "io.prometheus" % "simpleclient_common" % V.prometheusClient
-  lazy val prometheusHotspot = "io.prometheus" % "simpleclient_hotspot" % V.prometheusClient
-  lazy val parboiled = "org.http4s" %% "parboiled" % V.parboiledHttp4s
-  lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
-  lazy val scalacheck = "org.scalacheck" %% "scalacheck" % V.scalacheck
-  def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
-  lazy val scalatagsApi = "com.lihaoyi" %% "scalatags" % V.scalatags
-  lazy val scalaXml = "org.scala-lang.modules" %% "scala-xml" % V.scalaXml
-  lazy val specs2Cats = "org.specs2" %% "specs2-cats" % V.specs2
-  lazy val specs2Core = "org.specs2" %% "specs2-core" % V.specs2
-  lazy val specs2Matcher = "org.specs2" %% "specs2-matcher" % V.specs2
-  lazy val specs2MatcherExtra = "org.specs2" %% "specs2-matcher-extra" % V.specs2
-  lazy val specs2Scalacheck = "org.specs2" %% "specs2-scalacheck" % V.specs2
-  lazy val tomcatCatalina = "org.apache.tomcat" % "tomcat-catalina" % V.tomcat
-  lazy val tomcatCoyote = "org.apache.tomcat" % "tomcat-coyote" % V.tomcat
-  lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
-  lazy val twirlApi = "com.typesafe.play" %% "twirl-api" % V.twirl
-  lazy val vault = "io.chrisdavenport" %% "vault" % V.vault
+  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
+  lazy val argonautJawn                     = "io.argonaut"            %% "argonaut-jawn"             % V.argonaut
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % V.blaze
+  lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % V.boopickle
+  lazy val caseInsensitive                  = "org.typelevel"          %% "case-insensitive"          % V.caseInsensitive
+  lazy val caseInsensitiveTesting           = "org.typelevel"          %% "case-insensitive-testing"  % V.caseInsensitive
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % V.cats
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
+  lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
+  lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % V.catsEffectTesting
+  lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % V.cats
+  lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
+  lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % V.circe
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % V.circe
+  lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % V.circe
+  lazy val circeParser                      = "io.circe"               %% "circe-parser"              % V.circe
+  lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % V.circe
+  lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % V.cryptobits
+  lazy val disciplineSpecs2                 = "org.typelevel"          %% "discipline-specs2"         % V.disciplineSpecs2
+  lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % V.dropwizardMetrics
+  lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % V.dropwizardMetrics
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
+  lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
+  lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
+  lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % V.jawn
+  lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
+  lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % V.jetty
+  lazy val jettyHttp2Server                 = "org.eclipse.jetty.http2" %  "http2-server"             % V.jetty
+  lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % V.jetty
+  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % V.jetty
+  lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % V.jetty
+  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % V.json4s
+  lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
+  lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
+  lazy val keypool                          = "io.chrisdavenport"      %% "keypool"                   % V.keypool
+  lazy val log4catsCore                     = "io.chrisdavenport"      %% "log4cats-core"             % V.log4cats
+  lazy val log4catsSlf4j                    = "io.chrisdavenport"      %% "log4cats-slf4j"            % V.log4cats
+  lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % V.log4cats
+  lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
+  lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % V.mockito
+  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % V.okhttp
+  lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % V.playJson
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % V.prometheusClient
+  lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % V.prometheusClient
+  lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % V.prometheusClient
+  lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % V.parboiledHttp4s
+  lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % V.quasiquotes
+  lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % V.scalacheck
+  def scalaReflect(sv: String)              = "org.scala-lang"         %  "scala-reflect"             % sv
+  lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % V.scalatags
+  lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % V.scalaXml
+  lazy val specs2Cats                       = "org.specs2"             %% "specs2-cats"               % V.specs2
+  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % V.specs2
+  lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % V.specs2
+  lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % V.specs2
+  lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % V.specs2
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % V.tomcat
+  lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % V.tomcat
+  lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % V.treehugger
+  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % V.twirl
+  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % V.vault
 }
