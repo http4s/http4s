@@ -12,7 +12,6 @@ package org.http4s
 
 import cats.{Eq, Hash, Order, Show}
 import cats.syntax.either._
-import com.github.ghik.silencer.silent
 import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset}
@@ -23,6 +22,7 @@ import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
+import scala.annotation.nowarn
 import scala.collection.immutable
 import scala.math.Ordered
 import scala.reflect.macros.whitebox
@@ -246,7 +246,7 @@ object Uri {
     def unsafeFromString(s: String): Scheme =
       fromString(s).fold(throw _, identity)
 
-    @silent("deprecated")
+    @nowarn("cat=deprecation")
     private[http4s] trait Parser { self: PbParser =>
       def scheme =
         rule {

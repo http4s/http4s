@@ -9,9 +9,9 @@ package client
 package middleware
 
 import cats.effect.Bracket
-import com.github.ghik.silencer.silent
 import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
+import scala.annotation.nowarn
 import scala.util.control.NoStackTrace
 
 /** Client middleware for enabling gzip.
@@ -40,7 +40,7 @@ object GZip {
           req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
     }
 
-  @silent("deprecated")
+  @nowarn("cat=deprecation")
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
       F: Bracket[F, Throwable]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
