@@ -26,7 +26,7 @@ object Forwarded
   object Node {
     def apply(nodeName: Name, nodePort: Port): Node = apply(nodeName, Some(nodePort))
 
-    sealed trait Name { _: Product => }
+    sealed trait Name { self: Product => }
 
     object Name {
       case class Ipv4(address: Uri.Ipv4Address) extends Name
@@ -47,7 +47,7 @@ object Forwarded
       // format: on
     }
 
-    sealed trait Port { _: Product => }
+    sealed trait Port { self: Product => }
 
     object Port {
       private[this] final case class C(value: Int) extends Port {
@@ -117,7 +117,7 @@ object Forwarded
   type Proto = Uri.Scheme
   val Proto: Uri.Scheme.type = Uri.Scheme
 
-  sealed trait Element extends Renderable { _: Product =>
+  sealed trait Element extends Renderable { self: Product =>
     def maybeBy: Option[Node]
     def maybeFor: Option[Node]
     def maybeHost: Option[Host]
