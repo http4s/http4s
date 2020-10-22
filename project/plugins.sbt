@@ -10,7 +10,7 @@ addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.9.
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.3")
 addSbtPlugin("com.geirsson"               %  "sbt-ci-release"            % "1.5.2")
 addSbtPlugin("com.github.tkawachi"        %  "sbt-doctest"               % "0.9.6")
-addSbtPlugin("org.http4s"                 %  "sbt-http4s-org"            % "0.2.0")
+addSbtPlugin("org.http4s"                 %  "sbt-http4s-org"            % "0.3.0")
 addSbtPlugin("com.timushev.sbt"           %  "sbt-updates"               % "0.5.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-ghpages"               % "0.6.3")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.0")

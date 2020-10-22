@@ -88,6 +88,7 @@ lazy val core = libraryProject("core")
       if (isDotty.value) Nil
       else Seq(scalaReflect(scalaVersion.value) % Provided),
     },
+    unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
 
 lazy val laws = libraryProject("laws")
@@ -436,6 +437,7 @@ lazy val docs = http4sProject("docs")
     ScalaUnidocPlugin,
     MdocPlugin
   )
+  .settings(docsProjectSettings)
   .settings(
     crossScalaVersions := List(scala_212),
     libraryDependencies ++= Seq(
@@ -493,6 +495,7 @@ lazy val docs = http4sProject("docs")
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
+  .settings(docsProjectSettings)
   .settings(
     description := "Common area of http4s.org",
     Hugo / baseURL := {
@@ -718,13 +721,6 @@ lazy val commonSettings = Seq(
     specs2MatcherExtra,
     specs2Scalacheck
   ).map(_ % Test withDottyCompat(scalaVersion.value)),
-  git.remoteRepo := "git@github.com:http4s/http4s.git",
-  Hugo / includeFilter := (
-    "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
-      "*.js" | "*.swf" | "*.json" | "*.md" |
-      "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-      "CNAME" | "_config.yml" | "_redirects"
-  )
 )
 
 def initCommands(additionalImports: String*) =
