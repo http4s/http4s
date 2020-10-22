@@ -70,7 +70,7 @@ object HttpDate {
     * problem for future generations.
     */
   def current[F[_]: Functor: Clock]: F[HttpDate] =
-    Clock[F].realTime(SECONDS).map(unsafeFromEpochSecond)
+    Clock[F].realTime.map(v => unsafeFromEpochSecond(v.toSeconds))
 
   /** The `HttpDate` equal to `Thu, Jan 01 1970 00:00:00 GMT` */
   val Epoch: HttpDate =

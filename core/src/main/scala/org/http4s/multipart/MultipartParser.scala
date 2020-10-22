@@ -536,40 +536,24 @@ object MultipartParser {
   /** Same as the other streamed parsing, except
     * after a particular size, it buffers on a File.
     */
-  def parseStreamedFile[F[_]: Sync: ContextShift](
+  def parseStreamedFile[F[_]: Sync](
       boundary: Boundary,
-      blocker: Blocker,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
       failOnLimit: Boolean = false): Pipe[F, Byte, Multipart[F]] = { st =>
-    ignorePreludeFileStream[F](
-      boundary,
-      st,
-      limit,
-      maxSizeBeforeWrite,
-      maxParts,
-      failOnLimit,
-      blocker)
+    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
       .fold(Vector.empty[Part[F]])(_ :+ _)
       .map(Multipart(_, boundary))
   }
 
-  def parseToPartsStreamedFile[F[_]: Sync: ContextShift](
+  def parseToPartsStreamedFile[F[_]: Sync](
       boundary: Boundary,
-      blocker: Blocker,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
       failOnLimit: Boolean = false): Pipe[F, Byte, Part[F]] = { st =>
-    ignorePreludeFileStream[F](
-      boundary,
-      st,
-      limit,
-      maxSizeBeforeWrite,
-      maxParts,
-      failOnLimit,
-      blocker)
+    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
   }
 
   /** The first part of our streaming stages:
@@ -577,26 +561,18 @@ object MultipartParser {
     * Ignore the prelude and remove the first boundary. Only traverses until the first
     * part
     */
-  private[this] def ignorePreludeFileStream[F[_]: Sync: ContextShift](
+  private[this] def ignorePreludeFileStream[F[_]: Sync](
       b: Boundary,
       stream: Stream[F, Byte],
       limit: Int,
       maxSizeBeforeWrite: Int,
       maxParts: Int,
-      failOnLimit: Boolean,
-      blocker: Blocker): Stream[F, Part[F]] = {
+      failOnLimit: Boolean): Stream[F, Part[F]] = {
     val values = StartLineBytesN(b)
 
     def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
       if (state == values.length)
-        pullPartsFileStream[F](
-          b,
-          strim ++ s,
-          limit,
-          maxSizeBeforeWrite,
-          maxParts,
-          failOnLimit,
-          blocker)
+        pullPartsFileStream[F](b, strim ++ s, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
       else
         s.pull.uncons.flatMap {
           case Some((chnk, rest)) =>
@@ -621,15 +597,13 @@ object MultipartParser {
     * @tparam F
     * @return
     */
-  private def pullPartsFileStream[F[_]: Sync: ContextShift](
+  private def pullPartsFileStream[F[_]: Sync](
       boundary: Boundary,
       s: Stream[F, Byte],
       limit: Int,
       maxBeforeWrite: Int,
       maxParts: Int,
-      failOnLimit: Boolean,
-      blocker: Blocker
-  ): Pull[F, Part[F], Unit] = {
+      failOnLimit: Boolean): Pull[F, Part[F], Unit] = {
     val values = DoubleCRLFBytesN
     val expectedBytes = ExpectedBytesN(boundary)
 
@@ -650,9 +624,7 @@ object MultipartParser {
           maxBeforeWrite,
           1,
           maxParts,
-          failOnLimit,
-          blocker
-        )
+          failOnLimit)
     }
   }
 
@@ -674,7 +646,7 @@ object MultipartParser {
         F.unit
       }
 
-  private[this] def tailrecPartsFileStream[F[_]: Sync: ContextShift](
+  private[this] def tailrecPartsFileStream[F[_]: Sync](
       b: Boundary,
       headerStream: Stream[F, Byte],
       rest: Stream[F, Byte],
@@ -683,12 +655,11 @@ object MultipartParser {
       maxBeforeWrite: Int,
       partsCounter: Int,
       partsLimit: Int,
-      failOnLimit: Boolean,
-      blocker: Blocker): Pull[F, Part[F], Unit] =
+      failOnLimit: Boolean): Pull[F, Part[F], Unit] =
     Pull
       .eval(parseHeaders(headerStream))
       .flatMap { hdrs =>
-        splitWithFileStream(expectedBytes, rest, maxBeforeWrite, blocker).flatMap {
+        splitWithFileStream(expectedBytes, rest, maxBeforeWrite).flatMap {
           case (partBody, rest, fileRef) =>
             //We hit a boundary, but the rest of the stream is empty
             //and thus it's not a properly capped multipart body
@@ -718,8 +689,7 @@ object MultipartParser {
                       maxBeforeWrite,
                       partsCounter + 1,
                       partsLimit,
-                      failOnLimit,
-                      blocker)
+                      failOnLimit)
                       .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError[F](e))
                 }
         }
@@ -737,8 +707,7 @@ object MultipartParser {
   private def splitWithFileStream[F[_]](
       values: Array[Byte],
       stream: Stream[F, Byte],
-      maxBeforeWrite: Int,
-      blocker: Blocker)(implicit F: Sync[F], cs: ContextShift[F]): SplitFileStream[F] = {
+      maxBeforeWrite: Int)(implicit F: Sync[F]): SplitFileStream[F] = {
     def streamAndWrite(
         s: Stream[F, Byte],
         state: Int,
@@ -749,14 +718,13 @@ object MultipartParser {
       if (state == values.length)
         Pull.eval(
           lacc
-            .through(writeAll[F](fileRef, blocker, List(StandardOpenOption.APPEND)))
+            .through(writeAll[F](fileRef, List(StandardOpenOption.APPEND)))
             .compile
-            .drain) >> Pull.pure(
-          (readAll[F](fileRef, blocker, maxBeforeWrite), racc ++ s, Some(fileRef)))
+            .drain) >> Pull.pure((readAll[F](fileRef, maxBeforeWrite), racc ++ s, Some(fileRef)))
       else if (limitCTR >= maxBeforeWrite)
         Pull.eval(
           lacc
-            .through(writeAll[F](fileRef, blocker, List(StandardOpenOption.APPEND)))
+            .through(writeAll[F](fileRef, List(StandardOpenOption.APPEND)))
             .compile
             .drain) >> streamAndWrite(s, state, Stream.empty, racc, 0, fileRef)
       else
@@ -780,7 +748,7 @@ object MultipartParser {
           .eval(F.delay(Files.createTempFile("", "")))
           .flatMap { path =>
             (for {
-              _ <- Pull.eval(lacc.through(writeAll[F](path, blocker)).compile.drain)
+              _ <- Pull.eval(lacc.through(writeAll[F](path)).compile.drain)
               split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
             } yield split)
               .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError[F](e))

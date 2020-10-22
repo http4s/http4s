@@ -7,7 +7,7 @@
 package org.http4s
 package multipart
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.kernel.Sync
 import cats.implicits._
 
 private[http4s] object MultipartDecoder {
@@ -59,8 +59,7 @@ private[http4s] object MultipartDecoder {
     * @return A multipart/form-data encoded vector of parts with some part bodies held in
     *         temporary files.
     */
-  def mixedMultipart[F[_]: Sync: ContextShift](
-      blocker: Blocker,
+  def mixedMultipart[F[_]: Sync](
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
@@ -73,7 +72,6 @@ private[http4s] object MultipartDecoder {
               .through(
                 MultipartParser.parseToPartsStreamedFile[F](
                   Boundary(boundary),
-                  blocker,
                   headerLimit,
                   maxSizeBeforeWrite,
                   maxParts,

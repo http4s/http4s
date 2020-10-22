@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.Applicative
 import cats.data.Kleisli
-import cats.effect.Sync
+import cats.effect.kernel.Sync
 
 /** Functions for creating [[HttpApp]] kleislis. */
 object HttpApp {

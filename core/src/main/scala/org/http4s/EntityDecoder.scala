@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.{Applicative, Functor, Monad, SemigroupK}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.kernel.Sync
 import cats.implicits._
 import fs2._
 import fs2.io.file.writeAll
@@ -224,19 +224,17 @@ object EntityDecoder {
     text.map(_.toArray)
 
   // File operations
-  def binFile[F[_]](file: File, blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+  def binFile[F[_]](file: File)(implicit
+      F: Sync[F]
+  ): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = writeAll[F](file.toPath, blocker)
+      val pipe = writeAll[F](file.toPath)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
-  def textFile[F[_]](file: File, blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+  def textFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = writeAll[F](file.toPath, blocker)
+      val pipe = writeAll[F](file.toPath)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 

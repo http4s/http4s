@@ -7,10 +7,10 @@
 package org.http4s
 
 import cats.{Contravariant, Show}
-import cats.effect.{Blocker, ContextShift, Effect, Sync}
+import cats.effect.kernel.Sync
 import cats.implicits._
 import fs2.{Chunk, Stream}
-import fs2.io.file.readAll
+import fs2.io.file.Files
 import fs2.io.readInputStream
 import java.io._
 import java.nio.CharBuffer
@@ -146,28 +146,25 @@ object EntityEncoder {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def fileEncoder[F[_]](
-      blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F]): EntityEncoder[F, File] =
-    filePathEncoder[F](blocker).contramap(_.toPath)
+  def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
+    filePathEncoder[F].contramap(_.toPath)
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
+  def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(readAll[F](p, blocker, 4096)) //2 KB :P
+      Entity(Files[F].readAll(p, 4096)) //2 KB :P
     }
 
   // TODO parameterize chunk size
-  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
-      blocker: Blocker): EntityEncoder[F, F[IS]] =
+  def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { (in: F[IS]) =>
-      readInputStream[F](in.widen[InputStream], DefaultChunkSize, blocker)
+      readInputStream[F](in.widen[InputStream], DefaultChunkSize)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(implicit
+  implicit def readerEncoder[F[_], R <: Reader](implicit
       F: Sync[F],
-      cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer
@@ -175,7 +172,7 @@ object EntityEncoder {
       def readToBytes(r: Reader): F[Option[Chunk[Byte]]] =
         for {
           // Read into the buffer
-          readChars <- blocker.delay(r.read(charBuffer))
+          readChars <- F.blocking(r.read(charBuffer))
         } yield {
           // Flip to read
           charBuffer.flip()

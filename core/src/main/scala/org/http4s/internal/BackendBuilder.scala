@@ -6,11 +6,12 @@
 
 package org.http4s.internal
 
-import cats.effect.{Bracket, Resource}
+import cats.effect.Resource
+import cats.effect.kernel.MonadCancel
 import fs2.Stream
 
 private[http4s] trait BackendBuilder[F[_], A] {
-  protected implicit def F: Bracket[F, Throwable]
+  protected implicit def F: MonadCancel[F, Throwable]
 
   /** Returns the backend as a resource.  Resource acquire waits
     * until the backend is ready to process requests.
