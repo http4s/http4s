@@ -207,7 +207,7 @@ and `docs`
 
 The common area of http4s.org (i.e., directories not beginning with
 `/v#.#`) is generated from the `website` module and is published only
-from the `master` branch`.  This module is intended to contain general
+from the `main` branch`.  This module is intended to contain general
 info about the project that applies to all versions.
 
 #### Editing the common site
@@ -217,7 +217,7 @@ markdown via GitHub.
 
 ### `docs` documentation
 
-Each branch `master` and `series/X.Y`, publishes documentation per
+Each branch `main` and `series/X.Y`, publishes documentation per
 minor version into the `/vX.Y` directory of http4s.org.  The Hugo site
 chrome lives in the `docs/src/hugo` directory, and the [mdoc] content
 lives in `docs/src/main/mdoc`.  Tut is used to typecheck our
