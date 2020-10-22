@@ -11,9 +11,9 @@
 package org.http4s.parser
 
 import cats.implicits._
-import com.github.ghik.silencer.silent
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
+import scala.annotation.nowarn
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[http4s] trait Rfc2616BasicRules extends Parser {
@@ -37,14 +37,14 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 
   def LWS = rule(optional(CRLF) ~ oneOrMore(anyOf(" \t")))
 
-  @silent("deprecated")
+  @nowarn("deprecated")
   def Text = rule(!CTL ~ ANY | LWS)
 
   def Hex = rule("A" - "F" | "a" - "f" | Digit)
 
   def Separator = rule(anyOf("()<>@,;:\\\"/[]?={} \t"))
 
-  @silent("deprecated")
+  @nowarn("deprecated")
   def Token: Rule1[String] = rule(capture(oneOrMore(!CTL ~ !Separator ~ ANY)))
 
   // TODO What's the replacement for DROP?
@@ -54,7 +54,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
     ()
   }
 
-  @silent("deprecated")
+  @nowarn("deprecated")
   def CText = rule(!anyOf("()") ~ Text)
 
   // TODO This parser cannot handle strings terminating on \" which is a border case but still valid quoted pair
@@ -65,7 +65,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
       } ~ "\""
     }
 
-  @silent("deprecated")
+  @nowarn("deprecated")
   def QDText: Rule1[Char] = rule(!ch('"') ~ Text ~ LASTCHAR)
 
   def QuotedPair: Rule1[Char] = rule("\\" ~ Char ~ LASTCHAR)

@@ -11,11 +11,11 @@
 package org.http4s
 package parser
 
-import com.github.ghik.silencer.silent
 import org.http4s.SameSite._
 import org.http4s.headers.`Set-Cookie`
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
+import scala.annotation.nowarn
 
 private[parser] trait CookieHeader {
   def SET_COOKIE(value: String): ParseResult[`Set-Cookie`] =
@@ -112,7 +112,7 @@ private[parser] trait CookieHeader {
 
     def DomainNamePart: Rule0 = rule(AlphaNum ~ zeroOrMore(AlphaNum | ch('-')))
 
-    @silent("deprecated")
+    @nowarn("deprecated")
     def StringValue: Rule1[String] = rule(capture(oneOrMore((!(CTL | ch(';'))) ~ Char)))
 
     def SameSite: Rule1[SameSite] =
