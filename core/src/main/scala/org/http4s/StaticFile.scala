@@ -6,16 +6,16 @@
 
 package org.http4s
 
-import cats.Semigroup
+import cats.{MonadError, Semigroup}
 import cats.data.OptionT
-import cats.effect.IO
-import cats.effect.Sync
+import cats.effect.{Sync, SyncIO}
 import cats.implicits._
 import fs2.Stream
 import fs2.io._
 import fs2.io.file.Files
 import io.chrisdavenport.vault._
 import java.io._
+import java.nio.file.Path
 import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
@@ -26,7 +26,7 @@ object StaticFile {
 
   val DefaultBufferSize = 10240
 
-  def fromString[F[_]: Files: Sync](
+  def fromString[F[_]: Files: MonadError[*[_], Throwable]](
       url: String,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(new File(url), req)
@@ -106,23 +106,26 @@ object StaticFile {
     })
   }
 
-  def calcETag[F[_]: Sync]: File => F[String] =
-    f =>
-      Sync[F].delay(
-        if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
+  // Placeholder for Files[F].isFile, which is yet to be merged on fs2
+  def isFile[F[_]](path: Path)(implicit files: Files[F]): F[Boolean] = ???
 
-  def fromFile[F[_]: Files: Sync](
+  def calcETag[F[_]: Files: MonadError[*[_], Throwable]]: File => F[String] =
+    f =>
+      isFile(f.toPath()).map(isFile =>
+        if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
+
+  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
       f: File,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req, calcETag[F])
 
-  def fromFile[F[_]: Files: Sync](
+  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
       f: File,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req, etagCalculator)
 
-  def fromFile[F[_]: Files: Sync](
+  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
       f: File,
       buffsize: Int,
       req: Option[Request[F]],
@@ -135,38 +138,48 @@ object StaticFile {
       end: Long,
       buffsize: Int,
       req: Option[Request[F]],
-      etagCalculator: File => F[String])(implicit F: Sync[F]): OptionT[F, Response[F]] =
+      etagCalculator: File => F[String]
+  )(implicit
+      F: MonadError[F, Throwable]
+  ): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
-      res <- F.delay {
-        if (f.isFile) {
-          require(
-            start >= 0 && end >= start && buffsize > 0,
-            s"start: $start, end: $end, buffsize: $buffsize")
+      res <- isFile(f.toPath()).flatMap[Option[Response[F]]] { isFile =>
+        if (isFile) {
 
-          val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
+          if (start >= 0 && end >= start && buffsize > 0) {
+            F.raiseError[Option[Response[F]]](
+              new IllegalArgumentException(
+                s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
+          } else {
 
-          notModified(req, etagCalc, lastModified).orElse {
-            val (body, contentLength) =
-              if (f.length() < end) (Stream.empty.covary[F], 0L)
-              else (fileToBody[F](f, start, end), end - start)
+            val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
-            val contentType = nameToContentType(f.getName)
-            val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
-              `Content-Length`.fromLong(contentLength).toList :::
-              contentType.toList ::: List(etagCalc)
+            F.pure(notModified(req, etagCalc, lastModified).orElse {
+              val (body, contentLength) =
+                if (f.length() < end) (Stream.empty.covary[F], 0L)
+                else (fileToBody[F](f, start, end), end - start)
 
-            val r = Response(
-              headers = Headers(hs),
-              body = body,
-              attributes = Vault.empty.insert(staticFileKey, f)
-            )
+              val contentType = nameToContentType(f.getName)
+              val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
+                `Content-Length`.fromLong(contentLength).toList :::
+                contentType.toList ::: List(etagCalc)
 
-            logger.trace(s"Static file generated response: $r")
-            Some(r)
+              val r = Response(
+                headers = Headers(hs),
+                body = body,
+                attributes = Vault.empty.insert(staticFileKey, f)
+              )
+
+              logger.trace(s"Static file generated response: $r")
+              r.some
+            })
           }
-        } else
-          None
+
+        } else {
+          F.pure(none[Response[F]])
+        }
+
       }
     } yield res)
 
@@ -212,5 +225,5 @@ object StaticFile {
     }
 
   private[http4s] val staticFileKey =
-    Key.newKey[IO, File].unsafeRunSync()(cats.effect.unsafe.implicits.global)
+    Key.newKey[SyncIO, File].unsafeRunSync()
 }
