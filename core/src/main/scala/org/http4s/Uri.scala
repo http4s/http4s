@@ -124,7 +124,7 @@ final case class Uri(
         renderScheme(s)
 
       case Uri(None, Some(a), _, _, _) =>
-        writer << a
+        writer << "//" << a // https://stackoverflow.com/questions/64513631/uri-and-double-slashes/64513776#64513776
 
       case Uri(None, None, _, _, _) =>
     }
@@ -132,6 +132,11 @@ final case class Uri(
     this match {
       case Uri(_, Some(_), p, _, _) if p.nonEmpty && !p.startsWith("/") =>
         writer << "/" << p
+      case Uri(None, None, p, _, _) =>
+        if (p.contains(":"))
+          writer << "./" << p // https://tools.ietf.org/html/rfc3986#section-4.2 last paragraph
+        else
+          writer << p
       case Uri(_, _, p, _, _) =>
         writer << p
     }
