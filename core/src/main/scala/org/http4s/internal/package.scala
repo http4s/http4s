@@ -157,7 +157,7 @@ package object internal {
       dispatcher: Dispatcher[F]
   )(implicit F: Sync[F]): CompletionStage[A] = {
     val cf = new CompletableFuture[A]()
-    dispatcher.unsafeRunSync(fa.attemptTap {
+    dispatcher.unsafeToFuture(fa.attemptTap {
       case Right(a) => F.delay { cf.complete(a); () }
       case Left(e) => F.delay { cf.completeExceptionally(e); () }
     })
