@@ -753,28 +753,16 @@ object MultipartParser {
         racc: Stream[F, Byte],
         limitCTR: Int): SplitFileStream[F] =
       if (limitCTR >= maxBeforeWrite)
-        ???
-      // Pull
-      //   .eval(
-      //     Files[F]
-      //       .tempFile(???, "", "")
-      //       .use { path =>
-      //         (for {
-      //           _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
-      //           split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
-      //         } yield split)
-      //       })
-      //   .flatten
-
-      // Pull
-      //   .eval(Files[F].tempFile(???, "", ""))
-      //   .flatMap { path =>
-      //     (for {
-      //       _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
-      //       split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
-      //     } yield split)
-      //       .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError[F](e))
-      //   }
+        Pull
+          .eval(Files[F].tempFile(???, "", "").allocated)
+          .flatMap { case (path, cleanup) =>
+            (
+              for {
+                _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
+                split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
+              } yield split
+            ).onError(_ => Pull.eval(cleanup))
+          }
       else if (state == values.length)
         Pull.pure((lacc, racc ++ s, None))
       else
