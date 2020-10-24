@@ -52,7 +52,7 @@ class TraversalSpec extends Specification with ScalaCheck {
         .unsafeRunSync()
 
       end.uri.scheme must_=== req.uri.scheme
-    }.pendingUntilFixed
+    }
 
     "preserve body with a known uri" >> prop { (req: Request[IO], s: String) =>
       // val logger = TestingLogger.impl[IO]()
