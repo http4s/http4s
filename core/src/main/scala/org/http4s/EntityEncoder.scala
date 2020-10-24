@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.{Contravariant, Show}
-import cats.effect.kernel.Sync
+import cats.effect.Sync
 import cats.implicits._
 import fs2.{Chunk, Stream}
 import fs2.io.file.Files

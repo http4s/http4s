@@ -9,7 +9,7 @@ package org.http4s
 import cats.Semigroup
 import cats.data.OptionT
 import cats.effect.IO
-import cats.effect.kernel.Sync
+import cats.effect.Sync
 import cats.implicits._
 import fs2.Stream
 import fs2.io._

@@ -7,7 +7,7 @@
 package org.http4s
 package multipart
 
-import cats.effect.kernel.Sync
+import cats.effect.Sync
 import fs2.Stream
 import fs2.io.readInputStream
 import fs2.io.file.Files

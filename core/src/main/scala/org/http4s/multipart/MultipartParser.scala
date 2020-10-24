@@ -7,11 +7,12 @@
 package org.http4s
 package multipart
 
-import cats.effect.kernel.Sync
+import cats._
+import cats.effect.Concurrent
 import cats.implicits._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.Files
-import java.nio.file.{Files => NioFiles, Path, StandardOpenOption}
+import java.nio.file.{Path, StandardOpenOption}
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -34,7 +35,7 @@ object MultipartParser {
   private type SplitFileStream[F[_]] =
     Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte], Option[Path])]
 
-  def parseStreamed[F[_]: Sync](
+  def parseStreamed[F[_]: Concurrent](
       boundary: Boundary,
       limit: Int = 1024): Pipe[F, Byte, Multipart[F]] = { st =>
     ignorePrelude[F](boundary, st, limit)
@@ -42,7 +43,7 @@ object MultipartParser {
       .map(Multipart(_, boundary))
   }
 
-  def parseToPartsStream[F[_]: Sync](
+  def parseToPartsStream[F[_]: Concurrent](
       boundary: Boundary,
       limit: Int = 1024): Pipe[F, Byte, Part[F]] = { st =>
     ignorePrelude[F](boundary, st, limit)
@@ -85,7 +86,7 @@ object MultipartParser {
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
     */
-  private def splitCompleteMatch[F[_]: Sync](
+  private def splitCompleteMatch[F[_]](
       middleChunked: Boolean,
       sti: Int,
       i: Int,
@@ -113,7 +114,7 @@ object MultipartParser {
     * Jose messed up hard like 5 patches ago and now it breaks bincompat to
     * remove.
     */
-  private def splitPartialMatch[F[_]: Sync](
+  private def splitPartialMatch[F[_]](
       middleChunked: Boolean,
       currState: Int,
       i: Int,
@@ -142,7 +143,7 @@ object MultipartParser {
     * incomplete match, or ignored (as such excluding the sequence
     * from the subsequent split stream).
     */
-  private[http4s] def splitOnChunk[F[_]: Sync](
+  private[http4s] def splitOnChunk[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],
@@ -179,7 +180,7 @@ object MultipartParser {
     * Ignore the prelude and remove the first boundary. Only traverses until the first
     * part
     */
-  private[this] def ignorePrelude[F[_]: Sync](
+  private[this] def ignorePrelude[F[_]: Concurrent](
       b: Boundary,
       stream: Stream[F, Byte],
       limit: Int): Stream[F, Part[F]] = {
@@ -212,7 +213,7 @@ object MultipartParser {
     * @tparam F
     * @return
     */
-  private def pullParts[F[_]: Sync](
+  private def pullParts[F[_]: Concurrent](
       boundary: Boundary,
       s: Stream[F, Byte],
       limit: Int
@@ -232,7 +233,7 @@ object MultipartParser {
     }
   }
 
-  private def tailrecParts[F[_]: Sync](
+  private def tailrecParts[F[_]: Concurrent](
       b: Boundary,
       headerStream: Stream[F, Byte],
       rest: Stream[F, Byte],
@@ -264,7 +265,7 @@ object MultipartParser {
     * If it is, drain the epilogue and return the empty stream. if it is not,
     * split on the `values` and raise an error if we lack a match
     */
-  private def splitOrFinish[F[_]: Sync](
+  private def splitOrFinish[F[_]: Concurrent](
       values: Array[Byte],
       stream: Stream[F, Byte],
       limit: Int): SplitStream[F] = {
@@ -364,7 +365,7 @@ object MultipartParser {
   /** Take the stream of headers separated by
     * double CRLF bytes and return the headers
     */
-  private def parseHeaders[F[_]: Sync](strim: Stream[F, Byte]): F[Headers] = {
+  private def parseHeaders[F[_]: Concurrent](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap { case (l, r) =>
         l.through(fs2.text.utf8Decode[F])
@@ -395,7 +396,7 @@ object MultipartParser {
     *
     * This method _always_ caps
     */
-  private def splitHalf[F[_]: Sync](
+  private def splitHalf[F[_]: Monad](
       values: Array[Byte],
       stream: Stream[F, Byte]): SplitStream[F] = {
     def go(
@@ -436,7 +437,7 @@ object MultipartParser {
     * If it is the continuation of a partial match,
     * emit everything after the partial match.
     */
-  private def splitCompleteLimited[F[_]: Sync](
+  private def splitCompleteLimited[F[_]](
       state: Int,
       middleChunked: Boolean,
       sti: Int,
@@ -474,7 +475,7 @@ object MultipartParser {
     * Else, if the whole block is a partial match,
     * add it to the carry over
     */
-  private[http4s] def splitPartialLimited[F[_]: Sync](
+  private[http4s] def splitPartialLimited[F[_]](
       state: Int,
       middleChunked: Boolean,
       currState: Int,
@@ -496,7 +497,7 @@ object MultipartParser {
       (currState, acc, carry ++ Stream.chunk(c), 0)
   }
 
-  private[http4s] def splitOnChunkLimited[F[_]: Sync](
+  private[http4s] def splitOnChunkLimited[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],
@@ -536,7 +537,7 @@ object MultipartParser {
   /** Same as the other streamed parsing, except
     * after a particular size, it buffers on a File.
     */
-  def parseStreamedFile[F[_]: Sync: Files](
+  def parseStreamedFile[F[_]: Concurrent: Files](
       boundary: Boundary,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
@@ -547,7 +548,7 @@ object MultipartParser {
       .map(Multipart(_, boundary))
   }
 
-  def parseToPartsStreamedFile[F[_]: Sync: Files](
+  def parseToPartsStreamedFile[F[_]: Concurrent: Files](
       boundary: Boundary,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
@@ -561,7 +562,7 @@ object MultipartParser {
     * Ignore the prelude and remove the first boundary. Only traverses until the first
     * part
     */
-  private[this] def ignorePreludeFileStream[F[_]: Sync: Files](
+  private[this] def ignorePreludeFileStream[F[_]: Concurrent: Files](
       b: Boundary,
       stream: Stream[F, Byte],
       limit: Int,
@@ -597,7 +598,7 @@ object MultipartParser {
     * @tparam F
     * @return
     */
-  private def pullPartsFileStream[F[_]: Sync: Files](
+  private def pullPartsFileStream[F[_]: Concurrent: Files](
       boundary: Boundary,
       s: Stream[F, Byte],
       limit: Int,
@@ -628,8 +629,9 @@ object MultipartParser {
     }
   }
 
-  private[this] def cleanupFileOption[F[_]](p: Option[Path])(implicit
-      F: Sync[F]): Pull[F, Nothing, Unit] =
+  private[this] def cleanupFileOption[F[_]: Files: MonadError[*[_], Throwable]](
+      p: Option[Path]
+  ): Pull[F, Nothing, Unit] =
     p match {
       case Some(path) =>
         Pull.eval(cleanupFile(path))
@@ -638,15 +640,18 @@ object MultipartParser {
         PullUnit //Todo: Move to fs2
     }
 
-  private[this] def cleanupFile[F[_]](path: Path)(implicit F: Sync[F]): F[Unit] =
-    F.delay(NioFiles.delete(path))
+  private[this] def cleanupFile[F[_]](
+      path: Path
+  )(implicit files: Files[F], F: MonadError[F, Throwable]): F[Unit] =
+    files
+      .delete(path)
       .handleErrorWith { err =>
         logger.error(err)("Caught error during file cleanup for multipart")
         //Swallow and report io exceptions in case
         F.unit
       }
 
-  private[this] def tailrecPartsFileStream[F[_]: Sync: Files](
+  private[this] def tailrecPartsFileStream[F[_]: Concurrent: Files](
       b: Boundary,
       headerStream: Stream[F, Byte],
       rest: Stream[F, Byte],
@@ -695,19 +700,22 @@ object MultipartParser {
         }
       }
 
-  private[this] def makePart[F[_]](hdrs: Headers, body: Stream[F, Byte], path: Option[Path])(
-      implicit F: Sync[F]): Part[F] =
+  private[this] def makePart[F[_]: Applicative](
+      hdrs: Headers,
+      body: Stream[F, Byte],
+      path: Option[Path]
+  )(implicit files: Files[F]): Part[F] =
     path match {
-      case Some(p) => Part(hdrs, body.onFinalizeWeak(F.delay(NioFiles.delete(p))))
+      case Some(p) => Part(hdrs, body.onFinalizeWeak(files.delete(p)))
       case None => Part(hdrs, body)
     }
 
   /** Split the stream on `values`, but when
     */
-  private def splitWithFileStream[F[_]: Files](
+  private def splitWithFileStream[F[_]: Concurrent: Files](
       values: Array[Byte],
       stream: Stream[F, Byte],
-      maxBeforeWrite: Int)(implicit F: Sync[F]): SplitFileStream[F] = {
+      maxBeforeWrite: Int): SplitFileStream[F] = {
     def streamAndWrite(
         s: Stream[F, Byte],
         state: Int,
@@ -734,7 +742,7 @@ object MultipartParser {
             val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
             streamAndWrite(str, ix, l, r, limitCTR + add, fileRef)
           case None =>
-            Pull.eval(F.delay(NioFiles.delete(fileRef)).attempt) >> Pull.raiseError[F](
+            Pull.eval(Files[F].delete(fileRef).attempt) >> Pull.raiseError[F](
               MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
         }
 
@@ -745,15 +753,28 @@ object MultipartParser {
         racc: Stream[F, Byte],
         limitCTR: Int): SplitFileStream[F] =
       if (limitCTR >= maxBeforeWrite)
-        Pull
-          .eval(F.delay(NioFiles.createTempFile("", "")))
-          .flatMap { path =>
-            (for {
-              _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
-              split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
-            } yield split)
-              .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError[F](e))
-          }
+        ???
+      // Pull
+      //   .eval(
+      //     Files[F]
+      //       .tempFile(???, "", "")
+      //       .use { path =>
+      //         (for {
+      //           _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
+      //           split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
+      //         } yield split)
+      //       })
+      //   .flatten
+
+      // Pull
+      //   .eval(Files[F].tempFile(???, "", ""))
+      //   .flatMap { path =>
+      //     (for {
+      //       _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
+      //       split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
+      //     } yield split)
+      //       .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError[F](e))
+      //   }
       else if (state == values.length)
         Pull.pure((lacc, racc ++ s, None))
       else

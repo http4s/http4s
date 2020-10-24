@@ -7,13 +7,13 @@
 package org.http4s
 package multipart
 
-import cats.effect.kernel.Sync
+import cats.effect.Concurrent
 import cats.implicits._
 
 import fs2.io.file.Files
 
 private[http4s] object MultipartDecoder {
-  def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
+  def decoder[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
@@ -61,7 +61,7 @@ private[http4s] object MultipartDecoder {
     * @return A multipart/form-data encoded vector of parts with some part bodies held in
     *         temporary files.
     */
-  def mixedMultipart[F[_]: Sync: Files](
+  def mixedMultipart[F[_]: Concurrent: Files](
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,

@@ -7,7 +7,7 @@
 package org.http4s.internal
 
 import cats.effect.Resource
-import cats.effect.kernel.MonadCancel
+import cats.effect.MonadCancel
 import fs2.Stream
 
 private[http4s] trait BackendBuilder[F[_], A] {

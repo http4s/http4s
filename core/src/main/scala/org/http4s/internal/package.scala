@@ -15,13 +15,13 @@ import java.util.concurrent.{
 
 import cats.effect.implicits._
 import cats.effect.std.Dispatcher
-import cats.effect.kernel.{Async, Sync}
+import cats.effect.{Async, Sync}
 import cats.implicits._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
 import org.log4s.Logger
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext}
 import scala.util.control.NoStackTrace
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
@@ -29,9 +29,8 @@ import java.nio.charset.UnmappableCharacterException
 package object internal {
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
   // have an ExecutionContext but not a Timer.
-  private[http4s] def unsafeRunAsync[F[_]: Async, A](fa: F[A])(
-      f: Either[Throwable, A] => F[Unit])(implicit
-      dispatcher: Dispatcher[F],
+  private[http4s] def unsafeRunAsync[F[_]: Async, A](
+      fa: F[A])(f: Either[Throwable, A] => F[Unit], dispatcher: Dispatcher[F])(implicit
       ec: ExecutionContext): Unit =
     dispatcher.unsafeRunSync(fa.evalOn(ec).attemptTap(f).void)
 
@@ -41,13 +40,6 @@ package object internal {
       case Left(e) => F.delay(logger.error(e)("Error in asynchronous callback"))
       case Right(_) => F.unit
     }
-
-  // Inspired by https://github.com/functional-streams-for-scala/fs2/blob/14d20f6f259d04df410dc3b1046bc843a19d73e5/io/src/main/scala/fs2/io/io.scala#L140-L141
-  private[http4s] def invokeCallback[F[_]](logger: Logger)(
-      f: => Unit)(implicit F: Async[F], dispatcher: Dispatcher[F]): Unit =
-    dispatcher.unsafeRunSync(
-      F.start(F.delay(f)).flatMap(_.join).attemptTap(loggingAsyncCallback(logger)(_)(F)).void
-    )
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
   private val Digits: Array[Char] =
@@ -125,11 +117,6 @@ package object internal {
     }
   }
 
-  // Adapted from https://github.com/typelevel/cats-effect/issues/199#issuecomment-401273282
-  @deprecated("Replaced by cats.effect.Async.fromFuture", "0.21.4")
-  private[http4s] def fromFuture[F[_], A](f: F[Future[A]])(implicit F: Async[F]): F[A] =
-    F.fromFuture(f)
-
   // Adapted from https://github.com/typelevel/cats-effect/issues/160#issue-306054982
   @deprecated("Use `fromCompletionStage`", since = "0.21.3")
   private[http4s] def fromCompletableFuture[F[_], A](fcf: F[CompletableFuture[A]])(implicit
@@ -143,7 +130,7 @@ package object internal {
             case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
             case ex => cb(Left(ex))
           })) >>
-          F.delay(Some(F.delay(cf.cancel(true)).void))
+          F.pure(Some(F.delay(cf.cancel(true)).void))
       }
     }
 
@@ -152,21 +139,23 @@ package object internal {
       // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
       F: Async[F]): F[A] =
     fcs.flatMap { cs =>
-      F.async[A] { cb =>
-        F.delay(cs.handle[Unit] { (result, err) =>
+      F.async_ { cb =>
+        cs.handle[Unit] { (result, err) =>
           err match {
             case null => cb(Right(result))
             case _: CancellationException => ()
             case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
             case ex => cb(Left(ex))
           }
-        }).as(none[F[Unit]])
+        }
+        ()
       }
     }
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
-      fa: F[A]
-  )(implicit dispatcher: Dispatcher[F], F: Sync[F]): CompletionStage[A] = {
+      fa: F[A],
+      dispatcher: Dispatcher[F]
+  )(implicit F: Sync[F]): CompletionStage[A] = {
     val cf = new CompletableFuture[A]()
     dispatcher.unsafeRunSync(fa.attemptTap {
       case Right(a) => F.delay { cf.complete(a); () }

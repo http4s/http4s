@@ -6,7 +6,7 @@
 
 package org.http4s.internal
 
-import cats.effect.kernel.Sync
+import cats.effect.Sync
 import cats.implicits._
 import fs2.Stream
 import org.http4s.{Charset, Headers, MediaType, Message, Request, Response}
