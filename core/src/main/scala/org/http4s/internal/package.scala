@@ -27,12 +27,6 @@ import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
 
 package object internal {
-  // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
-  // have an ExecutionContext but not a Timer.
-  private[http4s] def unsafeRunAsync[F[_]: Async, A](
-      fa: F[A])(f: Either[Throwable, A] => F[Unit], dispatcher: Dispatcher[F])(implicit
-      ec: ExecutionContext): Unit =
-    dispatcher.unsafeRunSync(fa.evalOn(ec).attemptTap(f).void)
 
   private[http4s] def loggingAsyncCallback[F[_], A](logger: Logger)(attempt: Either[Throwable, A])(
       implicit F: Sync[F]): F[Unit] =
