@@ -19,7 +19,7 @@ atlassian-ide-plugin.xml
 .ensime_lucene
 /TAGS
 .sbtopts
-.ensime_cache
+/.bsp/
 .cache-main
 .cache-tests
 
