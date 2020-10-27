@@ -13,7 +13,6 @@ import java.util.concurrent.{
   CompletionStage
 }
 
-import cats.effect.implicits._
 import cats.effect.std.Dispatcher
 import cats.effect.{Async, Sync}
 import cats.implicits._
@@ -21,7 +20,6 @@ import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
 import org.log4s.Logger
 
-import scala.concurrent.{ExecutionContext}
 import scala.util.control.NoStackTrace
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException

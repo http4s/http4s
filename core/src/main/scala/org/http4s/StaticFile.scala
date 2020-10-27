@@ -15,7 +15,6 @@ import fs2.io._
 import fs2.io.file.Files
 import io.chrisdavenport.vault._
 import java.io._
-import java.nio.file.Path
 import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
@@ -106,13 +105,12 @@ object StaticFile {
     })
   }
 
-  // Placeholder for Files[F].isFile, which is yet to be merged on fs2
-  def isFile[F[_]](path: Path)(implicit files: Files[F]): F[Boolean] = ???
-
   def calcETag[F[_]: Files: MonadError[*[_], Throwable]]: File => F[String] =
     f =>
-      isFile(f.toPath()).map(isFile =>
-        if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
+      Files[F]
+        .isFile(f.toPath())
+        .map(isFile =>
+          if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
   def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
       f: File,
@@ -144,13 +142,12 @@ object StaticFile {
   ): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
-      res <- isFile(f.toPath()).flatMap[Option[Response[F]]] { isFile =>
+      res <- Files[F].isFile(f.toPath()).flatMap[Option[Response[F]]] { isFile =>
         if (isFile) {
 
           if (start >= 0 && end >= start && buffsize > 0) {
-            F.raiseError[Option[Response[F]]](
-              new IllegalArgumentException(
-                s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
+            F.raiseError[Option[Response[F]]](new IllegalArgumentException(
+              s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
           } else {
 
             val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
