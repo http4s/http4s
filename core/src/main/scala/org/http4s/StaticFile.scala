@@ -6,7 +6,7 @@
 
 package org.http4s
 
-import cats.{MonadError, Semigroup}
+import cats.{Functor, MonadError, Semigroup}
 import cats.data.OptionT
 import cats.effect.{Sync, SyncIO}
 import cats.implicits._
@@ -105,7 +105,7 @@ object StaticFile {
     })
   }
 
-  def calcETag[F[_]: Files: MonadError[*[_], Throwable]]: File => F[String] =
+  def calcETag[F[_]: Files: Functor]: File => F[String] =
     f =>
       Files[F]
         .isFile(f.toPath())
