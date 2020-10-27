@@ -9,17 +9,15 @@ package org.http4s.servlet
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import javax.servlet._
-import javax.servlet.http._
 
 import cats.effect.IO
 import org.http4s.Http4sSpec
-import org.mockito.Mockito._
 
 class ServletIoSpec extends Http4sSpec {
   "NonBlockingServletIo" should {
     "decode request body which is smaller than chunk size correctly" in {
-      val request = mock(classOf[HttpServletRequest])
-      when(request.getInputStream).thenReturn(new TestServletInputStream("test".getBytes(UTF_8)))
+      val request =
+        HttpServletRequestStub(inputStream = new TestServletInputStream("test".getBytes(UTF_8)))
 
       val io = NonBlockingServletIo[IO](10)
       val body = io.reader(request)
@@ -29,9 +27,8 @@ class ServletIoSpec extends Http4sSpec {
     }
 
     "decode request body which is bigger than chunk size correctly" in {
-      val request = mock(classOf[HttpServletRequest])
-      when(request.getInputStream)
-        .thenReturn(new TestServletInputStream("testtesttest".getBytes(UTF_8)))
+      val request = HttpServletRequestStub(inputStream =
+        new TestServletInputStream("testtesttest".getBytes(UTF_8)))
 
       val io = NonBlockingServletIo[IO](10)
       val body = io.reader(request)

@@ -310,7 +310,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % V.log4cats
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % V.mockito
   lazy val nettyCodec                       = "io.netty"               %  "netty-codec"               % V.netty
   lazy val nettyCodecSocks                  = "io.netty"               %  "netty-codec-socks"         % V.netty
   lazy val nettyHandlerProxy                = "io.netty"               %  "netty-handler-proxy"       % V.netty
