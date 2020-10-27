@@ -290,7 +290,6 @@ lazy val servlet = libraryProject("servlet")
       javaxServletApi % Provided,
       jettyServer % Test,
       jettyServlet % Test,
-      mockito % Test
     ),
   )
   .dependsOn(server % "compile;test->test")
