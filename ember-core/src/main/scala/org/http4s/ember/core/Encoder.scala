@@ -17,7 +17,7 @@ private[ember] object Encoder {
   private val SPACE = " "
   private val CRLF = "\r\n"
   val chunkedTansferEncodingHeaderRaw = "Transfer-Encoding: chunked"
-  
+
   def respToBytes[F[_]: Sync](
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
@@ -61,7 +61,6 @@ private[ember] object Encoder {
         .flatMap(Stream.chunk)
   }
 
-  
   def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = req.isChunked
     val initSection = {
