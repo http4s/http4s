@@ -16,10 +16,12 @@ private[ember] object Encoder {
 
   private val SPACE = " "
   private val CRLF = "\r\n"
+  val chunkedTansferEncodingHeaderRaw = "Transfer-Encoding: chunked"
+  
   def respToBytes[F[_]: Sync](
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
-    val chunked = resp.isChunked
+    var chunked = resp.isChunked
     val initSection = {
       var appliedContentLength = false
       val stringBuilder = new StringBuilder()
@@ -42,7 +44,8 @@ private[ember] object Encoder {
         ()
       }
       if (!chunked && !appliedContentLength) {
-        stringBuilder.append(`Content-Length`.zero.renderString).append(CRLF)
+        stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
+        chunked = true
         ()
       }
       // Final CRLF terminates headers and signals body to follow.
@@ -58,8 +61,9 @@ private[ember] object Encoder {
         .flatMap(Stream.chunk)
   }
 
+  
   def reqToBytes[F[_]: Sync](req: Request[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
-    val chunked = req.isChunked
+    var chunked = req.isChunked
     val initSection = {
       var appliedContentLength = false
       val stringBuilder = new StringBuilder()
@@ -94,7 +98,8 @@ private[ember] object Encoder {
       }
 
       if (!chunked && !appliedContentLength) {
-        stringBuilder.append(`Content-Length`.zero.renderString).append(CRLF)
+        stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
+        chunked = true
         ()
       }
 
