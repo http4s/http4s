@@ -761,7 +761,7 @@ object MultipartParser {
                 _ <- Pull.eval(lacc.through(Files[F].writeAll(path)).compile.drain)
                 split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
               } yield split
-            ).onError(_ => Pull.eval(cleanup))
+            ).onError { case _ => Pull.eval(cleanup) }
           }
       else if (state == values.length)
         Pull.pure((lacc, racc ++ s, None))
