@@ -7,13 +7,14 @@
 package org.http4s
 
 import cats.{Applicative, Functor, Monad, SemigroupK}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Sync
 import cats.implicits._
 import fs2._
-import fs2.io.file.writeAll
+import fs2.io.file.Files
 import java.io.File
 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scala.annotation.implicitNotFound
+import cats.effect.Concurrent
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -224,23 +225,19 @@ object EntityDecoder {
     text.map(_.toArray)
 
   // File operations
-  def binFile[F[_]](file: File, blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+  def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = writeAll[F](file.toPath, blocker)
+      val pipe = Files[F].writeAll(file.toPath)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
-  def textFile[F[_]](file: File, blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+  def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = writeAll[F](file.toPath, blocker)
+      val pipe = Files[F].writeAll(file.toPath)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
-  implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
+  implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
 
   /** An entity decoder that ignores the content and returns unit. */

@@ -14,7 +14,6 @@ abstract class AllSyntaxBinCompat
 
 trait AllSyntax
     extends AnyRef
-    with AsyncSyntax
     with KleisliSyntax
     with NonEmptyListSyntax
     with StringSyntax

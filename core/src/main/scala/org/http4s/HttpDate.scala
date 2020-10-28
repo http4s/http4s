@@ -12,7 +12,6 @@ import org.http4s.util.{Renderable, Writer}
 import cats.Functor
 import cats.implicits._
 import cats.effect.Clock
-import scala.concurrent.duration.SECONDS
 
 /** An HTTP-date value represents time as an instance of Coordinated Universal
   * Time (UTC). It expresses time at a resolution of one second.  By using it
@@ -70,7 +69,7 @@ object HttpDate {
     * problem for future generations.
     */
   def current[F[_]: Functor: Clock]: F[HttpDate] =
-    Clock[F].realTime(SECONDS).map(unsafeFromEpochSecond)
+    Clock[F].realTime.map(v => unsafeFromEpochSecond(v.toSeconds))
 
   /** The `HttpDate` equal to `Thu, Jan 01 1970 00:00:00 GMT` */
   val Epoch: HttpDate =

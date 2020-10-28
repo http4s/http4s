@@ -6,13 +6,13 @@
 
 package org.http4s
 
-import cats.Semigroup
+import cats.{Functor, MonadError, Semigroup}
 import cats.data.OptionT
-import cats.effect.{Blocker, ContextShift, IO, Sync}
+import cats.effect.{Sync, SyncIO}
 import cats.implicits._
 import fs2.Stream
 import fs2.io._
-import fs2.io.file.readRange
+import fs2.io.file.Files
 import io.chrisdavenport.vault._
 import java.io._
 import java.net.URL
@@ -25,15 +25,13 @@ object StaticFile {
 
   val DefaultBufferSize = 10240
 
-  def fromString[F[_]: Sync: ContextShift](
+  def fromString[F[_]: Files: MonadError[*[_], Throwable]](
       url: String,
-      blocker: Blocker,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromFile(new File(url), blocker, req)
+    fromFile(new File(url), req)
 
-  def fromResource[F[_]: Sync: ContextShift](
+  def fromResource[F[_]: Sync](
       name: String,
-      blocker: Blocker,
       req: Option[Request[F]] = None,
       preferGzipped: Boolean = false,
       classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
@@ -58,20 +56,19 @@ object StaticFile {
         val contentType = nameToContentType(normalizedName)
         val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
 
-        fromURL(url, blocker, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
+        fromURL(url, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
       }
       .orElse(getResource(normalizedName)
-        .flatMap(fromURL(_, blocker, req)))
+        .flatMap(fromURL(_, req)))
   }
 
-  def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] = {
+  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(implicit
+      F: Sync[F]): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
-    OptionT.apply(F.suspend {
+    OptionT.apply(F.defer {
       if (file.isDirectory())
-        F.pure(None)
+        F.pure(none[Response[F]])
       else {
         val urlConn = url.openConnection
         val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
@@ -86,9 +83,7 @@ object StaticFile {
             if (len >= 0) `Content-Length`.unsafeFromLong(len)
             else `Transfer-Encoding`(TransferCoding.chunked)
           val headers = Headers(lenHeader :: lastModHeader ::: contentType)
-
-          blocker
-            .delay(urlConn.getInputStream)
+          F.blocking(urlConn.getInputStream)
             .redeem(
               recover = {
                 case _: FileNotFoundException => None
@@ -98,86 +93,90 @@ object StaticFile {
                 Some(
                   Response(
                     headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize, blocker)
+                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize)
                   ))
               }
             )
         } else
-          blocker
-            .delay(urlConn.getInputStream.close())
+          F.blocking(urlConn.getInputStream.close())
             .handleError(_ => ())
             .as(Some(Response(NotModified)))
       }
     })
   }
 
-  def calcETag[F[_]: Sync]: File => F[String] =
+  def calcETag[F[_]: Files: Functor]: File => F[String] =
     f =>
-      Sync[F].delay(
-        if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
+      Files[F]
+        .isFile(f.toPath())
+        .map(isFile =>
+          if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
-  def fromFile[F[_]: Sync: ContextShift](
+  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
       f: File,
-      blocker: Blocker,
       req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromFile(f, DefaultBufferSize, blocker, req, calcETag[F])
+    fromFile(f, DefaultBufferSize, req, calcETag[F])
 
-  def fromFile[F[_]: Sync: ContextShift](
+  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
       f: File,
-      blocker: Blocker,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
-    fromFile(f, DefaultBufferSize, blocker, req, etagCalculator)
+    fromFile(f, DefaultBufferSize, req, etagCalculator)
 
-  def fromFile[F[_]: Sync: ContextShift](
+  def fromFile[F[_]: Files: MonadError[*[_], Throwable]](
       f: File,
       buffsize: Int,
-      blocker: Blocker,
       req: Option[Request[F]],
       etagCalculator: File => F[String]): OptionT[F, Response[F]] =
-    fromFile(f, 0, f.length(), buffsize, blocker, req, etagCalculator)
+    fromFile(f, 0, f.length(), buffsize, req, etagCalculator)
 
-  def fromFile[F[_]](
+  def fromFile[F[_]: Files](
       f: File,
       start: Long,
       end: Long,
       buffsize: Int,
-      blocker: Blocker,
       req: Option[Request[F]],
-      etagCalculator: File => F[String])(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] =
+      etagCalculator: File => F[String]
+  )(implicit
+      F: MonadError[F, Throwable]
+  ): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
-      res <- F.delay {
-        if (f.isFile) {
-          require(
-            start >= 0 && end >= start && buffsize > 0,
-            s"start: $start, end: $end, buffsize: $buffsize")
+      res <- Files[F].isFile(f.toPath()).flatMap[Option[Response[F]]] { isFile =>
+        if (isFile) {
 
-          val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
+          if (start >= 0 && end >= start && buffsize > 0) {
+            F.raiseError[Option[Response[F]]](new IllegalArgumentException(
+              s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
+          } else {
 
-          notModified(req, etagCalc, lastModified).orElse {
-            val (body, contentLength) =
-              if (f.length() < end) (Stream.empty.covary[F], 0L)
-              else (fileToBody[F](f, start, end, blocker), end - start)
+            val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
-            val contentType = nameToContentType(f.getName)
-            val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
-              `Content-Length`.fromLong(contentLength).toList :::
-              contentType.toList ::: List(etagCalc)
+            F.pure(notModified(req, etagCalc, lastModified).orElse {
+              val (body, contentLength) =
+                if (f.length() < end) (Stream.empty.covary[F], 0L)
+                else (fileToBody[F](f, start, end), end - start)
 
-            val r = Response(
-              headers = Headers(hs),
-              body = body,
-              attributes = Vault.empty.insert(staticFileKey, f)
-            )
+              val contentType = nameToContentType(f.getName)
+              val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
+                `Content-Length`.fromLong(contentLength).toList :::
+                contentType.toList ::: List(etagCalc)
 
-            logger.trace(s"Static file generated response: $r")
-            Some(r)
+              val r = Response(
+                headers = Headers(hs),
+                body = body,
+                attributes = Vault.empty.insert(staticFileKey, f)
+              )
+
+              logger.trace(s"Static file generated response: $r")
+              r.some
+            })
           }
-        } else
-          None
+
+        } else {
+          F.pure(none[Response[F]])
+        }
+
       }
     } yield res)
 
@@ -213,13 +212,8 @@ object StaticFile {
         s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm")
     } yield notModified
 
-  private def fileToBody[F[_]: Sync: ContextShift](
-      f: File,
-      start: Long,
-      end: Long,
-      blocker: Blocker
-  ): EntityBody[F] =
-    readRange[F](f.toPath, blocker, DefaultBufferSize, start, end)
+  private def fileToBody[F[_]: Files](f: File, start: Long, end: Long): EntityBody[F] =
+    Files[F].readRange(f.toPath, DefaultBufferSize, start, end)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =
     name.lastIndexOf('.') match {
@@ -227,5 +221,6 @@ object StaticFile {
       case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
     }
 
-  private[http4s] val staticFileKey = Key.newKey[IO, File].unsafeRunSync()
+  private[http4s] val staticFileKey =
+    Key.newKey[SyncIO, File].unsafeRunSync()
 }
