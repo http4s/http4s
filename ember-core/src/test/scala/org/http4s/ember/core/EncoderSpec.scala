@@ -40,7 +40,9 @@ class EncoderSpec extends Specification {
       val expected =
         """GET http://www.google.com HTTP/1.1
       |Host: www.google.com
-      |Content-Length: 0
+      |Transfer-Encoding: chunked
+      |
+      |0
       |
       |""".stripMargin
 
@@ -71,7 +73,9 @@ class EncoderSpec extends Specification {
         """GET http://www.google.com HTTP/1.1
         |Host: www.google.com
         |foo: bar
-        |Content-Length: 0
+        |Transfer-Encoding: chunked
+        |
+        |0
         |
         |""".stripMargin
       Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
@@ -84,7 +88,9 @@ class EncoderSpec extends Specification {
 
       val expected =
         """HTTP/1.1 200 OK
-      |Content-Length: 0
+      |Transfer-Encoding: chunked
+      |
+      |0
       |
       |""".stripMargin
 
