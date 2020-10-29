@@ -11,19 +11,18 @@
 package org.http4s
 
 import cats.{Eq, Hash, Order, Show}
+import cats.kernel.Semigroup
 import cats.syntax.either._
-import com.github.ghik.silencer.silent
 import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset, StandardCharsets}
 import org.http4s.internal.{bug, hashLower}
-import cats.kernel.Semigroup
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
 import org.http4s.util._
 import org.typelevel.ci.CIString
-
+import scala.annotation.nowarn
 import scala.collection.immutable
 import scala.math.Ordered
 import scala.reflect.macros.blackbox
@@ -126,7 +125,7 @@ final case class Uri(
         renderScheme(s)
 
       case Uri(None, Some(a), _, _, _) =>
-        writer << a
+        writer << "//" << a // https://stackoverflow.com/questions/64513631/uri-and-double-slashes/64513776#64513776
 
       case Uri(None, None, _, _, _) =>
     }
@@ -134,6 +133,11 @@ final case class Uri(
     this match {
       case Uri(_, Some(_), p, _, _) if p.nonEmpty && !p.absolute =>
         writer << "/" << p
+      case Uri(None, None, p, _, _) =>
+        if (p.renderString.contains(":"))
+          writer << "./" << p // https://tools.ietf.org/html/rfc3986#section-4.2 last paragraph
+        else
+          writer << p
       case Uri(_, _, p, _, _) =>
         writer << p
     }
@@ -243,7 +247,7 @@ object Uri {
     def unsafeFromString(s: String): Scheme =
       fromString(s).fold(throw _, identity)
 
-    @silent("deprecated")
+    @nowarn("cat=deprecation")
     private[http4s] trait Parser { self: PbParser =>
       def scheme =
         rule {

@@ -79,7 +79,7 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
     Arbitrary(arbitrary[A => String].map(QueryParamEncoder[String].contramap))
 
   implicit val ArbQueryParameterValue: Arbitrary[QueryParameterValue] =
-    Arbitrary(arbitrary[String].map(QueryParameterValue))
+    Arbitrary(arbitrary[String].map(QueryParameterValue.apply _))
 
   implicit val instantQueryParamCodec: QueryParamCodec[Instant] =
     QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
