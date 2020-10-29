@@ -6,7 +6,7 @@
 
 package org.http4s
 
-import cats.{Contravariant, Functor, MonoidK, Show}
+import cats.{Contravariant, Functor, Hash, MonoidK, Order, Show}
 import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
 import java.time.{Instant, LocalDate, ZonedDateTime}
@@ -15,7 +15,29 @@ import java.time.temporal.TemporalAccessor
 
 final case class QueryParameterKey(value: String) extends AnyVal
 
+object QueryParameterKey {
+  implicit lazy val showInstance: Show[QueryParameterKey] =
+    Show.show(_.value)
+
+  implicit lazy val orderInstance: Order[QueryParameterKey] =
+    Order.by(_.value)
+
+  implicit lazy val hashInstance: Hash[QueryParameterKey] =
+    Hash.by(_.value)
+}
+
 final case class QueryParameterValue(value: String) extends AnyVal
+
+object QueryParameterValue {
+  implicit lazy val showInstance: Show[QueryParameterValue] =
+    Show.show(_.value)
+
+  implicit lazy val orderInstance: Order[QueryParameterValue] =
+    Order.by(_.value)
+
+  implicit lazy val hashInstance: Hash[QueryParameterValue] =
+    Hash.by(_.value)
+}
 
 /** type class defining the key of a query parameter
   * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
