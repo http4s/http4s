@@ -249,7 +249,7 @@ object Http4sPlugin extends AutoPlugin {
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
-    val log4s = "1.8.2"
+    val log4s = "1.9.0"
     val mockito = "3.5.15"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
