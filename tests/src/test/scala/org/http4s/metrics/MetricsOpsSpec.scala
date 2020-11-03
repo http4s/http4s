@@ -31,7 +31,7 @@ class MetricsOpsSpec extends Http4sSpec {
           uri = Uri.unsafeFromString(s"/users/$uuid/comments")
         )
 
-        val excludeUUIDs: String => Boolean = { str: String =>
+        val excludeUUIDs: String => Boolean = { (str: String) =>
           Either
             .catchOnly[IllegalArgumentException](UUID.fromString(str))
             .isRight
@@ -60,7 +60,7 @@ class MetricsOpsSpec extends Http4sSpec {
 
         result ==== expected
     }
-    "return '$method' if the path is '/'" in prop { method: Method =>
+    "return '$method' if the path is '/'" in prop { (method: Method) =>
       val request: Request[IO] = Request[IO](
         method = method,
         uri = uri"""/"""
