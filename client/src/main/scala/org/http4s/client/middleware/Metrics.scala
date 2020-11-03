@@ -85,7 +85,7 @@ object Metrics {
       _ <- Resource.liftF(statusRef.set(Some(resp.status)))
       end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
       _ <- Resource.liftF(ops.recordHeadersTime(req.method, end - start, classifierF(req)))
-    } yield resp).handleErrorWith { e: Throwable =>
+    } yield resp).handleErrorWith { (e: Throwable) =>
       Resource.liftF(registerError(start, ops, classifierF(req))(e) *> F.raiseError[Response[F]](e))
     }
 
