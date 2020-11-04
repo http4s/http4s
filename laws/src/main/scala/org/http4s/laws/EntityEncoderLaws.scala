@@ -13,7 +13,7 @@ import cats.laws._
 import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`}
 
 trait EntityEncoderLaws[F[_], A] {
-  implicit def F: Sync[F]
+  implicit def F: Concurrent[F]
 
   implicit def encoder: EntityEncoder[F, A]
 
@@ -34,7 +34,7 @@ trait EntityEncoderLaws[F[_], A] {
 
 object EntityEncoderLaws {
   def apply[F[_], A](implicit
-      F0: Sync[F],
+      F0: Concurrent[F],
       entityEncoderFA: EntityEncoder[F, A]
   ): EntityEncoderLaws[F, A] =
     new EntityEncoderLaws[F, A] {

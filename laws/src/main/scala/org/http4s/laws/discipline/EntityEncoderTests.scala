@@ -35,7 +35,7 @@ trait EntityEncoderTests[F[_], A] extends Laws {
 
 object EntityEncoderTests {
   def apply[F[_], A](implicit
-      effectF: Effect[F],
+      effectF: Concurrent[F],
       entityEncoderFA: EntityEncoder[F, A]
   ): EntityEncoderTests[F, A] =
     new EntityEncoderTests[F, A] {

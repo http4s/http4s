@@ -11,9 +11,8 @@ package discipline
 import cats._
 import cats.data.{Chain, NonEmptyList}
 import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
-import cats.effect.{Effect, IO}
-import cats.effect.laws.discipline.arbitrary._
-import cats.effect.laws.util.TestContext
+import cats.effect.IO
+import cats.effect.testkit._
 import cats.implicits._
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
