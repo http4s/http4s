@@ -785,15 +785,6 @@ private[http4s] trait ArbitraryInstances {
       dispatcher.unsafeToFuture(stream.compile.toVector)
     }
 
-  // catsEffectLawsCogenForIO[Vector[Byte]].contramap { stream =>
-  //   var bytes: Vector[Byte] = null
-  //   val readBytes = IO(bytes)
-  //   F.runAsync(stream.compile.toVector) {
-  //     case Right(bs) => IO { bytes = bs }
-  //     case Left(t) => IO.raiseError(t)
-  //   }.toIO *> readBytes
-  // }
-
   implicit def http4sTestingArbitraryForEntity[F[_]]: Arbitrary[Entity[F]] =
     Arbitrary(Gen.sized { size =>
       for {
