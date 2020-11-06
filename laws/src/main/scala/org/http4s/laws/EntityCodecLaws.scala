@@ -7,7 +7,7 @@
 package org.http4s
 package laws
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import cats.laws._
 
@@ -26,11 +26,11 @@ trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
 
 object EntityCodecLaws {
   def apply[F[_], A](implicit
-      F0: Concurrent[F],
+      concurrent: Concurrent[F],
       entityEncoderFA: EntityEncoder[F, A],
       entityDecoderFA: EntityDecoder[F, A]): EntityCodecLaws[F, A] =
     new EntityCodecLaws[F, A] {
-      val F = F0
+      val F = concurrent
       val encoder = entityEncoderFA
       val decoder = entityDecoderFA
     }
