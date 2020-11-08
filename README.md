@@ -21,7 +21,7 @@ scalacOptions ++= Seq("-Ypartial-unification")
 
 ## Code of Conduct
 
-http4s is proud to be a [Typelevel](https://typelevel.org/) incubator
+http4s is proud to be a [Typelevel](https://typelevel.org/)
 project.  We are committed to providing a friendly, safe and welcoming
 environment for all, and ask that the community adhere to the [Scala
 Code of Conduct](https://http4s.org/code-of-conduct/).
