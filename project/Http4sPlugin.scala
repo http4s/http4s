@@ -236,7 +236,7 @@ object Http4sPlugin extends AutoPlugin {
     val caseInsensitive = "0.3.0"
     val cats = "2.2.0"
     val catsEffect = "2.2.0"
-    val catsEffectTesting = "0.4.1"
+    val catsEffectTesting = "0.4.2"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.1"
