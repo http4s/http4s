@@ -148,12 +148,9 @@ sealed abstract class OkHttpBuilder[F[_]] private (
               }
               .compile
               .drain
-              .runAsync {
-                case Left(t) =>
-                  IO(logger.warn(t)("Unable to write to OkHttp sink"))
-                case Right(_) =>
-                  IO.unit
-              }
+              // This has to be synchronous with this method, or else
+              // chunks get silently dropped.
+              .toIO
               .unsafeRunSync()
         }
       // if it's a GET or HEAD, okhttp wants us to pass null
