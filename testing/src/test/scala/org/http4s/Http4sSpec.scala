@@ -10,8 +10,9 @@
 
 package org.http4s
 
-import cats.effect.{Blocker, ContextShift, ExitCase, IO, Resource, Timer}
+import cats.effect.{IO, Resource}
 import cats.implicits._
+import cats.effect.kernel.Resource.ExitCase
 import fs2._
 import fs2.text._
 import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
@@ -29,6 +30,7 @@ import org.specs2.specification.create.{DefaultFragmentFactory => ff}
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
 import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.IORuntime
 
 /** Common stack for http4s' own specs.
   *
@@ -44,9 +46,6 @@ trait Http4sSpec
     with FragmentsDsl
     with Discipline {
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
-  val testBlocker: Blocker = Http4sSpec.TestBlocker
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
-  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
   def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
 
   implicit val params = Parameters(maxSize = 20)
@@ -122,11 +121,15 @@ object Http4sSpec {
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
 
-  val TestBlocker: Blocker =
-    Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
+  val TestIORuntime: IORuntime = IORuntime.apply(
+    
+  )
 
-  val TestContextShift: ContextShift[IO] =
-    IO.contextShift(TestExecutionContext)
+  // val TestBlocker: Blocker =
+  //   Blocker.liftExecutorService()
+
+  // val TestContextShift: ContextShift[IO] =
+  //   IO.contextShift(TestExecutionContext)
 
   val TestScheduler: ScheduledExecutorService = {
     val s =
@@ -136,7 +139,7 @@ object Http4sSpec {
     s
   }
 
-  val TestTimer: Timer[IO] =
-    IO.timer(TestExecutionContext, TestScheduler)
+  // val TestTimer: Timer[IO] =
+  //   IO.timer(TestExecutionContext, TestScheduler)
 
 }
