@@ -106,6 +106,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Dropped joda-time support, wait for next breaking release
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
+    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
+    dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -242,7 +244,7 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.3.3"
     val cats = "2.2.0"
     val catsEffect = "2.2.0"
-    val catsEffectTesting = "0.4.2"
+    val catsEffectTesting = "0.4.1"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.1"
