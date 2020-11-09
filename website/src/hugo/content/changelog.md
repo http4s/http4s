@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.9 (2020-11-09)
+# v0.21.9
 
 ## Bugfixes
 
