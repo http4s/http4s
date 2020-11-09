@@ -239,7 +239,7 @@ object Http4sPlugin extends AutoPlugin {
     val catsEffectTesting = "0.4.1"
     val circe = "0.13.0"
     val cryptobits = "1.3"
-    val disciplineSpecs2 = "1.1.0"
+    val disciplineSpecs2 = "1.1.1"
     val dropwizardMetrics = "4.1.14"
     val fs2 = "3.0-cd73a32"
     val jawn = "1.0.0"
@@ -256,7 +256,7 @@ object Http4sPlugin extends AutoPlugin {
     val playJson = "2.9.1"
     val prometheusClient = "0.9.0"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.0"
+    val scalacheck = "1.15.1"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
