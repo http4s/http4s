@@ -95,6 +95,7 @@ lazy val laws = libraryProject("laws")
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
       catsEffectLaws,
+      catsEffectTestkit
     ),
   )
   .dependsOn(core)

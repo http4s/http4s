@@ -9,12 +9,10 @@ package laws
 package discipline
 
 import cats.Eq
-import cats.implicits._
 import cats.effect._
-import cats.effect.laws.util.TestContext
-import cats.effect.laws.util.TestInstances._
 import cats.laws.discipline._
 import org.scalacheck.{Arbitrary, Prop, Shrink}
+import cats.effect.std.Dispatcher
 
 trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
   def laws: EntityCodecLaws[F, A]
@@ -27,7 +25,12 @@ trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
       shrinkA: Shrink[A],
       eqA: Eq[A],
       eqFBoolean: Eq[F[Boolean]],
-      testContext: TestContext): RuleSet =
+      dispatcher: Dispatcher[F]
+  ): RuleSet = {
+
+    implicit def eqF[T](implicit eqT: Eq[T]): Eq[F[T]] =
+      Eq.by[F[T], T](f => dispatcher.unsafeRunSync(f))
+
     new DefaultRuleSet(
       name = "EntityCodec",
       parent = Some(entityEncoder),
@@ -35,11 +38,12 @@ trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
         laws.entityCodecRoundTrip(a)
       }
     )
+  }
 }
 
 object EntityCodecTests {
   def apply[F[_], A](implicit
-      effectF: Effect[F],
+      F: Concurrent[F],
       entityEncoderFA: EntityEncoder[F, A],
       entityDecoderFA: EntityDecoder[F, A]
   ): EntityCodecTests[F, A] =
