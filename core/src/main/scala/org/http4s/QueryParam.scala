@@ -12,10 +12,11 @@ import cats.implicits._
 import java.time.{Instant, LocalDate, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.time.temporal.TemporalAccessor
+import scala.runtime.AbstractFunction1
 
 final case class QueryParameterKey(value: String) extends AnyVal
 
-object QueryParameterKey {
+object QueryParameterKey extends AbstractFunction1[String, QueryParameterKey] {
   implicit lazy val showInstance: Show[QueryParameterKey] =
     Show.show(_.value)
 
@@ -28,7 +29,7 @@ object QueryParameterKey {
 
 final case class QueryParameterValue(value: String) extends AnyVal
 
-object QueryParameterValue {
+object QueryParameterValue extends AbstractFunction1[String, QueryParameterValue] {
   implicit lazy val showInstance: Show[QueryParameterValue] =
     Show.show(_.value)
 
