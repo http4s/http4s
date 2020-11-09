@@ -8,6 +8,13 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M6 (unreleased)
+
+## Breaking changes
+
+* [#3758](https://github.com/http4s/http4s/pull/3758): Refactor query param infix operators for deprecations in Scala 2.13
+* [#3366](https://github.com/http4s/http4s/pull/3366): Add `Method` and `Uri` to `UnexpectedStatus` exception to improve client error handling.
+
 # v0.21.9 (unreleased)
 
 ## Bugfixes
