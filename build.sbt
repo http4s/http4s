@@ -8,8 +8,8 @@ ThisBuild / scalaVersion := scala_213
 
 lazy val modules: List[ProjectReference] = List(
   core,
-  // laws,
-  // testing,
+  laws,
+  testing,
   // tests,
   // server,
   // prometheusMetrics,
