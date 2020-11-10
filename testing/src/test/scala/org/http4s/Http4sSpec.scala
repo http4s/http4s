@@ -97,7 +97,7 @@ trait Http4sSpec
     (resp.status == status) -> s" doesn't have status $status"
   }
 
-  def withResogrce[A](r: Resource[IO, A])(fs: A => Fragments): Fragments =
+  def withResource[A](r: Resource[IO, A])(fs: A => Fragments): Fragments =
     r.use(a => IO(fs(a))).unsafeRunSync() 
 
   /** These tests are flaky on Travis.  Use sparingly and with great shame. */
