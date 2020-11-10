@@ -45,8 +45,7 @@ trait Http4sSpec
     with ArbitraryInstances
     with FragmentsDsl
     with Discipline {
-  // implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
-  // def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
+
   implicit val testIORuntime = Http4sSpec.TestIORuntime
 
   implicit val params = Parameters(maxSize = 20)

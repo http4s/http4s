@@ -6,11 +6,6 @@
 
 package org.http4s
 
-// import cats.effect.IO
-// // import cats.effect.laws.util.TestContext
-// import org.scalacheck.Prop
-// import scala.util.Success
-
 package object testing {
   // Media types used for testing
   @deprecated("Will be removed in a future version.", "0.21.0-M2")
@@ -38,16 +33,6 @@ package object testing {
   @deprecated("Will be removed in a future version.", "0.21.0-M2")
   val `audio/mod`: MediaType =
     new MediaType("audio", "mod", MediaType.Uncompressible, MediaType.Binary, List("mod"))
-
-  // @deprecated("Will be removed in a future version. Prefer IsEq[F[Boolean]].", "0.21.0-M2")
-  // def ioBooleanToProp(iob: IO[Boolean])(implicit ec: TestContext): Prop = {
-  //   val f = iob.unsafeToFuture()
-  //   ec.tick()
-  //   f.value match {
-  //     case Some(Success(true)) => true
-  //     case _ => false
-  //   }
-  // }
 
   @deprecated("Import from org.http4s.laws.discipline.arbitrary._.", "0.21.0-M2")
   type ArbitraryInstances
