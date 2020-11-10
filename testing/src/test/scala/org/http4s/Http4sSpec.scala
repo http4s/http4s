@@ -98,7 +98,7 @@ trait Http4sSpec
   }
 
   def withResource[A](r: Resource[IO, A])(fs: A => Fragments): Fragments =
-    r.use(a => IO(fs(a))).unsafeRunSync() 
+    r.use(a => IO(fs(a))).unsafeRunSync()
 
   /** These tests are flaky on Travis.  Use sparingly and with great shame. */
   def skipOnCi(f: => Result): Result =
@@ -123,16 +123,15 @@ object Http4sSpec {
     val computePool = newDaemonPool("http4s-spec", timeout = true)
     val scheduledExecutor = TestScheduler
     IORuntime.apply(
-     ExecutionContext.fromExecutor(computePool),
-     ExecutionContext.fromExecutor(blockingPool),
-     Scheduler.fromScheduledExecutor(scheduledExecutor),
-     () => {
-       blockingPool.shutdown()
-       computePool.shutdown()
-       scheduledExecutor.shutdown()
-     }
+      ExecutionContext.fromExecutor(computePool),
+      ExecutionContext.fromExecutor(blockingPool),
+      Scheduler.fromScheduledExecutor(scheduledExecutor),
+      () => {
+        blockingPool.shutdown()
+        computePool.shutdown()
+        scheduledExecutor.shutdown()
+      }
     )
   }
-
 
 }
