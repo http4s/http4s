@@ -8,6 +8,45 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M6 (2020-11-11)
+
+## Breaking changes
+
+* [#3758](https://github.com/http4s/http4s/pull/3758): Refactor query param infix operators for deprecations in Scala 2.13. Not source breaking.
+* [#3366](https://github.com/http4s/http4s/pull/3366): Add `Method` and `Uri` to `UnexpectedStatus` exception to improve client error handling. Not source breaking in most common usages.
+
+# v0.21.9 (2020-11-11)
+
+## Bugfixes
+
+* [#3757](https://github.com/http4s/http4s/pull/3757): Restore mixin forwarders in `Http4sDsl` for binary compatibility back to v0.21.0.  These were removed in v0.21.6 by [#3492](https://github.com/http4s/http4s/pull/3492), but not caught by an older version of MiMa.
+* [#3752](https://github.com/http4s/http4s/pull/3752): Fix rendering of absolute `Uri`s with no scheme.  They were missing the `//`.
+* [#3810](https://github.com/http4s/http4s/pull/3810): In okhttp-client, render the request body synchronously on an okhttp-managed thread. There was a race condition that could truncate bodies.
+
+## Enhancements
+
+* [#3609](https://github.com/http4s/http4s/pull/3609): Introduce `Forwarded` header
+* [#3789](https://github.com/http4s/http4s/pull/3789): In Ember, apply `Transfer-Encoding: chunked` in the absence of contrary information
+* [#3815](https://github.com/http4s/http4s/pull/3815): Add `Show`, `Hash`, and `Order` instances to `QueryParamKey` and `QueryParamValue`
+* [#3820](https://github.com/http4s/http4s/pull/3820): In jetty-client, eliminate uninformative request logging of failures
+
+## Dotty preparations
+
+Dotty support remains [in progress](https://github.com/http4s/http4s/projects/5), though many http4s features can be used now in compatibility mode.
+
+* [#3767](https://github.com/http4s/http4s/pull/3767): Name "unbound placeholders."
+* [#3757](https://github.com/http4s/http4s/pull/3757): Replace `@silent` annotations with `@nowarn`.
+
+## Dependency updates
+
+* blaze-0.14.14
+* discipline-specs2-1.1.1
+* dropwizard-metrics-4.1.14
+* fs2-2.4.5
+* jetty-9.4.34.v20201102
+* log4s-1.9.0
+* scalacheck-1.15.1
+
 # v1.0.0-M5 (2020-10-16)
 
 ## Bugfixes

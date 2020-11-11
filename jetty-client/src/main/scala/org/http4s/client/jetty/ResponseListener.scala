@@ -90,9 +90,7 @@ private[jetty] final case class ResponseListener[F[_]](
 
   // the entire req/resp conversation has completed
   // (the request might complete after the response has been entirely received)
-  override def onComplete(result: Result): Unit =
-    if (result.getRequestFailure != null)
-      logger.error(result.getRequestFailure)("Failed request")
+  override def onComplete(result: Result): Unit = ()
 
   private def abort(t: Throwable, response: JettyResponse): Unit =
     if (!response.abort(t)) // this also aborts the request
