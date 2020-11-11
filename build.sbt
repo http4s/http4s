@@ -94,7 +94,6 @@ lazy val laws = libraryProject("laws")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
-      catsEffectLaws,
       catsEffectTestkit
     ),
   )
@@ -104,7 +103,6 @@ lazy val testing = libraryProject("testing")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
-      catsEffectLaws,
       specs2Matcher,
     ),
   )
