@@ -9,7 +9,7 @@ ThisBuild / scalaVersion := scala_213
 lazy val modules: List[ProjectReference] = List(
   core,
   laws,
-  // testing,
+  testing,
   // tests,
   // server,
   // prometheusMetrics,
@@ -104,7 +104,6 @@ lazy val testing = libraryProject("testing")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
-      catsEffectLaws,
       specs2Matcher,
     ),
   )

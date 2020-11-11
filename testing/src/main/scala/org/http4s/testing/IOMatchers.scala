@@ -10,13 +10,14 @@
 package org.http4s.testing
 
 import cats.effect.{IO, Sync}
+import cats.effect.unsafe.implicits.global
 import scala.concurrent.duration.FiniteDuration
 
 /** Matchers for cats.effect.IO
   */
 @deprecated("Provided by specs2-cats in org.specs2.matcher.IOMatchers", "0.21.0-RC2")
 trait IOMatchers extends RunTimedMatchers[IO] {
-  protected implicit def F: Sync[IO] = IO.ioEffect
+  protected implicit def F: Sync[IO] = IO.asyncForIO
   protected def runWithTimeout[A](fa: IO[A], timeout: FiniteDuration): Option[A] =
     fa.unsafeRunTimed(timeout)
   protected def runAwait[A](fa: IO[A]): A = fa.unsafeRunSync()

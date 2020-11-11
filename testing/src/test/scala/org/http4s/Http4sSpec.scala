@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.effect.{Blocker, ContextShift, ExitCase, IO, Resource, Timer}
+import cats.effect.{IO, Resource}
 import cats.implicits._
 import fs2._
 import fs2.text._
@@ -29,6 +29,8 @@ import org.specs2.specification.create.{DefaultFragmentFactory => ff}
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
 import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.IORuntime
+import cats.effect.unsafe.Scheduler
 
 /** Common stack for http4s' own specs.
   *
@@ -43,11 +45,8 @@ trait Http4sSpec
     with ArbitraryInstances
     with FragmentsDsl
     with Discipline {
-  implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
-  val testBlocker: Blocker = Http4sSpec.TestBlocker
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
-  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
-  def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
+
+  implicit val testIORuntime = Http4sSpec.TestIORuntime
 
   implicit val params = Parameters(maxSize = 20)
 
@@ -99,18 +98,9 @@ trait Http4sSpec
   }
 
   def withResource[A](r: Resource[IO, A])(fs: A => Fragments): Fragments =
-    r match {
-      case Resource.Allocate(alloc) =>
-        alloc
-          .map { case (a, release) =>
-            fs(a).append(step(release(ExitCase.Completed).unsafeRunSync()))
-          }
-          .unsafeRunSync()
-      case Resource.Bind(r, f) =>
-        withResource(r)(a => withResource(f(a))(fs))
-      case Resource.Suspend(r) =>
-        withResource(r.unsafeRunSync() /* ouch */ )(fs)
-    }
+    r.allocated
+      .map { case (r, release) => fs(r).append(step(release.unsafeRunSync())) }
+      .unsafeRunSync()
 
   /** These tests are flaky on Travis.  Use sparingly and with great shame. */
   def skipOnCi(f: => Result): Result =
@@ -122,12 +112,6 @@ object Http4sSpec {
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
 
-  val TestBlocker: Blocker =
-    Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
-
-  val TestContextShift: ContextShift[IO] =
-    IO.contextShift(TestExecutionContext)
-
   val TestScheduler: ScheduledExecutorService = {
     val s =
       new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
@@ -136,7 +120,20 @@ object Http4sSpec {
     s
   }
 
-  val TestTimer: Timer[IO] =
-    IO.timer(TestExecutionContext, TestScheduler)
+  val TestIORuntime: IORuntime = {
+    val blockingPool = newBlockingPool("http4s-spec-blocking")
+    val computePool = newDaemonPool("http4s-spec", timeout = true)
+    val scheduledExecutor = TestScheduler
+    IORuntime.apply(
+      ExecutionContext.fromExecutor(computePool),
+      ExecutionContext.fromExecutor(blockingPool),
+      Scheduler.fromScheduledExecutor(scheduledExecutor),
+      () => {
+        blockingPool.shutdown()
+        computePool.shutdown()
+        scheduledExecutor.shutdown()
+      }
+    )
+  }
 
 }
