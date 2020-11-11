@@ -3,7 +3,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 // https://github.com/coursier/coursier/issues/450
 classpathTypes += "maven-plugin"
 
-addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.21")
+addSbtPlugin("ch.epfl.scala"              %  "sbt-scalafix"              % "0.9.23")
 addSbtPlugin("com.earldouglas"            %  "xsbt-web-plugin"           % "4.1.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-buildinfo"             % "0.9.0")
 addSbtPlugin("com.eed3si9n"               %  "sbt-unidoc"                % "0.4.3")

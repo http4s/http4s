@@ -106,6 +106,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Dropped joda-time support, wait for next breaking release
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
+    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
+    dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -238,19 +240,19 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val argonaut = "6.2.5"
     val asyncHttpClient = "2.10.5"
-    val blaze = "0.14.13"
+    val blaze = "0.14.14"
     val boopickle = "1.3.3"
     val cats = "2.2.0"
     val catsEffect = "2.2.0"
     val catsEffectTesting = "0.4.1"
     val circe = "0.13.0"
     val cryptobits = "1.3"
-    val disciplineSpecs2 = "1.1.0"
+    val disciplineSpecs2 = "1.1.1"
     val dropwizardMetrics = "4.1.14"
-    val fs2 = "2.4.4"
+    val fs2 = "2.4.5"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.33.v20201020"
+    val jetty = "9.4.34.v20201102"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
@@ -263,7 +265,7 @@ object Http4sPlugin extends AutoPlugin {
     val playJson = "2.9.1"
     val prometheusClient = "0.8.1"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.0"
+    val scalacheck = "1.15.1"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
