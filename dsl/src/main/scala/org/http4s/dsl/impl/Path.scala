@@ -14,6 +14,7 @@ import cats.data.Validated._
 import cats.implicits._
 import org.http4s._
 import scala.util.Try
+import cats.Traverse
 
 /** Base class for path extractors. */
 trait Path {
@@ -217,6 +218,67 @@ object LongVar extends PathVar(str => Try(str.toLong))
   * }}}
   */
 object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
+
+/** Matrix path variable extractor
+  * For an example see [[https://www.w3.org/DesignIssues/MatrixURIs.html MatrixURIs]]
+  * This is useful for representing a resource that may be addressed in multiple dimensions where order is unimportant
+  *
+  * {{{
+  *
+  *    object BoardVar extends MatrixVar("square", List("x", "y"), str => Try(str.toInt).toOption)
+  *    Path("/board/square;x=5;y=3") match {
+  *      case Root / "board" / BoardVar(x, y) => ...
+  *    }
+  * }}}
+  */
+abstract class MatrixVar[F[_]: Traverse, A](
+    name: String,
+    domain: F[String],
+    range: String => Option[A]) {
+  def unapplySeq(str: String): Option[Seq[A]] =
+    if (str.nonEmpty) {
+      val firstSemi = str.indexOf(';')
+      if (firstSemi < 0 && domain.nonEmpty) None
+      else if (firstSemi < 0) Some(Seq.empty[A])
+      // Matrix segment didn't match the expected name
+      else if (str.substring(0, firstSemi) != name) None
+      else {
+        val assocListOpt =
+          if (firstSemi >= 0) toAssocList(str, firstSemi + 1, List.empty)
+          else Some(List.empty[(String, String)])
+        assocListOpt.flatMap { assocList =>
+          val located = domain.toList
+            .traverse(dom => assocList.find(_._1 == dom).map(_._2).flatMap(range))
+          located <* None.whenA(assocList.length != domain.size)
+        }
+      }
+    } else None
+
+  private def toAssocList(
+      str: String,
+      position: Int,
+      accumulated: List[(String, String)]): Option[List[(String, String)]] = {
+    val nextSplit = str.indexOf(';', position)
+    // Empty axis so fail
+    if (nextSplit == position) None
+    // We are accumulating the remainder
+    else if (nextSplit <= 0)
+      toAssocListElem(str, position, str.length).map(_ :: accumulated)
+    else
+      toAssocListElem(str, position, nextSplit)
+        .flatMap(elem => toAssocList(str, nextSplit + 1, elem :: accumulated))
+  }
+
+  private def toAssocListElem(str: String, position: Int, end: Int): Option[(String, String)] = {
+    val delimSplit = str.indexOf('=', position)
+    val nextDelimSplit = str.indexOf('=', delimSplit + 1)
+    // if the segment does not contain an = inside then it is invalid
+    if (delimSplit < 0 || delimSplit === position || delimSplit >= end) None
+    // if the segment contains multiple = then it is invalid
+    else if (nextDelimSplit < end && nextDelimSplit >= 0) None
+    else Some(str.substring(position, delimSplit) -> str.substring(delimSplit + 1, end))
+  }
+}
 
 /** Multiple param extractor:
   * {{{

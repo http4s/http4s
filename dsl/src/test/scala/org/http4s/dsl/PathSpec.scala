@@ -15,6 +15,7 @@ import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
+import scala.util.Try
 
 class PathSpec extends Http4sSpec {
   implicit val arbitraryPath: Arbitrary[Path] =
@@ -228,6 +229,88 @@ class PathSpec extends Http4sSpec {
         "a bad UUID" in {
           (Path("/user/13251d88-7a73-4fcf-b935") match {
             case Root / "user" / UUIDVar(userId @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+      }
+    }
+
+    "Matrix extractor" >> {
+      object BoardExtractor
+          extends impl.MatrixVar("square", List("x", "y"), s => Try(s.toInt).toOption)
+      "valid" >> {
+        "a matrix var" in {
+          (Path("/board/square;x=42;y=0") match {
+            case Root / "board" / BoardExtractor(x, y) if x == 42 && y == 0 => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "a matrix var mid path" in {
+          (Path("/board/square;x=42;y=0/piece") match {
+            case Root / "board" / BoardExtractor(x, y) / "piece" if x == 42 && y == 0 => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "an empty matrix var but why?" in {
+
+          object EmptyExtractor
+              extends impl.MatrixVar[List, String]("square", List.empty, s => Some(s))
+
+          (Path("/board/square") match {
+            case Root / "board" / EmptyExtractor() => true
+            case _ => false
+          }) must beTrue
+        }
+      }
+
+      "invalid" >> {
+        "empty with semi" in {
+          (Path("/board/square;") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "empty without semi" in {
+          (Path("/board/square") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "empty axis" in {
+          (Path("/board/square;;y=0") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "empty too many = in axis" in {
+          (Path("/board/square;x=42=0;y=9") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "unparseable" in {
+          (Path("/board/square;x=42;y=soda") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "not enough axes" in {
+          (Path("/board/square;x=42") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "to many axes" in {
+          (Path("/board/square;x=42y=0;z=39") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
         }
