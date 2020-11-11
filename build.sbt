@@ -8,7 +8,7 @@ ThisBuild / scalaVersion := scala_213
 
 lazy val modules: List[ProjectReference] = List(
   core,
-  // laws,
+  laws,
   // testing,
   // tests,
   // server,
@@ -94,7 +94,7 @@ lazy val laws = libraryProject("laws")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
-      catsEffectLaws,
+      catsLaws,
       catsEffectTestkit
     ),
   )
