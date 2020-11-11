@@ -98,7 +98,8 @@ trait Http4sSpec
   }
 
   def withResource[A](r: Resource[IO, A])(fs: A => Fragments): Fragments =
-    r.use(a => IO(fs(a))).unsafeRunSync()
+    r.allocated.map { case (r, release) => fs(r).append(step(release.unsafeRunSync())) }.unsafeRunSync()
+    // r.use(a => IO(fs(a))).unsafeRunSync()
 
   /** These tests are flaky on Travis.  Use sparingly and with great shame. */
   def skipOnCi(f: => Result): Result =
