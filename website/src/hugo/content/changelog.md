@@ -21,6 +21,7 @@ it.
 * [#3609](https://github.com/http4s/http4s/pull/3609): Introduce `Forwarded` header
 * [#3789](https://github.com/http4s/http4s/pull/3789): In Ember, apply `Transfer-Encoding: chunked` in the absence of contrary information
 * [#3815](https://github.com/http4s/http4s/pull/3815): Add `Show`, `Hash`, and `Order` instances to `QueryParamKey` and `QueryParamValue`
+* [#3820](https://github.com/http4s/http4s/pull/3820): In jetty-client, eliminate uninformative request logging of failures
 
 ## Dotty preparations
 
@@ -31,6 +32,7 @@ Dotty support remains [in progress](https://github.com/http4s/http4s/projects/5)
 
 ## Dependency updates
 
+* blaze-0.14.14
 * discipline-specs2-1.1.1
 * dropwizard-metrics-4.1.14
 * fs2-2.4.5
