@@ -99,6 +99,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
+    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
+    dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -241,10 +243,10 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.1"
     val dropwizardMetrics = "4.1.14"
-    val fs2 = "2.4.4"
+    val fs2 = "2.4.5"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.33.v20201020"
+    val jetty = "9.4.34.v20201102"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
