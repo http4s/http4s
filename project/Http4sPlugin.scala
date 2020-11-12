@@ -297,7 +297,11 @@ object Http4sPlugin extends AutoPlugin {
         setupHugoStep,
         sitePublishStep("website"),
         sitePublishStep("docs")
-      )
+      ),
+      // TODO reenable
+      githubWorkflowGeneratedCacheSteps := Seq(),
+      githubWorkflowGeneratedUploadSteps := Seq(),
+      githubWorkflowGeneratedDownloadSteps := Seq()
     ))
   }
 
