@@ -267,8 +267,7 @@ object Http4sPlugin extends AutoPlugin {
           .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
-        // TODO reenable
-        // WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+        WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
         WorkflowStep.Sbt(
           List("unusedCompileDependenciesTest"),
           name = Some("Check explicit dependencies")),
