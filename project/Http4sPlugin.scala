@@ -272,11 +272,7 @@ object Http4sPlugin extends AutoPlugin {
           List("unusedCompileDependenciesTest"),
           name = Some("Check explicit dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
-        WorkflowStep.Sbt(List("publishLocal")),
-        setupHugoStep,
-        siteBuildStep("website"),
-        siteBuildStep("docs")
+        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
@@ -299,7 +295,31 @@ object Http4sPlugin extends AutoPlugin {
         sitePublishStep("docs")
       ),
       githubWorkflowGeneratedUploadSteps := Seq(),
-      githubWorkflowGeneratedDownloadSteps := Seq()
+      githubWorkflowGeneratedDownloadSteps := Seq(),
+      githubWorkflowAddedJobs := Seq(
+        WorkflowJob(
+          id = "website",
+          name = "Build website",
+          scalas = List(scala_212),
+          steps = List(
+            WorkflowStep.Checkout,
+            WorkflowStep.SetupScala,
+            setupHugoStep,
+            siteBuildStep("website")
+          )
+        ),
+        WorkflowJob(
+          id = "docs",
+          name = "Build docs",
+          scalas = List(scala_212),
+          steps = List(
+            WorkflowStep.Checkout,
+            WorkflowStep.SetupScala,
+            setupHugoStep,
+            siteBuildStep("docs")
+          )
+        )
+      )
     )
   }
 

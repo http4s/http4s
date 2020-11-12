@@ -100,23 +100,6 @@ jobs:
       - name: Build docs
         run: sbt ++${{ matrix.scala }} doc
 
-      - run: sbt ++${{ matrix.scala }} publishLocal
-
-      - name: Setup Hugo
-        run: |
-
-          echo "$HOME/bin" > $GITHUB_PATH
-          HUGO_VERSION=0.26 scripts/install-hugo
-
-      
-      - name: Build website
-        if: startsWith(matrix.scala, '2.12.')
-        run: sbt ++${{ matrix.scala }} website/makeSite
-
-      - name: Build docs
-        if: startsWith(matrix.scala, '2.12.')
-        run: sbt ++${{ matrix.scala }} docs/makeSite
-
   publish:
     name: Publish Artifacts
     needs: [build]
@@ -219,3 +202,59 @@ jobs:
           sbt ++2.12.12 docs/makeSite docs/ghpagesPushSite
 
                 
+
+  website:
+    name: Build website
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        scala: [2.12.12]
+        java: [adopt@1.8]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout current branch (fast)
+        uses: actions/checkout@v2
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Setup Hugo
+        run: |
+
+          echo "$HOME/bin" > $GITHUB_PATH
+          HUGO_VERSION=0.26 scripts/install-hugo
+
+      
+      - name: Build website
+        if: startsWith(matrix.scala, '2.12.')
+        run: sbt ++${{ matrix.scala }} website/makeSite
+
+  docs:
+    name: Build docs
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        scala: [2.12.12]
+        java: [adopt@1.8]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout current branch (fast)
+        uses: actions/checkout@v2
+
+      - name: Setup Java and Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Setup Hugo
+        run: |
+
+          echo "$HOME/bin" > $GITHUB_PATH
+          HUGO_VERSION=0.26 scripts/install-hugo
+
+      
+      - name: Build docs
+        if: startsWith(matrix.scala, '2.12.')
+        run: sbt ++${{ matrix.scala }} docs/makeSite
