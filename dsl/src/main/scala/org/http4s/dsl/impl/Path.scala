@@ -235,6 +235,9 @@ abstract class MatrixVar[F[_]: Traverse, A](
     name: String,
     domain: F[String],
     range: String => Option[A]) {
+
+  private val domainSize = domain.size
+
   def unapplySeq(str: String): Option[Seq[A]] =
     if (str.nonEmpty) {
       val firstSemi = str.indexOf(';')
@@ -244,7 +247,7 @@ abstract class MatrixVar[F[_]: Traverse, A](
       else if (str.substring(0, firstSemi) != name) None
       else {
         val assocListOpt =
-          if (firstSemi >= 0) toAssocList(str, firstSemi + 1, List.empty)
+          if (firstSemi >= 0) toAssocList(str, firstSemi + 1, List.empty, 0L)
           else Some(List.empty[(String, String)])
         assocListOpt.flatMap { assocList =>
           val located = domain.toList
@@ -257,17 +260,21 @@ abstract class MatrixVar[F[_]: Traverse, A](
   private def toAssocList(
       str: String,
       position: Int,
-      accumulated: List[(String, String)]): Option[List[(String, String)]] = {
-    val nextSplit = str.indexOf(';', position)
-    // Empty axis so fail
-    if (nextSplit == position) None
-    // We are accumulating the remainder
-    else if (nextSplit <= 0)
-      toAssocListElem(str, position, str.length).map(_ :: accumulated)
-    else
-      toAssocListElem(str, position, nextSplit)
-        .flatMap(elem => toAssocList(str, nextSplit + 1, elem :: accumulated))
-  }
+      accumulated: List[(String, String)],
+      accumulatedCt: Long): Option[List[(String, String)]] =
+    if (accumulatedCt >= domainSize) {
+      None
+    } else {
+      val nextSplit = str.indexOf(';', position)
+      // Empty axis so fail
+      if (nextSplit == position) None
+      // We are accumulating the remainder
+      else if (nextSplit <= 0)
+        toAssocListElem(str, position, str.length).map(_ :: accumulated)
+      else
+        toAssocListElem(str, position, nextSplit)
+          .flatMap(elem => toAssocList(str, nextSplit + 1, elem :: accumulated, accumulatedCt + 1L))
+    }
 
   private def toAssocListElem(str: String, position: Int, end: Int): Option[(String, String)] = {
     val delimSplit = str.indexOf('=', position)
