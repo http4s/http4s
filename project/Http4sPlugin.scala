@@ -250,7 +250,7 @@ object Http4sPlugin extends AutoPlugin {
       |sbt ++$scala_212 $subproject/makeSite $subproject/ghpagesPushSite
       |
       """.stripMargin),
-      name = Some("Pubish site: $subproject"),
+      name = Some(s"Publish $subproject"),
       env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
     )
 
