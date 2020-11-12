@@ -63,10 +63,11 @@ lazy val root = project.in(file("."))
   .aggregate(modules: _*)
 
 lazy val core = libraryProject("core")
+  .disablePlugins(SilencerPlugin)
   .enablePlugins(
     BuildInfoPlugin,
     MimeLoaderPlugin,
-    SilencerPlugin
+    SilencerPlugin2
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -80,11 +81,37 @@ lazy val core = libraryProject("core")
       cats,
       catsEffect,
       fs2Io,
-      log4s,
-      parboiled,
-      scalaReflect(scalaVersion.value) % Provided,
+      log4s.withDottyCompat(scalaVersion.value),
       vault,
     ),
+    libraryDependencies := {
+      if (isDotty.value) {
+        libraryDependencies.value.map { m =>
+          // Version overrides for milestones
+          m.name match {
+            case "cats-effect-testing-specs2" =>
+              m.withRevision("0.4.2")
+            case x if x.startsWith("cats-effect") =>
+              m.withRevision("2.3.0-M1")
+            case x if x.startsWith("cats-") =>
+              m.withRevision("2.3.0-M2")
+            case x if x.startsWith("fs2-") =>
+              m.withRevision("2.5.0-M1")
+            case _ =>
+              m
+          }
+        }.filterNot(m =>
+          m == vault // conflicts with dotty cats
+        )
+      }
+      else {
+        libraryDependencies.value ++ Seq(
+          // These dependencies aren't, and shan't be, in Scala 3
+          parboiled,
+          scalaReflect(scalaVersion.value) % Provided,
+        )
+      }
+    },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
 
@@ -694,11 +721,19 @@ lazy val commonSettings = Seq(
     disciplineSpecs2,
     logbackClassic,
     scalacheck,
-    specs2Cats,
-    specs2Core,
-    specs2MatcherExtra,
-    specs2Scalacheck
+    specs2Core.withDottyCompat(scalaVersion.value),
+    specs2MatcherExtra.withDottyCompat(scalaVersion.value),
   ).map(_ % Test),
+  libraryDependencies ++= {
+    if (isDotty.value)
+      libraryDependencies.value
+    else
+      // These are going to be a problem
+      Seq(
+        specs2Cats,
+        specs2Scalacheck
+      ).map(_ % Test)
+  }
 )
 
 def initCommands(additionalImports: String*) =

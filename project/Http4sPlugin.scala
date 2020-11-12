@@ -1,5 +1,6 @@
 package org.http4s.sbt
 
+import dotty.tools.sbtplugin.DottyPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
@@ -35,10 +36,28 @@ object Http4sPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
-    crossScalaVersions := Seq(scala_213, scala_212),
+    crossScalaVersions := Seq(scala_213, scala_212, "3.0.0-M1"),
 
-    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+    libraryDependencies ++= {
+      if (isDotty.value) Seq.empty
+      else Seq(
+        compilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
+        compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+      )
+    },
+
+    // hack around bug in sbt-http4s-org
+    scalacOptions := {
+      if (isDotty.value) {
+        scalacOptions.value.indexOf("-Ybackend-parallelism") match {
+          case n if n >= 0 =>
+            scalacOptions.value.take(n) ++ scalacOptions.value.take(n).drop(2)
+          case _ =>
+            scalacOptions.value
+        }
+      }
+      else scalacOptions.value
+    },
 
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
