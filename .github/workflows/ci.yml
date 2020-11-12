@@ -104,10 +104,12 @@ jobs:
           HUGO_VERSION=0.26 scripts/install-hugo
 
       
-      - name: Build project site
+      - name: Build website
+        if: startsWith(matrix.scala, '2.12.')
         run: sbt ++${{ matrix.scala }} website/makeSite
 
-      - name: Build docs site
+      - name: Build docs
+        if: startsWith(matrix.scala, '2.12.')
         run: sbt ++${{ matrix.scala }} docs/makeSite
 
       - name: Compress target directories
