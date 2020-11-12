@@ -243,6 +243,12 @@ object Http4sPlugin extends AutoPlugin {
       |HUGO_VERSION=0.26 scripts/install-hugo
     """.stripMargin), name = Some("Setup Hugo"))
 
+    def siteBuildStep(subproject: String) = WorkflowStep.Sbt(
+      List(s"$subproject/makeSite"),
+      name = Some(s"Build $subproject"),
+      cond = Some("startsWith(matrix.scala, '2.12.')")
+    )
+
     def sitePublishStep(subproject: String) = WorkflowStep.Run(List(s"""
       |eval "$$(ssh-agent -s)"
       |echo "$$SSH_PRIVATE_KEY" | ssh-add -
@@ -269,8 +275,8 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
         setupHugoStep,
-        WorkflowStep.Sbt(List("website/makeSite"), name = Some("Build project site")),
-        WorkflowStep.Sbt(List("docs/makeSite"), name = Some("Build docs site"))
+        siteBuildStep("website"),
+        siteBuildStep("docs")
       ),
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
