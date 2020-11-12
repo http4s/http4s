@@ -246,7 +246,7 @@ object Http4sPlugin extends AutoPlugin {
     def siteBuildStep(subproject: String) = WorkflowStep.Sbt(
       List(s"$subproject/makeSite"),
       name = Some(s"Build $subproject"),
-      cond = None //Some("startsWith(matrix.scala, '2.12.')")
+      cond = Some("startsWith(matrix.scala, '2.12.')")
     )
 
     def sitePublishStep(subproject: String) = WorkflowStep.Run(List(s"""
