@@ -31,11 +31,11 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-  )
+  ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
-    crossScalaVersions := Seq(scala_213, scala_212),
+    ThisBuild / crossScalaVersions := Seq(scala_213, scala_212),
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
@@ -232,6 +232,66 @@ object Http4sPlugin extends AutoPlugin {
           "CNAME" | "_config.yml" | "_redirects"
       )
     )
+  }
+
+  def sbtghactionsSettings: Seq[Setting[_]] = {
+    import sbtghactions._
+    import sbtghactions.GenerativeKeys._
+
+    val setupHugoStep = WorkflowStep.Run(List("""
+      |echo "$HOME/bin" > $GITHUB_PATH
+      |HUGO_VERSION=0.26 scripts/install-hugo
+    """.stripMargin), name = Some("Setup Hugo"))
+
+    def sitePublishStep(subproject: String) = WorkflowStep.Run(List(s"""
+      |eval "$$(ssh-agent -s)"
+      |echo "$$SSH_PRIVATE_KEY" | ssh-add -
+      |git config --global user.name "GitHub Actions CI"
+      |git config --global user.email "ghactions@invalid"
+      |sbt ++$scala_212 $subproject/makeSite $subproject/ghpagesPushSite
+      |
+      """.stripMargin),
+      name = Some("Pubish site: $subproject"),
+      env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
+    )
+
+    inThisBuild(Http4sOrgPlugin.githubActionsSettings ++ Seq(
+      githubWorkflowBuild := Seq(
+        WorkflowStep
+          .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
+        WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
+        WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
+        WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+        WorkflowStep.Sbt(
+          List("unusedCompileDependenciesTest"),
+          name = Some("Check explicit dependencies")),
+        WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
+        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
+        setupHugoStep,
+        WorkflowStep.Sbt(List("website/makeSite"), name = Some("Build project site")),
+        WorkflowStep.Sbt(List("docs/makeSite"), name = Some("Build docs site"))
+      ),
+      githubWorkflowPublishTargetBranches := Seq(
+        RefPredicate.Equals(Ref.Branch("main")),
+        RefPredicate.StartsWith(Ref.Tag("v"))
+      ),
+      githubWorkflowPublishPreamble += WorkflowStep.Use("olafurpg", "setup-gpg", "v3"),
+      githubWorkflowPublish := Seq(
+        WorkflowStep.Sbt(
+          List("ci-release"),
+          name = Some("Release"),
+          env = Map(
+            "PGP_PASSPHRASE" -> "${{ secrets.PGP_PASSPHRASE }}",
+            "PGP_SECRET" -> "${{ secrets.PGP_SECRET }}",
+            "SONATYPE_PASSWORD" -> "${{ secrets.SONATYPE_PASSWORD }}",
+            "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}"
+          )
+        ),
+        setupHugoStep,
+        sitePublishStep("website"),
+        sitePublishStep("docs")
+      )
+    ))
   }
 
   object V { // Dependency versions
