@@ -31,11 +31,11 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
+    crossScalaVersions := Seq(scala_213, scala_212),
   ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
-    ThisBuild / crossScalaVersions := Seq(scala_213, scala_212),
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
@@ -261,7 +261,7 @@ object Http4sPlugin extends AutoPlugin {
       env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
     )
 
-    inThisBuild(Http4sOrgPlugin.githubActionsSettings ++ Seq(
+    Http4sOrgPlugin.githubActionsSettings ++ Seq(
       githubWorkflowBuild := Seq(
         WorkflowStep
           .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
@@ -302,7 +302,7 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowGeneratedCacheSteps := Seq(),
       githubWorkflowGeneratedUploadSteps := Seq(),
       githubWorkflowGeneratedDownloadSteps := Seq()
-    ))
+    )
   }
 
   object V { // Dependency versions
