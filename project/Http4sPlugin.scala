@@ -273,6 +273,7 @@ object Http4sPlugin extends AutoPlugin {
           name = Some("Check explicit dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
+        WorkflowStep.Sbt(List("publishLocal")),
         setupHugoStep,
         siteBuildStep("website"),
         siteBuildStep("docs")
@@ -296,7 +297,9 @@ object Http4sPlugin extends AutoPlugin {
         setupHugoStep,
         sitePublishStep("website"),
         sitePublishStep("docs")
-      )
+      ),
+      githubWorkflowGeneratedUploadSteps := Seq(),
+      githubWorkflowGeneratedDownloadSteps := Seq()
     )
   }
 
