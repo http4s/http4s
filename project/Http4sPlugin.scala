@@ -243,11 +243,19 @@ object Http4sPlugin extends AutoPlugin {
       |HUGO_VERSION=0.26 scripts/install-hugo
     """.stripMargin), name = Some("Setup Hugo"))
 
-    def siteBuildStep(subproject: String) = WorkflowStep.Sbt(
-      List(s"$subproject/makeSite"),
-      name = Some(s"Build $subproject"),
-      cond = Some("startsWith(matrix.scala, '2.12.')")
-    )
+    def siteBuildJob(subproject: String) =
+      WorkflowJob(
+        id = subproject,
+        name = s"Build $subproject",
+        scalas = List(scala_212),
+        steps = List(
+          WorkflowStep.Checkout,
+          WorkflowStep.Run(List("git fetch --unshallow")),
+          WorkflowStep.SetupScala,
+          setupHugoStep,
+          WorkflowStep.Sbt(List(s"$subproject/makeSite"), name = Some(s"Build $subproject"))
+        )
+      )
 
     def sitePublishStep(subproject: String) = WorkflowStep.Run(List(s"""
       |eval "$$(ssh-agent -s)"
@@ -296,30 +304,7 @@ object Http4sPlugin extends AutoPlugin {
       ),
       githubWorkflowGeneratedUploadSteps := Seq(),
       githubWorkflowGeneratedDownloadSteps := Seq(),
-      githubWorkflowAddedJobs := Seq(
-        WorkflowJob(
-          id = "website",
-          name = "Build website",
-          scalas = List(scala_212),
-          steps = List(
-            WorkflowStep.Checkout,
-            WorkflowStep.SetupScala,
-            setupHugoStep,
-            siteBuildStep("website")
-          )
-        ),
-        WorkflowJob(
-          id = "docs",
-          name = "Build docs",
-          scalas = List(scala_212),
-          steps = List(
-            WorkflowStep.Checkout,
-            WorkflowStep.SetupScala,
-            setupHugoStep,
-            siteBuildStep("docs")
-          )
-        )
-      )
+      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs"))
     )
   }
 

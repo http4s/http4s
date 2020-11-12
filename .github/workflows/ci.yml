@@ -215,6 +215,8 @@ jobs:
       - name: Checkout current branch (fast)
         uses: actions/checkout@v2
 
+      - run: git fetch --unshallow
+
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
         with:
@@ -228,7 +230,6 @@ jobs:
 
       
       - name: Build website
-        if: startsWith(matrix.scala, '2.12.')
         run: sbt ++${{ matrix.scala }} website/makeSite
 
   docs:
@@ -243,6 +244,8 @@ jobs:
       - name: Checkout current branch (fast)
         uses: actions/checkout@v2
 
+      - run: git fetch --unshallow
+
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
         with:
@@ -256,5 +259,4 @@ jobs:
 
       
       - name: Build docs
-        if: startsWith(matrix.scala, '2.12.')
         run: sbt ++${{ matrix.scala }} docs/makeSite
