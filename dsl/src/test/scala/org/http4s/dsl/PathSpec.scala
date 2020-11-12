@@ -238,6 +238,9 @@ class PathSpec extends Http4sSpec {
     "Matrix extractor" >> {
       object BoardExtractor
           extends impl.MatrixVar("square", List("x", "y"), s => Try(s.toInt).toOption)
+
+      object EmptyExtractor extends impl.MatrixVar[List, String]("square", List.empty, s => Some(s))
+
       "valid" >> {
         "a matrix var" in {
           (Path("/board/square;x=42;y=0") match {
@@ -254,9 +257,6 @@ class PathSpec extends Http4sSpec {
         }
 
         "an empty matrix var but why?" in {
-
-          object EmptyExtractor
-              extends impl.MatrixVar[List, String]("square", List.empty, s => Some(s))
 
           (Path("/board/square") match {
             case Root / "board" / EmptyExtractor() => true
@@ -276,6 +276,13 @@ class PathSpec extends Http4sSpec {
         "empty without semi" in {
           (Path("/board/square") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "empty with mismatched name" in {
+          (Path("/board/other") match {
+            case Root / "board" / EmptyExtractor() => true
             case _ => false
           }) must beFalse
         }

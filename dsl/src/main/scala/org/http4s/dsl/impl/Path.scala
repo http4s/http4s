@@ -242,7 +242,7 @@ abstract class MatrixVar[F[_]: Traverse, A](
     if (str.nonEmpty) {
       val firstSemi = str.indexOf(';')
       if (firstSemi < 0 && domain.nonEmpty) None
-      else if (firstSemi < 0) Some(Seq.empty[A])
+      else if (firstSemi < 0 && name == str) Some(Seq.empty[A])
       // Matrix segment didn't match the expected name
       else if (str.substring(0, firstSemi) != name) None
       else {
