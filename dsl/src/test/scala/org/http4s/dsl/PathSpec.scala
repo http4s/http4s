@@ -316,7 +316,7 @@ class PathSpec extends Http4sSpec {
         }
 
         "to many axes" in {
-          (Path("/board/square;x=42y=0;z=39") match {
+          (Path("/board/square;x=42;y=0;z=39") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
