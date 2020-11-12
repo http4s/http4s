@@ -246,7 +246,7 @@ object Http4sPlugin extends AutoPlugin {
     def siteBuildStep(subproject: String) = WorkflowStep.Sbt(
       List(s"$subproject/makeSite"),
       name = Some(s"Build $subproject"),
-      cond = Some("startsWith(matrix.scala, '2.12.')")
+      cond = None //Some("startsWith(matrix.scala, '2.12.')")
     )
 
     def sitePublishStep(subproject: String) = WorkflowStep.Run(List(s"""
@@ -297,11 +297,7 @@ object Http4sPlugin extends AutoPlugin {
         setupHugoStep,
         sitePublishStep("website"),
         sitePublishStep("docs")
-      ),
-      // TODO reenable
-      githubWorkflowGeneratedCacheSteps := Seq(),
-      githubWorkflowGeneratedUploadSteps := Seq(),
-      githubWorkflowGeneratedDownloadSteps := Seq()
+      )
     )
   }
 
