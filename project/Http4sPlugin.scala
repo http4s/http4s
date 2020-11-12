@@ -303,8 +303,8 @@ object Http4sPlugin extends AutoPlugin {
         sitePublishStep("website"),
         sitePublishStep("docs")
       ),
-      githubWorkflowGeneratedUploadSteps := Seq(),
-      githubWorkflowGeneratedDownloadSteps := Seq(),
+      // this results in nonexistant directories trying to be compressed
+      githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
       githubWorkflowScalaVersions := scalaVersions
     )
