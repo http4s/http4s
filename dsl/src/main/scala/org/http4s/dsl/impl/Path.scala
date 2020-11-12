@@ -241,7 +241,7 @@ abstract class MatrixVar[F[_]: Traverse, A](
   def unapplySeq(str: String): Option[Seq[A]] =
     if (str.nonEmpty) {
       val firstSemi = str.indexOf(';')
-      if (firstSemi < 0 && domain.nonEmpty) None
+      if (firstSemi < 0 && (domain.nonEmpty || name != str)) None
       else if (firstSemi < 0 && name == str) Some(Seq.empty[A])
       // Matrix segment didn't match the expected name
       else if (str.substring(0, firstSemi) != name) None
