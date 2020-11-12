@@ -14,7 +14,8 @@ import cats.data.Validated._
 import cats.implicits._
 import org.http4s._
 import scala.util.Try
-import cats.Traverse
+import cats.Foldable
+import cats.Monad
 
 /** Base class for path extractors. */
 trait Path {
@@ -225,55 +226,52 @@ object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
   *
   * {{{
   *
-  *    object BoardVar extends MatrixVar("square", List("x", "y"), str => Try(str.toInt).toOption)
+  *    object BoardVar extends MatrixVar("square", List("x", "y"))
   *    Path("/board/square;x=5;y=3") match {
-  *      case Root / "board" / BoardVar(x, y) => ...
+  *      case Root / "board" / BoardVar(IntVar(x), IntVar(y)) => ...
   *    }
   * }}}
   */
-abstract class MatrixVar[F[_]: Traverse, A](
-    name: String,
-    domain: F[String],
-    range: String => Option[A]) {
+abstract class MatrixVar[F[_]: Foldable](name: String, domain: F[String]) {
+  private val domainList = domain.toList
 
-  private val domainSize = domain.size
-
-  def unapplySeq(str: String): Option[Seq[A]] =
+  def unapplySeq(str: String): Option[Seq[String]] =
     if (str.nonEmpty) {
       val firstSemi = str.indexOf(';')
       if (firstSemi < 0 && (domain.nonEmpty || name != str)) None
-      else if (firstSemi < 0 && name == str) Some(Seq.empty[A])
+      else if (firstSemi < 0 && name == str) Some(Seq.empty[String])
       // Matrix segment didn't match the expected name
       else if (str.substring(0, firstSemi) != name) None
       else {
         val assocListOpt =
-          if (firstSemi >= 0) toAssocList(str, firstSemi + 1, List.empty, 0L)
+          if (firstSemi >= 0)
+            Monad[Option].tailRecM(MatrixVar.RecState(str, firstSemi + 1, List.empty))(toAssocList)
           else Some(List.empty[(String, String)])
         assocListOpt.flatMap { assocList =>
-          val located = domain.toList
-            .traverse(dom => assocList.find(_._1 == dom).map(_._2).flatMap(range))
-          located <* None.whenA(assocList.length != domain.size)
+          domainList.traverse(dom => assocList.find(_._1 == dom).map(_._2))
         }
       }
     } else None
 
   private def toAssocList(
-      str: String,
-      position: Int,
-      accumulated: List[(String, String)],
-      accumulatedCt: Long): Option[List[(String, String)]] =
-    if (accumulatedCt >= domainSize) {
-      None
-    } else {
-      val nextSplit = str.indexOf(';', position)
-      // Empty axis so fail
-      if (nextSplit == position) None
-      // We are accumulating the remainder
-      else if (nextSplit <= 0)
-        toAssocListElem(str, position, str.length).map(_ :: accumulated)
+      recState: MatrixVar.RecState): Option[Either[MatrixVar.RecState, List[(String, String)]]] =
+    // We can't extract anything else but there was a trailing ;
+    if (recState.position >= recState.str.length - 1)
+      Some(Right(recState.accumulated))
+    else {
+      val nextSplit = recState.str.indexOf(';', recState.position)
+      // This is the final ; delimited segment
+      if (nextSplit < 0)
+        toAssocListElem(recState.str, recState.position, recState.str.length)
+          .map(elem => Right(elem :: recState.accumulated))
+      // An internal empty ; delimited segment so just skip
+      else if (nextSplit == recState.position)
+        Some(Left(recState.copy(position = nextSplit + 1)))
       else
-        toAssocListElem(str, position, nextSplit)
-          .flatMap(elem => toAssocList(str, nextSplit + 1, elem :: accumulated, accumulatedCt + 1L))
+        toAssocListElem(recState.str, recState.position, nextSplit)
+          .map(elem =>
+            Left(
+              recState.copy(position = nextSplit + 1, accumulated = elem :: recState.accumulated)))
     }
 
   private def toAssocListElem(str: String, position: Int, end: Int): Option[(String, String)] = {
@@ -285,6 +283,10 @@ abstract class MatrixVar[F[_]: Traverse, A](
     else if (nextDelimSplit < end && nextDelimSplit >= 0) None
     else Some(str.substring(position, delimSplit) -> str.substring(delimSplit + 1, end))
   }
+}
+
+object MatrixVar {
+  private final case class RecState(str: String, position: Int, accumulated: List[(String, String)])
 }
 
 /** Multiple param extractor:
