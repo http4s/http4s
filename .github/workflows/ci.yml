@@ -218,7 +218,7 @@ jobs:
           HUGO_VERSION=0.26 scripts/install-hugo
 
       
-      - name: 'Pubish site: $subproject'
+      - name: Publish website
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
@@ -231,7 +231,7 @@ jobs:
 
                 
 
-      - name: 'Pubish site: $subproject'
+      - name: Publish docs
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
