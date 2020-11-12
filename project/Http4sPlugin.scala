@@ -23,6 +23,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.3"
   val scala_212 = "2.12.12"
+  val scalaVersions = Seq(scala_213, scala_212)
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -31,11 +32,11 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-    crossScalaVersions := Seq(scala_213, scala_212),
   ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
+    crossScalaVersions := scalaVersions,
 
     addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
@@ -304,7 +305,8 @@ object Http4sPlugin extends AutoPlugin {
       ),
       githubWorkflowGeneratedUploadSteps := Seq(),
       githubWorkflowGeneratedDownloadSteps := Seq(),
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs"))
+      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
+      githubWorkflowScalaVersions := scalaVersions
     )
   }
 
