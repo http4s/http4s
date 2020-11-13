@@ -329,6 +329,9 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.9.0"
     val mockito = "3.5.15"
+    val munit = "0.7.18"
+    val munitCatsEffect = "0.9.0"
+    val munitDiscipline = "1.0.2"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
@@ -390,6 +393,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % V.okhttp
+  lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit
+  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-3"       % V.munitCatsEffect
+  lazy val munitDiscipline                  = "org.typelevel"          %% "discipline-munit"          % V.munitDiscipline
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % V.playJson
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % V.prometheusClient
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % V.prometheusClient
