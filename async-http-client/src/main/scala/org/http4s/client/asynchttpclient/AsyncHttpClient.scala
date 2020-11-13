@@ -30,30 +30,30 @@ import org.asynchttpclient.uri.Uri
 import org.asynchttpclient.cookie.CookieStore
 
 object AsyncHttpClient {
-  val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
+  val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
     .setRequestTimeout(defaults.RequestTimeout.toMillis.toInt)
     .setThreadFactory(threadFactory(name = { i =>
-      s"http4s-async-http-client-worker-${i}"
+      s"http4s-async-http-client-worker-$i"
     }))
     .setCookieStore(new NoOpCookieStore)
     .build()
+
+  def apply[F[_]](httpClient: AsyncHttpClient)(implicit F: ConcurrentEffect[F]): Client[F] =
+    Client[F] { req =>
+      Resource(F.async[(Response[F], F[Unit])] { cb =>
+        httpClient.executeRequest(toAsyncRequest(req), asyncHandler(cb))
+        ()
+      })
+    }
 
   /** Allocates a Client and its shutdown mechanism for freeing resources.
     */
   def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
     F.delay(new DefaultAsyncHttpClient(config))
-      .map(c =>
-        (
-          Client[F] { req =>
-            Resource(F.async[(Response[F], F[Unit])] { cb =>
-              c.executeRequest(toAsyncRequest(req), asyncHandler(cb))
-              ()
-            })
-          },
-          F.delay(c.close)))
+      .map(c => (apply(c), F.delay(c.close())))
 
   /** Create an HTTP client based on the AsyncHttpClient library
     *
@@ -90,9 +90,9 @@ object AsyncHttpClient {
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
-      val dispose = F.delay { state = State.ABORT }
-      val onStreamCalled = Ref.unsafe[F, Boolean](false)
-      val deferredThrowable = Deferred.unsafe[F, Throwable]
+      val dispose: F[Unit] = F.delay { state = State.ABORT }
+      val onStreamCalled: Ref[F, Boolean] = Ref.unsafe[F, Boolean](false)
+      val deferredThrowable: Deferred[F, Throwable] = Deferred.unsafe[F, Throwable]
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         val eff = for {
@@ -188,8 +188,16 @@ object AsyncHttpClient {
     val empty: java.util.List[Cookie] = new java.util.ArrayList()
     override def add(uri: Uri, cookie: Cookie): Unit = ()
     override def get(uri: Uri): java.util.List[Cookie] = empty
-    override def getAll(): java.util.List[Cookie] = empty
+    override def getAll: java.util.List[Cookie] = empty
     override def remove(pred: java.util.function.Predicate[Cookie]): Boolean = false
     override def clear(): Boolean = false
+  }
+
+  final case class AsyncHttpClientStats[F[_]: Sync](underlying: ClientStats)(implicit F: Sync[F]) {
+
+    def getTotalConnectionCount: F[Long] = F.delay(underlying.getTotalConnectionCount)
+    def getTotalActiveConnectionCount: F[Long] = F.delay(underlying.getTotalActiveConnectionCount)
+    def getTotalIdleConnectionCount: F[Long] = F.delay(underlying.getTotalIdleConnectionCount)
+    def getStatsPerHost: F[Map[String, HostStats]] = F.delay(underlying.getStatsPerHost.asScala)
   }
 }
