@@ -25,7 +25,7 @@ object DestinationAttribute {
     * @return the classifier function
     */
   def getDestination[F[_]](): Request[F] => Option[String] = _.attributes.lookup(Destination)
-  
+
   val Destination = Key.newKey[SyncIO, String].unsafeRunSync()
 
   val EmptyDestination = ""

@@ -8,7 +8,7 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.kernel.{Temporal, Resource}
+import cats.effect.kernel.{Resource, Temporal}
 import cats.implicits._
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -24,11 +24,11 @@ object Retry {
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      client: Client[F])(implicit F: Temporal[F]): Client[F] = {
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(client: Client[F])(
+      implicit F: Temporal[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       Resource.suspend[F, Response[F]] {
-        F.uncancelable { _ => 
+        F.uncancelable { _ =>
           client.run(req).allocated.attempt.flatMap {
             case Right((response, dispose)) =>
               policy(req, Right(response), attempts) match {

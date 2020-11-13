@@ -6,10 +6,9 @@
 
 package org.http4s.client.middleware
 
-import cats.effect.kernel.{Resource, Temporal}
+import cats.effect.kernel.{Ref, Resource, Temporal}
 import cats.implicits._
 
-import cats.effect.Ref
 import org.http4s.{Request, Response, Status}
 import org.http4s.client.Client
 import org.http4s.metrics.MetricsOps
@@ -46,10 +45,10 @@ object Metrics {
   private def withMetrics[F[_]](
       client: Client[F],
       ops: MetricsOps[F],
-      classifierF: Request[F] => Option[String])(
-      req: Request[F])(implicit F: Temporal[F]): Resource[F, Response[F]] =
+      classifierF: Request[F] => Option[String])(req: Request[F])(implicit
+      F: Temporal[F]): Resource[F, Response[F]] =
     for {
-      statusRef <- Resource.liftF(Ref.of[F, Option[Status]](None))
+      statusRef <- Resource.liftF(F.ref[Option[Status]](None))
       start <- Resource.liftF(F.monotonic)
       resp <- executeRequestAndRecordMetrics(
         client,
@@ -73,8 +72,7 @@ object Metrics {
       _ <- Resource.make(ops.increaseActiveRequests(classifierF(req)))(_ =>
         ops.decreaseActiveRequests(classifierF(req)))
       _ <- Resource.make(F.unit) { _ =>
-        F
-          .monotonic
+        F.monotonic
           .flatMap(now =>
             statusRef.get.flatMap(oStatus =>
               oStatus.traverse_(status =>
@@ -90,8 +88,7 @@ object Metrics {
 
   private def registerError[F[_]](start: Long, ops: MetricsOps[F], classifier: Option[String])(
       e: Throwable)(implicit F: Temporal[F]): F[Unit] =
-    F
-      .monotonic
+    F.monotonic
       .flatMap { now =>
         if (e.isInstanceOf[TimeoutException])
           ops.recordAbnormalTermination(now.toNanos - start, Timeout, classifier)

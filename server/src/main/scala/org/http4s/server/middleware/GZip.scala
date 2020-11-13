@@ -19,6 +19,7 @@ import java.nio.{ByteBuffer, ByteOrder}
 import java.util.zip.{CRC32, Deflater}
 import org.http4s.headers._
 import org.log4s.getLogger
+import fs2.compression.DeflateParams
 
 object GZip {
   private[this] val logger = getLogger
@@ -28,7 +29,7 @@ object GZip {
   def apply[F[_]: Functor, G[_]: Sync](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
-      level: Int = Deflater.DEFAULT_COMPRESSION,
+      level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
   ): Http[F, G] =
     Kleisli { (req: Request[G]) =>
@@ -53,16 +54,16 @@ object GZip {
   private def zipOrPass[F[_]: Sync](
       response: Response[F],
       bufferSize: Int,
-      level: Int,
+      level: DeflateParams.Level,
       isZippable: Response[F] => Boolean): Response[F] =
     response match {
-      case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
+      case resp if isZippable(resp) => zipResponse(bufferSize, level, resp) // TODO: nowrap?
       case resp => resp // Don't touch it, Content-Encoding already set
     }
 
   private def zipResponse[F[_]: Sync](
       bufferSize: Int,
-      level: Int,
+      level: DeflateParams.Level,
       resp: Response[F]): Response[F] = {
     logger.trace("GZip middleware encoding content")
     // Need to add the Gzip header and trailer
@@ -70,12 +71,7 @@ object GZip {
     val b = chunk(header) ++
       resp.body
         .through(trailer(trailerGen, bufferSize))
-        .through(
-          deflate(
-            level = level,
-            nowrap = true,
-            bufferSize = bufferSize
-          )) ++
+        .through(deflate(DeflateParams(bufferSize = bufferSize, level = level))) ++
       chunk(trailerFinish(trailerGen))
     resp
       .removeHeader(`Content-Length`)

@@ -107,12 +107,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     F.ifM(F.delay(numConnectionsCheckHolds(key)))(
       incrConnection(key) *> F.start {
-        builder(key).attempt.flatMap {
-          case Right(conn) =>
-            F.delay(callback(Right(NextConnection(conn, fresh = true))))
-          case Left(error) =>
-            disposeConnection(key, None) *> F.delay(callback(Left(error)))
-        }.evalOn(executionContext)
+        builder(key).attempt
+          .flatMap {
+            case Right(conn) =>
+              F.delay(callback(Right(NextConnection(conn, fresh = true))))
+            case Left(error) =>
+              disposeConnection(key, None) *> F.delay(callback(Left(error)))
+          }
+          .evalOn(executionContext)
       }.void,
       addToWaitQueue(key, callback)
     )

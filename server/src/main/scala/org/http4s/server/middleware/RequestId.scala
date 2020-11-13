@@ -13,7 +13,7 @@ import org.http4s.{Header, Http, Request, Response}
 import cats.{FlatMap, ~>}
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{IO, Sync}
+import cats.effect.{Sync, SyncIO}
 import cats.implicits._
 import org.typelevel.ci.CIString
 import io.chrisdavenport.vault.Key
@@ -27,7 +27,7 @@ object RequestId {
 
   private[this] val requestIdHeader = CIString("X-Request-ID")
 
-  val requestIdAttrKey: Key[String] = Key.newKey[IO, String].unsafeRunSync()
+  val requestIdAttrKey: Key[String] = Key.newKey[SyncIO, String].unsafeRunSync()
 
   def apply[G[_], F[_]](http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
     apply(requestIdHeader)(http)

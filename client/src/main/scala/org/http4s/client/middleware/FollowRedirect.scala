@@ -102,7 +102,7 @@ object FollowRedirect {
 
           case Left(e) =>
             F.raiseError(e)
-          }
+        }
       }
 
     Client(req => Resource.suspend(prepareLoop(req, 0)))

@@ -9,7 +9,6 @@ package server
 
 import cats.implicits._
 import cats.effect._
-import cats.effect.concurrent.Ref
 import fs2._
 import fs2.concurrent.{Signal, SignallingRef}
 import java.net.{InetAddress, InetSocketAddress}
@@ -50,7 +49,7 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   final def serve: Stream[F, ExitCode] =
     for {
       signal <- Stream.eval(SignallingRef[F, Boolean](false))
-      exitCode <- Stream.eval(Ref[F].of(ExitCode.Success))
+      exitCode <- Stream.eval(F.ref(ExitCode.Success))
       serve <- serveWhile(signal, exitCode)
     } yield serve
 

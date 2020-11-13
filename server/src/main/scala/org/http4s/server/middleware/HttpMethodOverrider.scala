@@ -63,7 +63,7 @@ object HttpMethodOverrider {
       HeaderOverrideStrategy(CIString("X-HTTP-Method-Override")),
       Set(Method.POST))
 
-  val overriddenMethodAttrKey: Key[Method] = Key.newKey[IO, Method].unsafeRunSync()
+  val overriddenMethodAttrKey: Key[Method] = Key.newKey[SyncIO, Method].unsafeRunSync()
 
   /** Simple middleware for HTTP Method Override.
     *

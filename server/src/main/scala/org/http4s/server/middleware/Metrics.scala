@@ -7,12 +7,10 @@
 package org.http4s.server.middleware
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.concurrent.Ref
-import cats.effect.implicits._
-import cats.effect.{Clock, ExitCase, Sync}
-import cats.implicits._
+import cats.effect.syntax.all._
+import cats.effect.kernel.{Async, Outcome, Temporal}
+import cats.syntax.all._
 import fs2.Stream
-import java.util.concurrent.TimeUnit
 
 import org.http4s._
 import org.http4s.metrics.MetricsOps
@@ -45,75 +43,73 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       }
-  )(routes: HttpRoutes[F])(implicit F: Sync[F], clock: Clock[F]): HttpRoutes[F] =
+  )(routes: HttpRoutes[F])(implicit F: Async[F]): HttpRoutes[F] =
     Kleisli(
       metricsService[F](ops, routes, emptyResponseHandler, errorResponseHandler, classifierF)(_))
 
-  private def metricsService[F[_]: Sync](
+  private def metricsService[F[_]](
       ops: MetricsOps[F],
       routes: HttpRoutes[F],
       emptyResponseHandler: Option[Status],
       errorResponseHandler: Throwable => Option[Status],
       classifierF: Request[F] => Option[String]
-  )(req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] =
+  )(req: Request[F])(implicit F: Async[F]): OptionT[F, Response[F]] =
     OptionT {
       for {
-        initialTime <- clock.monotonic(TimeUnit.NANOSECONDS)
+        initialTime <- F.monotonic
         decreaseActiveRequestsOnce <- decreaseActiveRequestsAtMostOnce(ops, classifierF(req))
         result <-
-          ops
-            .increaseActiveRequests(classifierF(req))
-            .bracketCase { _ =>
-              for {
-                responseOpt <- routes(req).value
-                headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
-                result <- responseOpt.fold(
-                  onEmpty[F](
-                    req.method,
-                    initialTime,
-                    headersElapsed,
-                    ops,
-                    emptyResponseHandler,
-                    classifierF(req),
-                    decreaseActiveRequestsOnce)
-                    .as(Option.empty[Response[F]])
-                )(
-                  onResponse(
-                    req.method,
-                    initialTime,
-                    headersElapsed,
-                    ops,
-                    classifierF(req),
-                    decreaseActiveRequestsOnce)(_).some
-                    .pure[F]
-                )
-              } yield result
-            } {
-              case (_, ExitCase.Completed) => Sync[F].unit
-              case (_, ExitCase.Canceled) =>
-                onServiceCanceled(
-                  initialTime,
+          F.bracketCase(ops.increaseActiveRequests(classifierF(req))) { _ =>
+            for {
+              responseOpt <- routes(req).value
+              headersElapsed <- F.monotonic
+              result <- responseOpt.fold(
+                onEmpty[F](
+                  req.method,
+                  initialTime.toNanos,
+                  headersElapsed.toNanos,
                   ops,
-                  classifierF(req)
+                  emptyResponseHandler,
+                  classifierF(req),
+                  decreaseActiveRequestsOnce)
+                  .as(Option.empty[Response[F]])
+              )(
+                onResponse(
+                  req.method,
+                  initialTime.toNanos,
+                  headersElapsed.toNanos,
+                  ops,
+                  classifierF(req),
+                  decreaseActiveRequestsOnce)(_).some
+                  .pure[F]
+              )
+            } yield result
+          } {
+            case (_, Outcome.Succeeded(_)) => F.unit
+            case (_, Outcome.Errored(e)) =>
+              for {
+                headersElapsed <- F.monotonic
+                out <- onServiceError(
+                  req.method,
+                  initialTime.toNanos,
+                  headersElapsed.toNanos,
+                  ops,
+                  errorResponseHandler(e),
+                  classifierF(req),
+                  e
                 ) *> decreaseActiveRequestsOnce
-              case (_, ExitCase.Error(e)) =>
-                for {
-                  headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
-                  out <- onServiceError(
-                    req.method,
-                    initialTime,
-                    headersElapsed,
-                    ops,
-                    errorResponseHandler(e),
-                    classifierF(req),
-                    e
-                  ) *> decreaseActiveRequestsOnce
-                } yield out
-            }
+              } yield out
+            case (_, Outcome.Canceled()) =>
+              onServiceCanceled(
+                initialTime.toNanos,
+                ops,
+                classifierF(req)
+              ) *> decreaseActiveRequestsOnce
+          }
       } yield result
     }
 
-  private def onEmpty[F[_]: Sync](
+  private def onEmpty[F[_]](
       method: Method,
       start: Long,
       headerTime: Long,
@@ -121,41 +117,42 @@ object Metrics {
       emptyResponseHandler: Option[Status],
       classifier: Option[String],
       decreaseActiveRequestsOnce: F[Unit]
-  )(implicit clock: Clock[F]): F[Unit] =
+  )(implicit F: Temporal[F]): F[Unit] =
     (for {
-      now <- clock.monotonic(TimeUnit.NANOSECONDS)
+      now <- F.monotonic
       _ <- emptyResponseHandler.traverse_(status =>
         ops.recordHeadersTime(method, headerTime - start, classifier) *>
-          ops.recordTotalTime(method, status, now - start, classifier))
+          ops.recordTotalTime(method, status, now.toNanos - start, classifier))
     } yield ()).guarantee(decreaseActiveRequestsOnce)
 
-  private def onResponse[F[_]: Sync](
+  private def onResponse[F[_]](
       method: Method,
       start: Long,
       headerTime: Long,
       ops: MetricsOps[F],
       classifier: Option[String],
       decreaseActiveRequestsOnce: F[Unit]
-  )(r: Response[F])(implicit clock: Clock[F]): Response[F] = {
+  )(r: Response[F])(implicit F: Temporal[F]): Response[F] = {
     val newBody = r.body
       .onFinalize {
         for {
-          now <- clock.monotonic(TimeUnit.NANOSECONDS)
+          now <- F.monotonic
           _ <- ops.recordHeadersTime(method, headerTime - start, classifier)
-          _ <- ops.recordTotalTime(method, r.status, now - start, classifier)
+          _ <- ops.recordTotalTime(method, r.status, now.toNanos - start, classifier)
           _ <- decreaseActiveRequestsOnce
         } yield {}
       }
       .handleErrorWith(e =>
         for {
-          now <- Stream.eval(clock.monotonic(TimeUnit.NANOSECONDS))
-          _ <- Stream.eval(ops.recordAbnormalTermination(now - start, Abnormal(e), classifier))
+          now <- Stream.eval(F.monotonic)
+          _ <- Stream.eval(
+            ops.recordAbnormalTermination(now.toNanos - start, Abnormal(e), classifier))
           r <- Stream.raiseError[F](e)
         } yield r)
     r.copy(body = newBody)
   }
 
-  private def onServiceError[F[_]: Sync](
+  private def onServiceError[F[_]](
       method: Method,
       start: Long,
       headerTime: Long,
@@ -163,34 +160,34 @@ object Metrics {
       errorResponseHandler: Option[Status],
       classifier: Option[String],
       error: Throwable
-  )(implicit clock: Clock[F]): F[Unit] =
+  )(implicit F: Temporal[F]): F[Unit] =
     for {
-      now <- clock.monotonic(TimeUnit.NANOSECONDS)
+      now <- F.monotonic
       _ <- errorResponseHandler.traverse_(status =>
         ops.recordHeadersTime(method, headerTime - start, classifier) *>
-          ops.recordTotalTime(method, status, now - start, classifier) *>
-          ops.recordAbnormalTermination(now - start, Error(error), classifier))
+          ops.recordTotalTime(method, status, now.toNanos - start, classifier) *>
+          ops.recordAbnormalTermination(now.toNanos - start, Error(error), classifier))
     } yield ()
 
-  private def onServiceCanceled[F[_]: Sync](
+  private def onServiceCanceled[F[_]](
       start: Long,
       ops: MetricsOps[F],
       classifier: Option[String]
-  )(implicit clock: Clock[F]): F[Unit] =
+  )(implicit F: Temporal[F]): F[Unit] =
     for {
-      now <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- ops.recordAbnormalTermination(now - start, Canceled, classifier)
+      now <- F.monotonic
+      _ <- ops.recordAbnormalTermination(now.toNanos - start, Canceled, classifier)
     } yield ()
 
   private def decreaseActiveRequestsAtMostOnce[F[_]](
       ops: MetricsOps[F],
       classifier: Option[String]
-  )(implicit F: Sync[F]): F[F[Unit]] =
-    Ref
-      .of(false)
-      .map((ref: Ref[F, Boolean]) =>
+  )(implicit F: Async[F]): F[F[Unit]] =
+    F.ref(false)
+      .map { ref =>
         ref.getAndSet(true).bracket(_ => F.unit) {
           case false => ops.decreaseActiveRequests(classifier)
           case _ => F.unit
-        })
+        }
+      }
 }
