@@ -102,8 +102,9 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
     // No release notes. If it's compatible with 6.2.5, prove it and PR it.
-    dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.0"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut"),
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.2"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Dropped joda-time support, wait for next breaking release
@@ -324,9 +325,9 @@ object Http4sPlugin extends AutoPlugin {
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.1"
-    val dropwizardMetrics = "4.1.14"
+    val dropwizardMetrics = "4.1.15"
     val fs2 = "2.4.5"
-    val jawn = "1.0.0"
+    val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.34.v20201102"
     val json4s = "3.6.10"
@@ -335,7 +336,7 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.9.0"
     val mockito = "3.5.15"
-    val netty = "4.1.53.Final"
+    val netty = "4.1.54.Final"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
@@ -347,7 +348,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalaXml = "1.3.0"
     val servlet = "3.1.0"
     val specs2 = "4.10.5"
-    val tomcat = "9.0.39"
+    val tomcat = "9.0.40"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
