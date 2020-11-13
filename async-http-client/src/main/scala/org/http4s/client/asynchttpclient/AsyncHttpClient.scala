@@ -201,6 +201,7 @@ object AsyncHttpClient {
     def getTotalConnectionCount: F[Long] = F.delay(underlying.getTotalConnectionCount)
     def getTotalActiveConnectionCount: F[Long] = F.delay(underlying.getTotalActiveConnectionCount)
     def getTotalIdleConnectionCount: F[Long] = F.delay(underlying.getTotalIdleConnectionCount)
-    def getStatsPerHost: F[mutable.Map[String, HostStats]] = F.delay(underlying.getStatsPerHost.asScala)
+    def getStatsPerHost: F[mutable.Map[String, HostStats]] =
+      F.delay(underlying.getStatsPerHost.asScala)
   }
 }
