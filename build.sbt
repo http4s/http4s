@@ -79,6 +79,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= Seq(
       cats,
       catsEffect,
+      catsParse,
       fs2Io,
       log4s,
       parboiled,
