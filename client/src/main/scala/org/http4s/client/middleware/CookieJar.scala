@@ -8,8 +8,7 @@ package org.http4s.client.middleware
 
 import cats._
 import cats.implicits._
-import cats.effect._
-import cats.effect.concurrent._
+import cats.effect.kernel._
 import org.http4s._
 import org.http4s.client.Client
 
@@ -48,7 +47,7 @@ object CookieJar {
 
   /** Middleware Constructor Using a Provided [[CookieJar]].
     */
-  def apply[F[_]: Sync](
+  def apply[F[_]: Async](
       alg: CookieJar[F]
   )(
       client: Client[F]
@@ -69,29 +68,29 @@ object CookieJar {
   /** Constructor which builds a non-exposed CookieJar
     * and applies it to the client.
     */
-  def impl[F[_]: Sync: Timer](c: Client[F]): F[Client[F]] =
+  def impl[F[_]: Async](c: Client[F]): F[Client[F]] =
     in[F, F](c)
 
   /** Like [[impl]] except it allows the creation of the middleware in a
     * different HKT than the client is in.
     */
-  def in[F[_]: Sync: Timer, G[_]: Sync](c: Client[F]): G[Client[F]] =
+  def in[F[_]: Async, G[_]: Sync](c: Client[F]): G[Client[F]] =
     jarIn[F, G].map(apply(_)(c))
 
   /** Jar Constructor
     */
-  def jarImpl[F[_]: Sync: Clock]: F[CookieJar[F]] =
+  def jarImpl[F[_]: Async]: F[CookieJar[F]] =
     jarIn[F, F]
 
   /** Like [[jarImpl]] except it allows the creation of the CookieJar in a
     * different HKT than the client is in.
     */
-  def jarIn[F[_]: Sync: Clock, G[_]: Sync]: G[CookieJar[F]] =
+  def jarIn[F[_]: Async, G[_]: Sync]: G[CookieJar[F]] =
     Ref.in[G, F, Map[CookieKey, CookieValue]](Map.empty).map { ref =>
       new CookieJarRefImpl[F](ref) {}
     }
 
-  private[CookieJar] class CookieJarRefImpl[F[_]: Sync: Clock](
+  private[CookieJar] class CookieJarRefImpl[F[_]: Async](
       ref: Ref[F, Map[CookieKey, CookieValue]]
   ) extends CookieJar[F] {
     override def evictExpired: F[Unit] =

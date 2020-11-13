@@ -15,7 +15,7 @@ import org.typelevel.ci.CIString
 /** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
-  def apply[F[_]: Concurrent](
+  def apply[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -27,7 +27,7 @@ object Logger {
       )
     )
 
-  def logBodyText[F[_]: Concurrent](
+  def logBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,

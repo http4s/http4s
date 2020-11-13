@@ -10,7 +10,7 @@ package client
 import cats.~>
 import cats.data.Kleisli
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import cats.implicits._
 import fs2._
 import java.io.IOException
@@ -162,7 +162,7 @@ trait Client[F[_]] {
 
   /** Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Sync](fk: F ~> G)(gK: G ~> F): Client[G] =
+  def translate[G[_]: Async](fk: F ~> G)(gK: G ~> F): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
@@ -172,7 +172,7 @@ trait Client[F[_]] {
 
 object Client {
   def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
-      F: Bracket[F, Throwable]): Client[F] =
+      F: MonadCancel[F, Throwable]): Client[F] =
     new DefaultClient[F] {
       def run(req: Request[F]): Resource[F, Response[F]] = f(req)
     }
@@ -183,7 +183,7 @@ object Client {
     * @param service the service to respond to requests to this client
     */
   @deprecated("Use fromHttpApp instead. Call service.orNotFound to turn into an HttpApp.", "0.19")
-  def fromHttpService[F[_]](service: HttpRoutes[F])(implicit F: Sync[F]): Client[F] =
+  def fromHttpService[F[_]](service: HttpRoutes[F])(implicit F: Async[F]): Client[F] =
     fromHttpApp(service.orNotFound)
 
   /** Creates a client from the specified [[HttpApp]].  Useful for
@@ -191,7 +191,7 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Sync[F]): Client[F] =
+  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] =
     Client { (req: Request[F]) =>
       Resource.suspend {
         Ref[F].of(false).map { disposed =>
@@ -220,7 +220,7 @@ object Client {
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.
     */
-  def liftKleisli[F[_]: Bracket[*[_], Throwable]: cats.Defer, A](
+  def liftKleisli[F[_]: MonadCancel[*[_], Throwable]: cats.Defer, A](
       client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { req: Request[Kleisli[F, A, *]] =>
       Resource.liftF(Kleisli.ask[F, A]).flatMap { a =>

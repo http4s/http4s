@@ -6,7 +6,7 @@
 
 package org.http4s.client.oauth1
 
-import cats.{Functor, Show}
+import cats.Show
 import cats.effect.Clock
 import cats.kernel.Order
 import cats.implicits._
@@ -44,8 +44,8 @@ object ProtocolParameter {
   }
 
   object Timestamp {
-    def now[F[_]](implicit F: Functor[F], clock: Clock[F]): F[Timestamp] =
-      clock.realTime(TimeUnit.SECONDS).map(seconds => Timestamp(seconds.toString))
+    def now[F[_]](implicit F: Clock[F]): F[Timestamp] =
+      F.realTime.map(time => Timestamp(time.toUnit(TimeUnit.SECONDS).toString()))
   }
 
   case class Nonce(override val headerValue: String) extends ProtocolParameter {
@@ -53,8 +53,8 @@ object ProtocolParameter {
   }
 
   object Nonce {
-    def now[F[_]](implicit F: Functor[F], clock: Clock[F]): F[Nonce] =
-      clock.monotonic(TimeUnit.NANOSECONDS).map(nanos => Nonce(nanos.toString))
+    def now[F[_]](implicit F: Clock[F]): F[Nonce] =
+      F.monotonic.map(time => Nonce(time.toUnit(TimeUnit.NANOSECONDS).toString))
   }
 
   case class Version(override val headerValue: String = "1.0") extends ProtocolParameter {

@@ -84,23 +84,25 @@ object FollowRedirect {
     }
 
     def prepareLoop(req: Request[F], redirects: Int): F[Resource[F, Response[F]]] =
-      F.continual(client.run(req).allocated) {
-        case Right((resp, dispose)) =>
-          (methodForRedirect(req, resp), resp.headers.get(Location)) match {
-            case (Some(method), Some(loc)) if redirects < maxRedirects =>
-              val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
-              dispose >> prepareLoop(nextReq, redirects + 1).map(_.map { response =>
-                // prepend because `prepareLoop` is recursive
-                response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
-              })
-            case _ =>
-              // IF the response is missing the Location header, OR there is no method to redirect,
-              // OR we have exceeded max number of redirections, THEN we redirect no more
-              Resource.make(resp.pure[F])(_ => dispose).pure[F]
-          }
+      F.uncancelable { _ =>
+        client.run(req).allocated.attempt.flatMap {
+          case Right((resp, dispose)) =>
+            (methodForRedirect(req, resp), resp.headers.get(Location)) match {
+              case (Some(method), Some(loc)) if redirects < maxRedirects =>
+                val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
+                dispose >> prepareLoop(nextReq, redirects + 1).map(_.map { response =>
+                  // prepend because `prepareLoop` is recursive
+                  response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
+                })
+              case _ =>
+                // IF the response is missing the Location header, OR there is no method to redirect,
+                // OR we have exceeded max number of redirections, THEN we redirect no more
+                Resource.make(resp.pure[F])(_ => dispose).pure[F]
+            }
 
-        case Left(e) =>
-          F.raiseError(e)
+          case Left(e) =>
+            F.raiseError(e)
+          }
       }
 
     Client(req => Resource.suspend(prepareLoop(req, 0)))
@@ -150,7 +152,7 @@ object FollowRedirect {
         None
     }
 
-  private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync()
+  private val redirectUrisKey = Key.newKey[SyncIO, List[Uri]].unsafeRunSync()
 
   /** Get the redirection URIs for a `response`.
     * Excludes the initial request URI
