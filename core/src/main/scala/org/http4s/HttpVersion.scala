@@ -30,10 +30,13 @@ object HttpVersion {
   val `HTTP/1.1` = new HttpVersion(1, 1)
   val `HTTP/2.0` = new HttpVersion(2, 0)
 
+  private[this] val right_1_1 = Right(`HTTP/1.1`)
+  private[this] val right_1_0 = Right(`HTTP/1.0`)
+
   def fromString(s: String): ParseResult[HttpVersion] =
     s match {
-      case "HTTP/1.1" => Either.right(`HTTP/1.1`)
-      case "HTTP/1.0" => Either.right(`HTTP/1.0`)
+      case "HTTP/1.1" => right_1_1
+      case "HTTP/1.0" => right_1_0
       case _ =>
         parser.parseAll(s).leftMap { _ =>
           ParseFailure("Invalid HTTP version", s"$s was not found to be a valid HTTP version")
