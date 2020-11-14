@@ -242,7 +242,7 @@ object Http4sPlugin extends AutoPlugin {
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineSpecs2 = "1.1.1"
-    val dropwizardMetrics = "4.1.14"
+    val dropwizardMetrics = "4.1.15"
     val fs2 = "3.0.0-M3"
     val jawn = "1.0.0"
     val jawnFs2 = "1.0.0"
