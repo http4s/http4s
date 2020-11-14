@@ -10,7 +10,6 @@ package asynchttpclient
 
 import cats.effect.{IO, Resource}
 import org.asynchttpclient.DefaultAsyncHttpClient
-import org.http4s.client.asynchttpclient.AsyncHttpClient.AsyncHttpClientStats
 
 class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with Http4sSpec {
 
@@ -65,14 +64,16 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
     }
   }
 
-  "AsyncHttpClient stats" should {
-    "correctly get the status from the underlying ClientStats" in {
+  "AsyncHttpClientStats" should {
+    "correctly get the stats from the underlying ClientStats" in {
 
       val clientWithStats: Resource[IO, Client[IO]] = Resource(
         IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig))
           .map(c =>
             (
-              ClientWithStats(AsyncHttpClient.apply(c), AsyncHttpClientStats[IO](c.getClientStats)),
+              new ClientWithStats(
+                AsyncHttpClient.apply(c),
+                new AsyncHttpClientStats[IO](c.getClientStats)),
               IO.delay(c.close()))))
 
       val clientStats: Resource[IO, AsyncHttpClientStats[IO]] = clientWithStats.map {
@@ -87,10 +88,10 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
       extractStats(clientStats, _.getTotalIdleConnectionCount) shouldEqual 0
       extractStats(clientStats, _.getTotalConnectionCount) shouldEqual 0
       extractStats(clientStats, _.getTotalIdleConnectionCount) shouldEqual 0
-      extractStats(clientStats, _.getStatsPerHost) shouldEqual scala.collection.mutable.Map.empty
+      extractStats(clientStats, _.getStatsPerHost) shouldEqual Map.empty
     }
   }
-  case class ClientWithStats(client: Client[IO], private val stats: AsyncHttpClientStats[IO])
+  class ClientWithStats(client: Client[IO], private val stats: AsyncHttpClientStats[IO])
       extends DefaultClient[IO] {
     def getStats: AsyncHttpClientStats[IO] = stats
     override def run(req: Request[IO]): Resource[IO, Response[IO]] = client.run(req)

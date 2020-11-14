@@ -29,8 +29,6 @@ import _root_.io.netty.handler.codec.http.cookie.Cookie
 import org.asynchttpclient.uri.Uri
 import org.asynchttpclient.cookie.CookieStore
 
-import scala.collection.mutable
-
 object AsyncHttpClient {
   val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
@@ -193,15 +191,5 @@ object AsyncHttpClient {
     override def getAll: java.util.List[Cookie] = empty
     override def remove(pred: java.util.function.Predicate[Cookie]): Boolean = false
     override def clear(): Boolean = false
-  }
-
-  final case class AsyncHttpClientStats[F[_]: Sync](private val underlying: ClientStats)(implicit
-      F: Sync[F]) {
-
-    def getTotalConnectionCount: F[Long] = F.delay(underlying.getTotalConnectionCount)
-    def getTotalActiveConnectionCount: F[Long] = F.delay(underlying.getTotalActiveConnectionCount)
-    def getTotalIdleConnectionCount: F[Long] = F.delay(underlying.getTotalIdleConnectionCount)
-    def getStatsPerHost: F[mutable.Map[String, HostStats]] =
-      F.delay(underlying.getStatsPerHost.asScala)
   }
 }
