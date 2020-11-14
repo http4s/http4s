@@ -35,8 +35,8 @@ object HttpVersion {
       case "HTTP/1.1" => Either.right(`HTTP/1.1`)
       case "HTTP/1.0" => Either.right(`HTTP/1.0`)
       case _ =>
-        parser.parseAll(s).leftMap { case e =>
-          ParseFailure("Invalid HTTP version", e.toString)
+        parser.parseAll(s).leftMap { _ =>
+          ParseFailure("Invalid HTTP version", s"$s was not found to be a valid HTTP version")
         }
     }
 
