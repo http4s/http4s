@@ -212,10 +212,10 @@ jobs:
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout current branch (fast)
+      - name: Checkout current branch (full)
         uses: actions/checkout@v2
-
-      - run: git fetch --unshallow
+        with:
+          fetch-depth: 0
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
@@ -241,10 +241,10 @@ jobs:
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout current branch (fast)
+      - name: Checkout current branch (full)
         uses: actions/checkout@v2
-
-      - run: git fetch --unshallow
+        with:
+          fetch-depth: 0
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
