@@ -14,6 +14,8 @@ import cats.data.Validated._
 import cats.implicits._
 import org.http4s._
 import scala.util.Try
+import cats.Foldable
+import cats.Monad
 
 /** Base class for path extractors. */
 trait Path {
@@ -217,6 +219,75 @@ object LongVar extends PathVar(str => Try(str.toLong))
   * }}}
   */
 object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
+
+/** Matrix path variable extractor
+  * For an example see [[https://www.w3.org/DesignIssues/MatrixURIs.html MatrixURIs]]
+  * This is useful for representing a resource that may be addressed in multiple dimensions where order is unimportant
+  *
+  * {{{
+  *
+  *    object BoardVar extends MatrixVar("square", List("x", "y"))
+  *    Path("/board/square;x=5;y=3") match {
+  *      case Root / "board" / BoardVar(IntVar(x), IntVar(y)) => ...
+  *    }
+  * }}}
+  */
+abstract class MatrixVar[F[_]: Foldable](name: String, domain: F[String]) {
+  private val domainList = domain.toList
+
+  def unapplySeq(str: String): Option[Seq[String]] =
+    if (str.nonEmpty) {
+      val firstSemi = str.indexOf(';')
+      if (firstSemi < 0 && (domain.nonEmpty || name != str)) None
+      else if (firstSemi < 0 && name == str) Some(Seq.empty[String])
+      // Matrix segment didn't match the expected name
+      else if (str.substring(0, firstSemi) != name) None
+      else {
+        val assocListOpt =
+          if (firstSemi >= 0)
+            Monad[Option].tailRecM(MatrixVar.RecState(str, firstSemi + 1, List.empty))(toAssocList)
+          else Some(List.empty[(String, String)])
+        assocListOpt.flatMap { assocList =>
+          domainList.traverse(dom => assocList.find(_._1 == dom).map(_._2))
+        }
+      }
+    } else None
+
+  private def toAssocList(
+      recState: MatrixVar.RecState): Option[Either[MatrixVar.RecState, List[(String, String)]]] =
+    // We can't extract anything else but there was a trailing ;
+    if (recState.position >= recState.str.length - 1)
+      Some(Right(recState.accumulated))
+    else {
+      val nextSplit = recState.str.indexOf(';', recState.position)
+      // This is the final ; delimited segment
+      if (nextSplit < 0)
+        toAssocListElem(recState.str, recState.position, recState.str.length)
+          .map(elem => Right(elem :: recState.accumulated))
+      // An internal empty ; delimited segment so just skip
+      else if (nextSplit == recState.position)
+        Some(Left(recState.copy(position = nextSplit + 1)))
+      else
+        toAssocListElem(recState.str, recState.position, nextSplit)
+          .map(elem =>
+            Left(
+              recState.copy(position = nextSplit + 1, accumulated = elem :: recState.accumulated)))
+    }
+
+  private def toAssocListElem(str: String, position: Int, end: Int): Option[(String, String)] = {
+    val delimSplit = str.indexOf('=', position)
+    val nextDelimSplit = str.indexOf('=', delimSplit + 1)
+    // if the segment does not contain an = inside then it is invalid
+    if (delimSplit < 0 || delimSplit === position || delimSplit >= end) None
+    // if the segment contains multiple = then it is invalid
+    else if (nextDelimSplit < end && nextDelimSplit >= 0) None
+    else Some(str.substring(position, delimSplit) -> str.substring(delimSplit + 1, end))
+  }
+}
+
+object MatrixVar {
+  private final case class RecState(str: String, position: Int, accumulated: List[(String, String)])
+}
 
 /** Multiple param extractor:
   * {{{
