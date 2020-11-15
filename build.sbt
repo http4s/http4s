@@ -28,7 +28,7 @@ lazy val modules: List[ProjectReference] = List(
   // jetty,
   // tomcat,
   // theDsl,
-  // jawn,
+   jawn,
   // argonaut,
   // boopickle,
   // circe,
