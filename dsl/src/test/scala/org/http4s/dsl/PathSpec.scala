@@ -234,6 +234,117 @@ class PathSpec extends Http4sSpec {
       }
     }
 
+    "Matrix extractor" >> {
+      object BoardExtractor extends impl.MatrixVar("square", List("x", "y"))
+
+      object EmptyNameExtractor extends impl.MatrixVar("", List("x", "y"))
+
+      object EmptyExtractor extends impl.MatrixVar("square", List.empty[String])
+
+      "valid" >> {
+        "a matrix var" in {
+          (Path("/board/square;x=42;y=0") match {
+            case Root / "board" / BoardExtractor(x, y) if x == "42" && y == "0" => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "a matrix var with empty axis segment" in {
+          (Path("/board/square;x=42;;y=0") match {
+            case Root / "board" / BoardExtractor(x, y) if x == "42" && y == "0" => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "a matrix var with empty trailing axis segment" in {
+          (Path("/board/square;x=42;y=0;") match {
+            case Root / "board" / BoardExtractor(x, y) if x == "42" && y == "0" => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "a matrix var mid path" in {
+          (Path("/board/square;x=42;y=0/piece") match {
+            case Root / "board" / BoardExtractor(x, y) / "piece" if x == "42" && y == "0" => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "too many axes" in {
+          (Path("/board/square;x=42;y=0;z=39") match {
+            case Root / "board" / BoardExtractor(x, y) if x == "42" && y == "0" => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "nested extractors" in {
+          (Path("/board/square;x=42;y=0") match {
+            case Root / "board" / BoardExtractor(IntVar(x), IntVar(y)) if x == 42 && y == 0 => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "a matrix var with no name" in {
+          (Path("/board/;x=42;y=0") match {
+            case Root / "board" / EmptyNameExtractor(x, y) if x == "42" && y == "0" => true
+            case _ => false
+          }) must beTrue
+        }
+
+        "an empty matrix var but why?" in {
+
+          (Path("/board/square") match {
+            case Root / "board" / EmptyExtractor() => true
+            case _ => false
+          }) must beTrue
+        }
+      }
+
+      "invalid" >> {
+        "empty with semi" in {
+          (Path("/board/square;") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "empty without semi" in {
+          (Path("/board/square") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "empty with mismatched name" in {
+          (Path("/board/other") match {
+            case Root / "board" / EmptyExtractor() => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "empty axis" in {
+          (Path("/board/square;;y=0") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "empty too many = in axis" in {
+          (Path("/board/square;x=42=0;y=9") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+
+        "not enough axes" in {
+          (Path("/board/square;x=42") match {
+            case Root / "board" / BoardExtractor(x @ _, y @ _) => true
+            case _ => false
+          }) must beFalse
+        }
+      }
+    }
+
     "consistent apply / toList" in prop { (p: Path) =>
       Path(p.toList) must_== p
     }
