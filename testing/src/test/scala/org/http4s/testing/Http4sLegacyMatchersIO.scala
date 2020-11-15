@@ -8,6 +8,12 @@ package org.http4s
 package testing
 
 import cats.effect.IO
-import org.specs2.matcher.{IOMatchers => Specs2IOMatchers}
+import cats.effect.unsafe.implicits.global
+import scala.concurrent.duration.FiniteDuration
 
-trait Http4sLegacyMatchersIO extends Http4sLegacyMatchers[IO] with Specs2IOMatchers
+trait Http4sLegacyMatchersIO extends Http4sLegacyMatchers[IO] {
+
+  protected def runWithTimeout[A](fa: IO[A], d: FiniteDuration): A = fa.timeout(d).unsafeRunSync()
+  protected def runAwait[A](fa: IO[A]): A = fa.unsafeRunSync()
+
+}
