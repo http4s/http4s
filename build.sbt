@@ -84,7 +84,7 @@ lazy val core = libraryProject("core")
       log4s.withDottyCompat(scalaVersion.value),
       parboiled,
     ),
-    libraryDependencies := {
+    libraryDependencies ++= {
       if (isDotty.value) Seq.empty
       else Seq(
         scalaReflect(scalaVersion.value) % Provided,
