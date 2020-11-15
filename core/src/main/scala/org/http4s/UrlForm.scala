@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.{Eq, Monoid}
 import cats.data.Chain
-import cats.effect.Sync
+import cats.effect.Concurrent
 import cats.implicits._
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
@@ -95,7 +95,7 @@ object UrlForm {
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
   implicit def entityDecoder[F[_]](implicit
-      F: Sync[F],
+      F: Concurrent[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
