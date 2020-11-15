@@ -17,7 +17,7 @@ class MaxActiveRequestsSpec extends Http4sSpec with CatsEffect {
   val req = Request[IO]()
 
   def routes(startedGate: Deferred[IO, Unit], deferred: Deferred[IO, Unit]) =
-    Kleisli { req: Request[IO] =>
+    Kleisli { (req: Request[IO]) =>
       req match {
         case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
         case _ =>

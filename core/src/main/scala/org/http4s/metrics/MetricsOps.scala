@@ -100,7 +100,7 @@ object MetricsOps {
     val pathList: List[String] =
       request.pathInfo.segments.map(_.decoded()).toList
 
-    val minusExcluded: List[String] = pathList.map { value: String =>
+    val minusExcluded: List[String] = pathList.map { (value: String) =>
       if (exclude(value)) excludedValue else value
     }
 

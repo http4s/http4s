@@ -27,30 +27,30 @@ import org.http4s.internal.threads._
 import org.reactivestreams.Publisher
 
 object AsyncHttpClient {
-  val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
+  val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
     .setRequestTimeout(defaults.RequestTimeout.toMillis.toInt)
     .setThreadFactory(threadFactory(name = { i =>
-      s"http4s-async-http-client-worker-${i}"
+      s"http4s-async-http-client-worker-$i"
     }))
     .setCookieStore(new NoOpCookieStore)
     .build()
+
+  def apply[F[_]](httpClient: AsyncHttpClient)(implicit F: ConcurrentEffect[F]): Client[F] =
+    Client[F] { req =>
+      Resource(F.async[(Response[F], F[Unit])] { cb =>
+        httpClient.executeRequest(toAsyncRequest(req), asyncHandler(cb))
+        ()
+      })
+    }
 
   /** Allocates a Client and its shutdown mechanism for freeing resources.
     */
   def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
     F.delay(new DefaultAsyncHttpClient(config))
-      .map(c =>
-        (
-          Client[F] { req =>
-            Resource(F.async[(Response[F], F[Unit])] { cb =>
-              c.executeRequest(toAsyncRequest(req), asyncHandler(cb))
-              ()
-            })
-          },
-          F.delay(c.close)))
+      .map(c => (apply(c), F.delay(c.close())))
 
   /** Create an HTTP client based on the AsyncHttpClient library
     *
@@ -87,9 +87,9 @@ object AsyncHttpClient {
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
-      val dispose = F.delay { state = State.ABORT }
-      val onStreamCalled = Ref.unsafe[F, Boolean](false)
-      val deferredThrowable = Deferred.unsafe[F, Throwable]
+      val dispose: F[Unit] = F.delay { state = State.ABORT }
+      val onStreamCalled: Ref[F, Boolean] = Ref.unsafe[F, Boolean](false)
+      val deferredThrowable: Deferred[F, Throwable] = Deferred.unsafe[F, Throwable]
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         val eff = for {
