@@ -251,8 +251,7 @@ object Http4sPlugin extends AutoPlugin {
         name = s"Build $subproject",
         scalas = List(scala_212),
         steps = List(
-          WorkflowStep.Checkout,
-          WorkflowStep.Run(List("git fetch --unshallow")),
+          WorkflowStep.CheckoutFull,
           WorkflowStep.SetupScala,
           setupHugoStep,
           WorkflowStep.Sbt(List(s"$subproject/makeSite"), name = Some(s"Build $subproject"))
