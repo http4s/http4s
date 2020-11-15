@@ -32,6 +32,7 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
+    crossScalaVersions := scalaVersions,
   ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
@@ -305,8 +306,7 @@ object Http4sPlugin extends AutoPlugin {
       ),
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
-      githubWorkflowScalaVersions := scalaVersions
+      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs"))
     )
   }
 
