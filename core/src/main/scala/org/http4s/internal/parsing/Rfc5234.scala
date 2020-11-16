@@ -14,7 +14,7 @@ import cats.parse.{Parser => P, Parser1}
   * @see https://tools.ietf.org/html/rfc5234#appendix-B.1
   */
 private[http4s] object Rfc5234 {
-  val alpha: P[Char] =
+  val alpha: Parser1[Char] =
     P.charIn(0x41.toChar to 0x5a.toChar).orElse1(P.charIn(0x61.toChar to 0x7a.toChar))
   val cr: Parser1[Unit] = P.char(0x0d)
   val lf: Parser1[Unit] = P.char(0x0a)

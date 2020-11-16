@@ -84,13 +84,25 @@ private[http4s] trait ArbitraryInstances {
 
   val genQuotedString: Gen[String] = oneOf(genQDText, genQuotedPair).map(s => s"""\"$s\"""")
 
-  val genTchar: Gen[Char] = oneOf {
-    Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
+  private val tchars =
+    Set('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
       ('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
-  }
+
+  val genTchar: Gen[Char] = oneOf(tchars)
 
   val genToken: Gen[String] =
     nonEmptyListOf(genTchar).map(_.mkString)
+
+  val genNonTchar = frequency(
+    4 -> oneOf(Set(0x00.toChar to 0x7f.toChar: _*) -- tchars),
+    1 -> oneOf(0x100.toChar to Char.MaxValue)
+  )
+
+  val genNonToken: Gen[String] = for {
+    a <- stringOf(genTchar)
+    b <- nonEmptyListOf(genNonTchar).map(_.mkString)
+    c <- stringOf(genChar)
+  } yield (a + b + c)
 
   val genVchar: Gen[Char] =
     oneOf('\u0021' to '\u007e')

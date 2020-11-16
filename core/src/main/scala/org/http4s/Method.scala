@@ -6,10 +6,11 @@
 
 package org.http4s
 
-import cats.implicits._
 import cats.{Eq, Hash, Show}
+import cats.implicits._
+import cats.parse.Parser1
 import org.http4s.Method.Semantics
-import org.http4s.parser.Rfc2616BasicRules
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 
 /** An HTTP method.
@@ -49,12 +50,10 @@ object Method {
   def fromString(s: String): ParseResult[Method] =
     allByKey.getOrElse(
       s,
-      Rfc2616BasicRules
-        .token(s)
-        .bimap(
-          e => ParseFailure("Invalid method", e.details),
-          new Method(_) with Semantics.Default
-        ))
+      parser.parseAll(s).leftMap(e => ParseFailure("Invalid method", e.toString)))
+
+  private[http4s] val parser: Parser1[Method] =
+    Rfc7230.token.map(new Method(_) with Semantics.Default)
 
   import Semantics._
 
