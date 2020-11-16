@@ -82,12 +82,12 @@ lazy val core = libraryProject("core")
       catsEffect,
       fs2Io,
       log4s,
-      parboiled,
     ),
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
       else Seq(
         scalaReflect(scalaVersion.value) % Provided,
+        parboiled,
         vault, // needs Dotty release
       )
     },
