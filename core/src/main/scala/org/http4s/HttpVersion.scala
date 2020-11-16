@@ -45,10 +45,8 @@ object HttpVersion {
 
   private val parser: Parser1[HttpVersion] = {
     // HTTP-name = %x48.54.54.50 ; HTTP
-    val httpName = P.string1("HTTP")
-
     // HTTP-version = HTTP-name "/" DIGIT "." DIGIT
-    val httpVersion = httpName ~ P.char('/') *> digit ~ (P.char('.') *> digit)
+    val httpVersion = P.string1("HTTP/") *> digit ~ (P.char('.') *> digit)
 
     httpVersion.map { case (major, minor) =>
       new HttpVersion(major - '0', minor - '0')
