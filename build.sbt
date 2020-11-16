@@ -81,7 +81,7 @@ lazy val core = libraryProject("core")
       cats,
       catsEffect,
       fs2Io,
-      log4s.withDottyCompat(scalaVersion.value),
+      log4s,
       parboiled,
     ),
     libraryDependencies ++= {
