@@ -3,15 +3,15 @@ pull_request_rules:
   - name: automatically merge scala-steward's PRs
     conditions:
       - author=scala-steward
-      - status-success=continuous-integration/travis-ci/pr
       - body~=labels:.*semver-patch.*
-      - status-success=Scala 2.12.11, Java adopt@1.8
-      - status-success=Scala 2.13.2, Java adopt@1.8
-      - status-success=Scala 2.12.11, Java adopt@1.11
-      - status-success=Scala 2.13.2, Java adopt@1.11
-      - status-success=Scalafix
-      - status-success=Project Site
-      - status-success=Doc Site
+      - status-success=Build and Test (ubuntu-latest, 2.13.3, adopt@1.8)
+      - status-success=Build and Test (ubuntu-latest, 2.13.3, adopt@1.11)
+      - status-success=Build and Test (ubuntu-latest, 2.13.3, adopt@1.15)
+      - status-success=Build and Test (ubuntu-latest, 2.12.12, adopt@1.8)
+      - status-success=Build and Test (ubuntu-latest, 2.12.12, adopt@1.11)
+      - status-success=Build and Test (ubuntu-latest, 2.12.12, adopt@1.15)
+      - status-success=Build website (ubuntu-latest, 2.12.12, adopt@1.8)
+      - status-success=Build docs (ubuntu-latest, 2.12.12, adopt@1.8)
     actions:
       merge:
         method: merge

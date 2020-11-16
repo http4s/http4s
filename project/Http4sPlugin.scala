@@ -24,6 +24,8 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.3"
   val scala_212 = "2.12.12"
+  val scala_3   = "3.0.0-M1"
+  val scalaVersions = Seq(scala_213, scala_212, scala_3)
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -32,11 +34,12 @@ object Http4sPlugin extends AutoPlugin {
     ThisBuild / http4sApiVersion := (ThisBuild / version).map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-  )
+    crossScalaVersions := scalaVersions,
+  ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalaVersion := scala_213,
-    crossScalaVersions := Seq(scala_213, scala_212, "3.0.0-M1"),
+    crossScalaVersions := scalaVersions,
 
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
@@ -253,6 +256,80 @@ object Http4sPlugin extends AutoPlugin {
     )
   }
 
+  def sbtghactionsSettings: Seq[Setting[_]] = {
+    import sbtghactions._
+    import sbtghactions.GenerativeKeys._
+
+    val setupHugoStep = WorkflowStep.Run(List("""
+      |echo "$HOME/bin" > $GITHUB_PATH
+      |HUGO_VERSION=0.26 scripts/install-hugo
+    """.stripMargin), name = Some("Setup Hugo"))
+
+    def siteBuildJob(subproject: String) =
+      WorkflowJob(
+        id = subproject,
+        name = s"Build $subproject",
+        scalas = List(scala_212),
+        steps = List(
+          WorkflowStep.CheckoutFull,
+          WorkflowStep.SetupScala,
+          setupHugoStep,
+          WorkflowStep.Sbt(List(s"$subproject/makeSite"), name = Some(s"Build $subproject"))
+        )
+      )
+
+    def sitePublishStep(subproject: String) = WorkflowStep.Run(List(s"""
+      |eval "$$(ssh-agent -s)"
+      |echo "$$SSH_PRIVATE_KEY" | ssh-add -
+      |git config --global user.name "GitHub Actions CI"
+      |git config --global user.email "ghactions@invalid"
+      |sbt ++$scala_212 $subproject/makeSite $subproject/ghpagesPushSite
+      |
+      """.stripMargin),
+      name = Some(s"Publish $subproject"),
+      env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
+    )
+
+    Http4sOrgPlugin.githubActionsSettings ++ Seq(
+      githubWorkflowBuild := Seq(
+        WorkflowStep
+          .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
+        WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
+        WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
+        WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
+        WorkflowStep.Sbt(
+          List("unusedCompileDependenciesTest"),
+          name = Some("Check explicit dependencies")),
+        WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
+        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+      ),
+      githubWorkflowPublishTargetBranches := Seq(
+        RefPredicate.Equals(Ref.Branch("main")),
+        RefPredicate.StartsWith(Ref.Tag("v"))
+      ),
+      githubWorkflowPublishPreamble += WorkflowStep.Use("olafurpg", "setup-gpg", "v3"),
+      githubWorkflowPublish := Seq(
+        WorkflowStep.Sbt(
+          List("ci-release"),
+          name = Some("Release"),
+          env = Map(
+            "PGP_PASSPHRASE" -> "${{ secrets.PGP_PASSPHRASE }}",
+            "PGP_SECRET" -> "${{ secrets.PGP_SECRET }}",
+            "SONATYPE_PASSWORD" -> "${{ secrets.SONATYPE_PASSWORD }}",
+            "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}",
+            "CI_SNAPSHOT_RELEASE" -> "+publishSigned"
+          )
+        ),
+        setupHugoStep,
+        sitePublishStep("website"),
+        sitePublishStep("docs")
+      ),
+      // this results in nonexistant directories trying to be compressed
+      githubWorkflowArtifactUpload := false,
+      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs"))
+    )
+  }
+
   object V { // Dependency versions
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
@@ -261,8 +338,8 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.14"
     val boopickle = "1.3.3"
-    val cats = "2.3.0-M1"
-    val catsEffect = "2.3.0-M2"
+    val cats = "2.3.0-M2"
+    val catsEffect = "2.3.0-M1"
     val catsEffectTesting = "0.4.2"
     val catsParse = "0.1.0"
     val circe = "0.13.0"
@@ -277,7 +354,7 @@ object Http4sPlugin extends AutoPlugin {
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
-    val log4s = "1.9.0"
+    val log4s = "1.10.0-M1"
     val mockito = "3.5.15"
     val netty = "4.1.53.Final"
     val okhttp = "4.9.0"

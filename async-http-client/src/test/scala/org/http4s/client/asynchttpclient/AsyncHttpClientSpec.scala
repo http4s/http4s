@@ -8,11 +8,12 @@ package org.http4s
 package client
 package asynchttpclient
 
-import cats.effect.IO
+import cats.effect.{IO, Resource}
+import org.asynchttpclient.DefaultAsyncHttpClient
 
 class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with Http4sSpec {
 
-  def clientResource = AsyncHttpClient.resource[IO]()
+  def clientResource: Resource[IO, Client[IO]] = AsyncHttpClient.resource[IO]()
 
   "AsyncHttpClient configure" should {
     "evaluate to the defaultConfiguration given the identity function as the configuration function" in {
@@ -61,5 +62,38 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
       customConfig.getMaxConnections shouldEqual customMaxConnections
       customConfig.getRequestTimeout shouldEqual customRequestTimeout
     }
+  }
+
+  "AsyncHttpClientStats" should {
+    "correctly get the stats from the underlying ClientStats" in {
+
+      val clientWithStats: Resource[IO, Client[IO]] = Resource(
+        IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig))
+          .map(c =>
+            (
+              new ClientWithStats(
+                AsyncHttpClient.apply(c),
+                new AsyncHttpClientStats[IO](c.getClientStats)),
+              IO.delay(c.close()))))
+
+      val clientStats: Resource[IO, AsyncHttpClientStats[IO]] = clientWithStats.map {
+        case client: ClientWithStats => client.getStats
+      }
+
+      def extractStats[Stats](
+          stats: Resource[IO, AsyncHttpClientStats[IO]],
+          f: AsyncHttpClientStats[IO] => IO[Stats]): Stats =
+        stats.map(f).use(x => x).unsafeRunSync()
+
+      extractStats(clientStats, _.getTotalIdleConnectionCount) shouldEqual 0
+      extractStats(clientStats, _.getTotalConnectionCount) shouldEqual 0
+      extractStats(clientStats, _.getTotalIdleConnectionCount) shouldEqual 0
+      extractStats(clientStats, _.getStatsPerHost) shouldEqual Map.empty
+    }
+  }
+  class ClientWithStats(client: Client[IO], private val stats: AsyncHttpClientStats[IO])
+      extends DefaultClient[IO] {
+    def getStats: AsyncHttpClientStats[IO] = stats
+    override def run(req: Request[IO]): Resource[IO, Response[IO]] = client.run(req)
   }
 }
