@@ -25,14 +25,14 @@ class PathSpec extends Http4sSpec {
 
   "Path" should {
     "~ extractor on Path without Root" in {
-      (Path(Vector(Segment("foo.json"))) match {
+      (Path.fromString("foo.json") match {
         case Path.empty / "foo" ~ "json" => true
         case _ => false
       }) must beTrue
     }
 
     "~ extractor on Path with Root" in {
-      (Path(Vector(Segment("foo.json")), absolute = true) match {
+      (Path.fromString("/foo.json") match {
         case Root / "foo" ~ "json" => true
         case _ => false
       }) must beTrue
@@ -100,7 +100,7 @@ class PathSpec extends Http4sSpec {
 
     "/: should not crash without trailing slash" in {
       // Bug reported on Gitter
-      Path(Vector(Segment("/cameras/1NJDOI"))) match {
+      Path.fromString("/cameras/1NJDOI") match {
         case "cameras" /: _ /: "events" /: _ /: "exports" /: _ => false
         case _ => true
       }
@@ -128,7 +128,7 @@ class PathSpec extends Http4sSpec {
     }
 
     "Int extractor, invalid int" in {
-      (Path(Vector(Segment("/user/invalid"))) match {
+      (Path.fromString("/user/invalid") match {
         case Root / "user" / IntVar(userId @ _) => true
         case _ => false
       }) must beFalse
@@ -190,13 +190,13 @@ class PathSpec extends Http4sSpec {
           }) must beFalse
         }
         "a word" in {
-          (Path(Vector(Segment("/user/invalid"))) match {
+          (Path.fromString("/user/invalid") match {
             case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }
         "a bad UUID" in {
-          (Path(Vector(Segment("/user/13251d88-7a73-4fcf-b935"))) match {
+          (Path.fromString("/user/13251d88-7a73-4fcf-b935") match {
             case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
@@ -272,21 +272,21 @@ class PathSpec extends Http4sSpec {
 
       "invalid" >> {
         "empty with semi" in {
-          (Path(Vector(Segment("/board/square;"))) match {
+          (Path.fromString("/board/square;") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
         }
 
         "empty without semi" in {
-          (Path(Vector(Segment("/board/square"))) match {
+          (Path.fromString("/board/square") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
         }
 
         "empty with mismatched name" in {
-          (Path(Vector(Segment("/board/other"))) match {
+          (Path.fromString("/board/other") match {
             case Root / "board" / EmptyExtractor() => true
             case _ => false
           }) must beFalse
