@@ -80,6 +80,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= Seq(
       cats,
       catsEffect,
+      catsParse,
       fs2Io,
       log4s,
     ),
@@ -92,6 +93,9 @@ lazy val core = libraryProject("core")
       )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.HttpVersion$Parser"),
+    ),
   )
 
 lazy val laws = libraryProject("laws")
