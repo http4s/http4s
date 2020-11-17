@@ -29,7 +29,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test1")
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-      val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
+      val resp = meteredClient.expect[String]("/ok").attempt.unsafeRunSync()
 
       resp must beRight(contain("200 OK"))
       count(registry, Timer("client.default.2xx-responses")) must beEqualTo(1L)
@@ -44,7 +44,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
       val resp =
-        meteredClient.expect[String]("bad-request").attempt.unsafeRunSync()
+        meteredClient.expect[String]("/bad-request").attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
         e must beLike { case UnexpectedStatus(Status(400), _, _) => ok }
@@ -61,7 +61,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
       val resp =
-        meteredClient.expect[String]("internal-server-error").attempt.unsafeRunSync()
+        meteredClient.expect[String]("/internal-server-error").attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
         e must beLike { case UnexpectedStatus(Status(500), _, _) => ok }
@@ -77,7 +77,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test4")
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-      val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
+      val resp = meteredClient.expect[String]("/ok").attempt.unsafeRunSync()
 
       resp must beRight(contain("200 OK"))
       count(registry, Timer("client.default.get-requests")) must beEqualTo(1L)
@@ -93,7 +93,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test5")
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-      val resp = meteredClient.expect[String](Request[IO](POST, uri("ok"))).attempt.unsafeRunSync()
+      val resp = meteredClient.expect[String](Request[IO](POST, uri("/ok"))).attempt.unsafeRunSync()
 
       resp must beRight(contain("200 OK"))
       count(registry, Timer("client.default.post-requests")) must beEqualTo(1L)
@@ -109,7 +109,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test6")
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-      val resp = meteredClient.expect[String](Request[IO](PUT, uri("ok"))).attempt.unsafeRunSync()
+      val resp = meteredClient.expect[String](Request[IO](PUT, uri("/ok"))).attempt.unsafeRunSync()
 
       resp must beRight(contain("200 OK"))
       count(registry, Timer("client.default.put-requests")) must beEqualTo(1L)
@@ -126,7 +126,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
       val resp =
-        meteredClient.expect[String](Request[IO](DELETE, uri("ok"))).attempt.unsafeRunSync()
+        meteredClient.expect[String](Request[IO](DELETE, uri("/ok"))).attempt.unsafeRunSync()
 
       resp must beRight(contain("200 OK"))
       count(registry, Timer("client.default.delete-requests")) must beEqualTo(1L)
@@ -143,7 +143,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
       val resp =
-        meteredClient.expect[String]("error").attempt.unsafeRunSync()
+        meteredClient.expect[String]("/error").attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
         e must beAnInstanceOf[IOException]
@@ -160,7 +160,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
       val resp =
-        meteredClient.expect[String]("timeout").attempt.unsafeRunSync()
+        meteredClient.expect[String]("/timeout").attempt.unsafeRunSync()
 
       resp must beLeft { (e: Throwable) =>
         e must beAnInstanceOf[TimeoutException]
@@ -178,7 +178,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val meteredClient =
         Metrics(Dropwizard[IO](registry, "client"), requestMethodClassifier)(client)
 
-      val resp = meteredClient.expect[String]("ok").attempt.unsafeRunSync()
+      val resp = meteredClient.expect[String]("/ok").attempt.unsafeRunSync()
 
       resp must beRight(contain("200 OK"))
       count(registry, Timer("client.get.2xx-responses")) must beEqualTo(1L)
@@ -193,7 +193,7 @@ class DropwizardMetricsSpec extends Http4sSpec {
       val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
       val clientRunResource = meteredClient
-        .run(Request[IO](uri = Uri.unsafeFromString("ok")))
+        .run(Request[IO](uri = Uri.unsafeFromString("/ok")))
         .use { resp =>
           IO {
             (EntityDecoder[IO, String].decode(resp, false).value.unsafeRunSync() must beRight {
