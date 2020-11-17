@@ -16,68 +16,8 @@ import org.http4s._
 import scala.util.Try
 import cats.Foldable
 import cats.Monad
-
-/** Base class for path extractors. */
-trait Path {
-  def /(child: String) = new /(this, child)
-  def toList: List[String]
-  def parent: Path
-  def lastOption: Option[String]
-  def startsWith(other: Path): Boolean
-}
-
-object Path {
-
-  /** Constructs a path from a single string by splitting on the `'/'`
-    * character.
-    *
-    * Leading slashes do not create an empty path segment.  This is to
-    * reflect that there is no distinction between a request to
-    * `http://www.example.com` from `http://www.example.com/`.
-    *
-    * Trailing slashes result in a path with an empty final segment,
-    * unless the path is `"/"`, which is `Root`.
-    *
-    * Segments are URL decoded.
-    *
-    * {{{
-    * scala> Path("").toList
-    * res0: List[String] = List()
-    * scala> Path("/").toList
-    * res1: List[String] = List()
-    * scala> Path("a").toList
-    * res2: List[String] = List(a)
-    * scala> Path("/a").toList
-    * res3: List[String] = List(a)
-    * scala> Path("/a/").toList
-    * res4: List[String] = List(a, "")
-    * scala> Path("//a").toList
-    * res5: List[String] = List("", a)
-    * scala> Path("/%2F").toList
-    * res0: List[String] = List(/)
-    * }}}
-    */
-  def apply(str: String): Path =
-    apply(Uri.Path.fromString(str))
-
-  def apply(path: Uri.Path): Path =
-    if (path.isEmpty) Root
-    else
-      (if (path.endsWithSlash) path.segments :+ Uri.Path.Segment("") else path.segments)
-        .foldLeft(Root: Path)((path, seg) => path / seg.decoded())
-
-  def apply(first: String, rest: String*): Path =
-    rest.foldLeft(Root / first)(_ / _)
-
-  def apply(list: List[String]): Path =
-    list.foldLeft(Root: Path)(_ / _)
-
-  def unapplySeq(path: Path): Some[List[String]] =
-    Some(path.toList)
-
-  def unapplySeq[F[_]](request: Request[F]): Some[List[String]] =
-    Some(Path(request.pathInfo).toList)
-}
+import org.http4s.Uri.Path
+import org.http4s.Uri.Path._
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
@@ -96,7 +36,7 @@ object ~ {
       case Root => None
       case parent / last =>
         unapply(last).map { case (base, ext) =>
-          (parent / base, ext)
+          (parent / Path.Segment(base), ext)
         }
     }
 
@@ -113,19 +53,21 @@ object ~ {
     }
 }
 
-final case class /(parent: Path, child: String) extends Path {
-  lazy val toList: List[String] = parent.toList ++ List(child)
-
-  def lastOption: Some[String] = Some(child)
-
-  lazy val asString: String = s"$parent/${Uri.pathEncode(child)}"
-
-  override def toString: String = asString
-
-  def startsWith(other: Path): Boolean = {
-    val components = other.toList
-    toList.take(components.length) === components
-  }
+object / {
+  def unapply(path: Path): Option[(Path, String)] =
+    if (path.endsWithSlash)
+      Some(path.copy(endsWithSlash = false) -> "")
+    else
+      path.segments match {
+        case allButLast :+ last if allButLast.isEmpty =>
+          if (path.absolute)
+            Some(Root -> last.decoded())
+          else
+            Some(empty -> last.decoded())
+        case allButLast :+ last =>
+          Some(Path(allButLast, absolute = path.absolute) -> last.decoded())
+        case _ => None
+      }
 }
 
 object -> {
@@ -137,7 +79,7 @@ object -> {
     * }}}
     */
   def unapply[F[_]](req: Request[F]): Some[(Method, Path)] =
-    Some((req.method, Path(req.pathInfo)))
+    Some((req.method, req.pathInfo))
 }
 
 class MethodConcat(val methods: Set[Method]) {
@@ -154,25 +96,6 @@ class MethodConcat(val methods: Set[Method]) {
     Some(method).filter(methods)
 }
 
-/** Root extractor:
-  * {{{
-  *   Path("/") match {
-  *     case Root => ...
-  *   }
-  * }}}
-  */
-case object Root extends Path {
-  def toList: List[String] = Nil
-
-  def parent: Path = this
-
-  def lastOption: None.type = None
-
-  override def toString = ""
-
-  def startsWith(other: Path): Boolean = other == Root
-}
-
 /** Path separator extractor:
   * {{{
   *   Path("/1/2/3/test.json") match {
@@ -181,9 +104,9 @@ case object Root extends Path {
   */
 object /: {
   def unapply(path: Path): Option[(String, Path)] =
-    path.toList match {
-      case head :: tail => Some(head -> Path(tail))
-      case Nil => None
+    path.segments match {
+      case head +: tail => Some(head.decoded() -> Path(tail))
+      case _ => None
     }
 }
 

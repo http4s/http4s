@@ -361,7 +361,7 @@ object Uri {
         val (start, end) = segments.splitAt(idx)
         Path(start, absolute = absolute) -> Path(end, true, endsWithSlash = endsWithSlash)
       }
-    private def copy(
+    def copy(
         segments: Vector[Path.Segment] = segments,
         absolute: Boolean = absolute,
         endsWithSlash: Boolean = endsWithSlash) =
@@ -416,8 +416,8 @@ object Uri {
         endsWithSlash: Boolean = false): Path =
       new Path(segments, absolute, endsWithSlash)
 
-    def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
-      Some((path.segments, path.absolute, path.endsWithSlash))
+    // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
+    //   Some((path.segments, path.absolute, path.endsWithSlash))
 
     def fromString(fromPath: String): Path =
       fromPath match {
