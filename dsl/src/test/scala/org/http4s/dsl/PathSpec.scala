@@ -12,31 +12,27 @@ package dsl
 
 import cats.effect.IO
 import org.http4s.Uri.uri
+import org.http4s.Uri.Path
+import org.http4s.Uri.Path.{Root, Segment}
 import org.http4s.dsl.io._
-import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 
 class PathSpec extends Http4sSpec {
-  implicit val arbitraryPath: Arbitrary[Path] =
-    Arbitrary {
-      arbitrary[List[String]].map(Path(_))
-    }
+  implicit val arbitraryPath: Gen[Path] =
+    arbitrary[List[String]]
+      .map(_.foldLeft(Path.Root)((acc, e) => acc / Segment(e)))
 
   "Path" should {
-    "/foo/bar" in {
-      Path("/foo/bar") must_== Path("foo", "bar")
+    "~ extractor on Path without Root" in {
+      (Path.fromString("foo.json") match {
+        case Path.empty / "foo" ~ "json" => true
+        case _ => false
+      }) must beTrue
     }
 
-    "foo/bar" in {
-      Path("foo/bar") must_== Path("foo", "bar")
-    }
-
-    "//foo/bar" in {
-      Path("//foo/bar") must_== Path("", "foo", "bar")
-    }
-
-    "~ extractor on Path" in {
-      (Path("/foo.json") match {
+    "~ extractor on Path with Root" in {
+      (Path.fromString("/foo.json") match {
         case Root / "foo" ~ "json" => true
         case _ => false
       }) must beTrue
@@ -88,84 +84,58 @@ class PathSpec extends Http4sSpec {
       }) must beTrue
     }
 
-    "Root extractor" in {
-      (Path("/") match {
-        case Root => true
-        case _ => false
-      }) must beTrue
-    }
-
-    "Root extractor, no partial match" in {
-      (Path("/test.json") match {
-        case Root => true
-        case _ => false
-      }) must beFalse
-    }
-
-    "Root extractor, empty path" in {
-      (Path("") match {
-        case Root => true
-        case _ => false
-      }) must beTrue
-    }
-
     "/ extractor" in {
-      (Path("/1/2/3/test.json") match {
+      (Path.fromString("/1/2/3/test.json") match {
         case Root / "1" / "2" / "3" / "test.json" => true
         case _ => false
       }) must beTrue
     }
 
     "/: extractor" in {
-      (Path("/1/2/3/test.json") match {
+      (Path.fromString("/1/2/3/test.json") match {
         case "1" /: "2" /: path => Some(path)
         case _ => None
-      }) must_== Some(Path("/3/test.json"))
+      }) must_== Some(Path.fromString("3/test.json"))
     }
 
     "/: should not crash without trailing slash" in {
       // Bug reported on Gitter
-      Path("/cameras/1NJDOI") match {
+      Path.fromString("/cameras/1NJDOI") match {
         case "cameras" /: _ /: "events" /: _ /: "exports" /: _ => false
         case _ => true
       }
     }
 
     "trailing slash" in {
-      (Path("/1/2/3/") match {
+      (Path.fromString("/1/2/3/") match {
         case Root / "1" / "2" / "3" / "" => true
         case _ => false
       }) must beTrue
     }
 
     "encoded chars" in {
-      (Path("/foo%20bar/and%2For/1%2F2") match {
+      (Path.fromString("/foo%20bar/and%2For/1%2F2") match {
         case Root / "foo bar" / "and/or" / "1/2" => true
         case _ => false
       }) must beTrue
     }
 
-    "encode chars in toString" in {
-      (Root / "foo bar" / "and/or" / "1/2").toString must_==
-        "/foo%20bar/and%2For/1%2F2"
-    }
-
     "Int extractor" in {
-      (Path("/user/123") match {
+      (Path.fromString("/user/123") match {
         case Root / "user" / IntVar(userId) => userId == 123
         case _ => false
       }) must beTrue
     }
 
     "Int extractor, invalid int" in {
-      (Path("/user/invalid") match {
+      (Path.fromString("/user/invalid") match {
         case Root / "user" / IntVar(userId @ _) => true
         case _ => false
       }) must beFalse
     }
 
     "Int extractor, number format error" in {
-      (Path("/user/2147483648") match {
+      (Path.fromString("/user/2147483648") match {
         case Root / "user" / IntVar(userId @ _) => true
         case _ => false
       }) must beFalse
@@ -174,13 +144,13 @@ class PathSpec extends Http4sSpec {
     "Long extractor" >> {
       "valid" >> {
         "small positive number" in {
-          (Path("/user/123") match {
+          (Path.fromString("/user/123") match {
             case Root / "user" / LongVar(userId) => userId == 123
             case _ => false
           }) must beTrue
         }
         "negative number" in {
-          (Path("/user/-432") match {
+          (Path.fromString("/user/-432") match {
             case Root / "user" / LongVar(userId) => userId == -432
             case _ => false
           }) must beTrue
@@ -188,13 +158,13 @@ class PathSpec extends Http4sSpec {
       }
       "invalid" >> {
         "a word" in {
-          (Path("/user/invalid") match {
+          (Path.fromString("/user/invalid") match {
             case Root / "user" / LongVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }
         "number but out of domain" in {
-          (Path("/user/9223372036854775808") match {
+          (Path.fromString("/user/9223372036854775808") match {
             case Root / "user" / LongVar(userId @ _) => true
             case _ => false
           }) must beFalse
@@ -205,7 +175,7 @@ class PathSpec extends Http4sSpec {
     "UUID extractor" >> {
       "valid" >> {
         "a UUID" in {
-          (Path("/user/13251d88-7a73-4fcf-b935-54dfae9f023e") match {
+          (Path.fromString("/user/13251d88-7a73-4fcf-b935-54dfae9f023e") match {
             case Root / "user" / UUIDVar(userId) =>
               userId.toString == "13251d88-7a73-4fcf-b935-54dfae9f023e"
             case _ => false
@@ -214,19 +184,19 @@ class PathSpec extends Http4sSpec {
       }
       "invalid" >> {
         "a number" in {
-          (Path("/user/123") match {
+          (Path.fromString("/user/123") match {
             case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }
         "a word" in {
-          (Path("/user/invalid") match {
+          (Path.fromString("/user/invalid") match {
             case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }
         "a bad UUID" in {
-          (Path("/user/13251d88-7a73-4fcf-b935") match {
+          (Path.fromString("/user/13251d88-7a73-4fcf-b935") match {
             case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
@@ -243,49 +213,49 @@ class PathSpec extends Http4sSpec {
 
       "valid" >> {
         "a matrix var" in {
-          (Path("/board/square;x=42;y=0") match {
+          (Path.fromString("/board/square;x=42;y=0") match {
             case Root / "board" / BoardExtractor(x, y) if x == "42" && y == "0" => true
             case _ => false
           }) must beTrue
         }
 
         "a matrix var with empty axis segment" in {
-          (Path("/board/square;x=42;;y=0") match {
+          (Path.fromString("/board/square;x=42;;y=0") match {
             case Root / "board" / BoardExtractor(x, y) if x == "42" && y == "0" => true
             case _ => false
           }) must beTrue
         }
 
         "a matrix var with empty trailing axis segment" in {
-          (Path("/board/square;x=42;y=0;") match {
+          (Path.fromString("/board/square;x=42;y=0;") match {
             case Root / "board" / BoardExtractor(x, y) if x == "42" && y == "0" => true
             case _ => false
           }) must beTrue
         }
 
         "a matrix var mid path" in {
-          (Path("/board/square;x=42;y=0/piece") match {
+          (Path.fromString("/board/square;x=42;y=0/piece") match {
             case Root / "board" / BoardExtractor(x, y) / "piece" if x == "42" && y == "0" => true
             case _ => false
           }) must beTrue
         }
 
         "too many axes" in {
-          (Path("/board/square;x=42;y=0;z=39") match {
+          (Path.fromString("/board/square;x=42;y=0;z=39") match {
             case Root / "board" / BoardExtractor(x, y) if x == "42" && y == "0" => true
             case _ => false
           }) must beTrue
         }
 
         "nested extractors" in {
-          (Path("/board/square;x=42;y=0") match {
+          (Path.fromString("/board/square;x=42;y=0") match {
             case Root / "board" / BoardExtractor(IntVar(x), IntVar(y)) if x == 42 && y == 0 => true
             case _ => false
           }) must beTrue
         }
 
         "a matrix var with no name" in {
-          (Path("/board/;x=42;y=0") match {
+          (Path.fromString("/board/;x=42;y=0") match {
             case Root / "board" / EmptyNameExtractor(x, y) if x == "42" && y == "0" => true
             case _ => false
           }) must beTrue
@@ -293,7 +263,7 @@ class PathSpec extends Http4sSpec {
 
         "an empty matrix var but why?" in {
 
-          (Path("/board/square") match {
+          (Path.fromString("/board/square") match {
             case Root / "board" / EmptyExtractor() => true
             case _ => false
           }) must beTrue
@@ -302,55 +272,47 @@ class PathSpec extends Http4sSpec {
 
       "invalid" >> {
         "empty with semi" in {
-          (Path("/board/square;") match {
+          (Path.fromString("/board/square;") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
         }
 
         "empty without semi" in {
-          (Path("/board/square") match {
+          (Path.fromString("/board/square") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
         }
 
         "empty with mismatched name" in {
-          (Path("/board/other") match {
+          (Path.fromString("/board/other") match {
             case Root / "board" / EmptyExtractor() => true
             case _ => false
           }) must beFalse
         }
 
         "empty axis" in {
-          (Path("/board/square;;y=0") match {
+          (Path.fromString("/board/square;;y=0") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
         }
 
         "empty too many = in axis" in {
-          (Path("/board/square;x=42=0;y=9") match {
+          (Path.fromString("/board/square;x=42=0;y=9") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
         }
 
         "not enough axes" in {
-          (Path("/board/square;x=42") match {
+          (Path.fromString("/board/square;x=42") match {
             case Root / "board" / BoardExtractor(x @ _, y @ _) => true
             case _ => false
           }) must beFalse
         }
       }
-    }
-
-    "consistent apply / toList" in prop { (p: Path) =>
-      Path(p.toList) must_== p
-    }
-
-    "Path.apply is stack safe" in {
-      Path("/" * 1000000) must beAnInstanceOf[Path]
     }
   }
 }

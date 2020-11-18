@@ -416,8 +416,8 @@ object Uri {
         endsWithSlash: Boolean = false): Path =
       new Path(segments, absolute, endsWithSlash)
 
-    def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
-      Some((path.segments, path.absolute, path.endsWithSlash))
+    // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
+    //   Some((path.segments, path.absolute, path.endsWithSlash))
 
     def fromString(fromPath: String): Path =
       fromPath match {
