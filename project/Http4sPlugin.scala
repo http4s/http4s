@@ -245,7 +245,7 @@ object Http4sPlugin extends AutoPlugin {
     val dropwizardMetrics = "4.1.15"
     val fs2 = "3.0.0-M3"
     val jawn = "1.0.0"
-    val jawnFs2 = "1.0.0"
+    val jawnFs2 = "2.0.0-M2"
     val jetty = "9.4.34.v20201102"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
@@ -296,7 +296,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % V.fs2
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
+  lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % V.jetty
