@@ -56,7 +56,7 @@ object ~ {
 object / {
   def unapply(path: Path): Option[(Path, String)] =
     if (path.endsWithSlash)
-      Some(path.copy(endsWithSlash = false) -> "")
+      Some(path.dropEndsWithSlash -> "")
     else
       path.segments match {
         case allButLast :+ last if allButLast.isEmpty =>

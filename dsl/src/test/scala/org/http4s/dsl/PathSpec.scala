@@ -21,7 +21,7 @@ import org.scalacheck.Gen
 class PathSpec extends Http4sSpec {
   implicit val arbitraryPath: Gen[Path] =
     arbitrary[List[String]]
-      .map(_.foldLeft(Path.Root)((acc, e) => acc.copy(segments = acc.segments :+ Segment(e))))
+      .map(_.foldLeft(Path.Root)((acc, e) => acc / Segment(e)))
 
   "Path" should {
     "~ extractor on Path without Root" in {
