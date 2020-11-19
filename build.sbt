@@ -30,7 +30,7 @@ lazy val modules: List[ProjectReference] = List(
   // theDsl,
    jawn,
   // argonaut,
-  // boopickle,
+  boopickle,
   // circe,
   // json4s,
   // json4sNative,
@@ -105,7 +105,11 @@ lazy val testing = libraryProject("testing")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       specs2Matcher,
+      munitCatsEffect,
+      munitDiscipline
     ),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-3"),
   )
   .dependsOn(laws)
 
@@ -661,6 +665,7 @@ def http4sProject(name: String) =
     .settings(
       moduleName := s"http4s-$name",
       Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
+      testFrameworks += new TestFramework("munit.Framework"),
       initCommands()
     )
     .enablePlugins(AutomateHeaderPlugin)
