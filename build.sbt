@@ -32,7 +32,7 @@ lazy val modules: List[ProjectReference] = List(
   // argonaut,
   // boopickle,
   // circe,
-  // json4s,
+   json4s,
    json4sNative,
   // json4sJackson,
   // playJson,
