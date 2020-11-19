@@ -38,10 +38,12 @@ These changes should be transparent, but are mentioned for completeness.
 
 ## Dependency updates
 
+* discipline-1.1.2
 * dropwizard-metrics-4.1.15
 * jackson-databind-2.11.3
 * jawn-1.0.1
 * netty-4.1.54.Final
+* okio-2.9.0
 * tomcat-9.0.40
 
 # v0.21.9 (2020-11-11)
