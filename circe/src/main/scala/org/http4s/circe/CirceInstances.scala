@@ -120,8 +120,12 @@ trait CirceInstances extends JawnInstances {
       .streamEncoder[F, Chunk[Byte]]
       .contramap[Stream[F, Json]] { stream =>
         val jsons = stream.map(fromJsonToChunk(printer))
-        CirceInstances.openBrace ++ jsons.intersperse(
-          CirceInstances.comma) ++ CirceInstances.closeBrace
+        val badlyChunked = {
+          CirceInstances.openBrace ++ 
+          jsons.intersperse(CirceInstances.comma) ++ 
+          CirceInstances.closeBrace
+        }
+        badlyChunked.chunkMin(2048) // At minimum 1024 json objects per flush
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
