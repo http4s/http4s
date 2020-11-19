@@ -23,7 +23,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
   "A http client with a prometheus metrics middleware" should {
     "register a 2xx response" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String]("ok").attempt
+        resp <- client.expect[String]("/ok").attempt
       } yield {
         resp must beRight(contain("200 OK"))
 
@@ -36,7 +36,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "register a 4xx response" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String]("bad-request").attempt
+        resp <- client.expect[String]("/bad-request").attempt
       } yield {
         resp must beLeft { (e: Throwable) =>
           e must beLike { case UnexpectedStatus(Status.BadRequest, _, _) => ok }
@@ -51,7 +51,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "register a 5xx response" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String]("internal-server-error").attempt
+        resp <- client.expect[String]("/internal-server-error").attempt
       } yield {
         resp must beLeft { (e: Throwable) =>
           e must beLike { case UnexpectedStatus(Status.InternalServerError, _, _) => ok }
@@ -66,7 +66,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "register a GET request" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String]("ok").attempt
+        resp <- client.expect[String]("/ok").attempt
       } yield {
         resp must beRight(contain("200 OK"))
 
@@ -79,7 +79,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "register a POST request" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String](Request[IO](POST, Uri.unsafeFromString("ok"))).attempt
+        resp <- client.expect[String](Request[IO](POST, Uri.unsafeFromString("/ok"))).attempt
       } yield {
         resp must beRight(contain("200 OK"))
 
@@ -92,7 +92,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "register a PUT request" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String](Request[IO](PUT, Uri.unsafeFromString("ok"))).attempt
+        resp <- client.expect[String](Request[IO](PUT, Uri.unsafeFromString("/ok"))).attempt
       } yield {
         resp must beRight(contain("200 OK"))
 
@@ -105,7 +105,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "register a DELETE request" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String](Request[IO](DELETE, Uri.unsafeFromString("ok"))).attempt
+        resp <- client.expect[String](Request[IO](DELETE, Uri.unsafeFromString("/ok"))).attempt
       } yield {
         resp must beRight(contain("200 OK"))
 
@@ -118,7 +118,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "register an error" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String]("error").attempt
+        resp <- client.expect[String]("/error").attempt
       } yield {
         resp must beLeft { (e: Throwable) =>
           e must beAnInstanceOf[IOException]
@@ -131,7 +131,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "register a timeout" in withMeteredClient { case (registry, client) =>
       for {
-        resp <- client.expect[String]("timeout").attempt
+        resp <- client.expect[String]("/timeout").attempt
       } yield {
         resp must beLeft { (e: Throwable) =>
           e must beAnInstanceOf[TimeoutException]
@@ -148,7 +148,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
       meteredClient(classifier)
         .use { case (registry, client) =>
           for {
-            resp <- client.expect[String]("ok").attempt
+            resp <- client.expect[String]("/ok").attempt
           } yield {
             resp must beRight(contain("200 OK"))
 
@@ -164,7 +164,7 @@ class PrometheusClientMetricsSpec extends Http4sSpec {
 
     "unregister collectors" in {
       val registry = meteredClient()
-        .use { case (cr, client) => client.expect[String]("ok").as(cr) }
+        .use { case (cr, client) => client.expect[String]("/ok").as(cr) }
         .unsafeRunSync()
 
       count(registry, "2xx_responses", "client") must beEqualTo(0.0)

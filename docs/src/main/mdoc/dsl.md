@@ -362,7 +362,7 @@ say `"Hello, Alice and Bob!"`
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.toList.mkString(" and ")}!""")
+  case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.segments.mkString(" and ")}!""")
 }
 ```
 
