@@ -16,18 +16,14 @@ trait KleisliSyntax {
   implicit def http4sKleisliResponseSyntaxOptionT[F[_]: Functor, A](
       kleisli: Kleisli[OptionT[F, *], A, Response[F]]): KleisliResponseOps[F, A] =
     new KleisliResponseOps[F, A](kleisli)
-}
 
-trait KleisliSyntaxBinCompat0 {
   implicit def http4sKleisliHttpRoutesSyntax[F[_]: Functor](
       routes: HttpRoutes[F]): KleisliHttpRoutesOps[F] =
     new KleisliHttpRoutesOps[F](routes)
 
   implicit def http4sKleisliHttpAppSyntax[F[_]: Functor](app: HttpApp[F]): KleisliHttpAppOps[F] =
     new KleisliHttpAppOps[F](app)
-}
 
-trait KleisliSyntaxBinCompat1 {
   implicit def http4sKleisliAuthedRoutesSyntax[F[_]: Functor, A](
       authedRoutes: AuthedRoutes[A, F]): KleisliAuthedRoutesOps[F, A] =
     new KleisliAuthedRoutesOps[F, A](authedRoutes)
