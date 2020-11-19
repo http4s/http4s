@@ -7,7 +7,7 @@
 package org.http4s
 
 package object syntax {
-  object all extends AllSyntaxBinCompat
+  object all extends AllSyntax
   object kleisli extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliSyntaxBinCompat1
   object literals extends LiteralsSyntax
   @deprecated("Use cats.foldable._", "0.18.5")
