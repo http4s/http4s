@@ -8,6 +8,42 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.10 (unreleased)
+
+## Enhancements
+
+### http4s-core
+
+* [#3864](https://github.com/http4s/http4s/pull/3864): Cache a `Right` of the common `HttpVersion`s for its `ParseResult`.
+
+### http4s-dsl
+
+* [#3844](https://github.com/http4s/http4s/pull/3844): Add `MatrixVar` extractor for [Matrix URIs](https://www.w3.org/DesignIssues/MatrixURIs.html)
+
+### http4s-async-http-client
+
+* [#3859](https://github.com/http4s/http4s/pull/3859): Add `AsyncHttpClient.apply` method that takes an already constructed async-http-client. This is useful for keeping a handle on bespoke of the client, such as its stats. Adds a functional `AsyncHttpClientStats` wrapper around the native stats class.
+
+## Internals
+
+These changes should be transparent, but are mentioned for completeness.
+
+### Dotty preparations
+
+* [#3798](https://github.com/http4s/http4s/pull/3798): Parenthesize some arguments to lambda functions.
+
+### Build
+
+* [#3868](https://github.com/http4s/http4s/pull/3868), [#3870](https://github.com/http4s/http4s/pull/3870): Start building with sbt-github-actions.
+
+## Dependency updates
+
+* dropwizard-metrics-4.1.15
+* jackson-databind-2.11.3
+* jawn-1.0.1
+* netty-4.1.54.Final
+* tomcat-9.0.40
+
 # v0.21.9 (2020-11-11)
 
 ## Bugfixes
