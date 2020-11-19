@@ -18,8 +18,8 @@ jobs:
       - uses: actions/checkout@v1
         with:
           fetch-depth: 0
-      - uses: olafurpg/setup-scala@v5
-      - uses: olafurpg/setup-gpg@v2
+      - uses: olafurpg/setup-scala@v10
+      - uses: olafurpg/setup-gpg@v3
       - name: Cache Coursier
         uses: actions/cache@v1
         with:
