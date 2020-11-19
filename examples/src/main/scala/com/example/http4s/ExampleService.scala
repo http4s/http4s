@@ -39,10 +39,6 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
         // Supports Play Framework template -- see src/main/twirl.
         Ok(html.index())
 
-      case _ -> Root =>
-        // The default route result is NotFound. Sometimes MethodNotAllowed is more appropriate.
-        MethodNotAllowed(Allow(GET))
-
       case GET -> Root / "ping" =>
         // EntityEncoder allows for easy conversion of types to a response body
         Ok("pong")
@@ -164,6 +160,10 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
         req.decode[Multipart[F]] { m =>
           Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map(_.name).mkString("\n")}""")
         }
+      
+      case _ -> Root =>
+        // The default route result is NotFound. Sometimes MethodNotAllowed is more appropriate.
+        MethodNotAllowed(Allow(GET))
     }
 
   def helloWorldService: F[Response[F]] = Ok("Hello World!")
