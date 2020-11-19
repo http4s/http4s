@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.either._
-import fs2.{Chunk, Stream}
+import fs2.{Chunk, Pull, Stream}
 import io.circe._
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
@@ -119,13 +119,9 @@ trait CirceInstances extends JawnInstances {
     EntityEncoder
       .streamEncoder[F, Chunk[Byte]]
       .contramap[Stream[F, Json]] { stream =>
-        val jsons = stream.map(fromJsonToChunk(printer))
-        val badlyChunked = {
-          CirceInstances.openBrace ++ 
-          jsons.intersperse(CirceInstances.comma) ++ 
-          CirceInstances.closeBrace
-        }
-        badlyChunked.chunkMin(2048) // At minimum 1024 json objects per flush
+        Stream.emit(CirceInstances.openBrace) ++
+          stream.through(CirceInstance.streamedJsonWithCommas(printer)).chunks ++
+          Stream.emit(CirceInstances.closeBrace)
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
@@ -222,11 +218,39 @@ object CirceInstances {
 
   // Constant byte chunks for the stream as JSON array encoder.
 
-  private final val openBrace: Stream[fs2.Pure, Chunk[Byte]] =
-    Stream.emit(Chunk.singleton('['.toByte))
+  private def streamedJsonWithCommas[F[_]](printer: Printer)(s: Stream[F, Json]): Stream[F, Byte] =
+    s.pull.uncons1.flatMap {
+      case None => Pull.done
+      case Some((hd, tl)) =>
+        Pull.output(
+          fromJsonToChunk(printer)(
+            hd)) >> // Ouput First Json As Chunk, Could like put starting `[` here
+          tl.repeatPull {
+            _.uncons.flatMap {
+              case None => Pull.pure(None)
+              case Some((hd, tl)) =>
+                val interspersed = {
+                  val bldr = Vector.newBuilder[Chunk[Byte]]
+                  bldr.sizeHint(hd.size * 2)
+                  hd.foreach { o =>
+                    bldr += CirceInstances.comma
+                    bldr += fromJsonToChunk(printer)(o)
+                  }
+                  Chunk
+                    .vector(bldr.result())
+                    .flatMap(identity) // I know there must be a more efficient weay to do this
+                }
+                Pull.output(interspersed) >> Pull.pure(Some(tl))
+            }
+          }.pull
+            .echo // How to bake in the `]` on last chunk
+    }.stream
 
-  private final val closeBrace: Stream[fs2.Pure, Chunk[Byte]] =
-    Stream.emit(Chunk.singleton(']'.toByte))
+  private final val openBrace: Chunk[Byte] =
+    Chunk.singleton('['.toByte)
+
+  private final val closeBrace: Chunk[Byte] =
+    Chunk.singleton(']'.toByte)
 
   private final val comma: Chunk[Byte] =
     Chunk.singleton(','.toByte)
