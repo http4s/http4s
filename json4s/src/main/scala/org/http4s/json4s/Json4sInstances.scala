@@ -14,8 +14,6 @@ import org.json4s._
 import org.json4s.JsonAST.JValue
 import org.typelevel.jawn.support.json4s.Parser
 
-import scala.util.Try
-
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
 
 trait Json4sInstances[J] {
@@ -25,10 +23,13 @@ trait Json4sInstances[J] {
   def jsonOf[F[_], A](implicit reader: Reader[A], F: Concurrent[F]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       DecodeResult(
-        F.pure(
-          Try(reader.read(json)).toEither
-            .leftMap[DecodeFailure](e => InvalidMessageBodyFailure("Could not map JSON", Some(e)))
-        ))
+        F.pure {
+          try Right(reader.read(json))
+          catch {
+            case e: Exception => Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
+          }
+        }
+      )
     }
 
   /** Uses formats to extract a value from JSON.
@@ -42,11 +43,13 @@ trait Json4sInstances[J] {
       manifest: Manifest[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       DecodeResult(
-        F.pure(
-          Try(json.extract[A]).toEither
-            .leftMap[DecodeFailure](e =>
-              InvalidMessageBodyFailure("Could not extract JSON", Some(e)))
-        ))
+        F.pure {
+          try Right(json.extract[A])
+          catch {
+            case e: Exception => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))
+          }
+        }
+      )
     }
 
   protected def jsonMethods: JsonMethods[J]
