@@ -7,27 +7,28 @@
 package org.http4s
 package json4s
 
-import cats.effect.Sync
+import cats.effect.Concurrent
 import cats.implicits._
 import org.http4s.headers.`Content-Type`
 import org.json4s._
 import org.json4s.JsonAST.JValue
 import org.typelevel.jawn.support.json4s.Parser
 
+import scala.util.Try
+
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
 
 trait Json4sInstances[J] {
-  implicit def jsonDecoder[F[_]](implicit F: Sync[F]): EntityDecoder[F, JValue] =
+  implicit def jsonDecoder[F[_]](implicit F: Concurrent[F]): EntityDecoder[F, JValue] =
     jawn.jawnDecoder(F, CustomParser.facade)
 
-  def jsonOf[F[_], A](implicit reader: Reader[A], F: Sync[F]): EntityDecoder[F, A] =
+  def jsonOf[F[_], A](implicit reader: Reader[A], F: Concurrent[F]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       DecodeResult(
-        F.delay(reader.read(json))
-          .map[Either[DecodeFailure, A]](Right(_))
-          .recover { case e: MappingException =>
-            Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
-          })
+        F.pure(
+          Try(reader.read(json)).toEither
+            .leftMap[DecodeFailure](e => InvalidMessageBodyFailure("Could not map JSON", Some(e)))
+        ))
     }
 
   /** Uses formats to extract a value from JSON.
@@ -36,13 +37,16 @@ trait Json4sInstances[J] {
     * idiomatic http4s, than [[jsonOf]].
     */
   def jsonExtract[F[_], A](implicit
-      F: Sync[F],
+      F: Concurrent[F],
       formats: Formats,
       manifest: Manifest[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       DecodeResult(
-        F.delay[Either[DecodeFailure, A]](Right(json.extract[A]))
-          .handleError(e => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))))
+        F.pure(
+          Try(json.extract[A]).toEither
+            .leftMap[DecodeFailure](e =>
+              InvalidMessageBodyFailure("Could not extract JSON", Some(e)))
+        ))
     }
 
   protected def jsonMethods: JsonMethods[J]
@@ -79,7 +83,7 @@ trait Json4sInstances[J] {
         JString(uri.toString)
     }
 
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+  implicit class MessageSyntax[F[_]: Concurrent](self: Message[F]) {
     def decodeJson[A](implicit decoder: Reader[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
   }

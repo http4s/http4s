@@ -33,7 +33,7 @@ lazy val modules: List[ProjectReference] = List(
   // boopickle,
   // circe,
   // json4s,
-  // json4sNative,
+   json4sNative,
   // json4sJackson,
   // playJson,
   // scalaXml,
