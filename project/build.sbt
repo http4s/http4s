@@ -10,7 +10,3 @@ libraryDependencies ++= List(
   "org.http4s" %% "http4s-blaze-client" % "0.21.9",
   "org.http4s" %% "http4s-circe" % "0.21.9",
 )
-
-// Hack around a binary conflict in scalameta's dependency on
-// fastparse as specified by sbt-doctest-0.9.5.
-libraryDependencies += "org.scalameta" %% "scalameta" % "4.3.24"
