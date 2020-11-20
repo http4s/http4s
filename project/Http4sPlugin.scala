@@ -277,12 +277,7 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep.Sbt(
-          List(
-            "undeclaredCompileDependenciesTest",
-            "unusedCompileDependenciesTest"
-          ),
-          name = Some("Check explicit dependencies")),
+        WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
@@ -371,8 +366,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
   lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % V.catsEffectTesting
-  lazy val catsKernel                       = "org.typelevel"          %% "cats-kernel"               % V.cats
-  lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % V.cats
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
   lazy val circeCore                        = "io.circe"               %% "circe-core"                % V.circe
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % V.circe
@@ -401,7 +394,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % V.jetty
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % V.jetty
   lazy val jettyUtil                        = "org.eclipse.jetty"      %  "jetty-util"                % V.jetty
-  lazy val json4sAst                        = "org.json4s"             %% "json4s-ast"                % V.json4s
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % V.json4s
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % V.json4s
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % V.json4s
@@ -412,14 +404,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
   lazy val nettyBuffer                      = "io.netty"               %  "netty-buffer"              % V.netty
-  lazy val nettyCodec                       = "io.netty"               %  "netty-codec"               % V.netty
   lazy val nettyCodecHttp                   = "io.netty"               %  "netty-codec-http"          % V.netty
-  lazy val nettyCodecSocks                  = "io.netty"               %  "netty-codec-socks"         % V.netty
-  lazy val nettyHandlerProxy                = "io.netty"               %  "netty-handler-proxy"       % V.netty
-  lazy val nettyCommon                      = "io.netty"               %  "netty-common"              % V.netty
-  lazy val nettyTransport                   = "io.netty"               %  "netty-transport"           % V.netty
-  lazy val nettyHandler                     = "io.netty"               %  "netty-handler"             % V.netty
-  lazy val nettyResolverDns                 = "io.netty"               %  "netty-resolver-dns"        % V.netty
   lazy val okio                             = "com.squareup.okio"      %  "okio"                      % V.okio
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % V.okhttp
   lazy val playFunctional                   = "com.typesafe.play"      %% "play-functional"           % V.playJson
