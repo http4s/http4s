@@ -8,11 +8,12 @@ package org.http4s
 package json4s
 
 import cats.effect.Concurrent
-import cats.implicits._
 import org.http4s.headers.`Content-Type`
 import org.json4s._
 import org.json4s.JsonAST.JValue
 import org.typelevel.jawn.support.json4s.Parser
+
+import scala.util.control.NonFatal
 
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
 
@@ -26,7 +27,7 @@ trait Json4sInstances[J] {
         F.pure {
           try Right(reader.read(json))
           catch {
-            case e: Exception => Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
+            case NonFatal(e) => Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
           }
         }
       )
@@ -46,7 +47,7 @@ trait Json4sInstances[J] {
         F.pure {
           try Right(json.extract[A])
           catch {
-            case e: Exception => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))
+            case NonFatal(e) => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))
           }
         }
       )
