@@ -6,6 +6,7 @@ import com.typesafe.sbt.git.JGit
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
+import io.chrisdavenport.sbtmimaversioncheck.MimaVersionCheckKeys._
 import sbt.Keys._
 import sbt._
 
@@ -297,7 +298,9 @@ object Http4sPlugin extends AutoPlugin {
       ),
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs"))
+      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
+
+      mimaVersionCheckExcludedVersions := Set("0.21.10"),
     )
   }
 
