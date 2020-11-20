@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M7 (2020-11-20)
+
+## Breaking changes
+
+### http4s-dsl
+
+* [#3876](https://github.com/http4s/http4s/pull/3876): Replace `dsl.Http4sDsl.Path` with `core.Uri.Path`. The new `Path` in 1.0 is rich enough to support the DSL's routing needs, and this eliminates a conversion between models on every `->` extractor.  This change is source compatible in typical extractions.
+
+## Dependency updates
+
+* argonaut-6.3.2
+
 # v0.21.10 (2020-11-20)
 
 ## Enhancements
