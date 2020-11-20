@@ -96,12 +96,9 @@ trait CirceInstances extends JawnInstances {
   implicit def jsonEncoder[F[_]]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
-    Chunk.byteBuffer(printer.printToByteBuffer(json))
-
   def jsonEncoderWithPrinter[F[_]](printer: Printer): EntityEncoder[F, Json] =
     EntityEncoder[F, Chunk[Byte]]
-      .contramap[Json](fromJsonToChunk(printer))
+      .contramap[Json](CirceInstances.fromJsonToChunk(printer))
       .withContentType(`Content-Type`(MediaType.application.json))
 
   def jsonEncoderOf[F[_], A: Encoder]: EntityEncoder[F, A] =
@@ -119,9 +116,7 @@ trait CirceInstances extends JawnInstances {
     EntityEncoder
       .streamEncoder[F, Chunk[Byte]]
       .contramap[Stream[F, Json]] { stream =>
-        Stream.emit(CirceInstances.openBrace) ++
-          stream.through(CirceInstance.streamedJsonWithCommas(printer)).chunks ++
-          Stream.emit(CirceInstances.closeBrace)
+        stream.through(CirceInstances.streamedJsonArray(printer)).chunks
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
@@ -199,6 +194,7 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
 }
 
 object CirceInstances {
+
   def withPrinter(p: Printer): CirceInstancesBuilder =
     builder.withPrinter(p)
 
@@ -218,13 +214,16 @@ object CirceInstances {
 
   // Constant byte chunks for the stream as JSON array encoder.
 
-  private def streamedJsonWithCommas[F[_]](printer: Printer)(s: Stream[F, Json]): Stream[F, Byte] =
+  private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
+    Chunk.byteBuffer(printer.printToByteBuffer(json))
+
+  private def streamedJsonArray[F[_]](printer: Printer)(s: Stream[F, Json]): Stream[F, Byte] =
     s.pull.uncons1.flatMap {
       case None => Pull.done
       case Some((hd, tl)) =>
         Pull.output(
-          fromJsonToChunk(printer)(
-            hd)) >> // Ouput First Json As Chunk, Could like put starting `[` here
+          Chunk(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)).flatMap(
+            identity(_))) >> // Output First Json As Chunk with leading `[`
           tl.repeatPull {
             _.uncons.flatMap {
               case None => Pull.pure(None)
@@ -243,8 +242,8 @@ object CirceInstances {
                 Pull.output(interspersed) >> Pull.pure(Some(tl))
             }
           }.pull
-            .echo // How to bake in the `]` on last chunk
-    }.stream
+            .echo // How to bake in the `]` on last chunk?
+    }.stream ++ Stream.chunk(closeBrace)
 
   private final val openBrace: Chunk[Byte] =
     Chunk.singleton('['.toByte)
