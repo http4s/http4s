@@ -239,7 +239,9 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
     "write a deflated stream" in {
       val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
       val p = s.through(deflate(DeflateParams.DEFAULT))
-      (p.compile.toVector.map(_.toArray), DumpingWriter.dump(s.through(deflate(DeflateParams.DEFAULT)))).mapN(_ === _)
+      (
+        p.compile.toVector.map(_.toArray),
+        DumpingWriter.dump(s.through(deflate(DeflateParams.DEFAULT)))).mapN(_ === _)
     }
 
     val resource: Stream[IO, Byte] =
@@ -258,7 +260,9 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
 
     "write a deflated resource" in {
       val p = resource.through(deflate(DeflateParams.DEFAULT))
-      (p.compile.toVector.map(_.toArray), DumpingWriter.dump(resource.through(deflate(DeflateParams.DEFAULT))))
+      (
+        p.compile.toVector.map(_.toArray),
+        DumpingWriter.dump(resource.through(deflate(DeflateParams.DEFAULT))))
         .mapN(_ === _)
     }
 
