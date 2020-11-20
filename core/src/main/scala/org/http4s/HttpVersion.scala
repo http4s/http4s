@@ -30,8 +30,8 @@ object HttpVersion {
   val `HTTP/1.1` = new HttpVersion(1, 1)
   val `HTTP/2.0` = new HttpVersion(2, 0)
 
-  private[this] val right_1_1 = Right(`HTTP/1.1`)
   private[this] val right_1_0 = Right(`HTTP/1.0`)
+  private[this] val right_1_1 = Right(`HTTP/1.1`)
 
   def fromString(s: String): ParseResult[HttpVersion] =
     s match {
