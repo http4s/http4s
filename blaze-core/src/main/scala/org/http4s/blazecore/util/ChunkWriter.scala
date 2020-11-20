@@ -38,6 +38,7 @@ private[util] object ChunkWriter {
 
   def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit
       F: Async[F],
+      ec: ExecutionContext,
       D: Dispatcher[F]): Future[Boolean] = {
     val f = trailer.map { trailerHeaders =>
       if (trailerHeaders.nonEmpty) {
@@ -50,10 +51,10 @@ private[util] object ChunkWriter {
         ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
       } else ChunkEndBuffer
     }
-    val result = f
-      .flatMap(buffer => F.blocking(pipe.channelWrite(buffer)))
-      .as(false)
-    D.unsafeToFuture(result)
+    for {
+      buffer <- D.unsafeToFuture(f)
+      _ <- pipe.channelWrite(buffer)
+    } yield false
   }
 
   def writeLength(length: Long): ByteBuffer = {
