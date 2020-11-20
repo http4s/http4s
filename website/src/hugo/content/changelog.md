@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.10 (2020-11-20)
+# v0.21.11 (2020-11-20)
 
 ## Enhancements
 
@@ -49,6 +49,11 @@ These changes should be transparent, but are mentioned for completeness.
 * netty-4.1.54.Final
 * okio-2.9.0
 * tomcat-9.0.40
+
+~~# v0.21.10 (2020-11-20)~~
+
+Cursed release, accidentally tagged from main.
+Proceed directly to 0.21.11.
 
 # v0.21.9 (2020-11-11)
 
