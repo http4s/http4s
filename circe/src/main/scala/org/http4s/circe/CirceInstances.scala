@@ -239,25 +239,9 @@ object CirceInstances {
                 }
                 Pull.output(interspersed) >> Pull.pure(Some(tl))
             }
-          }.through(modifyLastChunk { last: Chunk[Byte] =>
-            Chunk.concatBytes(Vector(last, closeBrace))
-          }).pull
-            .echo 
-    }.stream
-
-  private def modifyLastChunk[F[_], A](f: Chunk[A] => Chunk[A])(s: Stream[F, A]): Stream[F, A] = {
-    def pull(last: Chunk[A])(s: Stream[F, A]): Pull[F, A, Unit] =
-      s.pull.uncons.flatMap {
-        case Some((chunk, rest)) =>
-          Pull.output(last) >> pull(chunk)(rest)
-        case None =>
-          Pull.output(f(last))
-      }
-    s.pull.uncons.flatMap {
-      case Some((chunk, rest)) => pull(chunk)(rest)
-      case None => Pull.done
-    }.stream
-  }
+          }.pull
+            .echo
+    }.stream ++ Stream.chunk(closeBrace)
 
   private final val openBrace: Chunk[Byte] =
     Chunk.singleton('['.toByte)
