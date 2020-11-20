@@ -222,8 +222,8 @@ object CirceInstances {
       case None => Pull.done
       case Some((hd, tl)) =>
         Pull.output(
-          Chunk(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)).flatMap(
-            identity(_))) >> // Output First Json As Chunk with leading `[`
+          Chunk.concatBytes(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
+        ) >> // Output First Json As Chunk with leading `[`
           tl.repeatPull {
             _.uncons.flatMap {
               case None => Pull.pure(None)
@@ -235,15 +235,29 @@ object CirceInstances {
                     bldr += CirceInstances.comma
                     bldr += fromJsonToChunk(printer)(o)
                   }
-                  Chunk
-                    .vector(bldr.result())
-                    .flatMap(identity) // I know there must be a more efficient weay to do this
+                  Chunk.concatBytes(bldr.result())
                 }
                 Pull.output(interspersed) >> Pull.pure(Some(tl))
             }
-          }.pull
-            .echo // How to bake in the `]` on last chunk?
-    }.stream ++ Stream.chunk(closeBrace)
+          }.through(modifyLastChunk { last: Chunk[Byte] =>
+            Chunk.concatBytes(Vector(last, closeBrace))
+          }).pull
+            .echo 
+    }.stream
+
+  private def modifyLastChunk[F[_], A](f: Chunk[A] => Chunk[A])(s: Stream[F, A]): Stream[F, A] = {
+    def pull(last: Chunk[A])(s: Stream[F, A]): Pull[F, A, Unit] =
+      s.pull.uncons.flatMap {
+        case Some((chunk, rest)) =>
+          Pull.output(last) >> pull(chunk)(rest)
+        case None =>
+          Pull.output(f(last))
+      }
+    s.pull.uncons.flatMap {
+      case Some((chunk, rest)) => pull(chunk)(rest)
+      case None => Pull.done
+    }.stream
+  }
 
   private final val openBrace: Chunk[Byte] =
     Chunk.singleton('['.toByte)
