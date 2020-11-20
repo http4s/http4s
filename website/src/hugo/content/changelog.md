@@ -8,13 +8,17 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.10 (unreleased)
+# v0.21.10 (2020-11-20)
 
 ## Enhancements
 
 ### http4s-core
 
 * [#3864](https://github.com/http4s/http4s/pull/3864): Cache a `Right` of the common `HttpVersion`s for its `ParseResult`.
+
+### http4s-circe
+
+* [#3891](https://github.com/http4s/http4s/pull/3891): Encode JSON streams in their constituent chunks instead of a chunk-per-`Json`. This can significantly reduce the network flushes on most backends.
 
 ### http4s-dsl
 
