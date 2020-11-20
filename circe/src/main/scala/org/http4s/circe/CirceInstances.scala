@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.either._
-import fs2.{Chunk, Stream}
+import fs2.{Chunk, Pull, Stream}
 import io.circe._
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
@@ -100,12 +100,9 @@ trait CirceInstances extends JawnInstances {
   implicit def jsonEncoder[F[_]]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
-    Chunk.byteBuffer(printer.printToByteBuffer(json))
-
   def jsonEncoderWithPrinter[F[_]](printer: Printer): EntityEncoder[F, Json] =
     EntityEncoder[F, Chunk[Byte]]
-      .contramap[Json](fromJsonToChunk(printer))
+      .contramap[Json](CirceInstances.fromJsonToChunk(printer))
       .withContentType(`Content-Type`(MediaType.application.json))
 
   def jsonEncoderOf[F[_], A: Encoder]: EntityEncoder[F, A] =
@@ -123,9 +120,7 @@ trait CirceInstances extends JawnInstances {
     EntityEncoder
       .streamEncoder[F, Chunk[Byte]]
       .contramap[Stream[F, Json]] { stream =>
-        val jsons = stream.map(fromJsonToChunk(printer))
-        CirceInstances.openBrace ++ jsons.intersperse(
-          CirceInstances.comma) ++ CirceInstances.closeBrace
+        stream.through(CirceInstances.streamedJsonArray(printer)).chunks
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
@@ -211,6 +206,7 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
 }
 
 object CirceInstances {
+
   def withPrinter(p: Printer): CirceInstancesBuilder =
     builder.withPrinter(p)
 
@@ -230,11 +226,40 @@ object CirceInstances {
 
   // Constant byte chunks for the stream as JSON array encoder.
 
-  private final val openBrace: Stream[fs2.Pure, Chunk[Byte]] =
-    Stream.emit(Chunk.singleton('['.toByte))
+  private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
+    Chunk.byteBuffer(printer.printToByteBuffer(json))
 
-  private final val closeBrace: Stream[fs2.Pure, Chunk[Byte]] =
-    Stream.emit(Chunk.singleton(']'.toByte))
+  private def streamedJsonArray[F[_]](printer: Printer)(s: Stream[F, Json]): Stream[F, Byte] =
+    s.pull.uncons1.flatMap {
+      case None => Pull.done
+      case Some((hd, tl)) =>
+        Pull.output(
+          Chunk.concatBytes(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
+        ) >> // Output First Json As Chunk with leading `[`
+          tl.repeatPull {
+            _.uncons.flatMap {
+              case None => Pull.pure(None)
+              case Some((hd, tl)) =>
+                val interspersed = {
+                  val bldr = Vector.newBuilder[Chunk[Byte]]
+                  bldr.sizeHint(hd.size * 2)
+                  hd.foreach { o =>
+                    bldr += CirceInstances.comma
+                    bldr += fromJsonToChunk(printer)(o)
+                  }
+                  Chunk.concatBytes(bldr.result())
+                }
+                Pull.output(interspersed) >> Pull.pure(Some(tl))
+            }
+          }.pull
+            .echo
+    }.stream ++ Stream.chunk(closeBrace)
+
+  private final val openBrace: Chunk[Byte] =
+    Chunk.singleton('['.toByte)
+
+  private final val closeBrace: Chunk[Byte] =
+    Chunk.singleton(']'.toByte)
 
   private final val comma: Chunk[Byte] =
     Chunk.singleton(','.toByte)
