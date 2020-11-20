@@ -8,7 +8,7 @@ package org.http4s
 package blazecore
 package util
 
-import cats.effect.{Effect, IO}
+import cats.effect.{Async, IO}
 import fs2._
 import org.http4s.blaze.util.Execution
 import scala.collection.mutable.Buffer
@@ -21,7 +21,7 @@ object DumpingWriter {
   }
 }
 
-class DumpingWriter(implicit protected val F: Effect[IO]) extends EntityBodyWriter[IO] {
+class DumpingWriter(implicit protected val F: Async[IO]) extends EntityBodyWriter[IO] {
   override implicit protected def ec: ExecutionContext = Execution.trampoline
 
   private val buffer = Buffer[Chunk[Byte]]()

@@ -14,7 +14,7 @@ import fs2._
 import scala.concurrent._
 
 private[http4s] trait EntityBodyWriter[F[_]] {
-  implicit protected def F: Effect[F]
+  implicit protected def F: Async[F]
 
   protected val wroteHeader: Promise[Unit] = Promise[Unit]()
 

@@ -7,13 +7,14 @@
 package org.http4s
 package blazecore
 
-import cats.effect.Effect
+import cats.effect.Async
 import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.nio.ByteBuffer
 import java.time.Instant
 
+import cats.effect.std.Dispatcher
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util.BufferTools
@@ -33,7 +34,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     */
   protected implicit def executionContext: ExecutionContext
 
-  protected implicit def F: Effect[F]
+  protected implicit def F: Async[F]
+
+  protected implicit def D: Dispatcher[F]
 
   protected def chunkBufferMaxSize: Int
 
@@ -215,6 +218,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
           }
         go()
       } else cb(End)
+      // TODO (YaSi): I don't it's right
+      F.pure(None)
     }
 
     (repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F]), () => drainBody(currentBuffer))

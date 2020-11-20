@@ -9,19 +9,23 @@ package blazecore
 package util
 
 import cats.effect._
-import cats.effect.concurrent.Ref
-import cats.effect.testing.specs2.CatsEffect
 import cats.implicits._
 import fs2._
 import fs2.Stream._
-import fs2.compression.deflate
+import fs2.compression.{DeflateParams, deflate}
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+
+import cats.effect.std.Dispatcher
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
+
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits._
 
 class Http1WriterSpec extends Http4sSpec with CatsEffect {
+  implicit val d: Dispatcher[IO] = Dispatcher[IO].allocated.unsafeRunSync()._1
+
   case object Failed extends RuntimeException
 
   final def writeEntityBody(p: EntityBody[IO])(
@@ -234,8 +238,8 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
     // Some tests for the raw unwinding body without HTTP encoding.
     "write a deflated stream" in {
       val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
-      val p = s.through(deflate())
-      (p.compile.toVector.map(_.toArray), DumpingWriter.dump(s.through(deflate()))).mapN(_ === _)
+      val p = s.through(deflate(DeflateParams.DEFAULT))
+      (p.compile.toVector.map(_.toArray), DumpingWriter.dump(s.through(deflate(DeflateParams.DEFAULT)))).mapN(_ === _)
     }
 
     val resource: Stream[IO, Byte] =
@@ -253,13 +257,13 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
     }
 
     "write a deflated resource" in {
-      val p = resource.through(deflate())
-      (p.compile.toVector.map(_.toArray), DumpingWriter.dump(resource.through(deflate())))
+      val p = resource.through(deflate(DeflateParams.DEFAULT))
+      (p.compile.toVector.map(_.toArray), DumpingWriter.dump(resource.through(deflate(DeflateParams.DEFAULT))))
         .mapN(_ === _)
     }
 
     "must be stack safe" in {
-      val p = repeatEval(IO.async[Byte](_(Right(0.toByte)))).take(300000)
+      val p = repeatEval(IO.pure[Byte](0.toByte)).take(300000)
 
       // The dumping writer is stack safe when using a trampolining EC
       (new DumpingWriter).writeEntityBody(p).attempt.map(_ must beRight)
