@@ -150,4 +150,4 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
     } yield ok)
   }
 }
-*/
+ */

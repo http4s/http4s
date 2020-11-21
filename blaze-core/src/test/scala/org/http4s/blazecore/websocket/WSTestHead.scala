@@ -96,4 +96,4 @@ object WSTestHead {
     (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame])
       .mapN(new WSTestHead(_, _) {})
 }
-*/
+ */

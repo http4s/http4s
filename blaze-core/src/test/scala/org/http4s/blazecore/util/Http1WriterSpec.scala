@@ -51,7 +51,8 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
   val message = "Hello world!"
   val messageBuffer = Chunk.bytes(message.getBytes(StandardCharsets.ISO_8859_1))
 
-  final def runNonChunkedTests(builder: Dispatcher[IO] => TailStage[ByteBuffer] => Http1Writer[IO]) = {
+  final def runNonChunkedTests(
+      builder: Dispatcher[IO] => TailStage[ByteBuffer] => Http1Writer[IO]) =
     withResource(Dispatcher[IO]) { implicit dispatcher =>
       "Write a single emit" in {
         writeEntityBody(chunk(messageBuffer))(builder(dispatcher))
@@ -61,7 +62,8 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
       "Write two emits" in {
         val p = chunk(messageBuffer) ++ chunk(messageBuffer)
         writeEntityBody(p.covary[IO])(builder(dispatcher))
-          .map(_ must_== "Content-Type: text/plain\r\nContent-Length: 24\r\n\r\n" + message + message)
+          .map(
+            _ must_== "Content-Type: text/plain\r\nContent-Length: 24\r\n\r\n" + message + message)
       }
 
       "Write an await" in {
@@ -73,7 +75,8 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
       "Write two awaits" in {
         val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
         writeEntityBody(p ++ p)(builder(dispatcher))
-          .map(_ must_== "Content-Type: text/plain\r\nContent-Length: 24\r\n\r\n" + message + message)
+          .map(
+            _ must_== "Content-Type: text/plain\r\nContent-Length: 24\r\n\r\n" + message + message)
       }
 
       "Write a body that fails and falls back" in {
@@ -107,16 +110,15 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           .map(_ must_== "Content-Type: text/plain\r\nContent-Length: 9\r\n\r\n" + "foofoobar")
       }
     }
-  }
 
   "CachingChunkWriter" should {
-    runNonChunkedTests(implicit dispatcher => tail =>
-      new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
+    runNonChunkedTests(implicit dispatcher =>
+      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
   }
 
   "CachingStaticWriter" should {
-    runNonChunkedTests(implicit dispatcher => tail =>
-      new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
+    runNonChunkedTests(implicit dispatcher =>
+      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
   }
 
   "FlushingChunkWriter" should {
@@ -159,9 +161,8 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
         // stream, note the chunk was followed by halt, and write this
         // with a Content-Length header.  In fs2, this must be chunked.
         val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
-        writeEntityBody(p)(builder).map(
-          _ must_==
-            """Content-Type: text/plain
+        writeEntityBody(p)(builder).map(_ must_==
+          """Content-Type: text/plain
             |Transfer-Encoding: chunked
             |
             |c
@@ -205,9 +206,8 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
         val p = eval(IO.raiseError(Failed)).handleErrorWith { _ =>
           chunk(messageBuffer)
         }
-        writeEntityBody(p)(builder).map(
-          _ must_==
-            """Content-Type: text/plain
+        writeEntityBody(p)(builder).map(_ must_==
+          """Content-Type: text/plain
             |Transfer-Encoding: chunked
             |
             |c
@@ -296,9 +296,8 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
 
         val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
 
-        writeEntityBody(p)(builderWithTrailer).map(
-          _ must_===
-            """Content-Type: text/plain
+        writeEntityBody(p)(builderWithTrailer).map(_ must_===
+          """Content-Type: text/plain
             |Transfer-Encoding: chunked
             |
             |c
