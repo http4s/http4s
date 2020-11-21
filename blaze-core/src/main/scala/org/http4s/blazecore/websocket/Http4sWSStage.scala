@@ -7,9 +7,9 @@
 package org.http4s
 package blazecore
 package websocket
-/*
+
 import cats.effect._
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.{Dispatcher, Semaphore}
 import cats.implicits._
 import fs2._
 import fs2.concurrent.SignallingRef
@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
-import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.{
   WebSocket,
   WebSocketCombinedPipe,
@@ -33,10 +32,10 @@ private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
     sentClose: AtomicBoolean,
     deadSignal: SignallingRef[F, Boolean]
-)(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
+)(implicit F: Async[F], val ec: ExecutionContext, val D: Dispatcher[F])
     extends TailStage[WebSocketFrame] {
 
-  private[this] val writeSemaphore = F.toIO(Semaphore[F](1L)).unsafeRunSync()
+  private[this] val writeSemaphore = D.unsafeRunSync(Semaphore[F](1L))
 
   def name: String = "Http4s WebSocket Stage"
 
@@ -59,15 +58,17 @@ private[http4s] class Http4sWSStage[F[_]](
     }
 
   private[this] def writeFrame(frame: WebSocketFrame, ec: ExecutionContext): F[Unit] =
-    writeSemaphore.withPermit(F.async[Unit] { cb =>
-      channelWrite(frame).onComplete {
-        case Success(res) => cb(Right(res))
-        case Failure(t) => cb(Left(t))
-      }(ec)
-    })
+    writeSemaphore.permit.use { _ =>
+      F.async_[Unit] { cb =>
+        channelWrite(frame).onComplete {
+          case Success(res) => cb(Right(res))
+          case Failure(t) => cb(Left(t))
+        }(ec)
+      }
+    }
 
   private[this] def readFrameTrampoline: F[WebSocketFrame] =
-    F.async[WebSocketFrame] { cb =>
+    F.async_[WebSocketFrame] { cb =>
       channelRead().onComplete {
         case Success(ws) => cb(Right(ws))
         case Failure(exception) => cb(Left(exception))
@@ -152,25 +153,26 @@ private[http4s] class Http4sWSStage[F[_]](
         .compile
         .drain
 
-    unsafeRunAsync(wsStream) {
+    val result = F.attempt(wsStream).flatMap {
       case Left(EOF) =>
-        IO(stageShutdown())
+        F.delay(stageShutdown())
       case Left(t) =>
-        IO(logger.error(t)("Error closing Web Socket"))
+        F.delay(logger.error(t)("Error closing Web Socket"))
       case Right(_) =>
         // Nothing to do here
-        IO.unit
+        F.unit
     }
+    D.unsafeRunSync(result)
   }
 
   // #2735
   // stageShutdown can be called from within an effect, at which point there exists the risk of a deadlock if
   // 'unsafeRunSync' is called and all threads are involved in tearing down a connection.
   override protected def stageShutdown(): Unit = {
-    F.toIO(deadSignal.set(true)).unsafeRunAsync {
+    D.unsafeRunSync(F.attempt(deadSignal.set(true)).map {
       case Left(t) => logger.error(t)("Error setting dead signal")
       case Right(_) => ()
-    }
+    })
     super.stageShutdown()
   }
 }
@@ -179,4 +181,3 @@ object Http4sWSStage {
   def bufferingSegment[F[_]](stage: Http4sWSStage[F]): LeafBuilder[WebSocketFrame] =
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
 }
-*/
