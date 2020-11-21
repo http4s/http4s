@@ -7,7 +7,7 @@
 package org.http4s
 package blazecore
 package util
-/*
+
 import cats.effect._
 import fs2._
 import org.http4s.blaze.http.Headers
@@ -18,7 +18,7 @@ import scala.concurrent._
 private[http4s] class Http2Writer[F[_]](
     tail: TailStage[StreamFrame],
     private var headers: Headers,
-    protected val ec: ExecutionContext)(implicit protected val F: Effect[F])
+    protected val ec: ExecutionContext)(implicit protected val F: Async[F])
     extends EntityBodyWriter[F] {
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val f =
@@ -50,4 +50,3 @@ private[http4s] class Http2Writer[F[_]](
           :: Nil)
     }
 }
-*/
