@@ -5,16 +5,18 @@
  */
 
 package org.http4s.blazecore.websocket
-/*
-import cats.effect.{ContextShift, IO, Timer}
-import cats.effect.concurrent.Semaphore
+
+import cats.effect.IO
+import cats.effect.std.{Dispatcher, Semaphore}
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebSocketFrame
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import cats.effect.unsafe.implicits.global
 
 /** A simple stage t
   * o help test websocket requests
@@ -32,10 +34,10 @@ import scala.concurrent.duration._
   */
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
-    outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
+    outQueue: Queue[IO, WebSocketFrame])(implicit D: Dispatcher[IO])
     extends HeadStage[WebSocketFrame] {
 
-  private[this] val writeSemaphore = Semaphore[IO](1L).unsafeRunSync()
+  private[this] val writeSemaphore = D.unsafeRunSync(Semaphore[IO](1L))
 
   /** Block while we put elements into our queue
     *
@@ -73,7 +75,7 @@ sealed abstract class WSTestHead(
     * runWorker(this);
     */
   def poll(timeoutSeconds: Long): IO[Option[WebSocketFrame]] =
-    IO.race(timer.sleep(timeoutSeconds.seconds), outQueue.dequeue1)
+    IO.race(IO.sleep(timeoutSeconds.seconds), outQueue.dequeue1)
       .map {
         case Left(_) => None
         case Right(wsFrame) =>
@@ -92,8 +94,7 @@ sealed abstract class WSTestHead(
 }
 
 object WSTestHead {
-  def apply()(implicit t: Timer[IO], cs: ContextShift[IO]): IO[WSTestHead] =
+  def apply()(implicit D: Dispatcher[IO]): IO[WSTestHead] =
     (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame])
       .mapN(new WSTestHead(_, _) {})
 }
- */
