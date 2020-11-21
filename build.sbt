@@ -86,13 +86,13 @@ lazy val core = libraryProject("core")
       log4s,
       scodecBits,
       slf4jApi, // residual dependency from macros
+      vault,
     ),
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
       else Seq(
         scalaReflect(scalaVersion.value) % Provided,
         parboiled,
-        vault, // needs Dotty release
       )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
