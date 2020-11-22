@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.data.{Writer => _}
 import cats.implicits._
-import cats.{Order, Show}
+import cats.{Order, Show, Hash}
 import org.http4s.internal.parboiled2._
 import org.http4s.parser._
 import org.http4s.util._
@@ -65,4 +65,6 @@ object HttpVersion {
     Order.fromComparable
   implicit val http4sHttpShowForVersion: Show[HttpVersion] =
     Show.fromToString
+  implicit val http4sHttpHashForVersion: Hash[HttpVersion] =
+    Hash.by(_.renderString)
 }
