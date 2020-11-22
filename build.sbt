@@ -115,7 +115,7 @@ lazy val testing = libraryProject("testing")
       munitDiscipline
     ),
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-3"),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2"),
   )
   .dependsOn(laws)
 

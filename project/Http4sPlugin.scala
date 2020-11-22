@@ -411,7 +411,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
   lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit
-  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-3"       % V.munitCatsEffect
+  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-2"       % V.munitCatsEffect
   lazy val munitDiscipline                  = "org.typelevel"          %% "discipline-munit"          % V.munitDiscipline
   lazy val nettyBuffer                      = "io.netty"               %  "netty-buffer"              % V.netty
   lazy val nettyCodecHttp                   = "io.netty"               %  "netty-codec-http"          % V.netty
