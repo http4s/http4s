@@ -10,7 +10,7 @@ import cats.effect.std.Dispatcher
 import cats.effect.{Async, Resource, Sync}
 import org.specs2.execute.{AsResult, Result}
 
-import scala.concurrent.duration.{Duration, _}
+import scala.concurrent.duration._
 
 /** copy of [[cats.effect.testing.specs2.CatsEffect]] adapted to cats-effect 3
   */
