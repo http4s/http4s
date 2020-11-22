@@ -341,6 +341,9 @@ object Http4sPlugin extends AutoPlugin {
     val mockito = "3.5.15"
     val netty = "4.1.54.Final"
     val okio = "2.9.0"
+    val munit = "0.7.18"
+    val munitCatsEffect = "0.8.0"
+    val munitDiscipline = "1.0.2"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
@@ -407,6 +410,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % V.log4cats
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
+  lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit
+  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-2"       % V.munitCatsEffect
+  lazy val munitDiscipline                  = "org.typelevel"          %% "discipline-munit"          % V.munitDiscipline
   lazy val nettyBuffer                      = "io.netty"               %  "netty-buffer"              % V.netty
   lazy val nettyCodecHttp                   = "io.netty"               %  "netty-codec-http"          % V.netty
   lazy val okio                             = "com.squareup.okio"      %  "okio"                      % V.okio
