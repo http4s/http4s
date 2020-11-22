@@ -16,12 +16,15 @@ import org.scalacheck.Prop._
 class HttpVersionSpec extends Http4sSpec {
   import HttpVersion._
 
-  checkAll("HttpVersion", OrderTests[HttpVersion].order(
-    implicitly[Arbitrary[HttpVersion]],
-    implicitly[Arbitrary[HttpVersion => HttpVersion]],
-    implicitly[Eq[Option[HttpVersion]]],
-    cats.Order[HttpVersion]
-  ))
+  checkAll(
+    "HttpVersion",
+    OrderTests[HttpVersion].order(
+      implicitly[Arbitrary[HttpVersion]],
+      implicitly[Arbitrary[HttpVersion => HttpVersion]],
+      implicitly[Eq[Option[HttpVersion]]],
+      cats.Order[HttpVersion]
+    )
+  )
 
   "sort by descending major version" in {
     prop { (x: HttpVersion, y: HttpVersion) =>
