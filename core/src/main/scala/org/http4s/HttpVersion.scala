@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.data.{Writer => _}
 import cats.implicits._
-import cats.{Order, Show, Hash}
+import cats.{Hash, Order, Show}
 import org.http4s.internal.parboiled2._
 import org.http4s.parser._
 import org.http4s.util._
