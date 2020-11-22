@@ -10,7 +10,7 @@ import cats.{Order, Show}
 import cats.data.{Writer => _}
 import cats.implicits._
 import cats.parse.{Parser => P, Parser1}
-import org.http4s.internal.parsing.Rfc5234._
+import cats.parse.Rfc5234.digit
 import org.http4s.util._
 
 /** An HTTP version, as seen on the start line of an HTTP request or response.
