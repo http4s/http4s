@@ -80,7 +80,7 @@ lazy val core = libraryProject("core")
     libraryDependencies ++= Seq(
       catsCore,
       catsEffect,
-      catsParse,
+      catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
       log4s,
