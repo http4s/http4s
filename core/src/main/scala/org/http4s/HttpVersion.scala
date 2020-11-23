@@ -8,6 +8,7 @@ package org.http4s
 
 import cats.data.{Writer => _}
 import cats.implicits._
+import cats.kernel.BoundedEnumerable
 import cats.{Hash, Order, Show}
 import org.http4s.internal.parboiled2._
 import org.http4s.parser._
@@ -29,7 +30,12 @@ object HttpVersion {
   val `HTTP/1.0` = new HttpVersion(1, 0)
   val `HTTP/1.1` = new HttpVersion(1, 1)
   val `HTTP/2.0` = new HttpVersion(2, 0)
-
+  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.12")
+  val http4sHttpOrderForVersion: Order[HttpVersion] =
+    Order.fromComparable
+  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.12")
+  val http4sHttpShowForVersion: Show[HttpVersion] =
+    Show.fromToString
   private[this] val right_1_0 = Right(`HTTP/1.0`)
   private[this] val right_1_1 = Right(`HTTP/1.1`)
 
@@ -43,6 +49,13 @@ object HttpVersion {
         }
     }
 
+  def fromVersion(major: Int, minor: Int): ParseResult[HttpVersion] =
+    if (major < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $major")
+    else if (major > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $major")
+    else if (minor < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $minor")
+    else if (minor > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $minor")
+    else ParseResult.success(new HttpVersion(major, minor))
+
   private class Parser(val input: ParserInput)
       extends org.http4s.internal.parboiled2.Parser
       with Rfc2616BasicRules {
@@ -54,17 +67,35 @@ object HttpVersion {
       }
   }
 
-  def fromVersion(major: Int, minor: Int): ParseResult[HttpVersion] =
-    if (major < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $major")
-    else if (major > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $major")
-    else if (minor < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $minor")
-    else if (minor > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $minor")
-    else ParseResult.success(new HttpVersion(major, minor))
+  implicit val catsInstancesForHttp4sHttpVersion: Order[HttpVersion]
+    with Show[HttpVersion]
+    with Hash[HttpVersion]
+    with BoundedEnumerable[HttpVersion] = new Order[HttpVersion]
+    with Show[HttpVersion]
+    with Hash[HttpVersion]
+    with BoundedEnumerable[HttpVersion] { self =>
+    // Hash
+    override def hash(x: HttpVersion): Int = x.hashCode
 
-  implicit val http4sHttpOrderForVersion: Order[HttpVersion] =
-    Order.fromComparable
-  implicit val http4sHttpShowForVersion: Show[HttpVersion] =
-    Show.fromToString
-  implicit val http4sHttpHashForVersion: Hash[HttpVersion] =
-    Hash.by(_.renderString)
+    // Show
+    override def show(t: HttpVersion): String = t.renderString
+
+    // Order
+    override def compare(x: HttpVersion, y: HttpVersion): Int = x.compare(y)
+
+    // BoundedEnumerable
+    override def partialNext(a: HttpVersion): Option[HttpVersion] = a match {
+      case `HTTP/1.0` => Some(`HTTP/1.1`)
+      case `HTTP/1.1` => Some(`HTTP/2.0`)
+      case _ => None
+    }
+    override def partialPrevious(a: HttpVersion): Option[HttpVersion] = a match {
+      case `HTTP/1.1` => Some(`HTTP/1.0`)
+      case `HTTP/2.0` => Some(`HTTP/1.1`)
+      case _ => None
+    }
+    override def order: Order[HttpVersion] = self
+    override def minBound: HttpVersion = `HTTP/1.0`
+    override def maxBound: HttpVersion = `HTTP/2.0`
+  }
 }
