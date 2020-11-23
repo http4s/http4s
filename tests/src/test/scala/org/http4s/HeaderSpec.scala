@@ -6,6 +6,7 @@
 
 package org.http4s
 
+import cats.kernel.laws.discipline.OrderTests
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.headers._
 import org.http4s.util.StringWriter
@@ -74,6 +75,12 @@ class HeaderSpec extends Http4sSpec {
         .getBytes(ISO_8859_1)
         .length
         .toLong must_== h.renderedLength
+    }
+  }
+
+  "Order instance for Header" should {
+    "be lawful" in {
+      checkAll("Order[Header]", OrderTests[Header].order)
     }
   }
 }
