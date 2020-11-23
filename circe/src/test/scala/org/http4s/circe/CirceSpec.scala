@@ -151,6 +151,10 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
           |  "test2" : "CirceSupport"
           |}]""".stripMargin)
     }
+
+    "write a valid JSON array for an empty stream" in {
+      writeToString[Stream[IO, Json]](Stream.empty) must_== "[]"
+    }
   }
 
   "stream json array encoder of" should {
@@ -185,6 +189,10 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] with Http4sLegacyMatchersIO 
           |},{
           |  "bar" : 350
           |}]""".stripMargin)
+    }
+
+    "write a valid JSON array for an empty stream" in {
+      writeToString[Stream[IO, Foo]](Stream.empty)(streamJsonArrayEncoderOf) must_== "[]"
     }
   }
 

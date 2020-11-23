@@ -231,7 +231,7 @@ object CirceInstances {
 
   private def streamedJsonArray[F[_]](printer: Printer)(s: Stream[F, Json]): Stream[F, Byte] =
     s.pull.uncons1.flatMap {
-      case None => Pull.output(CirceInstances.openBrace)
+      case None => Pull.output(emptyArray)
       case Some((hd, tl)) =>
         Pull.output(
           Chunk.concatBytes(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
@@ -252,14 +252,18 @@ object CirceInstances {
                 Pull.output(interspersed) >> Pull.pure(Some(tl))
             }
           }.pull
-            .echo
-    }.stream ++ Stream.chunk(closeBrace)
+            .echo >>
+          Pull.output(closeBrace)
+    }.stream
 
   private final val openBrace: Chunk[Byte] =
     Chunk.singleton('['.toByte)
 
   private final val closeBrace: Chunk[Byte] =
     Chunk.singleton(']'.toByte)
+
+  private final val emptyArray: Chunk[Byte] =
+    Chunk.bytes(Array('['.toByte, ']'.toByte))
 
   private final val comma: Chunk[Byte] =
     Chunk.singleton(','.toByte)
