@@ -283,6 +283,9 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
+      githubWorkflowTargetBranches :=
+        // "*" doesn't include slashes
+        List("*", "series/*"),
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
         RefPredicate.StartsWith(Ref.Tag("v"))
