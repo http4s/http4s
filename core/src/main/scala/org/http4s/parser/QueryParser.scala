@@ -28,11 +28,17 @@ private[http4s] class QueryParser(
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input
     */
-  def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
+  def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] =
+    decodeVector(input, flush).map(Query.fromVector)
+
+  /** Decodes the input into key value pairs.
+    * `flush` signals that this is the last input
+    */
+  def decodeVector(input: CharBuffer, flush: Boolean): ParseResult[Vector[Query.KeyValue]] = {
     val acc: Builder[Query.KeyValue, Vector[Query.KeyValue]] = Vector.newBuilder
     decodeBuffer(input, (k, v) => acc += ((k, v)), flush) match {
       case Some(e) => ParseResult.fail("Decoding of url encoded data failed.", e)
-      case None => ParseResult.success(Query.fromVector(acc.result()))
+      case None => ParseResult.success(acc.result())
     }
   }
 
@@ -115,6 +121,10 @@ private[http4s] object QueryParser {
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] =
     if (queryString.isEmpty) Right(Query.empty)
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
+
+  def parseQueryStringVector(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Vector[Query.KeyValue]] =
+    if (queryString.isEmpty) Right(Vector.empty)
+    else new QueryParser(codec, true).decodeVector(CharBuffer.wrap(queryString), true)
 
   private sealed trait State
   private case object KEY extends State

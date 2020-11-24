@@ -23,29 +23,37 @@ import scala.collection.immutable
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Renderable {
+final class Query private (value: Either[Vector[KeyValue], String])
+    extends QueryOps
+    with Renderable {
+  lazy val pairs: Vector[KeyValue] = value.fold(identity, Query.parse)
+
+  def raw: Option[String] = value.toOption
+
+  def withRaw(value: String) = new Query(Right(value))
+
   def apply(idx: Int): KeyValue = pairs(idx)
 
   def length: Int = pairs.length
 
-  def slice(from: Int, until: Int): Query = new Query(pairs.slice(from, until))
+  def slice(from: Int, until: Int): Query = new Query(Left(pairs.slice(from, until)))
 
   def isEmpty: Boolean = pairs.isEmpty
 
   def nonEmpty: Boolean = pairs.nonEmpty
 
-  def drop(n: Int): Query = new Query(pairs.drop(n))
+  def drop(n: Int): Query = new Query(Left(pairs.drop(n)))
 
-  def dropRight(n: Int): Query = new Query(pairs.dropRight(n))
+  def dropRight(n: Int): Query = new Query(Left(pairs.dropRight(n)))
 
   def exists(f: KeyValue => Boolean): Boolean =
     pairs.exists(f)
 
   def filterNot(f: KeyValue => Boolean): Query =
-    new Query(pairs.filterNot(f))
+    new Query(Left(pairs.filterNot(f)))
 
   def filter(f: KeyValue => Boolean): Query =
-    new Query(pairs.filter(f))
+    new Query(Left(pairs.filter(f)))
 
   def foreach(f: KeyValue => Unit): Unit =
     pairs.foreach(f)
@@ -57,13 +65,13 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
     Foldable[Vector].foldRight(pairs, z)(f)
 
   def +:(elem: KeyValue): Query =
-    new Query(elem +: pairs)
+    new Query(Left(elem +: pairs))
 
   def :+(elem: KeyValue): Query =
-    new Query(pairs :+ elem)
+    new Query(Left(pairs :+ elem))
 
   def ++(pairs: collection.Iterable[(String, Option[String])]): Query =
-    new Query(this.pairs ++ pairs)
+    new Query(Left(this.pairs ++ pairs))
 
   def toVector: Vector[(String, Option[String])] = pairs
 
@@ -129,10 +137,10 @@ object Query {
   type KeyValue = (String, Option[String])
 
   /** Represents the absence of a query string. */
-  val empty: Query = new Query(Vector.empty)
+  val empty: Query = new Query(Left(Vector.empty))
 
   /** Represents a query string with no keys or values: `?` */
-  val blank = new Query(Vector("" -> None))
+  val blank = new Query(Left(Vector("" -> None)))
 
   /*
    * "The characters slash ("/") and question mark ("?") may represent data
@@ -143,34 +151,38 @@ object Query {
   private val NoEncode: CharPredicate = Uri.Unreserved ++ "?/"
 
   def apply(xs: (String, Option[String])*): Query =
-    new Query(xs.toVector)
+    new Query(Left(xs.toVector))
 
   def fromVector(xs: Vector[(String, Option[String])]): Query =
-    new Query(xs)
+    new Query(Left(xs))
 
   def fromPairs(xs: (String, String)*): Query =
     new Query(
-      xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
-        m :+ (k -> Some(s))
-      }
-    )
+      Left(
+        xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
+          m :+ (k -> Some(s))
+        }
+      ))
 
   /** Generate a [[Query]] from its `String` representation
     *
     * If parsing fails, the empty [[Query]] is returned
     */
   def fromString(query: String): Query =
-    if (query.isEmpty) new Query(Vector("" -> None))
-    else
-      QueryParser.parseQueryString(query) match {
-        case Right(query) => query
-        case Left(_) => Query.empty
-      }
+    new Query(Right(query))
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
-    new Query(map.foldLeft(Vector.empty[KeyValue]) {
+    new Query(Left(map.foldLeft(Vector.empty[KeyValue]) {
       case (m, (k, Seq())) => m :+ (k -> None)
       case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
-    })
+    }))
+
+  private def parse(query: String): Vector[KeyValue] =
+    if (query.isEmpty) blank.toVector
+    else
+      QueryParser.parseQueryStringVector(query) match {
+        case Right(query) => query
+        case Left(_) => Vector.empty
+      }
 }
