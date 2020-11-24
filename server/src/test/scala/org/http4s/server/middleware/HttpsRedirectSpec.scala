@@ -32,7 +32,11 @@ class HttpsRedirectSpec extends Http4sSuite {
     ).traverse { app =>
       val expectedAuthority = Authority(host = RegName("example.com"))
       val expectedLocation =
-        Location(Uri(path = Uri.Path.Root, scheme = Some(Scheme.https), authority = Some(expectedAuthority)))
+        Location(
+          Uri(
+            path = Uri.Path.Root,
+            scheme = Some(Scheme.https),
+            authority = Some(expectedAuthority)))
       val expectedHeaders = Headers(expectedLocation :: `Content-Type`(MediaType.text.xml) :: Nil)
       app(req).map(_.status).assertEquals(Status.MovedPermanently) *>
         app(req).map(_.headers).assertEquals(expectedHeaders)
