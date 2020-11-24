@@ -6,13 +6,17 @@
 
 package org.http4s
 
+import java.nio.charset.StandardCharsets
+
 import cats.{Eval, Foldable}
 import cats.implicits._
 import org.http4s.Query._
 import org.http4s.internal.CollectionCompat
-import org.http4s.internal.parboiled2.CharPredicate
-import org.http4s.parser.QueryParser
+
+import org.http4s.internal.parboiled2.{CharPredicate, Parser}
+import org.http4s.parser.{QueryParser, RequestUriParser}
 import org.http4s.util.{Renderable, Writer}
+
 import scala.collection.immutable
 
 /** Collection representation of a query string
@@ -179,7 +183,9 @@ object Query {
     * If parsing fails, the empty [[Query]] is returned
     */
   def fromString(query: String): Query =
-    new Query(Right(query))
+    new RequestUriParser(query, StandardCharsets.UTF_8).Query
+      .run()(Parser.DeliveryScheme.Either)
+      .fold(_ => Query.blank, _ => new Query(Right(query)))
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
