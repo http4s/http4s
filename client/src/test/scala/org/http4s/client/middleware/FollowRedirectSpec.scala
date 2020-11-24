@@ -200,9 +200,9 @@ class FollowRedirectSpec
         "Don't expose mah secrets!",
         uri("http://localhost/different-authority"),
         Header("Authorization", "Bearer s3cr3t"))
-      req.flatMap(client.run(_).use { case Ok(resp) =>
+      client.run(req).use { case Ok(resp) =>
         resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
-      }) must returnValue(Some(""))
+      } must returnValue(Some(""))
     }
 
     "Send sensitive headers when redirecting to same authority" in {
@@ -210,9 +210,9 @@ class FollowRedirectSpec
         "You already know mah secrets!",
         uri("http://localhost/307"),
         Header("Authorization", "Bearer s3cr3t"))
-      req.flatMap(client.run(_).use { case Ok(resp) =>
+      client.run(req).use { case Ok(resp) =>
         resp.headers.get(CIString("X-Original-Authorization")).map(_.value).pure[IO]
-      }) must returnValue(Some("Bearer s3cr3t"))
+      } must returnValue(Some("Bearer s3cr3t"))
     }
 
     "Record the intermediate URIs" in {

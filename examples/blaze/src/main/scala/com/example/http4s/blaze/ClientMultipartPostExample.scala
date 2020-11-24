@@ -35,8 +35,8 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
         Part.fileData("BALL", bottle, blocker, `Content-Type`(MediaType.image.png))
       ))
 
-    val request: IO[Request[IO]] =
-      Method.POST(multipart, url).map(_.withHeaders(multipart.headers))
+    val request: Request[IO] =
+      Method.POST(multipart, url).withHeaders(multipart.headers)
 
     client.expect[String](request)
   }

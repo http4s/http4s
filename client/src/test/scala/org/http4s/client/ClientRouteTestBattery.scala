@@ -110,7 +110,7 @@ abstract class ClientRouteTestBattery(name: String)
         "POST a multipart body" in {
           val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
           val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
-          val req = POST(multipart, uri).map(_.withHeaders(multipart.headers))
+          val req = POST(multipart, uri).withHeaders(multipart.headers)
           val body = client.expect[String](req)
           body must returnValue(containing("This is text."))
         }
