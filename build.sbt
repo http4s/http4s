@@ -121,7 +121,11 @@ lazy val testing = libraryProject("testing")
       scalacheck,
       specs2Common,
       specs2Matcher,
+      munitCatsEffect,
+      munitDiscipline
     ),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2"),
   )
   .dependsOn(laws)
 
@@ -723,6 +727,7 @@ def http4sProject(name: String) =
     .settings(
       moduleName := s"http4s-$name",
       Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
+      testFrameworks += new TestFramework("munit.Framework"),
       initCommands()
     )
     .enablePlugins(AutomateHeaderPlugin)
