@@ -25,9 +25,11 @@ it.
 ### http4s-core
 
 * [#3902](https://github.com/http4s/http4s/pull/3902): Add `Hash` and `BoundedEnumerable` instances for `HttpVersion`
+* [#3909](https://github.com/http4s/http4s/pull/3909): Add `Order` instance for `Header` and `Headers`
 
 ## Dependency upgrades
 
+* fs2-2.4.6
 * jetty-9.4.35.v20201120
 
 # v0.21.11 (2020-11-20)
