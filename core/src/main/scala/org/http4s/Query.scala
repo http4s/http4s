@@ -26,7 +26,14 @@ import scala.collection.immutable
 final class Query private (value: Either[Vector[KeyValue], String])
     extends QueryOps
     with Renderable {
-  lazy val pairs: Vector[KeyValue] = value.fold(identity, Query.parse)
+  private[this] var _pairs: Vector[KeyValue] = null
+
+  def pairs: Vector[KeyValue] = {
+    if (_pairs == null) {
+      _pairs = value.fold(identity, Query.parse)
+    }
+    _pairs
+  }
 
   //restore binary compability
   private def this(vec: Vector[KeyValue]) = this(Left(vec))
