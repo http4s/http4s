@@ -85,17 +85,21 @@ object HttpVersion {
 
     // BoundedEnumerable
     override def partialNext(a: HttpVersion): Option[HttpVersion] = a match {
-      case `HTTP/1.0` => Some(`HTTP/1.1`)
-      case `HTTP/1.1` => Some(`HTTP/2.0`)
+      case HttpVersion(9, 9) => None
+      case HttpVersion(major, minor) if fromVersion(major, minor).isLeft => None
+      case HttpVersion(major, 9) => Some(HttpVersion(major + 1, 0))
+      case HttpVersion(major, minor) => Some(HttpVersion(major, minor + 1))
       case _ => None
     }
     override def partialPrevious(a: HttpVersion): Option[HttpVersion] = a match {
-      case `HTTP/1.1` => Some(`HTTP/1.0`)
-      case `HTTP/2.0` => Some(`HTTP/1.1`)
+      case HttpVersion(0, 0) => None
+      case HttpVersion(major, minor) if fromVersion(major, minor).isLeft => None
+      case HttpVersion(major, 0) => Some(HttpVersion(major - 1, 9))
+      case HttpVersion(major, minor) => Some(HttpVersion(major, minor - 1))
       case _ => None
     }
     override def order: Order[HttpVersion] = self
-    override def minBound: HttpVersion = `HTTP/1.0`
-    override def maxBound: HttpVersion = `HTTP/2.0`
+    override def minBound: HttpVersion = HttpVersion(0, 0)
+    override def maxBound: HttpVersion = HttpVersion(9, 9)
   }
 }
