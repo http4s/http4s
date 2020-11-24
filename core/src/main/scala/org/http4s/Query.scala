@@ -28,9 +28,8 @@ final class Query private (value: Either[Vector[KeyValue], String])
     with Renderable {
   lazy val pairs: Vector[KeyValue] = value.fold(identity, Query.parse)
 
-  def raw: Option[String] = value.toOption
-
-  def withRaw(value: String) = new Query(Right(value))
+  //restore binary compability
+  private def this(vec: Vector[KeyValue]) = this(Left(vec))
 
   def apply(idx: Int): KeyValue = pairs(idx)
 
@@ -81,26 +80,31 @@ final class Query private (value: Either[Vector[KeyValue], String])
     *
     * Pairs are separated by '&' and keys are separated from values by '='
     */
-  override def render(writer: Writer): writer.type = {
-    var first = true
-    def encode(s: String) =
-      Uri.encode(s, spaceIsPlus = false, toSkip = NoEncode)
-    pairs.foreach {
-      case (n, None) =>
-        if (!first) writer.append('&')
-        else first = false
-        writer.append(encode(n))
+  override def render(writer: Writer): writer.type = value.fold(
+    { pairs =>
+      var first = true
 
-      case (n, Some(v)) =>
-        if (!first) writer.append('&')
-        else first = false
-        writer
-          .append(encode(n))
-          .append("=")
-          .append(encode(v))
-    }
-    writer
-  }
+      def encode(s: String) =
+        Uri.encode(s, spaceIsPlus = false, toSkip = NoEncode)
+
+      pairs.foreach {
+        case (n, None) =>
+          if (!first) writer.append('&')
+          else first = false
+          writer.append(encode(n))
+
+        case (n, Some(v)) =>
+          if (!first) writer.append('&')
+          else first = false
+          writer
+            .append(encode(n))
+            .append("=")
+            .append(encode(v))
+      }
+      writer
+    },
+    raw => writer.append(raw)
+  )
 
   /** Map[String, String] representation of the [[Query]]
     *
@@ -137,10 +141,10 @@ object Query {
   type KeyValue = (String, Option[String])
 
   /** Represents the absence of a query string. */
-  val empty: Query = new Query(Left(Vector.empty))
+  val empty: Query = new Query(Vector.empty)
 
   /** Represents a query string with no keys or values: `?` */
-  val blank = new Query(Left(Vector("" -> None)))
+  val blank = new Query(Vector("" -> None))
 
   /*
    * "The characters slash ("/") and question mark ("?") may represent data
@@ -151,18 +155,17 @@ object Query {
   private val NoEncode: CharPredicate = Uri.Unreserved ++ "?/"
 
   def apply(xs: (String, Option[String])*): Query =
-    new Query(Left(xs.toVector))
+    new Query(xs.toVector)
 
   def fromVector(xs: Vector[(String, Option[String])]): Query =
-    new Query(Left(xs))
+    new Query(xs)
 
   def fromPairs(xs: (String, String)*): Query =
     new Query(
-      Left(
-        xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
-          m :+ (k -> Some(s))
-        }
-      ))
+      xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
+        m :+ (k -> Some(s))
+      }
+    )
 
   /** Generate a [[Query]] from its `String` representation
     *
@@ -173,10 +176,10 @@ object Query {
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
-    new Query(Left(map.foldLeft(Vector.empty[KeyValue]) {
+    new Query(map.foldLeft(Vector.empty[KeyValue]) {
       case (m, (k, Seq())) => m :+ (k -> None)
       case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
-    }))
+    })
 
   private def parse(query: String): Vector[KeyValue] =
     if (query.isEmpty) blank.toVector
