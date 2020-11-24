@@ -7,8 +7,7 @@
 package org.http4s.internal.parsing
 
 import cats.parse.{Parser => P, Parser1}
-
-import Rfc5234.{alpha, digit}
+import cats.parse.Rfc5234.{alpha, digit}
 
 /** Common rules defined in RFC7230
   *
