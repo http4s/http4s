@@ -24,16 +24,6 @@ class HttpsRedirectSpec extends Http4sSuite {
   val reqHeaders = Headers.of(Header("X-Forwarded-Proto", "http"), Header("Host", "example.com"))
   val req = Request[IO](method = GET, uri = Uri(path = "/"), headers = reqHeaders)
 
-  test("redirect to https when 'X-Forwarded-Proto' is http status") {
-    List(
-      HttpsRedirect(innerRoutes).orNotFound,
-      HttpsRedirect.httpRoutes(innerRoutes).orNotFound,
-      HttpsRedirect.httpApp(innerRoutes.orNotFound)
-    ).traverse { app =>
-      app(req).map(_.status).assertEquals(Status.MovedPermanently)
-    }
-  }
-
   test("redirect to https when 'X-Forwarded-Proto' is http") {
     List(
       HttpsRedirect(innerRoutes).orNotFound,
@@ -44,18 +34,8 @@ class HttpsRedirectSpec extends Http4sSuite {
       val expectedLocation =
         Location(Uri(path = "/", scheme = Some(Scheme.https), authority = Some(expectedAuthority)))
       val expectedHeaders = Headers(expectedLocation :: `Content-Type`(MediaType.text.xml) :: Nil)
-      app(req).map(_.headers).assertEquals(expectedHeaders)
-    }
-  }
-
-  test("not redirect otherwise status") {
-    List(
-      HttpsRedirect(innerRoutes).orNotFound,
-      HttpsRedirect.httpRoutes(innerRoutes).orNotFound,
-      HttpsRedirect.httpApp(innerRoutes.orNotFound)
-    ).traverse { app =>
-      val noHeadersReq = Request[IO](method = GET, uri = Uri(path = "/"))
-      app(noHeadersReq).map(_.status).assertEquals(Status.Ok)
+      app(req).map(_.status).assertEquals(Status.MovedPermanently) *>
+        app(req).map(_.headers).assertEquals(expectedHeaders)
     }
   }
 
@@ -66,7 +46,8 @@ class HttpsRedirectSpec extends Http4sSuite {
       HttpsRedirect.httpApp(innerRoutes.orNotFound)
     ).traverse { app =>
       val noHeadersReq = Request[IO](method = GET, uri = Uri(path = "/"))
-      app(noHeadersReq).flatMap(_.as[String]).assertEquals("pong")
+      app(noHeadersReq).map(_.status).assertEquals(Status.Ok) *>
+        app(noHeadersReq).flatMap(_.as[String]).assertEquals("pong")
     }
   }
 }
