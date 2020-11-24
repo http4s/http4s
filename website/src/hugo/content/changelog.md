@@ -8,6 +8,28 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.12 (2020-11-24)
+
+## Bugfixes
+
+### http4s-core
+
+* [#3911](https://github.com/http4s/http4s/pull/3911): Support raw query strings. Formerly, all query strings were stored as a vector of key-value pairs, which was lossy in the percent-encoding of sub-delimiter characters (e.g., '+' vs '%2B').  Queries constructed with `.fromString` will be rendered as-is, for APIs that assign special meaning to sub-delimiters.
+
+### http4s-circe
+
+* [#3906](https://github.com/http4s/http4s/pull/3906): Fix streamed encoder for empty stream. It was not rendering the `{`.
+
+## Enhancements
+
+### http4s-core
+
+* [#3902](https://github.com/http4s/http4s/pull/3902): Add `Hash` and `BoundedEnumerable` instances for `HttpVersion`
+
+## Dependency upgrades
+
+* jetty-9.4.35.v20201120
+
 # v0.21.11 (2020-11-20)
 
 ## Enhancements
