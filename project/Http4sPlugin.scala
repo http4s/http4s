@@ -40,7 +40,7 @@ object Http4sPlugin extends AutoPlugin {
     scalaVersion := scala_213,
     crossScalaVersions := scalaVersions,
 
-    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
+    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.1" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
 
     http4sBuildData := {
@@ -332,7 +332,7 @@ object Http4sPlugin extends AutoPlugin {
     val jacksonDatabind = "2.11.3"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.34.v20201102"
+    val jetty = "9.4.35.v20201120"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
@@ -342,7 +342,7 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.54.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.8.0"
+    val munitCatsEffect = "0.9.0"
     val munitDiscipline = "1.0.2"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
