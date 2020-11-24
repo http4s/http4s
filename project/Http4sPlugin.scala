@@ -407,13 +407,13 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4catsTesting                  = "io.chrisdavenport"      %% "log4cats-testing"          % V.log4cats
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
+  lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit
+  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-3"       % V.munitCatsEffect
+  lazy val munitDiscipline                  = "org.typelevel"          %% "discipline-munit"          % V.munitDiscipline
   lazy val nettyBuffer                      = "io.netty"               %  "netty-buffer"              % V.netty
   lazy val nettyCodecHttp                   = "io.netty"               %  "netty-codec-http"          % V.netty
   lazy val okio                             = "com.squareup.okio"      %  "okio"                      % V.okio
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % V.okhttp
-  lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit
-  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-3"       % V.munitCatsEffect
-  lazy val munitDiscipline                  = "org.typelevel"          %% "discipline-munit"          % V.munitDiscipline
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % V.playJson
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % V.prometheusClient
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % V.prometheusClient
