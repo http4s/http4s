@@ -7,7 +7,7 @@
 package org.http4s
 
 import org.http4s.headers._
-import cats.kernel.laws.discipline.{EqTests, MonoidTests}
+import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
 
 class HeadersSpec extends Http4sSpec {
   val clength = `Content-Length`.unsafeFromLong(10)
@@ -100,5 +100,5 @@ class HeadersSpec extends Http4sSpec {
   }
 
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
-  checkAll("Eq[Headers]", EqTests[Headers].eqv)
+  checkAll("Order[Headers]", OrderTests[Headers].order)
 }
