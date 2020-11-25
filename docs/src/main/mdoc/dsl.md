@@ -415,7 +415,8 @@ val dailyWeatherService = HttpRoutes.of[IO] {
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(uri"/weather/temperature/2016-11-05").flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync())
+val req = GET(uri"/weather/temperature/2016-11-05")
+dailyWeatherService.orNotFound(req).unsafeRunSync()
 ```
 
 ### Handling query parameters
