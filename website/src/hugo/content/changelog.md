@@ -19,7 +19,7 @@ it.
 
 ### http4s-circe
 
-* [#3906](https://github.com/http4s/http4s/pull/3906): Fix streamed encoder for empty stream. It was not rendering the `{`.
+* [#3906](https://github.com/http4s/http4s/pull/3906): Fix streamed encoder for empty stream. It was not rendering the `[F`.
 
 ## Enhancements
 
