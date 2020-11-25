@@ -339,29 +339,45 @@ http://example.org/a file
       Uri(path = "/", query = Query.empty, fragment = Some("")).toString must_== "/#"
     }
 
-    "render relative path with fragment" in {
+    "render absolute path with fragment" in {
       Uri(path = "/foo/bar", fragment = Some("an-anchor")).toString must_== "/foo/bar#an-anchor"
     }
 
-    "render relative path with parameters" in {
+    "render absolute path with parameters" in {
       Uri(
         path = "/foo/bar",
         query = Query.fromString("foo=bar&ding=dong")).toString must_== "/foo/bar?foo=bar&ding=dong"
     }
 
-    "render relative path with parameters and fragment" in {
+    "render absolute path with parameters and fragment" in {
       Uri(
         path = "/foo/bar",
         query = Query.fromString("foo=bar&ding=dong"),
         fragment = Some("an_anchor")).toString must_== "/foo/bar?foo=bar&ding=dong#an_anchor"
     }
 
-    "render relative path without parameters" in {
+    "render absolute path without parameters" in {
       Uri(path = "/foo/bar").toString must_== "/foo/bar"
     }
 
-    "render relative root path without parameters" in {
+    "render absolute root path without parameters" in {
       Uri(path = "/").toString must_== "/"
+    }
+
+    "render absolute path containing colon" in {
+      Uri(path = "/foo:bar").toString must_== "/foo:bar"
+    }
+
+    "prefix relative path containing colon in the only segment with a ./" in {
+      Uri(path = "foo:bar").toString must_== "./foo:bar"
+    }
+
+    "prefix relative path containing colon in first segment with a ./" in {
+      Uri(path = "foo:bar/baz").toString must_== "./foo:bar/baz"
+    }
+
+    "not prefix relative path containing colon in later segment" in {
+      Uri(path = "foo/bar:baz").toString must_== "foo/bar:baz"
     }
 
     "render a query string with a single param" in {
