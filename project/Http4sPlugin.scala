@@ -104,6 +104,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
     dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
+    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2", revision = "0.9.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -338,7 +340,7 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.54.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.9.0"
+    val munitCatsEffect = "0.8.0"
     val munitDiscipline = "1.0.2"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
