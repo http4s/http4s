@@ -8,13 +8,14 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.21.12 (2020-11-24)
+# v0.21.12 (2020-11-25)
 
 ## Bugfixes
 
 ### http4s-core
 
 * [#3911](https://github.com/http4s/http4s/pull/3911): Support raw query strings. Formerly, all query strings were stored as a vector of key-value pairs, which was lossy in the percent-encoding of sub-delimiter characters (e.g., '+' vs '%2B').  Queries constructed with `.fromString` will be rendered as-is, for APIs that assign special meaning to sub-delimiters.
+* [#3921](https://github.com/http4s/http4s/pull/3921): Fix rendering of URIs with colons. This was a regression in v0.21.9.
 
 ### http4s-circe
 
