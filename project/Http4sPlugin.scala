@@ -275,6 +275,9 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
+      githubWorkflowTargetBranches :=
+        // "*" doesn't include slashes
+        List("*", "series/*"),
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
         RefPredicate.StartsWith(Ref.Tag("v"))
@@ -321,11 +324,11 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineCore = "1.1.2"
     val disciplineSpecs2 = "1.1.1"
     val dropwizardMetrics = "4.1.15"
-    val fs2 = "2.4.5"
+    val fs2 = "2.4.6"
     val jacksonDatabind = "2.11.3"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.34.v20201102"
+    val jetty = "9.4.35.v20201120"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
@@ -335,7 +338,7 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.54.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.8.0"
+    val munitCatsEffect = "0.9.0"
     val munitDiscipline = "1.0.3"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
