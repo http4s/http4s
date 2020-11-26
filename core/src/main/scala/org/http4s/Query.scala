@@ -6,13 +6,17 @@
 
 package org.http4s
 
+import java.nio.charset.StandardCharsets
+
 import cats.{Eval, Foldable}
 import cats.implicits._
 import org.http4s.Query._
 import org.http4s.internal.CollectionCompat
-import org.http4s.internal.parboiled2.CharPredicate
-import org.http4s.parser.QueryParser
+
+import org.http4s.internal.parboiled2.{CharPredicate, Parser}
+import org.http4s.parser.{QueryParser, RequestUriParser}
 import org.http4s.util.{Renderable, Writer}
+
 import scala.collection.immutable
 
 /** Collection representation of a query string
@@ -23,29 +27,43 @@ import scala.collection.immutable
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Renderable {
+final class Query private (value: Either[Vector[KeyValue], String])
+    extends QueryOps
+    with Renderable {
+  private[this] var _pairs: Vector[KeyValue] = null
+
+  def pairs: Vector[KeyValue] = {
+    if (_pairs == null) {
+      _pairs = value.fold(identity, Query.parse)
+    }
+    _pairs
+  }
+
+  //restore binary compability
+  private def this(vec: Vector[KeyValue]) = this(Left(vec))
+
   def apply(idx: Int): KeyValue = pairs(idx)
 
   def length: Int = pairs.length
 
-  def slice(from: Int, until: Int): Query = new Query(pairs.slice(from, until))
+  def slice(from: Int, until: Int): Query = new Query(Left(pairs.slice(from, until)))
 
   def isEmpty: Boolean = pairs.isEmpty
 
   def nonEmpty: Boolean = pairs.nonEmpty
 
-  def drop(n: Int): Query = new Query(pairs.drop(n))
+  def drop(n: Int): Query = new Query(Left(pairs.drop(n)))
 
-  def dropRight(n: Int): Query = new Query(pairs.dropRight(n))
+  def dropRight(n: Int): Query = new Query(Left(pairs.dropRight(n)))
 
   def exists(f: KeyValue => Boolean): Boolean =
     pairs.exists(f)
 
   def filterNot(f: KeyValue => Boolean): Query =
-    new Query(pairs.filterNot(f))
+    new Query(Left(pairs.filterNot(f)))
 
   def filter(f: KeyValue => Boolean): Query =
-    new Query(pairs.filter(f))
+    new Query(Left(pairs.filter(f)))
 
   def foreach(f: KeyValue => Unit): Unit =
     pairs.foreach(f)
@@ -57,13 +75,13 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
     Foldable[Vector].foldRight(pairs, z)(f)
 
   def +:(elem: KeyValue): Query =
-    new Query(elem +: pairs)
+    new Query(Left(elem +: pairs))
 
   def :+(elem: KeyValue): Query =
-    new Query(pairs :+ elem)
+    new Query(Left(pairs :+ elem))
 
   def ++(pairs: collection.Iterable[(String, Option[String])]): Query =
-    new Query(this.pairs ++ pairs)
+    new Query(Left(this.pairs ++ pairs))
 
   def toVector: Vector[(String, Option[String])] = pairs
 
@@ -73,26 +91,31 @@ final class Query private (val pairs: Vector[KeyValue]) extends QueryOps with Re
     *
     * Pairs are separated by '&' and keys are separated from values by '='
     */
-  override def render(writer: Writer): writer.type = {
-    var first = true
-    def encode(s: String) =
-      Uri.encode(s, spaceIsPlus = false, toSkip = NoEncode)
-    pairs.foreach {
-      case (n, None) =>
-        if (!first) writer.append('&')
-        else first = false
-        writer.append(encode(n))
+  override def render(writer: Writer): writer.type = value.fold(
+    { pairs =>
+      var first = true
 
-      case (n, Some(v)) =>
-        if (!first) writer.append('&')
-        else first = false
-        writer
-          .append(encode(n))
-          .append("=")
-          .append(encode(v))
-    }
-    writer
-  }
+      def encode(s: String) =
+        Uri.encode(s, spaceIsPlus = false, toSkip = NoEncode)
+
+      pairs.foreach {
+        case (n, None) =>
+          if (!first) writer.append('&')
+          else first = false
+          writer.append(encode(n))
+
+        case (n, Some(v)) =>
+          if (!first) writer.append('&')
+          else first = false
+          writer
+            .append(encode(n))
+            .append("=")
+            .append(encode(v))
+      }
+      writer
+    },
+    raw => writer.append(raw)
+  )
 
   /** Map[String, String] representation of the [[Query]]
     *
@@ -160,12 +183,9 @@ object Query {
     * If parsing fails, the empty [[Query]] is returned
     */
   def fromString(query: String): Query =
-    if (query.isEmpty) new Query(Vector("" -> None))
-    else
-      QueryParser.parseQueryString(query) match {
-        case Right(query) => query
-        case Left(_) => Query.empty
-      }
+    new RequestUriParser(query, StandardCharsets.UTF_8).Query
+      .run()(Parser.DeliveryScheme.Either)
+      .fold(_ => Query.blank, _ => new Query(Right(query)))
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
@@ -173,4 +193,12 @@ object Query {
       case (m, (k, Seq())) => m :+ (k -> None)
       case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
     })
+
+  private def parse(query: String): Vector[KeyValue] =
+    if (query.isEmpty) blank.toVector
+    else
+      QueryParser.parseQueryStringVector(query) match {
+        case Right(query) => query
+        case Left(_) => Vector.empty
+      }
 }

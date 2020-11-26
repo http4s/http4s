@@ -8,13 +8,53 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M8 (2020-11-24)
+# v1.0.0-M8 (2020-11-26)
 
 ## Breaking changes
 
 ### http4s-client
 
 * [#3903](https://github.com/http4s/http4s/pull/3903): Method apply syntax (e.g., `POST(body, uri)`) returns a `Request[F]` instead of `F[Request[F]]`
+
+# v0.21.13 (2020-11-25)
+
+## Bugfixes
+
+### Most modules
+
+* [#3932](https://github.com/http4s/http4s/pull/3932): Fix `NoClassDefFoundError` regression.  An example:
+
+  ```
+  [info]   java.lang.NoClassDefFoundError: cats/effect/ResourceLike
+  [info]   at org.http4s.client.Client$.$anonfun$fromHttpApp$2(Client.scala:246)
+  ```
+
+  A test dependency upgrade evicted our declared cats-effect-2.2.0 dependency, so we built against a newer version than we advertise in our POM.  Fixed by downgrading the test dependency and inspecting the classpath.  Tooling will be added to avoid repeat failures.
+
+# v0.21.12 (2020-11-25)
+
+## Bugfixes
+
+### http4s-core
+
+* [#3911](https://github.com/http4s/http4s/pull/3911): Support raw query strings. Formerly, all query strings were stored as a vector of key-value pairs, which was lossy in the percent-encoding of sub-delimiter characters (e.g., '+' vs '%2B').  Queries constructed with `.fromString` will be rendered as-is, for APIs that assign special meaning to sub-delimiters.
+* [#3921](https://github.com/http4s/http4s/pull/3921): Fix rendering of URIs with colons. This was a regression in v0.21.9.
+
+### http4s-circe
+
+* [#3906](https://github.com/http4s/http4s/pull/3906): Fix streamed encoder for empty stream. It was not rendering the `[F`.
+
+## Enhancements
+
+### http4s-core
+
+* [#3902](https://github.com/http4s/http4s/pull/3902): Add `Hash` and `BoundedEnumerable` instances for `HttpVersion`
+* [#3909](https://github.com/http4s/http4s/pull/3909): Add `Order` instance for `Header` and `Headers`
+
+## Dependency upgrades
+
+* fs2-2.4.6
+* jetty-9.4.35.v20201120
 
 # v1.0.0-M7 (2020-11-20)
 

@@ -316,10 +316,13 @@ httpClient.expect[String](request)
 ### Post a form, decoding the JSON response to a case class
 
 ```scala mdoc:nest
+import org.http4s.circe._
+import io.circe.generic.auto._
+
 case class AuthResponse(access_token: String)
 
-// See the JSON page for details on how to define this
-implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
+implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] =
+  jsonOf[IO, AuthResponse]
 
 val postRequest = POST(
   UrlForm(
