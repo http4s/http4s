@@ -8,6 +8,14 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M8 (2020-11-26)
+
+## Breaking changes
+
+### http4s-client
+
+* [#3903](https://github.com/http4s/http4s/pull/3903): Method apply syntax (e.g., `POST(body, uri)`) returns a `Request[F]` instead of `F[Request[F]]`
+
 # v0.21.13 (2020-11-25)
 
 ## Bugfixes
