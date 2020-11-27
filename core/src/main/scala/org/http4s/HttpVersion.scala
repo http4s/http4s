@@ -6,9 +6,10 @@
 
 package org.http4s
 
-import cats.{Order, Show}
+import cats.{Hash, Order, Show}
 import cats.data.{Writer => _}
 import cats.implicits._
+import cats.kernel.BoundedEnumerable
 import cats.parse.{Parser => P, Parser1}
 import cats.parse.Rfc5234.digit
 import org.http4s.util._
@@ -29,7 +30,12 @@ object HttpVersion {
   val `HTTP/1.0` = new HttpVersion(1, 0)
   val `HTTP/1.1` = new HttpVersion(1, 1)
   val `HTTP/2.0` = new HttpVersion(2, 0)
-
+  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.12")
+  val http4sHttpOrderForVersion: Order[HttpVersion] =
+    Order.fromComparable
+  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.12")
+  val http4sHttpShowForVersion: Show[HttpVersion] =
+    Show.fromToString
   private[this] val right_1_0 = Right(`HTTP/1.0`)
   private[this] val right_1_1 = Right(`HTTP/1.1`)
 
@@ -59,9 +65,41 @@ object HttpVersion {
     else if (minor < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $minor")
     else if (minor > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $minor")
     else ParseResult.success(new HttpVersion(major, minor))
+  }
 
-  implicit val http4sHttpOrderForVersion: Order[HttpVersion] =
-    Order.fromComparable
-  implicit val http4sHttpShowForVersion: Show[HttpVersion] =
-    Show.fromToString
+  implicit val catsInstancesForHttp4sHttpVersion: Order[HttpVersion]
+    with Show[HttpVersion]
+    with Hash[HttpVersion]
+    with BoundedEnumerable[HttpVersion] = new Order[HttpVersion]
+    with Show[HttpVersion]
+    with Hash[HttpVersion]
+    with BoundedEnumerable[HttpVersion] { self =>
+    // Hash
+    override def hash(x: HttpVersion): Int = x.hashCode
+
+    // Show
+    override def show(t: HttpVersion): String = t.renderString
+
+    // Order
+    override def compare(x: HttpVersion, y: HttpVersion): Int = x.compare(y)
+
+    // BoundedEnumerable
+    override def partialNext(a: HttpVersion): Option[HttpVersion] = a match {
+      case HttpVersion(9, 9) => None
+      case HttpVersion(major, minor) if fromVersion(major, minor).isLeft => None
+      case HttpVersion(major, 9) => Some(HttpVersion(major + 1, 0))
+      case HttpVersion(major, minor) => Some(HttpVersion(major, minor + 1))
+      case _ => None
+    }
+    override def partialPrevious(a: HttpVersion): Option[HttpVersion] = a match {
+      case HttpVersion(0, 0) => None
+      case HttpVersion(major, minor) if fromVersion(major, minor).isLeft => None
+      case HttpVersion(major, 0) => Some(HttpVersion(major - 1, 9))
+      case HttpVersion(major, minor) => Some(HttpVersion(major, minor - 1))
+      case _ => None
+    }
+    override def order: Order[HttpVersion] = self
+    override def minBound: HttpVersion = HttpVersion(0, 0)
+    override def maxBound: HttpVersion = HttpVersion(9, 9)
+  }
 }

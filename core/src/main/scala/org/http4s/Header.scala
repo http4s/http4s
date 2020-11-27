@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.{Eq, Show}
+import cats.{Eq, Order, Show}
 import cats.data.NonEmptyList
 import cats.implicits._
 import org.http4s.syntax.string._
@@ -121,7 +121,16 @@ object Header {
     _.toString
   }
 
-  implicit val HeaderEq: Eq[Header] = Eq.instance[Header] { (a, b) =>
-    a.name === b.name && a.value === b.value
-  }
+  @deprecated(message = "Please use HeaderOrder instead", since = "0.21.12")
+  def HeaderEq: Eq[Header] = HeaderOrder
+
+  implicit lazy val HeaderOrder: Order[Header] =
+    Order.from { case (a, b) =>
+      val nameComparison: Int = a.name.compare(b.name)
+      if (nameComparison === 0) {
+        a.value.compare(b.value)
+      } else {
+        nameComparison
+      }
+    }
 }

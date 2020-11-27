@@ -45,7 +45,7 @@ object Http4sPlugin extends AutoPlugin {
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
       else Seq(
-        compilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
+        compilerPlugin("org.typelevel" % "kind-projector" % "0.11.1" cross CrossVersion.full),
         compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
       )
     },
@@ -132,6 +132,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
     // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
     dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
+    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2", revision = "0.9.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -303,6 +305,9 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
+      githubWorkflowTargetBranches :=
+        // "*" doesn't include slashes
+        List("*", "series/*"),
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
         RefPredicate.StartsWith(Ref.Tag("v"))
@@ -353,7 +358,7 @@ object Http4sPlugin extends AutoPlugin {
     val jacksonDatabind = "2.11.3"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
-    val jetty = "9.4.34.v20201102"
+    val jetty = "9.4.35.v20201120"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
