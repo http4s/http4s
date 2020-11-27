@@ -104,6 +104,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
     dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
+    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2", revision = "0.9.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -275,6 +277,9 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
+      githubWorkflowTargetBranches :=
+        // "*" doesn't include slashes
+        List("*", "series/*"),
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
         RefPredicate.StartsWith(Ref.Tag("v"))
@@ -320,12 +325,12 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.2"
     val disciplineSpecs2 = "1.1.1"
-    val dropwizardMetrics = "4.1.15"
+    val dropwizardMetrics = "4.1.16"
     val fs2 = "3.0.0-M3"
     val jacksonDatabind = "2.11.3"
     val jawn = "1.0.1"
     val jawnFs2 = "2.0.0-M2"
-    val jetty = "9.4.34.v20201102"
+    val jetty = "9.4.35.v20201120"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
@@ -334,7 +339,7 @@ object Http4sPlugin extends AutoPlugin {
     val mockito = "3.5.15"
     val munit = "0.7.18"
     val munitCatsEffect = "0.9.0"
-    val munitDiscipline = "1.0.2"
+    val munitDiscipline = "1.0.3"
     val netty = "4.1.54.Final"
     val okio = "2.9.0"
     val okhttp = "4.9.0"
@@ -347,7 +352,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
-    val scodecBits = "1.1.21"
+    val scodecBits = "1.1.22"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.5"

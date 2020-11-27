@@ -6,7 +6,7 @@
 
 package org.http4s
 
-import cats.{Eq, Eval, Foldable, Monoid, Show}
+import cats.{Eq, Eval, Foldable, Monoid, Order, Show}
 import cats.implicits._
 import org.http4s.headers.`Set-Cookie`
 import org.typelevel.ci.CIString
@@ -159,7 +159,11 @@ object Headers {
       _.iterator.map(_.show).mkString("Headers(", ", ", ")")
     }
 
-  implicit val HeadersEq: Eq[Headers] = Eq.by(_.toList)
+  @deprecated(message = "Please use HeadersOrder instead", since = "0.21.12")
+  def HeadersEq: Eq[Headers] = HeadersOrder
+
+  implicit lazy val HeadersOrder: Order[Headers] =
+    Order.by(_.toList)
 
   implicit val headersMonoid: Monoid[Headers] = new Monoid[Headers] {
     def empty: Headers = Headers.empty
