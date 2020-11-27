@@ -63,10 +63,11 @@ lazy val root = project.in(file("."))
   .aggregate(modules: _*)
 
 lazy val core = libraryProject("core")
+  .disablePlugins(SilencerPlugin)
   .enablePlugins(
     BuildInfoPlugin,
     MimeLoaderPlugin,
-    SilencerPlugin
+    SilencerPlugin2
   )
   .settings(
     description := "Core http4s library for servers and clients",
@@ -80,16 +81,25 @@ lazy val core = libraryProject("core")
       caseInsensitive,
       catsCore,
       catsEffect,
+      catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
       log4s,
-      parboiled,
-      scalaReflect(scalaVersion.value) % Provided,
       scodecBits,
       slf4jApi, // residual dependency from macros
       vault,
     ),
+    libraryDependencies ++= {
+      if (isDotty.value) Seq.empty
+      else Seq(
+        scalaReflect(scalaVersion.value) % Provided,
+        parboiled,
+      )
+    },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.HttpVersion$Parser"),
+    ),
   )
 
 lazy val laws = libraryProject("laws")
@@ -744,11 +754,19 @@ lazy val commonSettings = Seq(
     disciplineSpecs2,
     logbackClassic,
     scalacheck,
-    specs2Cats,
-    specs2Core,
-    specs2MatcherExtra,
-    specs2Scalacheck
+    specs2Core.withDottyCompat(scalaVersion.value),
+    specs2MatcherExtra.withDottyCompat(scalaVersion.value),
   ).map(_ % Test),
+  libraryDependencies ++= {
+    if (isDotty.value)
+      libraryDependencies.value
+    else
+      // These are going to be a problem
+      Seq(
+        specs2Cats,
+        specs2Scalacheck
+      ).map(_ % Test)
+  }
 )
 
 def initCommands(additionalImports: String*) =

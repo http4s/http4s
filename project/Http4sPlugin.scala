@@ -1,5 +1,6 @@
 package org.http4s.sbt
 
+import dotty.tools.sbtplugin.DottyPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
@@ -24,7 +25,8 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.3"
   val scala_212 = "2.12.12"
-  val scalaVersions = Seq(scala_213, scala_212)
+  val scala_3   = "3.0.0-M1"
+  val scalaVersions = Seq(scala_213, scala_212, scala_3)
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
@@ -40,8 +42,26 @@ object Http4sPlugin extends AutoPlugin {
     scalaVersion := scala_213,
     crossScalaVersions := scalaVersions,
 
-    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.1" cross CrossVersion.full),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+    libraryDependencies ++= {
+      if (isDotty.value) Seq.empty
+      else Seq(
+        compilerPlugin("org.typelevel" % "kind-projector" % "0.11.1" cross CrossVersion.full),
+        compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
+      )
+    },
+
+    // hack around bug in sbt-http4s-org
+    scalacOptions := {
+      if (isDotty.value) {
+        scalacOptions.value.indexOf("-Ybackend-parallelism") match {
+          case n if n >= 0 =>
+            scalacOptions.value.take(n) ++ scalacOptions.value.take(n).drop(2)
+          case _ =>
+            scalacOptions.value
+        }
+      }
+      else scalacOptions.value
+    },
 
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
@@ -320,7 +340,8 @@ object Http4sPlugin extends AutoPlugin {
     val caseInsensitive = "0.3.0"
     val cats = "2.3.0-M2"
     val catsEffect = "3.0.0-M3"
-    val catsEffectTesting = "0.4.1"
+    val catsEffectTesting = "0.4.2"
+    val catsParse = "0.1-493581c"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.2"
@@ -335,7 +356,7 @@ object Http4sPlugin extends AutoPlugin {
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
-    val log4s = "1.9.0"
+    val log4s = "1.10.0-M2"
     val mockito = "3.5.15"
     val munit = "0.7.18"
     val munitCatsEffect = "0.9.0"
@@ -359,7 +380,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.40"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.0.0"
+    val vault = "2.1.0-M1"
   }
 
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
@@ -376,6 +397,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffectTestkit                = "org.typelevel"          %% "cats-effect-testkit"       % V.catsEffect
   lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % V.catsEffectTesting
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
+  lazy val catsParse                        = "org.typelevel"          %% "cats-parse"                % V.catsParse
   lazy val circeCore                        = "io.circe"               %% "circe-core"                % V.circe
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % V.circe
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % V.circe
