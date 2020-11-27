@@ -8,6 +8,29 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M8 (2020-11-26)
+
+## Breaking changes
+
+### http4s-client
+
+* [#3903](https://github.com/http4s/http4s/pull/3903): Method apply syntax (e.g., `POST(body, uri)`) returns a `Request[F]` instead of `F[Request[F]]`
+
+# v0.21.13 (2020-11-25)
+
+## Bugfixes
+
+### Most modules
+
+* [#3932](https://github.com/http4s/http4s/pull/3932): Fix `NoClassDefFoundError` regression.  An example:
+
+  ```
+  [info]   java.lang.NoClassDefFoundError: cats/effect/ResourceLike
+  [info]   at org.http4s.client.Client$.$anonfun$fromHttpApp$2(Client.scala:246)
+  ```
+
+  A test dependency upgrade evicted our declared cats-effect-2.2.0 dependency, so we built against a newer version than we advertise in our POM.  Fixed by downgrading the test dependency and inspecting the classpath.  Tooling will be added to avoid repeat failures.
+
 # v0.21.12 (2020-11-25)
 
 ## Bugfixes
