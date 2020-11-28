@@ -205,12 +205,3 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
     }
   }
 }
-
-private[http4s] object AdditionalRules {
-  def httpDate(s: String): ParseResult[HttpDate] =
-    new Parser with AdditionalRules {
-      override def input: ParserInput = s
-    }.HttpDate
-      .run()(Parser.DeliveryScheme.Either)
-      .leftMap(e => ParseFailure("Invalid HTTP date", e.format(s)))
-}
