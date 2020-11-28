@@ -8,7 +8,7 @@ package org.http4s
 package server
 
 import cats.Monad
-import cats.implicits._
+import cats.syntax.all._
 import cats.data.{Kleisli, OptionT}
 
 object ContextMiddleware {

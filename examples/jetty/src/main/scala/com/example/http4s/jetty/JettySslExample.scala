@@ -7,7 +7,7 @@
 package com.example.http4s.jetty
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import com.example.http4s.ssl
 import org.http4s.server.Server
 import org.http4s.server.jetty.JettyBuilder

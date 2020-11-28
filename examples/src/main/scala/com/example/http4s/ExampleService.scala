@@ -7,7 +7,7 @@
 package com.example.http4s
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import io.circe.Json
 import org.http4s.circe._

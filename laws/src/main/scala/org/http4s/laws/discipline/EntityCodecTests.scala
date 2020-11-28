@@ -9,7 +9,6 @@ package laws
 package discipline
 
 import cats.Eq
-import cats.implicits._
 import cats.effect._
 import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._

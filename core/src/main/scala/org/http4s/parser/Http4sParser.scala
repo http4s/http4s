@@ -7,7 +7,7 @@
 package org.http4s
 package parser
 
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.internal.parboiled2._
 
 /** Helper class that produces a `ParseResult` from the `main` target. */

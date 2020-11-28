@@ -11,7 +11,7 @@
 package org.http4s
 
 import cats.{Order, Show}
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.QValue.QValueParser
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.Http4sParser

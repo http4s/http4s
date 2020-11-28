@@ -7,7 +7,7 @@
 package com.example.http4s.blaze.demo.server.endpoints
 
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import com.example.http4s.blaze.demo.server.service.FileService
 import org.http4s.EntityDecoder.multipart
 import org.http4s.{ApiVersion => _, _}

@@ -11,7 +11,7 @@ class TraversalSpecItsNotYouItsMe
 /* FIXME Restore after #3935 is worked out
 import org.specs2.mutable.Specification
 import org.specs2.ScalaCheck
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.IO
 import org.http4s._
 // import _root_.io.chrisdavenport.log4cats.testing.TestingLogger

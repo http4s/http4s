@@ -10,7 +10,7 @@
 
 package org.http4s.parser
 
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
 import scala.annotation.nowarn

@@ -9,7 +9,7 @@ package middleware
 
 import cats.data.{Kleisli, OptionT}
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s._
 
 object ErrorAction {

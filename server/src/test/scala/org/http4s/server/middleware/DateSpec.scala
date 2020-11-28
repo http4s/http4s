@@ -7,7 +7,7 @@
 package org.http4s.server.middleware
 
 import cats.data.OptionT
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import org.http4s._
 import org.http4s.headers.{Date => HDate}

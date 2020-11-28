@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
 
