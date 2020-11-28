@@ -8,7 +8,7 @@ package org.http4s
 
 import java.nio.charset.StandardCharsets
 
-import cats.{Eval, Foldable}
+import cats.{Eval, Foldable, Hash, Order, Show}
 import cats.implicits._
 import org.http4s.Query._
 import org.http4s.internal.CollectionCompat
@@ -201,4 +201,16 @@ object Query {
         case Right(query) => query
         case Left(_) => Vector.empty
       }
+
+  implicit val catsInstancesForHttp4sQuery: Hash[Query] with Order[Query] with Show[Query] =
+    new Hash[Query] with Order[Query] with Show[Query] {
+      override def hash(x: Query): Int =
+        x.hashCode
+
+      override def compare(x: Query, y: Query): Int =
+        x.toVector.compare(y.toVector)
+
+      override def show(a: Query): String =
+        a.renderString
+    }
 }
