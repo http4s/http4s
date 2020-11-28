@@ -35,7 +35,7 @@ lazy val modules: List[ProjectReference] = List(
    json4s,
    json4sNative,
    json4sJackson,
-  // playJson,
+   playJson,
   // scalaXml,
   twirl,
   scalatags,
