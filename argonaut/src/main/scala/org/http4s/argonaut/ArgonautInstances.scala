@@ -10,20 +10,20 @@ package argonaut
 import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}
 import _root_.argonaut.Argonaut._
 import _root_.argonaut.JawnParser.facade
-import cats.effect.Sync
+import cats.effect.Concurrent
 import org.http4s.headers.`Content-Type`
 import jawn.JawnInstances
 import org.typelevel.jawn.ParseException
 import org.http4s.argonaut.ArgonautInstances.DecodeFailureMessage
 
 trait ArgonautInstances extends JawnInstances {
-  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
+  implicit def jsonDecoder[F[_]: Concurrent]: EntityDecoder[F, Json] =
     jawnDecoder
 
   protected def jsonDecodeError: (Json, DecodeFailureMessage, CursorHistory) => DecodeFailure =
     ArgonautInstances.defaultJsonDecodeError
 
-  def jsonOf[F[_]: Sync, A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_]: Concurrent, A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeJson(json)
@@ -43,7 +43,6 @@ trait ArgonautInstances extends JawnInstances {
       .stringEncoder(Charset.`UTF-8`)
       .contramap[Json](prettyParams.pretty)
       .withContentType(`Content-Type`(MediaType.application.json))
-
   def jsonEncoderOf[F[_], A](implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrettyParams)
 
@@ -61,7 +60,7 @@ trait ArgonautInstances extends JawnInstances {
             .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok))
   )
 
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+  implicit class MessageSyntax[F[_]: Concurrent](self: Message[F]) {
     def decodeJson[A](implicit decoder: DecodeJson[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
   }
