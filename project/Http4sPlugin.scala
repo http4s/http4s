@@ -114,6 +114,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
     // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2", revision = "0.9.0"),
+    // Unsure about binary compatibility
+    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -347,8 +349,8 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.54.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.8.0"
-    val munitDiscipline = "1.0.2"
+    val munitCatsEffect = "0.11.0"
+    val munitDiscipline = "1.0.3"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
@@ -359,7 +361,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
-    val scodecBits = "1.1.21"
+    val scodecBits = "1.1.22"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.5"
