@@ -153,14 +153,11 @@ private[http4s] class Http4sWSStage[F[_]](
         .compile
         .drain
 
-    val result = F.attempt(wsStream).flatMap {
-      case Left(EOF) =>
+    val result = F.handleErrorWith(wsStream) {
+      case EOF =>
         F.delay(stageShutdown())
-      case Left(t) =>
+      case t =>
         F.delay(logger.error(t)("Error closing Web Socket"))
-      case Right(_) =>
-        // Nothing to do here
-        F.unit
     }
     D.unsafeRunAndForget(result)
   }
