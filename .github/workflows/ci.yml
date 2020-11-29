@@ -9,9 +9,9 @@ name: Continuous Integration
 
 on:
   pull_request:
-    branches: ['*']
+    branches: ['*', series/*]
   push:
-    branches: ['*']
+    branches: ['*', series/*]
     tags: [v*]
 
 env:
@@ -91,7 +91,7 @@ jobs:
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
-      - name: Check explicit dependencies
+      - name: Check unused dependencies
         run: sbt ++${{ matrix.scala }} unusedCompileDependenciesTest
 
       - name: Run tests

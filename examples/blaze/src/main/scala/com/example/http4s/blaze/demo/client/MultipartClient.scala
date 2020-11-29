@@ -34,10 +34,9 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4s
     )
 
   private def request(blocker: Blocker) =
-    for {
-      body <- image.map(multipart(_, blocker))
-      req <- POST(body, uri"http://localhost:8080/v1/multipart")
-    } yield req.withHeaders(body.headers)
+    image
+      .map(multipart(_, blocker))
+      .map(body => POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers))
 
   private val resources: Resource[IO, (Blocker, Client[IO])] =
     for {

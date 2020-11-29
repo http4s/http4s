@@ -29,13 +29,13 @@ lazy val modules: List[ProjectReference] = List(
   // tomcat,
   // theDsl,
    jawn,
-  // argonaut,
+   argonaut,
   boopickle,
   // circe,
-  // json4s,
-  // json4sNative,
-  // json4sJackson,
-  // playJson,
+   json4s,
+   json4sNative,
+   json4sJackson,
+   playJson,
   // scalaXml,
   twirl,
   scalatags,
@@ -78,12 +78,15 @@ lazy val core = libraryProject("core")
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
       caseInsensitive,
-      cats,
+      catsCore,
       catsEffect,
+      fs2Core,
       fs2Io,
       log4s,
       parboiled,
       scalaReflect(scalaVersion.value) % Provided,
+      scodecBits,
+      slf4jApi, // residual dependency from macros
       vault,
     ),
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
@@ -94,8 +97,10 @@ lazy val laws = libraryProject("laws")
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
+      catsEffectTestkit,
       catsLaws,
-      catsEffectTestkit
+      disciplineCore,
+      scalacheck,
     ),
   )
   .dependsOn(core)
@@ -104,6 +109,7 @@ lazy val testing = libraryProject("testing")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
+      specs2Common,
       specs2Matcher,
       munitCatsEffect,
       munitDiscipline
@@ -132,7 +138,7 @@ lazy val server = libraryProject("server")
     buildInfoKeys := Seq[BuildInfoKey](
       resourceDirectory in Test,
     ),
-    buildInfoPackage := "org.http4s.server.test"
+    buildInfoPackage := "org.http4s.server.test",
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
@@ -140,9 +146,9 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
     description := "Support for Prometheus Metrics",
     libraryDependencies ++= Seq(
+      prometheusClient,
       prometheusCommon,
       prometheusHotspot,
-      prometheusClient
     ),
   )
   .dependsOn(
@@ -157,7 +163,9 @@ lazy val client = libraryProject("client")
   .enablePlugins(SilencerPlugin)
   .settings(
     description := "Base library for building http4s clients",
-    libraryDependencies += jettyServlet % Test
+    libraryDependencies ++= Seq(
+      jettyServlet % Test,
+    )
   )
   .dependsOn(
     core,
@@ -171,7 +179,8 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     description := "Support for Dropwizard Metrics",
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
-      dropwizardMetricsJson
+      dropwizardMetricsJson,
+      jacksonDatabind,
     ))
   .dependsOn(
     core % "compile->compile",
@@ -185,7 +194,9 @@ lazy val emberCore = libraryProject("ember-core")
   .settings(
     description := "Base library for ember http4s clients and servers",
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
-    libraryDependencies ++= Seq(log4catsCore, log4catsTesting % Test),
+    libraryDependencies ++= Seq(
+      log4catsTesting % Test,
+    ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
@@ -211,7 +222,9 @@ lazy val emberCore = libraryProject("ember-core")
 lazy val emberServer = libraryProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
-    libraryDependencies ++= Seq(log4catsSlf4j),
+    libraryDependencies ++= Seq(
+      log4catsSlf4j,
+    ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
@@ -223,7 +236,10 @@ lazy val emberServer = libraryProject("ember-server")
 lazy val emberClient = libraryProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
-    libraryDependencies ++= Seq(keypool, log4catsSlf4j),
+    libraryDependencies ++= Seq(
+      keypool,
+      log4catsSlf4j,
+    ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
@@ -235,19 +251,21 @@ lazy val emberClient = libraryProject("ember-client")
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
-    libraryDependencies += blaze,
+    libraryDependencies ++= Seq(
+      blazeHttp,
+    )
   )
   .dependsOn(core, testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
-    description := "blaze implementation for http4s servers"
+    description := "blaze implementation for http4s servers",
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
-    description := "blaze implementation for http4s clients"
+    description := "blaze implementation for http4s clients",
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
@@ -257,6 +275,9 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
     libraryDependencies ++= Seq(
       Http4sPlugin.asyncHttpClient,
       fs2ReactiveStreams,
+      nettyBuffer,
+      nettyCodecHttp,
+      reactiveStreams,
     )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
@@ -265,7 +286,9 @@ lazy val jettyClient = libraryProject("jetty-client")
   .settings(
     description := "jetty implementation for http4s clients",
     libraryDependencies ++= Seq(
-      Http4sPlugin.jettyClient
+      Http4sPlugin.jettyClient,
+      jettyHttp,
+      jettyUtil,
     ),
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
@@ -274,7 +297,8 @@ lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
     description := "okhttp implementation for http4s clients",
     libraryDependencies ++= Seq(
-      Http4sPlugin.okhttp
+      Http4sPlugin.okhttp,
+      okio,
     ),
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
@@ -294,8 +318,10 @@ lazy val jetty = libraryProject("jetty")
   .settings(
     description := "Jetty implementation for http4s servers",
     libraryDependencies ++= Seq(
+      jettyHttp2Server,
+      jettyServer,
       jettyServlet,
-      jettyHttp2Server
+      jettyUtil,
     )
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
@@ -305,7 +331,8 @@ lazy val tomcat = libraryProject("tomcat")
     description := "Tomcat implementation for http4s servers",
     libraryDependencies ++= Seq(
       tomcatCatalina,
-      tomcatCoyote
+      tomcatCoyote,
+      tomcatUtilScan,
     )
   )
   .dependsOn(servlet % "compile;test->test")
@@ -313,14 +340,17 @@ lazy val tomcat = libraryProject("tomcat")
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryProject("dsl")
   .settings(
-    description := "Simple DSL for writing http4s services"
+    description := "Simple DSL for writing http4s services",
   )
   .dependsOn(core, testing % "test->test")
 
 lazy val jawn = libraryProject("jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
-    libraryDependencies += jawnFs2
+    libraryDependencies ++= Seq(
+      jawnFs2,
+      jawnParser,
+    )
   )
   .dependsOn(core, testing % "test->test")
 
@@ -329,7 +359,7 @@ lazy val argonaut = libraryProject("argonaut")
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
       Http4sPlugin.argonaut,
-      Http4sPlugin.argonautJawn
+      argonautJawn
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -338,7 +368,7 @@ lazy val boopickle = libraryProject("boopickle")
   .settings(
     description := "Provides Boopickle codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle
+      Http4sPlugin.boopickle,
     )
   )
   .dependsOn(core, testing % "test->test")
@@ -347,8 +377,9 @@ lazy val circe = libraryProject("circe")
   .settings(
     description := "Provides Circe codecs for http4s",
     libraryDependencies ++= Seq(
+      circeCore,
       circeJawn,
-      circeTesting % Test
+      circeTesting % Test,
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -358,7 +389,7 @@ lazy val json4s = libraryProject("json4s")
     description := "Base library for json4s codecs for http4s",
     libraryDependencies ++= Seq(
       jawnJson4s,
-      json4sCore
+      json4sCore,
     ),
   )
   .dependsOn(jawn % "compile;test->test")
@@ -366,14 +397,18 @@ lazy val json4s = libraryProject("json4s")
 lazy val json4sNative = libraryProject("json4s-native")
   .settings(
     description := "Provides json4s-native codecs for http4s",
-    libraryDependencies += Http4sPlugin.json4sNative
+    libraryDependencies ++= Seq(
+      Http4sPlugin.json4sNative,
+    )
   )
   .dependsOn(json4s % "compile;test->test")
 
 lazy val json4sJackson = libraryProject("json4s-jackson")
   .settings(
     description := "Provides json4s-jackson codecs for http4s",
-    libraryDependencies += Http4sPlugin.json4sJackson
+    libraryDependencies ++= Seq(
+      Http4sPlugin.json4sJackson,
+    )
   )
   .dependsOn(json4s % "compile;test->test")
 
@@ -382,7 +417,7 @@ lazy val playJson = libraryProject("play-json")
     description := "Provides Play json codecs for http4s",
     libraryDependencies ++= Seq(
       jawnPlay,
-      Http4sPlugin.playJson
+      Http4sPlugin.playJson,
     ),
   )
   .dependsOn(jawn % "compile;test->test")
@@ -391,7 +426,7 @@ lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sPlugin.scalaXml
+      Http4sPlugin.scalaXml,
     ),
   )
   .dependsOn(core, testing % "test->test")
@@ -407,7 +442,9 @@ lazy val twirl = http4sProject("twirl")
 lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
-    libraryDependencies += scalatagsApi,
+    libraryDependencies ++= Seq(
+      scalatagsApi,
+    )
   )
   .dependsOn(core, testing % "test->test")
 
@@ -417,8 +454,8 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser,
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.openjdk.jmh"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "pl.project13.scala", name = "sbt-jmh-extras"),
+    undeclaredCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(core, circe)
 
@@ -515,7 +552,9 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime
     ),
-    TwirlKeys.templateImports := Nil
+    TwirlKeys.templateImports := Nil,
+    undeclaredCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
@@ -529,6 +568,8 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     libraryDependencies ++= Seq(
       circeGeneric,
     ),
+    undeclaredCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -536,7 +577,9 @@ lazy val examplesEmber = exampleProject("examples-ember")
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",
-    fork := true
+    fork := true,
+    undeclaredCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(emberServer, emberClient)
 
@@ -549,6 +592,8 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
+    undeclaredCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(blazeServer, theDsl)
 
@@ -557,7 +602,9 @@ lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(
     description := "Example of http4s server on Jetty",
     fork := true,
-    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample")
+    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample"),
+    undeclaredCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(jetty)
 
@@ -566,7 +613,9 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(
     description := "Example of http4s server on Tomcat",
     fork := true,
-    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample")
+    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample"),
+    undeclaredCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(tomcat)
 
@@ -578,6 +627,8 @@ lazy val examplesWar = exampleProject("examples-war")
     fork := true,
     libraryDependencies += javaxServletApi % Provided,
     Jetty / containerLibs := List(jettyRunner),
+    undeclaredCompileDependenciesTest := {},
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(servlet)
 
@@ -618,8 +669,10 @@ lazy val scalafixInput = project
     libraryDependencies ++= List(
       "http4s-blaze-client",
       "http4s-blaze-server",
+      "http4s-client",
+      "http4s-core",
       "http4s-dsl",
-    ).map("org.http4s" %% _ % "0.21.8"),
+    ).map("org.http4s" %% _ % "0.21.13"),
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
@@ -688,7 +741,6 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     catsEffectTestingSpecs2,
     catsLaws,
-    catsKernelLaws,
     disciplineSpecs2,
     logbackClassic,
     scalacheck,

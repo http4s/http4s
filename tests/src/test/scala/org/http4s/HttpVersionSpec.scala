@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.implicits._
-import cats.kernel.laws.discipline.OrderTests
+import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
 
@@ -15,6 +15,10 @@ class HttpVersionSpec extends Http4sSpec {
   import HttpVersion._
 
   checkAll("HttpVersion", OrderTests[HttpVersion].order)
+
+  checkAll("HttpVersion", HashTests[HttpVersion].hash)
+
+  checkAll("HttpVersion", BoundedEnumerableTests[HttpVersion].boundedEnumerable)
 
   "sort by descending major version" in {
     prop { (x: HttpVersion, y: HttpVersion) =>

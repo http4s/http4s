@@ -24,14 +24,17 @@ title: Adopters
 [看录取 Kanluqu](https://www.kanluqu.com)
 : College application resources for Chinese high school students, built entirely upon the Typelevel stack.
 
-[Quantiply](https://www.quantiply.com)
-: Uses http4s to power the critical data APIs.
+[iHeartRadio](https://www.iheart.com/)
+: Uses http4s for internal web services
 
 [MYOB](https://myob.com)
 : Uses http4s for some API and Web services.
 
 [Netflix](https://www.netflix.com)
 : Uses http4s for internal tools.
+
+[Quantiply](https://www.quantiply.com)
+: Uses http4s to power the critical data APIs.
 
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
@@ -82,6 +85,9 @@ title: Adopters
 [0x7e.xyz](https://github.com/timo-schmid/0x7e.xyz)
 : A simple link-shortener
 
+[Dashing](https://github.com/benfradet/dashing)
+: Dashboards to monitor an open source organization's health
+
 [Docspell](https://github.com/eikek/docspell)
 : A personal document (pdf) organizer
 
@@ -123,9 +129,6 @@ title: Adopters
 
 [http4s-index](https://github.com/stephennancekivell/http4s-index)
 : lists the files and folders becoming a simple light weight web server
-
-[Dashing](https://github.com/benfradet/dashing)
-: Dashboards to monitor an open source organization's health
 
 [http4s-chatserver](https://martinsnyder.net/projects/chat.html)
 : an [open source](https://github.com/MartinSnyder/http4s-chatserver) demonstration of http4s WebSocket support and stateful functional streams
