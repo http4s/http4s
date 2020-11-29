@@ -116,6 +116,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2", revision = "0.9.0"),
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
+    // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -337,7 +339,7 @@ object Http4sPlugin extends AutoPlugin {
     val dropwizardMetrics = "4.1.16"
     val fs2 = "2.4.6"
     val jacksonDatabind = "2.11.3"
-    val jawn = "1.0.2"
+    val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.35.v20201120"
     val json4s = "3.6.10"
