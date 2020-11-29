@@ -4,15 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package org.http4s.blazecore.util
+package org.http4s.testing
 
-import cats.effect.std.Dispatcher
 import cats.effect.{Async, Resource, Sync}
+import cats.effect.std.Dispatcher
 import org.specs2.execute.{AsResult, Result}
 
 import scala.concurrent.duration._
 
-/** copy of [[cats.effect.testing.specs2.CatsEffect]] adapted to cats-effect 3
+/** copy of [cats.effect.testing.specs2.CatsEffect](https://github.com/djspiewak/cats-effect-testing/blob/series%2F0.x/specs2/src/main/scala/cats/effect/testing/specs2/CatsEffect.scala) adapted to cats-effect 3
   */
 trait CatsEffect {
   protected val Timeout: Duration = 10.seconds
@@ -32,5 +32,4 @@ trait CatsEffect {
       D.unsafeRunTimed(result, Timeout)
     }
   }
-
 }

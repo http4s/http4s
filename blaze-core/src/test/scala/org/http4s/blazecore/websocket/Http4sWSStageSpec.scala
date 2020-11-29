@@ -19,7 +19,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.websocket.{WebSocketFrame, WebSocketSeparatePipe}
 import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
-import org.http4s.blazecore.util.CatsEffect
+import org.http4s.testing.CatsEffect
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

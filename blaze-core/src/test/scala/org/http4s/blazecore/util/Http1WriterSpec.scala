@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets
 
 import cats.effect.std.Dispatcher
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import org.http4s.testing.CatsEffect
 import org.http4s.util.StringWriter
 
 import scala.concurrent.Future
