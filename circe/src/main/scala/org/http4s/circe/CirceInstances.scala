@@ -97,7 +97,9 @@ trait CirceInstances extends JawnInstances {
     * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing
     * a [[DecodingFailures]] exception, from which the errors can be extracted.
     */
-  def accumulatingJsonOf[F[_], A](implicit F: Concurrent[F], decoder: Decoder[A]): EntityDecoder[F, A] =
+  def accumulatingJsonOf[F[_], A](implicit
+      F: Concurrent[F],
+      decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeAccumulating(json.hcursor)
