@@ -144,30 +144,6 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
-  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] =
-    new Http4sHeaderParser[`Last-Modified`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`Last-Modified`(_))
-        }
-    }.parse
-
-  def IF_MODIFIED_SINCE(value: String): ParseResult[`If-Modified-Since`] =
-    new Http4sHeaderParser[`If-Modified-Since`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`If-Modified-Since`(_))
-        }
-    }.parse
-
-  def IF_UNMODIFIED_SINCE(value: String): ParseResult[`If-Unmodified-Since`] =
-    new Http4sHeaderParser[`If-Unmodified-Since`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`If-Unmodified-Since`(_))
-        }
-    }.parse
-
   def ETAG(value: String): ParseResult[ETag] =
     new Http4sHeaderParser[ETag](value) {
       def entry = rule(EntityTag ~> (ETag(_: ETag.EntityTag)))

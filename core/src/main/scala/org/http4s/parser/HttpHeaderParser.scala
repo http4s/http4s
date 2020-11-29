@@ -14,6 +14,7 @@ package parser
 import java.util
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.Header.Parsed
+import org.http4s.headers._
 import org.http4s.syntax.string._
 
 object HttpHeaderParser
@@ -127,11 +128,11 @@ object HttpHeaderParser
     addParser_("FORWARDED".ci, `FORWARDED`)
     addParser_("HOST".ci, `HOST`)
     addParser_("IF-MATCH".ci, `IF_MATCH`)
-    addParser_("IF-MODIFIED-SINCE".ci, `IF_MODIFIED_SINCE`)
+    addParser_("IF-MODIFIED-SINCE".ci, `If-Modified-Since`.parse)
     addParser_("IF-NONE-MATCH".ci, `IF_NONE_MATCH`)
-    addParser_("IF-UNMODIFIED-SINCE".ci, `IF_UNMODIFIED_SINCE`)
+    addParser_("IF-UNMODIFIED-SINCE".ci, `If-Unmodified-Since`.parse)
     addParser_("LAST-EVENT-ID".ci, `LAST_EVENT_ID`)
-    addParser_("LAST-MODIFIED".ci, `LAST_MODIFIED`)
+    addParser_("LAST-MODIFIED".ci, `Last-Modified`.parse)
     addParser_("LINK".ci, `LINK`)
     addParser_("LOCATION".ci, `LOCATION`)
     addParser_("ORIGIN".ci, `ORIGIN`)
