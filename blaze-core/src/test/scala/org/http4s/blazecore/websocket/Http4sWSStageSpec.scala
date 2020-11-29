@@ -77,27 +77,30 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
   }
 
   "Http4sWSStage" should {
-    "reply with pong immediately after ping" in withResource(Dispatcher[IO]) { implicit dispatcher =>
-      (for {
-        socket <- TestWebsocketStage()
-        _ <- socket.sendInbound(Ping())
-        _ <- socket.pollOutbound(2).map(_ must beSome[WebSocketFrame](Pong()))
-        _ <- socket.sendInbound(Close())
-      } yield ok)
+    "reply with pong immediately after ping" in withResource(Dispatcher[IO]) {
+      implicit dispatcher =>
+        (for {
+          socket <- TestWebsocketStage()
+          _ <- socket.sendInbound(Ping())
+          _ <- socket.pollOutbound(2).map(_ must beSome[WebSocketFrame](Pong()))
+          _ <- socket.sendInbound(Close())
+        } yield ok)
     }
 
-    "not write any more frames after close frame sent" in withResource(Dispatcher[IO]) { implicit dispatcher =>
-      (for {
-        socket <- TestWebsocketStage()
-        _ <- socket.sendWSOutbound(Text("hi"), Close(), Text("lol"))
-        _ <- socket.pollOutbound().map(_ must_=== Some(Text("hi")))
-        _ <- socket.pollOutbound().map(_ must_=== Some(Close()))
-        _ <- socket.pollOutbound().map(_ must_=== None)
-        _ <- socket.sendInbound(Close())
-      } yield ok)
+    "not write any more frames after close frame sent" in withResource(Dispatcher[IO]) {
+      implicit dispatcher =>
+        (for {
+          socket <- TestWebsocketStage()
+          _ <- socket.sendWSOutbound(Text("hi"), Close(), Text("lol"))
+          _ <- socket.pollOutbound().map(_ must_=== Some(Text("hi")))
+          _ <- socket.pollOutbound().map(_ must_=== Some(Close()))
+          _ <- socket.pollOutbound().map(_ must_=== None)
+          _ <- socket.sendInbound(Close())
+        } yield ok)
     }
 
-    "send a close frame back and call the on close handler upon receiving a close frame" in withResource(Dispatcher[IO]) { implicit dispatcher =>
+    "send a close frame back and call the on close handler upon receiving a close frame" in withResource(
+      Dispatcher[IO]) { implicit dispatcher =>
       (for {
         socket <- TestWebsocketStage()
         _ <- socket.sendInbound(Close())
