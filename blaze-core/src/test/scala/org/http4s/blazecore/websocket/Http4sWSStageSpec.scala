@@ -49,7 +49,8 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
       head.poll(timeoutSeconds)
 
     def pollBackendInbound(timeoutSeconds: Long = 4L): IO[Option[WebSocketFrame]] =
-      IO.delay(backendInQ.dequeue1.unsafeRunTimed(timeoutSeconds.seconds))
+      IO.race(backendInQ.dequeue1, IO.sleep(timeoutSeconds.seconds))
+        .map(_.fold(Some(_), _ => None))
 
     def pollBatchOutputbound(batchSize: Int, timeoutSeconds: Long = 4L): IO[List[WebSocketFrame]] =
       head.pollBatch(batchSize, timeoutSeconds)
