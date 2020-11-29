@@ -166,9 +166,8 @@ private[http4s] class Http4sWSStage[F[_]](
   // stageShutdown can be called from within an effect, at which point there exists the risk of a deadlock if
   // 'unsafeRunSync' is called and all threads are involved in tearing down a connection.
   override protected def stageShutdown(): Unit = {
-    D.unsafeRunSync(F.attempt(deadSignal.set(true)).map {
-      case Left(t) => logger.error(t)("Error setting dead signal")
-      case Right(_) => ()
+    D.unsafeRunAndForget(F.handleError(deadSignal.set(true)) {
+      t => logger.error(t)("Error setting dead signal")
     })
     super.stageShutdown()
   }
