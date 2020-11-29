@@ -162,7 +162,7 @@ private[http4s] class Http4sWSStage[F[_]](
         // Nothing to do here
         F.unit
     }
-    D.unsafeRunSync(result)
+    D.unsafeRunAndForget(result)
   }
 
   // #2735
