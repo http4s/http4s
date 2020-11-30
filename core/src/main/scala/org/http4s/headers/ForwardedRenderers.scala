@@ -33,7 +33,7 @@ private[http4s] trait ForwardedRenderers {
   implicit val http4sForwardedNodePortRenderer: Renderer[Node.Port] = new Renderer[Node.Port] {
     override def render(writer: Writer, nodePort: Node.Port): writer.type =
       nodePort match {
-        case Node.Port(num) => writer << num
+        case Node.Port.Numeric(num) => writer << num
         case Node.Obfuscated(str) => writer << str
       }
   }

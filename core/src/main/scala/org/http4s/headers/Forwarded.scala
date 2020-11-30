@@ -50,15 +50,15 @@ object Forwarded
     sealed trait Port { self: Product => }
 
     object Port {
-      private[this] final case class C(value: Int) extends Port {
+      final case class Numeric(value: Int) extends Port {
         override def productPrefix: String = "Port"
       }
 
       def fromInt(num: Int): ParseResult[Port] =
-        checkPortNum(num).toLeft(C(num))
+        checkPortNum(num).toLeft(Numeric(num))
 
       def unapply(port: Port): Option[Int] =
-        PartialFunction.condOpt(port) { case C(num) => num }
+        PartialFunction.condOpt(port) { case Numeric(num) => num }
     }
 
     /** Opaque type for obfuscated identifiers.

@@ -7,6 +7,7 @@ import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import io.chrisdavenport.sbtmimaversioncheck.MimaVersionCheckKeys._
+import org.http4s.sbt.SilencerPlugin.autoImport.silencerVersion
 import sbt.Keys._
 import sbt._
 
@@ -22,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.3"
+  val scala_213 = "2.13.4"
   val scala_212 = "2.12.12"
   val scalaVersions = Seq(scala_213, scala_212)
 
@@ -164,7 +165,9 @@ object Http4sPlugin extends AutoPlugin {
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
           "src/test/scala/org/http4s/UriSpec.scala"
         )
-      }
+      },
+
+    silencerVersion := "1.7.1",
   )
 
   def extractApiVersion(version: String) = {

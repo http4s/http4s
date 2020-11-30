@@ -56,15 +56,17 @@ object PushSupport {
     def fetchAndAdd(facc: F[Vector[PushResponse[F]]], v: PushLocation): F[Vector[PushResponse[F]]] =
       routes(req.withPathInfo(v.location)).value.flatMap {
         case None => emptyCollect
-        case Some(response) if !v.cascade =>
-          facc.map(_ :+ PushResponse(v.location, response))
-        case Some(response) if v.cascade =>
-          val pr = PushResponse(v.location, response)
-          response.attributes.lookup(pushLocationKey) match {
-            case Some(pushed) => // Need to gather the sub resources
-              val fsubs = collectResponse(pushed, req, verify, routes)
-              F.map2(facc, fsubs)(_ ++ _ :+ pr)
-            case None => facc.map(_ :+ pr)
+        case Some(response) =>
+          if (v.cascade) {
+            val pr = PushResponse(v.location, response)
+            response.attributes.lookup(pushLocationKey) match {
+              case Some(pushed) => // Need to gather the sub resources
+                val fsubs = collectResponse(pushed, req, verify, routes)
+                F.map2(facc, fsubs)(_ ++ _ :+ pr)
+              case None => facc.map(_ :+ pr)
+            }
+          } else {
+            facc.map(_ :+ PushResponse(v.location, response))
           }
       }
 

@@ -89,6 +89,11 @@ lazy val core = libraryProject("core")
       vault,
     ),
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
+    mimaBinaryIssueFilters ++= Seq(
+      // These were private[this], surfaced by 2.13.4's exhaustiveness checker
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
+    ),
   )
 
 lazy val laws = libraryProject("laws")
