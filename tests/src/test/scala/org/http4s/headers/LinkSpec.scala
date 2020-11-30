@@ -37,6 +37,16 @@ class LinkSpec extends HeaderLaws {
 
       parsedLinks.map(_.size) must beRight(links.size)
     }
+
+    "retain the value of the first 'rel' param when multiple present (RFC 8288, Section 3.3)" in {
+      val link = """<http://example.com/foo>; rel=prev; rel=next;title=foo; rel="last""""
+      val parsedLinks = Link.parse(link).map(_.values)
+      val parsedLink = parsedLinks.map(_.head)
+
+      parsedLink.map(_.uri) must beRight(uri"http://example.com/foo")
+      parsedLink.map(_.rel) must beRight(Option("prev"))
+      parsedLink.map(_.title) must beRight(Option("foo"))
+    }
   }
 
   "render" should {
