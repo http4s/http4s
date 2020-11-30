@@ -146,8 +146,11 @@ class FollowRedirectSpec
       val req = Request[IO](PUT, uri("http://localhost/303")).withEntity("foo")
       client
         .run(req)
-        .use { case Ok(resp) =>
-          resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[IO]
+        .use {
+          case Ok(resp) =>
+            resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[IO]
+          case resp =>
+            IO.raiseError(UnexpectedStatus(resp.status))
         }
         .unsafeRunSync()
         .get must be("0")
@@ -193,8 +196,10 @@ class FollowRedirectSpec
         "Don't expose mah secrets!",
         uri("http://localhost/different-authority"),
         Header("Authorization", "Bearer s3cr3t"))
-      req.flatMap(client.run(_).use { case Ok(resp) =>
-        resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+      req.flatMap(client.run(_).use {
+        case Ok(resp) =>
+          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+        case resp => IO.raiseError(UnexpectedStatus(resp.status))
       }) must returnValue(Some(""))
     }
 
@@ -203,14 +208,18 @@ class FollowRedirectSpec
         "You already know mah secrets!",
         uri("http://localhost/307"),
         Header("Authorization", "Bearer s3cr3t"))
-      req.flatMap(client.run(_).use { case Ok(resp) =>
-        resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+      req.flatMap(client.run(_).use {
+        case Ok(resp) =>
+          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+        case resp => IO.raiseError(UnexpectedStatus(resp.status))
       }) must returnValue(Some("Bearer s3cr3t"))
     }
 
     "Record the intermediate URIs" in {
-      client.run(Request[IO](uri = uri("http://localhost/loop/0"))).use { case Ok(resp) =>
-        IO.pure(FollowRedirect.getRedirectUris(resp))
+      client.run(Request[IO](uri = uri("http://localhost/loop/0"))).use {
+        case Ok(resp) =>
+          IO.pure(FollowRedirect.getRedirectUris(resp))
+        case resp => IO.raiseError(UnexpectedStatus(resp.status))
       } must returnValue(
         List(
           uri("http://localhost/loop/1"),
@@ -220,8 +229,10 @@ class FollowRedirectSpec
     }
 
     "Not add any URIs when there are no redirects" in {
-      client.run(Request[IO](uri = uri("http://localhost/loop/100"))).use { case Ok(resp) =>
-        IO.pure(FollowRedirect.getRedirectUris(resp))
+      client.run(Request[IO](uri = uri("http://localhost/loop/100"))).use {
+        case Ok(resp) =>
+          IO.pure(FollowRedirect.getRedirectUris(resp))
+        case resp => IO.raiseError(UnexpectedStatus(resp.status))
       } must returnValue(List.empty[Uri])
     }
   }
