@@ -112,10 +112,14 @@ lazy val testing = libraryProject("testing")
       specs2Common,
       specs2Matcher,
       munitCatsEffect,
-      munitDiscipline
+      munitDiscipline,
+      scalacheckEffect,
+      scalacheckEffectMunit,
     ),
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-3"),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect"),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
   )
   .dependsOn(laws)
 
