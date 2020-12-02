@@ -7,7 +7,7 @@
 package org.http4s.util
 
 import cats.Show
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
 import java.util.Locale
 import org.http4s.Http4sSpec

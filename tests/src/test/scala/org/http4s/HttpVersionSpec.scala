@@ -6,7 +6,6 @@
 
 package org.http4s
 
-import cats.implicits._
 import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._

@@ -7,7 +7,7 @@
 package org.http4s.metrics.prometheus
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot._

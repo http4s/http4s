@@ -11,7 +11,7 @@ package middleware
 import org.http4s.Method.{GET, HEAD}
 import cats.{Functor, MonoidK}
 import cats.data.Kleisli
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import cats.effect.Concurrent
 

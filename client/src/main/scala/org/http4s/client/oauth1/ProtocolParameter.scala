@@ -9,7 +9,7 @@ package org.http4s.client.oauth1
 import cats.{Functor, Show}
 import cats.effect.Clock
 import cats.kernel.Order
-import cats.implicits._
+import cats.syntax.all._
 import java.util.concurrent.TimeUnit
 
 sealed trait ProtocolParameter {

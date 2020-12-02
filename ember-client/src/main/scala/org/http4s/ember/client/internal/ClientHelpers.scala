@@ -13,7 +13,7 @@ import cats._
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent._
-import cats.implicits._
+import cats.syntax.all._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import org.http4s._

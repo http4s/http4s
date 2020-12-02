@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
 import scala.annotation.tailrec

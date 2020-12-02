@@ -37,7 +37,7 @@ We'll need the following imports to get started:
 
 ```scala mdoc:silent
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 // Provided by `cats.effect.IOApp`
 implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)

@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import cats.data.Kleisli
 
 final case class ContextRequest[F[_], A](context: A, req: Request[F]) {

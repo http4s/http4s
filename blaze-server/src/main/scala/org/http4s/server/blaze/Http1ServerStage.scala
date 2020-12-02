@@ -9,7 +9,7 @@ package server
 package blaze
 
 import cats.effect.{CancelToken, ConcurrentEffect, IO, Sync, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}

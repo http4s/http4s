@@ -10,7 +10,7 @@ package client
 import cats.Applicative
 import cats.data.{Kleisli, OptionT}
 import cats.effect.{Bracket, Resource}
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}

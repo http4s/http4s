@@ -10,7 +10,7 @@ import io.chrisdavenport.keypool._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import scala.concurrent.duration._
 import org.http4s.client._

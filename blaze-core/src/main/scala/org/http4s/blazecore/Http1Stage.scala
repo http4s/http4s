@@ -8,7 +8,7 @@ package org.http4s
 package blazecore
 
 import cats.effect.Effect
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.Stream._
 import java.nio.ByteBuffer
