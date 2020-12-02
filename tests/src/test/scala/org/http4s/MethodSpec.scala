@@ -18,7 +18,8 @@ import org.scalacheck.Prop.{forAll, forAllNoShrink}
 class MethodSpec extends Http4sSpec {
   import Method._
 
-  checkAll("Method", HashTests[Method].eqv)
+  checkAll("Hash[Method]", HashTests[Method].hash)
+  checkAll("Order[Method]", OrderTests[Method].order)
   checkAll("Hash[Method]", SerializableTests.serializable(Hash[Method]))
 
   "parses own string rendering to equal value" in {
