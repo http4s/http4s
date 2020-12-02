@@ -9,7 +9,7 @@ package server
 package middleware
 
 import cats.{Applicative, Monad}
-import cats.implicits._
+import cats.syntax.all._
 import cats.data.Kleisli
 import org.http4s.Status.MovedPermanently
 import org.http4s.Uri.{Authority, RegName, Scheme}

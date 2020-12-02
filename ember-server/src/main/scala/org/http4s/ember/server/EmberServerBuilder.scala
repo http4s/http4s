@@ -7,7 +7,7 @@
 package org.http4s.ember.server
 
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import fs2.concurrent._
 import fs2.io.tcp.SocketGroup

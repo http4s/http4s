@@ -10,7 +10,7 @@ package staticcontent
 
 import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import java.io.File
 import java.nio.file.NoSuchFileException
 import java.nio.file.{LinkOption, Path, Paths}

@@ -9,7 +9,7 @@ package client
 
 import cats.effect._
 import cats.effect.concurrent.Ref
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import org.http4s.Method._
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}

@@ -8,7 +8,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.syntax.all._
 import org.http4s.util.{CaseInsensitiveString, Writer}

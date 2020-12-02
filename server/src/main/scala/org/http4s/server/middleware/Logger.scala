@@ -10,7 +10,7 @@ package middleware
 
 import cats.~>
 import cats.arrow.FunctionK
-import cats.implicits._
+import cats.syntax.all._
 import cats.data.OptionT
 import cats.effect.{Bracket, Concurrent, Sync}
 import cats.effect.Sync._

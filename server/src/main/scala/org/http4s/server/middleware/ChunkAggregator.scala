@@ -12,7 +12,7 @@ import cats.arrow.FunctionK
 import cats.{FlatMap, ~>}
 import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import org.http4s.headers._
 import scala.collection.mutable.ListBuffer

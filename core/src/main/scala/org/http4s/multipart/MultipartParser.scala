@@ -8,7 +8,7 @@ package org.http4s
 package multipart
 
 import cats.effect.{Blocker, ContextShift, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.{readAll, writeAll}
 import java.nio.file.{Files, Path, StandardOpenOption}
