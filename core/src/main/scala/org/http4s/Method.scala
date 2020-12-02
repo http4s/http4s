@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.syntax.all._
-import cats.{Eq, Hash, Order, Show}
+import cats.{Hash, Order, Show}
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
 import scala.util.hashing.MurmurHash3
@@ -158,19 +158,4 @@ object Method {
       override def compare(x: Method, y: Method): Int =
         x.name.compare(y.name)
     }
-
-  @deprecated(
-    message = "Please use catsInstancesForHttp4sMethod. Kept for binary compatibility",
-    since = "0.21.14")
-  def catsHashForHttp4sMethod: Hash[Method] = catsInstancesForHttp4sMethod
-
-  @deprecated(
-    message = "Please use catsInstancesForHttp4sMethod. Kept for binary compatibility",
-    since = "0.21.5")
-  def http4sEqForMethod: Eq[Method] = catsInstancesForHttp4sMethod
-
-  @deprecated(
-    message = "Please use catsInstancesForHttp4sMethod. Kept for binary compatibility",
-    since = "0.21.14")
-  def http4sShowForMethod: Show[Method] = catsInstancesForHttp4sMethod
 }

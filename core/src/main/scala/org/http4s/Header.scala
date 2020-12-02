@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.{Eq, Order, Show}
+import cats.{Order, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.util._
@@ -131,9 +131,6 @@ object Header {
   implicit val HeaderShow: Show[Header] = Show.show[Header] {
     _.toString
   }
-
-  @deprecated(message = "Please use HeaderOrder instead", since = "0.21.12")
-  def HeaderEq: Eq[Header] = HeaderOrder
 
   implicit lazy val HeaderOrder: Order[Header] =
     Order.from { case (a, b) =>
