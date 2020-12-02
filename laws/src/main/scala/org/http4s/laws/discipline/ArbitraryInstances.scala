@@ -920,6 +920,12 @@ private[http4s] trait ArbitraryInstances {
         body <- http4sTestingGenForPureByteStream
       } yield Response(status, httpVersion, headers, body)
     }
+
+  implicit val http4sTestingArbitraryForSegment: Arbitrary[Uri.Path.Segment] =
+    Arbitrary(getArbitrary[String].map(Uri.Path.Segment.apply))
+
+  implicit val http4sTestingCogenForSegment: Cogen[Uri.Path.Segment] =
+    Cogen[String].contramap(_.encoded)
 }
 
 object ArbitraryInstances extends ArbitraryInstances {

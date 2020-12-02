@@ -434,6 +434,12 @@ object Uri {
       def encoded(value: String): Segment = new Segment(value)
 
       val empty: Segment = Segment("")
+
+      implicit val http4sInstancesForSegment: Order[Segment] =
+        new Order[Segment] {
+          def compare(x: Segment, y: Segment): Int =
+            x.encoded.compare(y.encoded)
+        }
     }
 
     /** This constructor allows you to construct the path directly.
@@ -471,7 +477,16 @@ object Uri {
 
     implicit val http4sInstancesForPath: Order[Path] with Semigroup[Path] =
       new Order[Path] with Semigroup[Path] {
-        def compare(x: Path, y: Path): Int = x.compare(y)
+        def compare(x: Path, y: Path): Int = {
+          def comparePaths[A: Order](focus: Path => A): Int =
+            compareField(x, y, focus)
+          reduceComparisons(
+            comparePaths(_.absolute),
+            Eval.later(comparePaths(_.segments)),
+            Eval.later(comparePaths(_.endsWithSlash))
+          )
+        }
+
         def combine(x: Path, y: Path): Path = x.concat(y)
       }
   }
