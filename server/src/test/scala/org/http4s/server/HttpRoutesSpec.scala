@@ -8,7 +8,7 @@ package org.http4s
 package server
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.Uri.uri
 import org.http4s.testing.Http4sLegacyMatchersIO
 

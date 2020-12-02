@@ -17,7 +17,7 @@ import cats.{Comonad, Eval, Order}
 import cats.data.NonEmptyChain
 import cats.effect.implicits._
 import cats.effect.{Async, Concurrent, ConcurrentEffect, ContextShift, Effect, IO}
-import cats.implicits._
+import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
 import org.http4s.util.execution.direct

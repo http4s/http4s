@@ -6,6 +6,7 @@
 
 package org.http4s
 
+import cats.kernel.laws.discipline._
 import java.nio.charset.{Charset => NioCharset}
 import java.util.Locale
 
@@ -25,6 +26,18 @@ class CharsetSpec extends Http4sSpec {
 
     "return InvalidCharset for unregistered names" in {
       Charset.fromString("blah") must beLeft
+    }
+  }
+
+  "Order[Charset]" should {
+    "be lawful" in {
+      checkAll("Order[Charset]", OrderTests[Charset].order)
+    }
+  }
+
+  "Hash[Charset]" should {
+    "be lawful" in {
+      checkAll("Hash[Charset]", HashTests[Charset].hash)
     }
   }
 }

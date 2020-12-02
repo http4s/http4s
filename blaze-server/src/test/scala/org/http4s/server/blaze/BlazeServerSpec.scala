@@ -8,7 +8,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.IO
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets

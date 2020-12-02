@@ -9,7 +9,7 @@ package org.http4s
 import java.util.Locale
 
 import cats.Hash
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.laws.discipline._
 import org.http4s.parser.Rfc2616BasicRules
 import org.scalacheck.Gen

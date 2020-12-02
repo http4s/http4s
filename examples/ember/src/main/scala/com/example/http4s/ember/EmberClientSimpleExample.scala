@@ -8,7 +8,7 @@ package com.example.http4s.ember
 
 import cats._
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.client._
 import org.http4s.circe._

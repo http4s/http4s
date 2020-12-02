@@ -9,7 +9,7 @@ package server
 
 import cats.Semigroup
 import cats.data.Kleisli
-import cats.implicits._
+import cats.syntax.all._
 
 package object syntax {
   @deprecated(

@@ -9,7 +9,7 @@ package server
 package jetty
 
 import cats.effect.{IO, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import java.net.{HttpURLConnection, URL}
 import java.io.IOException
 import java.nio.charset.StandardCharsets

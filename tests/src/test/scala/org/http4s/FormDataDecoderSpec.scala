@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{Chain, NonEmptyList}
-import cats.implicits._
+import cats.syntax.all._
 import FormDataDecoder._
 
 class FormDataDecoderSpec extends Http4sSpec {

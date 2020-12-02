@@ -7,7 +7,7 @@
 package org.http4s
 package servlet
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.{IO, Resource, Timer}
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets

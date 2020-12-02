@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.{Eq, Eval, Foldable, Monoid, Order, Show}
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.headers.`Set-Cookie`
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString

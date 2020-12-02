@@ -7,7 +7,7 @@
 package com.example.http4s.blaze
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.concurrent.Queue
 import org.http4s._

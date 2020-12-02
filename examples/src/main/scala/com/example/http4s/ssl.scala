@@ -7,7 +7,7 @@
 package com.example.http4s
 
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import java.nio.file.Paths
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
