@@ -14,6 +14,7 @@ package parser
 import java.util
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.Header.Parsed
+import org.http4s.headers.ETag
 import org.http4s.syntax.string._
 
 object HttpHeaderParser
@@ -122,7 +123,7 @@ object HttpHeaderParser
     addParser_("CONTENT-TYPE".ci, `CONTENT_TYPE`)
     addParser_("COOKIE".ci, `COOKIE`)
     addParser_("DATE".ci, `DATE`)
-    addParser_("ETAG".ci, `ETAG`)
+    addParser_("ETAG".ci, ETag.parse)
     addParser_("EXPIRES".ci, `EXPIRES`)
     addParser_("FORWARDED".ci, `FORWARDED`)
     addParser_("HOST".ci, `HOST`)
