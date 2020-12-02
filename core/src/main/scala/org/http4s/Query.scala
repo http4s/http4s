@@ -8,6 +8,7 @@ package org.http4s
 
 import java.nio.charset.StandardCharsets
 
+import cats.syntax.all._
 import cats.{Eval, Foldable, Hash, Order, Show}
 import org.http4s.Query._
 import org.http4s.internal.CollectionCompat
