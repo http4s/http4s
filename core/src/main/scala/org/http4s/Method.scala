@@ -6,9 +6,8 @@
 
 package org.http4s
 
-import cats.{Eq, Hash, Order, Show}
 import cats.syntax.all._
-import cats.{Eq, Hash, Show}
+import cats.{Eq, Hash, Order, Show}
 import org.http4s.Method.Semantics
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
