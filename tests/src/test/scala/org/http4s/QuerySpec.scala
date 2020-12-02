@@ -6,6 +6,8 @@
 
 package org.http4s
 
+import cats.kernel.laws.discipline._
+import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingCogenForQuery
 import org.scalacheck.Prop._
 
 class QuerySpec extends Http4sSpec {
@@ -59,6 +61,18 @@ class QuerySpec extends Http4sSpec {
     "Encode special chars in the key" in {
       val u = Query(" !$&'()*+,;=:/?@~" -> Some("foo"), "!" -> None)
       u.renderString must_== "%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~=foo&%21"
+    }
+  }
+
+  "Order instance for Query" should {
+    "be lawful" in {
+      checkAll("Order[Query]", OrderTests[Query].order)
+    }
+  }
+
+  "Hash instance for Query" should {
+    "be lawful" in {
+      checkAll("Hash[Query]", HashTests[Query].hash)
     }
   }
 }

@@ -10,8 +10,8 @@
 
 package org.http4s
 
+import cats.kernel.laws.discipline._
 import cats.syntax.all._
-import cats.kernel.laws.discipline.EqTests
 import java.nio.file.Paths
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.Uri._
@@ -1094,6 +1094,13 @@ http://example.org/a file
       // This is a silly thing to do, but as long as the API allows it, it would
       // be good to know if it breaks.
       decode(encode("%2f", toSkip = CharPredicate("%")), toSkip = CharPredicate("/")) must_== "%2f"
+    }
+  }
+
+  "Uri instances" should {
+    "be lawful" in {
+      checkAll("Order[Uri]", OrderTests[Uri].order)
+      checkAll("Hash[Uri]", HashTests[Uri].hash)
     }
   }
 }
