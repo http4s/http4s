@@ -8,7 +8,7 @@ package org.http4s
 package multipart
 
 import cats.effect.{Blocker, ContextShift, Sync}
-import cats.implicits._
+import cats.syntax.all._
 
 private[http4s] object MultipartDecoder {
   def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =

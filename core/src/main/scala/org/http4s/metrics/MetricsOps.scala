@@ -7,7 +7,6 @@
 package org.http4s.metrics
 
 import cats.Foldable
-import cats.implicits._
 import org.http4s.{Method, Request, Status}
 
 /** Describes an algebra capable of writing metrics to a metrics registry

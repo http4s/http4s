@@ -10,7 +10,7 @@ package asynchttpclient
 
 import cats.effect._
 import cats.effect.concurrent._
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.implicits._
 import fs2.Stream._
 import fs2._

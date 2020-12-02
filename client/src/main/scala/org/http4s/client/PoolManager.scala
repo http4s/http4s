@@ -9,7 +9,7 @@ package client
 
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
+import cats.syntax.all._
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import org.log4s.getLogger

@@ -8,7 +8,7 @@ package org.http4s
 package scalaxml
 
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import java.io.StringReader
 import javax.xml.parsers.SAXParserFactory
 

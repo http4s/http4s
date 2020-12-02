@@ -8,7 +8,7 @@ package com.example.http4s.ember
 
 import fs2._
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl

@@ -9,7 +9,7 @@ package blazecore
 package util
 
 import cats.effect.{Effect, IO}
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1

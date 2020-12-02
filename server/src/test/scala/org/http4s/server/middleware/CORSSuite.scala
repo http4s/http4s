@@ -35,6 +35,7 @@ class CORSSuite extends Http4sSuite {
   )
 
   def headerCheck(h: Header): Boolean = h.is(`Access-Control-Max-Age`)
+
   final def matchHeader[A <: Header](
       hs: Headers,
       hk: HeaderKey.Internal[A],

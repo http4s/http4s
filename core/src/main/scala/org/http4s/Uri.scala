@@ -10,13 +10,15 @@
 
 package org.http4s
 
-import cats.{Eq, Hash, Order, Show}
+import cats.{Eq, Eval, Hash, Order, Show}
 import cats.kernel.Semigroup
 import cats.syntax.either._
+import cats.syntax.hash._
+import cats.syntax.order._
 import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset, StandardCharsets}
-import org.http4s.internal.{bug, hashLower}
+import org.http4s.internal.{bug, compareField, hashLower, reduceComparisons}
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
@@ -289,6 +291,35 @@ object Uri {
       }
   }
 
+  object Authority {
+    def apply(
+        userInfo: Option[UserInfo] = None,
+        host: Host = RegName("localhost"),
+        port: Option[Int] = None): Authority =
+      new Authority(userInfo, host, port)
+
+    implicit val catsInstancesForHttp4sAuthority
+        : Hash[Authority] with Order[Authority] with Show[Authority] =
+      new Hash[Authority] with Order[Authority] with Show[Authority] {
+        override def hash(x: Authority): Int =
+          x.hashCode
+
+        override def compare(x: Authority, y: Authority): Int = {
+          def compareAuthorities[A: Order](focus: Authority => A): Int =
+            compareField(x, y, focus)
+
+          reduceComparisons(
+            compareAuthorities(_.userInfo),
+            Eval.later(compareAuthorities(_.host)),
+            Eval.later(compareAuthorities(_.port))
+          )
+        }
+
+        override def show(a: Authority): String =
+          a.renderString
+      }
+  }
+
   final class Path private (
       val segments: Vector[Path.Segment],
       val absolute: Boolean,
@@ -438,8 +469,11 @@ object Uri {
           )
       }
 
-    implicit val eq: Eq[Path] = Eq.fromUniversalEquals[Path]
-    implicit val semigroup: Semigroup[Path] = (a: Path, b: Path) => a.concat(b)
+    implicit val http4sInstancesForPath: Order[Path] with Semigroup[Path] =
+      new Order[Path] with Semigroup[Path] {
+        def compare(x: Path, y: Path): Int = x.compare(y)
+        def combine(x: Path, y: Path): Path = x.concat(y)
+      }
   }
 
   /** The userinfo subcomponent may consist of a user name and,
@@ -528,6 +562,47 @@ object Uri {
         case a: Ipv4Address => writer << a.value
         case a: Ipv6Address => writer << '[' << a << ']'
         case _ => writer
+      }
+  }
+
+  object Host {
+    implicit val catsInstancesForHttp4sUriHost: Hash[Host] with Order[Host] with Show[Host] =
+      new Hash[Host] with Order[Host] with Show[Host] {
+        override def hash(x: Host): Int =
+          x match {
+            case x: Ipv4Address =>
+              x.hash
+            case x: Ipv6Address =>
+              x.hash
+            case x: RegName =>
+              x.hash
+          }
+
+        override def compare(x: Host, y: Host): Int =
+          (x, y) match {
+            case (x: Ipv4Address, y: Ipv4Address) =>
+              x.compare(y)
+            case (x: Ipv6Address, y: Ipv6Address) =>
+              x.compare(y)
+            case (x: RegName, y: RegName) =>
+              x.compare(y)
+
+            // Differing ADT constructors
+            // Ipv4Address is arbitrarily considered > all Ipv6Address and RegName
+            case (_: Ipv4Address, _) =>
+              1
+            case (_, _: Ipv4Address) =>
+              -1
+
+            // Ipv6Address is arbitrarily considered > all RegName
+            case (_: Ipv6Address, _) =>
+              1
+            case (_, _: Ipv6Address) =>
+              -1
+          }
+
+        override def show(a: Host): String =
+          a.renderString
       }
   }
 
@@ -808,7 +883,21 @@ object Uri {
     def value: String = host.toString
   }
 
-  object RegName { def apply(name: String): RegName = new RegName(CIString(name)) }
+  object RegName {
+    def apply(name: String): RegName = new RegName(CIString(name))
+
+    implicit val catsInstancesForHttp4sUriRegName: Hash[RegName] with Order[RegName] with Show[RegName] =
+      new Hash[RegName] with Order[RegName] with Show[RegName] {
+        override def hash(x: RegName): Int =
+          x.hashCode
+
+        override def compare(x: RegName, y: RegName): Int =
+          x.host.compare(y.host)
+
+        override def show(a: RegName): String =
+          a.toString
+      }
+  }
 
   /**
     * Resolve a relative Uri reference, per RFC 3986 sec 5.2
@@ -1038,5 +1127,30 @@ object Uri {
   @deprecated("""use uri"" string interpolation instead""", "0.20")
   def uri(s: String): Uri = macro Uri.Macros.uriLiteral
 
-  implicit val http4sUriEq: Eq[Uri] = Eq.fromUniversalEquals
+  @deprecated(message = "Please use catsInstancesForHttp4sUri. Kept for binary compatibility", since = "0.21.14")
+  def http4sUriEq: Eq[Uri] = catsInstancesForHttp4sUri
+
+  implicit val catsInstancesForHttp4sUri: Hash[Uri] with Order[Uri] with Show[Uri] = {
+
+    new Hash[Uri] with Order[Uri] with Show[Uri] {
+      override def hash(x: Uri): Int =
+        x.hashCode
+
+      override def compare(x: Uri, y: Uri): Int = {
+        def compareUris[A: Order](focus: Uri => A): Int =
+          compareField(x, y, focus)
+
+        reduceComparisons(
+          compareUris(_.scheme),
+          Eval.later(compareUris(_.authority)),
+          Eval.later(compareUris(_.path)),
+          Eval.later(compareUris(_.query)),
+          Eval.later(compareUris(_.fragment))
+        )
+      }
+
+      override def show(t: Uri): String =
+        t.renderString
+    }
+  }
 }
