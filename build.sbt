@@ -749,6 +749,10 @@ def exampleProject(name: String) =
 
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",
+  scalacOptions ++= {
+    if (isDotty.value) Seq("-language:implicitConversions")
+    else Seq.empty
+  },
   javacOptions ++= Seq(
     "-Xlint:deprecation",
     "-Xlint:unchecked"
