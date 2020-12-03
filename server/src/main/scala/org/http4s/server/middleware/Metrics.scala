@@ -94,7 +94,8 @@ object Metrics {
                   // If an error occurred, but the status is non-empty, this
                   // means the error occurred during the stream processing of
                   // the response body. In this case recordHeadersTime would
-                  // have been invoked in the normal manner.
+                  // have been invoked in the normal manner so we do not need
+                  // to invoke it here.
                   ops.recordAbnormalTermination(totalTime, Abnormal, context.classifier) *>
                     ops.recordTotalTime(context.method, status, totalTime, context.classifier))
               case ExitCase.Canceled =>
