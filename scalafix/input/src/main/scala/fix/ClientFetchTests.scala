@@ -13,7 +13,8 @@ object ClientFetchTests {
 
   trait MyClientTrait[G[_]] extends Client[G] {
     final def doFetchR1[A](req: Request[G], f: Response[G] => G[A])(implicit G: Sync[G]): G[A] =
-      fetch(req)(f)
+
+    fetch(req)(f)
 
     final def doFetchFR1[A](req: G[Request[G]], f: Response[G] => G[A])(implicit G: Sync[G]): G[A] =
       this.fetch[A](req)(f)

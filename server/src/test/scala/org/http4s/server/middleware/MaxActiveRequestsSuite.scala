@@ -36,22 +36,22 @@ class MaxActiveRequestsSuite extends Http4sSuite {
       }
     }
 
-  test("httpApp allow a request when allowed") {
+  test("forHttpApp allow a request when allowed") {
     (for {
       deferredStarted <- Deferred[IO, Unit]
       deferredWait <- Deferred[IO, Unit]
       _ <- deferredWait.complete(())
-      middle <- MaxActiveRequests.httpApp[IO](1)
+      middle <- MaxActiveRequests.forHttpApp[IO](1)
       httpApp = middle(routes(deferredStarted, deferredWait).orNotFound)
       out <- httpApp.run(req)
     } yield out.status).assertEquals(Status.Ok)
   }
 
-  test("httpApp not allow a request if max active") {
+  test("forHttpApp not allow a request if max active") {
     (for {
       deferredStarted <- Deferred[IO, Unit]
       deferredWait <- Deferred[IO, Unit]
-      middle <- MaxActiveRequests.httpApp[IO](1)
+      middle <- MaxActiveRequests.forHttpApp[IO](1)
       httpApp = middle(routes(deferredStarted, deferredWait).orNotFound)
       f <- httpApp.run(req).start
       _ <- deferredStarted.get
@@ -60,22 +60,22 @@ class MaxActiveRequestsSuite extends Http4sSuite {
     } yield out.status).assertEquals(Status.ServiceUnavailable)
 
   }
-  test("httpRoutes allow a request when allowed") {
+  test("forHttpRoutes allow a request when allowed") {
     (for {
       deferredStarted <- Deferred[IO, Unit]
       deferredWait <- Deferred[IO, Unit]
       _ <- deferredWait.complete(())
-      middle <- MaxActiveRequests.httpRoutes[IO](1)
+      middle <- MaxActiveRequests.forHttpRoutes[IO](1)
       httpApp = middle(routes(deferredStarted, deferredWait)).orNotFound
       out <- httpApp.run(req)
     } yield out.status).assertEquals(Status.Ok)
   }
 
-  test("httpRoutes not allow a request if max active") {
+  test("forHttpRoutes not allow a request if max active") {
     (for {
       deferredStarted <- Deferred[IO, Unit]
       deferredWait <- Deferred[IO, Unit]
-      middle <- MaxActiveRequests.httpRoutes[IO](1)
+      middle <- MaxActiveRequests.forHttpRoutes[IO](1)
       httpApp = middle(routes(deferredStarted, deferredWait)).orNotFound
       f <- httpApp.run(req).start
       _ <- deferredStarted.get
@@ -84,11 +84,11 @@ class MaxActiveRequestsSuite extends Http4sSuite {
     } yield out.status).assertEquals(Status.ServiceUnavailable)
   }
 
-  test("httpRoutes release resource on None") {
+  test("forHttpRoutes release resource on None") {
     (for {
       deferredStarted <- Deferred[IO, Unit]
       deferredWait <- Deferred[IO, Unit]
-      middle <- MaxActiveRequests.httpRoutes[IO](1)
+      middle <- MaxActiveRequests.forHttpRoutes[IO](1)
       httpApp = middle(routes(deferredStarted, deferredWait)).orNotFound
       out1 <- httpApp.run(Request(Method.PUT))
       _ <- deferredWait.complete(())
