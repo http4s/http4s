@@ -38,9 +38,9 @@ import org.http4s.server.middleware.BracketRequestResponse.ContextResponse
 object Metrics {
 
   private[this] final case class MetricsRequestContext(
-    method: Method,
-    startTime: Long,
-    classifier: Option[String]
+      method: Method,
+      startTime: Long,
+      classifier: Option[String]
   )
 
   /** A server middleware capable of recording metrics
@@ -59,56 +59,59 @@ object Metrics {
         None
       }
   )(routes: HttpRoutes[F])(implicit F: Sync[F], clock: Clock[F]): HttpRoutes[F] =
-    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status]{
+    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
       (request: Request[F]) =>
-      val classifier: Option[String] = classifierF(request)
-      ops.increaseActiveRequests(classifier) *>
-        clock.monotonic(TimeUnit.NANOSECONDS).map(startTime =>
-          ContextRequest(MetricsRequestContext(request.method, startTime, classifier), request)
-        )
-    }{
-      case (context, maybeStatus, exitCase) =>
-        // Decrease active requests _first_ in case any of the other effects
-        // trigger an error. This differs from the < 0.21.14 semantics, which
-        // decreased it _after_ the other effects. This may have been the
-        // reason the active requests counter was reported to have drifted.
-        ops.decreaseActiveRequests(context.classifier) *>
-        clock.monotonic(TimeUnit.NANOSECONDS).map(endTime =>
-          endTime - context.startTime
-        ).flatMap(totalTime =>
-          (exitCase match {
-            case ExitCase.Completed =>
-              (maybeStatus <+> emptyResponseHandler).traverse_(status =>
-                ops.recordTotalTime(context.method, status, totalTime, context.classifier)
-              )
-            case ExitCase.Error(e)  =>
-              maybeStatus.fold{
-                // If an error occurred, and the status is empty, this means
-                // that an error occurred before the routes could generate a
-                // response.
-                ops.recordHeadersTime(context.method, totalTime, context.classifier) *>
-                ops.recordAbnormalTermination(totalTime, Error, context.classifier) *>
-                errorResponseHandler(e).traverse_(status =>
-                  ops.recordTotalTime(context.method, status, totalTime, context.classifier)
-                )
-              }(status =>
-                // If an error occurred, but the status is non-empty, this
-                // means the error occurred during the stream processing of
-                // the response body. In this case recordHeadersTime would
-                // have been invoked in the normal manner.
-                ops.recordAbnormalTermination(totalTime, Abnormal, context.classifier) *>
-                ops.recordTotalTime(context.method, status, totalTime, context.classifier)
-              )
-            case ExitCase.Canceled =>
-              ops.recordAbnormalTermination(totalTime, Abnormal, context.classifier)
-          }
-          )
-        )
-    }(F)(Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>
-      routes.run(contextRequest.req).semiflatMap(response =>
-        clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - contextRequest.context.startTime).flatTap(headerTime =>
-          ops.recordHeadersTime(contextRequest.context.method, headerTime, contextRequest.context.classifier)
-        ) *> F.pure(ContextResponse(response.status, response))
-      )
-    ))
+        val classifier: Option[String] = classifierF(request)
+        ops.increaseActiveRequests(classifier) *>
+          clock
+            .monotonic(TimeUnit.NANOSECONDS)
+            .map(startTime =>
+              ContextRequest(MetricsRequestContext(request.method, startTime, classifier), request))
+    } { case (context, maybeStatus, exitCase) =>
+      // Decrease active requests _first_ in case any of the other effects
+      // trigger an error. This differs from the < 0.21.14 semantics, which
+      // decreased it _after_ the other effects. This may have been the
+      // reason the active requests counter was reported to have drifted.
+      ops.decreaseActiveRequests(context.classifier) *>
+        clock
+          .monotonic(TimeUnit.NANOSECONDS)
+          .map(endTime => endTime - context.startTime)
+          .flatMap(totalTime =>
+            (exitCase match {
+              case ExitCase.Completed =>
+                (maybeStatus <+> emptyResponseHandler).traverse_(status =>
+                  ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+              case ExitCase.Error(e) =>
+                maybeStatus.fold {
+                  // If an error occurred, and the status is empty, this means
+                  // that an error occurred before the routes could generate a
+                  // response.
+                  ops.recordHeadersTime(context.method, totalTime, context.classifier) *>
+                    ops.recordAbnormalTermination(totalTime, Error, context.classifier) *>
+                    errorResponseHandler(e).traverse_(status =>
+                      ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+                }(status =>
+                  // If an error occurred, but the status is non-empty, this
+                  // means the error occurred during the stream processing of
+                  // the response body. In this case recordHeadersTime would
+                  // have been invoked in the normal manner.
+                  ops.recordAbnormalTermination(totalTime, Abnormal, context.classifier) *>
+                    ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+              case ExitCase.Canceled =>
+                ops.recordAbnormalTermination(totalTime, Abnormal, context.classifier)
+            }))
+    }(F)(
+      Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>
+        routes
+          .run(contextRequest.req)
+          .semiflatMap(response =>
+            clock
+              .monotonic(TimeUnit.NANOSECONDS)
+              .map(now => now - contextRequest.context.startTime)
+              .flatTap(headerTime =>
+                ops.recordHeadersTime(
+                  contextRequest.context.method,
+                  headerTime,
+                  contextRequest.context.classifier)) *> F.pure(
+              ContextResponse(response.status, response)))))
 }
