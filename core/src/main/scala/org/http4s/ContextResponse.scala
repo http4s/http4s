@@ -16,4 +16,6 @@ final case class ContextResponse[F[_], A](context: A, response: Response[F]) {
     ContextResponse(context, response.mapK(fk))
 }
 
-object ContextResponse{}
+// Include to avoid binary compatibility issues with the apply method if/when
+// we ever need a companion object in the future.
+object ContextResponse {}
