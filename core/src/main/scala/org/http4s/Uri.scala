@@ -292,12 +292,6 @@ object Uri {
   }
 
   object Authority {
-    def apply(
-        userInfo: Option[UserInfo] = None,
-        host: Host = RegName("localhost"),
-        port: Option[Int] = None): Authority =
-      new Authority(userInfo, host, port)
-
     implicit val catsInstancesForHttp4sAuthority
         : Hash[Authority] with Order[Authority] with Show[Authority] =
       new Hash[Authority] with Order[Authority] with Show[Authority] {
