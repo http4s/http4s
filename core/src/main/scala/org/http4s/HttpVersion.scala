@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.{Hash, Order, Show}
 import cats.data.{Writer => _}
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.BoundedEnumerable
 import cats.parse.{Parser => P, Parser1}
 import cats.parse.Rfc5234.digit

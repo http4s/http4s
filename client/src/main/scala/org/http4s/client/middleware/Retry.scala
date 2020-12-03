@@ -9,7 +9,7 @@ package client
 package middleware
 
 import cats.effect.{Concurrent, Resource, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.http4s.Status._

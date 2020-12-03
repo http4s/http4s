@@ -8,7 +8,7 @@ package org.http4s
 package client
 package blaze
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import java.nio.channels.AsynchronousChannelGroup
 

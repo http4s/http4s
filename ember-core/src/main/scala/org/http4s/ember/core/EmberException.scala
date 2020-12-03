@@ -6,7 +6,7 @@
 
 package org.http4s.ember.core
 
-import cats.implicits._
+import cats.syntax.all._
 import java.time.Instant
 
 sealed trait EmberException extends RuntimeException with Product with Serializable

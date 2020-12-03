@@ -12,7 +12,7 @@ package org.http4s
 
 import cats.{Eq, Order, Show}
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.util.hashing.MurmurHash3

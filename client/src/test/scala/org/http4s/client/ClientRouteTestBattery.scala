@@ -8,7 +8,7 @@ package org.http4s
 package client
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.io._
 import java.net.InetSocketAddress

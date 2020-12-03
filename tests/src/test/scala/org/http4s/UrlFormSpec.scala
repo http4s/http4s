@@ -9,7 +9,7 @@ package org.http4s
 import cats.Monoid
 import cats.data._
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.laws.discipline.MonoidTests
 import org.http4s.internal.CollectionCompat
 

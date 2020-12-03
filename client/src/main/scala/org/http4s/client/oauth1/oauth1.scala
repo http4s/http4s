@@ -9,7 +9,8 @@ package client
 
 import cats.{Monad, MonadError, Show}
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
+import cats.instances.order._
 import java.nio.charset.StandardCharsets
 
 import javax.crypto

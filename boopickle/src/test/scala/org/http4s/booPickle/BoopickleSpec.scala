@@ -9,7 +9,6 @@ package booPickle
 
 import boopickle.Default._
 import cats.effect.IO
-import cats.implicits._
 import cats.Eq
 import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._

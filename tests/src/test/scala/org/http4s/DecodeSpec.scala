@@ -6,7 +6,7 @@
 
 package org.http4s
 
-import cats.implicits._
+import cats.syntax.all._
 import java.nio.charset.{Charset => JCharset}
 import java.nio.charset.{
   CharacterCodingException,

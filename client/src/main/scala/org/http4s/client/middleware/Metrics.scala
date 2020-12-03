@@ -7,7 +7,7 @@
 package org.http4s.client.middleware
 
 import cats.effect.{Clock, Resource, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import java.util.concurrent.TimeUnit
 
 import cats.effect.concurrent.Ref

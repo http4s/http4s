@@ -12,7 +12,7 @@ import cats.data.Kleisli
 import cats.effect.{Clock, Sync}
 import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration
-import cats.implicits._
+import cats.syntax.all._
 import java.util.concurrent.TimeUnit.NANOSECONDS
 import scala.concurrent.duration._
 
