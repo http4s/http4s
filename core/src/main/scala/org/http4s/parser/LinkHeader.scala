@@ -46,7 +46,11 @@ private[parser] trait LinkHeader {
     def LinkValueAttr: Rule[LinkValue :: HNil, LinkValue :: HNil] =
       rule {
         "rel=" ~ (Token | QuotedString) ~> { (link: LinkValue, rel: String) =>
-          link.copy(rel = Some(rel))
+          // https://tools.ietf.org/html/rfc8288#section-3.3
+          if (link.rel.isDefined)
+            link
+          else
+            link.copy(rel = Some(rel))
         } |
           "rev=" ~ (Token | QuotedString) ~> { (link: LinkValue, rev: String) =>
             link.copy(rev = Some(rev))
