@@ -6,7 +6,7 @@
 
 package org.http4s.internal
 
-import cats.effect.Sync
+import cats.effect.Concurrent
 import cats.implicits._
 import fs2.Stream
 import org.http4s.{Charset, Headers, MediaType, Message, Request, Response}
@@ -18,7 +18,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
+      log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
     val isJson = message.contentType.exists(mT =>
@@ -67,7 +67,7 @@ object Logger {
       logHeaders: Boolean,
       logBodyText: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
+      log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
     def prelude =
       message match {
         case Request(method, uri, httpVersion, _, _, _) =>
