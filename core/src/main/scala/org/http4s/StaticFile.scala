@@ -9,7 +9,7 @@ package org.http4s
 import cats.Semigroup
 import cats.data.OptionT
 import cats.effect.{Blocker, ContextShift, IO, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import fs2.io._
 import fs2.io.file.readRange

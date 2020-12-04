@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.data.{Writer => _}
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.BoundedEnumerable
 import cats.{Hash, Order, Show}
 import org.http4s.internal.parboiled2._

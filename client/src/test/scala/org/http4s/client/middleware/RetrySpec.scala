@@ -10,7 +10,7 @@ package middleware
 
 import cats.effect.{IO, Resource}
 import cats.effect.concurrent.{Ref, Semaphore}
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._

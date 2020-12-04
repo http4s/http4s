@@ -6,7 +6,7 @@
 
 package org.http4s.parser
 
-import cats.implicits._
+import cats.syntax.all._
 import java.nio.charset.{StandardCharsets, Charset => NioCharset}
 import org.http4s.Uri.Scheme.https
 import org.http4s._

@@ -10,7 +10,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.concurrent.Ref
 import cats.effect.implicits._
 import cats.effect.{Clock, ExitCase, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import java.util.concurrent.TimeUnit
 

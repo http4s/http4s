@@ -9,7 +9,7 @@ package blaze
 
 import cats.effect._
 import cats.effect.concurrent.{Deferred, Ref}
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
 import javax.net.ssl.SSLContext

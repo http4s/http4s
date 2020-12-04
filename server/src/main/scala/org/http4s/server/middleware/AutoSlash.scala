@@ -10,7 +10,7 @@ package middleware
 
 import cats.{Functor, Monad, MonoidK}
 import cats.data.Kleisli
-import cats.implicits._
+import cats.syntax.all._
 
 /** Removes a trailing slash from [[Request]] path
   *

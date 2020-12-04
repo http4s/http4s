@@ -10,7 +10,7 @@ package websocket
 
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.concurrent.SignallingRef
 import java.util.concurrent.atomic.AtomicBoolean

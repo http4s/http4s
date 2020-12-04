@@ -6,8 +6,8 @@
 
 package org.http4s
 
-import cats.{Eq, Eval, Foldable, Monoid, Order, Show}
-import cats.implicits._
+import cats.{Eval, Foldable, Monoid, Order, Show}
+import cats.syntax.all._
 import org.http4s.headers.`Set-Cookie`
 import org.typelevel.ci.CIString
 import scala.collection.mutable.ListBuffer
@@ -158,9 +158,6 @@ object Headers {
     Show.show[Headers] {
       _.iterator.map(_.show).mkString("Headers(", ", ", ")")
     }
-
-  @deprecated(message = "Please use HeadersOrder instead", since = "0.21.12")
-  def HeadersEq: Eq[Headers] = HeadersOrder
 
   implicit lazy val HeadersOrder: Order[Headers] =
     Order.by(_.toList)

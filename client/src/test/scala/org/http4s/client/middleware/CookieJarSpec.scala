@@ -8,7 +8,7 @@ package org.http4s.client.middleware
 
 import org.specs2.mutable.Specification
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import cats.effect.testing.specs2.CatsIO
 import org.http4s._

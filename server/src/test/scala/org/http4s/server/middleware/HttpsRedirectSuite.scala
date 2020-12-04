@@ -8,7 +8,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._

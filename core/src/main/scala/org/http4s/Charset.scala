@@ -10,6 +10,7 @@
 
 package org.http4s
 
+import cats._
 import java.nio.charset.{StandardCharsets, Charset => NioCharset}
 import java.util.{HashMap, Locale}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
@@ -26,6 +27,17 @@ final case class Charset private (nioCharset: NioCharset) extends Renderable {
 }
 
 object Charset {
+
+  implicit val catsInstancesForHttp4sCharset: Hash[Charset] with Order[Charset] =
+    new Hash[Charset] with Order[Charset] {
+      override def hash(x: Charset): Int =
+        x.hashCode
+
+      override def compare(x: Charset, y: Charset): Int =
+        // Using Comparable
+        x.nioCharset.compareTo(y.nioCharset)
+    }
+
   val `US-ASCII` = Charset(StandardCharsets.US_ASCII)
   val `ISO-8859-1` = Charset(StandardCharsets.ISO_8859_1)
   val `UTF-8` = Charset(StandardCharsets.UTF_8)

@@ -8,7 +8,7 @@ package org.http4s
 package client
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 
 private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])(
     implicit F: Sync[F])
