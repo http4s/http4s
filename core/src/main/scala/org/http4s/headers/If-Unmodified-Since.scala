@@ -7,14 +7,21 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser1
+import cats.syntax.all._
 import org.http4s.util.{Renderer, Writer}
 
 object `If-Unmodified-Since`
     extends HeaderKey.Internal[`If-Unmodified-Since`]
     with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`If-Unmodified-Since`] =
-    HttpHeaderParser.IF_UNMODIFIED_SINCE(s)
+    parser.parseAll(s).leftMap { e =>
+      ParseFailure("Invalid If-Unmodified-Since header", e.toString)
+    }
+
+  /* `If-Modified-Since = HTTP-date` */
+  private[http4s] val parser: Parser1[`If-Unmodified-Since`] =
+    HttpDate.parser.map(apply)
 }
 
 final case class `If-Unmodified-Since`(date: HttpDate) extends Header.Parsed {
