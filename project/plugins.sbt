@@ -16,7 +16,7 @@ addSbtPlugin("com.typesafe.sbt"           %  "sbt-site"                  % "1.4.
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-twirl"                 % "1.5.0")
 addSbtPlugin("com.typesafe.sbt"           %  "sbt-native-packager"       % "1.7.6")
 addSbtPlugin("de.heikoseeberger"          %  "sbt-header"                % "5.6.0")
-addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.15")
+addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.16")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
 addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.2.12")
 addSbtPlugin("org.scalameta"              %  "sbt-scalafmt"              % "2.4.2")
