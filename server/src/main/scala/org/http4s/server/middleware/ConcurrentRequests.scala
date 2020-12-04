@@ -36,7 +36,7 @@ object ConcurrentRequests {
     * @note This is the same as [[#route]], but allows for the inner and outer
     *       effect types to differ.
     */
-  def route_[F[_]: Sync, G[_]: Sync](
+  def route2[F[_]: Sync, G[_]: Sync](
       onIncrement: Long => G[Unit],
       onDecrement: Long => G[Unit]
   ): F[ContextMiddleware[G, Long]] =
@@ -60,7 +60,7 @@ object ConcurrentRequests {
       onIncrement: Long => F[Unit],
       onDecrement: Long => F[Unit]
   ): F[ContextMiddleware[F, Long]] =
-    route_[F, F](onIncrement, onDecrement)
+    route2[F, F](onIncrement, onDecrement)
 
   /** As [[#apply]], but runs the same effect on increment and decrement of the concurrent request count. */
   def onChangeRoute[F[_]: Sync](onChange: Long => F[Unit]): F[ContextMiddleware[F, Long]] =
@@ -78,7 +78,7 @@ object ConcurrentRequests {
     * @note This is the same as [[#app]], but allows for the inner and outer
     *       effect types to differ.
     */
-  def app_[F[_]: Sync, G[_]: Sync](
+  def app2[F[_]: Sync, G[_]: Sync](
       onIncrement: Long => G[Unit],
       onDecrement: Long => G[Unit]
   ): F[Kleisli[G, ContextRequest[G, Long], Response[G]] => Kleisli[G, Request[G], Response[G]]] =
@@ -102,7 +102,7 @@ object ConcurrentRequests {
       onIncrement: Long => F[Unit],
       onDecrement: Long => F[Unit]
   ): F[Kleisli[F, ContextRequest[F, Long], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
-    app_[F, F](onIncrement, onDecrement)
+    app2[F, F](onIncrement, onDecrement)
 
   /** As [[#apply]], but runs the same effect on increment and decrement of the concurrent request count. */
   def onChangeApp[F[_]: Sync](onChange: Long => F[Unit])
