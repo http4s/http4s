@@ -6,7 +6,7 @@
 
 package org.http4s.server.middleware
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import cats.effect.concurrent.Ref
 import org.http4s._
@@ -15,7 +15,7 @@ import org.http4s.util.CaseInsensitiveString
 
 import scala.concurrent.duration.TimeUnit
 
-class ResponseTimingSpec extends Http4sSpec {
+class ResponseTimingSuite extends Http4sSuite {
   import Sys.clock
 
   private val artificialDelay = 10
@@ -25,19 +25,16 @@ class ResponseTimingSpec extends Http4sSpec {
       Ok("request response")
   }
 
-  "ResponseTiming middleware" should {
-    "add a custom header with timing info" in {
-      val req = Request[IO](uri = Uri.uri("/request"))
-      val app = ResponseTiming(thisService)
-      val res = app(req)
+  test("add a custom header with timing info") {
+    val req = Request[IO](uri = Uri.uri("/request"))
+    val app = ResponseTiming(thisService)
+    val res = app(req)
 
-      val header = res
-        .map(_.headers.find(_.name == CaseInsensitiveString("X-Response-Time")))
-        .unsafeRunSync()
-
-      header.nonEmpty must_== true
-      header.get.value.toInt must_== artificialDelay
-    }
+    val header = res
+      .map(_.headers.find(_.name == CaseInsensitiveString("X-Response-Time")))
+    header
+      .map(_.forall(_.value.toInt === artificialDelay))
+      .assertEquals(true)
   }
 }
 

@@ -10,13 +10,13 @@ import cats.Applicative
 import cats.data.Validated.Valid
 import cats.data.{Chain, ValidatedNel}
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 
 /** A decoder ware that uses [[QueryParamDecoder]] to decode values in [[org.http4s.UrlForm]]
   *
   * @example
   * {{{
-  * scala> import cats.implicits._
+  * scala> import cats.syntax.all._
   * scala> import cats.data._
   * scala> import org.http4s.FormDataDecoder._
   * scala> import org.http4s.ParseFailure

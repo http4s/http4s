@@ -14,7 +14,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.{Bracket, Concurrent, ExitCase, Sync}
 import cats.effect.implicits._
 import cats.effect.concurrent.Ref
-import cats.implicits._
+import cats.syntax.all._
 import fs2.{Chunk, Stream}
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger

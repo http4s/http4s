@@ -9,7 +9,7 @@ package testing
 
 import cats.MonadError
 import cats.data.EitherT
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.specs2.matcher.{RunTimedMatchers => Specs2RunTimedMatchers, _}

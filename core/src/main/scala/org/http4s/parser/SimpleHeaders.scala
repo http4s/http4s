@@ -144,11 +144,6 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
-  def ETAG(value: String): ParseResult[ETag] =
-    new Http4sHeaderParser[ETag](value) {
-      def entry = rule(EntityTag ~> (ETag(_: ETag.EntityTag)))
-    }.parse
-
   def IF_MATCH(value: String): ParseResult[`If-Match`] =
     new Http4sHeaderParser[`If-Match`](value) {
       def entry =

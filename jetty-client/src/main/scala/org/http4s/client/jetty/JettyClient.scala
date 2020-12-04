@@ -9,7 +9,7 @@ package client
 package jetty
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import org.eclipse.jetty.client.HttpClient
 import org.eclipse.jetty.client.api.{Request => JettyRequest}

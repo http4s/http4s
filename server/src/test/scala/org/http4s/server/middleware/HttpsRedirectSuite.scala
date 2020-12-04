@@ -8,7 +8,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -16,7 +16,7 @@ import org.http4s.headers._
 import org.http4s.syntax.all._
 import org.http4s.Uri.{Authority, RegName, Scheme}
 
-class HttpsRedirectSpec extends Http4sSuite {
+class HttpsRedirectSuite extends Http4sSuite {
   val innerRoutes = HttpRoutes.of[IO] { case GET -> Root =>
     Ok("pong")
   }

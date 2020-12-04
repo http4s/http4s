@@ -9,7 +9,7 @@ package org.http4s
 import java.util.Locale
 
 import cats.Hash
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.laws.discipline._
 import org.scalacheck.Gen
 import org.scalacheck.Prop.{forAll, forAllNoShrink}
@@ -17,7 +17,8 @@ import org.scalacheck.Prop.{forAll, forAllNoShrink}
 class MethodSpec extends Http4sSpec {
   import Method._
 
-  checkAll("Method", HashTests[Method].eqv)
+  checkAll("Hash[Method]", HashTests[Method].hash)
+  checkAll("Order[Method]", OrderTests[Method].order)
   checkAll("Hash[Method]", SerializableTests.serializable(Hash[Method]))
 
   "parses own string rendering to equal value" in {

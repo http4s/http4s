@@ -9,7 +9,7 @@ package server
 package blaze
 
 import cats.effect.{ConcurrentEffect, IO, Sync, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.Stream._
 import java.util.Locale
