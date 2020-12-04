@@ -79,14 +79,6 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
-  def DATE(value: String): ParseResult[Date] =
-    new Http4sHeaderParser[Date](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (Date(_))
-        }
-    }.parse
-
   def EXPIRES(value: String): ParseResult[Expires] =
     new Http4sHeaderParser[Expires](value) {
       def entry =
