@@ -26,9 +26,9 @@ import org.http4s.server._
   * special cased. Having a generic implementation opens up the possibility of
   * writing many interesting middlewares with ease.
   *
-  * @define releaseWarning The bracketing semantics defined here differ
-  *         in one very important way from cats-effect or fs2 bracketing
-  *         semantics. If the Response body is not evaluated after the
+  * @define releaseWarning The bracketing semantics defined here differ in one
+  *         very important way from cats-effect or fs2 bracketing
+  *         semantics. If the [[Response]] body is not evaluated after the
   *         application of the middleware, then the `release` handler ''will
   *         not run, effectively creating a resource leak.'' This can happen
   *         due to a bug in a server implementation, where it fails to drain
