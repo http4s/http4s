@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.Monoid
-import cats.implicits._
+import cats.syntax.all._
 
 final case class Entity[+F[_]](body: EntityBody[F], length: Option[Long] = None)
 

@@ -6,7 +6,7 @@
 
 package org
 
-import cats.data.{EitherT, Kleisli, OptionT}
+import cats.data._
 import fs2.Stream
 import org.typelevel.ci.CIString
 

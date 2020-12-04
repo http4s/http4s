@@ -8,7 +8,7 @@ package org.http4s
 package json4s
 
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.testing.Http4sLegacyMatchersIO

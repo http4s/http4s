@@ -9,7 +9,7 @@ package multipart
 
 import cats._
 import cats.effect.Concurrent
-import cats.implicits._
+import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.file.Files
 import java.nio.file.{Path, StandardOpenOption}

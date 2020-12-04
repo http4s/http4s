@@ -9,7 +9,7 @@ package org.http4s
 import cats.{Eq, Monoid}
 import cats.data.Chain
 import cats.effect.Concurrent
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._

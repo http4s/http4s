@@ -7,7 +7,7 @@
 package org.http4s.server.middleware
 
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import cats.data._
 import org.http4s._

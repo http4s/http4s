@@ -9,7 +9,6 @@ package play.test // Get out of play package so we can import custom instances
 
 import _root_.play.api.libs.json._
 import cats.effect.IO
-import cats.effect.laws.util.TestContext
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.play._
@@ -17,7 +16,6 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 
 // Originally based on CirceSpec
 class PlaySpec extends JawnDecodeSupportSpec[JsValue] with Http4sLegacyMatchersIO {
-  implicit val testContext = TestContext()
 
   testJsonDecoder(jsonDecoder)
 

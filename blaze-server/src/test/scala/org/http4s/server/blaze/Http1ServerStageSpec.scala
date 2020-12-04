@@ -11,7 +11,7 @@ package blaze
 import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Deferred
-import cats.implicits._
+import cats.syntax.all._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H}

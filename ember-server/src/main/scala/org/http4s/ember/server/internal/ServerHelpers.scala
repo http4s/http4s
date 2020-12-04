@@ -11,7 +11,7 @@ import fs2.concurrent._
 import fs2.io.tcp._
 import fs2.io.tls._
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 import org.http4s._

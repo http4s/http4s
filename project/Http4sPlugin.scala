@@ -348,7 +348,7 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineSpecs2 = "1.1.1"
     val dropwizardMetrics = "4.1.16"
     val fs2 = "3.0.0-M3"
-    val jacksonDatabind = "2.11.3"
+    val jacksonDatabind = "2.12.0"
     val jawn = "1.0.1"
     val jawnFs2 = "2.0.0-M2"
     val jetty = "9.4.35.v20201120"
@@ -370,6 +370,7 @@ object Http4sPlugin extends AutoPlugin {
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.1"
+    val scalacheckEffect = "0.6.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
@@ -449,6 +450,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val reactiveStreams                  = "org.reactivestreams"    %  "reactive-streams"          % V.reactiveStreams
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % V.quasiquotes
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % V.scalacheck
+  lazy val scalacheckEffect                 = "org.typelevel"          %% "scalacheck-effect"         % V.scalacheckEffect
+  lazy val scalacheckEffectMunit            = "org.typelevel"          %% "scalacheck-effect-munit"   % V.scalacheckEffect
   def scalaReflect(sv: String)              = "org.scala-lang"         %  "scala-reflect"             % sv
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % V.scalatags
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % V.scalaXml

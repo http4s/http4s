@@ -10,7 +10,7 @@ import java.time.{Instant, ZonedDateTime}
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderable, Writer}
 import cats.Functor
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.Clock
 
 /** An HTTP-date value represents time as an instance of Coordinated Universal

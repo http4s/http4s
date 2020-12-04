@@ -8,7 +8,7 @@ package org.http4s
 package multipart
 
 import cats.effect.Concurrent
-import cats.implicits._
+import cats.syntax.all._
 
 import fs2.io.file.Files
 

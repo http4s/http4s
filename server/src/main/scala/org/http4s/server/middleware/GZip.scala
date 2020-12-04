@@ -11,7 +11,7 @@ package middleware
 import cats.Functor
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.Stream.chunk
 import fs2.compression.deflate

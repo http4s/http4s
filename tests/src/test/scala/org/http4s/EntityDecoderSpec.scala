@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.effect._
 import cats.effect.laws.util.TestContext
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.Stream._
 import java.io.{File, FileInputStream, InputStreamReader}

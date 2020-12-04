@@ -6,7 +6,6 @@
 
 package org.http4s
 
-import cats.implicits._
 import cats.kernel.laws.discipline.{HashTests, OrderTests}
 import org.http4s.Uri.Ipv6Address
 import org.http4s.laws.discipline.HttpCodecTests
