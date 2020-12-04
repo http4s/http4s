@@ -7,7 +7,6 @@
 package org.http4s
 
 import cats.{Eq, Hash, Order, Show}
-import cats.implicits._
 import cats.parse.Parser1
 import cats.syntax.all._
 import org.http4s.Method.Semantics
