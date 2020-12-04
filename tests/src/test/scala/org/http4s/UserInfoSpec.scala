@@ -6,7 +6,7 @@
 
 package org.http4s
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.laws.discipline.{HashTests, OrderTests}
 import org.http4s.Uri.UserInfo
 import org.http4s.util.UrlCodingUtils._

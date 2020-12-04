@@ -8,6 +8,7 @@ package org.http4s
 package json4s
 
 import cats.effect.Concurrent
+import cats.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.json4s._
 import org.json4s.JsonAST.JValue

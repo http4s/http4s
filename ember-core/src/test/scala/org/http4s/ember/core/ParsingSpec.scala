@@ -16,7 +16,7 @@ import cats.effect.testing.specs2.CatsIO
 import fs2._
 import cats.effect.concurrent._
 import cats.data.OptionT
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Chunk.ByteVectorChunk
 import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
 import org.http4s.headers.Expires

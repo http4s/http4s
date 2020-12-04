@@ -8,7 +8,7 @@ package org.http4s
 
 import cats.{Applicative, Functor, Monad, ~>}
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.SyncIO
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode

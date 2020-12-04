@@ -10,6 +10,4 @@ import munit._
 
 /** Common stack for http4s' munit based tests
   */
-trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {}
-
-object Http4sSuite {}
+trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite

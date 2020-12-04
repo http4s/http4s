@@ -11,7 +11,7 @@ package util
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.effect.testing.specs2.CatsEffect
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import fs2.Stream._
 import fs2.compression.deflate

@@ -13,6 +13,7 @@ import cats.effect.IO
 import cats.effect.testkit.TestContext
 import org.http4s.MediaType
 import org.http4s.headers.`Content-Type`
+// import org.http4s.laws.discipline.EntityCodecTests
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
@@ -68,4 +69,7 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances {
       .decode(Request[IO]().withEntity(Banana(10.0): Fruit), strict = true)
     result.value.map(assertEquals(_, Right(Banana(10.0))))
   }
+
+  // FIXME Needs an Eq[IO[Boolean]], or more likely, new test glue
+  // checkAll("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodec)
 }

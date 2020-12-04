@@ -14,7 +14,8 @@ import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
 import cats.effect.Concurrent
 import cats.effect.testkit._
 import cats.effect.std.Dispatcher
-import cats.implicits._
+import cats.instances.order._
+import cats.syntax.all._
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -608,6 +609,12 @@ private[http4s] trait ArbitraryInstances {
   val genHexDigit: Gen[Char] = oneOf(
     List('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
 
+  val genPctEncoded: Gen[String] =
+    const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
+  val genUnreserved: Gen[Char] =
+    oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
+  val genSubDelims: Gen[Char] = oneOf(List('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
+
   private implicit def http4sTestingSemigroupForGen[T: Semigroup]: Semigroup[Gen[T]] =
     new Semigroup[Gen[T]] {
       def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for { t1 <- g1; t2 <- g2 } yield t1 |+| t2
@@ -647,10 +654,14 @@ private[http4s] trait ArbitraryInstances {
     Cogen[(Short, Short, Short, Short, Short, Short, Short, Short)]
       .contramap(ipv6 => (ipv6.a, ipv6.b, ipv6.c, ipv6.d, ipv6.e, ipv6.f, ipv6.g, ipv6.h))
 
-  implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = Arbitrary {
-    val genRegName =
+  implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = {
+    // Duplicated in the companion object for binary compatibility. This should
+    // be removed before 1.0.0.
+    val http4sTestingRegNameGen: Gen[Uri.RegName] =
       listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
-    oneOf(getArbitrary[Uri.Ipv4Address], getArbitrary[Uri.Ipv6Address], genRegName)
+    Arbitrary(
+      oneOf(getArbitrary[Uri.Ipv4Address], getArbitrary[Uri.Ipv6Address], http4sTestingRegNameGen)
+    )
   }
 
   implicit val http4sTestingArbitraryForUserInfo: Arbitrary[Uri.UserInfo] =
@@ -671,12 +682,6 @@ private[http4s] trait ArbitraryInstances {
       maybePort <- Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
     } yield Uri.Authority(maybeUserInfo, host, maybePort)
   }
-
-  val genPctEncoded: Gen[String] =
-    const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
-  val genUnreserved: Gen[Char] =
-    oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
-  val genSubDelims: Gen[Char] = oneOf(List('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
 
   implicit val http4sTestingArbitraryForScheme: Arbitrary[Uri.Scheme] = Arbitrary {
     frequency(
@@ -928,6 +933,12 @@ private[http4s] trait ArbitraryInstances {
         body <- http4sTestingGenForPureByteStream
       } yield Response(status, httpVersion, headers, body)
     }
+
+  implicit val http4sTestingArbitraryForSegment: Arbitrary[Uri.Path.Segment] =
+    Arbitrary(getArbitrary[String].map(Uri.Path.Segment.apply))
+
+  implicit val http4sTestingCogenForSegment: Cogen[Uri.Path.Segment] =
+    Cogen[String].contramap(_.encoded)
 }
 
 object ArbitraryInstances extends ArbitraryInstances {
@@ -937,4 +948,26 @@ object ArbitraryInstances extends ArbitraryInstances {
 
   val genListSep: Gen[String] =
     sequence[List[String], String](List(genOptWs, const(","), genOptWs)).map(_.mkString)
+
+  implicit val http4sTestingCogenForQuery: Cogen[Query] =
+    Cogen[Vector[(String, Option[String])]].contramap(_.toVector)
+
+  implicit val http4sTestingArbitraryForRegName: Arbitrary[Uri.RegName] =
+    Arbitrary(
+      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString)))
+
+  implicit val http4sTestingCogenForRegName: Cogen[Uri.RegName] =
+    Cogen[CIString].contramap(_.host)
+
+  implicit val http4sTestingCogenForUriHost: Cogen[Uri.Host] =
+    Cogen[Either[Uri.RegName, Either[Uri.Ipv4Address, Uri.Ipv6Address]]].contramap {
+      case value: Uri.RegName => Left(value)
+      case value: Uri.Ipv4Address => Right(Left(value))
+      case value: Uri.Ipv6Address => Right(Right(value))
+    }
+
+  implicit val http4sTestingCogenForAuthority: Cogen[Uri.Authority] =
+    Cogen
+      .tuple3[Option[Uri.UserInfo], Uri.Host, Option[Int]]
+      .contramap(a => (a.userInfo, a.host, a.port))
 }

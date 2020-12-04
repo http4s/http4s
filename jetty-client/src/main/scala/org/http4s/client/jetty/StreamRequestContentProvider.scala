@@ -11,7 +11,7 @@ package jetty
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.effect.implicits._
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import org.eclipse.jetty.client.util.DeferredContentProvider
 import org.eclipse.jetty.util.{Callback => JettyCallback}

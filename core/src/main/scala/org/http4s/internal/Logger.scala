@@ -7,7 +7,7 @@
 package org.http4s.internal
 
 import cats.effect.Concurrent
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import org.http4s.{Charset, Headers, MediaType, Message, Request, Response}
 import org.typelevel.ci.CIString

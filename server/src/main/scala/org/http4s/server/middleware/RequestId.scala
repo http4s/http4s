@@ -14,7 +14,7 @@ import cats.{FlatMap, ~>}
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
 import cats.effect.{IO, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import org.typelevel.ci.CIString
 import io.chrisdavenport.vault.Key
 import java.util.UUID

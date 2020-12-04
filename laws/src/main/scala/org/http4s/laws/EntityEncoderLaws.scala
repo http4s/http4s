@@ -7,7 +7,7 @@
 package org.http4s
 package laws
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect._
 import cats.laws._
 import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`}

@@ -7,7 +7,7 @@
 package org.http4s.server.blaze
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2.concurrent.SignallingRef
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._

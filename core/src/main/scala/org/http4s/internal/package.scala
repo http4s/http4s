@@ -13,9 +13,11 @@ import java.util.concurrent.{
   CompletionStage
 }
 
-import cats.effect.std.Dispatcher
+import cats.{Comonad, Eval, Order}
+import cats.data.NonEmptyChain
 import cats.effect.{Async, Sync}
-import cats.implicits._
+import cats.effect.std.Dispatcher
+import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
 import java.nio.{ByteBuffer, CharBuffer}
 import org.log4s.Logger
@@ -245,4 +247,73 @@ package object internal {
     if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
       chunk.drop(3)
     else chunk
+
+  // Helper functions for writing Order instances //
+
+  /** This is the same as `Order.by(f).compare(a, b)`, but with the parameters
+    * re-arraigned to make it easier to partially apply the function to two
+    * instances of a type before supplying the `A => B`.
+    *
+    * The intended use case is that `f: A => B` will extract out a single
+    * field from two instances of some Product type and then compare the value
+    * of the field. This can then be done in turn for each field of a Product,
+    * significantly reducing the amount of code needed to write an `Order`
+    * instance for a Product with many fields.
+    *
+    * See the `Order` instance for `Uri` for an example of this usage.
+    */
+  private[http4s] def compareField[A, B: Order](
+      a: A,
+      b: A,
+      f: A => B
+  ): Int =
+    Order.by[A, B](f).compare(a, b)
+
+  /** Given at least one `Int` intended to represent the result of a comparison
+    * of two fields of some Product type, reduce the result to the first
+    * non-zero value, or return 0 if all comparisons are 0.
+    *
+    * The intended use case for this function is to reduce the amount of code
+    * needed to write an `Order` instance for Product types. One can use
+    * [[#compareField]] to generate a comparison for each field in a product
+    * type, then apply this function to get a ordering for the entire Product
+    * type.
+    *
+    * See the `Order` instance for `Uri` for an example of this usage.
+    *
+    * @note The values of the `NonEmptyChain` are encoded `F[Int]`, where `F`
+    *       is some `Comonad`. The primary Comonads with which we are
+    *       concerned are `Eval` and `Id`. `Eval` will give lazy evaluation of
+    *       the Ordering, stopping as soon as the result is known, and `Id`
+    *       will give strict evaluation, in the case where the caller has good
+    *       reason to believe that evaluating the thunks will be slower than
+    *       strictly evaluating the result over all fields.
+    */
+  private[http4s] def reduceComparisons_[F[_]: Comonad](
+      comparisons: NonEmptyChain[F[Int]]
+  ): Int = {
+    val extractComparison: F[Int] => Option[Int] =
+      _.extract match {
+        case 0 => None
+        case otherwise => Some(otherwise)
+      }
+
+    comparisons
+      .reduceLeftTo(extractComparison) {
+        case (None, next) => extractComparison(next)
+        case (otherwise, _) => otherwise
+      }
+      .getOrElse(0)
+  }
+
+  /** Similar to [[#reduceComparisons_]] but with the `F` type forced to `Eval`
+    * for every comparison other than the first one. This encodes the commonly
+    * desired use case of only evaluating the minimum number of comparisons
+    * required to determine the ordering.
+    */
+  private[http4s] def reduceComparisons(
+      head: Int,
+      tail: Eval[Int]*
+  ): Int =
+    reduceComparisons_(NonEmptyChain(Eval.now(head), tail: _*))
 }

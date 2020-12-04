@@ -7,7 +7,6 @@
 package org.http4s.multipart
 
 import cats.Eq
-import cats.implicits._
 import fs2.Chunk
 import java.nio.charset.StandardCharsets
 import org.http4s.internal.CollectionCompat

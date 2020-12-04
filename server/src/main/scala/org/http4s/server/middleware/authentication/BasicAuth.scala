@@ -12,7 +12,7 @@ package authentication
 import cats.Applicative
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.headers.Authorization
 
 /** Provides Basic Authentication from RFC 2617.

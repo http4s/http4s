@@ -9,7 +9,7 @@ package servlet
 
 import cats.effect._
 import cats.effect.implicits._
-import cats.implicits._
+import cats.syntax.all._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.server._
 
