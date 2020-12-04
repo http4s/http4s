@@ -25,6 +25,20 @@ import org.http4s.server._
   * http4s has encodings similar to these in the main repo, but they are all
   * special cased. Having a generic implementation opens up the possibility of
   * writing many interesting middlewares with ease.
+  *
+  * @define releaseWarning The bracketing semantics defined here differ
+  *         in one very important way from cats-effect or fs2 bracketing
+  *         semantics. If the Response body is not evaluated after the
+  *         application of the middleware, then the `release` handler ''will
+  *         not run, effectively creating a resource leak.'' This can happen
+  *         due to a bug in a server implementation, where it fails to drain
+  *         the body, or due to a user code if the [[Response]] body stream
+  *         (or the [[Response]] itself) is discarded after the application of
+  *         this middleware. Unfortunately, there is currently no way to avoid
+  *         this. For this reason, it is strongly recommended that this
+  *         middleware be applied at the most outer scope possible. Appending
+  *         to or transforming the [[Response]] body ''is safe'' to do after
+  *         the application of this middleware.
   */
 object BracketRequestResponse {
 
@@ -48,6 +62,8 @@ object BracketRequestResponse {
     * needed. Before attempting to use this middleware, you should consider if
     * [[#bracketRequestResponseRoutes]] or
     * [[#bracketRequestResponseCaseRoutes]] will work for your use case.
+    *
+    * @note $releaseWarning
     *
     * @note For some use cases, you might want to differentiate if release is
     *       invoked at the end of http routes expression, e.g. when the
@@ -108,6 +124,8 @@ object BracketRequestResponse {
   /** Bracket on the start of a request and the completion of processing the
     * response ''body Stream''.
     *
+    * @note $releaseWarning
+    *
     * @note A careful reader might be wondering where the analogous `use`
     *       parameter from `cats.effect.Bracket` has gone. The use of the
     *       acquired resource is running the request, thus the `use` function
@@ -133,6 +151,8 @@ object BracketRequestResponse {
 
   /** As [[#bracketRequestResponseCaseRoutes]] but defined for [[HttpApp]],
     * rather than [[HttpRoutes]].
+    *
+    * @note $releaseWarning
     */
   def bracketRequestResponseCaseApp[F[_], A](
       acquire: F[A]
@@ -154,6 +174,8 @@ object BracketRequestResponse {
 
   /** As [[#bracketRequestResponseCaseRoutes]], but `release` is simplified, ignoring
     * the exit condition.
+    *
+    * @note $releaseWarning
     */
   def bracketRequestResponseRoutes[F[_], A](acquire: F[A])(release: A => F[Unit])(implicit
       F: Bracket[F, Throwable]): ContextMiddleware[F, A] =
@@ -163,6 +185,8 @@ object BracketRequestResponse {
 
   /** As [[#bracketRequestResponseCaseApp]], but `release` is simplified, ignoring
     * the exit condition.
+    *
+    * @note $releaseWarning
     */
   def bracketRequestResponseApp[F[_], A](acquire: F[A])(release: A => F[Unit])(implicit
       F: Bracket[F, Throwable])
