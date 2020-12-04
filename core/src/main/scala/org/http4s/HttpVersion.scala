@@ -65,7 +65,6 @@ object HttpVersion {
     else if (minor < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $minor")
     else if (minor > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $minor")
     else ParseResult.success(new HttpVersion(major, minor))
-  }
 
   implicit val catsInstancesForHttp4sHttpVersion: Order[HttpVersion]
     with Show[HttpVersion]

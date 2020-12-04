@@ -98,6 +98,8 @@ lazy val core = libraryProject("core")
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
     mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ETAG"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.ETAG"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.HttpVersion$Parser"),
     ),
   )
@@ -748,6 +750,10 @@ def exampleProject(name: String) =
 
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",
+  scalacOptions ++= {
+    if (isDotty.value) Seq("-language:implicitConversions")
+    else Seq.empty
+  },
   javacOptions ++= Seq(
     "-Xlint:deprecation",
     "-Xlint:unchecked"
