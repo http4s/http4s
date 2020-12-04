@@ -62,22 +62,28 @@ object BracketRequestResponse {
     *
     * @note $releaseWarning
     *
-    * @note For some use cases, you might want to differentiate if release is
-    *       invoked at the end of http routes expression, e.g. when the
-    *       [[Response]] type is created, or if it is invoked at the
-    *       termination of the response body stream. You can determine this by
-    *       inspecting the `ExitCase` and the `Option[B]` response context. If
-    *       the `ExitCase` is `Completed` then, you can be certain that
-    *       release is invoked at the termination of the body stream. If the
-    *       `ExitCase` is either `Error` or `Canceled`, then you can determine
-    *       where `release` is invoked by inspecting the response context. If
-    *       it is defined, e.g. `Some(_: B)`, then `release` is invoked at the
-    *       termination of the body stream, otherwise it is invoked at the
-    *       termination of the attempt to generated the [[Response]] value
-    *       (which failed due to either error or cancellation). This is
-    *       because the response context is only (and always) present if
-    *       [[Response]] value was generated, but is not (and never will be)
-    *       present if the generation of the [[Response]] value failed.
+    * @note For some use cases, you might want to differentiate between each
+    *       of the three exit branches where `release` may be invoked. The
+    *       three exit branches are, running a [[Request]] and receiving
+    *       `OptionT.none[F, Response[F]]`, running a [[Request]] and
+    *       encountering an error or cancellation before the [[Response]] is
+    *       generated, or at the full consumption of the [[Response]] body
+    *       stream (regardless of the `ExitCase`). One may determine the in
+    *       which branch `release` is being invoked by inspecting the
+    *       `ExitCase` and the `Option[B]` response context. If the response
+    *       context is defined, e.g. `Some(_: B)`, then you can be certain
+    *       that the `release` function was executed at the termination of the
+    *       body stream. This is because the response context is only (and
+    *       always) present if the [[Response]] value was generated
+    *       successfully (whether or not the body stream fails). If the
+    *       `ExitCase` is `Completed` and the response context is `None`, then
+    *       that means that the underlying [[HttpRoutes]] did not yield a
+    *       [[Response]], e.g. we got `OptionT.none: OptionT[F, Response[F]]`.
+    *       Otherwise, if the `ExitCase` is either `Error(_: Throwable)` or
+    *       `Canceled`, and the response context is `None`, then `release` is
+    *       executed in response to an error or cancellation during the
+    *       generation of the [[Response]] value proper, e.g. when running the
+    *       underlying `HttpRoutes`.
     *
     * @note A careful reader might be wondering where the analogous `use`
     *       parameter from `cats.effect.Bracket` has gone. The use of the
