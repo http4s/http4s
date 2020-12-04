@@ -42,9 +42,6 @@ import org.http4s.server._
   */
 object BracketRequestResponse {
 
-  /** A [[Response]] value with some arbitrary context added. */
-  final case class ContextResponse[F[_], A](context: A, response: Response[F])
-
   /** A Middleware which uses both a [[ContextRequest]] and [[ContextResponse]]. */
   type FullContextMiddleware[F[_], A, B] =
     Kleisli[OptionT[F, *], ContextRequest[F, A], ContextResponse[F, B]] => Kleisli[

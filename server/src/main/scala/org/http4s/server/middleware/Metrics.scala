@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit
 import org.http4s._
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType.{Abnormal, Error}
-import org.http4s.server.middleware.BracketRequestResponse.ContextResponse
 
 /** Server middleware to record metrics for the http4s server.
   *
