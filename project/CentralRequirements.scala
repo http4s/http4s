@@ -37,7 +37,6 @@ object CentralRequirementsPlugin extends AutoPlugin {
     licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.html")),
     homepage := Some(url("https://http4s.org/")),
     scmInfo := Some(ScmInfo(url("https://github.com/http4s/http4s"), "git@github.com:http4s/http4s.git")),
-    startYear := Some(2013),
     Compile / packageBin / publishArtifact := true,
     Compile / packageSrc / publishArtifact := true,
     Test / publishArtifact := false,
