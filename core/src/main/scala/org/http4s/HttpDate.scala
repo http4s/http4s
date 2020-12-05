@@ -155,6 +155,8 @@ object HttpDate {
     val dayName =
       List("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
         .map(string1)
+        .zipWithIndex
+        .map { case (s, i) => string1(s).as(i) }
         .reduceLeft(_.orElse1(_))
         .soft
 
