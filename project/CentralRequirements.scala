@@ -38,8 +38,6 @@ object CentralRequirementsPlugin extends AutoPlugin {
     homepage := Some(url("https://http4s.org/")),
     scmInfo := Some(ScmInfo(url("https://github.com/http4s/http4s"), "git@github.com:http4s/http4s.git")),
     startYear := Some(2013),
-    publishMavenStyle := true,
-    pomIncludeRepository := { _ => false },
     Compile / packageBin / publishArtifact := true,
     Compile / packageSrc / publishArtifact := true,
     Test / publishArtifact := false,
