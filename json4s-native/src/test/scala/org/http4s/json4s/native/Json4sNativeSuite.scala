@@ -10,4 +10,4 @@ package native
 
 import org.json4s.native.Document
 
-class Json4sNativeSpec extends Json4sSpec[Document] with Json4sNativeInstances
+class Json4sNativeSpec extends Json4sSuite[Document] with Json4sNativeInstances

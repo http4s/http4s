@@ -18,6 +18,7 @@ import org.specs2.execute.AsResult
 import scala.concurrent.duration._
 
 class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO {
+
   private val testRoutes = HttpRoutes.of[IO](stub)
 
   "A http routes with a prometheus metrics middleware" should {
