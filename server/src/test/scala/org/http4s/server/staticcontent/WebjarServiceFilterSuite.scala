@@ -21,7 +21,7 @@ import org.http4s._
 import org.http4s.Method.GET
 import org.http4s.server.staticcontent.WebjarService.Config
 
-object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
+class WebjarServiceFilterSuite extends Http4sSuite with StaticContentShared {
   def routes: HttpRoutes[IO] =
     webjarService(
       Config(
@@ -31,20 +31,22 @@ object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
       )
     )
 
-  "The WebjarService" should {
-    "Return a 200 Ok file" in {
-      val req = Request[IO](GET, Uri(path = "/test-lib/1.0.0/testresource.txt"))
-      val rb = runReq(req)
+  test("Return a 200 Ok file") {
+    val req = Request[IO](GET, Uri(path = "/test-lib/1.0.0/testresource.txt"))
+    val rb = runReq(req)
 
-      rb._1 must_== testWebjarResource
-      rb._2.status must_== Status.Ok
+    rb.flatMap { case (b, r) =>
+      assertEquals(r.status, Status.Ok)
+      b.assertEquals(testWebjarResource)
     }
+  }
 
-    "Not find filtered asset" in {
-      val req = Request[IO](GET, Uri(path = "/test-lib/1.0.0/sub/testresource.txt"))
-      val rb = runReq(req)
+  test("Not find filtered asset") {
+    val req = Request[IO](GET, Uri(path = "/test-lib/1.0.0/sub/testresource.txt"))
+    val rb = runReq(req)
 
-      rb._2.status must_== Status.NotFound
+    rb.flatMap { case (_, r) =>
+      IO.pure(r.status).assertEquals(Status.NotFound)
     }
   }
 }

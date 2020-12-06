@@ -19,56 +19,65 @@ package dsl
 
 import cats.Monad
 import cats.effect.IO
+import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.MediaType
 import org.http4s.headers.{Accept, Location, `Content-Length`, `Content-Type`}
-import org.http4s.testing.Http4sLegacyMatchersIO
 
-class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
-  "Add the EntityEncoder headers along with a content-length header" in {
+class ResponseGeneratorSuite extends Http4sSuite {
+  test("Add the EntityEncoder headers along with a content-length header") {
     val body = "foo"
-    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync().headers
-    EntityEncoder.stringEncoder[IO].headers.foldLeft(ok) { (old, h) =>
-      old.and(resultheaders.toList.exists(_ == h) must_=== true)
-    }
-
-    resultheaders.get(`Content-Length`) must_=== `Content-Length`
-      .fromLong(body.getBytes.length.toLong)
-      .toOption
+    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).map(_.headers)
+    EntityEncoder
+      .stringEncoder[IO]
+      .headers
+      .toList
+      .traverse { h =>
+        resultheaders.map(_.toList.exists(_ == h)).assertEquals(true)
+      } *>
+      resultheaders
+        .map(_.get(`Content-Length`))
+        .assertEquals(
+          `Content-Length`
+            .fromLong(body.getBytes.length.toLong)
+            .toOption)
   }
 
-  "Not duplicate headers when not provided" in {
+  test("Not duplicate headers when not provided") {
     val w =
       EntityEncoder.encodeBy[IO, String](
         EntityEncoder.stringEncoder[IO].headers.put(Accept(MediaRange.`audio/*`)))(
         EntityEncoder.stringEncoder[IO].toEntity(_)
       )
 
-    Ok("foo")(Monad[IO], w).map(_.headers.get(Accept)) must returnValue(
-      Some(Accept(MediaRange.`audio/*`)))
+    Ok("foo")(Monad[IO], w)
+      .map(_.headers.get(Accept))
+      .assertEquals(Some(Accept(MediaRange.`audio/*`)))
   }
 
-  "Explicitly added headers have priority" in {
+  test("Explicitly added headers have priority") {
     val w: EntityEncoder[IO, String] = EntityEncoder.encodeBy[IO, String](
       EntityEncoder.stringEncoder[IO].headers.put(`Content-Type`(MediaType.text.html)))(
       EntityEncoder.stringEncoder[IO].toEntity(_)
     )
 
     val resp: IO[Response[IO]] =
-      Ok("foo", `Content-Type`(MediaType.application json))(Monad[IO], w)
-    resp must returnValue(haveMediaType(MediaType.application json))
+      Ok("foo", `Content-Type`(MediaType.application.json))(Monad[IO], w)
+    resp
+      .map(_.headers.get(`Content-Type`).map(_.mediaType))
+      .assertEquals(Some(MediaType.application.json))
   }
 
-  "NoContent() does not generate Content-Length" in {
+  test("NoContent() does not generate Content-Length") {
     /* A server MUST NOT send a Content-Length header field in any response
      * with a status code of 1xx (Informational) or 204 (No Content).
      * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
      */
     val resp = NoContent()
-    resp.map(_.contentLength) must returnValue(Option.empty[Long])
+    resp.map(_.contentLength).assertEquals(Option.empty[Long])
   }
 
-  "ResetContent() generates Content-Length: 0" in {
+  test("ResetContent() generates Content-Length: 0") {
     /* a server MUST do one of the following for a 205 response: a) indicate a
      * zero-length body for the response by including a Content-Length header
      * field with a value of 0; b) indicate a zero-length payload for the
@@ -81,10 +90,10 @@ class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
      * We choose option a.
      */
     val resp = ResetContent()
-    resp.map(_.contentLength) must returnValue(Some(0))
+    resp.map(_.contentLength).assertEquals(Some(0L))
   }
 
-  "NotModified() does not generate Content-Length" in {
+  test("NotModified() does not generate Content-Length") {
     /* A server MAY send a Content-Length header field in a 304 (Not Modified)
      * response to a conditional GET request (Section 4.1 of [RFC7232]); a
      * server MUST NOT send Content-Length in such a response unless its
@@ -96,10 +105,10 @@ class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
      * nothing.
      */
     val resp = NotModified()
-    resp.map(_.contentLength) must returnValue(Option.empty[Long])
+    resp.map(_.contentLength).assertEquals(Option.empty[Long])
   }
 
-  "EntityResponseGenerator() generates Content-Length: 0" in {
+  test("EntityResponseGenerator() generates Content-Length: 0") {
 
     /** Aside from the cases defined above, in the absence of Transfer-Encoding,
       * an origin server SHOULD send a Content-Length header field when the
@@ -110,32 +119,34 @@ class ResponseGeneratorSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       * Content-Length.
       */
     val resp = Ok()
-    resp.map(_.contentLength) must returnValue(Some(0))
+    resp.map(_.contentLength).assertEquals(Some(0L))
   }
 
-  "MovedPermanently() generates expected headers without body" in {
+  test("MovedPermanently() generates expected headers without body") {
     val location = Location(Uri.unsafeFromString("http://foo"))
     val resp = MovedPermanently(location, Accept(MediaRange.`audio/*`))
-    resp must returnValue(
-      haveHeaders(
+    resp
+      .map(_.headers)
+      .assertEquals(
         Headers.of(
           `Content-Length`.zero,
           location,
           Accept(MediaRange.`audio/*`)
-        )))
+        ))
   }
 
-  "MovedPermanently() generates expected headers with body" in {
+  test("MovedPermanently() generates expected headers with body") {
     val location = Location(Uri.unsafeFromString("http://foo"))
     val body = "foo"
     val resp = MovedPermanently(location, body, Accept(MediaRange.`audio/*`))
-    resp must returnValue(
-      haveHeaders(
+    resp
+      .map(_.headers)
+      .assertEquals(
         Headers.of(
           `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
           location,
           Accept(MediaRange.`audio/*`),
           `Content-Length`.unsafeFromLong(3)
-        )))
+        ))
   }
 }

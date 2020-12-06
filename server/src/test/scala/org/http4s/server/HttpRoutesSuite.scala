@@ -20,9 +20,9 @@ package server
 import cats.effect._
 import cats.syntax.all._
 import org.http4s.Uri.uri
-import org.http4s.testing.Http4sLegacyMatchersIO
+import org.http4s.syntax.all._
 
-class HttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
+class HttpRoutesSuite extends Http4sSuite {
   val routes1 = HttpRoutes.of[IO] {
     case req if req.pathInfo == "/match" =>
       Response[IO](Status.Ok).withEntity("match").pure[IO]
@@ -44,26 +44,39 @@ class HttpRoutesSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
   val aggregate1 = routes1 <+> routes2
 
-  "HttpRoutes" should {
-    "Return a valid Response from the first service of an aggregate" in {
-      aggregate1.orNotFound(Request[IO](uri = uri("/match"))) must returnBody("match")
-    }
+  test("Return a valid Response from the first service of an aggregate") {
+    aggregate1
+      .orNotFound(Request[IO](uri = uri("/match")))
+      .flatMap(_.as[String])
+      .assertEquals("match")
+  }
 
-    "Return a custom NotFound from the first service of an aggregate" in {
-      aggregate1.orNotFound(Request[IO](uri = uri("/notfound"))) must returnBody("notfound")
-    }
+  test("Return a custom NotFound from the first service of an aggregate") {
+    aggregate1
+      .orNotFound(Request[IO](uri = uri("/notfound")))
+      .flatMap(_.as[String])
+      .assertEquals("notfound")
+  }
 
-    "Accept the first matching route in the case of overlapping paths" in {
-      aggregate1.orNotFound(Request[IO](uri = uri("/conflict"))) must returnBody("routes1conflict")
-    }
+  test("Accept the first matching route in the case of overlapping paths") {
+    aggregate1
+      .orNotFound(Request[IO](uri = uri("/conflict")))
+      .flatMap(_.as[String])
+      .assertEquals("routes1conflict")
+  }
 
-    "Fall through the first service that doesn't match to a second matching service" in {
-      aggregate1.orNotFound(Request[IO](uri = uri("/routes2"))) must returnBody("routes2")
-    }
+  test("Fall through the first service that doesn't match to a second matching service") {
+    aggregate1
+      .orNotFound(Request[IO](uri = uri("/routes2")))
+      .flatMap(_.as[String])
+      .assertEquals("routes2")
+  }
 
-    "Properly fall through two aggregated service if no path matches" in {
-      aggregate1.apply(Request[IO](uri = uri("/wontMatch"))).value must returnValue(
-        Option.empty[Response[IO]])
-    }
+  test("Properly fall through two aggregated service if no path matches") {
+    aggregate1
+      .apply(Request[IO](uri = uri("/wontMatch")))
+      .value
+      .map(_ == Option.empty[Response[IO]])
+      .assertEquals(true)
   }
 }

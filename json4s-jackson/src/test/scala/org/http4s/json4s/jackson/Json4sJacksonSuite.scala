@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.http4s
-package json4s
-package native
+package org.http4s.json4s
+package jackson
 
-import org.json4s.native.Document
+import org.json4s.JsonAST.JValue
 
-class Json4sNativeSpec extends Json4sSpec[Document] with Json4sNativeInstances
+class Json4sJacksonSpec extends Json4sSuite[JValue] with Json4sJacksonInstances
