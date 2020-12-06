@@ -12,7 +12,7 @@ package org.http4s
 
 import cats.parse.{Parser, Parser1, Rfc5234}
 import java.time.{DateTimeException, ZoneOffset, ZonedDateTime}
-import org.http4s.internal.parsing.{Rfc1034, Rfc2616}
+import org.http4s.internal.parsing.{Rfc1034, Rfc2616, Rfc6265}
 import org.http4s.util.{Renderable, Writer}
 
 object RequestCookieJar {
@@ -85,6 +85,13 @@ final case class RequestCookie(name: String, content: String) extends Renderable
   }
 }
 
+object RequestCookie {
+  private[http4s] val parser: Parser1[RequestCookie] =
+    Rfc6265.cookiePair.map { case (name, value) =>
+      RequestCookie(name, value)
+    }
+}
+
 /** @param extension The extension attributes of the cookie.  If there is more
   * than one, they are joined by semi-colon, which must not appear in an
   * attribute value.
@@ -150,28 +157,8 @@ object ResponseCookie {
   private[http4s] val parser: Parser1[ResponseCookie] = {
     import Parser.{char, charIn, failWith, ignoreCase1, pure, rep, string1}
     import Rfc2616.Rfc1123Date
-    import Rfc5234.{digit, dquote}
-
-    /* token             = <token, defined in [RFC2616], Section 2.2> */
-    def token = Rfc2616.token
-
-    /* cookie-name       = token */
-    def cookieName = token
-
-    /* cookie-octet      = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
-     *                   ; US-ASCII characters excluding CTLs,
-     *                   ; whitespace DQUOTE, comma, semicolon,
-     *                   ; and backslash
-     */
-    val cookieOctet = charIn(
-      Set(0x21.toChar) ++
-        Set(0x23.toChar to 0x2b.toChar: _*) ++
-        Set(0x2d.toChar to 0x3a.toChar: _*) ++
-        Set(0x3c.toChar to 0x5b.toChar: _*) ++
-        Set(0x5d.toChar to 0x7e.toChar: _*))
-
-    /* cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE ) */
-    val cookieValue = rep(cookieOctet).orElse(dquote *> rep(cookieOctet) <* dquote).string
+    import Rfc5234.digit
+    import Rfc6265.{cookieName, cookieValue}
 
     /* cookie-pair       = cookie-name "=" cookie-value */
     val cookiePair = (cookieName <* char('=')) ~ cookieValue

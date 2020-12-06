@@ -121,7 +121,7 @@ object HttpHeaderParser
     addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
     addParser_("CONTENT-RANGE".ci, `CONTENT_RANGE`)
     addParser_("CONTENT-TYPE".ci, `CONTENT_TYPE`)
-    addParser_("COOKIE".ci, `COOKIE`)
+    addParser_("COOKIE".ci, Cookie.parse)
     addParser_("DATE".ci, Date.parse)
     addParser_("ETAG".ci, ETag.parse)
     addParser_("EXPIRES".ci, Expires.parse)

@@ -21,24 +21,11 @@ private[parser] trait CookieHeader {
   def SET_COOKIE(value: String): ParseResult[`Set-Cookie`] =
     new SetCookieParser(value).parse
 
-  def COOKIE(value: String): ParseResult[headers.Cookie] =
-    new CookieParser(value).parse
-
   private class SetCookieParser(input: ParserInput) extends BaseCookieParser[`Set-Cookie`](input) {
     def entry: Rule1[`Set-Cookie`] =
       rule {
         CookiePair(ResponseCookie(_, _)) ~ zeroOrMore(
           ";" ~ OptWS ~ CookieAttrs) ~ EOI ~> (`Set-Cookie`(_))
-      }
-  }
-
-  private class CookieParser(input: ParserInput) extends BaseCookieParser[headers.Cookie](input) {
-    def entry: Rule1[headers.Cookie] =
-      rule {
-        oneOrMore(CookiePair(RequestCookie)).separatedBy(";" ~ OptWS) ~ optional(";") ~ EOI ~> {
-          (xs: Seq[RequestCookie]) =>
-            headers.Cookie(xs.head, xs.tail: _*)
-        }
       }
   }
 
