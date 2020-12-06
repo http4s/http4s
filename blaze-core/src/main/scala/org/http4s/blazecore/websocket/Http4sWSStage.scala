@@ -31,11 +31,10 @@ import scala.util.{Failure, Success}
 private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
     sentClose: AtomicBoolean,
-    deadSignal: SignallingRef[F, Boolean]
-)(implicit F: Async[F], val ec: ExecutionContext, val D: Dispatcher[F])
+    deadSignal: SignallingRef[F, Boolean],
+    writeSemaphore: Semaphore[F]
+)(implicit F: Async[F], val D: Dispatcher[F])
     extends TailStage[WebSocketFrame] {
-
-  private[this] val writeSemaphore = D.unsafeRunSync(Semaphore[F](1L))
 
   def name: String = "Http4s WebSocket Stage"
 
@@ -176,4 +175,12 @@ private[http4s] class Http4sWSStage[F[_]](
 object Http4sWSStage {
   def bufferingSegment[F[_]](stage: Http4sWSStage[F]): LeafBuilder[WebSocketFrame] =
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
+
+  def apply[F[_]](
+      ws: WebSocket[F],
+      sentClose: AtomicBoolean,
+      deadSignal: SignallingRef[F, Boolean])(implicit
+      F: Async[F],
+      D: Dispatcher[F]): F[Http4sWSStage[F]] =
+    Semaphore[F](1L).map(new Http4sWSStage(ws, sentClose, deadSignal, _))
 }

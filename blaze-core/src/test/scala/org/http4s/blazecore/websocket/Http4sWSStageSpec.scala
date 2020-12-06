@@ -71,7 +71,8 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
         ws = WebSocketSeparatePipe[IO](outQ.dequeue, backendInQ.enqueue, IO(closeHook.set(true)))
         deadSignal <- SignallingRef[IO, Boolean](false)
         wsHead <- WSTestHead()
-        head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(wsHead)
+        http4sWSStage <- Http4sWSStage[IO](ws, closeHook, deadSignal)
+        head = LeafBuilder(http4sWSStage).base(wsHead)
         _ <- IO(head.sendInboundCommand(Command.Connected))
       } yield new TestWebsocketStage(outQ, head, closeHook, backendInQ)
   }

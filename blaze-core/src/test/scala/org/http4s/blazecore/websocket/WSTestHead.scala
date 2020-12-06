@@ -7,7 +7,7 @@
 package org.http4s.blazecore.websocket
 
 import cats.effect.IO
-import cats.effect.std.{Dispatcher, Semaphore}
+import cats.effect.std.Semaphore
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.Queue
@@ -34,10 +34,9 @@ import cats.effect.unsafe.implicits.global
   */
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
-    outQueue: Queue[IO, WebSocketFrame])(implicit D: Dispatcher[IO])
+    outQueue: Queue[IO, WebSocketFrame],
+    writeSemaphore: Semaphore[IO])
     extends HeadStage[WebSocketFrame] {
-
-  private[this] val writeSemaphore = D.unsafeRunSync(Semaphore[IO](1L))
 
   /** Block while we put elements into our queue
     *
@@ -94,7 +93,7 @@ sealed abstract class WSTestHead(
 }
 
 object WSTestHead {
-  def apply()(implicit D: Dispatcher[IO]): IO[WSTestHead] =
-    (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame])
-      .mapN(new WSTestHead(_, _) {})
+  def apply(): IO[WSTestHead] =
+    (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame], Semaphore[IO](1L))
+      .mapN(new WSTestHead(_, _, _) {})
 }
