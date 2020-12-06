@@ -9,4 +9,4 @@ package jackson
 
 import org.json4s.JsonAST.JValue
 
-class Json4sJacksonSpec extends Json4sSpec[JValue] with Json4sJacksonInstances
+class Json4sJacksonSpec extends Json4sSuite[JValue] with Json4sJacksonInstances
