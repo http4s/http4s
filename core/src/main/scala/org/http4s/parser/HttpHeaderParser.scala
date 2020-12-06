@@ -26,7 +26,6 @@ object HttpHeaderParser
     with AuthorizationHeader
     with CacheControlHeader
     with ContentTypeHeader
-    with CookieHeader
     with ForwardedHeader
     with LinkHeader
     with LocationHeader
@@ -140,7 +139,7 @@ object HttpHeaderParser
     addParser_("RANGE".ci, `RANGE`)
     addParser_("REFERER".ci, `REFERER`)
     addParser_("RETRY-AFTER".ci, `Retry-After`.parse)
-    addParser_("SET-COOKIE".ci, `SET_COOKIE`)
+    addParser_("SET-COOKIE".ci, `Set-Cookie`.parse)
     addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
     addParser_("TRANSFER-ENCODING".ci, `TRANSFER_ENCODING`)
     addParser_("USER-AGENT".ci, `USER_AGENT`)

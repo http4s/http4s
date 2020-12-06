@@ -5,22 +5,23 @@
  */
 
 package org.http4s
-package parser
+package headers
 
+import cats.syntax.all._
 import org.http4s.headers.`Set-Cookie`
 import org.specs2.mutable.Specification
 
-class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Cookie`] {
-  def hparse(value: String): ParseResult[`Set-Cookie`] = HttpHeaderParser.SET_COOKIE(value)
+class SetCookieHeaderSpec extends Specification {
+  def parse(value: String): `Set-Cookie` = `Set-Cookie`.parse(value).valueOr(throw _)
 
   "Set-Cookie parser" should {
     "parse a set cookie" in {
       val cookiestr =
-        "myname=\"foo\"; Domain=example.com; Max-Age=1; Path=value; SameSite=Strict; Secure;HttpOnly"
+        "myname=\"foo\"; Domain=example.com; Max-Age=1; Path=value; SameSite=Strict; Secure; HttpOnly"
       val c = parse(cookiestr).cookie
       c.name must be_==("myname")
       c.domain must beSome("example.com")
-      c.content must be_==("foo")
+      c.content must be_==(""""foo"""")
       c.maxAge must be_==(Some(1))
       c.path must beSome("value")
       c.sameSite must be_==(SameSite.Strict)
@@ -40,18 +41,12 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
       val c = parse(cookiestr).cookie
       c.name must be_==("myname")
       c.domain must beSome("example.com")
-      c.content must be_==("foo")
+      c.content must be_==(""""foo"""")
       c.maxAge must be_==(Some(1))
       c.path must be_==(Some("value"))
       c.sameSite must be_==(SameSite.Strict)
       c.secure must be_==(true)
       c.httpOnly must be_==(true)
-    }
-
-    "parse with a domain with a leading dot" in {
-      val cookiestr = "myname=\"foo\"; Domain=.example.com"
-      val c = parse(cookiestr).cookie
-      c.domain must beSome(".example.com")
     }
 
     "parse with a domain with a leading dot" in {

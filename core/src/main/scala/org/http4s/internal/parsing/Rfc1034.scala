@@ -6,7 +6,7 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser.{char, charIn, defer}
+import cats.parse.Parser.{char, charIn, rep1Sep}
 import cats.parse.Parser1
 import org.http4s.util.{CaseInsensitiveString => CIString}
 
@@ -27,22 +27,18 @@ private[http4s] object Rfc1034 {
     /* <let-dig> ::= <letter> | <digit> */
     val letDig = letter.orElse1(digit)
 
-    /* <let-dig-hyp> ::= <let-dig> | "-" */
-    val letDigHyp = letDig.void.orElse1(char('-')).string
-
-    /* <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str> */
-    def ldhStr: Parser1[String] = (letDigHyp <* ldhStr.?).string
-
-    /* <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]
+    /* <let-dig-hyp> ::= <let-dig> | "-"
+     * <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
+     * <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]
      *
      * RFC1123: One aspect of host name syntax is hereby changed: the
      * restriction on the first character is relaxed to allow either a
      * letter or a digit.  Host software MUST support this more liberal
      * syntax.
      */
-    val label = letDig <* ((letDigHyp.?).with1 *> letDig).?
+    val label = rep1Sep(letDig.rep1, 1, char('-'))
 
     /* <subdomain> ::= <label> | <subdomain> "." <label> */
-    label.orElse1(defer(subdomain).with1 <* char('.') <* label).string.map(CIString(_))
+    rep1Sep(label, 1, char('.')).string.map(CIString(_))
   }
 }

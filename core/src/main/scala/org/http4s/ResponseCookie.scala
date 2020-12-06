@@ -123,8 +123,12 @@ object ResponseCookie {
      */
     def domainValue = Rfc1034.subdomain
 
-    /* domain-av         = "Domain=" domain-value */
-    val domainAv = ignoreCase1("Domain=") *> domainValue.string.map {
+    /* domain-av         = "Domain=" domain-value
+     *
+     * But https://tools.ietf.org/html/rfc6265#section-5.2.3 mandates
+     * a leading dot, which is invalid per domain-value.
+     */
+    val domainAv = ignoreCase1("Domain=") *> (char('.').? ~ domainValue).string.map {
       domain: String => (cookie: ResponseCookie) => cookie.withDomain(domain)
     }
 
@@ -143,7 +147,7 @@ object ResponseCookie {
     val pathValue = avOctet.rep.string
 
     /* path-av           = "Path=" path-value */
-    val pathAv = ignoreCase1("Domain=") *> pathValue.map { case path: String =>
+    val pathAv = ignoreCase1("Path=") *> pathValue.map { case path: String =>
       (cookie: ResponseCookie) => cookie.withPath(path)
     }
 
