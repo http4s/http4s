@@ -17,7 +17,6 @@ import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.Date
 import org.http4s.headers._
-import scala.annotation.nowarn
 import scala.concurrent.duration._
 
 /** Provides Digest Authentication from RFC 2617.
@@ -78,7 +77,6 @@ object DigestAuth {
       }
     }
 
-  @nowarn("cat=other-match-analysis")
   private def checkAuth[F[_], A](
       realm: String,
       store: AuthenticationStore[F, A],
@@ -87,7 +85,7 @@ object DigestAuth {
     req.headers.get(Authorization) match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
-      case Some(Authorization(_)) =>
+      case Some(_) =>
         F.pure(NoCredentials)
       case None =>
         F.pure(NoAuthorizationHeader)
