@@ -45,14 +45,16 @@ class OriginHeaderSpec extends Specification with Http4sSpec {
       val text = hostString1
       val origin = Origin.HostList(NonEmptyList.of(host1))
       val headers = Headers.of(Header("Origin", text))
-      headers.get(Origin) must_== (Some(origin))
+      val h = headers.get(Origin)
+      h must_== (Some(origin))
     }
 
     "Parse a host without a port number" in {
       val text = hostString2
       val origin = Origin.HostList(NonEmptyList.of(host2))
       val headers = Headers.of(Header("Origin", text))
-      headers.get(Origin) must_== (Some(origin))
+      val h = headers.get(Origin)
+      h must_== (Some(origin))
     }
 
     "Parse a list of multiple hosts" in {

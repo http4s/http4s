@@ -9,13 +9,21 @@ package parser
 
 import cats.data.NonEmptyList
 import java.nio.charset.{Charset, StandardCharsets}
+
 import org.http4s._
 import org.http4s.headers.Origin
 import org.http4s.internal.parboiled2._
+import cats.parse.{Parser, Parser1, Rfc5234}
+import org.http4s.Uri.RegName
+import cats.implicits._
 
 trait OriginHeader {
-  def ORIGIN(value: String): ParseResult[Origin] =
-    new OriginParser(value).parse
+  def ORIGIN(value: String): ParseResult[Origin] = {
+    OriginHeader.parser.parseAll(value).leftMap { e =>
+      ParseFailure("Invalid Origin Header", e.toString)
+    }
+//    new OriginParser(value).parse
+  }
 
   private class OriginParser(value: String)
       extends Http4sHeaderParser[Origin](value)
@@ -58,5 +66,29 @@ trait OriginHeader {
           Origin.Host(s, h, p)
         }
       }
+  }
+}
+
+object OriginHeader {
+  private[http4s] val parser: Parser1[Origin] = {
+    import Parser.{string1, rep, `end`, char, until1}
+    import Rfc5234.{alpha, digit}
+
+
+    val unknownScheme = alpha ~ rep(alpha.string orElse1 digit.string orElse1 string1("+").string orElse1 string1("-").string orElse1 string1(".").string)
+    val http = string1("http")
+    val https = string1("https")
+    val scheme = List(https, http, unknownScheme).reduceLeft(_ orElse1 _).string.map(Uri.Scheme.unsafeFromString)
+    val host = until1(char(':').orElse(`end`)).string.map(RegName.apply)
+    val port = char(':') *> rep(digit).map {
+      case Nil => None
+      case li =>
+        Some(li.mkString.toInt)
+    }
+
+    (scheme ~ string1("://").void ~ host ~ port).map { case (((sch, _), host), port) =>
+      val one = Origin.Host(sch, host, port)
+      Origin.HostList(NonEmptyList.of(one))
+    }
   }
 }
