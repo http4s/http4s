@@ -38,7 +38,6 @@ import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
-import scala.language.postfixOps
 
 /** Basic OAuth1 message signing support
   *
