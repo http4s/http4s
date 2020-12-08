@@ -39,7 +39,7 @@ package object util {
         case Some(value) =>
           F.fromTry(value)
         case None =>
-          F.async { cb =>
+          F.async_ { cb =>
             future.onComplete {
               case Success(a) => cb(Right(a))
               case Failure(t) => cb(Left(t))

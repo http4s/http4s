@@ -8,6 +8,7 @@ package org.http4s
 package blazecore
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.HeadStage

@@ -12,15 +12,21 @@ import cats.effect._
 import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
+
+import cats.effect.std.Dispatcher
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
+
 import scala.collection.mutable.Buffer
 import scala.concurrent._
 
 private[http4s] class CachingChunkWriter[F[_]](
     pipe: TailStage[ByteBuffer],
     trailer: F[Headers],
-    bufferMaxSize: Int)(implicit protected val F: Effect[F], protected val ec: ExecutionContext)
+    bufferMaxSize: Int)(
+    implicit protected val F: Async[F],
+    protected val ec: ExecutionContext,
+    implicit protected val D: Dispatcher[F])
     extends Http1Writer[F] {
   import ChunkWriter._
 
