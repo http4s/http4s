@@ -8,6 +8,7 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import sbt.Keys._
 import sbt._
+import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -154,7 +155,9 @@ object Http4sPlugin extends AutoPlugin {
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
           "src/test/scala/org/http4s/UriSpec.scala"
         )
-      }
+      },
+
+    nowarnCompatAnnotationProvider := None,
   )
 
   def extractApiVersion(version: String) = {
