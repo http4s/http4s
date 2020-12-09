@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import org.http4s.headers.Authorization
 
 class AuthorizationHeaderSpec extends Http4sSpec {
-  def hparse(value: String) = HttpHeaderParser.AUTHORIZATION(value)
+  def hparse(value: String) = Authorization.parse(value)
 
   "Authorization header" should {
     "Parse a valid OAuth2 header" in {
@@ -42,6 +42,7 @@ class AuthorizationHeaderSpec extends Http4sSpec {
       val scheme = "foo"
       val params = NonEmptyList("abc" -> "123", Nil)
       val h = Authorization(Credentials.AuthParams(scheme.ci, params))
+      println(h.value)
       hparse(h.value) must beRight(h)
     }
   }
