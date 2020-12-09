@@ -23,7 +23,6 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
 
   /* https://tools.ietf.org/html/rfc7233#appendix-C */
   val parser: P[`Accept-Ranges`] = {
-    val ListSep: P[Unit] = Rfc7230.ows *> P.char(',') *> Rfc7230.ows
 
     val none = P.string1("none").as(Nil)
 
@@ -38,11 +37,11 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
       P.oneOf(
         List(
           none,
-          P.repSep(rangeUnit, 1, ListSep)
+          Rfc7230.headerRep1(rangeUnit).map(_.toList)
         )
       )
 
-    acceptableRanges.map(headers.`Accept-Ranges`.apply) /* is EOL necessary? */
+    acceptableRanges.map(headers.`Accept-Ranges`.apply)
   }
 }
 
