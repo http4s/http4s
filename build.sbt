@@ -719,6 +719,7 @@ lazy val scalafixOutput = project
   .settings(
     skip in compile := true,
     Compile / doc / sources := Nil,
+    excludeFilter in headerSources := { _ => true },
   )
   // Auto-formatting prevents the tests from passing
   .enablePlugins(NoPublishPlugin)
