@@ -13,7 +13,7 @@ import cats.data.Kleisli
 import fs2.Stream._
 import fs2.Chunk
 import java.nio.charset.StandardCharsets
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.headers._
 import org.log4s.getLogger
 

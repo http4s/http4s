@@ -12,8 +12,9 @@ import cats.effect.IO
 import fs2._
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
+import org.http4s.syntax.all._
 
-private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
+private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
   def routes: HttpRoutes[IO]
 
   lazy val testResource: Chunk[Byte] = {
@@ -59,9 +60,9 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
         .getBytes(StandardCharsets.UTF_8))
   }
 
-  def runReq(req: Request[IO]): (Chunk[Byte], Response[IO]) = {
-    val resp = routes.orNotFound(req).unsafeRunSync()
-    val chunk = Chunk.bytes(resp.body.compile.to(Array).unsafeRunSync())
-    (chunk, resp)
-  }
+  def runReq(req: Request[IO]): IO[(IO[Chunk[Byte]], Response[IO])] =
+    routes.orNotFound(req).map { resp =>
+      (resp.body.compile.to(Array).map(Chunk.bytes), resp)
+    }
+
 }

@@ -11,7 +11,7 @@ package middleware
 import cats.{Functor, Monad}
 import cats.data.Kleisli
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import org.log4s.getLogger
 import io.chrisdavenport.vault._
 

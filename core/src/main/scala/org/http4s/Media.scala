@@ -7,7 +7,7 @@
 package org.http4s
 
 import cats.MonadError
-import cats.implicits._
+import cats.syntax.all._
 import fs2.{RaiseThrowable, Stream}
 import fs2.text.utf8Decode
 import org.http4s.headers._

@@ -8,7 +8,7 @@ package org.http4s
 package servlet
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{ReadListener, WriteListener}

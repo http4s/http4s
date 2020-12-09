@@ -9,7 +9,7 @@ package client
 package blaze
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup

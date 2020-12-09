@@ -7,7 +7,7 @@
 package org.http4s.ember.core
 
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import fs2._
 import org.http4s._
 import cats.effect._

@@ -12,7 +12,7 @@ package authentication
 import cats.Applicative
 import cats.data.{Kleisli, NonEmptyList}
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.Date

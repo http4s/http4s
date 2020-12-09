@@ -9,7 +9,7 @@ package server
 package tomcat
 
 import cats.effect.{IO, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import java.io.IOException
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets

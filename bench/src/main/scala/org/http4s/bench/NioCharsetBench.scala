@@ -7,7 +7,7 @@
 package org.http4s
 package bench
 
-import cats.implicits._
+import cats.syntax.all._
 import java.nio.charset.{UnsupportedCharsetException, Charset => NioCharset}
 import java.util.{HashMap, Locale}
 import java.util.concurrent.TimeUnit

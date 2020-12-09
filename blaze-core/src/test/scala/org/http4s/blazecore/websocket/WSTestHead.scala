@@ -8,7 +8,7 @@ package org.http4s.blazecore.websocket
 
 import cats.effect.{ContextShift, IO, Timer}
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage

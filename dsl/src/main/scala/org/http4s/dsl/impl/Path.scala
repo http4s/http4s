@@ -11,7 +11,7 @@ package org.http4s.dsl.impl
 
 import cats.data._
 import cats.data.Validated._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s._
 import scala.util.Try
 import cats.Foldable
