@@ -49,7 +49,7 @@ class ForwardedRenderersSpec
       rendered must not be empty
 
       nodePort match {
-        case Node.Port(num) =>
+        case Node.Port.Numeric(num) =>
           Integer.parseUnsignedInt(rendered) ==== num
         case obfPort: Node.Obfuscated =>
           Node.Obfuscated.fromString(rendered) must beRight(obfPort)

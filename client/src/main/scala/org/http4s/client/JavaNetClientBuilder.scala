@@ -108,8 +108,15 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
           _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
           _ <- F.delay(conn.setRequestMethod(req.method.renderString))
-          _ <- F.delay(req.headers.foreach { case Header(name, value) =>
-            conn.setRequestProperty(name.value, value)
+          _ <- F.delay(req.headers.foreach {
+            case Header(name, value) =>
+              conn.setRequestProperty(name.value, value)
+            case h: Header.Parsed =>
+              // Appease 2.13.4's exhaustiveness checker
+              conn.setRequestProperty(h.name.value, h.value)
+            case Header.Raw(name, value) =>
+              // Appease 2.13.4's exhaustiveness checker
+              conn.setRequestProperty(name.value, value)
           })
           _ <- F.delay(conn.setInstanceFollowRedirects(false))
           _ <- F.delay(conn.setDoInput(true))
