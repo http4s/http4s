@@ -109,6 +109,10 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
     // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2", revision = "0.9.0"),
+    // Unsure about binary compatibility
+    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
+    // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -320,14 +324,14 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.14"
     val boopickle = "1.3.3"
-    val cats = "2.2.0"
-    val catsEffect = "2.2.0"
+    val cats = "2.3.0"
+    val catsEffect = "2.3.0"
     val catsEffectTesting = "0.4.1"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.2"
-    val disciplineSpecs2 = "1.1.1"
-    val dropwizardMetrics = "4.1.15"
+    val disciplineSpecs2 = "1.1.2"
+    val dropwizardMetrics = "4.1.16"
     val fs2 = "2.4.6"
     val jacksonDatabind = "2.11.3"
     val jawn = "1.0.1"
@@ -342,8 +346,8 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.54.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.8.0"
-    val munitDiscipline = "1.0.2"
+    val munitCatsEffect = "0.11.0"
+    val munitDiscipline = "1.0.3"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
@@ -355,7 +359,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
-    val scodecBits = "1.1.21"
+    val scodecBits = "1.1.22"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.5"

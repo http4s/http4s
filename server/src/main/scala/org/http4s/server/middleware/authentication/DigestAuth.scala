@@ -95,7 +95,7 @@ object DigestAuth {
     req.headers.get(Authorization) match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
-      case Some(Authorization(_)) =>
+      case Some(_) =>
         F.pure(NoCredentials)
       case None =>
         F.pure(NoAuthorizationHeader)

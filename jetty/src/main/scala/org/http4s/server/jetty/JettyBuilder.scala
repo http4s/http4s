@@ -234,14 +234,15 @@ sealed class JettyBuilder[F[_]] private (
         if (supportHttp2) logger.warn("JettyBuilder does not support HTTP/2 with SSL at the moment")
         new ServerConnector(jetty, sslContextFactory)
 
-      case None if !supportHttp2 =>
-        new ServerConnector(jetty)
-
-      case None if supportHttp2 =>
-        val config = new HttpConfiguration()
-        val http1 = new HttpConnectionFactory(config)
-        val http2c = new HTTP2CServerConnectionFactory(config)
-        new ServerConnector(jetty, http1, http2c)
+      case None =>
+        if (!supportHttp2) {
+          new ServerConnector(jetty)
+        } else {
+          val config = new HttpConfiguration()
+          val http1 = new HttpConnectionFactory(config)
+          val http2c = new HTTP2CServerConnectionFactory(config)
+          new ServerConnector(jetty, http1, http2c)
+        }
     }
 
   def resource: Resource[F, Server[F]] =
