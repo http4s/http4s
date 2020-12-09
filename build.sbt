@@ -706,7 +706,8 @@ lazy val scalafixInput = project
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
-    scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) }
+    scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) },
+    excludeFilter in headerSources := { _ => true },
   )
   // Syntax matters as much as semantics here.
   .enablePlugins(NoPublishPlugin)
@@ -718,7 +719,6 @@ lazy val scalafixOutput = project
   .settings(
     skip in compile := true,
     Compile / doc / sources := Nil,
-    headerSources := Seq.empty,
   )
   // Auto-formatting prevents the tests from passing
   .enablePlugins(NoPublishPlugin)
