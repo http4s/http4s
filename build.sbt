@@ -55,7 +55,6 @@ lazy val modules: List[ProjectReference] = List(
   scalafixOutput,
   scalafixRules,
   scalafixTests,
-  docs
 )
 
 lazy val root = project.in(file("."))
@@ -511,7 +510,6 @@ lazy val docs = http4sProject("docs")
   )
   .settings(docsProjectSettings)
   .settings(
-    crossScalaVersions := List(scala_212),
     libraryDependencies ++= Seq(
       circeGeneric,
       circeLiteral,
