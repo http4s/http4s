@@ -54,7 +54,8 @@ lazy val modules: List[ProjectReference] = List(
   scalafixInput,
   scalafixOutput,
   scalafixRules,
-  scalafixTests
+  scalafixTests,
+  docs
 )
 
 lazy val root = project.in(file("."))
@@ -533,11 +534,6 @@ lazy val docs = http4sProject("docs")
         scalafixRules,
         scalafixTests
       ),
-    Compile / scalacOptions ~= {
-      val unwanted = Set("-Ywarn-unused:params", "-Xlint:missing-interpolator", "-Ywarn-unused:imports")
-      // unused params warnings are disabled due to undefined functions in the doc
-      _.filterNot(unwanted) :+ "-Xfatal-warnings"
-    },
     mdocIn := (sourceDirectory in Compile).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     Hugo / baseURL := {
