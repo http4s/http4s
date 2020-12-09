@@ -534,6 +534,7 @@ lazy val docs = http4sProject("docs")
       ),
     mdocIn := (sourceDirectory in Compile).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
+    fatalWarningsInCI := false,
     Hugo / baseURL := {
       val docsPrefix = extractDocsPrefix(version.value)
       if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
