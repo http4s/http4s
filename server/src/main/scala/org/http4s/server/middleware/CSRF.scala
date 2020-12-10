@@ -11,7 +11,7 @@ package middleware
 import cats.~>
 import cats.Applicative
 import cats.data.{EitherT, Kleisli}
-import cats.effect.Sync
+import cats.effect.{Sync, Concurrent}
 import cats.syntax.all._
 import java.nio.charset.StandardCharsets
 import java.security.{MessageDigest, SecureRandom}
@@ -271,7 +271,7 @@ object CSRF {
       headerCheck = defaultOriginCheck(_, host, scheme, port)
     )
 
-  def withDefaultOriginCheckFormAware[F[_]: Sync, G[_]: Sync](fieldName: String, nt: G ~> F)(
+  def withDefaultOriginCheckFormAware[F[_]: Sync, G[_]: Concurrent](fieldName: String, nt: G ~> F)(
       key: SecretKey,
       host: String,
       scheme: Scheme,
@@ -380,7 +380,7 @@ object CSRF {
     csrf =>
       (r, http) => csrf.getHeaderToken(r).fold(csrf.onfailureF)(csrf.checkCSRFToken(r, http, _))
 
-  def checkCSRFinHeaderAndForm[F[_], G[_]: Sync](fieldName: String, nt: G ~> F)(implicit
+  def checkCSRFinHeaderAndForm[F[_], G[_]: Concurrent](fieldName: String, nt: G ~> F)(implicit
       F: Sync[F]
   ): CSRF[F, G] => CSRFCheck[F, G] = { csrf => (r, http) =>
     def getFormToken: F[Option[String]] = {

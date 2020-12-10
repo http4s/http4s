@@ -9,7 +9,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.kernel.Sync
+import cats.effect.Async
 import cats.implicits._
 import java.nio.file.Paths
 import org.http4s.server.middleware.TranslateUri
@@ -66,7 +66,7 @@ class ResourceServiceBuilder[F[_]] private (
 
   def withBufferSize(bufferSize: Int): ResourceServiceBuilder[F] = copy(bufferSize = bufferSize)
 
-  def toRoutes(implicit F: Sync[F]): HttpRoutes[F] = {
+  def toRoutes(implicit F: Async[F]): HttpRoutes[F] = {
     val basePath = if (this.basePath.isEmpty) "/" else this.basePath
     object BadTraversal extends Exception with NoStackTrace
 
@@ -141,7 +141,7 @@ object ResourceService {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   @deprecated("use ResourceServiceBuilder", "1.0.0-M1")
-  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Sync[F]): HttpRoutes[F] = {
+  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     val basePath = if (config.basePath.isEmpty) "/" else config.basePath
     object BadTraversal extends Exception with NoStackTrace
 

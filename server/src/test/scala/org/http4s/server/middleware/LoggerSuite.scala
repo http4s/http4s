@@ -30,7 +30,7 @@ class LoggerSuite extends Http4sSuite {
   def testResource = getClass.getResourceAsStream("/testresource.txt")
 
   def body: EntityBody[IO] =
-    readInputStream[IO](IO.pure(testResource), 4096, testBlocker)
+    readInputStream[IO](IO.pure(testResource), 4096)
 
   val expectedBody: String = Source.fromInputStream(testResource).mkString
 

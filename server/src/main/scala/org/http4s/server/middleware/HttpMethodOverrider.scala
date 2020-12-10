@@ -77,7 +77,7 @@ object HttpMethodOverrider {
     */
   def apply[F[_], G[_]](http: Http[F, G], config: HttpMethodOverriderConfig[F, G])(implicit
       F: Monad[F],
-      S: Sync[G]): Http[F, G] = {
+      S: Concurrent[G]): Http[F, G] = {
     val parseMethod = (m: String) => Method.fromString(m.toUpperCase)
 
     val processRequestWithOriginalMethod = (req: Request[G]) => http(req)

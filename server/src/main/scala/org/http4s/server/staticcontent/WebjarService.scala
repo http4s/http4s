@@ -9,7 +9,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.kernel.Sync
+import cats.effect.kernel.Async
 import cats.implicits._
 import java.nio.file.{Path, Paths}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
@@ -50,7 +50,7 @@ class WebjarServiceBuilder[F[_]] private (
   def withPreferGzipped(preferGzipped: Boolean): WebjarServiceBuilder[F] =
     copy(preferGzipped = preferGzipped)
 
-  def toRoutes(implicit F: Sync[F]): HttpRoutes[F] = {
+  def toRoutes(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     val Root = Paths.get("")
     Kleisli {
@@ -144,11 +144,11 @@ object WebjarServiceBuilder {
     * @param preferGzipped prefer gzip compression format?
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset[F[_]: Sync](
+  private def serveWebjarAsset[F[_]](
       cacheStrategy: CacheStrategy[F],
       classLoader: Option[ClassLoader],
       request: Request[F],
-      preferGzipped: Boolean)(webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
+      preferGzipped: Boolean)(webjarAsset: WebjarAsset)(implicit F: Async[F]): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(
         webjarAsset.pathInJar,
@@ -198,7 +198,7 @@ object WebjarService {
     * @return The HttpRoutes
     */
   @deprecated("use WebjarServiceBuilder", "1.0.0-M1")
-  def apply[F[_]](config: Config[F])(implicit F: Sync[F]): HttpRoutes[F] = {
+  def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     val Root = Paths.get("")
     Kleisli {
@@ -246,7 +246,7 @@ object WebjarService {
     * @param request The Request
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset[F[_]: Sync](config: Config[F], request: Request[F])(
+  private def serveWebjarAsset[F[_]: Async](config: Config[F], request: Request[F])(
       webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(webjarAsset.pathInJar, Some(request))

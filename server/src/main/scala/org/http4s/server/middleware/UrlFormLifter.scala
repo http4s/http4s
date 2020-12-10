@@ -21,7 +21,7 @@ import cats.~>
   * the body must be acessed through `multiParams`.
   */
 object UrlFormLifter {
-  def apply[F[_]: Sync, G[_]: Sync](f: G ~> F)(
+  def apply[F[_]: Sync, G[_]: Concurrent](f: G ~> F)(
       http: Kleisli[F, Request[G], Response[G]],
       strictDecode: Boolean = false): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>

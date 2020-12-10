@@ -13,7 +13,9 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.typelevel.ci.CIString
 
-import scala.concurrent.duration.TimeUnit
+import scala.concurrent.duration._
+import java.util.concurrent.TimeUnit
+import cats.Applicative
 
 class ResponseTimingSuite extends Http4sSuite {
   import Sys.clock
@@ -44,8 +46,10 @@ object Sys {
   def tick(): IO[Long] = currentTime.modify(l => (l + 1L, l))
 
   implicit val clock: Clock[IO] = new Clock[IO] {
-    override def realTime(unit: TimeUnit): IO[Long] = currentTime.get
+    override def applicative: Applicative[IO] = Applicative[IO]
+    
+    override def realTime: IO[FiniteDuration] = currentTime.get.map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
 
-    override def monotonic(unit: TimeUnit): IO[Long] = currentTime.get
+    override def monotonic: IO[FiniteDuration] = currentTime.get.map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
   }
 }

@@ -9,7 +9,7 @@ package server
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.kernel.Ref
 import cats.implicits._
 import fs2.Stream
 import org.http4s.Uri.uri
