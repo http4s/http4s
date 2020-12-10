@@ -76,29 +76,10 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
     // breaks binary compatibility in caffeine module with 0.8.1
     dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.9.0"),
-    // Jetty prereleases appear because of their non-semver prod releases
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta3"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta3"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta3"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta3"),
+    // servlet containers skipped until we figure out our Jakarta EE strategy
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "10.0.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "11.0.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Broke binary compatibility with 2.10.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
@@ -111,10 +92,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Dropped joda-time support, wait for next breaking release
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
-    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
-    dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
-    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2", revision = "0.9.0"),
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
@@ -334,7 +311,7 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.3.3"
     val cats = "2.3.0"
     val catsEffect = "2.3.0"
-    val catsEffectTesting = "0.4.1"
+    val catsEffectTesting = "0.5.0"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.2"
@@ -351,7 +328,7 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.9.0"
     val mockito = "3.5.15"
-    val netty = "4.1.54.Final"
+    val netty = "4.1.55.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
     val munitCatsEffect = "0.11.0"
@@ -371,7 +348,7 @@ object Http4sPlugin extends AutoPlugin {
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.5"
-    val tomcat = "9.0.40"
+    val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.0.0"
