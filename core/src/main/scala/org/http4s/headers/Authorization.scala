@@ -27,26 +27,24 @@ object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Si
     import Parser.char
     import cats.parse.Rfc5234.sp
 
-    import org.http4s.internal.parsing.Rfc7230.{headerRep1, token, quotedString}
+    import org.http4s.internal.parsing.Rfc7230.{headerRep1, ows, quotedString, token}
     import org.http4s.internal.parsing.Rfc7235.token68
 
     //auth-scheme = token
     val scheme = token.map(CaseInsensitiveString(_))
     //val authParamValue = token.orElse(quotedString)
     // auth-param = token BWS "=" BWS ( token / quoted-string )
-    val authParam: Parser1[(String, String)] = (token ~ char('=').void ~ quotedString).map{
-      case ((k, _), str) => k -> str
-    }
+    val authParam: Parser1[(String, String)] =
+      (token <* (ows ~ char('=').void ~ ows)) ~ quotedString
 
-    val tokenCred: Parser1[Credentials] = ((scheme <* sp) ~ token68).map { case (scheme, token) =>
-      Credentials.Token(scheme, token)
-    }
+    val creds: Parser1[Credentials] =
+      ((scheme <* sp) ~ (headerRep1(authParam).backtrack.? ~ token68.?)).flatMap {
+        case (scheme, (None, Some(token))) => Parser.pure(Credentials.Token(scheme, token))
+        case (scheme, (Some(nel), None)) => Parser.pure(Credentials.AuthParams(scheme, nel))
+        case (_, _) => Parser.fail
+      }
 
-    val params: Parser1[Credentials] = ((scheme <* sp) ~ headerRep1(authParam)).map {
-      case (scheme, params) => Credentials.AuthParams(scheme, params)
-    }
-
-    tokenCred.orElse1(params).map(Authorization(_))
+    creds.map(Authorization(_))
   }
 
   override def parse(s: String): ParseResult[Authorization] =
