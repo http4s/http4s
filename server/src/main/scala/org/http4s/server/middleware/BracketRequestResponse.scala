@@ -22,10 +22,6 @@ import org.http4s.server._
   * backs the response body, you can't actually use either
   * `cats.effect.Bracket` or `fs2.Stream.bracket` directly.
   *
-  * http4s has encodings similar to these in the main repo, but they are all
-  * special cased. Having a generic implementation opens up the possibility of
-  * writing many interesting middlewares with ease.
-  *
   * @define releaseWarning The bracketing semantics defined here differ in one
   *         very important way from cats-effect or fs2 bracketing
   *         semantics. If the [[Response]] body is not evaluated after the
