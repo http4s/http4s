@@ -8,6 +8,113 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M8 (2020-11-26)
+
+## Breaking changes
+
+### http4s-client
+
+* [#3903](https://github.com/http4s/http4s/pull/3903): Method apply syntax (e.g., `POST(body, uri)`) returns a `Request[F]` instead of `F[Request[F]]`
+
+# v0.21.13 (2020-11-25)
+
+## Bugfixes
+
+### Most modules
+
+* [#3932](https://github.com/http4s/http4s/pull/3932): Fix `NoClassDefFoundError` regression.  An example:
+
+  ```
+  [info]   java.lang.NoClassDefFoundError: cats/effect/ResourceLike
+  [info]   at org.http4s.client.Client$.$anonfun$fromHttpApp$2(Client.scala:246)
+  ```
+
+  A test dependency upgrade evicted our declared cats-effect-2.2.0 dependency, so we built against a newer version than we advertise in our POM.  Fixed by downgrading the test dependency and inspecting the classpath.  Tooling will be added to avoid repeat failures.
+
+# v0.21.12 (2020-11-25)
+
+## Bugfixes
+
+### http4s-core
+
+* [#3911](https://github.com/http4s/http4s/pull/3911): Support raw query strings. Formerly, all query strings were stored as a vector of key-value pairs, which was lossy in the percent-encoding of sub-delimiter characters (e.g., '+' vs '%2B').  Queries constructed with `.fromString` will be rendered as-is, for APIs that assign special meaning to sub-delimiters.
+* [#3921](https://github.com/http4s/http4s/pull/3921): Fix rendering of URIs with colons. This was a regression in v0.21.9.
+
+### http4s-circe
+
+* [#3906](https://github.com/http4s/http4s/pull/3906): Fix streamed encoder for empty stream. It was not rendering the `[F`.
+
+## Enhancements
+
+### http4s-core
+
+* [#3902](https://github.com/http4s/http4s/pull/3902): Add `Hash` and `BoundedEnumerable` instances for `HttpVersion`
+* [#3909](https://github.com/http4s/http4s/pull/3909): Add `Order` instance for `Header` and `Headers`
+
+## Dependency upgrades
+
+* fs2-2.4.6
+* jetty-9.4.35.v20201120
+
+# v1.0.0-M7 (2020-11-20)
+
+## Breaking changes
+
+### http4s-dsl
+
+* [#3876](https://github.com/http4s/http4s/pull/3876): Replace `dsl.Http4sDsl.Path` with `core.Uri.Path`. The new `Path` in 1.0 is rich enough to support the DSL's routing needs, and this eliminates a conversion between models on every `->` extractor.  This change is source compatible in typical extractions.
+
+## Dependency updates
+
+* argonaut-6.3.2
+
+# v0.21.11 (2020-11-20)
+
+## Enhancements
+
+### http4s-core
+
+* [#3864](https://github.com/http4s/http4s/pull/3864): Cache a `Right` of the common `HttpVersion`s for its `ParseResult`.
+
+### http4s-circe
+
+* [#3891](https://github.com/http4s/http4s/pull/3891): Encode JSON streams in their constituent chunks instead of a chunk-per-`Json`. This can significantly reduce the network flushes on most backends.
+
+### http4s-dsl
+
+* [#3844](https://github.com/http4s/http4s/pull/3844): Add `MatrixVar` extractor for [Matrix URIs](https://www.w3.org/DesignIssues/MatrixURIs.html)
+
+### http4s-async-http-client
+
+* [#3859](https://github.com/http4s/http4s/pull/3859): Add `AsyncHttpClient.apply` method that takes an already constructed async-http-client. This is useful for keeping a handle on bespoke of the client, such as its stats. Adds a functional `AsyncHttpClientStats` wrapper around the native stats class.
+
+## Internals
+
+These changes should be transparent, but are mentioned for completeness.
+
+### Dotty preparations
+
+* [#3798](https://github.com/http4s/http4s/pull/3798): Parenthesize some arguments to lambda functions.
+
+### Build
+
+* [#3868](https://github.com/http4s/http4s/pull/3868), [#3870](https://github.com/http4s/http4s/pull/3870): Start building with sbt-github-actions.
+
+## Dependency updates
+
+* discipline-1.1.2
+* dropwizard-metrics-4.1.15
+* jackson-databind-2.11.3
+* jawn-1.0.1
+* netty-4.1.54.Final
+* okio-2.9.0
+* tomcat-9.0.40
+
+~~# v0.21.10 (2020-11-20)~~
+
+Cursed release, accidentally tagged from main.
+Proceed directly to 0.21.11.
+
 # v1.0.0-M6 (2020-11-11)
 
 ## Breaking changes

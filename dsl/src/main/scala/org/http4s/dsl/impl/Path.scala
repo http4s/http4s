@@ -14,68 +14,10 @@ import cats.data.Validated._
 import cats.implicits._
 import org.http4s._
 import scala.util.Try
-
-/** Base class for path extractors. */
-trait Path {
-  def /(child: String) = new /(this, child)
-  def toList: List[String]
-  def parent: Path
-  def lastOption: Option[String]
-  def startsWith(other: Path): Boolean
-}
-
-object Path {
-
-  /** Constructs a path from a single string by splitting on the `'/'`
-    * character.
-    *
-    * Leading slashes do not create an empty path segment.  This is to
-    * reflect that there is no distinction between a request to
-    * `http://www.example.com` from `http://www.example.com/`.
-    *
-    * Trailing slashes result in a path with an empty final segment,
-    * unless the path is `"/"`, which is `Root`.
-    *
-    * Segments are URL decoded.
-    *
-    * {{{
-    * scala> Path("").toList
-    * res0: List[String] = List()
-    * scala> Path("/").toList
-    * res1: List[String] = List()
-    * scala> Path("a").toList
-    * res2: List[String] = List(a)
-    * scala> Path("/a").toList
-    * res3: List[String] = List(a)
-    * scala> Path("/a/").toList
-    * res4: List[String] = List(a, "")
-    * scala> Path("//a").toList
-    * res5: List[String] = List("", a)
-    * scala> Path("/%2F").toList
-    * res0: List[String] = List(/)
-    * }}}
-    */
-  def apply(str: String): Path =
-    apply(Uri.Path.fromString(str))
-
-  def apply(path: Uri.Path): Path =
-    if (path.isEmpty) Root
-    else
-      (if (path.endsWithSlash) path.segments :+ Uri.Path.Segment("") else path.segments)
-        .foldLeft(Root: Path)((path, seg) => path / seg.decoded())
-
-  def apply(first: String, rest: String*): Path =
-    rest.foldLeft(Root / first)(_ / _)
-
-  def apply(list: List[String]): Path =
-    list.foldLeft(Root: Path)(_ / _)
-
-  def unapplySeq(path: Path): Some[List[String]] =
-    Some(path.toList)
-
-  def unapplySeq[F[_]](request: Request[F]): Some[List[String]] =
-    Some(Path(request.pathInfo).toList)
-}
+import cats.Foldable
+import cats.Monad
+import org.http4s.Uri.Path
+import org.http4s.Uri.Path._
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
@@ -94,7 +36,7 @@ object ~ {
       case Root => None
       case parent / last =>
         unapply(last).map { case (base, ext) =>
-          (parent / base, ext)
+          (parent / Path.Segment(base), ext)
         }
     }
 
@@ -111,19 +53,21 @@ object ~ {
     }
 }
 
-final case class /(parent: Path, child: String) extends Path {
-  lazy val toList: List[String] = parent.toList ++ List(child)
-
-  def lastOption: Some[String] = Some(child)
-
-  lazy val asString: String = s"$parent/${Uri.pathEncode(child)}"
-
-  override def toString: String = asString
-
-  def startsWith(other: Path): Boolean = {
-    val components = other.toList
-    toList.take(components.length) === components
-  }
+object / {
+  def unapply(path: Path): Option[(Path, String)] =
+    if (path.endsWithSlash)
+      Some(path.dropEndsWithSlash -> "")
+    else
+      path.segments match {
+        case allButLast :+ last if allButLast.isEmpty =>
+          if (path.absolute)
+            Some(Root -> last.decoded())
+          else
+            Some(empty -> last.decoded())
+        case allButLast :+ last =>
+          Some(Path(allButLast, absolute = path.absolute) -> last.decoded())
+        case _ => None
+      }
 }
 
 object -> {
@@ -135,7 +79,7 @@ object -> {
     * }}}
     */
   def unapply[F[_]](req: Request[F]): Some[(Method, Path)] =
-    Some((req.method, Path(req.pathInfo)))
+    Some((req.method, req.pathInfo))
 }
 
 class MethodConcat(val methods: Set[Method]) {
@@ -152,25 +96,6 @@ class MethodConcat(val methods: Set[Method]) {
     Some(method).filter(methods)
 }
 
-/** Root extractor:
-  * {{{
-  *   Path("/") match {
-  *     case Root => ...
-  *   }
-  * }}}
-  */
-case object Root extends Path {
-  def toList: List[String] = Nil
-
-  def parent: Path = this
-
-  def lastOption: None.type = None
-
-  override def toString = ""
-
-  def startsWith(other: Path): Boolean = other == Root
-}
-
 /** Path separator extractor:
   * {{{
   *   Path("/1/2/3/test.json") match {
@@ -179,9 +104,9 @@ case object Root extends Path {
   */
 object /: {
   def unapply(path: Path): Option[(String, Path)] =
-    path.toList match {
-      case head :: tail => Some(head -> Path(tail))
-      case Nil => None
+    path.segments match {
+      case head +: tail => Some(head.decoded() -> Path(tail))
+      case _ => None
     }
 }
 
@@ -216,6 +141,75 @@ object LongVar extends PathVar(str => Try(str.toLong))
   * }}}
   */
 object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
+
+/** Matrix path variable extractor
+  * For an example see [[https://www.w3.org/DesignIssues/MatrixURIs.html MatrixURIs]]
+  * This is useful for representing a resource that may be addressed in multiple dimensions where order is unimportant
+  *
+  * {{{
+  *
+  *    object BoardVar extends MatrixVar("square", List("x", "y"))
+  *    Path("/board/square;x=5;y=3") match {
+  *      case Root / "board" / BoardVar(IntVar(x), IntVar(y)) => ...
+  *    }
+  * }}}
+  */
+abstract class MatrixVar[F[_]: Foldable](name: String, domain: F[String]) {
+  private val domainList = domain.toList
+
+  def unapplySeq(str: String): Option[Seq[String]] =
+    if (str.nonEmpty) {
+      val firstSemi = str.indexOf(';')
+      if (firstSemi < 0 && (domain.nonEmpty || name != str)) None
+      else if (firstSemi < 0 && name == str) Some(Seq.empty[String])
+      // Matrix segment didn't match the expected name
+      else if (str.substring(0, firstSemi) != name) None
+      else {
+        val assocListOpt =
+          if (firstSemi >= 0)
+            Monad[Option].tailRecM(MatrixVar.RecState(str, firstSemi + 1, List.empty))(toAssocList)
+          else Some(List.empty[(String, String)])
+        assocListOpt.flatMap { assocList =>
+          domainList.traverse(dom => assocList.find(_._1 == dom).map(_._2))
+        }
+      }
+    } else None
+
+  private def toAssocList(
+      recState: MatrixVar.RecState): Option[Either[MatrixVar.RecState, List[(String, String)]]] =
+    // We can't extract anything else but there was a trailing ;
+    if (recState.position >= recState.str.length - 1)
+      Some(Right(recState.accumulated))
+    else {
+      val nextSplit = recState.str.indexOf(';', recState.position)
+      // This is the final ; delimited segment
+      if (nextSplit < 0)
+        toAssocListElem(recState.str, recState.position, recState.str.length)
+          .map(elem => Right(elem :: recState.accumulated))
+      // An internal empty ; delimited segment so just skip
+      else if (nextSplit == recState.position)
+        Some(Left(recState.copy(position = nextSplit + 1)))
+      else
+        toAssocListElem(recState.str, recState.position, nextSplit)
+          .map(elem =>
+            Left(
+              recState.copy(position = nextSplit + 1, accumulated = elem :: recState.accumulated)))
+    }
+
+  private def toAssocListElem(str: String, position: Int, end: Int): Option[(String, String)] = {
+    val delimSplit = str.indexOf('=', position)
+    val nextDelimSplit = str.indexOf('=', delimSplit + 1)
+    // if the segment does not contain an = inside then it is invalid
+    if (delimSplit < 0 || delimSplit === position || delimSplit >= end) None
+    // if the segment contains multiple = then it is invalid
+    else if (nextDelimSplit < end && nextDelimSplit >= 0) None
+    else Some(str.substring(position, delimSplit) -> str.substring(delimSplit + 1, end))
+  }
+}
+
+object MatrixVar {
+  private final case class RecState(str: String, position: Int, accumulated: List[(String, String)])
+}
 
 /** Multiple param extractor:
   * {{{

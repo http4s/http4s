@@ -6,7 +6,7 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline.{EqTests, MonoidTests}
+import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
 import org.http4s.headers._
 import org.typelevel.ci.CIString
 
@@ -92,5 +92,5 @@ class HeadersSpec extends Http4sSpec {
   }
 
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
-  checkAll("Eq[Headers]", EqTests[Headers].eqv)
+  checkAll("Order[Headers]", OrderTests[Headers].order)
 }

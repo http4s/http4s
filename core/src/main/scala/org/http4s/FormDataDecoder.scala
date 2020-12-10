@@ -9,7 +9,7 @@ package org.http4s
 import cats.Applicative
 import cats.data.Validated.Valid
 import cats.data.{Chain, ValidatedNel}
-import cats.effect.Sync
+import cats.effect.Concurrent
 import cats.implicits._
 
 /** A decoder ware that uses [[QueryParamDecoder]] to decode values in [[org.http4s.UrlForm]]
@@ -89,7 +89,7 @@ object FormDataDecoder {
       def apply(data: FormData): Result[A] = f(data)
     }
 
-  implicit def formEntityDecoder[F[_]: Sync, A](implicit
+  implicit def formEntityDecoder[F[_]: Concurrent, A](implicit
       fdd: FormDataDecoder[A]
   ): EntityDecoder[F, A] =
     UrlForm.entityDecoder[F].flatMapR { d =>

@@ -134,10 +134,11 @@ final case class Uri(
       case Uri(_, Some(_), p, _, _) if p.nonEmpty && !p.absolute =>
         writer << "/" << p
       case Uri(None, None, p, _, _) =>
-        if (p.renderString.contains(":"))
+        if (!p.absolute && p.segments.headOption.fold(false)(_.toString.contains(":"))) {
           writer << "./" << p // https://tools.ietf.org/html/rfc3986#section-4.2 last paragraph
-        else
+        } else {
           writer << p
+        }
       case Uri(_, _, p, _, _) =>
         writer << p
     }
@@ -400,6 +401,8 @@ object Uri {
     object Segment extends (String => Segment) {
       def apply(value: String): Segment = new Segment(pathEncode(value))
       def encoded(value: String): Segment = new Segment(value)
+
+      val empty: Segment = Segment("")
     }
 
     /** This constructor allows you to construct the path directly.
@@ -416,8 +419,8 @@ object Uri {
         endsWithSlash: Boolean = false): Path =
       new Path(segments, absolute, endsWithSlash)
 
-    def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
-      Some((path.segments, path.absolute, path.endsWithSlash))
+    // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
+    //   Some((path.segments, path.absolute, path.endsWithSlash))
 
     def fromString(fromPath: String): Path =
       fromPath match {

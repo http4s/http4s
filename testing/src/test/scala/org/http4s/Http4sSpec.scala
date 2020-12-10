@@ -28,7 +28,9 @@ import org.specs2.specification.core.Fragments
 import org.specs2.specification.create.{DefaultFragmentFactory => ff}
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
+
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 import cats.effect.unsafe.IORuntime
 import cats.effect.unsafe.Scheduler
 
@@ -48,7 +50,9 @@ trait Http4sSpec
 
   implicit val testIORuntime: IORuntime = Http4sSpec.TestIORuntime
 
-  implicit val params: Parameters = Parameters(maxSize = 20)
+  protected val timeout: FiniteDuration = 10.seconds
+
+  implicit val params = Parameters(maxSize = 20)
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -99,8 +103,9 @@ trait Http4sSpec
 
   def withResource[A](r: Resource[IO, A])(fs: A => Fragments): Fragments =
     r.allocated
-      .map { case (r, release) => fs(r).append(step(release.unsafeRunSync())) }
-      .unsafeRunSync()
+      .map { case (r, release) => fs(r).append(step(release.unsafeRunTimed(timeout))) }
+      .unsafeRunTimed(timeout)
+      .getOrElse(throw new Exception(s"no result after $timeout"))
 
   /** These tests are flaky on Travis.  Use sparingly and with great shame. */
   def skipOnCi(f: => Result): Result =
