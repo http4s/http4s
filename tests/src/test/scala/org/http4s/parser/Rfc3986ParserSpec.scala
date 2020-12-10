@@ -15,7 +15,7 @@ class Rfc3986ParserSpec extends Http4sSpec {
   "Rfc3986 parser" should {
     "parse ipv6" in {
       Prop.forAll(http4sTestingArbitraryForIpv6Address.arbitrary) { (ipv6: Ipv6Address) =>
-        Rfc3986.ipv6.parse(ipv6.value) must beRight(())
+        Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
       }
     }
   }

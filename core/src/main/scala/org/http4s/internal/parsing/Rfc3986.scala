@@ -26,7 +26,7 @@ private[http4s] object Rfc3986 {
       }
 
     val h16: Parser1[Short] = {
-      (hexdig ~ hexdig ~ hexdig ~ hexdig).string.map { (s: String) => java.lang.Integer.parseInt(s, 16).toShort }
+      (hexdig ~ hexdig.? ~ hexdig.? ~ hexdig.?).string.map { (s: String) => java.lang.Integer.parseInt(s, 16).toShort }
     }
 
     val decOctet = (char('1') ~ digit ~ digit)
