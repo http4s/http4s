@@ -18,7 +18,7 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
 
   override def parse(s: String): ParseResult[`Accept-Ranges`] =
     parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid accept-ranges", e.toString)
+      ParseFailure("Invalid Accept-Ranges header", e.toString)
     }
 
   /* https://tools.ietf.org/html/rfc7233#appendix-C */
