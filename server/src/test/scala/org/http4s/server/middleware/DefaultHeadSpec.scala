@@ -9,7 +9,6 @@ package server
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import fs2.Stream
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._
@@ -51,7 +50,7 @@ class DefaultHeadSpec extends Http4sSpec with Http4sLegacyMatchersIO {
 
     "allow GET body to clean up on fallthrough" in {
       (for {
-        open <- Ref[IO].of(false)
+        open <- IO.ref(false)
         route = HttpRoutes.of[IO] { case GET -> _ =>
           val body: EntityBody[IO] =
             Stream.bracket(open.set(true))(_ => open.set(false)).flatMap(_ => Stream.never[IO])

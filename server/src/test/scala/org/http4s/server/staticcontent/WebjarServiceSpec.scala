@@ -17,15 +17,15 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 
 class WebjarServiceSpec extends Http4sSpec with StaticContentShared with Http4sLegacyMatchersIO {
   def routes: HttpRoutes[IO] =
-    webjarServiceBuilder[IO](testBlocker).toRoutes
+    webjarServiceBuilder[IO].toRoutes
 
   def routes(classLoader: ClassLoader): HttpRoutes[IO] =
-    webjarServiceBuilder[IO](testBlocker)
+    webjarServiceBuilder[IO]
       .withClassLoader(Some(classLoader))
       .toRoutes
 
   def routes(preferGzipped: Boolean): HttpRoutes[IO] =
-    webjarServiceBuilder[IO](testBlocker)
+    webjarServiceBuilder[IO]
       .withPreferGzipped(preferGzipped)
       .toRoutes
 

@@ -46,9 +46,9 @@ trait Http4sSpec
     with FragmentsDsl
     with Discipline {
 
-  implicit val testIORuntime = Http4sSpec.TestIORuntime
+  implicit val testIORuntime: IORuntime = Http4sSpec.TestIORuntime
 
-  implicit val params = Parameters(maxSize = 20)
+  implicit val params: Parameters = Parameters(maxSize = 20)
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))

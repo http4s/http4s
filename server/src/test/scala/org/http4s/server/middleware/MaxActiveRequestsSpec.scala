@@ -9,7 +9,6 @@ package org.http4s.server.middleware
 import cats.implicits._
 import cats.effect._
 import cats.data._
-import cats.effect.concurrent._
 import org.http4s._
 import cats.effect.testing.specs2.CatsEffect
 
@@ -28,9 +27,9 @@ class MaxActiveRequestsSpec extends Http4sSpec with CatsEffect {
 
   "httpApp" should {
     "allow a request when allowed" in {
-      for {
-        deferredStarted <- Deferred[IO, Unit]
-        deferredWait <- Deferred[IO, Unit]
+      val a = for {
+        deferredStarted <- IO.deferred[Unit]
+        deferredWait <- IO.deferred[Unit]
         _ <- deferredWait.complete(())
         middle <- MaxActiveRequests.httpApp[IO](1)
         httpApp = middle(routes(deferredStarted, deferredWait).orNotFound)
@@ -40,8 +39,8 @@ class MaxActiveRequestsSpec extends Http4sSpec with CatsEffect {
 
     "not allow a request if max active" in {
       for {
-        deferredStarted <- Deferred[IO, Unit]
-        deferredWait <- Deferred[IO, Unit]
+        deferredStarted <- IO.deferred[Unit]
+        deferredWait <- IO.deferred[Unit]
         middle <- MaxActiveRequests.httpApp[IO](1)
         httpApp = middle(routes(deferredStarted, deferredWait).orNotFound)
         f <- httpApp.run(req).start
@@ -55,8 +54,8 @@ class MaxActiveRequestsSpec extends Http4sSpec with CatsEffect {
   "httpRoutes" should {
     "allow a request when allowed" in {
       for {
-        deferredStarted <- Deferred[IO, Unit]
-        deferredWait <- Deferred[IO, Unit]
+        deferredStarted <- IO.deferred[Unit]
+        deferredWait <- IO.deferred[Unit]
         _ <- deferredWait.complete(())
         middle <- MaxActiveRequests.httpRoutes[IO](1)
         httpApp = middle(routes(deferredStarted, deferredWait)).orNotFound
@@ -66,8 +65,8 @@ class MaxActiveRequestsSpec extends Http4sSpec with CatsEffect {
 
     "not allow a request if max active" in {
       for {
-        deferredStarted <- Deferred[IO, Unit]
-        deferredWait <- Deferred[IO, Unit]
+        deferredStarted <- IO.deferred[Unit]
+        deferredWait <- IO.deferred[Unit]
         middle <- MaxActiveRequests.httpRoutes[IO](1)
         httpApp = middle(routes(deferredStarted, deferredWait)).orNotFound
         f <- httpApp.run(req).start
@@ -79,8 +78,8 @@ class MaxActiveRequestsSpec extends Http4sSpec with CatsEffect {
 
     "release resource on None" in {
       for {
-        deferredStarted <- Deferred[IO, Unit]
-        deferredWait <- Deferred[IO, Unit]
+        deferredStarted <- IO.deferred[Unit]
+        deferredWait <- IO.deferred[Unit]
         middle <- MaxActiveRequests.httpRoutes[IO](1)
         httpApp = middle(routes(deferredStarted, deferredWait)).orNotFound
         out1 <- httpApp.run(Request(Method.PUT))

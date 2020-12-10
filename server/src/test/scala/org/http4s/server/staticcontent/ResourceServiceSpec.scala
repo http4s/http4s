@@ -17,7 +17,7 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared with Http4sLegacyMatchersIO {
 
-  val builder = resourceServiceBuilder[IO]("", testBlocker)
+  val builder = resourceServiceBuilder[IO]("")
   def routes: HttpRoutes[IO] = builder.toRoutes
   val defaultBase = getClass.getResource("/").getPath.toString
 

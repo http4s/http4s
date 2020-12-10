@@ -20,7 +20,7 @@ import org.http4s.testing.Http4sLegacyMatchersIO
 class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLegacyMatchersIO {
   val defaultSystemPath = test.BuildInfo.test_resourceDirectory.getAbsolutePath
   val routes = fileService(
-    FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath, testBlocker))
+    FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath))
 
   "FileService" should {
     "Respect UriTranslation" in {
@@ -54,7 +54,6 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
       val s0 = fileService(
         FileService.Config[IO](
           systemPath = defaultSystemPath,
-          blocker = testBlocker,
           pathPrefix = "/path-prefix"
         ))
       val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
@@ -74,8 +73,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
       val req = Request[IO](uri = uri)
       val s0 = fileService(
         FileService.Config[IO](
-          systemPath = systemPath.toString,
-          blocker = testBlocker
+          systemPath = systemPath.toString
         ))
       s0.orNotFound(req) must returnStatus(Status.BadRequest)
     }
@@ -99,8 +97,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
       val req = Request[IO](uri = uri)
       val s0 = fileService(
         FileService.Config[IO](
-          systemPath = Paths.get(defaultSystemPath).resolve("test").toString,
-          blocker = testBlocker
+          systemPath = Paths.get(defaultSystemPath).resolve("test").toString
         ))
       s0.orNotFound(req) must returnStatus(Status.NotFound)
     }
@@ -115,8 +112,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
       val s0 = fileService(
         FileService.Config[IO](
           systemPath = defaultSystemPath,
-          pathPrefix = "/prefix",
-          blocker = testBlocker
+          pathPrefix = "/prefix"
         ))
       s0.orNotFound(req) must returnStatus(Status.NotFound)
     }
@@ -147,7 +143,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
 
     "Return index.html if request points to ''" in {
       val path = Paths.get(defaultSystemPath).resolve("testDir/").toAbsolutePath.toString
-      val s0 = fileService(FileService.Config[IO](systemPath = path, blocker = testBlocker))
+      val s0 = fileService(FileService.Config[IO](systemPath = path))
       val req = Request[IO](uri = uri(""))
       val rb = s0.orNotFound(req).unsafeRunSync()
 
@@ -157,7 +153,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
 
     "Return index.html if request points to '/'" in {
       val path = Paths.get(defaultSystemPath).resolve("testDir/").toAbsolutePath.toString
-      val s0 = fileService(FileService.Config[IO](systemPath = path, blocker = testBlocker))
+      val s0 = fileService(FileService.Config[IO](systemPath = path))
       val req = Request[IO](uri = uri("/"))
       val rb = s0.orNotFound(req).unsafeRunSync()
 
@@ -224,13 +220,13 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared with Http4sLeg
     }
 
     "handle a relative system path" in {
-      val s = fileService(FileService.Config[IO](".", blocker = testBlocker))
+      val s = fileService(FileService.Config[IO]("."))
       Paths.get(".").resolve("build.sbt").toFile.exists() must beTrue
       s.orNotFound(Request[IO](uri = uri("/build.sbt"))) must returnStatus(Status.Ok)
     }
 
     "404 if system path is not found" in {
-      val s = fileService(FileService.Config[IO]("./does-not-exist", blocker = testBlocker))
+      val s = fileService(FileService.Config[IO]("./does-not-exist"))
       s.orNotFound(Request[IO](uri = uri("/build.sbt"))) must returnStatus(Status.NotFound)
     }
   }

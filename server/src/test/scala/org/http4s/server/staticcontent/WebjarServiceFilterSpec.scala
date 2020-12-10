@@ -13,10 +13,9 @@ import org.http4s.Method.GET
 class WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
 
   def routes: HttpRoutes[IO] =
-    webjarServiceBuilder[IO](testBlocker)
+    webjarServiceBuilder[IO]
       .withWebjarAssetFilter(webjar =>
         webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt")
-      .withBlocker(testBlocker)
       .toRoutes
 
   "The WebjarService" should {

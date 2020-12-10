@@ -26,9 +26,7 @@ class TimeoutSpec extends Http4sSpec with Http4sLegacyMatchersIO {
       Ok("Fast")
 
     case _ -> Root / "never" =>
-      IO.async[Response[IO]] { _ =>
-        ()
-      }
+      IO.never[Response[IO]]
   }
 
   val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound
