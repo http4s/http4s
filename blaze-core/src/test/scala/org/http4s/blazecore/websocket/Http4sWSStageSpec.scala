@@ -11,15 +11,15 @@ import fs2.Stream
 import fs2.concurrent.{Queue, SignallingRef}
 import cats.effect.IO
 import cats.implicits._
-import java.util.concurrent.atomic.AtomicBoolean
 
+import java.util.concurrent.atomic.AtomicBoolean
 import cats.effect.std.Dispatcher
+import cats.effect.testing.specs2.CatsEffect
 import org.http4s.Http4sSpec
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.websocket.{WebSocketFrame, WebSocketSeparatePipe}
 import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
-import org.http4s.testing.CatsEffect
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

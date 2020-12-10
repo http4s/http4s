@@ -13,12 +13,12 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import fs2.compression.{DeflateParams, deflate}
+
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-
 import cats.effect.std.Dispatcher
+import cats.effect.testing.specs2.CatsEffect
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
-import org.http4s.testing.CatsEffect
 import org.http4s.util.StringWriter
 
 import scala.concurrent.Future
