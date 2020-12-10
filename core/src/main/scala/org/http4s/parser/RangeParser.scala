@@ -8,7 +8,7 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import org.http4s.headers.{Range, `Accept-Ranges`, `Content-Range`}
+import org.http4s.headers.{Range, `Content-Range`}
 import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parboiled2._
 
@@ -51,39 +51,6 @@ private[parser] trait RangeParser {
         capture(optional('-') ~ oneOrMore(Digit)) ~ optional('-' ~ capture(oneOrMore(Digit))) ~> {
           (d1: String, d2: Option[String]) =>
             SubRange(d1.toLong, d2.map(_.toLong))
-        }
-      }
-  }
-
-  def ACCEPT_RANGES(input: String): ParseResult[`Accept-Ranges`] =
-    new AcceptRangesParser(input).parse
-
-  private class AcceptRangesParser(input: ParserInput)
-      extends Http4sHeaderParser[`Accept-Ranges`](input) {
-    def entry: Rule1[`Accept-Ranges`] =
-      rule {
-        RangeUnitsDef ~ EOL ~> (headers.`Accept-Ranges`(_: List[RangeUnit]))
-      }
-
-    def RangeUnitsDef: Rule1[List[RangeUnit]] =
-      rule {
-        NoRangeUnitsDef | zeroOrMore(RangeUnit).separatedBy(ListSep) ~> {
-          (rangeUnits: collection.Seq[RangeUnit]) =>
-            rangeUnits.toList
-        }
-      }
-
-    def NoRangeUnitsDef: Rule1[List[RangeUnit]] =
-      rule {
-        "none" ~ push(Nil)
-      }
-
-    /* 3.12 Range Units http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html */
-
-    def RangeUnit: Rule1[RangeUnit] =
-      rule {
-        Token ~> { (s: String) =>
-          org.http4s.RangeUnit(s)
         }
       }
   }

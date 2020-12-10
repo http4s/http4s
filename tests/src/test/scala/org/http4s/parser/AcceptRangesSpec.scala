@@ -11,7 +11,7 @@ import org.http4s.headers.`Accept-Ranges`
 import org.specs2.mutable.Specification
 
 class AcceptRangesSpec extends Specification with HeaderParserHelper[`Accept-Ranges`] {
-  def hparse(value: String) = HttpHeaderParser.ACCEPT_RANGES(value)
+  def hparse(value: String) = `Accept-Ranges`.parse(value)
 
   "Accept-Ranges header" should {
     val ranges = List(
