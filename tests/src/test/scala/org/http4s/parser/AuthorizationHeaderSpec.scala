@@ -48,7 +48,8 @@ class AuthorizationHeaderSpec extends Http4sSpec {
     "Parse a KeyValueCredentials with weird spaces" in {
       val scheme = "foo"
       hparse("foo abc = \"123 yeah\tyeah yeah\"") must beRight(
-        Authorization(Credentials.AuthParams(scheme.ci, NonEmptyList("abc" -> "123 yeah\tyeah yeah", Nil))))
+        Authorization(
+          Credentials.AuthParams(scheme.ci, NonEmptyList("abc" -> "123 yeah\tyeah yeah", Nil))))
 
       //quoted-pair
       //TODO: Not sure how to interpret this
