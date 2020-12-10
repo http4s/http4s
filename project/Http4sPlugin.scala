@@ -6,10 +6,9 @@ import com.typesafe.sbt.git.JGit
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
-import io.chrisdavenport.sbtmimaversioncheck.MimaVersionCheckKeys._
-import org.http4s.sbt.SilencerPlugin.autoImport.silencerVersion
 import sbt.Keys._
 import sbt._
+import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -25,25 +24,20 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.3"
   val scala_212 = "2.12.12"
-  val scalaVersions = Seq(scala_213, scala_212)
+
+  override lazy val globalSettings = Seq(
+    isCi := sys.env.get("CI").isDefined
+  )
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
-    isCi := sys.env.get("CI").isDefined,
-    ThisBuild / http4sApiVersion := (ThisBuild / version).map {
+    http4sApiVersion := version.map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-    crossScalaVersions := scalaVersions,
   ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    scalaVersion := scala_213,
-    crossScalaVersions := scalaVersions,
-
-    addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.1" cross CrossVersion.full),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
-
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = http4sApiVersion.value
@@ -144,11 +138,11 @@ object Http4sPlugin extends AutoPlugin {
         )
       },
 
-    silencerVersion := "1.7.1",
+    nowarnCompatAnnotationProvider := None,
   )
 
   def extractApiVersion(version: String) = {
-    val VersionExtractor = """(\d+)\.(\d+)\..*""".r
+    val VersionExtractor = """(\d+)\.(\d+)[-.].*""".r
     version match {
       case VersionExtractor(major, minor) => (major.toInt, minor.toInt)
     }
@@ -296,8 +290,6 @@ object Http4sPlugin extends AutoPlugin {
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
-
-      mimaVersionCheckExcludedVersions := Set("0.21.10"),
     )
   }
 
