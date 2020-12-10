@@ -6,16 +6,16 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.{Parser, Parser1}
-import cats.parse.Parser.{char, charIn, length1, rep, string1}
-import cats.parse.Rfc5234.{alpha, digit, hexdig, htab, sp}
+import cats.parse.Parser.{char, charIn, string1}
+import cats.parse.Parser1
+import cats.parse.Rfc5234.{digit, hexdig}
 import org.http4s.Uri.Ipv6Address
 
 /** Common rules defined in Rfc3986
   *
   * @see [[https://tools.ietf.org/html/rfc3986]]
   */
-object Rfc3986 {
+private[http4s] object Rfc3986 {
 
   val ipv6: Parser1[Ipv6Address] = {
 
@@ -45,7 +45,7 @@ object Rfc3986 {
       option1.orElse1(option2)
     }
 
-    val doubleColon = string1("::")
+    val doubleColon = string1("::").void
     val h16Colon = h16 <* char(':')
     def repSeven[A](p: Parser1[A]) = (p ~ p ~ p ~ p ~ p ~ p ~ p)
       .map { case ((((((one, two), three), four), five), six), seven) => List(one, two, three, four, five, six, seven) }
@@ -66,19 +66,19 @@ object Rfc3986 {
       .map { case (ls: collection.Seq[Short], (r0: Short, r1: Short)) => toIpv6(ls, Seq(r0, r1)) }
       .orElse1((doubleColon *> repFive(h16Colon) ~ ls32)
         .map { case (ls: collection.Seq[Short], (r0: Short, r1: Short)) => toIpv6(ls, Seq(r0, r1)) })
-      .orElse1((h16.?.with1 ~ doubleColon.void ~ repFour(h16Colon) ~ ls32)
+      .orElse1((h16.?.with1 ~ doubleColon ~ repFour(h16Colon) ~ ls32)
         .map { case (((l: Option[Short], _), rs: collection.Seq[Short]), (r0: Short, r1: Short)) => toIpv6(l.toSeq, rs :+ r0 :+ r1) })
-      .orElse1((repTwo(h16Colon).?.with1 ~ doubleColon.void ~ repThree(h16Colon) ~ ls32)
+      .orElse1((repTwo(h16Colon).?.with1 ~ doubleColon ~ repThree(h16Colon) ~ ls32)
         .map { case (((ls: Option[collection.Seq[Short]], _), rs: collection.Seq[Short]), (r0: Short, r1: Short)) => toIpv6(ls.getOrElse(Seq.empty), rs :+ r0 :+ r1) })
-      .orElse1((repThree(h16Colon).?.with1 ~ doubleColon.void ~ repTwo(h16Colon) ~ ls32)
+      .orElse1((repThree(h16Colon).?.with1 ~ doubleColon ~ repTwo(h16Colon) ~ ls32)
         .map { case (((ls: Option[collection.Seq[Short]], _), rs: collection.Seq[Short]), (r0: Short, r1: Short)) => toIpv6(ls.getOrElse(Seq.empty), rs :+ r0 :+ r1) })
-      .orElse1((repFour(h16Colon).?.with1 ~ doubleColon.void ~ h16Colon ~ ls32)
+      .orElse1((repFour(h16Colon).?.with1 ~ doubleColon ~ h16Colon ~ ls32)
         .map { case (((ls: Option[collection.Seq[Short]], _), r0: Short), (r1: Short, r2: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1, r2)) })
-      .orElse1((repFive(h16Colon).?.with1 ~ doubleColon.void ~ ls32)
+      .orElse1((repFive(h16Colon).?.with1 ~ doubleColon ~ ls32)
         .map { case ((ls: Option[collection.Seq[Short]], _), (r0: Short, r1: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1)) })
-      .orElse1((repSix(h16Colon).?.with1 ~ doubleColon.void ~ h16)
+      .orElse1((repSix(h16Colon).?.with1 ~ doubleColon ~ h16)
         .map { case ((ls: Option[collection.Seq[Short]], _), r0: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0)) })
-      .orElse1((repSeven(h16Colon).?.with1 ~ doubleColon.void)
+      .orElse1((repSeven(h16Colon).?.with1 ~ doubleColon)
         .map { case (ls: Option[collection.Seq[Short]], _) => toIpv6(ls.getOrElse(Seq.empty), Seq.empty) })
   }
 
