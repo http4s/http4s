@@ -8,6 +8,12 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M9 (2020-12-11)
+
+## Dependency updates
+
+* jackson-databind-2.12.0
+
 # v0.21.14 (2020-12-11)
 
 ## http4s-core
