@@ -40,6 +40,9 @@ private[http4s] object Rfc7230 {
   /* `OWS = *( SP / HTAB )` */
   val ows: Parser[Unit] = sp.orElse1(htab).rep.void
 
+  /*https://tools.ietf.org/html/rfc7230#section-3.2.3 last paragraph */
+  val bws: Parser[Unit] = ows
+
   /*   qdtext         = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text */
   val qdText: Parser1[Char] =
     charIn('\t', ' ', 0x21.toChar)
