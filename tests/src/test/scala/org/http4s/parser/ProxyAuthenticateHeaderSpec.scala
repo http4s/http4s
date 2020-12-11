@@ -24,10 +24,10 @@ class ProxyAuthenticateHeaderSpec
     extends Specification
     with HeaderParserHelper[`Proxy-Authenticate`] {
   def hparse(value: String): ParseResult[`Proxy-Authenticate`] =
-    HttpHeaderParser.PROXY_AUTHENTICATE(value)
+    `Proxy-Authenticate`.parse(value)
 
   override def parse(value: String) =
-    hparse(value).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
+    hparse(value).fold(err => sys.error(s"Couldn't parse: '$value', error: ${err.details}"), identity)
 
   val params = Map("a" -> "b", "c" -> "d")
   val c = Challenge("Basic", "foo")

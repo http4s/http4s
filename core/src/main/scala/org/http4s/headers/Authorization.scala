@@ -24,18 +24,13 @@ import cats.parse._
 object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton {
   //https://tools.ietf.org/html/rfc7235#section-4.2
   private val parser: Parser1[Authorization] = {
-    import Parser.char
     import cats.parse.Rfc5234.sp
 
-    import org.http4s.internal.parsing.Rfc7230.{bws, headerRep1, quotedString, token}
-    import org.http4s.internal.parsing.Rfc7235.token68
+    import org.http4s.internal.parsing.Rfc7230.{headerRep1, token}
+    import org.http4s.internal.parsing.Rfc7235.{token68, authParam}
 
     //auth-scheme = token
     val scheme = token.map(CaseInsensitiveString(_))
-    val authParamValue = token.orElse(quotedString)
-    // auth-param = token BWS "=" BWS ( token / quoted-string )
-    val authParam: Parser1[(String, String)] =
-      (token <* (bws ~ char('=').void ~ bws)) ~ authParamValue
 
     val creds: Parser1[Credentials] =
       ((scheme <* sp) ~ (headerRep1(authParam).backtrack.? ~ token68.?)).flatMap {

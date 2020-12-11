@@ -17,15 +17,16 @@
 package org.http4s
 package parser
 
+import cats.data.NonEmptyList
 import org.http4s.headers.`WWW-Authenticate`
 import org.specs2.mutable.Specification
 
 class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`WWW-Authenticate`] {
   def hparse(value: String): ParseResult[`WWW-Authenticate`] =
-    HttpHeaderParser.WWW_AUTHENTICATE(value)
+    `WWW-Authenticate`.parse(value)
 
   override def parse(value: String) =
-    hparse(value).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
+    hparse(value).fold(err => sys.error(s"Couldn't parse: `$value`, ${err.details}"), identity)
 
   val params = Map("a" -> "b", "c" -> "d")
   val c = Challenge("Basic", "foo")
@@ -45,6 +46,10 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
 
     "Parse a basic authentication with params" in {
       parse(wparams.renderString) must be_==(`WWW-Authenticate`(wparams))
+    }
+
+    "Parse realmless" in {
+      parse("Foo ") must be_==(`WWW-Authenticate`(NonEmptyList.of(Challenge("Foo", ""))))
     }
 
     "Parse multiple concatenated authentications" in {

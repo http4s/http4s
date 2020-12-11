@@ -17,14 +17,20 @@
 package org.http4s
 package headers
 
+import cats.syntax.all._
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser1
+import org.http4s.internal.parsing.Rfc7235
 
 object `Proxy-Authenticate`
     extends HeaderKey.Internal[`Proxy-Authenticate`]
     with HeaderKey.Recurring {
+  val parser: Parser1[`Proxy-Authenticate`] = {
+    Rfc7235.challenges.map(`Proxy-Authenticate`.apply)
+  }
+
   override def parse(s: String): ParseResult[`Proxy-Authenticate`] =
-    HttpHeaderParser.PROXY_AUTHENTICATE(s)
+    parser.parseAll(s).leftMap(err => ParseFailure("Invalid Proxy-Authenticate", err.toString))
 }
 
 /** {{{
