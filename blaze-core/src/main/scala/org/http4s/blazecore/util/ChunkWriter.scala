@@ -1,21 +1,33 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s
 package blazecore
 package util
 
-import cats.effect.{Effect, IO}
+import cats.effect.Async
 import cats.syntax.all._
 import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
+
+import cats.effect.std.Dispatcher
 import org.http4s.blaze.pipeline.TailStage
-import org.http4s.internal.unsafeRunAsync
 import org.http4s.util.StringWriter
+
 import scala.concurrent._
 
 private[util] object ChunkWriter {
@@ -35,9 +47,9 @@ private[util] object ChunkWriter {
   def TransferEncodingChunked = transferEncodingChunkedBuffer.duplicate()
 
   def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit
-      F: Effect[F],
-      ec: ExecutionContext): Future[Boolean] = {
-    val promise = Promise[Boolean]()
+      F: Async[F],
+      ec: ExecutionContext,
+      D: Dispatcher[F]): Future[Boolean] = {
     val f = trailer.map { trailerHeaders =>
       if (trailerHeaders.nonEmpty) {
         val rr = new StringWriter(256)
@@ -49,13 +61,10 @@ private[util] object ChunkWriter {
         ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
       } else ChunkEndBuffer
     }
-    unsafeRunAsync(f) {
-      case Right(buffer) =>
-        IO { promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false))); () }
-      case Left(t) =>
-        IO { promise.failure(t); () }
-    }
-    promise.future
+    for {
+      buffer <- D.unsafeToFuture(f)
+      _ <- pipe.channelWrite(buffer)
+    } yield false
   }
 
   def writeLength(length: Long): ByteBuffer = {

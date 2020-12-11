@@ -1,20 +1,32 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s.blazecore.websocket
 
-import cats.effect.{ContextShift, IO, Timer}
-import cats.effect.concurrent.Semaphore
+import cats.effect.IO
+import cats.effect.std.Semaphore
 import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebSocketFrame
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import cats.effect.unsafe.implicits.global
 
 /** A simple stage t
   * o help test websocket requests
@@ -32,10 +44,9 @@ import scala.concurrent.duration._
   */
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
-    outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
+    outQueue: Queue[IO, WebSocketFrame],
+    writeSemaphore: Semaphore[IO])
     extends HeadStage[WebSocketFrame] {
-
-  private[this] val writeSemaphore = Semaphore[IO](1L).unsafeRunSync()
 
   /** Block while we put elements into our queue
     *
@@ -73,7 +84,7 @@ sealed abstract class WSTestHead(
     * runWorker(this);
     */
   def poll(timeoutSeconds: Long): IO[Option[WebSocketFrame]] =
-    IO.race(timer.sleep(timeoutSeconds.seconds), outQueue.dequeue1)
+    IO.race(IO.sleep(timeoutSeconds.seconds), outQueue.dequeue1)
       .map {
         case Left(_) => None
         case Right(wsFrame) =>
@@ -92,7 +103,7 @@ sealed abstract class WSTestHead(
 }
 
 object WSTestHead {
-  def apply()(implicit t: Timer[IO], cs: ContextShift[IO]): IO[WSTestHead] =
-    (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame])
-      .mapN(new WSTestHead(_, _) {})
+  def apply(): IO[WSTestHead] =
+    (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame], Semaphore[IO](1L))
+      .mapN(new WSTestHead(_, _, _) {})
 }

@@ -1,7 +1,17 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s
@@ -9,7 +19,7 @@ package blazecore
 package websocket
 
 import cats.effect._
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.{Dispatcher, Semaphore}
 import cats.syntax.all._
 import fs2._
 import fs2.concurrent.SignallingRef
@@ -17,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
-import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.{
   WebSocket,
   WebSocketCombinedPipe,
@@ -32,11 +41,10 @@ import scala.util.{Failure, Success}
 private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
     sentClose: AtomicBoolean,
-    deadSignal: SignallingRef[F, Boolean]
-)(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
+    deadSignal: SignallingRef[F, Boolean],
+    writeSemaphore: Semaphore[F]
+)(implicit F: Async[F], val D: Dispatcher[F])
     extends TailStage[WebSocketFrame] {
-
-  private[this] val writeSemaphore = F.toIO(Semaphore[F](1L)).unsafeRunSync()
 
   def name: String = "Http4s WebSocket Stage"
 
@@ -59,15 +67,17 @@ private[http4s] class Http4sWSStage[F[_]](
     }
 
   private[this] def writeFrame(frame: WebSocketFrame, ec: ExecutionContext): F[Unit] =
-    writeSemaphore.withPermit(F.async[Unit] { cb =>
-      channelWrite(frame).onComplete {
-        case Success(res) => cb(Right(res))
-        case Failure(t) => cb(Left(t))
-      }(ec)
-    })
+    writeSemaphore.permit.use { _ =>
+      F.async_[Unit] { cb =>
+        channelWrite(frame).onComplete {
+          case Success(res) => cb(Right(res))
+          case Failure(t) => cb(Left(t))
+        }(ec)
+      }
+    }
 
   private[this] def readFrameTrampoline: F[WebSocketFrame] =
-    F.async[WebSocketFrame] { cb =>
+    F.async_[WebSocketFrame] { cb =>
       channelRead().onComplete {
         case Success(ws) => cb(Right(ws))
         case Failure(exception) => cb(Left(exception))
@@ -152,25 +162,22 @@ private[http4s] class Http4sWSStage[F[_]](
         .compile
         .drain
 
-    unsafeRunAsync(wsStream) {
-      case Left(EOF) =>
-        IO(stageShutdown())
-      case Left(t) =>
-        IO(logger.error(t)("Error closing Web Socket"))
-      case Right(_) =>
-        // Nothing to do here
-        IO.unit
+    val result = F.handleErrorWith(wsStream) {
+      case EOF =>
+        F.delay(stageShutdown())
+      case t =>
+        F.delay(logger.error(t)("Error closing Web Socket"))
     }
+    D.unsafeRunAndForget(result)
   }
 
   // #2735
   // stageShutdown can be called from within an effect, at which point there exists the risk of a deadlock if
   // 'unsafeRunSync' is called and all threads are involved in tearing down a connection.
   override protected def stageShutdown(): Unit = {
-    F.toIO(deadSignal.set(true)).unsafeRunAsync {
-      case Left(t) => logger.error(t)("Error setting dead signal")
-      case Right(_) => ()
-    }
+    D.unsafeRunAndForget(F.handleError(deadSignal.set(true)) { t =>
+      logger.error(t)("Error setting dead signal")
+    })
     super.stageShutdown()
   }
 }
@@ -178,4 +185,12 @@ private[http4s] class Http4sWSStage[F[_]](
 object Http4sWSStage {
   def bufferingSegment[F[_]](stage: Http4sWSStage[F]): LeafBuilder[WebSocketFrame] =
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
+
+  def apply[F[_]](
+      ws: WebSocket[F],
+      sentClose: AtomicBoolean,
+      deadSignal: SignallingRef[F, Boolean])(implicit
+      F: Async[F],
+      D: Dispatcher[F]): F[Http4sWSStage[F]] =
+    Semaphore[F](1L).map(new Http4sWSStage(ws, sentClose, deadSignal, _))
 }
