@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>http4s: Authentication</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="https://http4s.org/v0.17/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="https://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17 (development)</li>
+    <li><a href="/v0.17/">Tutorial</a></li>
+    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (development)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
+  </ul>
+</li>
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="container">
+      <div class="content">
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1>Authentication</h1>
+          </div>
+          
+
+<p>A <a href="../service">service</a> is a <code>Kleisli[Task, Request, Response]</code>, the composable version of
+<code>Request =&gt; Task[Response]</code>. http4s provides an alias called <code>Service[Request,
+Response]</code>. A service with authentication also requires some kind of <code>User</code>
+object which identifies which user did the request. To store the <code>User</code> object
+along with the <code>Request</code>, there&rsquo;s <code>AuthedRequest[User]</code>, which is equivalent to
+<code>(User, Request)</code>. So the service has the signature <code>AuthedRequest[User] =&gt;
+Task[Response]</code>, or <code>AuthedService[User]</code>. So we&rsquo;ll need a <code>Request =&gt; User</code>
+function, or more likely, a <code>Request =&gt; Task[User]</code>, because the <code>User</code> will
+come from a database. We can convert that into an <code>AuthMiddleware</code> and apply it.
+Or in code:</p>
+
+<pre><code class="language-scala">import fs2.Task
+// import fs2.Task
+
+import cats._, cats.implicits._, cats.data._
+// import cats._
+// import cats.implicits._
+// import cats.data._
+
+import org.http4s._
+// import org.http4s._
+
+import org.http4s.dsl._
+// import org.http4s.dsl._
+
+import org.http4s.server._
+// import org.http4s.server._
+
+case class User(id: Long, name: String)
+// defined class User
+
+val authUser: Service[Request, User] = Kleisli(_ =&gt; Task.delay(???))
+// authUser: org.http4s.Service[org.http4s.Request,User] = Kleisli($$Lambda$31829/59673613@5eafd300)
+
+val middleware = AuthMiddleware(authUser)
+// middleware: org.http4s.server.AuthMiddleware[User] = org.http4s.server.package$AuthMiddleware$$$Lambda$31830/79193164@1a521921
+
+val authedService: AuthedService[User] =
+  AuthedService {
+    case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
+  }
+// authedService: org.http4s.AuthedService[User] = Kleisli(org.http4s.package$AuthedService$$$Lambda$31834/1467533236@5048caca)
+
+val service: HttpService = middleware(authedService)
+// service: org.http4s.HttpService = Kleisli(cats.data.Kleisli$$Lambda$31836/1835111718@57c02f91)
+</code></pre>
+
+<h2 id="returning-an-error-response">Returning an Error Response</h2>
+
+<p>Usually, it should also be possible to send back a 401 in case there was no
+valid login. The 401 response can be adjusted as needed, some applications use a
+redirect to a login page, or a popup requesting login data. With the upcoming of
+<a href="https://en.wikipedia.org/wiki/Single-page_application">SPA</a>, the correct http status codes are relevant again.</p>
+
+<h3 id="with-kleisli">With Kleisli</h3>
+
+<p>To allow for failure, the <code>authUser</code> function has to be adjusted to a <code>Request
+=&gt; Task[Either[String,User]]</code>. So we&rsquo;ll need to handle that possibility. For advanced
+error handling, we recommend an error <a href="http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html">ADT</a> instead of a <code>String</code>.</p>
+
+<pre><code class="language-scala">val authUser: Kleisli[Task, Request, Either[String,User]] = Kleisli(_ =&gt; Task.delay(???))
+// authUser: cats.data.Kleisli[fs2.Task,org.http4s.Request,Either[String,User]] = Kleisli($$Lambda$31837/689076723@1bc17a9a)
+
+val onFailure: AuthedService[String] = Kleisli(req =&gt; Forbidden(req.authInfo))
+// onFailure: org.http4s.AuthedService[String] = Kleisli($$Lambda$31838/1114331516@2ebe69b1)
+
+val middleware = AuthMiddleware(authUser, onFailure)
+// middleware: org.http4s.server.AuthMiddleware[User] = org.http4s.server.package$AuthMiddleware$$$Lambda$31839/889708756@39b26b16
+
+val service: HttpService = middleware(authedService)
+// service: org.http4s.HttpService = Kleisli(cats.data.Kleisli$$Lambda$31836/1835111718@53a57dff)
+</code></pre>
+
+<h2 id="implementing-authuser">Implementing authUser</h2>
+
+<p>There&rsquo;s a few different ways to send authorization information with a HTTP
+request, the two most common are cookie for regular browser usage or the
+<code>Authorization</code> header for <a href="https://en.wikipedia.org/wiki/Single-page_application">SPA</a>.</p>
+
+<h3 id="cookies">Cookies</h3>
+
+<p>We&rsquo;ll use a small library for the signing/validation of the cookies, which
+basically contains the code used by the Play framework for this specific task.</p>
+
+<pre><code class="language-scala">libraryDependencies += &quot;org.reactormonk&quot; %% &quot;cryptobits&quot; % &quot;1.1&quot;
+</code></pre>
+
+<p>First, we&rsquo;ll need to set the cookie. For the crypto instance, we&rsquo;ll need to
+provide a private key. You usually want to set a static secret so people don&rsquo;t
+lose their session on server restarts, and a static secret also allows you to
+use multiple application instances.</p>
+
+<p>The message is simply the user id.</p>
+
+<pre><code class="language-scala">import org.reactormonk.{CryptoBits, PrivateKey}
+// import org.reactormonk.{CryptoBits, PrivateKey}
+
+import java.time._
+// import java.time._
+
+val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString(&quot;&quot;)))
+// key: org.reactormonk.PrivateKey = PrivateKey([B@50bcfead)
+
+val crypto = CryptoBits(key)
+// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@50bcfead))
+
+val clock = Clock.systemUTC
+// clock: java.time.Clock = SystemClock[Z]
+
+def verifyLogin(request: Request): Task[Either[String,User]] = ??? // gotta figure out how to do the form
+// verifyLogin: (request: org.http4s.Request)fs2.Task[Either[String,User]]
+
+val logIn: Service[Request, Response] = Kleisli({ request =&gt;
+  verifyLogin(request: Request).flatMap(_ match {
+    case Left(error) =&gt;
+      Forbidden(error)
+    case Right(user) =&gt; {
+      val message = crypto.signToken(user.id.toString, clock.millis.toString)
+      Ok(&quot;Logged in!&quot;).addCookie(Cookie(&quot;authcookie&quot;, message))
+    }
+  })
+})
+// logIn: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli($$Lambda$31844/2013050584@2cc040ff)
+</code></pre>
+
+<p>Now that the cookie is set, we can retrieve it again in the <code>authUser</code>.</p>
+
+<pre><code class="language-scala">import fs2.interop.cats._ 
+// import fs2.interop.cats._
+
+def retrieveUser: Service[Long, User] = Kleisli(id =&gt; Task.delay(???))
+// retrieveUser: org.http4s.Service[Long,User]
+
+val authUser: Service[Request, Either[String,User]] = Kleisli({ request =&gt;
+  val message = for {
+    header &lt;- headers.Cookie.from(request.headers).toRight(&quot;Cookie parsing error&quot;)
+    cookie &lt;- header.values.toList.find(_.name == &quot;authcookie&quot;).toRight(&quot;Couldn't find the authcookie&quot;)
+    token &lt;- crypto.validateSignedToken(cookie.content).toRight(&quot;Cookie invalid&quot;)
+    message &lt;- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
+  } yield message
+  message.traverse(retrieveUser.run)
+})
+// authUser: org.http4s.Service[org.http4s.Request,Either[String,User]] = Kleisli($$Lambda$31845/1109574091@3a8bac8)
+</code></pre>
+
+<h3 id="authorization-header">Authorization Header</h3>
+
+<p>There is no inherent way to set the Authorization header, send the token in any
+way that your <a href="https://en.wikipedia.org/wiki/Single-page_application">SPA</a> understands. Retrieve the header value in the <code>authUser</code>
+function.</p>
+
+<pre><code class="language-scala">import org.http4s.util.string._
+// import org.http4s.util.string._
+
+import org.http4s.headers.Authorization
+// import org.http4s.headers.Authorization
+
+val authUser: Service[Request, Either[String,User]] = Kleisli({ request =&gt;
+  val message = for {
+    header &lt;- request.headers.get(Authorization).toRight(&quot;Couldn't find an Authorization header&quot;)
+    token &lt;- crypto.validateSignedToken(header.value).toRight(&quot;Cookie invalid&quot;)
+    message &lt;- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
+  } yield message
+  message.traverse(retrieveUser.run)
+})
+// authUser: org.http4s.Service[org.http4s.Request,Either[String,User]] = Kleisli($$Lambda$31846/1131334295@2b5bb6b3)
+</code></pre>
+
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/auth.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+              <li >
+                <a href="/v0.17/">Quick Start</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/service/">Service</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/dsl/">The http4s DSL</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/middleware/">Middleware</a>
+              </li>
+              
+              <li class="active">
+                <a href="/v0.17/auth/">Authentication</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/cors/">CORS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/hsts/">HSTS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/static/">Static Files</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/client/">HTTP Client</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/entity/">Entity handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/streaming/">Streaming</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/json/">JSON handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/uri/">URI handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/api">Scaladoc</a>
+              </li>
+              
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script src="https://http4s.org/v0.17/js/bootstrap.min.js"></script>    
+<script src="https://http4s.org/v0.17/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>

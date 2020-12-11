@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | Testing</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v0.21/">v0.21 (dev)</a>  
+  <a class="dropdown-item" href="/v0.20/">v0.20 (stable)</a>
+  <a class="dropdown-item" href="/v0.19/">v0.19 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          
+<a href="https://github.com/http4s/http4s/edit/series/0.18/docs/src/main/tut/testing.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>Testing</h1>
+          
+          
+          
+
+<h2 id="introduction">Introduction</h2>
+
+<p>This document implements a simple <code>org.http4s.HttpRoutes</code> and then
+walk through the results of applying inputs, i.e. <code>org.http4s.Request</code>, to the service, i.e. <code>org.http4s.HttpService</code>.</p>
+
+<p>After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.</p>
+
+<p>Now, let&rsquo;s define an <code>org.http4s.HttpService</code>.</p>
+
+<pre><code class="language-scala">import cats.implicits._
+import io.circe._
+import io.circe.syntax._
+import io.circe.generic.semiauto._
+import cats.effect._
+import org.http4s._
+import org.http4s.circe._
+import org.http4s.dsl.io._
+import org.http4s.implicits._
+</code></pre>
+
+<pre><code class="language-scala">final case class User(name: String, age: Int) 
+// defined class User
+
+implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
+// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@ab4c993
+
+trait UserRepo[F[_]] {
+  def find(userId: String): F[Option[User]]
+}
+// defined trait UserRepo
+
+def service[F[_]](repo: UserRepo[F])(
+      implicit F: Effect[F]
+): HttpRoutes[F] = HttpRoutes.of[F] {
+  case GET -&gt; Root / &quot;user&quot; / id =&gt;
+    repo.find(id).map {
+      case Some(user) =&gt; Response(status = Status.Ok).withEntity(user.asJson)
+      case None       =&gt; Response(status = Status.NotFound)
+    }
+}
+// service: [F[_]](repo: UserRepo[F])(implicit F: cats.effect.Effect[F])org.http4s.HttpRoutes[F]
+</code></pre>
+
+<p>For testing, let&rsquo;s define a <code>check</code> function:</p>
+
+<pre><code class="language-scala">// Return true if match succeeds; otherwise false
+def check[A](actual:        IO[Response[IO]], 
+            expectedStatus: Status, 
+            expectedBody:   Option[A])(
+    implicit ev: EntityDecoder[IO, A]
+): Boolean =  {
+   val actualResp         = actual.unsafeRunSync
+   val statusCheck        = actualResp.status == expectedStatus 
+   val bodyCheck          = expectedBody.fold[Boolean](
+       actualResp.body.compile.toVector.unsafeRunSync.isEmpty)( // Verify Response's body is empty.
+       expected =&gt; actualResp.as[A].unsafeRunSync == expected
+   )
+   statusCheck &amp;&amp; bodyCheck   
+}
+// check: [A](actual: cats.effect.IO[org.http4s.Response[cats.effect.IO]], expectedStatus: org.http4s.Status, expectedBody: Option[A])(implicit ev: org.http4s.EntityDecoder[cats.effect.IO,A])Boolean
+</code></pre>
+
+<p>Let&rsquo;s define service by passing a <code>UserRepo</code> that returns <code>Ok(user)</code>.</p>
+
+<pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
+  def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
+}
+// success: UserRepo[cats.effect.IO] = $anon$1@71e96fb5
+
+val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+  Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
+)
+// response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
+
+val expectedJson = Json.obj(
+  (&quot;name&quot;, Json.fromString(&quot;johndoe&quot;)),
+  (&quot;age&quot;,  Json.fromBigInt(42))
+)
+// expectedJson: io.circe.Json =
+// {
+//   &quot;name&quot; : &quot;johndoe&quot;,
+//   &quot;age&quot; : 42
+// }
+
+check[Json](response, Status.Ok, Some(expectedJson))
+// res1: Boolean = true
+</code></pre>
+
+<p>Next, let&rsquo;s define a service with a <code>userRepo</code> that returns <code>None</code> to any input.</p>
+
+<pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
+  def find(id: String): IO[Option[User]] = IO.pure(None)
+} 
+// foundNone: UserRepo[cats.effect.IO] = $anon$1@67813c95
+
+val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
+  Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
+)
+// response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
+
+check[Json](response, Status.NotFound, None)
+// res2: Boolean = true
+</code></pre>
+
+<p>Finally, let&rsquo;s pass a <code>Request</code> which our service does not handle.</p>
+
+<pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
+  def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
+} 
+// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@2f069598
+
+val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
+  Request(method = Method.GET, uri = uri&quot;/not-a-matching-path&quot; )
+)
+// response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
+
+check[String](response, Status.NotFound, Some(&quot;Not found&quot;))
+// res3: Boolean = true
+</code></pre>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The above documentation demonstrated how to define an HttpService[F], pass <code>Request</code>&rsquo;s, and then
+test the expected <code>Response</code>.</p>
+
+<p>To add unit tests in your chosen Scala Testing Framework, please follow the above examples.</p>
+
+<h2 id="references">References</h2>
+
+<ul>
+<li><a href="https://rossabaker.github.io/boston-http4s/#2">Ross Baker&rsquo;s NEScala 2018 Presentation</a></li>
+<li><a href="https://typelevel.org/cats/datatypes/kleisli.html">Kleisli</a></li>
+<li><a href="https://typelevel.org/cats/datatypes/optiont.html">OptionT</a></li>
+</ul>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/upgrading/">Upgrading from 0.18</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/csrf/">CSRF</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v0.18/testing/">Testing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/api">Scaladoc</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/v0.18/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+

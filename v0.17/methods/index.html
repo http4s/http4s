@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>http4s: HTTP Methods</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="https://http4s.org/v0.17/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="https://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17 (development)</li>
+    <li><a href="/v0.17/">Tutorial</a></li>
+    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (development)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
+  </ul>
+</li>
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="container">
+      <div class="content">
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1>HTTP Methods</h1>
+          </div>
+          <p>For a REST API, your service will want to support different verbs/methods.
+Http4s has a list of all the <a href="../api/org/http4s/Method$.html">methods</a> you&rsquo;re familiar with, and a few more.</p>
+
+<pre><code class="language-scala">import fs2.Task
+// import fs2.Task
+
+import io.circe.generic._
+// import io.circe.generic._
+
+import io.circe.syntax._
+// import io.circe.syntax._
+
+import org.http4s._, org.http4s.dsl._
+// import org.http4s._
+// import org.http4s.dsl._
+
+import org.http4s.circe._
+// import org.http4s.circe._
+
+@JsonCodec case class TweetWithId(id: Int, message: String)
+// defined class TweetWithId
+// defined object TweetWithId
+
+@JsonCodec case class Tweet(message: String)
+// defined class Tweet
+// defined object Tweet
+
+def getTweet(tweetId: Int): Task[Option[TweetWithId]] = ???
+// getTweet: (tweetId: Int)fs2.Task[Option[TweetWithId]]
+
+def addTweet(tweet: Tweet): Task[TweetWithId] = ???
+// addTweet: (tweet: Tweet)fs2.Task[TweetWithId]
+
+def updateTweet(id: Int, tweet: Tweet): Task[Option[TweetWithId]] = ???
+// updateTweet: (id: Int, tweet: Tweet)fs2.Task[Option[TweetWithId]]
+
+def deleteTweet(id: Int): Task[Unit] = ???
+// deleteTweet: (id: Int)fs2.Task[Unit]
+
+implicit val tweetWithIdEncoder = jsonEncoderOf[TweetWithId]
+// tweetWithIdEncoder: org.http4s.EntityEncoder[TweetWithId] = org.http4s.EntityEncoder$$anon$2@2680d80a
+
+implicit val tweetDecoder = jsonOf[Tweet]
+// tweetDecoder: org.http4s.EntityDecoder[Tweet] = org.http4s.EntityDecoder$$anon$2@28211756
+
+val tweetService = HttpService {
+  case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    getTweet(tweetId)
+      .flatMap(_.fold(NotFound())(Ok(_)))
+  case req @ POST -&gt; Root / &quot;tweets&quot; =&gt;
+    req.as[Tweet].flatMap(addTweet).flatMap(Ok(_))
+  case req @ PUT -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    req.as[Tweet]
+      .flatMap(updateTweet(tweetId, _))
+      .flatMap(_.fold(NotFound())(Ok(_)))
+  case req @ HEAD -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    getTweet(tweetId)
+      .flatMap(_.fold(NotFound())(_ =&gt; Ok()))
+  case req @ DELETE -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    deleteTweet(tweetId)
+      .flatMap(_ =&gt; Ok())
+}
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$29494/1361633949@ac779c0)
+</code></pre>
+
+<p>There&rsquo;s also <a href="../api/org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
+implementation of the <code>HEAD</code> route.</p>
+
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/methods.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+              <li >
+                <a href="/v0.17/">Quick Start</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/service/">Service</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/dsl/">The http4s DSL</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/middleware/">Middleware</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/auth/">Authentication</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/cors/">CORS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/hsts/">HSTS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/static/">Static Files</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/client/">HTTP Client</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/entity/">Entity handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/streaming/">Streaming</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/json/">JSON handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/uri/">URI handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/api">Scaladoc</a>
+              </li>
+              
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script src="https://http4s.org/v0.17/js/bootstrap.min.js"></script>    
+<script src="https://http4s.org/v0.17/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>

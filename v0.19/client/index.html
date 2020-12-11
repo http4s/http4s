@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | HTTP Client</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.19/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.19/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.19/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.19/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.19/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v0.19/">v0.19 (development)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          
+<a href="https://github.com/http4s/http4s/edit/release-0.19.x/docs/src/main/tut/client.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>HTTP Client</h1>
+          
+          
+          
+
+<p>How do we know the server is running?  Let&rsquo;s create a client with
+http4s to try our service.</p>
+
+<p>A recap of the dependencies for this example, in case you skipped the <a href="../service">service</a> example. Ensure you have the following dependencies in your build.sbt:</p>
+
+<pre><code class="language-scala">scalaVersion := &quot;2.11.8&quot; // Also supports 2.10.x and 2.12.x
+
+val http4sVersion = &quot;0.19.0&quot;
+
+// Only necessary for SNAPSHOT releases
+resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
+
+libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-blaze-server&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-blaze-client&quot; % http4sVersion
+)
+</code></pre>
+
+<p>Then we create the <a href="../service">service</a> again so tut picks it up:</p>
+
+<pre><code class="language-scala">import cats.effect._
+import org.http4s._
+import org.http4s.dsl.io._
+import org.http4s.server.blaze._
+</code></pre>
+
+<p>Blaze needs a [<a href="https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html"><code>ConcurrentEffect</code></a>] instance, which is derived from
+[<a href="https://typelevel.org/cats-effect/datatypes/contextshift.html"><code>ContextShift</code></a>].  The following lines are not necessary if you are
+in an [<a href="https://typelevel.org/cats-effect/datatypes/ioapp.html"><code>IOApp</code></a>]:</p>
+
+<pre><code class="language-scala">import scala.concurrent.ExecutionContext.global
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
+</code></pre>
+
+<p>Finish setting up our server:</p>
+
+<pre><code class="language-scala">val routes = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;hello&quot; / name =&gt;
+    Ok(s&quot;Hello, $name.&quot;)
+}
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$49618/1801422598@55cb93cb)
+
+val server = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(routes, &quot;/&quot;).resource
+// server: cats.effect.Resource[cats.effect.IO,org.http4s.server.Server[cats.effect.IO]] = Allocate(&lt;function1&gt;)
+</code></pre>
+
+<p>We&rsquo;ll start the server in the background.  The <code>IO.never</code> keeps it
+running until we cancel the fiber.</p>
+
+<pre><code class="language-scala">val fiber = server.use(_ =&gt; IO.never).start.unsafeRunSync()
+// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$221518362,IO$447539972)
+</code></pre>
+
+<h3 id="creating-the-client">Creating the client</h3>
+
+<p>A good default choice is the <code>BlazeClientBuilder</code>.  The
+<code>BlazeClientBuilder</code> maintains a connection pool and speaks HTTP 1.x.</p>
+
+<pre><code class="language-scala">import org.http4s.client.blaze._
+import org.http4s.client._
+import scala.concurrent.ExecutionContext.Implicits.global
+</code></pre>
+
+<pre><code class="language-scala">BlazeClientBuilder[IO](global).resource.use { client =&gt;
+  // use `client` here and return an `IO`.
+  // the client will be acquired and shut down
+  // automatically each time the `IO` is run.
+  IO.unit
+}
+// res0: cats.effect.IO[Unit] = IO$1243994591
+</code></pre>
+
+<p>For the remainder of this tut, we&rsquo;ll use an alternate client backend
+built on the standard <code>java.net</code> library client.  Unlike the blaze
+client, it does not need to be shut down.  Like the blaze-client, and
+any other http4s backend, it presents the exact same <code>Client</code>
+interface!</p>
+
+<p>It uses blocking IO and is less suited for production, but it is
+highly useful in a REPL:</p>
+
+<pre><code class="language-scala">import scala.concurrent.ExecutionContext
+import java.util.concurrent._
+
+val blockingEC = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(5))
+val httpClient: Client[IO] = JavaNetClientBuilder(blockingEC).create
+</code></pre>
+
+<h3 id="describing-a-call">Describing a call</h3>
+
+<p>To execute a GET request, we can call <code>expect</code> with the type we expect
+and the URI we want:</p>
+
+<pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
+// helloJames: cats.effect.IO[String] = IO$995670882
+</code></pre>
+
+<p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
+represent the asynchronous nature of a client request.</p>
+
+<p>Furthermore, we haven&rsquo;t even executed the request yet.  A significant
+difference between a <code>IO</code> and a <code>scala.concurrent.Future</code> is that a
+<code>Future</code> starts running immediately on its implicit execution context,
+whereas a <code>IO</code> runs when it&rsquo;s told.  Executing a request is an
+example of a side effect.  In functional programming, we prefer to
+build a description of the program we&rsquo;re going to run, and defer its
+side effects to the end.</p>
+
+<p>Let&rsquo;s describe how we&rsquo;re going to greet a collection of people in
+parallel:</p>
+
+<pre><code class="language-scala">import cats._, cats.effect._, cats.implicits._
+import org.http4s.Uri
+import scala.concurrent.ExecutionContext.Implicits.global
+</code></pre>
+
+<pre><code class="language-scala">def hello(name: String): IO[String] = {
+  val target = Uri.uri(&quot;http://localhost:8080/hello/&quot;) / name
+  httpClient.expect[String](target)
+}
+// hello: (name: String)cats.effect.IO[String]
+
+val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;, &quot;Christopher&quot;)
+// people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
+
+val greetingList = people.parTraverse(hello)
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$214288430
+</code></pre>
+
+<p>Observe how simply we could combine a single <code>F[String]</code> returned
+by <code>hello</code> into a scatter-gather to return a <code>F[List[String]]</code>.</p>
+
+<h2 id="making-the-call">Making the call</h2>
+
+<p>It is best to run your <code>F</code> &ldquo;at the end of the world.&rdquo;  The &ldquo;end of
+the world&rdquo; varies by context:</p>
+
+<ul>
+<li>In a command line app, it&rsquo;s your main method.</li>
+<li>In an <code>HttpApp[F]</code>, an <code>F[Response[F]]</code> is returned to be run by the
+server.</li>
+<li>Here in the REPL, the last line is the end of the world.  Here we go:</li>
+</ul>
+
+<pre><code class="language-scala">val greetingsStringEffect = greetingList.map(_.mkString(&quot;\n&quot;))
+// greetingsStringEffect: cats.effect.IO[String] = &lt;function1&gt;
+
+greetingsStringEffect.unsafeRunSync
+// res1: String =
+// Hello, Michael.
+// Hello, Jessica.
+// Hello, Ashley.
+// Hello, Christopher.
+</code></pre>
+
+<h2 id="constructing-a-uri">Constructing a URI</h2>
+
+<p>Before you can make a call, you&rsquo;ll need a <code>Uri</code> to represent the endpoint you
+want to access.</p>
+
+<p>There are a number of ways to construct a <code>Uri</code>.</p>
+
+<p>If you have a literal string, you can use <code>Uri.uri(...)</code>:</p>
+
+<pre><code class="language-scala">Uri.uri(&quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;)
+// res2: org.http4s.Uri = https://my-awesome-service.com/foo/bar?wow=yeah
+</code></pre>
+
+<p>This only works with literal strings because it uses a macro to validate the URI
+format at compile-time.</p>
+
+<p>Otherwise, you&rsquo;ll need to use <code>Uri.fromString(...)</code> and handle the case where
+validation fails:</p>
+
+<pre><code class="language-scala">val validUri = &quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;
+// validUri: String = https://my-awesome-service.com/foo/bar?wow=yeah
+
+val invalidUri = &quot;yeah whatever&quot;
+// invalidUri: String = yeah whatever
+
+val uri: Either[ParseFailure, Uri] = Uri.fromString(validUri)
+// uri: Either[org.http4s.ParseFailure,org.http4s.Uri] = Right(https://my-awesome-service.com/foo/bar?wow=yeah)
+
+val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
+// parseFailure: Either[org.http4s.ParseFailure,org.http4s.Uri] =
+// Left(org.http4s.ParseFailure: Invalid URI: Invalid input ' ', expected '+', '.', ':', SubDelims, '-', Unreserved, Digit, Alpha or PctEncoded (line 1, column 5):
+// yeah whatever
+//     ^)
+</code></pre>
+
+<p>You can also build up a URI incrementally, e.g.:</p>
+
+<pre><code class="language-scala">val baseUri = Uri.uri(&quot;http://foo.com&quot;)
+// baseUri: org.http4s.Uri = http://foo.com
+
+val withPath = baseUri.withPath(&quot;/bar/baz&quot;)
+// withPath: org.http4s.Uri = http://foo.com/bar/baz
+
+val withQuery = withPath.withQueryParam(&quot;hello&quot;, &quot;world&quot;)
+// withQuery: org.http4s.Uri = http://foo.com/bar/baz?hello=world
+</code></pre>
+
+<h2 id="middleware">Middleware</h2>
+
+<p>Like the server <a href="../middleware">middleware</a>, the client middleware is a wrapper around a
+<code>Client</code> that provides a means of accessing or manipulating <code>Request</code>s
+and <code>Response</code>s being sent.</p>
+
+<h3 id="included-middleware">Included Middleware</h3>
+
+<p>Http4s includes some middleware Out of the Box in the <code>org.http4s.client.middleware</code>
+package. These include:</p>
+
+<ul>
+<li>Following of redirect responses (<a href="../api/org/http4s/client/middleware/FollowRedirect$">Follow Redirect</a>)</li>
+<li>Retrying of requests (<a href=".../api/org/http4s/client/middleware/Retry$">Retry</a>)</li>
+<li>Metrics gathering (<a href=".../api/org/http4s/client/middleware/FollowRedirect$">Metrics</a>)</li>
+<li>Logging of requests (<a href=".../api/org/http4s/client/middleware/RequestLogger$">Request Logger</a>)</li>
+<li>Logging of responses (<a href=".../api/org/http4s/client/middleware/ResponseLogger$">Response Logger</a>)</li>
+<li>Logging of requests and responses (<a href=".../api/org/http4s/client/middleware/Logger$">Logger</a>)</li>
+</ul>
+
+<h3 id="metrics-middleware">Metrics Middleware</h3>
+
+<p>Apart from the middleware mentioned in the previous section. There is, as well,
+Out of the Box middleware for Dropwizard and Prometheus metrics</p>
+
+<h4 id="dropwizard-metrics-middleware">Dropwizard Metrics Middleware</h4>
+
+<p>To make use of this metrics middleware the following dependencies are needed:</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-client&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-dropwizard-metrics&quot; % http4sVersion
+)
+</code></pre>
+
+<p>We can create a middleware that registers metrics prefixed with a
+provided prefix like this.</p>
+
+<pre><code class="language-scala">import org.http4s.client.middleware.Metrics
+import org.http4s.metrics.dropwizard.Dropwizard
+import com.codahale.metrics.SharedMetricRegistries
+</code></pre>
+
+<pre><code class="language-scala">implicit val clock = Clock.create[IO]
+// clock: cats.effect.Clock[cats.effect.IO] = cats.effect.Clock$$anon$1@24de5855
+
+val registry = SharedMetricRegistries.getOrCreate(&quot;default&quot;)
+// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@55baa55f
+
+val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
+// requestMethodClassifier: org.http4s.Request[cats.effect.IO] =&gt; Some[String] = $$Lambda$50178/1853173888@1ce1fb1
+
+val meteredClient = Metrics[IO](Dropwizard(registry, &quot;prefix&quot;), requestMethodClassifier)(httpClient)
+// meteredClient: org.http4s.client.Client[cats.effect.IO] = org.http4s.client.Client$$anon$1@b423f80
+</code></pre>
+
+<p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
+to add a subprefix to every metric based on the <code>Request</code></p>
+
+<h4 id="prometheus-metrics-middleware">Prometheus Metrics Middleware</h4>
+
+<p>To make use of this metrics middleware the following dependencies are needed:</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-client&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-prometheus-metrics&quot; % http4sVersion
+)
+</code></pre>
+
+<p>We can create a middleware that registers metrics prefixed with a
+provided prefix like this.</p>
+
+<pre><code class="language-scala">import org.http4s.client.middleware.Metrics
+import org.http4s.metrics.prometheus.Prometheus
+import io.prometheus.client.CollectorRegistry
+</code></pre>
+
+<pre><code class="language-scala">implicit val clock = Clock.create[IO]
+// clock: cats.effect.Clock[cats.effect.IO] = cats.effect.Clock$$anon$1@5392ea8f
+
+val registry = new CollectorRegistry()
+// registry: io.prometheus.client.CollectorRegistry = io.prometheus.client.CollectorRegistry@29fa0347
+
+val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
+// requestMethodClassifier: org.http4s.Request[cats.effect.IO] =&gt; Some[String] = $$Lambda$50181/760838283@3d14c69f
+
+val meteredClient = Metrics[IO](Prometheus(registry, &quot;prefix&quot;), requestMethodClassifier)(httpClient)
+// meteredClient: org.http4s.client.Client[cats.effect.IO] = org.http4s.client.Client$$anon$1@29a587a4
+</code></pre>
+
+<p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
+to add a label to every metric based on the <code>Request</code></p>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="send-a-get-request-treating-the-response-as-a-string">Send a GET request, treating the response as a string</h3>
+
+<p>You can send a GET by calling the <code>expect</code> method on the client, passing a <code>Uri</code>:</p>
+
+<pre><code class="language-scala">httpClient.expect[String](Uri.uri(&quot;https://google.com/&quot;))
+// res3: cats.effect.IO[String] = IO$1298298998
+</code></pre>
+
+<p>If you need to do something more complicated like setting request headers, you
+can build up a request object and pass that to <code>expect</code>:</p>
+
+<pre><code class="language-scala">import org.http4s.client.dsl.io._
+import org.http4s.headers._
+import org.http4s.MediaType
+</code></pre>
+
+<pre><code class="language-scala">val request = GET(
+  Uri.uri(&quot;https://my-lovely-api.com/&quot;),
+  Authorization(Credentials.Token(AuthScheme.Bearer, &quot;open sesame&quot;)),
+  Accept(MediaType.application.json)
+)
+// request: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=GET, uri=https://my-lovely-api.com/, headers=Headers(Authorization: &lt;REDACTED&gt;, Accept: application/json)))
+
+httpClient.expect[String](request)
+// res4: cats.effect.IO[String] = IO$543865265
+</code></pre>
+
+<h3 id="post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</h3>
+
+<pre><code class="language-scala">case class AuthResponse(access_token: String)
+// defined class AuthResponse
+
+// See the JSON page for details on how to define this
+implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
+// authResponseEntityDecoder: org.http4s.EntityDecoder[cats.effect.IO,AuthResponse] = null
+
+val postRequest = POST(
+  Uri.uri(&quot;https://my-lovely-api.com/oauth2/token&quot;),
+  UrlForm(
+    &quot;grant_type&quot; -&gt; &quot;client_credentials&quot;,
+    &quot;client_id&quot; -&gt; &quot;my-awesome-client&quot;,
+    &quot;client_secret&quot; -&gt; &quot;s3cr3t&quot;
+  )
+)
+// postRequest: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=POST, uri=https://my-lovely-api.com/oauth2/token, headers=Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78)))
+
+httpClient.expect[AuthResponse](postRequest)
+// res6: cats.effect.IO[AuthResponse] = IO$176576098
+</code></pre>
+
+<h2 id="calls-to-a-json-api">Calls to a JSON API</h2>
+
+<p>Take a look at <a href="../json">json</a>.</p>
+
+<h2 id="body-decoding-encoding">Body decoding / encoding</h2>
+
+<p>The reusable way to decode/encode a request is to write a custom <code>EntityDecoder</code>
+and <code>EntityEncoder</code>. For that topic, take a look at <a href="../entity">entity</a>.</p>
+
+<p>If you prefer a more fine-grained approach, some of the methods take a <code>Response[F]
+=&gt; F[A]</code> argument, such as <code>fetch</code> or <code>get</code>, which lets you add a function which includes the
+decoding functionality, but ignores the media type.</p>
+
+<pre><code class="language-scala">client.fetch(req) {
+  case Status.Successful(r) =&gt; r.attemptAs[A].leftMap(_.message).value
+  case r =&gt; r.as[String]
+    .map(b =&gt; Left(s&quot;Request $req failed with status ${r.status.code} and body $b&quot;))
+}
+</code></pre>
+
+<p>However, your function has to consume the body before the returned <code>F</code> exits.
+Don&rsquo;t do this:</p>
+
+<pre><code class="language-scala">// will come back to haunt you
+client.get[EntityBody](&quot;some-url&quot;)(response =&gt; response.body)
+</code></pre>
+
+<p>Passing it to a <code>EntityDecoder</code> is safe.</p>
+
+<pre><code>client.get[T](&quot;some-url&quot;)(response =&gt; jsonOf(response.body))
+</code></pre>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v0.19/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/testing/">Testing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.19/api">Scaladoc</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/v0.19/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+

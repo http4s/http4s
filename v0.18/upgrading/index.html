@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | Upgrading from 0.18</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v0.21/">v0.21 (dev)</a>  
+  <a class="dropdown-item" href="/v0.20/">v0.20 (stable)</a>
+  <a class="dropdown-item" href="/v0.19/">v0.19 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          
+<a href="https://github.com/http4s/http4s/edit/series/0.18/docs/src/main/tut/upgrading.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>Upgrading from 0.18</h1>
+          
+          
+          
+
+<h2 id="automated-upgrading-with-scalafix">Automated upgrading with scalafix</h2>
+
+<p>Http4s 0.20 comes with a <a href="https://scalacenter.github.io/scalafix/">scalafix</a> that does some of the migration automatically.</p>
+
+<p>Before you upgrade manually, we recommend you run this scalafix.</p>
+
+<p>Make sure your scala version is &gt;= <code>2.11.12</code> or <code>2.12.7</code></p>
+
+<p>Add the scalafix plugin to your <code>project/plugins.sbt</code> or to your global plugins.</p>
+
+<pre><code class="language-sbt">addSbtPlugin(&quot;ch.epfl.scala&quot; % &quot;sbt-scalafix&quot; % &quot;0.9.1&quot;)
+</code></pre>
+
+<p>Run</p>
+
+<pre><code class="language-sh">$ sbt &quot;;scalafixEnable; scalafix github:http4s/http4s/v0_20&quot;
+</code></pre>
+
+<p>The compiler errors should help you in showing what&rsquo;s left to upgrade.</p>
+
+<p>For further information about the changes from 0.18, check the <a href="https://http4s.org/changelog/">changelog</a></p>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v0.18/upgrading/">Upgrading from 0.18</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/csrf/">CSRF</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/testing/">Testing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/api">Scaladoc</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/v0.18/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+

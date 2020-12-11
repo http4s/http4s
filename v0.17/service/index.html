@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>http4s: Service</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.17/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="https://http4s.org/v0.17/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="https://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17 (development)</li>
+    <li><a href="/v0.17/">Tutorial</a></li>
+    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (development)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
+  </ul>
+</li>
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="container">
+      <div class="content">
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1>Service</h1>
+          </div>
+          
+
+<p>This tutorial will walk you through creating your first http4s service
+and calling it with http4s&rsquo; client.</p>
+
+<p>Create a new directory, with the following build.sbt in the root:</p>
+
+<pre><code class="language-scala">scalaVersion := &quot;2.11.8&quot; // Also supports 2.10.x and 2.12.x
+
+val http4sVersion = &quot;0.17.6&quot;
+
+// Only necessary for SNAPSHOT releases
+resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
+
+libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-blaze-server&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-blaze-client&quot; % http4sVersion
+)
+</code></pre>
+
+<p>This tutorial is compiled as part of the build using <a href="https://github.com/tpolecat/tut">tut</a>.  Each page
+is its own REPL session.  If you copy and paste code samples starting
+from the top, you should be able to follow along in a REPL.</p>
+
+<pre><code>$ sbt console
+</code></pre>
+
+<h2 id="your-first-service">Your first service</h2>
+
+<p>An <code>HttpService</code> is a simple alias for
+<code>Kleisli[Task, Request, Response]</code>.  If that&rsquo;s meaningful to you,
+great.  If not, don&rsquo;t panic: <code>Kleisli</code> is just a convenient wrapper
+around a <code>Request =&gt; Task[Response]</code>, and <code>Task</code> is an asynchronous
+operation.  We&rsquo;ll teach you what you need to know as we go, or you
+can, uh, fork a task to read these introductions first:</p>
+
+<ul>
+<li><a href="http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/">Scalaz Task: The Missing Documentation</a></li>
+<li><a href="http://eed3si9n.com/learning-scalaz/Composing+monadic+functions.html">Kleisli: Composing monadic functions</a></li>
+</ul>
+
+<h3 id="defining-your-service">Defining your service</h3>
+
+<p>Wherever you are in your studies, let&rsquo;s create our first
+<code>HttpService</code>.  Start by pasting these imports into your SBT console:</p>
+
+<pre><code class="language-scala">import org.http4s._, org.http4s.dsl._
+// import org.http4s._
+// import org.http4s.dsl._
+</code></pre>
+
+<p>Using the <a href="../dsl">http4s-dsl</a>, we can construct an <code>HttpService</code> by pattern
+matching the request.  Let&rsquo;s build a service that matches requests to
+<code>GET /hello/:name</code>, where <code>:name</code> is a path parameter for the person to
+greet.</p>
+
+<pre><code class="language-scala">val helloWorldService = HttpService {
+  case GET -&gt; Root / &quot;hello&quot; / name =&gt;
+    Ok(s&quot;Hello, $name.&quot;)
+}
+// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$29133/1302467150@67b75de0)
+</code></pre>
+
+<h3 id="returning-content-in-the-response">Returning content in the response</h3>
+
+<p>In order to return content of type <code>T</code> in the response an <code>EntityEncoder[T]</code>
+must be used. We can define the <code>EntityEncoder[T]</code> implictly so that it
+doesn&rsquo;t need to be explicitly included when serving the response.</p>
+
+<p>In the example below, we&rsquo;re defining a <code>tweetEncoder</code> and then
+explicitly using it to encode the response contents of a <code>Tweet</code>, which can
+be seen as <code>Ok(getTweet(tweetId))(tweetEncoder)</code>.</p>
+
+<p>We&rsquo;ve defined <code>tweetsEncoder</code> as being implicit so that we don&rsquo;t need to explicitly
+reference it when serving the response, which can be seen as
+<code>Ok(getPopularTweets())</code>.</p>
+
+<pre><code class="language-scala">import fs2.Task
+// import fs2.Task
+
+case class Tweet(id: Int, message: String)
+// defined class Tweet
+
+def tweetEncoder: EntityEncoder[Tweet] = ???
+// tweetEncoder: org.http4s.EntityEncoder[Tweet]
+
+implicit def tweetsEncoder: EntityEncoder[Seq[Tweet]] = ???
+// tweetsEncoder: org.http4s.EntityEncoder[Seq[Tweet]]
+
+def getTweet(tweetId: Int): Task[Tweet] = ???
+// getTweet: (tweetId: Int)fs2.Task[Tweet]
+
+def getPopularTweets(): Task[Seq[Tweet]] = ???
+// getPopularTweets: ()fs2.Task[Seq[Tweet]]
+
+val tweetService = HttpService {
+  case request @ GET -&gt; Root / &quot;tweets&quot; / &quot;popular&quot; =&gt;
+    Ok(getPopularTweets())
+  case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
+}
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$29133/1302467150@58fd1567)
+</code></pre>
+
+<h3 id="running-your-service">Running your service</h3>
+
+<p>http4s supports multiple server backends.  In this example, we&rsquo;ll use
+<a href="https://github.com/http4s/blaze">blaze</a>, the native backend supported by http4s.</p>
+
+<p>We start from a <code>BlazeBuilder</code>, and then mount the <code>helloWorldService</code> under
+the base path of <code>/</code> and the remainder of the services under the base
+path of <code>/api</code>. The services can be mounted in any order as the request will be
+matched against the longest base paths first. The <code>BlazeBuilder</code> is immutable
+with chained methods, each returning a new builder.</p>
+
+<p>Multiple <code>HttpService</code>s can be combined with the <code>orElse</code> method by importing
+<code>org.http4s.server.syntax._</code>.</p>
+
+<pre><code class="language-scala">import org.http4s.server.blaze._
+// import org.http4s.server.blaze._
+
+import org.http4s.server.syntax._
+// import org.http4s.server.syntax._
+
+import cats.implicits._
+// import cats.implicits._
+
+val services = tweetService |+| helloWorldService
+// services: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$29147/1740523310@148b21cd)
+
+val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@6958819
+</code></pre>
+
+<p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
+using defaults of port 8080 and the loopback address. The <code>mountService</code> call
+associates a base path with a <code>HttpService</code>.</p>
+
+<p>A builder can be <code>run</code> to start the server.</p>
+
+<pre><code class="language-scala">val server = builder.run
+// server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
+</code></pre>
+
+<p>Use curl, or your favorite HTTP client, to see your service in action:</p>
+
+<pre><code class="language-sh">$ curl http://localhost:8080/hello/Pete
+</code></pre>
+
+<h2 id="cleaning-up">Cleaning up</h2>
+
+<p>Our server consumes system resources. Let&rsquo;s clean up by shutting it
+down:</p>
+
+<pre><code class="language-scala">server.shutdownNow()
+</code></pre>
+
+<h3 id="running-your-service-as-an-app">Running your service as an <code>App</code></h3>
+
+<p>Every <code>ServerBuilder</code> has a <code>.serve</code> method that returns a
+<code>Stream[Task, Nothing]</code>.  This stream runs forever without emitting
+any output.  When this process is run with <code>.unsafeRun</code> on the
+main thread, it blocks forever, keeping the JVM (and your server)
+alive until the JVM is killed.</p>
+
+<p>As a convenience, http4s provides an <code>org.http4s.util.StreamApp</code> trait
+with an abstract <code>main</code> method that returns a <code>Stream</code>.  A <code>StreamApp</code>
+runs the process and adds a JVM shutdown hook to interrupt the infinite
+process and gracefully shut down your server when a SIGTERM is received.</p>
+
+<pre><code class="language-scala">import fs2.{Stream, Task}
+// import fs2.{Stream, Task}
+
+import org.http4s.server.blaze._
+// import org.http4s.server.blaze._
+
+import org.http4s.util.StreamApp
+// import org.http4s.util.StreamApp
+
+object Main extends StreamApp {
+  override def stream(args: List[String]): Stream[Task, Nothing] = {
+    BlazeBuilder
+      .bindHttp(8080, &quot;localhost&quot;)
+      .mountService(helloWorldService, &quot;/&quot;)
+      .mountService(services, &quot;/api&quot;)
+      .serve
+  }
+}
+// defined object Main
+</code></pre>
+
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/service.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+              <li >
+                <a href="/v0.17/">Quick Start</a>
+              </li>
+              
+              <li class="active">
+                <a href="/v0.17/service/">Service</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/dsl/">The http4s DSL</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/middleware/">Middleware</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/auth/">Authentication</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/cors/">CORS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/hsts/">HSTS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/static/">Static Files</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/client/">HTTP Client</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/entity/">Entity handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/streaming/">Streaming</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/json/">JSON handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/uri/">URI handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/api">Scaladoc</a>
+              </li>
+              
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script src="https://http4s.org/v0.17/js/bootstrap.min.js"></script>    
+<script src="https://http4s.org/v0.17/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>

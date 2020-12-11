@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | HTTP Client</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          
+<a href="https://github.com/http4s/http4s/edit/series/0.21/docs/src/main/mdoc/client.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>HTTP Client</h1>
+          
+          
+          
+
+<p>How do we know the server is running?  Let&rsquo;s create a client with
+http4s to try our service.</p>
+
+<p>A recap of the dependencies for this example, in case you skipped the <a href="../service">service</a> example. Ensure you have the following dependencies in your build.sbt:</p>
+
+<pre><code class="language-scala">scalaVersion := &quot;2.13.3&quot; // Also supports 2.11.x and 2.12.x
+
+val http4sVersion = &quot;0.21.12&quot;
+
+// Only necessary for SNAPSHOT releases
+resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
+
+libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-blaze-server&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-blaze-client&quot; % http4sVersion
+)
+</code></pre>
+
+<p>Then we create the <a href="../service">service</a> again so tut picks it up:
+&gt;</p>
+
+<pre><code class="language-scala">import cats.effect._
+import org.http4s._
+import org.http4s.dsl.io._
+import org.http4s.implicits._
+import org.http4s.server.blaze._
+</code></pre>
+
+<p>Blaze needs a [<a href="https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html"><code>ConcurrentEffect</code></a>] instance, which is derived from
+[<a href="https://typelevel.org/cats-effect/datatypes/contextshift.html"><code>ContextShift</code></a>].  The following lines are not necessary if you are
+in an [<a href="https://typelevel.org/cats-effect/datatypes/ioapp.html"><code>IOApp</code></a>]:</p>
+
+<pre><code class="language-scala">import scala.concurrent.ExecutionContext.global
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+implicit val timer: Timer[IO] = IO.timer(global)
+</code></pre>
+
+<p>Finish setting up our server:</p>
+
+<pre><code class="language-scala">import scala.concurrent.ExecutionContext.global
+
+val app = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;hello&quot; / name =&gt;
+    Ok(s&quot;Hello, $name.&quot;)
+}.orNotFound
+// app: cats.data.Kleisli[IO, Request[IO], Response[IO]] = Kleisli(
+//   org.http4s.syntax.KleisliResponseOps$$Lambda$8170/804240078@27b3f6d1
+// )
+
+val server = BlazeServerBuilder[IO](global).bindHttp(8080, &quot;localhost&quot;).withHttpApp(app).resource
+// server: Resource[IO, org.http4s.server.Server[IO]] = Bind(
+//   Allocate(
+//     Map(
+//       Delay(org.http4s.blazecore.package$$$Lambda$8174/471750893@3f34b94f),
+//       cats.effect.Resource$$$Lambda$8175/1487051597@794e51d0,
+//       StackTrace(
+//         List(
+//           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//           cats.effect.IO.map(IO.scala:106),
+//           cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
+//           cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//           cats.Functor$Ops.map(Functor.scala:233),
+//           cats.Functor$Ops.map$(Functor.scala:233),
+//           cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
+//           cats.effect.Resource$.apply(Resource.scala:346),
+//           org.http4s.blazecore.package$.tickWheelResource(package.scala:14),
+//           org.http4s.server.blaze.BlazeServerBuilder.resource(BlazeServerBuilder.scala:328),
+//           repl.MdocSession$App.&lt;init&gt;(client.md:49),
+//           repl.MdocSession$.app(client.md:3),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withErr(Console.scala:196),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withOut(Console.scala:167),
+//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//           mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
+//           mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:186),
+//           mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:153),
+//           mdoc.internal.markdown.Processor.processDocument(Processor.scala:52),
+//           mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:132),
+//           mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
+//           mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
+//           mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:157),
+//           scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:...
+</code></pre>
+
+<p>We&rsquo;ll start the server in the background.  The <code>IO.never</code> keeps it
+running until we cancel the fiber.</p>
+
+<pre><code class="language-scala">val fiber = server.use(_ =&gt; IO.never).start.unsafeRunSync()
+// fiber: Fiber[IO, Nothing] = Tuple(
+//   Bind(
+//     Async(
+//       cats.effect.internals.IOAsync$$$Lambda$8066/1248624384@8e4a872,
+//       false,
+//       StackTrace(
+//         List(
+//           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//           cats.effect.internals.IOAsync$.apply(IOAsync.scala:30),
+//           cats.effect.IO$.async(IO.scala:1257),
+//           cats.effect.internals.IOFromFuture$.apply(IOFromFuture.scala:37),
+//           cats.effect.internals.IOStart$.fiber(IOStart.scala:48),
+//           cats.effect.internals.IOStart$.$anonfun$apply$1(IOStart.scala:42),
+//           cats.effect.internals.IOStart$.$anonfun$apply$1$adapted(IOStart.scala:29),
+//           cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:439),
+//           cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:155),
+//           cats.effect.internals.IORunLoop$.$anonfun$suspendAsync$1(IORunLoop.scala:315),
+//           cats.effect.internals.IORunLoop$.$anonfun$suspendAsync$1$adapted(IORunLoop.scala:314),
+//           cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:439),
+//           cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:155),
+//           cats.effect.internals.IORunLoop$.start(IORunLoop.scala:37),
+//           cats.effect.IO.unsafeRunAsync(IO.scala:274),
+//           cats.effect.internals.IOPlatform$.unsafeResync(IOPlatform.scala:39),
+//           cats.effect.IO.unsafeRunTimed(IO.scala:342),
+//           cats.effect.IO.unsafeRunSync(IO.scala:256),
+//           repl.MdocSession$App.&lt;init&gt;(client.md:56),
+//           repl.MdocSession$.app(client.md:3),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withErr(Console.scala:196),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withOut(Console.scala:167),
+//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.sca...
+</code></pre>
+
+<h3 id="creating-the-client">Creating the client</h3>
+
+<p>A good default choice is the <code>BlazeClientBuilder</code>.  The
+<code>BlazeClientBuilder</code> maintains a connection pool and speaks HTTP 1.x.</p>
+
+<pre><code class="language-scala">import org.http4s.client.blaze._
+import org.http4s.client._
+import scala.concurrent.ExecutionContext.global
+</code></pre>
+
+<pre><code class="language-scala">BlazeClientBuilder[IO](global).resource.use { client =&gt;
+  // use `client` here and return an `IO`.
+  // the client will be acquired and shut down
+  // automatically each time the `IO` is run.
+  IO.unit
+}
+</code></pre>
+
+<p>For the remainder of this tut, we&rsquo;ll use an alternate client backend
+built on the standard <code>java.net</code> library client.  Unlike the blaze
+client, it does not need to be shut down.  Like the blaze-client, and
+any other http4s backend, it presents the exact same <code>Client</code>
+interface!</p>
+
+<p>It uses blocking IO and is less suited for production, but it is
+highly useful in a REPL:</p>
+
+<pre><code class="language-scala">import cats.effect.Blocker
+import java.util.concurrent._
+
+val blockingPool = Executors.newFixedThreadPool(5)
+val blocker = Blocker.liftExecutorService(blockingPool)
+val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
+</code></pre>
+
+<h3 id="describing-a-call">Describing a call</h3>
+
+<p>To execute a GET request, we can call <code>expect</code> with the type we expect
+and the URI we want:</p>
+
+<pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
+// helloJames: IO[String] = Bind(
+//   Map(
+//     Delay(
+//       org.http4s.client.JavaNetClientBuilder$$Lambda$8253/1663868071@7269c949
+//     ),
+//     cats.effect.Resource$$$Lambda$8208/1533612013@44312d89,
+//     StackTrace(
+//       List(
+//         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//         cats.effect.IO.map(IO.scala:106),
+//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
+//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//         cats.Functor$Ops.map(Functor.scala:233),
+//         cats.Functor$Ops.map$(Functor.scala:233),
+//         cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
+//         cats.effect.Resource$.liftF(Resource.scala:417),
+//         org.http4s.server.blaze.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:362),
+//         cats.effect.Resource.$anonfun$fold$1(Resource.scala:119),
+//         cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
+//         cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
+//         cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
+//         cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
+//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//         scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
+//         cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
+//         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
+//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
+//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
+//         cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:177),
+//         cats.effect.internals.IORunLoop$.restart(IORunLoop.scala:40),
+//         cats.effect.internals.IOBracket$.$anonfun$apply$1(IOBracket.scala:48),
+//         cats.effect.internals.IOBracket$.$anonfun$apply$1$adapted(IOBracket.scala:34),
+//         cats.effect.internals.IOAsync$.$anonfun$apply$1(IOAsync.scala:37),
+//         cats.effect.internals.IOAsync$.$anonfun$apply$1$adapted(IOAsync.scala:37),
+//         cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:43...
+</code></pre>
+
+<p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
+represent the asynchronous nature of a client request.</p>
+
+<p>Furthermore, we haven&rsquo;t even executed the request yet.  A significant
+difference between a <code>IO</code> and a <code>scala.concurrent.Future</code> is that a
+<code>Future</code> starts running immediately on its implicit execution context,
+whereas a <code>IO</code> runs when it&rsquo;s told.  Executing a request is an
+example of a side effect.  In functional programming, we prefer to
+build a description of the program we&rsquo;re going to run, and defer its
+side effects to the end.</p>
+
+<p>Let&rsquo;s describe how we&rsquo;re going to greet a collection of people in
+parallel:</p>
+
+<pre><code class="language-scala">import cats._, cats.effect._, cats.implicits._
+import org.http4s.Uri
+</code></pre>
+
+<pre><code class="language-scala">def hello(name: String): IO[String] = {
+  val target = uri&quot;http://localhost:8080/hello/&quot; / name
+  httpClient.expect[String](target)
+}
+
+val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;, &quot;Christopher&quot;)
+// people: Vector[String] = Vector(
+//   &quot;Michael&quot;,
+//   &quot;Jessica&quot;,
+//   &quot;Ashley&quot;,
+//   &quot;Christopher&quot;
+// )
+
+val greetingList = people.parTraverse(hello)
+// greetingList: IO[Vector[String]] = Map(
+//   Map(
+//     Async(&lt;function3&gt;, true, null),
+//     cats.data.Chain$$$Lambda$8267/556189919@50c17389,
+//     StackTrace(
+//       List(
+//         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//         cats.effect.IO.map(IO.scala:106),
+//         cats.effect.IOParallelNewtype$$anon$2.map(IO.scala:845),
+//         cats.data.Chain$.$anonfun$traverseViaChain$5(Chain.scala:711),
+//         cats.Eval.$anonfun$map$1(Eval.scala:57),
+//         cats.Eval$.loop$1(Eval.scala:358),
+//         cats.Eval$.cats$Eval$$evaluate(Eval.scala:363),
+//         cats.Eval$FlatMap.value(Eval.scala:284),
+//         cats.data.Chain$.traverseViaChain(Chain.scala:730),
+//         cats.instances.VectorInstances$$anon$1.traverse(vector.scala:96),
+//         cats.instances.VectorInstances$$anon$1.traverse(vector.scala:15),
+//         cats.Parallel$.parTraverse(Parallel.scala:215),
+//         cats.syntax.ParallelTraversableOps$.parTraverse$extension(parallel.scala:112),
+//         repl.MdocSession$App.&lt;init&gt;(client.md:128),
+//         repl.MdocSession$.app(client.md:3),
+//         mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//         scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//         scala.Console$.withErr(Console.scala:196),
+//         mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//         scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//         scala.Console$.withOut(Console.scala:167),
+//         mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//         mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
+//         mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:186),
+//         mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:153),
+//         mdoc.internal.markdown.Processor.processDocument(Processor.scala:52),
+//         mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:132),
+//         mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
+//         mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
+//         mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:157),
+//         scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:12...
+</code></pre>
+
+<p>Observe how simply we could combine a single <code>F[String]</code> returned
+by <code>hello</code> into a scatter-gather to return a <code>F[List[String]]</code>.</p>
+
+<h2 id="making-the-call">Making the call</h2>
+
+<p>It is best to run your <code>F</code> &ldquo;at the end of the world.&rdquo;  The &ldquo;end of
+the world&rdquo; varies by context:</p>
+
+<ul>
+<li>In a command line app, it&rsquo;s your main method.</li>
+<li>In an <code>HttpApp[F]</code>, an <code>F[Response[F]]</code> is returned to be run by the
+server.</li>
+<li>Here in the REPL, the last line is the end of the world.  Here we go:</li>
+</ul>
+
+<pre><code class="language-scala">val greetingsStringEffect = greetingList.map(_.mkString(&quot;\n&quot;))
+// greetingsStringEffect: IO[String] = Map(
+//   Map(
+//     Map(
+//       Async(&lt;function3&gt;, true, null),
+//       cats.data.Chain$$$Lambda$8267/556189919@50c17389,
+//       StackTrace(
+//         List(
+//           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//           cats.effect.IO.map(IO.scala:106),
+//           cats.effect.IOParallelNewtype$$anon$2.map(IO.scala:845),
+//           cats.data.Chain$.$anonfun$traverseViaChain$5(Chain.scala:711),
+//           cats.Eval.$anonfun$map$1(Eval.scala:57),
+//           cats.Eval$.loop$1(Eval.scala:358),
+//           cats.Eval$.cats$Eval$$evaluate(Eval.scala:363),
+//           cats.Eval$FlatMap.value(Eval.scala:284),
+//           cats.data.Chain$.traverseViaChain(Chain.scala:730),
+//           cats.instances.VectorInstances$$anon$1.traverse(vector.scala:96),
+//           cats.instances.VectorInstances$$anon$1.traverse(vector.scala:15),
+//           cats.Parallel$.parTraverse(Parallel.scala:215),
+//           cats.syntax.ParallelTraversableOps$.parTraverse$extension(parallel.scala:112),
+//           repl.MdocSession$App.&lt;init&gt;(client.md:128),
+//           repl.MdocSession$.app(client.md:3),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withErr(Console.scala:196),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//           scala.Console$.withOut(Console.scala:167),
+//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//           mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
+//           mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:186),
+//           mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:153),
+//           mdoc.internal.markdown.Processor.processDocument(Processor.scala:52),
+//           mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:132),
+//           mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
+//           mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
+// ...
+greetingsStringEffect.unsafeRunSync()
+// res1: String = &quot;&quot;&quot;Hello, Michael.
+// Hello, Jessica.
+// Hello, Ashley.
+// Hello, Christopher.&quot;&quot;&quot;
+</code></pre>
+
+<h2 id="constructing-a-uri">Constructing a URI</h2>
+
+<p>Before you can make a call, you&rsquo;ll need a <code>Uri</code> to represent the endpoint you
+want to access.</p>
+
+<p>There are a number of ways to construct a <code>Uri</code>.</p>
+
+<p>If you have a literal string, you can use <code>uri&quot;...&quot;</code>:</p>
+
+<pre><code class="language-scala">uri&quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;
+// res2: Uri = Uri(
+//   Some(Scheme(https)),
+//   Some(Authority(None, RegName(my-awesome-service.com), None)),
+//   &quot;/foo/bar&quot;,
+//   wow=yeah,
+//   None
+// )
+</code></pre>
+
+<p>This only works with literal strings because it uses a macro to validate the URI
+format at compile-time.</p>
+
+<p>Otherwise, you&rsquo;ll need to use <code>Uri.fromString(...)</code> and handle the case where
+validation fails:</p>
+
+<pre><code class="language-scala">val validUri = &quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;
+// validUri: String = &quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;
+val invalidUri = &quot;yeah whatever&quot;
+// invalidUri: String = &quot;yeah whatever&quot;
+
+val uri: Either[ParseFailure, Uri] = Uri.fromString(validUri)
+// uri: Either[ParseFailure, Uri] = Right(
+//   Uri(
+//     Some(Scheme(https)),
+//     Some(Authority(None, RegName(my-awesome-service.com), None)),
+//     &quot;/foo/bar&quot;,
+//     wow=yeah,
+//     None
+//   )
+// )
+
+val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
+// parseFailure: Either[ParseFailure, Uri] = Left(
+//   ParseFailure(
+//     &quot;Invalid URI&quot;,
+//     &quot;&quot;&quot;Invalid input ' ', expected Alpha, Digit, '+', '-', '.', ':', Unreserved, PctEncoded or SubDelims (line 1, column 5):
+// yeah whatever
+//     ^&quot;&quot;&quot;
+//   )
+// )
+</code></pre>
+
+<p>You can also build up a URI incrementally, e.g.:</p>
+
+<pre><code class="language-scala">val baseUri = uri&quot;http://foo.com&quot;
+// baseUri: Uri = Uri(
+//   Some(Scheme(http)),
+//   Some(Authority(None, RegName(foo.com), None)),
+//   &quot;&quot;,
+//   ,
+//   None
+// )
+val withPath = baseUri.withPath(&quot;/bar/baz&quot;)
+// withPath: Uri = Uri(
+//   Some(Scheme(http)),
+//   Some(Authority(None, RegName(foo.com), None)),
+//   &quot;/bar/baz&quot;,
+//   ,
+//   None
+// )
+val withQuery = withPath.withQueryParam(&quot;hello&quot;, &quot;world&quot;)
+// withQuery: withPath.Self = Uri(
+//   Some(Scheme(http)),
+//   Some(Authority(None, RegName(foo.com), None)),
+//   &quot;/bar/baz&quot;,
+//   hello=world,
+//   None
+// )
+</code></pre>
+
+<h2 id="middleware">Middleware</h2>
+
+<p>Like the server <a href="../middleware">middleware</a>, the client middleware is a wrapper around a
+<code>Client</code> that provides a means of accessing or manipulating <code>Request</code>s
+and <code>Response</code>s being sent.</p>
+
+<h3 id="included-middleware">Included Middleware</h3>
+
+<p>Http4s includes some middleware Out of the Box in the <code>org.http4s.client.middleware</code>
+package. These include:</p>
+
+<ul>
+<li>Following of redirect responses (<a href="../api/org/http4s/client/middleware/FollowRedirect$">Follow Redirect</a>)</li>
+<li>Retrying of requests (<a href="../api/org/http4s/client/middleware/Retry$">Retry</a>)</li>
+<li>Metrics gathering (<a href="../api/org/http4s/client/middleware/Metrics$">Metrics</a>)</li>
+<li>Logging of requests (<a href="../api/org/http4s/client/middleware/RequestLogger$">Request Logger</a>)</li>
+<li>Logging of responses (<a href="../api/org/http4s/client/middleware/ResponseLogger$">Response Logger</a>)</li>
+<li>Logging of requests and responses (<a href="../api/org/http4s/client/middleware/Logger$">Logger</a>)</li>
+</ul>
+
+<h3 id="metrics-middleware">Metrics Middleware</h3>
+
+<p>Apart from the middleware mentioned in the previous section. There is, as well,
+Out of the Box middleware for Dropwizard and Prometheus metrics</p>
+
+<h4 id="dropwizard-metrics-middleware">Dropwizard Metrics Middleware</h4>
+
+<p>To make use of this metrics middleware the following dependencies are needed:</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-client&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-dropwizard-metrics&quot; % http4sVersion
+)
+</code></pre>
+
+<p>We can create a middleware that registers metrics prefixed with a
+provided prefix like this.</p>
+
+<pre><code class="language-scala">import org.http4s.client.middleware.Metrics
+import org.http4s.metrics.dropwizard.Dropwizard
+import com.codahale.metrics.SharedMetricRegistries
+</code></pre>
+
+<pre><code class="language-scala">implicit val clock = Clock.create[IO]
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@14d64405
+val registry = SharedMetricRegistries.getOrCreate(&quot;default&quot;)
+// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@40af66c0
+val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
+// requestMethodClassifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
+
+val meteredClient = Metrics[IO](Dropwizard(registry, &quot;prefix&quot;), requestMethodClassifier)(httpClient)
+// meteredClient: Client[IO] = org.http4s.client.Client$$anon$1@407f69fc
+</code></pre>
+
+<p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
+to add a subprefix to every metric based on the <code>Request</code></p>
+
+<h4 id="prometheus-metrics-middleware">Prometheus Metrics Middleware</h4>
+
+<p>To make use of this metrics middleware the following dependencies are needed:</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-client&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-prometheus-metrics&quot; % http4sVersion
+)
+</code></pre>
+
+<p>We can create a middleware that registers metrics prefixed with a
+provided prefix like this.</p>
+
+<pre><code class="language-scala">import cats.effect.{Resource, IO}
+import org.http4s.client.middleware.Metrics
+import org.http4s.metrics.prometheus.Prometheus
+</code></pre>
+
+<pre><code class="language-scala">implicit val clock = Clock.create[IO]
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@2889b954
+val requestMethodClassifier = (r: Request[IO]) =&gt; Some(r.method.toString.toLowerCase)
+// requestMethodClassifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
+
+val meteredClient: Resource[IO, Client[IO]] =
+  for {
+    registry &lt;- Prometheus.collectorRegistry[IO]
+    metrics &lt;- Prometheus.metricsOps[IO](registry, &quot;prefix&quot;)
+  } yield Metrics[IO](metrics, requestMethodClassifier)(httpClient)
+// meteredClient: Resource[IO, Client[IO]] = Bind(
+//   Allocate(
+//     Map(
+//       Map(
+//         Delay(
+//           org.http4s.metrics.prometheus.Prometheus$$$Lambda$8628/987277532@e59362c
+//         ),
+//         cats.effect.Resource$$$Lambda$8206/556649413@357bd841,
+//         StackTrace(
+//           List(
+//             cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//             cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//             cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//             cats.effect.IO.map(IO.scala:106),
+//             cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
+//             cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//             cats.Functor$Ops.map(Functor.scala:233),
+//             cats.Functor$Ops.map$(Functor.scala:233),
+//             cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
+//             cats.effect.Resource$.make(Resource.scala:384),
+//             org.http4s.server.blaze.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:340),
+//             cats.effect.Resource.$anonfun$fold$1(Resource.scala:119),
+//             cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
+//             cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
+//             cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
+//             cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
+//             cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
+//             cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
+//             scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//             scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
+//             cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
+//             cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
+//             cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
+//             cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
+//             cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
+//             cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$lo...
+</code></pre>
+
+<p>A <code>classifier</code> is just a function Request[F] =&gt; Option[String] that allows
+to add a label to every metric based on the <code>Request</code></p>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="send-a-get-request-treating-the-response-as-a-string">Send a GET request, treating the response as a string</h3>
+
+<p>You can send a GET by calling the <code>expect</code> method on the client, passing a <code>Uri</code>:</p>
+
+<pre><code class="language-scala">httpClient.expect[String](uri&quot;https://google.com/&quot;)
+// res3: IO[String] = Bind(
+//   Map(
+//     Delay(
+//       org.http4s.client.JavaNetClientBuilder$$Lambda$8253/1663868071@e70679b
+//     ),
+//     cats.effect.Resource$$$Lambda$8208/1533612013@6bd63c18,
+//     StackTrace(
+//       List(
+//         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//         cats.effect.IO.map(IO.scala:106),
+//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
+//         cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//         cats.Functor$Ops.map(Functor.scala:233),
+//         cats.Functor$Ops.map$(Functor.scala:233),
+//         cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
+//         cats.effect.Resource$.liftF(Resource.scala:417),
+//         org.http4s.server.blaze.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:362),
+//         cats.effect.Resource.$anonfun$fold$1(Resource.scala:119),
+//         cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
+//         cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
+//         cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
+//         cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
+//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//         scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
+//         cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
+//         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
+//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
+//         cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
+//         cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:177),
+//         cats.effect.internals.IORunLoop$.restart(IORunLoop.scala:40),
+//         cats.effect.internals.IOBracket$.$anonfun$apply$1(IOBracket.scala:48),
+//         cats.effect.internals.IOBracket$.$anonfun$apply$1$adapted(IOBracket.scala:34),
+//         cats.effect.internals.IOAsync$.$anonfun$apply$1(IOAsync.scala:37),
+//         cats.effect.internals.IOAsync$.$anonfun$apply$1$adapted(IOAsync.scala:37),
+//         cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:43...
+</code></pre>
+
+<p>If you need to do something more complicated like setting request headers, you
+can build up a request object and pass that to <code>expect</code>:</p>
+
+<pre><code class="language-scala">import org.http4s.client.dsl.io._
+import org.http4s.headers._
+import org.http4s.MediaType
+import org.http4s.Method._
+</code></pre>
+
+<pre><code class="language-scala">val request = GET(
+  uri&quot;https://my-lovely-api.com/&quot;,
+  Authorization(Credentials.Token(AuthScheme.Bearer, &quot;open sesame&quot;)),
+  Accept(MediaType.application.json)
+)
+// request: IO[Request[IO]] = Pure(
+//   (
+//     Method(&quot;GET&quot;),
+//     Uri(
+//       Some(Scheme(https)),
+//       Some(Authority(None, RegName(my-lovely-api.com), None)),
+//       &quot;/&quot;,
+//       ,
+//       None
+//     ),
+//     HttpVersion(1, 1),
+//     Headers(Authorization: Bearer open sesame, Accept: application/json),
+//     Stream(..),
+//     io.chrisdavenport.vault.Vault@54810004
+//   )
+// )
+
+httpClient.expect[String](request)
+// res4: IO[String] = Bind(
+//   Pure(
+//     (
+//       Method(&quot;GET&quot;),
+//       Uri(
+//         Some(Scheme(https)),
+//         Some(Authority(None, RegName(my-lovely-api.com), None)),
+//         &quot;/&quot;,
+//         ,
+//         None
+//       ),
+//       HttpVersion(1, 1),
+//       Headers(Authorization: Bearer open sesame, Accept: application/json),
+//       Stream(..),
+//       io.chrisdavenport.vault.Vault@54810004
+//     )
+//   ),
+//   org.http4s.client.DefaultClient$$Lambda$8631/609518473@1c170bf2,
+//   StackTrace(
+//     List(
+//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//       cats.effect.IO.flatMap(IO.scala:133),
+//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:886),
+//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:863),
+//       cats.FlatMap$Ops.flatMap(FlatMap.scala:229),
+//       cats.FlatMap$Ops.flatMap$(FlatMap.scala:229),
+//       cats.FlatMap$ToFlatMapOps$$anon$2.flatMap(FlatMap.scala:243),
+//       org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:118),
+//       org.http4s.client.DefaultClient.expect(DefaultClient.scala:121),
+//       repl.MdocSession$App.&lt;init&gt;(client.md:267),
+//       repl.MdocSession$.app(client.md:3),
+//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//       scala.Console$.withErr(Console.scala:196),
+//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//       scala.Console$.withOut(Console.scala:167),
+//       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:186),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:153),
+// ...
+</code></pre>
+
+<h3 id="post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</h3>
+
+<pre><code class="language-scala">case class AuthResponse(access_token: String)
+
+// See the JSON page for details on how to define this
+implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
+// authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
+
+val postRequest = POST(
+  UrlForm(
+    &quot;grant_type&quot; -&gt; &quot;client_credentials&quot;,
+    &quot;client_id&quot; -&gt; &quot;my-awesome-client&quot;,
+    &quot;client_secret&quot; -&gt; &quot;s3cr3t&quot;
+  ),
+  uri&quot;https://my-lovely-api.com/oauth2/token&quot;
+)
+// postRequest: IO[Request[IO]] = Pure(
+//   (
+//     Method(&quot;POST&quot;),
+//     Uri(
+//       Some(Scheme(https)),
+//       Some(Authority(None, RegName(my-lovely-api.com), None)),
+//       &quot;/oauth2/token&quot;,
+//       ,
+//       None
+//     ),
+//     HttpVersion(1, 1),
+//     Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78),
+//     Stream(..),
+//     io.chrisdavenport.vault.Vault@131bf2f9
+//   )
+// )
+
+httpClient.expect[AuthResponse](postRequest)
+// res5: IO[AuthResponse] = Bind(
+//   Pure(
+//     (
+//       Method(&quot;POST&quot;),
+//       Uri(
+//         Some(Scheme(https)),
+//         Some(Authority(None, RegName(my-lovely-api.com), None)),
+//         &quot;/oauth2/token&quot;,
+//         ,
+//         None
+//       ),
+//       HttpVersion(1, 1),
+//       Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78),
+//       Stream(..),
+//       io.chrisdavenport.vault.Vault@131bf2f9
+//     )
+//   ),
+//   org.http4s.client.DefaultClient$$Lambda$8631/609518473@3604429c,
+//   StackTrace(
+//     List(
+//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//       cats.effect.IO.flatMap(IO.scala:133),
+//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:886),
+//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:863),
+//       cats.FlatMap$Ops.flatMap(FlatMap.scala:229),
+//       cats.FlatMap$Ops.flatMap$(FlatMap.scala:229),
+//       cats.FlatMap$ToFlatMapOps$$anon$2.flatMap(FlatMap.scala:243),
+//       org.http4s.client.DefaultClient.expectOr(DefaultClient.scala:118),
+//       org.http4s.client.DefaultClient.expect(DefaultClient.scala:121),
+//       repl.MdocSession$App.&lt;init&gt;(client.md:267),
+//       repl.MdocSession$.app(client.md:3),
+//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//       scala.Console$.withErr(Console.scala:196),
+//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//       scala.Console$.withOut(Console.scala:167),
+//       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:186),
+// ...
+</code></pre>
+
+<h2 id="calls-to-a-json-api">Calls to a JSON API</h2>
+
+<p>Take a look at <a href="../json">json</a>.</p>
+
+<h2 id="body-decoding-encoding">Body decoding / encoding</h2>
+
+<p>The reusable way to decode/encode a request is to write a custom <code>EntityDecoder</code>
+and <code>EntityEncoder</code>. For that topic, take a look at <a href="../entity">entity</a>.</p>
+
+<p>If you prefer a more fine-grained approach, some of the methods take a <code>Response[F]
+=&gt; F[A]</code> argument, such as <code>run</code> or <code>get</code>, which lets you add a function which includes the
+decoding functionality, but ignores the media type.</p>
+
+<pre><code class="language-scala">client.run(req).use {
+  case Status.Successful(r) =&gt; r.attemptAs[A].leftMap(_.message).value
+  case r =&gt; r.as[String]
+    .map(b =&gt; Left(s&quot;Request $req failed with status ${r.status.code} and body $b&quot;))
+}
+</code></pre>
+
+<p>However, your function has to consume the body before the returned <code>F</code> exits.
+Don&rsquo;t do this:</p>
+
+<pre><code class="language-scala">// will come back to haunt you
+client.get[EntityBody](&quot;some-url&quot;)(response =&gt; response.body)
+</code></pre>
+
+<p>Passing it to a <code>EntityDecoder</code> is safe.</p>
+
+<pre><code>client.get[T](&quot;some-url&quot;)(response =&gt; jsonOf(response.body))
+</code></pre>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/integrations/">Integrations</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/upgrading/">Upgrading from 0.18</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/csrf/">CSRF</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v0.21/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/testing/">Testing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/deployment/">Deployment</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/api">Scaladoc</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/v0.21/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+

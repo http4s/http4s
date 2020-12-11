@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | The http4s DSL</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          
+<a href="https://github.com/http4s/http4s/edit/series/1.0/docs/src/main/mdoc/dsl.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>The http4s DSL</h1>
+          
+          
+          
+
+<p>Recall from earlier that an <code>HttpRoutes[F]</code> is just a type alias for
+<code>Kleisli[OptionT[F, *], Request[F], Response[F]]</code>.  This provides a minimal
+foundation for declaring services and executing them on blaze or a
+servlet container.  While this foundation is composable, it is not
+highly productive.  Most service authors will seek a higher level DSL.</p>
+
+<h2 id="add-the-http4s-dsl-to-your-build">Add the http4s-dsl to your build</h2>
+
+<p>One option is the http4s-dsl.  It is officially supported by the
+http4s team, but kept separate from core in order to encourage
+multiple approaches for different needs.</p>
+
+<p>This tutorial assumes that http4s-dsl is on your classpath.  Add the
+following to your build.sbt:</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
+)
+</code></pre>
+
+<p>All we need is a REPL to follow along at home:</p>
+
+<pre><code>$ sbt console
+</code></pre>
+
+<h2 id="the-simplest-service">The simplest service</h2>
+
+<p>We&rsquo;ll need the following imports to get started:</p>
+
+<pre><code class="language-scala">import cats.effect._
+import cats.syntax.all._
+import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
+// Provided by `cats.effect.IOApp`
+implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
+</code></pre>
+
+<p>The central concept of http4s-dsl is pattern matching.  An
+<code>HttpRoutes[F]</code> is declared as a simple series of case statements.  Each
+case statement attempts to match and optionally extract from an
+incoming <code>Request[F]</code>.  The code associated with the first matching case
+is used to generate a <code>F[Response[F]]</code>.</p>
+
+<p>The simplest case statement matches all requests without extracting
+anything.  The right hand side of the request must return a
+<code>F[Response[F]]</code>.</p>
+
+<p>In the following we use <code>cats.effect.IO</code> as the effect type <code>F</code>.</p>
+
+<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
+  case _ =&gt;
+    IO(Response(Status.Ok))
+}
+// service: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@1e96e240
+// )
+</code></pre>
+
+<h2 id="testing-the-service">Testing the Service</h2>
+
+<p>One beautiful thing about the <code>HttpRoutes[F]</code> model is that we don&rsquo;t
+need a server to test our route.  We can construct our own request
+and experiment directly in the REPL.</p>
+
+<pre><code class="language-scala">val getRoot = Request[IO](Method.GET, uri&quot;/&quot;)
+// getRoot: Request[IO] = (
+//   GET,
+//   Uri(None, None, /, , None),
+//   HttpVersion(1, 1),
+//   Headers(),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@73496c53
+// )
+
+val io = service.orNotFound.run(getRoot)
+// io: IO[Response[IO]] = Map(
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$8454/2051744059@2fec56d1),
+//   cats.data.OptionT$$Lambda$8458/1870098372@7a2f5bfe,
+//   StackTrace(
+//     List(
+//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//       cats.effect.IO.map(IO.scala:106),
+//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
+//       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//       cats.data.OptionT.getOrElse(OptionT.scala:99),
+//       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:38),
+//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$1(Http1ServerStage.scala:340),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:183),
+//       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:113),
+//       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:113),
+//       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:47),
+//       cats.effect.IO.unsafeRunCancelable(IO.scala:305),
+//       cats.effect.IO.$anonfun$runCancelable$1(IO.scala:234),
+//       cats.effect.internals.IORunLoop$.step(IORunLoop.scala:235),
+//       cats.effect.IO.unsafeRunTimed(IO.scala:338),
+//       cats.effect.IO.unsafeRunSync(IO.scala:256),
+//       cats.effect.SyncIO.unsafeRunSync(SyncIO.scala:51),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:189),
+//       java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1402),
+//       java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289),
+//       java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1056),
+//       java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1692),
+//       java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:175)
+//     )
+//   )
+// )
+</code></pre>
+
+<p>Where is our <code>Response[F]</code>?  It hasn&rsquo;t been created yet.  We wrapped it
+in an <code>IO</code>.  In a real service, generating a <code>Response[F]</code> is likely to
+be an asynchronous operation with side effects, such as invoking
+another web service or querying a database, or maybe both.  Operating
+in a <code>F</code> gives us control over the sequencing of operations and
+lets us reason about our code like good functional programmers.  It is
+the <code>HttpRoutes[F]</code>&rsquo;s job to describe the task, and the server&rsquo;s job to
+run it.</p>
+
+<p>But here in the REPL, it&rsquo;s up to us to run it:</p>
+
+<pre><code class="language-scala">val response = io.unsafeRunSync()
+// response: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@53023219
+// )
+</code></pre>
+
+<p>Cool.</p>
+
+<h2 id="generating-responses">Generating responses</h2>
+
+<p>We&rsquo;ll circle back to more sophisticated pattern matching of requests,
+but it will be a tedious affair until we learn a more succinct way of
+generating <code>F[Response]</code>s.</p>
+
+<h3 id="status-codes">Status codes</h3>
+
+<p>http4s-dsl provides a shortcut to create an <code>F[Response]</code> by
+applying a status code:</p>
+
+<pre><code class="language-scala">val okIo = Ok()
+// okIo: IO[Response[IO]] = Pure(
+//   Response(
+//     Status(200),
+//     HttpVersion(1, 1),
+//     Headers(Content-Length: 0),
+//     Stream(..),
+//     io.chrisdavenport.vault.Vault@6b91f7de
+//   )
+// )
+val ok = okIo.unsafeRunSync()
+// ok: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@6b91f7de
+// )
+</code></pre>
+
+<p>This simple <code>Ok()</code> expression succinctly says what we mean in a
+service:</p>
+
+<pre><code class="language-scala">HttpRoutes.of[IO] {
+  case _ =&gt; Ok()
+}.orNotFound.run(getRoot).unsafeRunSync()
+// res0: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@26867ea3
+// )
+</code></pre>
+
+<p>This syntax works for other status codes as well.  In our example, we
+don&rsquo;t return a body, so a <code>204 No Content</code> would be a more appropriate
+response:</p>
+
+<pre><code class="language-scala">HttpRoutes.of[IO] {
+  case _ =&gt; NoContent()
+}.orNotFound.run(getRoot).unsafeRunSync()
+// res1: Response[IO] = Response(
+//   Status(204),
+//   HttpVersion(1, 1),
+//   Headers(),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@26762126
+// )
+</code></pre>
+
+<h3 id="headers">Headers</h3>
+
+<p>http4s adds a minimum set of headers depending on the response, e.g:</p>
+
+<pre><code class="language-scala">Ok(&quot;Ok response.&quot;).unsafeRunSync().headers
+// res2: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12)
+</code></pre>
+
+<p>Extra headers can be added using <code>putHeaders</code>, for example to specify cache policies:</p>
+
+<pre><code class="language-scala">import org.http4s.headers.`Cache-Control`
+import org.http4s.CacheDirective.`no-cache`
+import cats.data.NonEmptyList
+</code></pre>
+
+<pre><code class="language-scala">Ok(&quot;Ok response.&quot;, `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync().headers
+// res3: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cache-Control: no-cache, Content-Length: 12)
+</code></pre>
+
+<p>http4s defines all the well known headers directly, but sometimes you need to
+define custom headers, typically prefixed by an <code>X-</code>. In simple cases you can
+construct a <code>Header</code> instance by hand:</p>
+
+<pre><code class="language-scala">Ok(&quot;Ok response.&quot;, Header(&quot;X-Auth-Token&quot;, &quot;value&quot;)).unsafeRunSync().headers
+// res4: Headers = Headers(Content-Type: text/plain; charset=UTF-8, X-Auth-Token: value, Content-Length: 12)
+</code></pre>
+
+<h3 id="cookies">Cookies</h3>
+
+<p>http4s has special support for Cookie headers using the <code>Cookie</code> type to add
+and invalidate cookies. Adding a cookie will generate the correct <code>Set-Cookie</code> header:</p>
+
+<pre><code class="language-scala">Ok(&quot;Ok response.&quot;).map(_.addCookie(ResponseCookie(&quot;foo&quot;, &quot;bar&quot;))).unsafeRunSync().headers
+// res5: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar)
+</code></pre>
+
+<p><code>Cookie</code> can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc</p>
+
+<pre><code class="language-scala">val cookieResp = {
+  for {
+    resp &lt;- Ok(&quot;Ok response.&quot;)
+    now &lt;- HttpDate.current[IO]
+  } yield resp.addCookie(ResponseCookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(now), httpOnly = true, secure = true))
+}
+// cookieResp: IO[Response[IO]] = Bind(
+//   Pure(
+//     Response(
+//       Status(200),
+//       HttpVersion(1, 1),
+//       Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12),
+//       Stream(..),
+//       io.chrisdavenport.vault.Vault@64264d0b
+//     )
+//   ),
+//   &lt;function1&gt;,
+//   StackTrace(
+//     List(
+//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//       cats.effect.IO.flatMap(IO.scala:133),
+//       repl.MdocSession$App.&lt;init&gt;(dsl.md:110),
+//       repl.MdocSession$.app(dsl.md:3),
+//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//       scala.Console$.withErr(Console.scala:196),
+//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//       scala.Console$.withOut(Console.scala:167),
+//       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:185),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:152),
+//       mdoc.internal.markdown.Processor.processDocument(Processor.scala:52),
+//       mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
+//       mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
+//       mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
+//       mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
+//       scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:126),
+//       scala.collection.LinearSeqOptimized.foldLeft$(LinearSeqOptimized.scala:122),
+//       scala.collection.immutable.List.foldLeft(List.scala:91),
+//       mdoc.internal.cli.MainOps.generateCompleteSite(MainOps.scala:155),
+//       mdoc.internal.cli.MainOps.run(MainOps.scala:177),
+//       mdoc.internal.cli.MainOps$.process(MainOps.scala:269),
+// ...
+cookieResp.unsafeRunSync().headers
+// res6: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Mon, 07 Dec 2020 06:22:06 GMT; Secure; HttpOnly)
+</code></pre>
+
+<p>To request a cookie to be removed on the client, you need to set the cookie value
+to empty. http4s can do that with <code>removeCookie</code>:</p>
+
+<pre><code class="language-scala">Ok(&quot;Ok response.&quot;).map(_.removeCookie(&quot;foo&quot;)).unsafeRunSync().headers
+// res7: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0)
+</code></pre>
+
+<h3 id="responding-with-a-body">Responding with a body</h3>
+
+<h4 id="simple-bodies">Simple bodies</h4>
+
+<p>Most status codes take an argument as a body.  In http4s, <code>Request[F]</code>
+and <code>Response[F]</code> bodies are represented as a
+<code>fs2.Stream[F, Byte]</code>.  It&rsquo;s also considered good
+HTTP manners to provide a <code>Content-Type</code> and, where known in advance,
+<code>Content-Length</code> header in one&rsquo;s responses.</p>
+
+<p>All of this hassle is neatly handled by http4s&rsquo; <a href="../api/org/http4s/EntityEncoder$">EntityEncoder</a>s.
+We&rsquo;ll cover these in more depth in another tutorial.  The important point
+for now is that a response body can be generated for any type with an
+implicit <code>EntityEncoder</code> in scope.  http4s provides several out of the
+box:</p>
+
+<pre><code class="language-scala">Ok(&quot;Received request.&quot;).unsafeRunSync()
+// res8: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 17),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@ed7956
+// )
+
+import java.nio.charset.StandardCharsets.UTF_8
+Ok(&quot;binary&quot;.getBytes(UTF_8)).unsafeRunSync()
+// res9: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Type: application/octet-stream, Content-Length: 6),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@158b6c8e
+// )
+</code></pre>
+
+<p>Per the HTTP specification, some status codes don&rsquo;t support a body.
+http4s prevents such nonsense at compile time:</p>
+
+<pre><code class="language-scala">NoContent(&quot;does not compile&quot;)
+// error: type mismatch;
+//  found   : String(&quot;does not compile&quot;)
+//  required: org.http4s.Header
+// NoContent(&quot;does not compile&quot;)
+//           ^^^^^^^^^^^^^^^^^^
+</code></pre>
+
+<h4 id="asynchronous-responses">Asynchronous responses</h4>
+
+<p>While http4s prefers <code>F[_]: Effect</code>, you may be working with libraries that
+use standard library <code>Future</code>s.  Some relevant imports:</p>
+
+<pre><code class="language-scala">import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
+</code></pre>
+
+<p>You can respond with a <code>Future</code> of any type that has an
+<code>EntityEncoder</code> by lifting it into <code>IO</code> or any <code>F[_]</code> that suspends future.
+Note: unlike <code>IO</code>, wrapping a side effect in <code>Future</code> does not
+suspend it, and the resulting expression would still be side
+effectful, unless we wrap it in <code>IO</code>:</p>
+
+<p><code>IO.fromFuture</code> requires an implicit <code>ContextShift</code>, to ensure that the
+suspended future is shifted to the correct thread pool.</p>
+
+<pre><code class="language-scala">implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+// cs: ContextShift[IO] = cats.effect.internals.IOContextShift@20b52b6d
+
+val io = Ok(IO.fromFuture(IO(Future {
+  println(&quot;I run when the future is constructed.&quot;)
+  &quot;Greetings from the future!&quot;
+})))
+// io: IO[Response[IO]] = Bind(
+//   Async(
+//     cats.effect.internals.IOAsync$$$Lambda$8059/68341442@6020831,
+//     false,
+//     StackTrace(
+//       List(
+//         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//         cats.effect.internals.IOAsync$.apply(IOAsync.scala:30),
+//         cats.effect.internals.IOBracket$.guaranteeCase(IOBracket.scala:129),
+//         cats.effect.IO.guaranteeCase(IO.scala:672),
+//         cats.effect.IO.guarantee(IO.scala:642),
+//         cats.effect.IO$.fromFuture(IO.scala:1413),
+//         repl.MdocSession$App.&lt;init&gt;(dsl.md:162),
+//         repl.MdocSession$.app(dsl.md:3),
+//         mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//         scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//         scala.Console$.withErr(Console.scala:196),
+//         mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//         scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//         scala.Console$.withOut(Console.scala:167),
+//         mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//         mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
+//         mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:185),
+//         mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:152),
+//         mdoc.internal.markdown.Processor.processDocument(Processor.scala:52),
+//         mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
+//         mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
+//         mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
+//         mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
+//         scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:126),
+//         scala.collection.LinearSeqOptimized.foldLeft$(LinearSeqOptimized.scala:122),
+//         scala.collection.immutable.List.foldLeft(List.scala:91),
+//         mdoc.internal.cli.MainOps.generateCompleteSite(MainOps.scala:155),
+//         mdoc.internal.cli.MainOps.run(MainOps.scala:177),
+//         mdoc.internal.cli.MainOps$.process(MainOps.scala:269),
+//         mdoc.Main$.process(Main.scala:26),
+// ...
+io.unsafeRunSync()
+// I run when the future is constructed.
+// res11: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 26),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@1d317ba8
+// )
+</code></pre>
+
+<p>As good functional programmers who like to delay our side effects, we
+of course prefer to operate in <code>F</code>s:</p>
+
+<pre><code class="language-scala">val io = Ok(IO {
+  println(&quot;I run when the IO is run.&quot;)
+  &quot;Mission accomplished!&quot;
+})
+// io: IO[Response[IO]] = Bind(
+//   Delay(&lt;function0&gt;),
+//   org.http4s.dsl.impl.EntityResponseGenerator$$Lambda$8964/1742162974@57934ef,
+//   StackTrace(
+//     List(
+//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//       cats.effect.IO.flatMap(IO.scala:133),
+//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:886),
+//       cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:863),
+//       org.http4s.dsl.impl.EntityResponseGenerator.apply(ResponseGenerator.scala:59),
+//       org.http4s.dsl.impl.EntityResponseGenerator.apply$(ResponseGenerator.scala:58),
+//       org.http4s.dsl.impl.Responses$OkOps.apply(Responses.scala:176),
+//       repl.MdocSession$App.&lt;init&gt;(dsl.md:162),
+//       repl.MdocSession$.app(dsl.md:3),
+//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//       scala.Console$.withErr(Console.scala:196),
+//       mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//       scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//       scala.util.DynamicVariable.withValue(DynamicVariable.scala:62),
+//       scala.Console$.withOut(Console.scala:167),
+//       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
+//       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:185),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:152),
+//       mdoc.internal.markdown.Processor.processDocument(Processor.scala:52),
+//       mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
+//       mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
+//       mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
+//       mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
+//       scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:126),
+//       scala.collection.LinearSeqOptimized.foldLeft$(LinearSeqOptimized.scala:122),
+//       scala.collection.immutable.List.foldLeft(List.scala:91),
+//       mdoc.internal.cli.MainOps.generateCompleteSite(MainOps.scala:155),
+//       mdoc.internal.cli.MainOps.run(MainOps.scala:177),
+//       mdoc.internal.cli.MainOps$.process(MainOps.scala:269),
+//       mdoc.Main$.process(Main.scala:26),
+// ...
+io.unsafeRunSync()
+// I run when the IO is run.
+// res12: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 21),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@c9e896e
+// )
+</code></pre>
+
+<p>Note that in both cases, a <code>Content-Length</code> header is calculated.
+http4s waits for the <code>Future</code> or <code>F</code> to complete before wrapping it
+in its HTTP envelope, and thus has what it needs to calculate a
+<code>Content-Length</code>.</p>
+
+<h4 id="streaming-bodies">Streaming bodies</h4>
+
+<p>Streaming bodies are supported by returning a <code>fs2.Stream</code>.
+Like <code>IO</code>, the stream may be of any type that has an
+<code>EntityEncoder</code>.</p>
+
+<p>An intro to <code>Stream</code> is out of scope, but we can glimpse the
+power here.  This stream emits the elapsed time every 100 milliseconds
+for one second:</p>
+
+<pre><code class="language-scala">import fs2.Stream
+import scala.concurrent.duration._
+</code></pre>
+
+<pre><code class="language-scala">val drip: Stream[IO, String] =
+  Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
+// drip: Stream[IO, String] = Stream(..)
+</code></pre>
+
+<p>We can see it for ourselves in the REPL:</p>
+
+<pre><code class="language-scala">val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s =&gt; {IO{println(s); s}})).compile.drain
+// dripOutIO: IO[Unit] = Map(
+//   Bind(
+//     Delay(fs2.Stream$CompileOps$$Lambda$8584/192512199@1acb5b4c),
+//     fs2.Stream$Compiler$$anon$5$$Lambda$8586/1274469564@cb19f86,
+//     StackTrace(
+//       List(
+//         cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//         cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//         cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//         cats.effect.IO.flatMap(IO.scala:133),
+//         cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:886),
+//         cats.effect.IOLowPriorityInstances$IOEffect.flatMap(IO.scala:863),
+//         cats.FlatMap$Ops.flatMap(FlatMap.scala:229),
+//         cats.FlatMap$Ops.flatMap$(FlatMap.scala:229),
+//         cats.FlatMap$ToFlatMapOps$$anon$2.flatMap(FlatMap.scala:243),
+//         fs2.Stream$Compiler$$anon$5.apply(Stream.scala:4222),
+//         fs2.Stream$CompileOps.foldChunks(Stream.scala:4264),
+//         fs2.Stream$CompileOps.drain(Stream.scala:4247),
+//         org.http4s.blazecore.util.EntityBodyWriter.writeEntityBody(EntityBodyWriter.scala:51),
+//         org.http4s.blazecore.util.EntityBodyWriter.writeEntityBody$(EntityBodyWriter.scala:50),
+//         org.http4s.blazecore.util.IdentityWriter.writeEntityBody(IdentityWriter.scala:20),
+//         org.http4s.blazecore.util.Http1Writer.$anonfun$write$2(Http1Writer.scala:22),
+//         cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:181),
+//         cats.effect.internals.IORunLoop$RestartCallback.signal(IORunLoop.scala:455),
+//         cats.effect.internals.IORunLoop$RestartCallback.apply(IORunLoop.scala:476),
+//         cats.effect.internals.IORunLoop$RestartCallback.apply(IORunLoop.scala:414),
+//         cats.effect.internals.Callback$AsyncIdempotentCallback.run(Callback.scala:131),
+//         cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
+//         cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
+//         scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//         scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
+//         cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
+//         cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
+//         cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
+// ...
+dripOutIO.unsafeRunSync()
+// 104884962 nanoseconds204532585 nanoseconds305425018 nanoseconds406491151 nanoseconds507875087 nanoseconds608616118 nanoseconds709598151 nanoseconds810529483 nanoseconds911418115 nanoseconds1012377348 nanoseconds
+</code></pre>
+
+<p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
+<code>Stream</code> as they are emitted.  Note that a stream&rsquo;s length can&rsquo;t
+generally be anticipated before it runs, so this triggers chunked
+transfer encoding:</p>
+
+<pre><code class="language-scala">Ok(drip)
+// res14: IO[Response[IO]] = Pure(
+//   Response(
+//     Status(200),
+//     HttpVersion(1, 1),
+//     Headers(Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked),
+//     Stream(..),
+//     io.chrisdavenport.vault.Vault@40230cb3
+//   )
+// )
+</code></pre>
+
+<h2 id="matching-and-extracting-requests">Matching and extracting requests</h2>
+
+<p>A <code>Request</code> is a regular <code>case class</code> - you can destructure it to extract its
+values. By extension, you can also <code>match/case</code> it with different possible
+destructurings. To build these different extractors, you can make use of the
+DSL.</p>
+
+<h3 id="the-object">The <code>-&gt;</code> object</h3>
+
+<p>More often, you extract the <code>Request</code> into a HTTP <code>Method</code> and path
+info via the <code>-&gt;</code> object.  On the left side is the method, and on the
+right side, the path info.  The following matches a request to <code>GET
+/hello</code>:</p>
+
+<pre><code class="language-scala">HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;hello&quot; =&gt; Ok(&quot;hello&quot;)
+}
+// res15: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@388e2820
+// )
+</code></pre>
+
+<p>Methods such as <code>GET</code> are typically found in <code>org.http4s.Method</code>, but are imported automatically as part of the DSL.</p>
+
+<h3 id="path-info">Path info</h3>
+
+<p>Path matching is done on the request&rsquo;s <code>pathInfo</code>.  Path info is the
+request&rsquo;s URI&rsquo;s path after the following:</p>
+
+<ul>
+<li>the mount point of the service</li>
+<li>the prefix, if the service is composed with a <code>Router</code></li>
+<li>the prefix, if the service is rewritten with <code>TranslateUri</code></li>
+</ul>
+
+<p>Matching on <code>request.pathInfo</code> instead of <code>request.uri.path</code> allows
+multiple services to be composed without rewriting all the path
+matchers.</p>
+
+<h3 id="matching-paths">Matching paths</h3>
+
+<p>A request to the root of the service is matched with the <code>Root</code>
+extractor.  <code>Root</code> consumes the leading slash of the path info.  The
+following matches requests to <code>GET /</code>:</p>
+
+<pre><code class="language-scala">HttpRoutes.of[IO] {
+  case GET -&gt; Root =&gt; Ok(&quot;root&quot;)
+}
+</code></pre>
+
+<p>We usually match paths in a left-associative manner with <code>Root</code> and
+<code>/</code>.  Each <code>&quot;/&quot;</code> after the initial slash delimits a path segment, and
+is represented in the DSL with the &lsquo;/&rsquo; extractor.  Segments can be
+matched as literals or made available through standard Scala pattern
+matching.  For example, the following service responds with &ldquo;Hello,
+Alice!&rdquo; to <code>GET /hello/Alice</code>:</p>
+
+<pre><code class="language-scala">HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;hello&quot; / name =&gt; Ok(s&quot;Hello, $name!&quot;)
+}
+</code></pre>
+
+<p>The above assumes only one path segment after <code>&quot;hello&quot;</code>, and would not
+match <code>GET /hello/Alice/Bob</code>.  To match to an arbitrary depth, we need
+a right-associative <code>/:</code> extractor.  In this case, there is no <code>Root</code>,
+and the final pattern is a <code>Path</code> of the remaining segments.  This would
+say <code>&quot;Hello, Alice and Bob!&quot;</code></p>
+
+<pre><code class="language-scala">HttpRoutes.of[IO] {
+  case GET -&gt; &quot;hello&quot; /: rest =&gt; Ok(s&quot;&quot;&quot;Hello, ${rest.segments.mkString(&quot; and &quot;)}!&quot;&quot;&quot;)
+}
+</code></pre>
+
+<p>To match a file extension on a segment, use the <code>~</code> extractor:</p>
+
+<pre><code class="language-scala">HttpRoutes.of[IO] {
+  case GET -&gt; Root / file ~ &quot;json&quot; =&gt; Ok(s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for $file&quot;}&quot;&quot;&quot;)
+}
+</code></pre>
+
+<h3 id="handling-path-parameters">Handling path parameters</h3>
+
+<p>Path params can be extracted and converted to a specific type but are
+<code>String</code>s by default. There are numeric extractors provided in the form
+of <code>IntVar</code> and <code>LongVar</code>, as well as <code>UUIDVar</code> extractor for <code>java.util.UUID</code>.</p>
+
+<pre><code class="language-scala">def getUserName(userId: Int): IO[String] = ???
+
+val usersService = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;users&quot; / IntVar(userId) =&gt;
+    Ok(getUserName(userId))
+}
+// usersService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@785f0546
+// )
+</code></pre>
+
+<p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
+object which implements <code>def unapply(str: String): Option[T]</code>, similar to the way
+in which <code>IntVar</code> does it.</p>
+
+<pre><code class="language-scala">import java.time.LocalDate
+import scala.util.Try
+import org.http4s.client.dsl.io._
+</code></pre>
+
+<pre><code class="language-scala">object LocalDateVar {
+  def unapply(str: String): Option[LocalDate] = {
+    if (!str.isEmpty)
+      Try(LocalDate.parse(str)).toOption
+    else
+      None
+  }
+}
+
+def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
+
+val dailyWeatherService = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; / LocalDateVar(localDate) =&gt;
+    Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
+}
+// dailyWeatherService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@7892f864
+// )
+
+val req = GET(uri&quot;/weather/temperature/2016-11-05&quot;)
+// req: Request[IO] = (
+//   GET,
+//   Uri(None, None, /weather/temperature/2016-11-05, , None),
+//   HttpVersion(1, 1),
+//   Headers(),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@208c2551
+// )
+dailyWeatherService.orNotFound(req).unsafeRunSync()
+// res20: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@690ac648
+// )
+</code></pre>
+
+<h3 id="handling-query-parameters">Handling query parameters</h3>
+
+<p>A query parameter needs to have a <code>QueryParamDecoderMatcher</code> provided to
+extract it. In order for the <code>QueryParamDecoderMatcher</code> to work there needs to
+be an implicit <code>QueryParamDecoder[T]</code> in scope. <code>QueryParamDecoder</code>s for simple
+types can be found in the <code>QueryParamDecoder</code> object. There are also
+<code>QueryParamDecoderMatcher</code>s available which can be used to
+return optional or validated parameter values.</p>
+
+<p>In the example below we&rsquo;re finding query params named <code>country</code> and <code>year</code> and
+then parsing them as a <code>String</code> and <code>java.time.Year</code>.</p>
+
+<pre><code class="language-scala">import java.time.Year
+</code></pre>
+
+<pre><code class="language-scala">object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String](&quot;country&quot;)
+
+implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
+  QueryParamDecoder[Int].map(Year.of)
+// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@697f8b1a
+
+object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
+
+def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Double] = ???
+
+val averageTemperatureService = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; :? CountryQueryParamMatcher(country) +&amp; YearQueryParamMatcher(year)  =&gt;
+    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
+}
+// averageTemperatureService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@6c10f89
+// )
+</code></pre>
+
+<p>To support a <code>QueryParamDecoderMatcher[Instant]</code>, consider <code>QueryParamCodec#instantQueryParamCodec</code>. That
+outputs a <code>QueryParamCodec[Instant]</code>, which offers both a <code>QueryParamEncoder[Instant]</code> and <code>QueryParamDecoder[Instant]</code>.</p>
+
+<pre><code class="language-scala">import java.time.Instant
+import java.time.format.DateTimeFormatter
+</code></pre>
+
+<pre><code class="language-scala">implicit val isoInstantCodec: QueryParamCodec[Instant] =
+  QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
+
+object IsoInstantParamMatcher extends QueryParamDecoderMatcher[Instant](&quot;timestamp&quot;)
+</code></pre>
+
+<h4 id="optional-query-parameters">Optional query parameters</h4>
+
+<p>To accept an optional query parameter a <code>OptionalQueryParamDecoderMatcher</code> can be used.</p>
+
+<pre><code class="language-scala">import java.time.Year
+import org.http4s.client.dsl.io._
+</code></pre>
+
+<pre><code class="language-scala">implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
+  QueryParamDecoder[Int].map(Year.of)
+// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@472614ad
+
+object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Year](&quot;year&quot;)
+
+def getAverageTemperatureForCurrentYear: IO[String] = ???
+def getAverageTemperatureForYear(y: Year): IO[String] = ???
+
+val routes2 = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;temperature&quot; :? OptionalYearQueryParamMatcher(maybeYear) =&gt;
+    maybeYear match {
+      case None =&gt;
+        Ok(getAverageTemperatureForCurrentYear)
+      case Some(year) =&gt;
+        Ok(getAverageTemperatureForYear(year))
+    }
+}
+// routes2: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@7821b287
+// )
+</code></pre>
+
+<h4 id="missing-required-query-parameters">Missing required query parameters</h4>
+
+<p>A request with a missing required query parameter will fall through to the following <code>case</code> statements and may eventually return a 404. To provide contextual error handling, optional query parameters or fallback routes can be used.</p>
+
+<h4 id="invalid-query-parameter-handling">Invalid query parameter handling</h4>
+
+<p>To validate query parsing you can use <code>ValidatingQueryParamDecoderMatcher</code> which returns a <code>ParseFailure</code> if the parameter cannot be decoded. Be careful not to return the raw invalid value in a <code>BadRequest</code> because it could be used for <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)">Cross Site Scripting</a> attacks.</p>
+
+<pre><code class="language-scala">implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
+  QueryParamDecoder[Int].emap(i =&gt; Try(Year.of(i)).toEither.leftMap(t =&gt; ParseFailure(t.getMessage, t.getMessage)))
+// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@6d93d1c2
+
+object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year](&quot;year&quot;)
+
+val routes = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;temperature&quot; :? YearQueryParamMatcher(yearValidated) =&gt;
+    yearValidated.fold(
+      parseFailures =&gt; BadRequest(&quot;unable to parse argument year&quot;),
+      year =&gt; Ok(getAverageTemperatureForYear(year))
+    )
+}
+// routes: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@63a026be
+// )
+</code></pre>
+
+<h4 id="optional-invalid-query-parameter-handling">Optional Invalid query parameter handling</h4>
+
+<p>Consider <code>OptionalValidatingQueryParamDecoderMatcher[A]</code> given the power that
+  <code>Option[cats.data.ValidatedNel[org.http4s.ParseFailure, A]]</code> provides.</p>
+
+<pre><code class="language-scala">object LongParamMatcher extends OptionalValidatingQueryParamDecoderMatcher[Long](&quot;long&quot;)
+
+val routes = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;number&quot; :? LongParamMatcher(maybeNumber) =&gt;
+
+    val _: Option[cats.data.ValidatedNel[org.http4s.ParseFailure, Long]] = maybeNumber
+
+    maybeNumber match {
+        case Some(n) =&gt;
+            n.fold(
+              parseFailures =&gt; BadRequest(&quot;unable to parse argument 'long'&quot;),
+              year =&gt; Ok(n.toString)
+            )
+        case None =&gt; BadRequest(&quot;missing number&quot;)
+    }
+}
+// routes: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@14d4c51b
+// )
+</code></pre>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/integrations/">Integrations</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading from 0.18</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v1.0/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/csrf/">CSRF</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/testing/">Testing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/deployment/">Deployment</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/api">Scaladoc</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/v1.0/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+

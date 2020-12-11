@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | Middleware</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v1.0/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          
+<a href="https://github.com/http4s/http4s/edit/series/1.0/docs/src/main/mdoc/middleware.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>Middleware</h1>
+          
+          
+          
+
+<p>A middleware is a wrapper around a <a href="../service">service</a> that provides a means of manipulating
+the <code>Request</code> sent to service, and/or the <code>Response</code> returned by the service. In
+some cases, such as <a href="../auth">Authentication</a>, middleware may even prevent the service
+from being called.</p>
+
+<p>At its most basic, middleware is simply a function that takes one <code>Service</code> as a
+parameter and returns another <code>Service</code>. In addition to the <code>Service</code>, the middleware
+function can take any additional parameters it needs to perform its task. Let&rsquo;s look
+at a simple example.</p>
+
+<p>For this, we&rsquo;ll need a dependency on the http4s <a href="../dsl">dsl</a>.</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion
+)
+</code></pre>
+
+<p>and some imports.</p>
+
+<pre><code class="language-scala">import cats.data.Kleisli
+import cats.effect._
+import cats.syntax.all._
+import org.http4s._
+import org.http4s.dsl.io._
+import org.http4s.implicits._
+</code></pre>
+
+<p>Then, we can create a middleware that adds a header to successful responses from
+the wrapped service like this.</p>
+
+<pre><code class="language-scala">def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =&gt;
+  service(req).map {
+    case Status.Successful(resp) =&gt;
+      resp.putHeaders(header)
+    case resp =&gt;
+      resp
+  }
+}
+</code></pre>
+
+<p>All we do here is pass the request to the service,
+which returns an <code>F[Response]</code>. So, we use <code>map</code> to get the request out of the task,
+add the header if the response is a success, and then pass the response on. We could
+just as easily modify the request before we passed it to the service.</p>
+
+<p>Now, let&rsquo;s create a simple service. As mentioned between <a href="../service">service</a> and <a href="../dsl">dsl</a>, because <code>Service</code>
+is implemented as a <a href="https://typelevel.org/cats/datatypes/kleisli.html"><code>Kleisli</code></a>, which is just a function at heart, we can test a
+service without a server. Because an <code>HttpService[F]</code> returns a <code>F[Response[F]]</code>,
+we need to call <code>unsafeRunSync</code> on the result of the function to extract the <code>Response[F]</code>.</p>
+
+<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;bad&quot; =&gt;
+    BadRequest()
+  case _ =&gt;
+    Ok()
+}
+// service: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@26646c41
+// )
+
+val goodRequest = Request[IO](Method.GET, uri&quot;/&quot;)
+// goodRequest: Request[IO] = (
+//   GET,
+//   Uri(None, None, /, , None),
+//   HttpVersion(1, 1),
+//   Headers(),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@52d6d908
+// )
+val badRequest = Request[IO](Method.GET, uri&quot;/bad&quot;)
+// badRequest: Request[IO] = (
+//   GET,
+//   Uri(None, None, /bad, , None),
+//   HttpVersion(1, 1),
+//   Headers(),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@7be01b8
+// )
+
+service.orNotFound(goodRequest).unsafeRunSync()
+// res0: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@233cf31d
+// )
+service.orNotFound(badRequest).unsafeRunSync()
+// res1: Response[IO] = Response(
+//   Status(400),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@26bf855f
+// )
+</code></pre>
+
+<p>Now, we&rsquo;ll wrap the service in our middleware to create a new service, and try it out.</p>
+
+<pre><code class="language-scala">val wrappedService = myMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;));
+// wrappedService: HttpRoutes[IO] = Kleisli(&lt;function1&gt;);
+
+wrappedService.orNotFound(goodRequest).unsafeRunSync()
+// res2: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0, SomeKey: SomeValue),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@42450619
+// )
+wrappedService.orNotFound(badRequest).unsafeRunSync()
+// res3: Response[IO] = Response(
+//   Status(400),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@35816c28
+// )
+</code></pre>
+
+<p>Note that the successful response has your header added to it.</p>
+
+<p>If you intend to use you middleware in multiple places,  you may want to implement
+it as an <code>object</code> and use the <code>apply</code> method.</p>
+
+<pre><code class="language-scala">object MyMiddle {
+  def addHeader(resp: Response[IO], header: Header) =
+    resp match {
+      case Status.Successful(resp) =&gt; resp.putHeaders(header)
+      case resp =&gt; resp
+    }
+
+  def apply(service: HttpRoutes[IO], header: Header) =
+    service.map(addHeader(_, header))
+}
+
+val newService = MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
+// newService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
+//   cats.data.Kleisli$$Lambda$9092/915554729@7161c59e
+// )
+
+newService.orNotFound(goodRequest).unsafeRunSync()
+// res4: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0, SomeKey: SomeValue),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@2b2e3390
+// )
+newService.orNotFound(badRequest).unsafeRunSync()
+// res5: Response[IO] = Response(
+//   Status(400),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@41b18d22
+// )
+</code></pre>
+
+<p>It is possible for the wrapped <code>Service</code> to have different <code>Request</code> and <code>Response</code>
+types than the middleware. Authentication is, again, a good example. Authentication
+middleware is an <code>HttpService</code> (an alias for <code>Service[Request, Response]</code>) that wraps an <code>
+AuthedService</code> (an alias for <code>Service[AuthedRequest[T], Response]</code>. There is a type
+defined for this in the <code>http4s.server</code> package:</p>
+
+<pre><code class="language-scala">type AuthMiddleware[F, T] = Middleware[AuthedRequest[F, T], Response[F], Request[F], Response[F]]
+</code></pre>
+
+<p>See the <a href="../auth">Authentication</a> documentation for more details.</p>
+
+<h2 id="composing-services-with-middleware">Composing Services with Middleware</h2>
+
+<p>Because middleware returns a <code>Service</code>, you can compose services wrapped in
+middleware with other, unwrapped, services, or services wrapped in other middleware.
+You can also wrap a single service in multiple layers of middleware. For example:</p>
+
+<pre><code class="language-scala">val apiService = HttpRoutes.of[IO] {
+  case GET -&gt; Root / &quot;api&quot; =&gt;
+    Ok()
+}
+// apiService: HttpRoutes[IO] = Kleisli(
+//   org.http4s.HttpRoutes$$$Lambda$8066/1370680513@7fef5910
+// )
+
+val aggregateService = apiService &lt;+&gt; MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
+// aggregateService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
+//   cats.data.KleisliSemigroupK$$Lambda$8067/827180978@5d2e46
+// )
+
+val apiRequest = Request[IO](Method.GET, uri&quot;/api&quot;)
+// apiRequest: Request[IO] = (
+//   GET,
+//   Uri(None, None, /api, , None),
+//   HttpVersion(1, 1),
+//   Headers(),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@5ab53f6e
+// )
+
+aggregateService.orNotFound(goodRequest).unsafeRunSync()
+// res6: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0, SomeKey: SomeValue),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@17206187
+// )
+aggregateService.orNotFound(apiRequest).unsafeRunSync()
+// res7: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@12028daa
+// )
+</code></pre>
+
+<p>Note that <code>goodRequest</code> ran through the <code>MyMiddle</code> middleware and the <code>Result</code> had
+our header added to it. But, <code>apiRequest</code> did not go through the middleware and did
+not have the header added to it&rsquo;s <code>Result</code>.</p>
+
+<h2 id="included-middleware">Included Middleware</h2>
+
+<p>Http4s includes some middleware Out of the Box in the <code>org.http4s.server.middleware</code>
+package. These include:</p>
+
+<ul>
+<li><a href="../auth">Authentication</a></li>
+<li>Cross Origin Resource Sharing (<a href="../cors">CORS</a>)</li>
+<li>Response Compression (<a href="../gzip">GZip</a>)</li>
+<li><a href="../api/org/http4s/server/middleware/Timeout$">Service Timeout</a></li>
+<li><a href="../api/org/http4s/server/middleware/Jsonp$">Jsonp</a></li>
+<li><a href="../api/org/http4s/server/middleware/VirtualHost$">Virtual Host</a></li>
+<li><a href="../api/org/http4s/server/middleware/Metrics$">Metrics</a></li>
+<li><a href="../api/org/http4s/server/middleware/RequestId$"><code>X-Request-ID</code> header</a></li>
+</ul>
+
+<p>And a few others.</p>
+
+<h3 id="metrics-middleware">Metrics Middleware</h3>
+
+<p>Apart from the middleware mentioned in the previous section. There is, as well,
+Out of the Box middleware for Dropwizard and Prometheus metrics</p>
+
+<h4 id="dropwizard-metrics-middleware">Dropwizard Metrics Middleware</h4>
+
+<p>To make use of this metrics middleware the following dependencies are needed:</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-server&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-dropwizard-metrics&quot; % http4sVersion
+)
+</code></pre>
+
+<p>We can create a middleware that registers metrics prefixed with a
+provided prefix like this.</p>
+
+<pre><code class="language-scala">import org.http4s.server.middleware.Metrics
+import org.http4s.metrics.dropwizard.Dropwizard
+import com.codahale.metrics.SharedMetricRegistries
+</code></pre>
+
+<pre><code class="language-scala">implicit val clock = Clock.create[IO]
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@7b44aeb2
+val registry = SharedMetricRegistries.getOrCreate(&quot;default&quot;)
+// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@659c7efe
+
+val meteredRoutes = Metrics[IO](Dropwizard(registry, &quot;server&quot;))(apiService)
+// meteredRoutes: HttpRoutes[IO] = Kleisli(
+//   org.http4s.server.middleware.Metrics$$$Lambda$9300/1659475903@879b0fb
+// )
+</code></pre>
+
+<h4 id="prometheus-metrics-middleware">Prometheus Metrics Middleware</h4>
+
+<p>To make use of this metrics middleware the following dependencies are needed:</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-server&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-prometheus-metrics&quot; % http4sVersion
+)
+</code></pre>
+
+<p>We can create a middleware that registers metrics prefixed with a
+provided prefix like this.</p>
+
+<pre><code class="language-scala">import cats.effect.{Clock, IO, Resource}
+import org.http4s.HttpRoutes
+import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
+import org.http4s.server.Router
+import org.http4s.server.middleware.Metrics
+</code></pre>
+
+<pre><code class="language-scala">implicit val clock = Clock.create[IO]
+// clock: Clock[IO] = cats.effect.Clock$$anon$1@1cc1d42a
+
+val meteredRouter: Resource[IO, HttpRoutes[IO]] =
+  for {
+    metricsSvc &lt;- PrometheusExportService.build[IO]
+    metrics &lt;- Prometheus.metricsOps[IO](metricsSvc.collectorRegistry, &quot;server&quot;)
+    router = Router[IO](
+      &quot;/api&quot; -&gt; Metrics[IO](metrics)(apiService),
+      &quot;/&quot; -&gt; metricsSvc.routes
+    )
+  } yield router
+// meteredRouter: Resource[IO, HttpRoutes[IO]] = Bind(
+//   Bind(
+//     Allocate(
+//       Map(
+//         Map(
+//           Delay(
+//             org.http4s.metrics.prometheus.Prometheus$$$Lambda$8746/854281172@5f5de2d
+//           ),
+//           cats.effect.Resource$$$Lambda$8279/1716437409@1a2865c5,
+//           StackTrace(
+//             List(
+//               cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//               cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//               cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//               cats.effect.IO.map(IO.scala:106),
+//               cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
+//               cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
+//               cats.Functor$Ops.map(Functor.scala:233),
+//               cats.Functor$Ops.map$(Functor.scala:233),
+//               cats.Functor$ToFunctorOps$$anon$4.map(Functor.scala:250),
+//               cats.effect.Resource$.make(Resource.scala:384),
+//               org.http4s.server.blaze.BlazeServerBuilder.$anonfun$resource$1(BlazeServerBuilder.scala:340),
+//               cats.effect.Resource.$anonfun$fold$1(Resource.scala:119),
+//               cats.effect.internals.IOBracket$BracketStart.liftedTree1$1(IOBracket.scala:95),
+//               cats.effect.internals.IOBracket$BracketStart.run(IOBracket.scala:95),
+//               cats.effect.internals.Trampoline.cats$effect$internals$Trampoline$$immediateLoop(Trampoline.scala:67),
+//               cats.effect.internals.Trampoline.startLoop(Trampoline.scala:35),
+//               cats.effect.internals.TrampolineEC$JVMTrampoline.super$startLoop(TrampolineEC.scala:90),
+//               cats.effect.internals.TrampolineEC$JVMTrampoline.$anonfun$startLoop$1(TrampolineEC.scala:90),
+//               scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23),
+//               scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85),
+//               cats.effect.internals.TrampolineEC$JVMTrampoline.startLoop(TrampolineEC.scala:90),
+//               cats.effect.internals.Trampoline.execute(Trampoline.scala:43),
+//               cats.effect.internals.TrampolineEC.execute(TrampolineEC.scala:42),
+//               cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:80),
+//               cats.effect.internals.IOBracket$BracketStart.apply(IOBracket.scala:58),
+// ...
+</code></pre>
+
+<h3 id="x-request-id-middleware">X-Request-ID Middleware</h3>
+
+<p>Use the <code>RequestId</code> middleware to automatically generate a <code>X-Request-ID</code> header to a request,
+if one wasn&rsquo;t supplied. Adds a <code>X-Request-ID</code> header to the response with the id generated
+or supplied as part of the request.</p>
+
+<p>This <a href="https://devcenter.heroku.com/articles/http-request-id">heroku guide</a> gives a brief explanation
+as to why this header is useful.</p>
+
+<pre><code class="language-scala">import org.http4s.server.middleware.RequestId
+import org.typelevel.ci.CIString
+
+val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
+  case req =&gt;
+    val reqId = req.headers.get(CIString(&quot;X-Request-ID&quot;)).fold(&quot;null&quot;)(_.value)
+    // use request id to correlate logs with the request
+    IO(println(s&quot;request received, cid=$reqId&quot;)) *&gt; Ok()
+})
+val responseIO = requestIdService.orNotFound(goodRequest)
+</code></pre>
+
+<p>Note: <code>req.attributes.lookup(RequestId.requestIdAttrKey)</code> can also be used to lookup the request id
+extracted from the header, or the generated request id.</p>
+
+<pre><code class="language-scala">// generated request id can be correlated with logs
+val resp = responseIO.unsafeRunSync()
+// request received, cid=f52b44fb-189a-4017-af32-e2e0f05b1034
+// resp: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(Content-Length: 0, X-Request-ID: f52b44fb-189a-4017-af32-e2e0f05b1034),
+//   Stream(..),
+//   io.chrisdavenport.vault.Vault@44c7790c
+// )
+// X-Request-ID header added to response
+resp.headers
+// res8: Headers = Headers(Content-Length: 0, X-Request-ID: f52b44fb-189a-4017-af32-e2e0f05b1034)
+// the request id is also available using attributes
+resp.attributes.lookup(RequestId.requestIdAttrKey)
+// res9: Option[String] = Some(&quot;f52b44fb-189a-4017-af32-e2e0f05b1034&quot;)
+</code></pre>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/integrations/">Integrations</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/upgrading/">Upgrading from 0.18</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v1.0/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/csrf/">CSRF</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/testing/">Testing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/deployment/">Deployment</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v1.0/api">Scaladoc</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/v1.0/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+

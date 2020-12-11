@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | Contributing</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          <a href="https://github.com/http4s/http4s/edit/main/website/src/hugo/content/contributing.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>Contributing</h1>
+          
+          
+          
+
+<p>This guide is for people who would like to be involved in building
+http4s.</p>
+
+<h2 id="find-something-that-belongs-in-http4s">Find something that belongs in http4s</h2>
+
+<p>Looking for a way that you can help out? Check out our <a href="https://github.com/http4s/http4s/issues">issue
+tracker</a>.  Choose a ticket that looks interesting to you.  Before you
+start working on it, make sure that it&rsquo;s not already assigned to
+someone and that nobody has left a comment saying that they are
+working on it!  Of course, you can also comment on an issue someone is
+already working on and offer to collaborate.</p>
+
+<p>Have an idea for something new? That&rsquo;s great! We recommend that you
+make sure it belongs in http4s before you put effort into creating a
+pull request. The preferred ways to do that are to either:</p>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/issues/new">Create a GitHub issue</a> describing your idea.</li>
+<li>Get feedback in the <a href="https://gitter.im/http4s/http4s">http4s Gitter room</a>.</li>
+</ul>
+
+<h2 id="let-us-know-you-are-working-on-it">Let us know you are working on it</h2>
+
+<p>If there is already a GitHub issue for the task you are working on,
+leave a comment to let people know that you are working on it. If
+there isn&rsquo;t already an issue and it is a non-trivial task, it&rsquo;s a good
+idea to create one (and note that you&rsquo;re working on it). This prevents
+contributors from duplicating effort.</p>
+
+<h2 id="build-the-project">Build the project</h2>
+
+<p>First you&rsquo;ll need to checkout a local copy of the code base:</p>
+
+<pre><code class="language-sh">git clone git@github.com:http4s/http4s.git
+</code></pre>
+
+<p>To build http4s, you should have <a href="http://www.scala-sbt.org/0.13/tutorial/Setup.html">SBT</a> and <a href="https://gohugo.io/getting-started/installing/">Hugo</a> installed.  Run <code>sbt ci</code>.
+This runs:</p>
+
+<ul>
+<li><code>test</code>: compiles all code and runs the unit tests</li>
+<li><code>makeSite</code>: compiles the tutorial, generates the scaladoc, and
+builds the static site.</li>
+<li><code>mimaReportBinaryIssues</code>: checks for binary compatibility changes,
+which are relevant past patch release .0.
+<br /></li>
+</ul>
+
+<h2 id="coding-standard">Coding standard</h2>
+
+<h3 id="formatting">Formatting</h3>
+
+<p>The Travis CI build verifies that code is formatted correctly
+according to the <a href="http://scalameta.org/scalafmt/">Scalafmt</a> config and will fail if a diff is found.</p>
+
+<p>You can run <code>validate</code> to test the formatting before opening a PR.  If
+your PR fails due to formatting, run <code>;test:scalafmt</code>.</p>
+
+<h4 id="intellij-idea-specific-settings">IntelliJ IDEA specific settings</h4>
+
+<p>To setup IntelliJ IDEA to conform with the formatting used in this project,
+the following settings should be changed from the default.</p>
+
+<p>Under <code>Settings &gt; Editor &gt; Code Style &gt; Scala</code>:</p>
+
+<ul>
+<li>Set <code>Formatter</code> to <code>scalafmt</code>. The default path for the <code>.scalafmt.conf</code>
+file should work, if not, point it to the <code>.scalafmt.conf</code> in the root of
+the project.</li>
+<li>In the <code>Imports</code> tab, in the <code>Import layout</code> pane, delete all entries,
+except for <code>all other imports</code>. This disables the grouping and sorting of
+imports that IntelliJ does by default.</li>
+</ul>
+
+<h3 id="types">Types</h3>
+
+<h4 id="effects">Effects</h4>
+
+<p>Prefer a parameterized effect type and cats-effect type classes over
+specializing on a task.</p>
+
+<pre><code class="language-scala">// Good
+def apply[F[_]](service: HttpApp[F])(implicit F: Monad[F]): HttpApp[F]
+
+// Bad
+def apply(service: HttpApp[IO]): HttpService[IO]
+</code></pre>
+
+<p>For examples and tutorials, use <code>cats.effect.IO</code> wherever a concrete effect is
+needed.</p>
+
+<h4 id="collections">Collections</h4>
+
+<p>Prefer standard library types such as <code>Option</code> and <code>List</code> to invariant
+replacements from libraries such as Scalaz or Dogs.</p>
+
+<p>When a list must not be empty, use <code>cats.data.NonEmptyList</code>.</p>
+
+<h4 id="cistring"><code>CIString</code></h4>
+
+<p>Many parts of the HTTP spec require case-insensitive semantics. Use
+<code>org.typelevel.ci.CIString</code> to represent these. This is important to
+get correct matching semantics when using case class extractors.</p>
+
+<h3 id="case-classes">Case classes</h3>
+
+<h4 id="apply"><code>apply</code></h4>
+
+<p>The <code>apply</code> method of a case class companion should be total. If this is
+impossible for the product type, create a <code>sealed abstract class</code> and define
+alternate constructors in the companion object. Make the implementation of the
+sealed abstract class private.</p>
+
+<p>Consider a macro for the <code>apply</code> method if it is partial, but literal arguments
+can be validated at compile time.</p>
+
+<h4 id="safe-constructors">Safe constructors</h4>
+
+<p>Constructors that take an alternate type <code>A</code> should be named <code>fromA</code>. This
+includes constructors that return a value as a <code>ParseResult</code>.</p>
+
+<pre><code class="language-scala">case class Foo(seconds: Long)
+
+object Foo {
+  def fromFiniteDuration(d: FiniteDuration): Foo =
+    apply(d.toSeconds)
+    
+  def fromString(s: String): ParseResult[Foo] =
+    try s.toLong
+    catch { case e: NumberFormatException =&gt; 
+      new ParseFailure(&quot;not a long&quot;) 
+    }
+}
+</code></pre>
+
+<p>Prefer <code>fromString</code> to <code>parse</code>.</p>
+
+<h4 id="unsafe-constructors">Unsafe constructors</h4>
+
+<p>All constructors that are partial on their input should be prefixed with <code>unsafe</code>.</p>
+
+<pre><code>// Good
+def fromLong(l: Long): ParseResult[Foo] =
+  if (l &lt; 0) Left(ParseFailure(&quot;l must be non-negative&quot;))
+  else Right(new Foo(l))
+def unsafeFromLong(l: Long): Foo = 
+  fromLong(l).fold(throw _, identity)
+
+// Bad
+def fromLong(l: Long): ParseResult[Foo] =
+  if (l &lt; 0) throw new ParseFailure(&quot;crash boom bang&quot;)
+  else Right(new Foo(l))
+</code></pre>
+
+<p>Constructors prefixed with <code>from</code> may return either a <code>ParseResult[A]</code> or, if
+total, <code>A</code>.</p>
+
+<h2 id="attributions">Attributions</h2>
+
+<p>If your contribution has been derived from or inspired by other work,
+please state this in its scaladoc comment and provide proper
+attribution.  When possible, include the original authors&rsquo; names and a
+link to the original work.</p>
+
+<h3 id="grant-of-license">Grant of license</h3>
+
+<p>http4s is licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a>. Opening a pull
+request signifies your consent to license your contributions under the
+Apache License 2.0.</p>
+
+<h2 id="tests">Tests</h2>
+
+<ul>
+<li>Tests for http4s-core go into the <code>tests</code> module.</li>
+<li>Tests should extend <code>Http4sSpec</code>.  <code>Http4sSpec</code> extends <a href="https://etorreborre.github.io/specs2/">Specs2</a>
+with all syntax, standard instances, and helpers for convenience.</li>
+<li>We use Specs2&rsquo;s integration with <a href="https://www.scalacheck.org/">ScalaCheck</a> for property testing.
+We prefer property tests where feasible, complemented by example
+tests where they increase clarity or confidence.</li>
+<li>We encourage the addition of arbitrary instances to
+<code>org.http4s.testing.Http4sArbitraries</code> to support richer property
+testing.</li>
+</ul>
+
+<h2 id="documentation">Documentation</h2>
+
+<p>The documentation for http4s is divided into two projects: <code>website</code>
+and <code>docs</code></p>
+
+<h3 id="website"><code>website</code></h3>
+
+<p>The common area of http4s.org (i.e., directories not beginning with
+<code>/v#.#</code>) is generated from the <code>website</code> module and is published only
+from the <code>main</code> branch`.  This module is intended to contain general
+info about the project that applies to all versions.</p>
+
+<h4 id="editing-the-common-site">Editing the common site</h4>
+
+<p>All pages have an edit link at the top right for direct editing of the
+markdown via GitHub.</p>
+
+<h3 id="docs-documentation"><code>docs</code> documentation</h3>
+
+<p>Each branch <code>main</code> and <code>series/X.Y</code>, publishes documentation per
+minor version into the <code>/vX.Y</code> directory of http4s.org.  The Hugo site
+chrome lives in the <code>docs/src/hugo</code> directory, and the <a href="https://github.com/scalameta/mdoc">mdoc</a> content
+lives in <code>docs/src/main/mdoc</code>.  Tut is used to typecheck our
+documentation as part of the build.</p>
+
+<h4 id="editing-the-versioned-site">Editing the versioned site</h4>
+
+<p>All pages have an edit link at the top right for direct editing of the
+markdown via GitHub.  Be aware that the Travis build will fail if invalid
+code is added.</p>
+
+<h2 id="submit-a-pull-request">Submit a pull request</h2>
+
+<p>Before you open a pull request, you should make sure that <code>sbt ci</code> runs
+successfully. Travis CI will run this as well, but it may save you some
+time to be alerted to style or tut problems earlier.</p>
+
+<p>If your pull request addresses an existing issue, please tag that
+issue number in the body of your pull request or commit message. For
+example, if your pull request addresses issue number 52, please
+include &ldquo;fixes #52&rdquo;.</p>
+
+<p>If you make changes after you have opened your pull request, please
+add them as separate commits and avoid squashing or
+rebasing. Squashing and rebasing can lead to a tidier git history, but
+they can also be a hassle if somebody else has done work based on your
+branch.</p>
+
+<hr />
+
+<p><small class="text-muted">This guide borrows heavily from the <a href="https://github.com/typelevel/cats/blob/master/CONTRIBUTING.md">Cats&rsquo;
+contributors guide</a></small></p>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/versions/">Versions</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/changelog/">Changelog</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/getting-help/">Getting help</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/contributing/">Contributing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/adopters/">Adopters</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/code-of-conduct/">Code of conduct</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/further-reading/">Further reading</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+

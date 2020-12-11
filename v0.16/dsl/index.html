@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>http4s: The http4s DSL</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="https://http4s.org/v0.16/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="https://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17 (development)</li>
+    <li><a href="/v0.17/">Tutorial</a></li>
+    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (development)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
+  </ul>
+</li>
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="container">
+      <div class="content">
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1>The http4s DSL</h1>
+          </div>
+          
+
+<p>Recall from earlier that an <code>HttpService</code> is just a type alias for
+<code>Kleisli[Task, Request, Response]</code>.  This provides a minimal
+foundation for declaring services and executing them on blaze or a
+servlet container.  While this foundation is composeable, it is not
+highly productive.  Most service authors will seek a higher level DSL.</p>
+
+<h2 id="add-the-http4s-dsl-to-your-build">Add the http4s-dsl to your build</h2>
+
+<p>One option is the http4s-dsl.  It is officially supported by the
+http4s team, but kept separate from core in order to encourage
+multiple approaches for different needs.</p>
+
+<p>This tutorial assumes that http4s-dsl is on your classpath.  Add the
+following to your build.sbt:</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
+)
+</code></pre>
+
+<p>All we need is a REPL to follow along at home:</p>
+
+<pre><code>$ sbt console
+</code></pre>
+
+<h2 id="the-simplest-service">The simplest service</h2>
+
+<p>We&rsquo;ll need the following imports to get started:</p>
+
+<pre><code class="language-scala">import org.http4s._, org.http4s.dsl._
+// import org.http4s._
+// import org.http4s.dsl._
+
+import scalaz.concurrent.Task
+// import scalaz.concurrent.Task
+</code></pre>
+
+<p>The central concept of http4s-dsl is pattern matching.  An
+<code>HttpService</code> is declared as a simple series of case statements.  Each
+case statement attempts to match and optionally extract from an
+incoming <code>Request</code>.  The code associated with the first matching case
+is used to generate a <code>Task[Response]</code>.</p>
+
+<p>The simplest case statement matches all requests without extracting
+anything.  The right hand side of the request must return a
+<code>Task[Response]</code>.</p>
+
+<pre><code class="language-scala">val service = HttpService {
+  case _ =&gt;
+    Task.delay(Response(Status.Ok))
+}
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31494/400063539@72431733)
+</code></pre>
+
+<h2 id="testing-the-service">Testing the Service</h2>
+
+<p>One beautiful thing about the <code>HttpService</code> model is that we don&rsquo;t
+need a server to test our route.  We can construct our own request
+and experiment directly in the REPL.</p>
+
+<pre><code class="language-scala">scala&gt; val getRoot = Request(Method.GET, uri(&quot;/&quot;))
+getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
+
+scala&gt; val task = service.run(getRoot)
+task: scalaz.concurrent.Task[org.http4s.MaybeResponse] = scalaz.concurrent.Task@226fb381
+</code></pre>
+
+<p>Where is our <code>Response</code>?  It hasn&rsquo;t been created yet.  We wrapped it
+in a <code>Task</code>.  In a real service, generating a <code>Response</code> is likely to
+be an asynchronous operation with side effects, such as invoking
+another web service or querying a database, or maybe both.  Operating
+in a <code>Task</code> gives us control over the sequencing of operations and
+lets us reason about our code like good functional programmers.  It is
+the <code>HttpService</code>&rsquo;s job to describe the task, and the server&rsquo;s job to
+run it.</p>
+
+<p>But here in the REPL, it&rsquo;s up to us to run it:</p>
+
+<pre><code class="language-scala">scala&gt; val response = task.unsafePerformSync
+response: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
+</code></pre>
+
+<p>Cool.</p>
+
+<h2 id="generating-responses">Generating responses</h2>
+
+<p>We&rsquo;ll circle back to more sophisticated pattern matching of requests,
+but it will be a tedious affair until we learn a more succinct way of
+generating <code>Task[Response]</code>s.</p>
+
+<h3 id="status-codes">Status codes</h3>
+
+<p>http4s-dsl provides a shortcut to create a <code>Task[Response]</code> by
+applying a status code:</p>
+
+<pre><code class="language-scala">scala&gt; val okTask = Ok()
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@28af9c3e
+
+scala&gt; val ok = okTask.unsafePerformSync
+ok: org.http4s.Response = Response(status=200, headers=Headers(Content-Length: 0))
+</code></pre>
+
+<p>This simple <code>Ok()</code> expression succinctly says what we mean in a
+service:</p>
+
+<pre><code class="language-scala">HttpService {
+  case _ =&gt; Ok()
+}.run(getRoot).unsafePerformSync
+// res0: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0))
+</code></pre>
+
+<p>This syntax works for other status codes as well.  In our example, we
+don&rsquo;t return a body, so a <code>204 No Content</code> would be a more appropriate
+response:</p>
+
+<pre><code class="language-scala">HttpService {
+  case _ =&gt; NoContent()
+}.run(getRoot).unsafePerformSync
+// res1: org.http4s.MaybeResponse = Response(status=204, headers=Headers())
+</code></pre>
+
+<h3 id="headers">Headers</h3>
+
+<p>http4s adds a minimum set of headers depending on the response, e.g:</p>
+
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).unsafePerformSync.headers
+res2: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12)
+</code></pre>
+
+<p>Extra headers can be added using <code>putHeaders</code>, for example to specify cache policies:</p>
+
+<pre><code class="language-scala">import org.http4s.headers.`Cache-Control`
+// import org.http4s.headers.Cache$minusControl
+
+import org.http4s.CacheDirective.`no-cache`
+// import org.http4s.CacheDirective.no$minuscache
+
+import org.http4s.util.NonEmptyList
+// import org.http4s.util.NonEmptyList
+</code></pre>
+
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).putHeaders(`Cache-Control`(NonEmptyList(`no-cache`()))).unsafePerformSync.headers
+res3: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Cache-Control: no-cache)
+</code></pre>
+
+<p>http4s defines all the well known headers directly, but sometimes you need to
+define custom headers, typically prefixed by an <code>X-</code>. In simple cases you can
+construct a <code>Header</code> instance by hand</p>
+
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).putHeaders(Header(&quot;X-Auth-Token&quot;, &quot;value&quot;)).unsafePerformSync.headers
+res4: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, X-Auth-Token: value)
+</code></pre>
+
+<h3 id="cookies">Cookies</h3>
+
+<p>http4s has special support for Cookie headers using the <code>Cookie</code> type to add
+and invalidate cookies. Adding a cookie will generate the correct <code>Set-Cookie</code> header:</p>
+
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;)).unsafePerformSync.headers
+res5: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar)
+</code></pre>
+
+<p><code>Cookie</code> can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc</p>
+
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(HttpDate.now), httpOnly = true, secure = true)).unsafePerformSync.headers
+res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Sun, 25 Mar 2018 01:49:22 GMT; Secure; HttpOnly)
+</code></pre>
+
+<p>To request a cookie to be removed on the client, you need to set the cookie value
+to empty. http4s can do that with <code>removeCookie</code></p>
+
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).removeCookie(&quot;foo&quot;).unsafePerformSync.headers
+res7: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0)
+</code></pre>
+
+<h3 id="responding-with-a-body">Responding with a body</h3>
+
+<h4 id="simple-bodies">Simple bodies</h4>
+
+<p>Most status codes take an argument as a body.  In http4s, <code>Request</code>
+and <code>Response</code> bodies are represented as a
+<code>scalaz.stream.Process[Task, ByteVector]</code>.  It&rsquo;s also considered good
+HTTP manners to provide a <code>Content-Type</code> and, where known in advance,
+<code>Content-Length</code> header in one&rsquo;s responses.</p>
+
+<p>All of this hassle is neatly handled by http4s&rsquo; <a href="../api/org/http4s/EntityEncoder$">EntityEncoder</a>s.
+We&rsquo;ll cover these in more depth in another tut.  The important point
+for now is that a response body can be generated for any type with an
+implicit <code>EntityEncoder</code> in scope.  http4s provides several out of the
+box:</p>
+
+<pre><code class="language-scala">scala&gt; Ok(&quot;Received request.&quot;).unsafePerformSync
+res8: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 17))
+
+scala&gt; import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.charset.StandardCharsets.UTF_8
+
+scala&gt; Ok(&quot;binary&quot;.getBytes(UTF_8)).unsafePerformSync
+res9: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: application/octet-stream, Content-Length: 6))
+</code></pre>
+
+<p>Per the HTTP specification, some status codes don&rsquo;t support a body.
+http4s prevents such nonsense at compile time:</p>
+
+<pre><code class="language-scala">scala&gt; NoContent(&quot;does not compile&quot;)
+&lt;console&gt;:24: error: no arguments allowed for nullary method apply: ()scalaz.concurrent.Task[org.http4s.Response] in trait EmptyResponseGenerator
+       NoContent(&quot;does not compile&quot;)
+                 ^
+</code></pre>
+
+<h4 id="asynchronous-responses">Asynchronous responses</h4>
+
+<p>While http4s prefers <code>Task</code>, you may be working with libraries that
+use standard library [Future]s.  Some relevant imports:</p>
+
+<pre><code class="language-scala">import scala.concurrent.Future
+// import scala.concurrent.Future
+
+import scala.concurrent.ExecutionContext.Implicits.global
+// import scala.concurrent.ExecutionContext.Implicits.global
+</code></pre>
+
+<p>You can seamlessly respond with a <code>Future</code> of any type that has an
+<code>EntityEncoder</code>.</p>
+
+<pre><code class="language-scala">scala&gt; val task = Ok(Future {
+     |   println(&quot;I run when the future is constructed.&quot;)
+     |   &quot;Greetings from the future!&quot;
+     | })
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7fa9f97
+I run when the future is constructed.
+
+scala&gt; task.unsafePerformSync
+res11: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 26))
+</code></pre>
+
+<p>As good functional programmers who like to delay our side effects, we
+of course prefer to operate in [Task]s:</p>
+
+<pre><code class="language-scala">scala&gt; val task = Ok(Task {
+     |   println(&quot;I run when the Task is run.&quot;)
+     |   &quot;Mission accomplished!&quot;
+     | })
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@438cb89e
+
+scala&gt; task.unsafePerformSync
+I run when the Task is run.
+res12: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 21))
+</code></pre>
+
+<p>Note that in both cases, a <code>Content-Length</code> header is calculated.
+http4s waits for the <code>Future</code> or <code>Task</code> to complete before wrapping it
+in its HTTP envelope, and thus has what it needs to calculate a
+<code>Content-Length</code>.</p>
+
+<h4 id="streaming-bodies">Streaming bodies</h4>
+
+<p>Streaming bodies are supported by returning a <code>scalaz.stream.Process</code>.
+Like <code>Future</code>s and <code>Task</code>s, the stream may be of any type that has an
+<code>EntityEncoder</code>.</p>
+
+<p>An intro to scalaz-stream is out of scope, but we can glimpse the
+power here.  This stream emits the elapsed time every 100 milliseconds
+for one second:</p>
+
+<pre><code class="language-scala">val drip = {
+  import scala.concurrent.duration._
+  implicit def defaultScheduler = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
+  scalaz.stream.time.awakeEvery(100.millis).map(_.toString).take(10)
+}
+// drip: scalaz.stream.Process[scalaz.concurrent.Task,String] = Append(Halt(End),Vector(scalaz.stream.Process$Append$$Lambda$31638/1282335564@47029f3f))
+</code></pre>
+
+<p>We can see it for ourselves in the REPL:</p>
+
+<pre><code class="language-scala">scala&gt; drip.to(scalaz.stream.io.stdOutLines).run.unsafePerformSync
+</code></pre>
+
+<p>When wrapped in a <code>Response</code>, http4s will flush each chunk of a
+<code>Process</code> as they are emitted.  Note that a stream&rsquo;s length can&rsquo;t
+generally be anticipated before it runs, so this triggers chunked
+transfer encoding:</p>
+
+<pre><code class="language-scala">scala&gt; Ok(drip).unsafePerformSync
+res14: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked))
+</code></pre>
+
+<h2 id="matching-and-extracting-requests">Matching and extracting requests</h2>
+
+<p>A <code>Request</code> is a regular <code>case class</code> - you can destructure it to extract its
+values. By extension, you can also <code>match/case</code> it with different possible
+destructurings. To build these different extractors, you can make use of the
+DSL.</p>
+
+<p>Most often, you extract the <code>Request</code> into a HTTP <code>Method</code> (verb) and the path,
+via the <code>-&gt;</code> object. On the left side, you&rsquo;ll have the HTTP <code>Method</code>, on the
+other side the path. Naturally, <code>_</code> is a valid matcher too, so any call to
+<code>/api</code> can be blocked, regardless of <code>Method</code>:</p>
+
+<pre><code class="language-scala">scala&gt; HttpService {
+     |   case request @ _ -&gt; Root / &quot;api&quot; =&gt; Forbidden()
+     | }
+res15: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31494/400063539@1e8d2c74)
+</code></pre>
+
+<p>To also block all subcalls <code>/api/...</code>, you&rsquo;ll need <code>/:</code>, which is right
+associative, and matches everything after, and not just the next element:</p>
+
+<pre><code class="language-scala">scala&gt; HttpService {
+     |   case request @ _ -&gt; &quot;api&quot; /: _ =&gt; Forbidden()
+     | }
+res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31494/400063539@36ee5c36)
+</code></pre>
+
+<p>For matching more than one <code>Method</code>, there&rsquo;s <code>|</code>:</p>
+
+<pre><code class="language-scala">scala&gt; HttpService {
+     |   case request @ (GET | POST) -&gt; Root / &quot;api&quot;  =&gt; ???
+     | }
+res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31494/400063539@11a1b794)
+</code></pre>
+
+<p>Honorable mention: <code>~</code>, for matching file extensions.</p>
+
+<pre><code class="language-scala">scala&gt; HttpService {
+     |   case GET -&gt; Root / file ~ &quot;json&quot; =&gt; Ok(s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for $file&quot;}&quot;&quot;&quot;)
+     | }
+res18: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31494/400063539@7d0a9a41)
+</code></pre>
+
+<h3 id="handling-path-parameters">Handling path parameters</h3>
+
+<p>Path params can be extracted and converted to a specific type but are
+<code>String</code>s by default. There are numeric extractors provided in the form
+of <code>IntVar</code> and <code>LongVar</code>.</p>
+
+<pre><code class="language-scala">import scalaz.concurrent.Task
+// import scalaz.concurrent.Task
+
+def getUserName(userId: Int): Task[String] = ???
+// getUserName: (userId: Int)scalaz.concurrent.Task[String]
+
+val usersService = HttpService {
+  case request @ GET -&gt; Root / &quot;users&quot; / IntVar(userId) =&gt;
+    Ok(getUserName(userId))
+}
+// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31494/400063539@4ff3431d)
+</code></pre>
+
+<p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
+object which implements <code>def unapply(str: String): Option[T]</code>, similar to the way
+in which <code>IntVar</code> does it.</p>
+
+<pre><code class="language-scala">import java.time.LocalDate
+// import java.time.LocalDate
+
+import scala.util.Try
+// import scala.util.Try
+
+import scalaz.concurrent.Task
+// import scalaz.concurrent.Task
+
+import org.http4s.client._
+// import org.http4s.client._
+
+object LocalDateVar {
+  def unapply(str: String): Option[LocalDate] = {
+    if (!str.isEmpty)
+      Try(LocalDate.parse(str)).toOption
+    else
+      None
+  }
+}
+// defined object LocalDateVar
+
+def getTemperatureForecast(date: LocalDate): Task[Double] = Task(42.23)
+// getTemperatureForecast: (date: java.time.LocalDate)scalaz.concurrent.Task[Double]
+
+val dailyWeatherService = HttpService {
+  case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; / LocalDateVar(localDate) =&gt;
+    Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
+}
+// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31494/400063539@7e13a4d)
+
+println(GET(Uri.uri(&quot;/weather/temperature/2016-11-05&quot;)).flatMap(dailyWeatherService).unsafePerformSync)
+// Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44))
+</code></pre>
+
+<h3 id="handling-query-parameters">Handling query parameters</h3>
+
+<p>A query parameter needs to have a <code>QueryParamDecoderMatcher</code> provided to
+extract it. In order for the <code>QueryParamDecoderMatcher</code> to work there needs to
+be an implicit <code>QueryParamDecoder[T]</code> in scope. <code>QueryParamDecoder</code>s for simple
+types can be found in the <code>QueryParamDecoder</code> object. There are also
+<code>QueryParamDecoderMatcher</code>s available which can be used to
+return optional or validated parameter values.</p>
+
+<p>In the example below we&rsquo;re finding query params named <code>country</code> and <code>year</code> and
+then parsing them as a <code>String</code> and <code>java.time.Year</code>.</p>
+
+<pre><code class="language-scala">import java.time.Year
+// import java.time.Year
+
+import scalaz.ValidationNel
+// import scalaz.ValidationNel
+
+object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String](&quot;country&quot;)
+// defined object CountryQueryParamMatcher
+
+implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
+  QueryParamDecoder[Int].map(Year.of)
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@1864cc9f
+
+object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
+// defined object YearQueryParamMatcher
+
+def getAverageTemperatureForCountryAndYear(country: String, year: Year): Task[Double] = ???
+// getAverageTemperatureForCountryAndYear: (country: String, year: java.time.Year)scalaz.concurrent.Task[Double]
+
+val averageTemperatureService = HttpService {
+  case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; :? CountryQueryParamMatcher(country) +&amp; YearQueryParamMatcher(year)  =&gt;
+    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
+}
+// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31494/400063539@4761d16a)
+</code></pre>
+
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tut/dsl.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+              <li >
+                <a href="/v0.16/">Quick Start</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/service/">Service</a>
+              </li>
+              
+              <li class="active">
+                <a href="/v0.16/dsl/">The http4s DSL</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/middleware/">Middleware</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/auth/">Authentication</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/cors/">CORS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/static/">Static Files</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/client/">HTTP Client</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/entity/">Entity handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/streaming/">Streaming</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/json/">JSON handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/uri/">URI handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/api">Scaladoc</a>
+              </li>
+              
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script src="https://http4s.org/v0.16/js/bootstrap.min.js"></script>    
+<script src="https://http4s.org/v0.16/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>

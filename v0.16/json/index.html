@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>http4s: JSON handling</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.16/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="https://http4s.org/v0.16/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="https://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17 (development)</li>
+    <li><a href="/v0.17/">Tutorial</a></li>
+    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (development)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
+  </ul>
+</li>
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="container">
+      <div class="content">
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1>JSON handling</h1>
+          </div>
+          
+
+<h2 id="add-the-json-support-module-s">Add the JSON support module(s)</h2>
+
+<p>http4s-core does not include JSON support, but integration with three
+popular Scala JSON libraries are supported as modules.</p>
+
+<h3 id="circe">Circe</h3>
+
+<p>The http4s team recommends circe.  Only http4s-circe is required for
+basic interop with circe, but to follow this tutorial, install all three:</p>
+
+<pre><code class="language-scala">val http4sVersion = &quot;0.16.6&quot;
+
+libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
+  // Optional for auto-derivation of JSON codecs
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.8.0&quot;,
+  // Optional for string interpolation to JSON model
+  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.8.0&quot;
+)
+</code></pre>
+
+<h3 id="argonaut">Argonaut</h3>
+
+<p>Circe is a fork of argonaut, another popular JSON library in the Scala
+community.  The functionality is similar:</p>
+
+<pre><code class="language-scala">libraryDependencies += Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % http4sVersion,
+  // Optional for auto-derivation of JSON codecs
+  &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M6&quot;
+)
+</code></pre>
+
+<p>For those not ready to upgrade to argonaut-6.2, an <code>http4s-argonaut61</code>
+is also available.  It is source compatible, but compiled against
+Argonaut 6.1.</p>
+
+<h3 id="json4s">Json4s</h3>
+
+<p>Json4s is less functionally pure than Circe or Argonaut, but older and
+integrated with many Scala libraries.  It comes with two backends.
+You should pick one of these dependencies:</p>
+
+<pre><code class="language-scala">libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % http4sVersion
+libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % http4sVersion
+</code></pre>
+
+<p>There is no extra codec derivation library for json4s, as it generally
+bases its codecs on runtime reflection.</p>
+
+<h2 id="sending-raw-json">Sending raw JSON</h2>
+
+<p>Let&rsquo;s create a function to produce a simple JSON greeting with circe:</p>
+
+<pre><code class="language-scala">import io.circe._
+// import io.circe._
+
+import io.circe.literal._
+// import io.circe.literal._
+
+import org.http4s._
+// import org.http4s._
+
+import org.http4s.dsl._
+// import org.http4s.dsl._
+
+def hello(name: String): Json =
+  json&quot;&quot;&quot;{&quot;hello&quot;: $name}&quot;&quot;&quot;
+// hello: (name: String)io.circe.Json
+
+val greeting = hello(&quot;world&quot;)
+// greeting: io.circe.Json =
+// {
+//   &quot;hello&quot; : &quot;world&quot;
+// }
+</code></pre>
+
+<p>We now have a JSON value, but we don&rsquo;t have enough to render it:</p>
+
+<pre><code class="language-scala">scala&gt; Ok(greeting).unsafePerformSync
+&lt;console&gt;:26: error: Cannot convert from io.circe.Json to an Entity, because no EntityEncoder[io.circe.Json] instance could be found.
+       Ok(greeting).unsafePerformSync
+         ^
+</code></pre>
+
+<p>To encode a Scala value of type <code>A</code> into an entity, we need an
+<code>EntityEncoder[A]</code> in scope.  The http4s-circe module includes a
+<code>org.http4s.circe</code> object, which gives us exactly this for an
+<code>io.circe.Json</code> value:</p>
+
+<pre><code class="language-scala">import org.http4s.circe._
+// import org.http4s.circe._
+
+Ok(greeting).unsafePerformSync
+// res1: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: application/json, Content-Length: 17))
+</code></pre>
+
+<p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
+useful on client requests:</p>
+
+<pre><code class="language-scala">import org.http4s.client._
+// import org.http4s.client._
+
+POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).unsafePerformSync
+// res2: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16))
+</code></pre>
+
+<h2 id="encoding-case-classes-as-json">Encoding case classes as JSON</h2>
+
+<p>These JSON literals are nice, but in real apps, we prefer to operate
+on case classes and use JSON as a serialization format near the edge
+of the world.</p>
+
+<p>Let&rsquo;s define a couple case classes:</p>
+
+<pre><code class="language-scala">case class Hello(name: String)
+case class User(name: String)
+</code></pre>
+
+<p>To transform a value of type <code>A</code> into <code>Json</code>, circe uses an
+<code>io.circe.Encoder[A]</code>.  With circe&rsquo;s syntax, we can convert any value
+to JSON as long as an implicit <code>Encoder</code> is in scope:</p>
+
+<pre><code class="language-scala">import io.circe.syntax._
+</code></pre>
+
+<pre><code class="language-scala">scala&gt; Hello(&quot;Alice&quot;).asJson
+&lt;console&gt;:36: error: could not find implicit value for parameter encoder: io.circe.Encoder[Hello]
+       Hello(&quot;Alice&quot;).asJson
+                      ^
+</code></pre>
+
+<p>Oops!  We haven&rsquo;t told Circe how we want to encode our case class.
+Let&rsquo;s provide an encoder:</p>
+
+<pre><code class="language-scala">implicit val HelloEncoder: Encoder[Hello] =
+  Encoder.instance { hello: Hello =&gt; 
+    json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
+  }
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@d0c3495
+
+Hello(&quot;Alice&quot;).asJson
+// res4: io.circe.Json =
+// {
+//   &quot;hello&quot; : &quot;Alice&quot;
+// }
+</code></pre>
+
+<p>That was easy, but gets tedious for applications dealing in lots of
+types.  Fortunately, circe can automatically derive an encoder for us,
+using the field names of the case class as key names in a JSON object:</p>
+
+<pre><code class="language-scala">import io.circe.generic.auto._
+// import io.circe.generic.auto._
+
+User(&quot;Alice&quot;).asJson
+// res5: io.circe.Json =
+// {
+//   &quot;name&quot; : &quot;Alice&quot;
+// }
+</code></pre>
+
+<p>Equipped with an <code>Encoder</code> and <code>.asJson</code>, we can send JSON in requests
+and responses for our case classes:</p>
+
+<pre><code class="language-scala">Ok(Hello(&quot;Alice&quot;).asJson).unsafePerformSync
+// res6: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: application/json, Content-Length: 17))
+
+POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).unsafePerformSync
+// res7: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 14))
+</code></pre>
+
+<h2 id="receiving-raw-json">Receiving raw JSON</h2>
+
+<p>Just as we needed an <code>EntityEncoder[JSON]</code> to send JSON from a server
+or client, we need an <code>EntityDecoder[JSON]</code> to receive it.</p>
+
+<p>The <code>org.http4s.circe._</code> package provides an implicit
+<code>EntityDecoder[Json]</code>.  This makes it very easy to decode a request or
+response body to JSON using the <a href="../api/org/http4s/MessageOps.html#as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]"><code>as</code> syntax</a>:</p>
+
+<pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[Json].unsafePerformSync
+// res8: io.circe.Json =
+// {
+//   &quot;name&quot; : &quot;Alice&quot;
+// }
+
+POST(uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as[Json].unsafePerformSync
+// res9: io.circe.Json =
+// {
+//   &quot;name&quot; : &quot;Bob&quot;
+// }
+</code></pre>
+
+<p>Like sending raw JSON, this is useful to a point, but we typically
+want to get to a typed model as quickly as we can.</p>
+
+<h2 id="decoding-json-to-a-case-class">Decoding JSON to a case class</h2>
+
+<p>To get from an HTTP entity to <code>Json</code>, we use an <code>EntityDecoder[Json]</code>.
+To get from <code>Json</code> to any type <code>A</code>, we need an <code>io.circe.Decoder[A]</code>.
+http4s-circe provides the <code>jsonOf</code> function to make the connection all
+the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
+an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
+
+<pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as(jsonOf[User]).unsafePerformSync
+// res10: User = User(Alice)
+
+POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as(jsonOf[User]).unsafePerformSync
+// res11: User = User(Bob)
+</code></pre>
+
+<p>Note the argument to <code>as</code> is in parentheses instead of square
+brackets, as it&rsquo;s a function call instead of a type.  We are
+<em>implicitly</em> summoning a <code>Decoder[A]</code>, but <em>explicitly</em> declaring that
+<code>A</code> is encoded as JSON.</p>
+
+<h2 id="putting-it-all-together">Putting it all together</h2>
+
+<h3 id="a-hello-world-service">A Hello world service</h3>
+
+<p>Our hello world service will parse a <code>User</code> from a request and offer a
+proper greeting.</p>
+
+<pre><code class="language-scala">import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+
+import org.http4s._
+import org.http4s.circe._
+import org.http4s.dsl._
+
+case class User(name: String)
+case class Hello(greeting: String)
+
+val jsonService = HttpService {
+  case req @ POST -&gt; Root / &quot;hello&quot; =&gt;
+    for {
+	  // Decode a User request
+	  user &lt;- req.as(jsonOf[User])
+	  // Encode a hello response
+	  resp &lt;- Ok(Hello(user.name).asJson)
+    } yield (resp)
+}
+
+import org.http4s.server.blaze._
+val builder = BlazeBuilder.bindHttp(8080).mountService(jsonService, &quot;/&quot;)
+val blazeServer = builder.run
+</code></pre>
+
+<h2 id="a-hello-world-client">A Hello world client</h2>
+
+<p>Now let&rsquo;s make a client for the service above:</p>
+
+<pre><code class="language-scala">import org.http4s.client.blaze._
+import scalaz.concurrent.Task
+
+val httpClient = PooledHttp1Client()
+// Decode the Hello response
+def helloClient(name: String): Task[Hello] = {
+  // Encode a User request
+  val req = POST(uri(&quot;http://localhost:8080/hello&quot;), User(name).asJson)
+  // Decode a Hello response
+  httpClient.expect(req)(jsonOf[Hello])
+}
+</code></pre>
+
+<p>Finally, we post <code>User(&quot;Alice&quot;)</code> to our Hello service and expect
+<code>Hello(&quot;Alice&quot;)</code> back:</p>
+
+<pre><code class="language-scala">helloClient(&quot;Alice&quot;).unsafePerformSync
+// res18: Hello = Hello(Alice)
+</code></pre>
+
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tut/json.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+              <li >
+                <a href="/v0.16/">Quick Start</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/service/">Service</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/dsl/">The http4s DSL</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/middleware/">Middleware</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/auth/">Authentication</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/cors/">CORS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/static/">Static Files</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/client/">HTTP Client</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/entity/">Entity handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/streaming/">Streaming</a>
+              </li>
+              
+              <li class="active">
+                <a href="/v0.16/json/">JSON handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/uri/">URI handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/api">Scaladoc</a>
+              </li>
+              
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script src="https://http4s.org/v0.16/js/bootstrap.min.js"></script>    
+<script src="https://http4s.org/v0.16/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>

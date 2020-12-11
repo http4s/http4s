@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>http4s: CORS</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.15/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.15/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.15/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.15/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.15/css/style.css" >
+</head>
+
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="https://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (unreleased)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16-cats (unreleased)</li>
+    <li><a href="/v0.16-cats/">Tutorial</a></li>
+    <li><a href="/v0.16-cats/api/org/http4s/">Scaladoc</a></li>
+
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/">Scaladoc</a></li>
+  </ul>
+</li>
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <body>
+    <div class="container">
+      <div class="content">
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1>CORS</h1>
+          </div>
+          
+
+<p>Http4s provides <a href="../middleware">Middleware</a>, named <code>CORS</code>, for adding the appropriate headers
+to responses to allow Cross Origin Resource Sharing.</p>
+
+<p>Examples in this document have the following dependencies.</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
+  &quot;org.http4s&quot; %% &quot;http4s-server&quot; % http4sVersion
+)
+</code></pre>
+
+<p>And we need some imports.</p>
+
+<pre><code class="language-scala">import org.http4s._
+import org.http4s.dsl._
+</code></pre>
+
+<p>Let&rsquo;s start by making a simple service.</p>
+
+<pre><code class="language-scala">val service = HttpService {
+  case _ =&gt;
+    Ok()
+}
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$25160/573865256@9ba371e)
+
+val request = Request(Method.GET, uri(&quot;/&quot;))
+// request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
+
+service(request).run
+// &lt;console&gt;:21: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        service(request).run
+//                         ^
+// res0: org.http4s.Response = Response(status=200, headers=Headers())
+</code></pre>
+
+<p>Now we can wrap the service in the <code>CORS</code> middleware.</p>
+
+<pre><code class="language-scala">import org.http4s.server.middleware._
+// import org.http4s.server.middleware._
+
+val corsService = CORS(service)
+// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$25200/710092457@571b0fc2)
+
+corsService(request).run
+// &lt;console&gt;:24: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        corsService(request).run
+//                             ^
+// res1: org.http4s.Response = Response(status=200, headers=Headers())
+</code></pre>
+
+<p>So far, there was no change. That&rsquo;s because an <code>Origin</code> header is required
+in the requests. This, of course, is the responsibility of the caller.</p>
+
+<pre><code class="language-scala">val originHeader = Header(&quot;Origin&quot;, &quot;somewhere.com&quot;)
+// originHeader: org.http4s.Header.Raw = Origin: somewhere.com
+
+val corsRequest = request.putHeaders(originHeader)
+// corsRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Origin: somewhere.com))
+
+corsService(corsRequest).run
+// &lt;console&gt;:24: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        corsService(corsRequest).run
+//                                 ^
+// res2: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, Access-Control-Allow-Origin: somewhere.com, Access-Control-Max-Age: 86400))
+</code></pre>
+
+<p>Notice how the response has the CORS headers added. How easy was
+that? And, as described in <a href="../middleware">Middleware</a>, services and middleware can be
+composed such that only some of your endpoints are CORS enabled.</p>
+
+<h2 id="configuration">Configuration</h2>
+
+<p>The example above showed the default configuration for CORS, which adds the
+headers to any successul response, regardless of origin or HTTP method. There
+are configuration options to modify that.</p>
+
+<p>First, we&rsquo;ll create some requests to use in our example. We want these requests
+have a variety of origins and methods.</p>
+
+<pre><code class="language-scala">val googleGet = Request(Method.GET, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;google.com&quot;)))
+// googleGet: org.http4s.Request = Request(method=GET, uri=/, headers=Headers(Origin: google.com))
+
+val yahooPut = Request(Method.PUT, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;yahoo.com&quot;)))
+// yahooPut: org.http4s.Request = Request(method=PUT, uri=/, headers=Headers(Origin: yahoo.com))
+
+val duckPost = Request(Method.POST, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;duckduckgo.com&quot;)))
+// duckPost: org.http4s.Request = Request(method=POST, uri=/, headers=Headers(Origin: duckduckgo.com))
+</code></pre>
+
+<p>Now, we&rsquo;ll create a configuration that limits the allowed methods to <code>GET</code>
+and <code>POST</code>, pass that to the <code>CORS</code> middleware, and try it out on our requests.</p>
+
+<pre><code class="language-scala">import scala.concurrent.duration._
+// import scala.concurrent.duration._
+
+val methodConfig = CORSConfig(
+  anyOrigin = true,
+  anyMethod = false,
+  allowedMethods = Some(Set(&quot;GET&quot;, &quot;POST&quot;)),
+  allowCredentials = true,
+  maxAge = 1.day.toSeconds)
+// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,None,Some(Set(GET, POST)),Some(Set(Content-Type, *)))
+
+val corsMethodSvc = CORS(service, methodConfig)
+// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$25200/710092457@121a808b)
+
+corsMethodSvc(googleGet).run
+// &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        corsMethodSvc(googleGet).run
+//                                 ^
+// res3: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
+
+corsMethodSvc(yahooPut).run
+// &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        corsMethodSvc(yahooPut).run
+//                                ^
+// res4: org.http4s.Response = Response(status=200, headers=Headers())
+
+corsMethodSvc(duckPost).run
+// &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        corsMethodSvc(duckPost).run
+//                                ^
+// res5: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
+</code></pre>
+
+<p>As you can see, the CORS headers were only added to the <code>GET</code> and <code>POST</code> requests.
+Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo.com&rdquo; and
+&ldquo;duckduckgo.com&rdquo;.</p>
+
+<pre><code class="language-scala">val originConfig = CORSConfig(
+  anyOrigin = false,
+  allowedOrigins = Some(Set(&quot;yahoo.com&quot;, &quot;duckduckgo.com&quot;)),
+  allowCredentials = false,
+  maxAge = 1.day.toSeconds)
+// originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Some(Set(yahoo.com, duckduckgo.com)),None,Some(Set(Content-Type, *)))
+
+val corsOriginSvc = CORS(service, originConfig)
+// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$25200/710092457@2d89023d)
+
+corsOriginSvc(googleGet).run
+// &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        corsOriginSvc(googleGet).run
+//                                 ^
+// res6: org.http4s.Response = Response(status=200, headers=Headers())
+
+corsOriginSvc(yahooPut).run
+// &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        corsOriginSvc(yahooPut).run
+//                                ^
+// res7: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: PUT, Access-Control-Allow-Origin: yahoo.com, Access-Control-Max-Age: 86400))
+
+corsOriginSvc(duckPost).run
+// &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
+//        corsOriginSvc(duckPost).run
+//                                ^
+// res8: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
+</code></pre>
+
+<p>Again, the results are as expected. You can, of course, create a configuration that
+combines limits on both HTTP method and origin.</p>
+
+<p>As described in <a href="../middleware">Middleware</a>, services and middleware can be composed such
+that only some of your endpoints are CORS enabled.</p>
+
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.15.x/docs/src/main/tut/cors.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+              <li >
+                <a href="/v0.15/">Quick Start</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/service/">Service</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/dsl/">The http4s DSL</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/middleware/">Middleware</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/auth/">Authentication</a>
+              </li>
+              
+              <li class="active">
+                <a href="/v0.15/cors/">CORS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/static/">Static Files</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/client/">HTTP Client</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/entity/">Entity handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/streaming/">Streaming</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/json/">JSON handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/uri/">URI handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.15/api">Scaladoc</a>
+              </li>
+              
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script src="https://http4s.org/v0.15/js/bootstrap.min.js"></script>    
+<script src="https://http4s.org/v0.15/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>

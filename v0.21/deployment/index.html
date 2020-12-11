@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | Deployment</title>
+
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.21/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          
+<a href="https://github.com/http4s/http4s/edit/series/0.21/docs/src/main/mdoc/deployment.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>Deployment</h1>
+          
+          
+          
+
+<h2 id="overview">Overview</h2>
+
+<p>You&rsquo;ve built and tested your service. How can we deploy it into production? One approach is to create an assembled JAR containing the service with all its dependencies. We can then execute it via <code>java -jar</code>. Another approach would be to create a native image binary via <a href="https://www.graalvm.org/">GraalVM</a>. We will give each of these as examples below.</p>
+
+<h3 id="assembled-jar">Assembled JAR</h3>
+
+<p>As an example of building an assembled JAR we can use SBT with the <code>sbt-assembly</code> plugin. Simliar approaches should exist for other build tools. Consult their documentation. For SBT we find the plugin <a href="https://github.com/sbt/sbt-assembly">https://github.com/sbt/sbt-assembly</a>.</p>
+
+<p>For a simple project we should be able to add the sbt-assembly plugin to <code>project/plugins.sbt</code> and then run the <code>assembly</code> task. We might need to use a merge strategy if some of our dependencies have conflicting artifacts. Below is a simple example, but following the documentation will give more specific configuration examples.</p>
+
+<p>in project/plugins.sbt:</p>
+
+<pre><code class="language-scala">addSbtPlugin(&quot;com.eed3si9n&quot; % &quot;sbt-assembly&quot; % &quot;sbt-assembly-version&quot;)
+</code></pre>
+
+<p>Then as long as we have a <code>main</code> method in our project:</p>
+
+<pre><code class="language-sh">sbt assembly
+</code></pre>
+
+<p>should build our &ldquo;fat&rdquo; assembly jar. We should see the path of the assembly from the sbt log. For example <code>target/scala-2.13/project-assembly-0.0.1-SNAPSHOT.jar</code></p>
+
+<p>Finally we can execute the jar with</p>
+
+<pre><code class="language-sh">java -jar /path.to/project-assembly-0.0.1-SNAPSHOT.jar
+</code></pre>
+
+<p>At this point you should see your http4s server start up. Regarding the artifact, it might be a good idea to place it inside a docker container or create a service script via a systemd unit or similar.</p>
+
+<h3 id="graal-native-image">Graal Native Image</h3>
+
+<p>We provide an outline for building a static native image below. Furthermore the <a href="https://github.com/http4s/http4s.g8">http4s giter8 template</a> can be used to build a native image in conjunction with this guide.</p>
+
+<p>Why would we create such an image? Some advantages might be faster startup times or less memory usage than the JVM.</p>
+
+<h4 id="install-graalvm-and-native-image-plugin">Install GraalVM and Native Image plugin</h4>
+
+<p>The first step is to install the core GraalVM and <code>native-image</code> plugin. The core GraalVM release might be thought of as a replacement for the JVM. The <code>native-image</code> plugin is required to create the binary. The <a href="https://github.com/graalvm/graalvm-ce-builds/releases">community edition builds</a> are free.</p>
+
+<p>After installing the core GraalVM you should be able to use it as a JDK. For example you might set <code>JAVA_HOME</code> to point to your Graal version. Otherwise, your build platform might allow you to select the Java library to build against Graal.</p>
+
+<pre><code class="language-sh">export JAVA_HOME=/path/to/graalVM
+</code></pre>
+
+<p>then</p>
+
+<pre><code class="language-sh">java --version
+</code></pre>
+
+<p>should return something like</p>
+
+<pre><code>openjdk 11.0.6 2020-01-14
+OpenJDK Runtime Environment GraalVM CE 20.0.0 (build 11.0.6+9-jvmci-20.0-b02)
+OpenJDK 64-Bit Server VM GraalVM CE 20.0.0 (build 11.0.6+9-jvmci-20.0-b02, mixed mode, sharing)
+</code></pre>
+
+<h3 id="optional-get-or-build-a-muslc-bundle-required-to-build-a-static-image">(Optional) Get or build a muslC bundle required to build a static image.</h3>
+
+<p>Note: Static images aren&rsquo;t supported in <a href="https://github.com/oracle/graal/issues/478">MacOS or Windows</a> . If building for those platforms skip this step</p>
+
+<p>To create a truly static native image we <a href="https://github.com/oracle/graal/issues/1919#issuecomment-589085506">need to use muslC</a> . Instructions and an example bundle are provided <a href="https://github.com/gradinac/musl-bundle-example">here</a>. For the sake of our example, we can download the resulting bundle for our build. We will need to use the path to the unpacked bundle as an argument to build the image.</p>
+
+<pre><code class="language-sh">wget https://github.com/gradinac/musl-bundle-example/releases/download/v1.0/musl.tar.gz -O - | tar -xz
+</code></pre>
+
+<h3 id="meta-inf-resources-for-reflection">META-INF resources for reflection</h3>
+
+<p>We need META-INF resources whenever we use reflection. Reflection isn&rsquo;t used in http4s, though it is used by some logging implementations. We&rsquo;ve provided a native image example in the <a href="https://github.com/http4s/http4s.g8">http4s giter8 template</a></p>
+
+<h4 id="build-an-assembled-jar-using-graalvm">Build an assembled jar using GraalVM</h4>
+
+<p>After installing the above dependencies you should build an assembled JAR. We can again use <code>sbt assembly</code> or your favorite build tool / plugin to create the assembled jar. The important thing is that we should be using the GraalVM version of Java to do so.</p>
+
+<h4 id="create-the-native-image-with-the-assembled-jar">Create the native image with the assembled JAR</h4>
+
+<p>After we have built the assembled JAR containing all our Java dependencies, we use that JAR to build our native image. In the command below we need to replace the muslC and assembly jar paths with the appropriate locations.</p>
+
+<p>Note: Mac and Windows platforms do not support build static images. Remove <code>--static</code> and <code>-H:UseMuslC=&quot;/path.to/muslC&quot;</code> when building for those platforms.</p>
+
+<pre><code class="language-sh">native-image --static -H:+ReportExceptionStackTraces -H:UseMuslC=&quot;/path.to/muslC&quot; --allow-incomplete-classpath --no-fallback --initialize-at-build-time --enable-http --enable-https --enable-all-security-services --verbose -jar &quot;./path.to.assembly.jar&quot; projectBinaryImage
+</code></pre>
+
+<p>A breakout for the command parameters (image generation options) :</p>
+
+<p><code>-H:UseMuslC</code> to fix DNS and related segfaults and build a true static image that doesn&rsquo;t depend on linked libraries.</p>
+
+<p><code>--initialize-at-build-time</code> again is related to building the static image. Again we lose performance if we instead do this at runtime.</p>
+
+<p><code>--enable-http</code>, <code>--enable-https</code> should correspond to related protocols</p>
+
+<p><code>--enable-all-security-services</code> will likely be required to make or receive https requests.</p>
+
+<p>Additional image generation options are found in the <a href="https://www.graalvm.org/docs/reference-manual/native-image/">native image reference</a></p>
+
+<h4 id="execute-the-native-image">Execute the native image</h4>
+
+<p>Finally we should be able to execute our output <code>projectBinaryImage</code></p>
+
+<pre><code class="language-sh">./projectBinaryImage
+</code></pre>
+
+<p>At this point we may want to package the binary in a docker container, integrate the image generation to a greater build process, create init scripts via systemd, etc.</p>
+
+<h4 id="why-static">Why static?</h4>
+
+<p>As an alternative to executing via the JVM, GraalVM&rsquo;s native-image allows us to execute as a native binary. For example, in Linux environments this might be known as an <code>ELF</code> format. There are a number of ways to generate a native image, be it dynamic or static.</p>
+
+<p>A dynamic image is less portable because it depends on shared libary files on each Linux host. Then similar to creating an assembly JAR containing all our Java dependencies, when we build a static native image, we build
+a more portable assembly including all the dependencies to run our binary across multiple platforms. For example we could expect a static ELF-64 binary to work across multiple linux distributions of different versions for the same architecture.</p>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/integrations/">Integrations</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/upgrading/">Upgrading from 0.18</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/csrf/">CSRF</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/testing/">Testing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v0.21/deployment/">Deployment</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.21/api">Scaladoc</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/v0.21/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
+
+  </body>
+</html>
+
+
