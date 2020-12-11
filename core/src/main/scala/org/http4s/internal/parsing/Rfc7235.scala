@@ -35,7 +35,7 @@ private[http4s] object Rfc7235 {
   val challenge: Parser1[Challenge] =
     ((token <* sp) ~ Parser.repSep(authParam.backtrack, 0, ows <* char(',') *> ows).map(_.toMap))
       .map { case (scheme, params) =>
-        Challenge(scheme, params.getOrElse("realm", ""), params.removed("realm"))
+        Challenge(scheme, params.getOrElse("realm", ""), params - "realm")
       }
 
   val challenges: Parser1[NonEmptyList[Challenge]] = headerRep1(challenge)
