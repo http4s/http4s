@@ -17,7 +17,6 @@
 package org.http4s
 package parser
 
-import cats.data.NonEmptyList
 import org.http4s.headers.`WWW-Authenticate`
 import org.specs2.mutable.Specification
 
