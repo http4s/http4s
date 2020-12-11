@@ -22,7 +22,6 @@ trait OriginHeader {
     OriginHeader.parser.parseAll(value).leftMap { e =>
       ParseFailure("Invalid Origin Header", e.toString)
     }
-//    new OriginParser(value).parse
   }
 
   private class OriginParser(value: String)
