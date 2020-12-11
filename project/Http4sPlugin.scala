@@ -7,9 +7,9 @@ import com.typesafe.sbt.git.JGit
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
-import io.chrisdavenport.sbtmimaversioncheck.MimaVersionCheckKeys._
 import sbt.Keys._
 import sbt._
+import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -28,41 +28,19 @@ object Http4sPlugin extends AutoPlugin {
   val scala_3   = "3.0.0-M1"
   val scalaVersions = Seq(scala_213, scala_212, scala_3)
 
+  override lazy val globalSettings = Seq(
+    isCi := sys.env.get("CI").isDefined
+  )
+
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
-    isCi := sys.env.get("CI").isDefined,
-    ThisBuild / http4sApiVersion := (ThisBuild / version).map {
+    http4sApiVersion := version.map {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
-    crossScalaVersions := scalaVersions,
   ) ++ sbtghactionsSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    scalaVersion := scala_213,
-    crossScalaVersions := scalaVersions,
-
-    libraryDependencies ++= {
-      if (isDotty.value) Seq.empty
-      else Seq(
-        compilerPlugin("org.typelevel" % "kind-projector" % "0.11.1" cross CrossVersion.full),
-        compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
-      )
-    },
-
-    // hack around bug in sbt-http4s-org
-    scalacOptions := {
-      if (isDotty.value) {
-        scalacOptions.value.indexOf("-Ybackend-parallelism") match {
-          case n if n >= 0 =>
-            scalacOptions.value.take(n) ++ scalacOptions.value.take(n).drop(2)
-          case _ =>
-            scalacOptions.value
-        }
-      }
-      else scalacOptions.value
-    },
-
     http4sBuildData := {
       val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = http4sApiVersion.value
@@ -95,29 +73,10 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
     // breaks binary compatibility in caffeine module with 0.8.1
     dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.9.0"),
-    // Jetty prereleases appear because of their non-semver prod releases
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.alpha2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "10.0.0.beta3"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty", revision = "11.0.0.beta3"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.alpha2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "10.0.0.beta3"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0-alpha0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta2"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty.http2", revision = "11.0.0.beta3"),
+    // servlet containers skipped until we figure out our Jakarta EE strategy
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "10.0.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "11.0.*"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
     // Broke binary compatibility with 2.10.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
@@ -130,10 +89,10 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Dropped joda-time support, wait for next breaking release
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
-    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
-    dependencyUpdatesFilter -= moduleFilter(organization = "com.codecommit", name = "cats-effect-testing-specs2", revision = "0.4.2"),
-    // Depends on a milestone and quietly bumps us to cats and cats-effect milestones
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2", revision = "0.9.0"),
+    // Unsure about binary compatibility
+    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
+    // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -180,11 +139,13 @@ object Http4sPlugin extends AutoPlugin {
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
           "src/test/scala/org/http4s/UriSpec.scala"
         )
-      }
+      },
+
+    nowarnCompatAnnotationProvider := None,
   )
 
   def extractApiVersion(version: String) = {
-    val VersionExtractor = """(\d+)\.(\d+)\..*""".r
+    val VersionExtractor = """(\d+)\.(\d+)[-.].*""".r
     version match {
       case VersionExtractor(major, minor) => (major.toInt, minor.toInt)
     }
@@ -332,8 +293,6 @@ object Http4sPlugin extends AutoPlugin {
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
-
-      mimaVersionCheckExcludedVersions := Set("0.21.10"),
     )
   }
 
@@ -365,11 +324,11 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.10.0-M3"
     val mockito = "3.5.15"
-    val netty = "4.1.54.Final"
+    val netty = "4.1.55.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.8.0"
-    val munitDiscipline = "1.0.2"
+    val munitCatsEffect = "0.11.0"
+    val munitDiscipline = "1.0.3"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
@@ -381,11 +340,11 @@ object Http4sPlugin extends AutoPlugin {
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
-    val scodecBits = "1.1.21"
+    val scodecBits = "1.1.22"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.5"
-    val tomcat = "9.0.40"
+    val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.0-M1"

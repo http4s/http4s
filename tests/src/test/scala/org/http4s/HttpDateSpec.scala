@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package fix
+package org.http4s
 
-import org.scalatest.FunSpecLike
-import scalafix.testkit.AbstractSemanticRuleSuite
+import cats.effect.IO
+import cats.effect.testing.specs2.CatsEffect
 
-class RuleSuite extends AbstractSemanticRuleSuite with FunSpecLike {
-  runAllTests()
+class HttpDateSpec extends Http4sSpec with CatsEffect {
+  "HttpDate" should {
+    "current should be extremely close to Instant.now" >> {
+      HttpDate.current[IO].map { current =>
+        val diff =
+          HttpDate.unsafeFromInstant(java.time.Instant.now).epochSecond - current.epochSecond
+        (diff must be_===(0L)).or(be_===(1L))
+      }
+    }
+  }
 }
