@@ -5,7 +5,7 @@
  */
 
 package org.http4s
-
+/*
 import cats.Eq
 import cats.effect.IO
 import cats.implicits._
@@ -142,3 +142,4 @@ class EntityEncoderSpec extends Http4sSpec {
       ContravariantTests[EntityEncoder[IO, *]].contravariant[MiniInt, MiniInt, MiniInt])
   }
 }
+ */

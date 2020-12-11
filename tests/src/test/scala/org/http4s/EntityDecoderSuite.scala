@@ -5,7 +5,7 @@
  */
 
 package org.http4s
-
+/*
 import cats.effect._
 import cats.syntax.all._
 import fs2._
@@ -254,7 +254,7 @@ class EntityDecoderSuite extends Http4sSuite {
         decoded must returnRight(haveMediaType(MediaType.`application/json`))
       }
     }
-   */
+ */
 
   test("decodeStrict should produce a MediaTypeMissing if message has no content type") {
     val req = Request[IO]()
@@ -322,7 +322,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("apply should invoke the function with  the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
-      EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
+      EntityDecoder.decodeBy(MediaRange.`**`)(_ => DecodeResult.success(IO.pure("hooray")))
     IO.async[String] { cb =>
       request
         .decodeWith(happyDecoder, strict = false) { s =>
@@ -335,7 +335,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   test("apply should wrap the ParseFailure in a ParseException on failure") {
-    val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
+    val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`**`)(_ =>
       DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
     request
       .decodeWith(grumpyDecoder, strict = false) { _ =>
@@ -489,3 +489,4 @@ class EntityDecoderSuite extends Http4sSuite {
 //        .semigroupK[String])(Parameters(minTestsOk = 20, maxSize = 10))
 //  }
 }
+ */

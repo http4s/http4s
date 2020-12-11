@@ -5,7 +5,7 @@
  */
 
 package org.http4s
-
+/*
 import cats.effect.IO
 import cats.syntax.all._
 import java.io.File
@@ -289,3 +289,4 @@ class StaticFileSuite extends Http4sSuite {
       .intercept[UnknownHostException]
   }
 }
+ */

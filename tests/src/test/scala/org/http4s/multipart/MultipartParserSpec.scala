@@ -6,7 +6,7 @@
 
 package org.http4s
 package multipart
-
+/*
 import java.nio.charset.StandardCharsets
 
 import cats.effect._
@@ -660,3 +660,4 @@ object MultipartParserSpec extends Specification {
     }
   }
 }
+ */

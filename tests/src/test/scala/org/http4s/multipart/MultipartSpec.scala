@@ -6,7 +6,7 @@
 
 package org.http4s
 package multipart
-
+/*
 import cats._
 import cats.effect._
 import cats.implicits._
@@ -202,3 +202,4 @@ I am a big moose
     }
   }
 }
+ */
