@@ -5,7 +5,7 @@
  */
 
 package org.http4s.metrics
-
+/*
 import cats.effect.IO
 import cats.implicits._
 import java.util.UUID
@@ -81,3 +81,4 @@ class MetricsOpsSpec extends Http4sSpec {
   }
 
 }
+ */
