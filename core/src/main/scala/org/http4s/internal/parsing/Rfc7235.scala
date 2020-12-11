@@ -11,8 +11,9 @@ import cats.data.NonEmptyList
 import cats.parse.Parser.{char, charIn}
 import cats.parse.{Parser, Parser1}
 import cats.parse.Rfc5234.{alpha, digit, sp}
-import org.http4s.Challenge
+import org.http4s.{Challenge, Credentials}
 import org.http4s.internal.parsing.Rfc7230.{bws, headerRep1, ows, quotedString, token}
+import org.http4s.util.CaseInsensitiveString
 
 private[http4s] object Rfc7235 {
   /*  token68 = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" )
@@ -38,4 +39,14 @@ private[http4s] object Rfc7235 {
     }
 
   val challenges: Parser1[NonEmptyList[Challenge]] = headerRep1(challenge)
+
+  //auth-scheme = token
+  val scheme = token.map(CaseInsensitiveString(_))
+
+  val credentials: Parser1[Credentials] =
+    ((scheme <* sp) ~ (headerRep1(authParam).backtrack.? ~ token68.?)).flatMap {
+      case (scheme, (None, Some(token))) => Parser.pure(Credentials.Token(scheme, token))
+      case (scheme, (Some(nel), None)) => Parser.pure(Credentials.AuthParams(scheme, nel))
+      case (_, _) => Parser.fail
+    }
 }

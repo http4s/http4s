@@ -18,28 +18,14 @@ package org.http4s
 package headers
 
 import cats.syntax.all._
-import org.http4s.util.{CaseInsensitiveString, Writer}
+import org.http4s.util.Writer
 import cats.parse._
 
 object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton {
   //https://tools.ietf.org/html/rfc7235#section-4.2
   private val parser: Parser1[Authorization] = {
-    import cats.parse.Rfc5234.sp
-
-    import org.http4s.internal.parsing.Rfc7230.{headerRep1, token}
-    import org.http4s.internal.parsing.Rfc7235.{token68, authParam}
-
-    //auth-scheme = token
-    val scheme = token.map(CaseInsensitiveString(_))
-
-    val creds: Parser1[Credentials] =
-      ((scheme <* sp) ~ (headerRep1(authParam).backtrack.? ~ token68.?)).flatMap {
-        case (scheme, (None, Some(token))) => Parser.pure(Credentials.Token(scheme, token))
-        case (scheme, (Some(nel), None)) => Parser.pure(Credentials.AuthParams(scheme, nel))
-        case (_, _) => Parser.fail
-      }
-
-    creds.map(Authorization(_))
+    import org.http4s.internal.parsing.Rfc7235.credentials
+    credentials.map(Authorization(_))
   }
 
   override def parse(s: String): ParseResult[Authorization] =
