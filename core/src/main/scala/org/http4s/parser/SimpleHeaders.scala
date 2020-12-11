@@ -131,38 +131,6 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
-  def DATE(value: String): ParseResult[Date] =
-    new Http4sHeaderParser[Date](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (Date(_))
-        }
-    }.parse
-
-  def EXPIRES(value: String): ParseResult[Expires] =
-    new Http4sHeaderParser[Expires](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (Expires(_)) | // Valid Expires header
-            Digit1 ~ EOL ~> ((t: Int) =>
-              Expires(
-                org.http4s.HttpDate.unsafeFromEpochSecond(
-                  t.toLong / 1000L))) | // Used for bogus http servers returning 0
-            NegDigit1 ~ EOL ~> Function
-              .const(
-                Expires(org.http4s.HttpDate.Epoch)) _ // Used for bogus http servers returning -1
-        }
-    }.parse
-
-  def RETRY_AFTER(value: String): ParseResult[`Retry-After`] =
-    new Http4sHeaderParser[`Retry-After`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> ((t: org.http4s.HttpDate) => `Retry-After`(t)) | // Date value
-            Digits ~ EOL ~> ((t: String) => `Retry-After`.unsafeFromLong(t.toLong))
-        }
-    }.parse
-
   def AGE(value: String): ParseResult[Age] =
     new Http4sHeaderParser[Age](value) {
       def entry =
@@ -193,30 +161,6 @@ private[parser] trait SimpleHeaders {
           capture(zeroOrMore(ANY)) ~ EOL ~> { (id: String) =>
             `Last-Event-Id`(ServerSentEvent.EventId(id))
           }
-        }
-    }.parse
-
-  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] =
-    new Http4sHeaderParser[`Last-Modified`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`Last-Modified`(_))
-        }
-    }.parse
-
-  def IF_MODIFIED_SINCE(value: String): ParseResult[`If-Modified-Since`] =
-    new Http4sHeaderParser[`If-Modified-Since`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`If-Modified-Since`(_))
-        }
-    }.parse
-
-  def IF_UNMODIFIED_SINCE(value: String): ParseResult[`If-Unmodified-Since`] =
-    new Http4sHeaderParser[`If-Unmodified-Since`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`If-Unmodified-Since`(_))
         }
     }.parse
 

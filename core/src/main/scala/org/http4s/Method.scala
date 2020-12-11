@@ -19,7 +19,6 @@ package org.http4s
 import cats.{Hash, Order, Show}
 import cats.parse.Parser1
 import cats.syntax.all._
-import org.http4s.Method.Semantics
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 import scala.util.hashing.MurmurHash3
@@ -65,7 +64,7 @@ object Method {
       parser.parseAll(s).leftMap(e => ParseFailure("Invalid method", e.toString)))
 
   private[http4s] val parser: Parser1[Method] =
-    Rfc7230.token.map(new Method(_) with Semantics.Default)
+    Rfc7230.token.map(new Method(_, false, false))
 
   private def apply(name: String) =
     new Method(name, isSafe = false, isIdempotent = false)

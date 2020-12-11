@@ -13,12 +13,8 @@ package parser
 
 import java.util
 import org.http4s.Header.Parsed
-<<<<<<< HEAD
+import org.http4s.headers._
 import org.typelevel.ci.CIString
-=======
-import org.http4s.headers.ETag
-import org.http4s.syntax.string._
->>>>>>> dotty
 
 object HttpHeaderParser
     extends SimpleHeaders
@@ -111,13 +107,12 @@ object HttpHeaderParser
   }
 
   private def gatherBuiltIn(): Unit = {
-<<<<<<< HEAD
     addParser_(CIString("ACCEPT-PATCH"), `ACCEPT_PATCH`)
     addParser_(CIString("ACCEPT"), `ACCEPT`)
     addParser_(CIString("ACCEPT-CHARSET"), `ACCEPT_CHARSET`)
     addParser_(CIString("ACCEPT-ENCODING"), `ACCEPT_ENCODING`)
     addParser_(CIString("ACCEPT-LANGUAGE"), `ACCEPT_LANGUAGE`)
-    addParser_(CIString("ACCEPT-RANGES"), `ACCEPT_RANGES`)
+    addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"), `ACCESS_CONTROL_ALLOW_CREDENTIALS`)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `ACCESS_CONTROL_ALLOW_HEADERS`)
     addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `ACCESS_CONTROL_EXPOSE_HEADERS`)
@@ -134,17 +129,17 @@ object HttpHeaderParser
     addParser_(CIString("CONTENT-RANGE"), `CONTENT_RANGE`)
     addParser_(CIString("CONTENT-TYPE"), `CONTENT_TYPE`)
     addParser_(CIString("COOKIE"), `COOKIE`)
-    addParser_(CIString("DATE"), `DATE`)
-    addParser_(CIString("ETAG"), `ETAG`)
-    addParser_(CIString("EXPIRES"), `EXPIRES`)
+    addParser_(CIString("DATE"), Date.parse)
+    addParser_(CIString("ETAG"), ETag.parse)
+    addParser_(CIString("EXPIRES"), Expires.parse)
     addParser_(CIString("FORWARDED"), `FORWARDED`)
     addParser_(CIString("HOST"), `HOST`)
     addParser_(CIString("IF-MATCH"), `IF_MATCH`)
-    addParser_(CIString("IF-MODIFIED-SINCE"), `IF_MODIFIED_SINCE`)
+    addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)
     addParser_(CIString("IF-NONE-MATCH"), `IF_NONE_MATCH`)
-    addParser_(CIString("IF-UNMODIFIED-SINCE"), `IF_UNMODIFIED_SINCE`)
+    addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
     addParser_(CIString("LAST-EVENT-ID"), `LAST_EVENT_ID`)
-    addParser_(CIString("LAST-MODIFIED"), `LAST_MODIFIED`)
+    addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
     addParser_(CIString("LINK"), `LINK`)
     addParser_(CIString("LOCATION"), `LOCATION`)
     addParser_(CIString("MAX-FORWARDS"), `MAX_FORWARDS`)
@@ -152,7 +147,7 @@ object HttpHeaderParser
     addParser_(CIString("PROXY-AUTHENTICATE"), `PROXY_AUTHENTICATE`)
     addParser_(CIString("RANGE"), `RANGE`)
     addParser_(CIString("REFERER"), `REFERER`)
-    addParser_(CIString("RETRY-AFTER"), `RETRY_AFTER`)
+    addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
     addParser_(CIString("SERVER"), `SERVER`)
     addParser_(CIString("SET-COOKIE"), `SET_COOKIE`)
     addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `STRICT_TRANSPORT_SECURITY`)
@@ -165,52 +160,5 @@ object HttpHeaderParser
     addParser_(CIString("X-B3-SPANID"), `X_B3_SPANID`)
     addParser_(CIString("X-B3-TRACEID"), `X_B3_TRACEID`)
     addParser_(CIString("X-FORWARDED-FOR"), `X_FORWARDED_FOR`)
-=======
-    addParser_("ACCEPT".ci, `ACCEPT`)
-    addParser_("ACCEPT-CHARSET".ci, `ACCEPT_CHARSET`)
-    addParser_("ACCEPT-ENCODING".ci, `ACCEPT_ENCODING`)
-    addParser_("ACCEPT-LANGUAGE".ci, `ACCEPT_LANGUAGE`)
-    addParser_("ACCEPT-RANGES".ci, `ACCEPT_RANGES`)
-    addParser_("AGE".ci, `AGE`)
-    addParser_("ALLOW".ci, `ALLOW`)
-    addParser_("AUTHORIZATION".ci, `AUTHORIZATION`)
-    addParser_("CACHE-CONTROL".ci, `CACHE_CONTROL`)
-    addParser_("CONNECTION".ci, `CONNECTION`)
-    addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
-    addParser_("CONTENT-ENCODING".ci, `CONTENT_ENCODING`)
-    addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
-    addParser_("CONTENT-RANGE".ci, `CONTENT_RANGE`)
-    addParser_("CONTENT-TYPE".ci, `CONTENT_TYPE`)
-    addParser_("COOKIE".ci, `COOKIE`)
-    addParser_("DATE".ci, `DATE`)
-    addParser_("ETAG".ci, ETag.parse)
-    addParser_("EXPIRES".ci, `EXPIRES`)
-    addParser_("FORWARDED".ci, `FORWARDED`)
-    addParser_("HOST".ci, `HOST`)
-    addParser_("IF-MATCH".ci, `IF_MATCH`)
-    addParser_("IF-MODIFIED-SINCE".ci, `IF_MODIFIED_SINCE`)
-    addParser_("IF-NONE-MATCH".ci, `IF_NONE_MATCH`)
-    addParser_("IF-UNMODIFIED-SINCE".ci, `IF_UNMODIFIED_SINCE`)
-    addParser_("LAST-EVENT-ID".ci, `LAST_EVENT_ID`)
-    addParser_("LAST-MODIFIED".ci, `LAST_MODIFIED`)
-    addParser_("LINK".ci, `LINK`)
-    addParser_("LOCATION".ci, `LOCATION`)
-    addParser_("ORIGIN".ci, `ORIGIN`)
-    addParser_("PROXY-AUTHENTICATE".ci, `PROXY_AUTHENTICATE`)
-    addParser_("RANGE".ci, `RANGE`)
-    addParser_("REFERER".ci, `REFERER`)
-    addParser_("RETRY-AFTER".ci, `RETRY_AFTER`)
-    addParser_("SET-COOKIE".ci, `SET_COOKIE`)
-    addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
-    addParser_("TRANSFER-ENCODING".ci, `TRANSFER_ENCODING`)
-    addParser_("USER-AGENT".ci, `USER_AGENT`)
-    addParser_("WWW-AUTHENTICATE".ci, `WWW_AUTHENTICATE`)
-    addParser_("X-B3-FLAGS".ci, `X_B3_FLAGS`)
-    addParser_("X-B3-PARENTSPANID".ci, `X_B3_PARENTSPANID`)
-    addParser_("X-B3-SAMPLED".ci, `X_B3_SAMPLED`)
-    addParser_("X-B3-SPANID".ci, `X_B3_SPANID`)
-    addParser_("X-B3-TRACEID".ci, `X_B3_TRACEID`)
-    addParser_("X-FORWARDED-FOR".ci, `X_FORWARDED_FOR`)
->>>>>>> dotty
   }
 }
