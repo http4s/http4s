@@ -23,7 +23,6 @@ object HttpHeaderParser
     with AcceptEncodingHeader
     with AcceptHeader
     with AcceptLanguageHeader
-    with AuthorizationHeader
     with CacheControlHeader
     with ContentTypeHeader
     with CookieHeader
@@ -113,7 +112,6 @@ object HttpHeaderParser
     addParser_("ACCEPT-RANGES".ci, `Accept-Ranges`.parse)
     addParser_("AGE".ci, `AGE`)
     addParser_("ALLOW".ci, `ALLOW`)
-    addParser_("AUTHORIZATION".ci, `AUTHORIZATION`)
     addParser_("CACHE-CONTROL".ci, `CACHE_CONTROL`)
     addParser_("CONNECTION".ci, `CONNECTION`)
     addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
