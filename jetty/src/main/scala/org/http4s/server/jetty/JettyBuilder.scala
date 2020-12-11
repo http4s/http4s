@@ -1,7 +1,17 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s
@@ -9,7 +19,7 @@ package server
 package jetty
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.util
 import javax.net.ssl.{SSLContext, SSLParameters}
@@ -224,14 +234,15 @@ sealed class JettyBuilder[F[_]] private (
         if (supportHttp2) logger.warn("JettyBuilder does not support HTTP/2 with SSL at the moment")
         new ServerConnector(jetty, sslContextFactory)
 
-      case None if !supportHttp2 =>
-        new ServerConnector(jetty)
-
-      case None if supportHttp2 =>
-        val config = new HttpConfiguration()
-        val http1 = new HttpConnectionFactory(config)
-        val http2c = new HTTP2CServerConnectionFactory(config)
-        new ServerConnector(jetty, http1, http2c)
+      case None =>
+        if (!supportHttp2) {
+          new ServerConnector(jetty)
+        } else {
+          val config = new HttpConfiguration()
+          val http1 = new HttpConnectionFactory(config)
+          val http2c = new HTTP2CServerConnectionFactory(config)
+          new ServerConnector(jetty, http1, http2c)
+        }
     }
 
   def resource: Resource[F, Server] =

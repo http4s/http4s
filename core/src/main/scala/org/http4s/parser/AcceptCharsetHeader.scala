@@ -11,7 +11,7 @@
 package org.http4s
 package parser
 
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.internal.parboiled2._
 import org.http4s.CharsetRange._
 import org.http4s.QValue.QValueParser

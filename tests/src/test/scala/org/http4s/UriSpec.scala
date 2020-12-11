@@ -10,8 +10,8 @@
 
 package org.http4s
 
-import cats.implicits._
-import cats.kernel.laws.discipline.{EqTests, SemigroupTests}
+import cats.kernel.laws.discipline._
+import cats.syntax.all._
 import java.nio.file.Paths
 
 import org.http4s.internal.parboiled2.CharPredicate
@@ -1138,4 +1138,10 @@ http://example.org/a file
     }
   }
 
+  "Uri instances" should {
+    "be lawful" in {
+      checkAll("Order[Uri]", OrderTests[Uri].order)
+      checkAll("Hash[Uri]", HashTests[Uri].hash)
+    }
+  }
 }
