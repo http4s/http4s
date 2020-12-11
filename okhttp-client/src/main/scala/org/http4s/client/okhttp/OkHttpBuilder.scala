@@ -138,6 +138,9 @@ sealed abstract class OkHttpBuilder[F[_]] private (
           override def contentType(): OKMediaType =
             req.contentType.map(c => OKMediaType.parse(c.toString())).orNull
 
+          //OKHttp will override the content-length header set below and always use "transfer-encoding: chunked" unless this method is overriden
+          override def contentLength(): Long = req.contentLength.getOrElse(-1L)
+
           override def writeTo(sink: BufferedSink): Unit =
             req.body.chunks
               .map(_.toArray)
