@@ -48,10 +48,6 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
       parse(wparams.renderString) must be_==(`WWW-Authenticate`(wparams))
     }
 
-    "Parse realmless" in {
-      parse("Foo ") must be_==(`WWW-Authenticate`(NonEmptyList.of(Challenge("Foo", ""))))
-    }
-
     "Parse multiple concatenated authentications" in {
       val twotypes = "Newauth realm=\"apps\", Basic realm=\"simple\""
       val twoparsed = Challenge("Newauth", "apps") :: Challenge("Basic", "simple") :: Nil
@@ -59,7 +55,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
       parse(twotypes).values.toList must be_==(twoparsed)
     }
 
-    "parse mulmultiple concatenated authentications with params" in {
+    "parse multiple concatenated authentications with params" in {
       val twowparams =
         "Newauth realm=\"apps\", type=1, title=\"Login to apps\", Basic realm=\"simple\""
       val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::
