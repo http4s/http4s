@@ -8,7 +8,13 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-M9 (2020-12-11)
+# v1.0.0-M9 (2020-12-12)
+
+## http4s-core
+
+### Breaking changes
+
+* [#3913](https://github.com/http4s/http4s/pull/3913): Regenerated the `MimeDb` trait from the IANA registry. This shifts a few constants around and is binary breaking, but the vast majority of users won't notice.
 
 ## Dependency updates
 
