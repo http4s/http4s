@@ -217,8 +217,17 @@ object CirceInstances {
 
   private[circe] lazy val defaultJsonDecodeError
       : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
+
+  private def sensitiveDataJsonDecodeError(
+      json: Json,
+      jsonToString: Json => String,
+      failures: NonEmptyList[DecodingFailure]
+  ): DecodeFailure = {
+
+    val str: String = jsonToString(json)
+
     InvalidMessageBodyFailure(
-      s"Could not decode JSON: $json",
+      s"Could not decode JSON: $str",
       if (failures.tail.isEmpty) Some(failures.head) else Some(DecodingFailures(failures)))
   }
 
