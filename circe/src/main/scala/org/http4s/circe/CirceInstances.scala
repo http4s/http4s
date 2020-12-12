@@ -79,11 +79,15 @@ trait CirceInstances extends JawnInstances {
   def jsonOfWithMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(implicit
       F: Sync[F],
       decoder: Decoder[A]): EntityDecoder[F, A] =
+  private def jsonOfWithMediaHelper[F[_], A](
+      r1: MediaRange,
+      decodeErrorHandler: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure,
+      rs: MediaRange*)(implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
       decoder
         .decodeJson(json)
         .fold(
-          failure => DecodeResult.failure(jsonDecodeError(json, NonEmptyList.one(failure))),
+          failure => DecodeResult.failure(decodeErrorHandler(json, NonEmptyList.one(failure))),
           DecodeResult.success(_)
         )
     }
