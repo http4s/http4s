@@ -266,6 +266,11 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
         List("*", "series/*"),
+      githubWorkflowPublishPostamble := {
+        githubWorkflowPublishPostamble.value ++ Seq(
+          WorkflowStep.Run(List("git status"))
+        )
+      },
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
         RefPredicate.StartsWith(Ref.Tag("v"))
