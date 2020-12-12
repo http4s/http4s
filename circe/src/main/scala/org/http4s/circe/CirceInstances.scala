@@ -217,6 +217,8 @@ object CirceInstances {
 
   private[circe] lazy val defaultJsonDecodeError
       : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
+    sensitiveDataJsonDecodeError(json, _.toString, failures)
+  }
 
   private def sensitiveDataJsonDecodeError(
       json: Json,
