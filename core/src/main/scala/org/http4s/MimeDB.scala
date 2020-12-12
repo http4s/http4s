@@ -5981,7 +5981,7 @@ private[http4s] trait MimeDB {
       new MediaType("audio", "mpeg4-generic", Compressible, Binary)
     lazy val `musepack`: MediaType = new MediaType("audio", "musepack", Compressible, Binary)
     lazy val `ogg`: MediaType =
-      new MediaType("audio", "ogg", Uncompressible, Binary, List("oga", "ogg", "spx"))
+      new MediaType("audio", "ogg", Uncompressible, Binary, List("oga", "ogg", "spx", "opus"))
     lazy val `opus`: MediaType = new MediaType("audio", "opus", Compressible, Binary)
     lazy val `parityfec`: MediaType = new MediaType("audio", "parityfec", Compressible, Binary)
     lazy val `pcma`: MediaType = new MediaType("audio", "pcma", Compressible, Binary)
