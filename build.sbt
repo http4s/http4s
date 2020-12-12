@@ -10,6 +10,8 @@ ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
+enablePlugins(SonatypeCiReleasePlugin)
+
 lazy val modules: List[ProjectReference] = List(
   core,
   laws,
