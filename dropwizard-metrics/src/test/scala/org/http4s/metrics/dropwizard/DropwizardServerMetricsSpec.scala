@@ -167,7 +167,7 @@ class DropwizardServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
       count(registry, Counter("server.default.active-requests")) must beEqualTo(0L)
       count(registry, Timer("server.default.requests.total")) must beEqualTo(1L)
       valuesOf(registry, Timer("server.default.requests.headers")) must beSome(Array(50000000L))
-      valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(100000000L))
+      valuesOf(registry, Timer("server.default.get-requests")) must beSome(Array(50000000L))
     }
 
     "register an abnormal termination" in {
