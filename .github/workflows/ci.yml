@@ -112,6 +112,8 @@ jobs:
       - name: Import signing key
         run: echo $PGP_SECRET | base64 -d | gpg --import
 
+      - run: git status
+
       - run: sbt ++${{ matrix.scala }} release
 
       - name: Setup Hugo
