@@ -90,7 +90,7 @@ trait CirceInstances extends JawnInstances {
     jsonOfWithMediaHelper[F, A](
       r1,
       (json, nelDecodeFailures) =>
-        CirceInstances.sensitiveDataJsonDecodeError(json, _ => "<REDACTED>", nelDecodeFailures),
+        CirceInstances.jsonDecodeErrorHelper(json, _ => "<REDACTED>", nelDecodeFailures),
       rs: _*
     )
 
@@ -236,10 +236,10 @@ object CirceInstances {
 
   private[circe] lazy val defaultJsonDecodeError
       : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
-    sensitiveDataJsonDecodeError(json, _.toString, failures)
+    jsonDecodeErrorHelper(json, _.toString, failures)
   }
 
-  private def sensitiveDataJsonDecodeError(
+  private def jsonDecodeErrorHelper(
       json: Json,
       jsonToString: Json => String,
       failures: NonEmptyList[DecodingFailure]
