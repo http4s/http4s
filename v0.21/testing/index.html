@@ -95,7 +95,7 @@ walk through the results of applying inputs, i.e. <code>org.http4s.Request</code
 
 <p>Now, let&rsquo;s define an <code>org.http4s.HttpService</code>.</p>
 
-<pre><code class="language-scala">import cats.implicits._
+<pre><code class="language-scala">import cats.syntax.all._
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.semiauto._
@@ -108,7 +108,7 @@ import org.http4s.implicits._
 
 <pre><code class="language-scala">case class User(name: String, age: Int)  
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@6d79a98c
+// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@72830570
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -148,14 +148,14 @@ def check[A](actual:        IO[Response[IO]],
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[IO] = repl.MdocSession$App$$anon$3@645793fe
+// success: UserRepo[IO] = repl.MdocSession$App$$anon$3@60ada50f
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8356/30870548@3c69874f),
-//   cats.data.OptionT$$Lambda$8358/983027879@3d217d05,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$8388/1677814387@a4e2c0a),
+//   cats.data.OptionT$$Lambda$8392/800722407@6bca929f,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -165,19 +165,19 @@ val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
 //       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
 //       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
 //       cats.data.OptionT.getOrElse(OptionT.scala:99),
-//       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:38),
-//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$1(Http1ServerStage.scala:340),
-//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:183),
-//       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:113),
-//       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:113),
-//       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:47),
+//       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:48),
+//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$1(Http1ServerStage.scala:350),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:193),
+//       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:114),
+//       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:114),
+//       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:48),
 //       cats.effect.IO.unsafeRunCancelable(IO.scala:305),
 //       cats.effect.IO.$anonfun$runCancelable$1(IO.scala:234),
-//       cats.effect.internals.IORunLoop$.step(IORunLoop.scala:235),
+//       cats.effect.internals.IORunLoop$.step(IORunLoop.scala:241),
 //       cats.effect.IO.unsafeRunTimed(IO.scala:338),
 //       cats.effect.IO.unsafeRunSync(IO.scala:256),
 //       cats.effect.SyncIO.unsafeRunSync(SyncIO.scala:51),
-//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:189),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:199),
 //       java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1402),
 //       java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289),
 //       java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1056),
@@ -202,14 +202,14 @@ check[Json](response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$4@1db486e4 
+// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$4@188b213 
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/user/not-used&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8356/30870548@45a43ecf),
-//   cats.data.OptionT$$Lambda$8358/983027879@35079acb,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$8388/1677814387@c00faf0),
+//   cats.data.OptionT$$Lambda$8392/800722407@7755b906,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -219,19 +219,19 @@ val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
 //       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
 //       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
 //       cats.data.OptionT.getOrElse(OptionT.scala:99),
-//       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:38),
-//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$1(Http1ServerStage.scala:340),
-//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:183),
-//       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:113),
-//       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:113),
-//       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:47),
+//       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:48),
+//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$1(Http1ServerStage.scala:350),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:193),
+//       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:114),
+//       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:114),
+//       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:48),
 //       cats.effect.IO.unsafeRunCancelable(IO.scala:305),
 //       cats.effect.IO.$anonfun$runCancelable$1(IO.scala:234),
-//       cats.effect.internals.IORunLoop$.step(IORunLoop.scala:235),
+//       cats.effect.internals.IORunLoop$.step(IORunLoop.scala:241),
 //       cats.effect.IO.unsafeRunTimed(IO.scala:338),
 //       cats.effect.IO.unsafeRunSync(IO.scala:256),
 //       cats.effect.SyncIO.unsafeRunSync(SyncIO.scala:51),
-//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:189),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:199),
 //       java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1402),
 //       java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289),
 //       java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1056),
@@ -250,14 +250,14 @@ check[Json](response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$5@3f8103b 
+// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$5@48349319 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = uri&quot;/not-a-matching-path&quot; )
 )
 // response: IO[Response[IO]] = Map(
-//   Suspend(org.http4s.HttpRoutes$$$Lambda$8356/30870548@3a422506),
-//   cats.data.OptionT$$Lambda$8358/983027879@5e7426c7,
+//   Suspend(org.http4s.HttpRoutes$$$Lambda$8388/1677814387@ce8b826),
+//   cats.data.OptionT$$Lambda$8392/800722407@7b41431,
 //   StackTrace(
 //     List(
 //       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -267,19 +267,19 @@ val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
 //       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:870),
 //       cats.effect.IOLowPriorityInstances$IOEffect.map(IO.scala:863),
 //       cats.data.OptionT.getOrElse(OptionT.scala:99),
-//       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:38),
-//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$1(Http1ServerStage.scala:340),
-//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:183),
-//       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:113),
-//       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:113),
-//       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:47),
+//       org.http4s.syntax.KleisliResponseOps.$anonfun$orNotFound$1(KleisliSyntax.scala:48),
+//       org.http4s.server.blaze.Http1ServerStage.$anonfun$raceTimeout$1(Http1ServerStage.scala:350),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.$anonfun$run$1(Http1ServerStage.scala:193),
+//       cats.effect.internals.IORunLoop$.liftedTree1$1(IORunLoop.scala:114),
+//       cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:114),
+//       cats.effect.internals.IORunLoop$.startCancelable(IORunLoop.scala:48),
 //       cats.effect.IO.unsafeRunCancelable(IO.scala:305),
 //       cats.effect.IO.$anonfun$runCancelable$1(IO.scala:234),
-//       cats.effect.internals.IORunLoop$.step(IORunLoop.scala:235),
+//       cats.effect.internals.IORunLoop$.step(IORunLoop.scala:241),
 //       cats.effect.IO.unsafeRunTimed(IO.scala:338),
 //       cats.effect.IO.unsafeRunSync(IO.scala:256),
 //       cats.effect.SyncIO.unsafeRunSync(SyncIO.scala:51),
-//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:189),
+//       org.http4s.server.blaze.Http1ServerStage$$anon$2.run(Http1ServerStage.scala:199),
 //       java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1402),
 //       java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289),
 //       java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1056),

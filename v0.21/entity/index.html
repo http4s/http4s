@@ -145,7 +145,7 @@ case class Video(body: String) extends Resp
 //       HttpVersion(1, 1),
 //       Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 0),
 //       Stream(..),
-//       io.chrisdavenport.vault.Vault@4f645bb3
+//       io.chrisdavenport.vault.Vault@2f8bf776
 //     )
 //   ),
 //   &lt;function1&gt;,
@@ -167,34 +167,34 @@ case class Video(body: String) extends Resp
 //       scala.Console$.withOut(Console.scala:167),
 //       mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.scala:88),
 //       mdoc.internal.markdown.MarkdownBuilder$.buildDocument(MarkdownBuilder.scala:44),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:186),
-//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:153),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:185),
+//       mdoc.internal.markdown.Processor.processScalaInputs(Processor.scala:152),
 //       mdoc.internal.markdown.Processor.processDocument(Processor.scala:52),
-//       mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:132),
+//       mdoc.internal.markdown.Markdown$.toMarkdown(Markdown.scala:131),
 //       mdoc.internal.cli.MainOps.handleMarkdown(MainOps.scala:82),
 //       mdoc.internal.cli.MainOps.handleFile(MainOps.scala:110),
-//       mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:157),
+//       mdoc.internal.cli.MainOps.$anonfun$generateCompleteSite$1(MainOps.scala:156),
 //       scala.collection.LinearSeqOptimized.foldLeft(LinearSeqOptimized.scala:126),
 //       scala.collection.LinearSeqOptimized.foldLeft$(LinearSeqOptimized.scala:122),
 //       scala.collection.immutable.List.foldLeft(List.scala:91),
 //       mdoc.internal.cli.MainOps.generateCompleteSite(MainOps.scala:155),
-//       mdoc.internal.cli.MainOps.run(MainOps.scala:178),
-//       mdoc.internal.cli.MainOps$.process(MainOps.scala:270),
+//       mdoc.internal.cli.MainOps.run(MainOps.scala:177),
+//       mdoc.internal.cli.MainOps$.process(MainOps.scala:269),
 // ...
 val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { (m: Media[IO]) =&gt;
   EitherT {
     m.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
   }
 }
-// audioDec: EntityDecoder[IO, Audio] = org.http4s.EntityDecoder$$anon$7@4327b1ce
+// audioDec: EntityDecoder[IO, Audio] = org.http4s.EntityDecoder$$anon$7@10756ff1
 val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { (m: Media[IO]) =&gt;
   EitherT {
     m.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
   }
 }
-// videoDec: EntityDecoder[IO, Video] = org.http4s.EntityDecoder$$anon$7@4888f068
+// videoDec: EntityDecoder[IO, Video] = org.http4s.EntityDecoder$$anon$7@d688e73
 implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-// bothDec: EntityDecoder[IO, Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@6f1da929
+// bothDec: EntityDecoder[IO, Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@48bb3287
 println(response.flatMap(_.as[Resp]).unsafeRunSync())
 // Audio()
 </code></pre>
