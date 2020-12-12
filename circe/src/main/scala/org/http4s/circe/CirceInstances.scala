@@ -79,6 +79,7 @@ trait CirceInstances extends JawnInstances {
   def jsonOfWithMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(implicit
       F: Sync[F],
       decoder: Decoder[A]): EntityDecoder[F, A] =
+    jsonOfWithMediaHelper[F, A](r1, jsonDecodeError, rs: _*)
   private def jsonOfWithMediaHelper[F[_], A](
       r1: MediaRange,
       decodeErrorHandler: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure,
