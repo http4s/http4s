@@ -269,23 +269,16 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
         List("*", "series/*"),
+      githubWorkflowPublishPreamble := {
+        githubWorkflowPublishPreamble.value ++ Seq(
+          WorkflowStep.Run(List("git status"))
+        )
+      },
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
         RefPredicate.StartsWith(Ref.Tag("v"))
       ),
-      githubWorkflowPublishPreamble += WorkflowStep.Use("olafurpg", "setup-gpg", "v3"),
-      githubWorkflowPublish := Seq(
-        WorkflowStep.Sbt(
-          List("ci-release"),
-          name = Some("Release"),
-          env = Map(
-            "PGP_PASSPHRASE" -> "${{ secrets.PGP_PASSPHRASE }}",
-            "PGP_SECRET" -> "${{ secrets.PGP_SECRET }}",
-            "SONATYPE_PASSWORD" -> "${{ secrets.SONATYPE_PASSWORD }}",
-            "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}",
-            "CI_SNAPSHOT_RELEASE" -> "+publishSigned"
-          )
-        ),
+      githubWorkflowPublishPostamble := Seq(
         setupHugoStep,
         sitePublishStep("website"),
         sitePublishStep("docs")
