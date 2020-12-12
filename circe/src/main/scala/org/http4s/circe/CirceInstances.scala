@@ -76,6 +76,9 @@ trait CirceInstances extends JawnInstances {
   def jsonOf[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
     jsonOfWithMedia(MediaType.application.json)
 
+  def jsonOfSensitive[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
+    jsonOfWithSensitiveMedia(MediaType.application.json)
+
   def jsonOfWithMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(implicit
       F: Sync[F],
       decoder: Decoder[A]): EntityDecoder[F, A] =
