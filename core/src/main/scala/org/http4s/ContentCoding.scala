@@ -10,14 +10,16 @@
 
 package org.http4s
 
-import cats.{Order, Show}
+import cats.parse.Parser1
 import cats.syntax.all._
+import cats.{Order, Show}
 import org.http4s.QValue.QValueParser
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
-import org.http4s.parser.Http4sParser
+import org.http4s.internal.parsing.Rfc7230.token
 import org.http4s.util._
-import scala.util.hashing.MurmurHash3
+
 import java.{util => ju}
+import scala.util.hashing.MurmurHash3
 
 class ContentCoding private (val coding: String, override val qValue: QValue = QValue.One)
     extends HasQValue
@@ -88,12 +90,21 @@ object ContentCoding {
       .map(c => c.coding -> c)
       .toMap
 
+  private[http4s] val parser: Parser1[ContentCoding] = {
+    val contentCoding = token.map(s => ContentCoding.standard.getOrElse(s, new ContentCoding(s)))
+
+    (contentCoding ~ QValue.parser).map { case (coding, q) =>
+      if (q === QValue.One) coding
+      else coding.withQValue(q)
+    }
+  }
+
   /** Parse a Content Coding
     */
   def parse(s: String): ParseResult[ContentCoding] =
-    new Http4sParser[ContentCoding](s, "Invalid Content Coding") with ContentCodingParser {
-      def main = EncodingRangeDecl
-    }.parse
+    parser.parseAll(s).leftMap { e =>
+      ParseFailure("Invalid Content Coding", e.toString)
+    }
 
   private[http4s] trait ContentCodingParser extends QValueParser { self: PbParser =>
 

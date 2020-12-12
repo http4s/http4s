@@ -16,10 +16,13 @@
 
 package org.http4s
 
+import cats.parse.Parser
+import cats.syntax.all._
 import cats.{Order, Show}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
-import org.http4s.parser.{AdditionalRules, Http4sParser}
+import org.http4s.parser.AdditionalRules
 import org.http4s.util.Writer
+
 import scala.reflect.macros.whitebox
 
 /** A Quality Value.  Represented as thousandths for an exact representation rounded to three
@@ -98,10 +101,29 @@ object QValue {
   def unsafeFromString(s: String): QValue =
     fromString(s).fold(throw _, identity)
 
+  private[http4s] val parser: Parser[QValue] = {
+    import cats.parse.Parser.{char => ch, _}
+    import cats.parse.Rfc5234._
+
+    val optWS = (crlf.rep.with1 ~ wsp.rep1).rep
+
+    val qValue = string1(ch('0') ~ (ch('.') ~ digit.rep1).rep)
+      .map(
+        QValue
+          .fromString(_)
+          .valueOr(e => throw e.copy(sanitized = "Invalid q-value"))
+      )
+      .orElse1(
+        ch('1') *> (ch('.') *> ch('0').rep).rep.as(One)
+      )
+
+    (ch(';') *> optWS *> ch('q') *> ch('=') *> qValue).orElse(pure(One))
+  }
+
   def parse(s: String): ParseResult[QValue] =
-    new Http4sParser[QValue](s, "Invalid q-value") with QValueParser {
-      def main = QualityValue
-    }.parse
+    parser.parseAll(s).leftMap { e =>
+      ParseFailure("Invalid q-value", e.toString)
+    }
 
   private[http4s] trait QValueParser extends AdditionalRules { self: PbParser =>
     def QualityValue =
