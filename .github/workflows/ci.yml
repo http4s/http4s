@@ -112,16 +112,9 @@ jobs:
       - name: Import signing key
         run: echo $PGP_SECRET | base64 -d | gpg --import
 
-      - uses: olafurpg/setup-gpg@v3
+      - run: git status
 
-      - name: Release
-        env:
-          CI_SNAPSHOT_RELEASE: +publishSigned
-          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          PGP_SECRET: ${{ secrets.PGP_SECRET }}
-        run: sbt ++${{ matrix.scala }} ci-release
+      - run: sbt ++${{ matrix.scala }} release
 
       - name: Setup Hugo
         run: |

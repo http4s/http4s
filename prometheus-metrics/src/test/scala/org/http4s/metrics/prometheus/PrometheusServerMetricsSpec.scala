@@ -155,7 +155,7 @@ class PrometheusServerMetricsSpec extends Http4sSpec with Http4sLegacyMatchersIO
         count(registry, "errors", "server", cause = "java.io.IOException") must beEqualTo(1.0)
         count(registry, "active_requests", "server") must beEqualTo(0.0)
         count(registry, "5xx_headers_duration", "server") must beEqualTo(0.05)
-        count(registry, "5xx_total_duration", "server") must beEqualTo(0.1)
+        count(registry, "5xx_total_duration", "server") must beEqualTo(0.05)
       }
     }
 
