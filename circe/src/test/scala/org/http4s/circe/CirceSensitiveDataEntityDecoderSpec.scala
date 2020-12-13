@@ -50,7 +50,6 @@ class CirceSensitiveDataEntityDecoderSpec extends Http4sSpec {
       result match {
         case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
           details ==== "Could not decode JSON: <REDACTED>"
-          println(cause.getMessage)
           cause.getMessage ==== "String: DownField(ssn)"
         case other => ko(other.toString)
       }
@@ -64,7 +63,6 @@ class CirceSensitiveDataEntityDecoderSpec extends Http4sSpec {
       result match {
         case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
           details ==== "Could not decode JSON: <REDACTED>"
-          println(cause.getMessage)
           cause.getMessage ==== "Attempt to decode value on failed cursor: DownField(ssn)"
         case other => ko(other.toString)
       }
