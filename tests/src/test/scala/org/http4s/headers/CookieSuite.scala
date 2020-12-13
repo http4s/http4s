@@ -31,4 +31,13 @@ class CookieSuite extends Http4sSuite {
       Cookie.parse("""k1=v1; k2="v2""""),
       Right(Cookie(RequestCookie("k1", "v1"), RequestCookie("k2", """"v2""""))))
   }
+
+  test("be more tolerant than the spec") {
+    assertEquals(
+      Cookie.parse("initialTrafficSource=utmcsr=(direct)|utmcmd=(none)|utmccn=(not set);"),
+      Right(
+        Cookie(
+          RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")))
+    )
+  }
 }

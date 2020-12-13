@@ -29,12 +29,17 @@ object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
     }
 
   private[http4s] val parser: Parser1[Cookie] = {
-    import Parser.{string1}
+    import Parser.{char, string1}
 
     /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
-    (RequestCookie.parser ~ (string1("; ") *> RequestCookie.parser).rep).map { case (head, tail) =>
-      Cookie(NonEmptyList(head, tail))
+    val cookieString = (RequestCookie.parser ~ (string1("; ") *> RequestCookie.parser).rep).map {
+      case (head, tail) =>
+        Cookie(NonEmptyList(head, tail))
     }
+
+    /* We also see trailing semi-colons in the wild, and grudgingly tolerate them
+     * here. */
+    cookieString <* char(';').?
   }
 }
 
