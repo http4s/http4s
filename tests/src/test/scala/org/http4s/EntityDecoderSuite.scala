@@ -5,7 +5,7 @@
  */
 
 package org.http4s
-/*
+
 import cats.effect._
 import cats.syntax.all._
 import fs2._
@@ -254,7 +254,7 @@ class EntityDecoderSuite extends Http4sSuite {
         decoded must returnRight(haveMediaType(MediaType.`application/json`))
       }
     }
- */
+   */
 
   test("decodeStrict should produce a MediaTypeMissing if message has no content type") {
     val req = Request[IO]()
@@ -322,8 +322,8 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("apply should invoke the function with  the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
-      EntityDecoder.decodeBy(MediaRange.`**`)(_ => DecodeResult.success(IO.pure("hooray")))
-    IO.async[String] { cb =>
+      EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
+    IO.async_[String] { cb =>
       request
         .decodeWith(happyDecoder, strict = false) { s =>
           cb(Right(s))
@@ -335,7 +335,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   test("apply should wrap the ParseFailure in a ParseException on failure") {
-    val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`**`)(_ =>
+    val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
       DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
     request
       .decodeWith(grumpyDecoder, strict = false) { _ =>
@@ -403,7 +403,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .make(IO(File.createTempFile("foo", "bar")))(f => IO(f.delete()).void)
       .use { tmpFile =>
         val response = mockServe(Request()) { req =>
-          req.decodeWith(EntityDecoder.textFile(tmpFile, testBlocker), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.textFile(tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }
@@ -420,7 +420,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .make(IO(File.createTempFile("foo", "bar")))(f => IO(f.delete()).void)
       .use { tmpFile =>
         val response = mockServe(Request()) { case req =>
-          req.decodeWith(EntityDecoder.binFile(tmpFile, testBlocker), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.binFile(tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }
@@ -489,4 +489,3 @@ class EntityDecoderSuite extends Http4sSuite {
 //        .semigroupK[String])(Parameters(minTestsOk = 20, maxSize = 10))
 //  }
 }
- */

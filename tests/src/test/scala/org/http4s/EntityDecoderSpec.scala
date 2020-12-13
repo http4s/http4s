@@ -5,9 +5,8 @@
  */
 
 package org.http4s
-/*
+
 import cats.effect._
-import cats.effect.laws.util.TestContext
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -23,7 +22,6 @@ import scala.concurrent.ExecutionContext
 
 class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = Trampoline
-  implicit val testContext: TestContext = TestContext()
 
   val `application/excel`: MediaType =
     new MediaType("application", "excel", true, false, List("xls"))
@@ -244,7 +242,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
         decoded must returnRight(haveMediaType(MediaType.`application/json`))
       }
     }
- */
+     */
 
     "decodeStrict" >> {
       "should produce a MediaTypeMissing if message has no content type" in {
@@ -301,8 +299,8 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
 
     "invoke the function with  the right on a success" in {
       val happyDecoder: EntityDecoder[IO, String] =
-        EntityDecoder.decodeBy(MediaRange.`**`)(_ => DecodeResult.success(IO.pure("hooray")))
-      IO.async[String] { cb =>
+        EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
+      IO.async_[String] { cb =>
         request
           .decodeWith(happyDecoder, strict = false) { s =>
             cb(Right(s))
@@ -314,7 +312,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
-      val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`**`)(_ =>
+      val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
         DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
       request.decodeWith(grumpyDecoder, strict = false) { _ =>
         IO.pure(Response())
@@ -380,7 +378,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mockServe(Request()) { req =>
-          req.decodeWith(EntityDecoder.textFile(tmpFile, testBlocker), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.textFile(tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync()
@@ -398,7 +396,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mockServe(Request()) { case req =>
-          req.decodeWith(EntityDecoder.binFile(tmpFile, testBlocker), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.binFile(tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync()
@@ -466,4 +464,3 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
 //        .semigroupK[String])(Parameters(minTestsOk = 20, maxSize = 10))
 //  }
 }
- */

@@ -5,7 +5,7 @@
  */
 
 package org.http4s
-/*
+
 import cats.Eq
 import cats.effect.IO
 import cats.implicits._
@@ -63,7 +63,7 @@ class EntityEncoderSpec extends Http4sSpec {
         val w = new FileWriter(tmpFile)
         try w.write("render files test")
         finally w.close()
-        writeToString(tmpFile)(EntityEncoder.fileEncoder(testBlocker)) must_== "render files test"
+        writeToString(tmpFile)(EntityEncoder.fileEncoder) must_== "render files test"
       } finally {
         tmpFile.delete()
         ()
@@ -72,13 +72,12 @@ class EntityEncoderSpec extends Http4sSpec {
 
     "render input streams" in {
       val inputStream = new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8))
-      writeToString(IO(inputStream))(
-        EntityEncoder.inputStreamEncoder(testBlocker)) must_== "input stream"
+      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder) must_== "input stream"
     }
 
     "render readers" in {
       val reader = new StringReader("string reader")
-      writeToString(IO(reader))(EntityEncoder.readerEncoder(testBlocker)) must_== "string reader"
+      writeToString(IO(reader))(EntityEncoder.readerEncoder) must_== "string reader"
     }
 
     "render very long readers" in {
@@ -87,15 +86,13 @@ class EntityEncoderSpec extends Http4sSpec {
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString[IO[Reader]](IO(reader))(
-        EntityEncoder.readerEncoder(testBlocker)) must_== longString
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder) must_== longString
     }
 
     "render readers with UTF chars" in {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString[IO[Reader]](IO(reader))(
-        EntityEncoder.readerEncoder(testBlocker)) must_== utfString
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder) must_== utfString
     }
 
     "give the content type" in {
@@ -142,4 +139,3 @@ class EntityEncoderSpec extends Http4sSpec {
       ContravariantTests[EntityEncoder[IO, *]].contravariant[MiniInt, MiniInt, MiniInt])
   }
 }
- */
