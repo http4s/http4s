@@ -10,7 +10,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.13.3" // Also supports 2.12.x
+scalaVersion := "2.13.4" // Also supports 2.12.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
@@ -123,7 +123,7 @@ Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 `scalacOptions ++= Seq("-Ypartial-unification")`
 
 ```scala mdoc:silent
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
 import org.http4s.server.Router

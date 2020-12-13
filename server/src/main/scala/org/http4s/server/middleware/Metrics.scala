@@ -1,17 +1,24 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s.server.middleware
 
-import cats.data.{Kleisli, OptionT}
-import cats.effect.concurrent.Ref
-import cats.effect.implicits._
+import cats.data.Kleisli
 import cats.effect.{Clock, ExitCase, Sync}
-import cats.implicits._
-import fs2.Stream
+import cats.syntax.all._
 import java.util.concurrent.TimeUnit
 
 import org.http4s._
@@ -30,6 +37,12 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
   */
 object Metrics {
 
+  private[this] final case class MetricsRequestContext(
+      method: Method,
+      startTime: Long,
+      classifier: Option[String]
+  )
+
   /** A server middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
@@ -46,151 +59,60 @@ object Metrics {
         None
       }
   )(routes: HttpRoutes[F])(implicit F: Sync[F], clock: Clock[F]): HttpRoutes[F] =
-    Kleisli(
-      metricsService[F](ops, routes, emptyResponseHandler, errorResponseHandler, classifierF)(_))
-
-  private def metricsService[F[_]: Sync](
-      ops: MetricsOps[F],
-      routes: HttpRoutes[F],
-      emptyResponseHandler: Option[Status],
-      errorResponseHandler: Throwable => Option[Status],
-      classifierF: Request[F] => Option[String]
-  )(req: Request[F])(implicit clock: Clock[F]): OptionT[F, Response[F]] =
-    OptionT {
-      for {
-        initialTime <- clock.monotonic(TimeUnit.NANOSECONDS)
-        decreaseActiveRequestsOnce <- decreaseActiveRequestsAtMostOnce(ops, classifierF(req))
-        result <-
-          ops
-            .increaseActiveRequests(classifierF(req))
-            .bracketCase { _ =>
-              for {
-                responseOpt <- routes(req).value
-                headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
-                result <- responseOpt.fold(
-                  onEmpty[F](
-                    req.method,
-                    initialTime,
-                    headersElapsed,
-                    ops,
-                    emptyResponseHandler,
-                    classifierF(req),
-                    decreaseActiveRequestsOnce)
-                    .as(Option.empty[Response[F]])
-                )(
-                  onResponse(
-                    req.method,
-                    initialTime,
-                    headersElapsed,
-                    ops,
-                    classifierF(req),
-                    decreaseActiveRequestsOnce)(_).some
-                    .pure[F]
-                )
-              } yield result
-            } {
-              case (_, ExitCase.Completed) => Sync[F].unit
-              case (_, ExitCase.Canceled) =>
-                onServiceCanceled(
-                  initialTime,
-                  ops,
-                  classifierF(req)
-                ) *> decreaseActiveRequestsOnce
-              case (_, ExitCase.Error(e)) =>
-                for {
-                  headersElapsed <- clock.monotonic(TimeUnit.NANOSECONDS)
-                  out <- onServiceError(
-                    req.method,
-                    initialTime,
-                    headersElapsed,
-                    ops,
-                    errorResponseHandler(e),
-                    classifierF(req),
-                    e
-                  ) *> decreaseActiveRequestsOnce
-                } yield out
-            }
-      } yield result
-    }
-
-  private def onEmpty[F[_]: Sync](
-      method: Method,
-      start: Long,
-      headerTime: Long,
-      ops: MetricsOps[F],
-      emptyResponseHandler: Option[Status],
-      classifier: Option[String],
-      decreaseActiveRequestsOnce: F[Unit]
-  )(implicit clock: Clock[F]): F[Unit] =
-    (for {
-      now <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- emptyResponseHandler.traverse_(status =>
-        ops.recordHeadersTime(method, headerTime - start, classifier) *>
-          ops.recordTotalTime(method, status, now - start, classifier))
-    } yield ()).guarantee(decreaseActiveRequestsOnce)
-
-  private def onResponse[F[_]: Sync](
-      method: Method,
-      start: Long,
-      headerTime: Long,
-      ops: MetricsOps[F],
-      classifier: Option[String],
-      decreaseActiveRequestsOnce: F[Unit]
-  )(r: Response[F])(implicit clock: Clock[F]): Response[F] = {
-    val newBody = r.body
-      .onFinalize {
-        for {
-          now <- clock.monotonic(TimeUnit.NANOSECONDS)
-          _ <- ops.recordHeadersTime(method, headerTime - start, classifier)
-          _ <- ops.recordTotalTime(method, r.status, now - start, classifier)
-          _ <- decreaseActiveRequestsOnce
-        } yield {}
-      }
-      .handleErrorWith(e =>
-        for {
-          now <- Stream.eval(clock.monotonic(TimeUnit.NANOSECONDS))
-          _ <- Stream.eval(ops.recordAbnormalTermination(now - start, Abnormal(e), classifier))
-          r <- Stream.raiseError[F](e)
-        } yield r)
-    r.copy(body = newBody)
-  }
-
-  private def onServiceError[F[_]: Sync](
-      method: Method,
-      start: Long,
-      headerTime: Long,
-      ops: MetricsOps[F],
-      errorResponseHandler: Option[Status],
-      classifier: Option[String],
-      error: Throwable
-  )(implicit clock: Clock[F]): F[Unit] =
-    for {
-      now <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- errorResponseHandler.traverse_(status =>
-        ops.recordHeadersTime(method, headerTime - start, classifier) *>
-          ops.recordTotalTime(method, status, now - start, classifier) *>
-          ops.recordAbnormalTermination(now - start, Error(error), classifier))
-    } yield ()
-
-  private def onServiceCanceled[F[_]: Sync](
-      start: Long,
-      ops: MetricsOps[F],
-      classifier: Option[String]
-  )(implicit clock: Clock[F]): F[Unit] =
-    for {
-      now <- clock.monotonic(TimeUnit.NANOSECONDS)
-      _ <- ops.recordAbnormalTermination(now - start, Canceled, classifier)
-    } yield ()
-
-  private def decreaseActiveRequestsAtMostOnce[F[_]](
-      ops: MetricsOps[F],
-      classifier: Option[String]
-  )(implicit F: Sync[F]): F[F[Unit]] =
-    Ref
-      .of(false)
-      .map((ref: Ref[F, Boolean]) =>
-        ref.getAndSet(true).bracket(_ => F.unit) {
-          case false => ops.decreaseActiveRequests(classifier)
-          case _ => F.unit
-        })
+    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
+      (request: Request[F]) =>
+        val classifier: Option[String] = classifierF(request)
+        ops.increaseActiveRequests(classifier) *>
+          clock
+            .monotonic(TimeUnit.NANOSECONDS)
+            .map(startTime =>
+              ContextRequest(MetricsRequestContext(request.method, startTime, classifier), request))
+    } { case (context, maybeStatus, exitCase) =>
+      // Decrease active requests _first_ in case any of the other effects
+      // trigger an error. This differs from the < 0.21.14 semantics, which
+      // decreased it _after_ the other effects. This may have been the
+      // reason the active requests counter was reported to have drifted.
+      ops.decreaseActiveRequests(context.classifier) *>
+        clock
+          .monotonic(TimeUnit.NANOSECONDS)
+          .map(endTime => endTime - context.startTime)
+          .flatMap(totalTime =>
+            (exitCase match {
+              case ExitCase.Completed =>
+                (maybeStatus <+> emptyResponseHandler).traverse_(status =>
+                  ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+              case ExitCase.Error(e) =>
+                maybeStatus.fold {
+                  // If an error occurred, and the status is empty, this means
+                  // that an error occurred before the routes could generate a
+                  // response.
+                  ops.recordHeadersTime(context.method, totalTime, context.classifier) *>
+                    ops.recordAbnormalTermination(totalTime, Error(e), context.classifier) *>
+                    errorResponseHandler(e).traverse_(status =>
+                      ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+                }(status =>
+                  // If an error occurred, but the status is non-empty, this
+                  // means the error occurred during the stream processing of
+                  // the response body. In this case recordHeadersTime would
+                  // have been invoked in the normal manner so we do not need
+                  // to invoke it here.
+                  ops.recordAbnormalTermination(totalTime, Abnormal(e), context.classifier) *>
+                    ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+              case ExitCase.Canceled =>
+                ops.recordAbnormalTermination(totalTime, Canceled, context.classifier)
+            }))
+    }(F)(
+      Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>
+        routes
+          .run(contextRequest.req)
+          .semiflatMap(response =>
+            clock
+              .monotonic(TimeUnit.NANOSECONDS)
+              .map(now => now - contextRequest.context.startTime)
+              .flatTap(headerTime =>
+                ops.recordHeadersTime(
+                  contextRequest.context.method,
+                  headerTime,
+                  contextRequest.context.classifier)) *> F.pure(
+              ContextResponse(response.status, response)))))
 }
