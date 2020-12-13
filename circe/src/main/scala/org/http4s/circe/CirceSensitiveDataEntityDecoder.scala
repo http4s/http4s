@@ -32,4 +32,4 @@ trait CirceSensitiveDataEntityDecoder {
     jsonOfSensitive[F, A]
 }
 
-object CirceSensitiveDataEntityDecoder extends CirceEntityDecoder
+object CirceSensitiveDataEntityDecoder extends CirceSensitiveDataEntityDecoder
