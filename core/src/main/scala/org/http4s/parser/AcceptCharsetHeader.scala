@@ -11,35 +11,38 @@
 package org.http4s
 package parser
 
+import cats.parse.Parser1
 import cats.syntax.all._
-import org.http4s.internal.parboiled2._
 import org.http4s.CharsetRange._
-import org.http4s.QValue.QValueParser
+import org.http4s.headers.`Accept-Charset`
 
 private[parser] trait AcceptCharsetHeader {
-  def ACCEPT_CHARSET(value: String): ParseResult[headers.`Accept-Charset`] =
-    new AcceptCharsetParser(value).parse
+  def ACCEPT_CHARSET(value: String): ParseResult[`Accept-Charset`] =
+    acceptCharsetParser.parseAll(value).leftMap { e =>
+      ParseFailure("Invalid Accept Charset header", e.toString)
+    }
 
-  private class AcceptCharsetParser(input: ParserInput)
-      extends Http4sHeaderParser[headers.`Accept-Charset`](input)
-      with QValueParser {
-    def entry: Rule1[headers.`Accept-Charset`] =
-      rule {
-        oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[CharsetRange]) =>
-          headers.`Accept-Charset`(xs.head, xs.tail: _*)
+  private[http4s] val acceptCharsetParser: Parser1[`Accept-Charset`] = {
+    import Rfc2616BasicRules._
+    import cats.parse.Parser._
+    import org.http4s.internal.parsing.Rfc7230.token
+
+    val anyCharset = (char('*') *> QValue.parser)
+      .map(q => if (q != QValue.One) `*`.withQValue(q) else `*`)
+
+    val fromToken = (token ~ QValue.parser).mapFilter { case (s, q) =>
+      // TODO handle tokens that aren't charsets
+      Charset
+        .fromString(s)
+        .toOption
+        .map { c =>
+          if (q != QValue.One) c.withQuality(q) else c.toRange
         }
-      }
+    }
 
-    def CharsetRangeDecl: Rule1[CharsetRange] =
-      rule {
-        ("*" ~ QualityValue) ~> { q =>
-          if (q != org.http4s.QValue.One) `*`.withQValue(q) else `*`
-        } |
-          ((Token ~ QualityValue) ~> { (s: String, q: QValue) =>
-            // TODO handle tokens that aren't charsets
-            val c = Charset.fromString(s).valueOr(throw _)
-            if (q != org.http4s.QValue.One) c.withQuality(q) else c.toRange
-          })
-      }
+    val charsetRange = anyCharset.orElse1(fromToken)
+
+    (rep1Sep(charsetRange, 1, listSep) <* AdditionalRules.EOL).map(xs =>
+      `Accept-Charset`(xs.head, xs.tail: _*))
   }
 }

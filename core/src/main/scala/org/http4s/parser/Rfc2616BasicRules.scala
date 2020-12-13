@@ -10,9 +10,12 @@
 
 package org.http4s.parser
 
+import cats.parse.Rfc5234.{crlf, wsp}
+import cats.parse.{Parser => P}
 import cats.syntax.all._
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
+
 import scala.annotation.nowarn
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
@@ -80,6 +83,12 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 }
 
 private[http4s] object Rfc2616BasicRules {
+  def lws = (crlf.rep.with1 *> wsp.rep1).void
+
+  def optWs = P.rep(lws).void
+
+  def listSep = optWs *> P.char(',') *> optWs
+
   def token(in: ParserInput): ParseResult[String] =
     new Rfc2616BasicRules {
       override def input: ParserInput = in

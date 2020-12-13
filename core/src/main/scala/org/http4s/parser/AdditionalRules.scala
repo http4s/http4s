@@ -14,6 +14,7 @@
 package org.http4s
 package parser
 
+import cats.parse.{Parser => P}
 import cats.syntax.all._
 import java.time.{ZoneOffset, ZonedDateTime}
 import org.http4s.internal.parboiled2._
@@ -204,4 +205,11 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       }
     }
   }
+}
+
+private[http4s] object AdditionalRules {
+  import Rfc2616BasicRules._
+  def EOI = P.char('\uFFFF')
+
+  def EOL = optWs *> EOI.rep
 }

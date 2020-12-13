@@ -13,9 +13,6 @@ package org.http4s
 import cats.parse.Parser1
 import cats.syntax.all._
 import cats.{Order, Show}
-import org.http4s.QValue.QValueParser
-import org.http4s.internal.parboiled2.{Parser => PbParser, _}
-import org.http4s.internal.parsing.Rfc7230.token
 import org.http4s.util._
 
 import java.{util => ju}
@@ -91,6 +88,8 @@ object ContentCoding {
       .toMap
 
   private[http4s] val parser: Parser1[ContentCoding] = {
+    import org.http4s.internal.parsing.Rfc7230.token
+
     val contentCoding = token.map(s => ContentCoding.standard.getOrElse(s, new ContentCoding(s)))
 
     (contentCoding ~ QValue.parser).map { case (coding, q) =>
@@ -105,24 +104,6 @@ object ContentCoding {
     parser.parseAll(s).leftMap { e =>
       ParseFailure("Invalid Content Coding", e.toString)
     }
-
-  private[http4s] trait ContentCodingParser extends QValueParser { self: PbParser =>
-
-    def EncodingRangeDecl: Rule1[ContentCoding] =
-      rule {
-        (ContentCodingToken ~ QualityValue) ~> { (coding: ContentCoding, q: QValue) =>
-          if (q === org.http4s.QValue.One) coding
-          else coding.withQValue(q)
-        }
-      }
-
-    private def ContentCodingToken: Rule1[ContentCoding] =
-      rule {
-        Token ~> { (s: String) =>
-          ContentCoding.standard.getOrElse(s, new ContentCoding(s))
-        }
-      }
-  }
 
   implicit val http4sOrderForContentCoding: Order[ContentCoding] =
     Order.by(c => (c.coding.toLowerCase(ju.Locale.ENGLISH), c.qValue))

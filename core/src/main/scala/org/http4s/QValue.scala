@@ -19,8 +19,6 @@ package org.http4s
 import cats.parse.Parser
 import cats.syntax.all._
 import cats.{Order, Show}
-import org.http4s.internal.parboiled2.{Parser => PbParser}
-import org.http4s.parser.AdditionalRules
 import org.http4s.util.Writer
 
 import scala.reflect.macros.whitebox
@@ -104,8 +102,7 @@ object QValue {
   private[http4s] val parser: Parser[QValue] = {
     import cats.parse.Parser.{char => ch, _}
     import cats.parse.Rfc5234._
-
-    val optWS = (crlf.rep.with1 ~ wsp.rep1).rep
+    import org.http4s.parser.Rfc2616BasicRules.optWs
 
     val qValue = string1(ch('0') *> (ch('.') *> digit.rep1).rep)
       .mapFilter(
@@ -117,20 +114,13 @@ object QValue {
         ch('1') *> (ch('.') *> ch('0').rep).rep.as(One)
       )
 
-    (ch(';') *> optWS *> ignoreCaseChar('q') *> ch('=') *> qValue).orElse(pure(One))
+    (ch(';') *> optWs *> ignoreCaseChar('q') *> ch('=') *> qValue).orElse(pure(One))
   }
 
   def parse(s: String): ParseResult[QValue] =
     parser.parseAll(s).leftMap { e =>
       ParseFailure("Invalid q-value", e.toString)
     }
-
-  private[http4s] trait QValueParser extends AdditionalRules { self: PbParser =>
-    def QualityValue =
-      rule { // QValue is already taken
-        ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
-      }
-  }
 
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)

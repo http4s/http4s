@@ -11,30 +11,27 @@
 package org.http4s
 package parser
 
-import org.http4s.internal.parboiled2._
-import org.http4s.QValue.QValueParser
+import cats.parse.Parser1
+import cats.syntax.either._
+import org.http4s.headers.`Accept-Language`
+import org.http4s.internal.parsing.Rfc7230
 
 private[parser] trait AcceptLanguageHeader {
-  def ACCEPT_LANGUAGE(value: String): ParseResult[headers.`Accept-Language`] =
-    new AcceptLanguageParser(value).parse
+  def ACCEPT_LANGUAGE(value: String): ParseResult[`Accept-Language`] =
+    acceptLanguageParser.parseAll(value).leftMap { e =>
+      ParseFailure("Invalid Accept Language header", e.toString)
+    }
 
-  private class AcceptLanguageParser(value: String)
-      extends Http4sHeaderParser[headers.`Accept-Language`](value)
-      with MediaRange.MediaRangeParser
-      with QValueParser {
-    def entry: Rule1[headers.`Accept-Language`] =
-      rule {
-        oneOrMore(languageTag).separatedBy(ListSep) ~> { (tags: Seq[LanguageTag]) =>
-          headers.`Accept-Language`(tags.head, tags.tail: _*)
-        }
+  private[http4s] val acceptLanguageParser: Parser1[`Accept-Language`] = {
+    import Rfc2616BasicRules._
+    import cats.parse.Parser.{char => ch, _}
+    import cats.parse.Rfc5234._
+
+    val languageTag =
+      (string1(alpha.rep1(1)) ~ (ch('-') *> Rfc7230.token).rep ~ QValue.parser).map {
+        case ((main, sub), q) => LanguageTag(main, q, sub)
       }
 
-    def languageTag: Rule1[LanguageTag] =
-      rule {
-        capture(oneOrMore(Alpha)) ~ zeroOrMore("-" ~ Token) ~ QualityValue ~> {
-          (main: String, sub: collection.Seq[String], q: QValue) =>
-            LanguageTag(main, q, sub.toList)
-        }
-      }
+    rep1Sep(languageTag, 1, listSep).map(tags => `Accept-Language`(tags.head, tags.tail: _*))
   }
 }
