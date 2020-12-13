@@ -23,9 +23,9 @@ import org.http4s.EntityDecoder
 /** Derive [[EntityDecoder]] if implicit [[Decoder]] is in the scope without need to explicitly call `jsonOfSensitive`
   *
   * Note that it varies from [[CirceEntityDecoder]] in that, when failing to decode [[io.circe.Json]] to an `A`,
-  * the JSON will not be logged. In the event the JSON includes sensitive data, this trait is, arguably, a better choice
-  * since it eliminates the risk of logging sensitive data, e.g. due to logging a raised [[Throwable]] that includes
-  * the sensitive JSON.
+  * the JSON will not be included in the raised [[Exception]]. In the event the JSON includes sensitive data, this trait is,
+  * arguably, a better choice since it eliminates the risk of logging sensitive data, e.g. due to logging a raised [[Throwable]]
+  * that includes the sensitive JSON.
   */
 trait CirceSensitiveDataEntityDecoder {
   implicit def circeEntityDecoder[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
