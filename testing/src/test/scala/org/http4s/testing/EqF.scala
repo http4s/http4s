@@ -6,12 +6,10 @@
 
 package org.http4s.testing
 
+import cats.Eq
 import cats.effect.std.Dispatcher
-import cats.{Eq, Monad}
 
 trait EqF {
-  implicit def eqF[A, F[_]: Monad](implicit eqA: Eq[A], dispatcher: Dispatcher[F]): Eq[F[A]] =
-    (x: F[A], y: F[A]) =>
-      dispatcher.unsafeRunSync(
-        Monad[F].flatMap(x)(xResult => Monad[F].map(y)(yResult => eqA.eqv(xResult, yResult))))
+  implicit def eqF[A, F[_]](implicit eqA: Eq[A], dispatcher: Dispatcher[F]): Eq[F[A]] =
+    Eq.by[F[A], A](f => dispatcher.unsafeRunSync(f))
 }
