@@ -111,7 +111,7 @@ object QValue {
           .toOption
       )
       .orElse1(
-        ch('1') *> (ch('.') *> ch('0').rep).rep.as(One)
+        ch('1') *> (ch('.') *> ch('0').rep.void).?.as(One)
       )
 
     (ch(';') *> optWs *> ignoreCaseChar('q') *> ch('=') *> qValue).orElse(pure(One))
