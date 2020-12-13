@@ -95,7 +95,7 @@ object QValue {
   def fromString(s: String): ParseResult[QValue] =
     try fromDouble(s.toDouble)
     catch {
-      case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number")
+      case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"$s is not a number")
     }
 
   def unsafeFromString(s: String): QValue =
@@ -107,17 +107,17 @@ object QValue {
 
     val optWS = (crlf.rep.with1 ~ wsp.rep1).rep
 
-    val qValue = string1(ch('0') ~ (ch('.') ~ digit.rep1).rep)
-      .map(
+    val qValue = string1(ch('0') *> (ch('.') *> digit.rep1).rep)
+      .mapFilter(
         QValue
           .fromString(_)
-          .valueOr(e => throw e.copy(sanitized = "Invalid q-value"))
+          .toOption
       )
       .orElse1(
         ch('1') *> (ch('.') *> ch('0').rep).rep.as(One)
       )
 
-    (ch(';') *> optWS *> ch('q') *> ch('=') *> qValue).orElse(pure(One))
+    (ch(';') *> optWS *> ignoreCaseChar('q') *> ch('=') *> qValue).orElse(pure(One))
   }
 
   def parse(s: String): ParseResult[QValue] =
