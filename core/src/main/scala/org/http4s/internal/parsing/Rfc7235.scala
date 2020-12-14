@@ -16,7 +16,6 @@
 
 package org.http4s.internal.parsing
 
-import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.parse.Parser.{char, charIn}
 import cats.parse.{Parser, Parser1}
