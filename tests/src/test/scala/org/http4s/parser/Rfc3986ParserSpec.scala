@@ -44,6 +44,46 @@ class Rfc3986ParserSpec extends Http4sSpec {
       Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
     }
 
+    "parse ipv6 address with zeros in the first five spots" in {
+      val ipv6 = Ipv6Address(0,0,0,0,0,1,21787,31704) // ::1:551b:7bd8
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
+    "parse ipv6 address with zeros in the fourth and fifth spots" in {
+      val ipv6 = Ipv6Address(21494,-32768,1,0,0,1,21787,31704) // 53f6:8000:1::1:551b:7bd8
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
+    "parse ipv6 address with zeros in the first six spots" in {
+      val ipv6 = Ipv6Address(0,0,0,0,0,0,21787,31704) // ::551b:7bd8
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
+    "parse ipv6 address with zeros in the fifth and sixth spots" in {
+      val ipv6 = Ipv6Address(21494,-32768,1,1,0,0,21787,31704) // 53f6:8000:1:1::551b:7bd8
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
+    "parse ipv6 address with zeros in the first seven spots" in {
+      val ipv6 = Ipv6Address(0,0,0,0,0,0,0,31704) // ::7bd8
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
+    "parse ipv6 address with zeros in the sixth and seventh spots" in {
+      val ipv6 = Ipv6Address(21494,-32768,1,1,21787,0,0,31704) // 53f6:8000:1:1:551b::7bd8
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
+    "parse ipv6 address with zeros in the all eight spots" in {
+      val ipv6 = Ipv6Address(0,0,0,0,0,0,0,0) // ::
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
+    "parse ipv6 address with zeros in the seventh and eighth spots" in {
+      val ipv6 = Ipv6Address(21494,-32768,1,1,21787,31704,0,0) // 53f6:8000:1:1:551b:7bd8::
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
     "parse random ipv6 addresses" in {
       Prop.forAll(http4sTestingArbitraryForIpv6Address.arbitrary) { (ipv6: Ipv6Address) =>
         Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
