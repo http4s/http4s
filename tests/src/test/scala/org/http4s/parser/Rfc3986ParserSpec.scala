@@ -89,6 +89,21 @@ class Rfc3986ParserSpec extends Http4sSpec {
       Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
     }
 
+    "not parse an invalid ipv6 address containing an invalid letter such as 'O'" in {
+      val invalidIp = "1200:0000:AB00:1234:O000:2552:7777:1313"
+      Rfc3986.ipv6.parse(invalidIp).map(_._2) must beLeft
+    }
+
+    "not parse an invalid ipv6 address where a single section is shortened (must be 2 or more)" in {
+      val invalidIp = "2001:db8::1:1:1:1:1"
+      Rfc3986.ipv6.parse(invalidIp).map(_._2) must beLeft
+    }
+
+    "not parse an invalid ipv6 address where a multiple sections are shortened (only 1 allowed)" in {
+      val invalidIp = "56FE::2159:5BBC::6594"
+      Rfc3986.ipv6.parse(invalidIp).map(_._2) must beLeft
+    }
+
     "parse random ipv6 addresses" in {
       Prop.forAll(http4sTestingArbitraryForIpv6Address.arbitrary) { (ipv6: Ipv6Address) =>
         Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
