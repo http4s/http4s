@@ -33,10 +33,10 @@ private[http4s] object Rfc7235 {
 
   val token68: Parser1[String] = (t68Chars.rep1 ~ charIn('=').rep).string
 
-  val authParamValue: Parser[String] = token.orElse1(quotedString)
+  val authParamValue: Parser[String] = token.orElse(quotedString)
   // auth-param = token BWS "=" BWS ( token / quoted-string )
   val authParam: Parser1[(String, String)] =
-    (token <* (bws ~ char('=').void ~ bws)) ~ authParamValue
+    (token <* char('=').void.surroundedBy(bws)) ~ authParamValue
 
   //auth-scheme = token
   val scheme: Parser1[CaseInsensitiveString] = token.map(CaseInsensitiveString(_))
@@ -46,7 +46,9 @@ private[http4s] object Rfc7235 {
     OWS "," [ OWS auth-param ] ) ] ) ]
    */
   val challenge: Parser1[Challenge] =
-    ((scheme <* sp) ~ Parser.repSep(authParam.backtrack, 0, ows <* char(',') *> ows).map(_.toMap))
+    ((scheme <* sp) ~ Parser
+      .repSep(authParam.backtrack, 0, char(',').surroundedBy(ows))
+      .map(_.toMap))
       .map { case (scheme, params) =>
         //Model does not support token68 challenges
         //challenge scheme should have been CIS
@@ -56,9 +58,10 @@ private[http4s] object Rfc7235 {
   val challenges: Parser1[NonEmptyList[Challenge]] = headerRep1(challenge)
 
   val credentials: Parser1[Credentials] =
-    ((scheme <* sp) ~ (headerRep1(authParam).backtrack.? ~ token68.?)).flatMap {
-      case (scheme, (None, Some(token))) => Parser.pure(Credentials.Token(scheme, token))
-      case (scheme, (Some(nel), None)) => Parser.pure(Credentials.AuthParams(scheme, nel))
-      case (_, _) => Parser.fail
-    }
+    ((scheme <* sp) ~ headerRep1(authParam.backtrack).map(Right(_)).orElse(token68.map(Left(_))))
+      .mapFilter {
+        case (scheme, Left(token)) => Some(Credentials.Token(scheme, token))
+        case (scheme, Right(nel)) => Some(Credentials.AuthParams(scheme, nel))
+        case (_, _) => None
+      }
 }

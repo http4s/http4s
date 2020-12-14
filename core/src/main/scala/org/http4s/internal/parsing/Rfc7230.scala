@@ -56,8 +56,8 @@ private[http4s] object Rfc7230 {
   val quotedPair: Parser1[Char] = char('\\') *> qdPairChar
 
   /*quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE*/
-  val quotedString: Parser1[String] =
-    dquote *> qdText.orElse1(quotedPair).rep.string <* dquote
+  val quotedString: Parser[String] =
+    qdText.orElse1(quotedPair).rep.string.surroundedBy(dquote)
 
   /* `1#element => *( "," OWS ) element *( OWS "," [ OWS element ] )` */
   def headerRep1[A](element: Parser1[A]): Parser1[NonEmptyList[A]] = {
