@@ -18,13 +18,38 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.syntax.foldable._
-import org.http4s.parser.HttpHeaderParser
-import CharsetRange.Atom
+import cats.parse.Parser1
+import cats.syntax.all._
+import org.http4s.CharsetRange.{Atom, `*`}
+import org.http4s.internal.parsing.Rfc7230
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Charset`] =
-    HttpHeaderParser.ACCEPT_CHARSET(s)
+    parser.parseAll(s).leftMap { e =>
+      ParseFailure("Invalid Accept Charset header", e.toString)
+    }
+
+  private[http4s] val parser: Parser1[`Accept-Charset`] = {
+    import cats.parse.Parser._
+    import org.http4s.internal.parsing.Rfc7230.token
+
+    val anyCharset = (char('*') *> QValue.parser)
+      .map(q => if (q != QValue.One) `*`.withQValue(q) else `*`)
+
+    val fromToken = (token ~ QValue.parser).mapFilter { case (s, q) =>
+      // TODO handle tokens that aren't charsets
+      Charset
+        .fromString(s)
+        .toOption
+        .map { c =>
+          if (q != QValue.One) c.withQuality(q) else c.toRange
+        }
+    }
+
+    val charsetRange = anyCharset.orElse1(fromToken)
+
+    Rfc7230.headerRep1(charsetRange).map(xs => `Accept-Charset`(xs.head, xs.tail: _*))
+  }
 }
 
 /** {{{

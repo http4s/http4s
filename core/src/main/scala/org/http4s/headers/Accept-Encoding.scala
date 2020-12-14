@@ -18,12 +18,23 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import cats.parse.Parser1
+import cats.syntax.either._
 import cats.syntax.eq._
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.parser.Rfc2616BasicRules
 
 object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Encoding`] =
-    HttpHeaderParser.ACCEPT_ENCODING(s)
+    parser.parseAll(s).leftMap { e =>
+      ParseFailure("Invalid Accept Encoding header", e.toString)
+    }
+
+  private[http4s] val parser: Parser1[`Accept-Encoding`] = {
+    import Rfc2616BasicRules._
+    import cats.parse.Parser._
+
+    rep1Sep(ContentCoding.parser, 1, listSep).map(xs => `Accept-Encoding`(xs.head, xs.tail: _*))
+  }
 }
 
 final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding])

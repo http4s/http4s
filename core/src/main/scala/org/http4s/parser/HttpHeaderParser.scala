@@ -19,10 +19,7 @@ import org.http4s.syntax.string._
 
 object HttpHeaderParser
     extends SimpleHeaders
-    with AcceptCharsetHeader
-    with AcceptEncodingHeader
     with AcceptHeader
-    with AcceptLanguageHeader
     with AuthorizationHeader
     with CacheControlHeader
     with ContentTypeHeader
@@ -107,9 +104,9 @@ object HttpHeaderParser
 
   private def gatherBuiltIn(): Unit = {
     addParser_("ACCEPT".ci, `ACCEPT`)
-    addParser_("ACCEPT-CHARSET".ci, `ACCEPT_CHARSET`)
-    addParser_("ACCEPT-ENCODING".ci, `ACCEPT_ENCODING`)
-    addParser_("ACCEPT-LANGUAGE".ci, `ACCEPT_LANGUAGE`)
+    addParser_("ACCEPT-CHARSET".ci, `Accept-Charset`.parse)
+    addParser_("ACCEPT-ENCODING".ci, `Accept-Encoding`.parse)
+    addParser_("ACCEPT-LANGUAGE".ci, `Accept-Language`.parse)
     addParser_("ACCEPT-RANGES".ci, `Accept-Ranges`.parse)
     addParser_("AGE".ci, `AGE`)
     addParser_("ALLOW".ci, `ALLOW`)

@@ -121,12 +121,15 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.RETRY_AFTER"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.RangeParser.ACCEPT_RANGES"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_RANGES"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_LANGUAGE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_ENCODING"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_CHARSET"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ContentCoding.org$http4s$ContentCoding$$<init>$default$2"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.org$http4s$parser$AcceptLanguageHeader$_setter_$acceptLanguageParser_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.org$http4s$parser$AcceptEncodingHeader$_setter_$acceptEncodingParser_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.org$http4s$parser$AcceptCharsetHeader$_setter_$acceptCharsetParser_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.acceptLanguageParser"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.org$http4s$parser$AcceptEncodingHeader$_setter_$acceptEncodingParser_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.acceptEncodingParser"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.org$http4s$parser$AcceptCharsetHeader$_setter_$acceptCharsetParser_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.acceptCharsetParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.HttpVersion$Parser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
@@ -135,9 +138,13 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ContentCoding$ContentCodingParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.QValue$QValueParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptLanguageHeader$AcceptLanguageParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptLanguageHeader"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptEncodingHeader$AcceptEncodingParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptEncodingHeader"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$AcceptRangesParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader$AcceptCharsetParser")
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader$AcceptCharsetParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.parser.HttpHeaderParser$")
     ),
   )
 
