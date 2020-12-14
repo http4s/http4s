@@ -32,7 +32,7 @@ object `Proxy-Authorization`
     extends HeaderKey.Internal[`Proxy-Authorization`]
     with HeaderKey.Singleton {
   //https://tools.ietf.org/html/rfc7235#section-4.2
-  private val parser: Parser1[`Proxy-Authorization`] = {
+  private[http4s] val parser: Parser1[`Proxy-Authorization`] = {
     import org.http4s.internal.parsing.Rfc7235.credentials
     credentials.map(`Proxy-Authorization`(_))
   }

@@ -28,20 +28,22 @@ private[http4s] object Rfc7235 {
   val authParam: Parser1[(String, String)] =
     (token <* (bws ~ char('=').void ~ bws)) ~ authParamValue
 
+  //auth-scheme = token
+  val scheme: Parser1[CaseInsensitiveString] = token.map(CaseInsensitiveString(_))
+
   /*
     challenge = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *(
     OWS "," [ OWS auth-param ] ) ] ) ]
    */
   val challenge: Parser1[Challenge] =
-    ((token <* sp) ~ Parser.repSep(authParam.backtrack, 0, ows <* char(',') *> ows).map(_.toMap))
+    ((scheme <* sp) ~ Parser.repSep(authParam.backtrack, 0, ows <* char(',') *> ows).map(_.toMap))
       .map { case (scheme, params) =>
-        Challenge(scheme, params.getOrElse("realm", ""), params - "realm")
+        //Model does not support token68 challenges
+        //challenge scheme should have been CIS
+        Challenge(scheme.value, params.getOrElse("realm", ""), params - "realm")
       }
 
   val challenges: Parser1[NonEmptyList[Challenge]] = headerRep1(challenge)
-
-  //auth-scheme = token
-  val scheme = token.map(CaseInsensitiveString(_))
 
   val credentials: Parser1[Credentials] =
     ((scheme <* sp) ~ (headerRep1(authParam).backtrack.? ~ token68.?)).flatMap {
