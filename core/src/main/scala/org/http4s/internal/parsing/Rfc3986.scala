@@ -50,18 +50,22 @@ private[http4s] object Rfc3986 {
     val doubleColon = string1("::").void
     val h16Colon = h16 <* colon
 
-//    def repSeven[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p)
-//      .map { case ((((((((((((one, _), two), _), three), _), four), _), five), _), six), _), seven) => List(one, two, three, four, five, six, seven) }
     def repSix[A](p: Parser1[A], sep: Parser[Unit] = Parser.unit) = (p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p)
-      .map { case ((((((((((one, _), two), _), three), _), four), _), five), _), six) => List(one, two, three, four, five, six) }
+      .map { case ((((((((((one, _), two), _), three), _), four), _), five), _), six) => List(one, two, three, four, five, six) }.backtrack
+      .orElse1(repFive(p, sep))
     def repFive[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p)
-      .map { case ((((((((one, _), two), _), three), _), four), _), five) => List(one, two, three, four, five) }
+      .map { case ((((((((one, _), two), _), three), _), four), _), five) => List(one, two, three, four, five) }.backtrack
+      .orElse1(repFour(p, sep))
     def repFour[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p ~ sep ~ p ~ sep ~ p)
-      .map { case ((((((one, _), two), _), three), _), four) => List(one, two, three, four) }
+      .map { case ((((((one, _), two), _), three), _), four) => List(one, two, three, four) }.backtrack
+      .orElse1(repThree(p, sep))
     def repThree[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p ~ sep ~ p)
-      .map { case ((((one, _), two), _), three) => List(one, two, three) }
+      .map { case ((((one, _), two), _), three) => List(one, two, three) }.backtrack
+      .orElse1(repTwo(p, sep))
     def repTwo[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p)
-      .map { case ((one, _), two) => List(one, two) }
+      .map { case ((one, _), two) => List(one, two) }.backtrack
+      .orElse1(repOne(p))
+    def repOne[A](p: Parser1[A]) = p.map(List(_)).backtrack
 
 
     (repSix(h16Colon) ~ ls32)

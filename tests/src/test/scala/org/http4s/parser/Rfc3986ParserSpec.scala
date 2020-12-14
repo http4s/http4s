@@ -84,6 +84,11 @@ class Rfc3986ParserSpec extends Http4sSpec {
       Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
     }
 
+    "parse ipv6 address with three zeros in a row" in {
+      val ipv6 = Ipv6Address(22322,-32768,24194,32767,0,0,0,1) // 5732:8000:5e82:7fff::1
+      Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
+    }
+
     "parse random ipv6 addresses" in {
       Prop.forAll(http4sTestingArbitraryForIpv6Address.arbitrary) { (ipv6: Ipv6Address) =>
         Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
