@@ -472,14 +472,14 @@ class EntityDecoderSuite extends Http4sSuite {
     val resp = Response[IO](Ok)
       .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
       .withContentType(`Content-Type`(MediaType.text.plain, Some(Charset.`UTF-8`)))
-    EntityDecoder.decodeText(resp)(implicitly, Charset.`US-ASCII`).assertEquals(str)
+    EntityDecoder.decodeText(resp)(implicitly, implicitly, Charset.`US-ASCII`).assertEquals(str)
   }
 
   test("decodeText should Use the default if the Content-Type header does not define one") {
     val resp = Response[IO](Ok)
       .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
       .withContentType(`Content-Type`(MediaType.text.plain, None))
-    EntityDecoder.decodeText(resp)(implicitly, Charset.`UTF-8`).assertEquals(str)
+    EntityDecoder.decodeText(resp)(implicitly, implicitly, Charset.`UTF-8`).assertEquals(str)
   }
 
   // we want to return a specific kind of error when there is a MessageFailure

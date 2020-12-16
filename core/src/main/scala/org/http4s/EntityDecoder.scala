@@ -17,12 +17,14 @@
 package org.http4s
 
 import cats.{Applicative, Functor, Monad, SemigroupK}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.{Blocker, ContextShift, MonadThrow, Sync}
 import cats.syntax.all._
 import fs2._
 import fs2.io.file.writeAll
+
 import java.io.File
 import org.http4s.multipart.{Multipart, MultipartDecoder}
+
 import scala.annotation.implicitNotFound
 
 /** A type that can be used to decode a [[Message]]
@@ -188,49 +190,63 @@ object EntityDecoder {
     }
 
   /** Helper method which simply gathers the body into a single Chunk */
-  def collectBinary[F[_]: Sync](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
+  def collectBinary[F[_]](
+      m: Media[F])(implicit C: Stream.Compiler[F, F], F: Functor[F]): DecodeResult[F, Chunk[Byte]] =
     DecodeResult.success(m.body.chunks.compile.toVector.map(Chunk.concatBytes))
 
   @deprecated(
     "Can go into an infinite loop for charsets other than UTF-8. Replaced by decodeText",
     "0.21.5")
-  def decodeString[F[_]](
-      m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
+  def decodeString[F[_]](m: Media[F])(implicit
+      C: Stream.Compiler[F, F],
+      defaultCharset: Charset = DefaultCharset): F[String] =
     m.bodyAsText.compile.string
 
   /** Decodes a message to a String */
-  def decodeText[F[_]](
-      m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
+  def decodeText[F[_]](m: Media[F])(implicit
+      C: Stream.Compiler[F, F],
+      F: RaiseThrowable[F],
+      defaultCharset: Charset = DefaultCharset): F[String] =
     m.bodyText.compile.string
 
   /////////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
-  def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
+  def error[F[_], T](
+      t: Throwable)(implicit C: Stream.Compiler[F, F], F: MonadThrow[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
         DecodeResult(m.body.compile.drain *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 
-  implicit def binary[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
+  implicit def binary[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: Applicative[F]): EntityDecoder[F, Chunk[Byte]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
 
   @deprecated("Use `binary` instead", "0.19.0-M2")
-  def binaryChunk[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
+  def binaryChunk[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: Applicative[F]): EntityDecoder[F, Chunk[Byte]] =
     binary[F]
 
-  implicit def byteArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Byte]] =
+  implicit def byteArrayDecoder[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: Applicative[F]): EntityDecoder[F, Array[Byte]] =
     binary.map(_.toArray)
 
   implicit def text[F[_]](implicit
-      F: Sync[F],
+      C: Stream.Compiler[F, F],
+      A: Applicative[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(chunk =>
         new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
 
-  implicit def charArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Char]] =
+  implicit def charArrayDecoder[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: Applicative[F]): EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
 
   // File operations
@@ -254,7 +270,9 @@ object EntityDecoder {
     MultipartDecoder.decoder
 
   /** An entity decoder that ignores the content and returns unit. */
-  implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
+  implicit def void[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: Applicative[F]): EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       DecodeResult.success(msg.body.drain.compile.drain)
     }
