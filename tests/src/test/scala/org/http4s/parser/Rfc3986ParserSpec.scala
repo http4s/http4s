@@ -104,6 +104,21 @@ class Rfc3986ParserSpec extends Http4sSpec {
       Rfc3986.ipv6.parse(invalidIp).map(_._2) must beLeft
     }
 
+    "not parse an ipv6 address which is too long on right hand side" in {
+      val invalidIp = "56FE:2159::5BBC:6594:1234:5678:9018:0123"
+      Rfc3986.ipv6.parse(invalidIp).map(_._2) must beLeft
+    }
+
+    "not parse an ipv6 address which is too long on left hand side" in {
+      val invalidIp = "56FE:2159:5BBC:6594:1234:5678:9018:0123:1256"
+      Rfc3986.ipv6.parse(invalidIp).map(_._2) must beLeft
+    }
+
+    "not parse an ipv6 address which is too short" in {
+      val invalidIp = "56FE:2159:5BBC:6594:1234:5678:9018"
+      Rfc3986.ipv6.parse(invalidIp).map(_._2) must beLeft
+    }
+
     "parse random ipv6 addresses" in {
       Prop.forAll(http4sTestingArbitraryForIpv6Address.arbitrary) { (ipv6: Ipv6Address) =>
         Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
