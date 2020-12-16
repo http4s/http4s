@@ -18,7 +18,8 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Numbers, Parser => P}
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 
 // See https://tools.ietf.org/html/rfc7233
@@ -49,7 +50,47 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
   }
 
   override def parse(s: String): ParseResult[Range] =
-    HttpHeaderParser.RANGE(s)
+    parser.parseAll(s).left.map { e =>
+      ParseFailure("Invalid Range header", e.toString)
+    }
+
+  val parser: P[Range] = {
+    // https://tools.ietf.org/html/rfc7233#section-3.1
+
+    val nonNegativeLong = Numbers.digits1
+      .map { ds =>
+        val l = BigInt(ds)
+        if (l < Long.MaxValue) l.toLong else Long.MaxValue
+      }
+
+    val negativeLong = (P.char('-') ~ Numbers.digits1).string
+      .map { ds =>
+        val l = BigInt(ds)
+        if (l > Long.MinValue) l.toLong else Long.MinValue
+      }
+
+    // byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
+    val byteRangeSpec = ((nonNegativeLong <* P.char('-')) ~ nonNegativeLong.?)
+      .map { case (first, last) => SubRange(first, last) }
+
+    val suffixByteRangeSpec = negativeLong.map(SubRange(_))
+
+    // byte-range-set  = 1#( byte-range-spec / suffix-byte-range-spec )
+    val byteRangeSet = Rfc7230.headerRep1(byteRangeSpec.backtrack.orElse1(suffixByteRangeSpec))
+
+    // byte-ranges-specifier = bytes-unit "=" byte-range-set
+    val byteRangesSpecifier =
+      ((Rfc7230.token.map(RangeUnit(_)) <* P.char('=')) ~ byteRangeSet)
+        .map { case (unit, ranges) => Range(unit, ranges) }
+
+    /* this accepts foo=0-100 but fails with foo=bar, it probably doesn't matter
+     but if the server doesn't deal with other types of ranges why accept anything other than bytes?
+     */
+
+    // Range = byte-ranges-specifier / other-ranges-specifier
+    byteRangesSpecifier
+  }
+
 }
 
 final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange])

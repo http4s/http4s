@@ -137,7 +137,7 @@ object HttpHeaderParser
     addParser_("LOCATION".ci, `LOCATION`)
     addParser_("ORIGIN".ci, `ORIGIN`)
     addParser_("PROXY-AUTHENTICATE".ci, `PROXY_AUTHENTICATE`)
-    addParser_("RANGE".ci, `RANGE`)
+    addParser_("RANGE".ci, Range.parse)
     addParser_("REFERER".ci, `REFERER`)
     addParser_("RETRY-AFTER".ci, `Retry-After`.parse)
     addParser_("SET-COOKIE".ci, `SET_COOKIE`)
