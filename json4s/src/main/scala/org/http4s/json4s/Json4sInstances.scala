@@ -17,8 +17,9 @@
 package org.http4s
 package json4s
 
-import cats.effect.Sync
+import cats.effect.{MonadThrow, Sync}
 import cats.syntax.all._
+import fs2.Stream
 import org.http4s.headers.`Content-Type`
 import org.json4s._
 import org.json4s.JsonAST.JValue
@@ -27,13 +28,18 @@ import org.typelevel.jawn.support.json4s.Parser
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
 
 trait Json4sInstances[J] {
-  implicit def jsonDecoder[F[_]](implicit F: Sync[F]): EntityDecoder[F, JValue] =
-    jawn.jawnDecoder(F, CustomParser.facade)
+  implicit def jsonDecoder[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: MonadThrow[F]): EntityDecoder[F, JValue] =
+    jawn.jawnDecoder(CustomParser.facade, C, A)
 
-  def jsonOf[F[_], A](implicit reader: Reader[A], F: Sync[F]): EntityDecoder[F, A] =
+  def jsonOf[F[_], A](implicit
+      reader: Reader[A],
+      C: Stream.Compiler[F, F],
+      A: MonadThrow[F]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       DecodeResult(
-        F.delay(reader.read(json))
+        A.catchNonFatal(reader.read(json))
           .map[Either[DecodeFailure, A]](Right(_))
           .recover { case e: MappingException =>
             Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
@@ -46,12 +52,13 @@ trait Json4sInstances[J] {
     * idiomatic http4s, than [[jsonOf]].
     */
   def jsonExtract[F[_], A](implicit
-      F: Sync[F],
+      C: Stream.Compiler[F, F],
+      A: MonadThrow[F],
       formats: Formats,
       manifest: Manifest[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       DecodeResult(
-        F.delay[Either[DecodeFailure, A]](Right(json.extract[A]))
+        A.catchNonFatal[Either[DecodeFailure, A]](Right(json.extract[A]))
           .handleError(e => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))))
     }
 
