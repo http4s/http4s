@@ -17,7 +17,7 @@ import org.http4s.Uri.{Ipv4Address, Ipv6Address}
   */
 private[http4s] object Rfc3986 {
 
-  val ipv4: Parser1[Ipv4Address] = {
+  private def ipv4Internal[A](f: (Byte, Byte, Byte, Byte) => A): Parser1[A] = {
     val decOctet = (char('1') ~ digit ~ digit).backtrack
       .orElse1(char('2') ~ charIn('0' to '4') ~ digit).backtrack
       .orElse1(string1("25") ~ charIn('0' to '5')).backtrack
@@ -26,9 +26,11 @@ private[http4s] object Rfc3986 {
 
     val dot = char('.')
     (decOctet ~ dot ~ decOctet ~ dot ~ decOctet ~ dot ~ decOctet).map {
-      case ((((((a, _), b), _), c), _), d) => Ipv4Address(a, b, c, d)
+      case ((((((a, _), b), _), c), _), d) => f(a, b, c, d)
     }
   }
+
+  val ipv4: Parser1[Ipv4Address] = ipv4Internal(Ipv4Address.apply)
 
   val ipv6: Parser1[Ipv6Address] = {
 
@@ -44,7 +46,13 @@ private[http4s] object Rfc3986 {
 
     val colon = char(':')
 
-    val ls32: Parser1[(Short, Short)] = (h16 ~ colon.void ~ h16).map { case ((l, _), r) => (l, r) }
+    val ls32: Parser1[(Short, Short)] = {
+      val option1 = (h16 ~ colon.void ~ h16).map { case ((l, _), r) => (l, r) }
+      val option2 = ipv4Internal { (a: Byte, b: Byte, c: Byte, d: Byte) =>
+        ((a << 8) | b).toShort -> ((c << 8) | d).toShort
+      }
+      option1.backtrack.orElse1(option2)
+    }
 
     val doubleColon = string1("::").void
     val h16Colon = h16 <* colon
