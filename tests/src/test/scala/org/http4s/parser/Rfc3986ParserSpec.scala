@@ -128,8 +128,13 @@ class Rfc3986ParserSpec extends Http4sSpec {
       Rfc3986.ipv6.parse(invalidIp).map(_._2) must beLeft
     }
 
-    "parse ipv6 address with ipv4 address for the last 32 bits" in  {
+    "parse ipv6 address with 6 sections and then ipv4 address for the last 32 bits" in  {
       val ipv6 = "2001:db8:0:0:0:0:127.0.0.1"
+      Rfc3986.ipv6.parse(ipv6).map(_._2.value) must beRight("2001:db8::7f00:1")
+    }
+
+    "parse ipv6 address with 4 sections + a shortened section + ipv4 address for the last 32 bits" in  {
+      val ipv6 = "2001:db8:0:0::127.0.0.1"
       Rfc3986.ipv6.parse(ipv6).map(_._2.value) must beRight("2001:db8::7f00:1")
     }
 

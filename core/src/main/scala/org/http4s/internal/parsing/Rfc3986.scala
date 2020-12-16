@@ -51,7 +51,7 @@ private[http4s] object Rfc3986 {
       val option2 = ipv4Internal { (a: Byte, b: Byte, c: Byte, d: Byte) =>
         ((a << 8) | b).toShort -> ((c << 8) | d).toShort
       }
-      option1.backtrack.orElse1(option2)
+      option1.backtrack.orElse1(option2.backtrack)
     }
 
     val doubleColon = string1("::").void
@@ -85,8 +85,8 @@ private[http4s] object Rfc3986 {
         .map { case ((ls: Option[List[Short]], _), rs: List[Short]) => toIpv6(ls.getOrElse(Seq.empty), rs) }).backtrack
       .orElse1((repThree(h16, colon.void).?.with1 ~ doubleColon ~ repThree(h16, colon) <* `end`)
         .map { case ((ls: Option[List[Short]], _), rs: List[Short]) => toIpv6(ls.getOrElse(Seq.empty), rs) }).backtrack
-      .orElse1((repFour(h16, colon.void).?.with1 ~ doubleColon ~ repTwo(h16, colon) <* `end`)
-        .map { case ((ls: Option[collection.Seq[Short]], _), rs) => toIpv6(ls.getOrElse(Seq.empty), rs) }).backtrack
+      .orElse1((repFour(h16, colon.void).?.with1 ~ doubleColon ~ ls32 <* `end`)
+        .map { case ((ls: Option[collection.Seq[Short]], _), (r0: Short, r1: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1)) }).backtrack
       .orElse1((repFive(h16, colon.void).?.with1 ~ doubleColon ~ h16 <* `end`)
         .map { case ((ls: Option[collection.Seq[Short]], _), rs: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(rs)) }).backtrack
       .orElse1((repSix(h16, colon.void).?.with1 ~ doubleColon <* `end`)
