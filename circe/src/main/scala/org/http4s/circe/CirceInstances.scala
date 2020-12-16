@@ -17,8 +17,6 @@
 package org.http4s
 package circe
 
-import cats.Monad
-
 import java.nio.ByteBuffer
 import cats.data.NonEmptyList
 import cats.effect.{ApplicativeThrow, MonadThrow, Sync}
