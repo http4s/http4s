@@ -9,13 +9,26 @@ package org.http4s.internal.parsing
 import cats.parse.Parser.{`end`, char, charIn, string1}
 import cats.parse.{Parser, Parser1}
 import cats.parse.Rfc5234.{digit, hexdig}
-import org.http4s.Uri.Ipv6Address
+import org.http4s.Uri.{Ipv4Address, Ipv6Address}
 
 /** Common rules defined in Rfc3986
   *
   * @see [[https://tools.ietf.org/html/rfc3986]]
   */
 private[http4s] object Rfc3986 {
+
+  val ipv4: Parser1[Ipv4Address] = {
+    val decOctet = (char('1') ~ digit ~ digit).backtrack
+      .orElse1(char('2') ~ charIn('0' to '4') ~ digit).backtrack
+      .orElse1(string1("25") ~ charIn('0' to '5')).backtrack
+      .orElse1(charIn('1' to '9') ~ digit).backtrack
+      .orElse1(digit).string.map(_.toInt.toByte).backtrack
+
+    val dot = char('.')
+    (decOctet ~ dot ~ decOctet ~ dot ~ decOctet ~ dot ~ decOctet).map {
+      case ((((((a, _), b), _), c), _), d) => Ipv4Address(a, b, c, d)
+    }
+  }
 
   val ipv6: Parser1[Ipv6Address] = {
 
@@ -29,23 +42,9 @@ private[http4s] object Rfc3986 {
       (hexdig ~ hexdig.? ~ hexdig.? ~ hexdig.?).string.map { (s: String) => java.lang.Integer.parseInt(s, 16).toShort }
     }
 
-    val decOctet = (char('1') ~ digit ~ digit)
-      .orElse1(char('2') ~ charIn('0' to '4') ~ digit)
-      .orElse1(string1("25") ~ charIn('0' to '5'))
-      .orElse1(charIn('1' to '9') ~ digit)
-      .orElse1(digit).string.map(_.toInt.toByte)
-
     val colon = char(':')
 
-    val ls32: Parser1[(Short, Short)] = {
-      val option1 = (h16 ~ colon.void ~ h16).map { case ((l, _), r) => (l, r) }
-      val dot = char('.')
-      val option2: Parser1[(Short, Short)] = (decOctet ~ dot ~ decOctet ~ dot ~ decOctet ~ dot ~ decOctet).map {
-        case ((((((a, _), b), _), c), _), d) =>
-          ((a << 8) | b).toShort -> ((c << 8) | d).toShort
-      }
-      option1.orElse1(option2)
-    }
+    val ls32: Parser1[(Short, Short)] = (h16 ~ colon.void ~ h16).map { case ((l, _), r) => (l, r) }
 
     val doubleColon = string1("::").void
     val h16Colon = h16 <* colon

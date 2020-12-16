@@ -7,12 +7,21 @@
 package org.http4s.parser
 
 import org.http4s.Http4sSpec
-import org.http4s.Uri.Ipv6Address
+import org.http4s.Uri.{Ipv4Address, Ipv6Address}
 import org.http4s.internal.parsing.Rfc3986
 import org.scalacheck.Prop
 
 class Rfc3986ParserSpec extends Http4sSpec {
-  "Rfc3986 parser" should {
+
+  "Rfc3986 ipv4 parser" should {
+    "parse generated ipv4 addresses" in {
+      Prop.forAll(http4sTestingArbitraryForIpv4Address.arbitrary) { (ipv4: Ipv4Address) =>
+        Rfc3986.ipv4.parse(ipv4.value).map(_._2) must beRight(ipv4)
+      }
+    }
+  }
+
+  "Rfc3986 ipv6 parser" should {
 
     "parse ipv6 address with all sections filled" in {
       val ipv6 = Ipv6Address(1,2173,21494,-32768,0,1,21787,31704) // 1:87d:53f6:8000:0:1:551b:7bd8
