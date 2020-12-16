@@ -20,7 +20,8 @@ import cats.data.EitherT
 import cats.effect.IO
 import io.circe.{Decoder, HCursor, Json}
 import io.circe.syntax._
-import org.http4s.{DecodeFailure, Http4sSpec, InvalidMessageBodyFailure, Response, Status}
+import org.http4s.{DecodeFailure, InvalidMessageBodyFailure, Response, Status}
+import munit.CatsEffectSuite
 
 object CirceSensitiveDataEntityDecoderSpec {
 
@@ -34,39 +35,39 @@ object CirceSensitiveDataEntityDecoderSpec {
 
 }
 
-class CirceSensitiveDataEntityDecoderSpec extends Http4sSpec {
+class CirceSensitiveDataEntityDecoderSpec extends CatsEffectSuite {
 
   import CirceSensitiveDataEntityDecoderSpec.Person
+  import CirceSensitiveDataEntityDecoder.circeEntityDecoder
 
-  "CirceSensitiveDataEntityDecoder" should {
-    import CirceSensitiveDataEntityDecoder.circeEntityDecoder
-
-    "not include the JSON when failing to decode due to wrong data type of JSON key's value" in {
-      val json: Json = Json.obj("ssn" := 123456789)
-      val response: Response[IO] = Response[IO](status = Status.Ok).withEntity[Json](json)
-      val attmptedAs: EitherT[IO, DecodeFailure, Person] = response.attemptAs[Person]
-      val result: Either[DecodeFailure, Person] = attmptedAs.value.unsafeRunSync()
-
-      result match {
+  test(
+    "should not include the JSON when failing to decode due to wrong data type of JSON key's value") {
+    val json: Json = Json.obj("ssn" := 123456789)
+    val response: Response[IO] = Response[IO](status = Status.Ok).withEntity[Json](json)
+    val attmptedAs: EitherT[IO, DecodeFailure, Person] = response.attemptAs[Person]
+    val result: IO[Either[DecodeFailure, Person]] = attmptedAs.value
+    result.map { it: Either[DecodeFailure, Person] =>
+      it match {
         case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
-          details ==== "Could not decode JSON: <REDACTED>"
-          cause.getMessage ==== "String: DownField(ssn)"
-        case other => ko(other.toString)
-      }
-    }
-    "not include the JSON when failing to decode due to incorrect JSON key's name" in {
-      val json: Json = Json.obj("the_ssn" := "123456789")
-      val response: Response[IO] = Response[IO](status = Status.Ok).withEntity[Json](json)
-      val attmptedAs: EitherT[IO, DecodeFailure, Person] = response.attemptAs[Person]
-      val result: Either[DecodeFailure, Person] = attmptedAs.value.unsafeRunSync()
-
-      result match {
-        case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
-          details ==== "Could not decode JSON: <REDACTED>"
-          cause.getMessage ==== "Attempt to decode value on failed cursor: DownField(ssn)"
-        case other => ko(other.toString)
+          assertEquals(details, "Could not decode JSON: <REDACTED>")
+          assertEquals(cause.getMessage, "String: DownField(ssn)")
+        case other => fail(other.toString)
       }
     }
   }
+  test("not include the JSON when failing to decode due to incorrect JSON key's name") {
+    val json: Json = Json.obj("the_ssn" := "123456789")
+    val response: Response[IO] = Response[IO](status = Status.Ok).withEntity[Json](json)
+    val attmptedAs: EitherT[IO, DecodeFailure, Person] = response.attemptAs[Person]
+    val result: IO[Either[DecodeFailure, Person]] = attmptedAs.value
 
+    result.map { it: Either[DecodeFailure, Person] =>
+      it match {
+        case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
+          assertEquals(details, "Could not decode JSON: <REDACTED>")
+          assertEquals(cause.getMessage, "Attempt to decode value on failed cursor: DownField(ssn)")
+        case other => fail(other.toString)
+      }
+    }
+  }
 }
