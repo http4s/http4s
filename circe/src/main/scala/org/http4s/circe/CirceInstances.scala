@@ -44,13 +44,19 @@ trait CirceInstances extends JawnInstances {
   protected def jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
     CirceInstances.defaultJsonDecodeError
 
-  def jsonDecoderIncremental[F[_]](implicit C: Stream.Compiler[F, F], A: ApplicativeThrow[F]): EntityDecoder[F, Json] =
+  def jsonDecoderIncremental[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: ApplicativeThrow[F]): EntityDecoder[F, Json] =
     this.jawnDecoder[F, Json]
 
-  def jsonDecoderByteBuffer[F[_]](implicit C: Stream.Compiler[F, F], A: ApplicativeThrow[F]): EntityDecoder[F, Json] =
+  def jsonDecoderByteBuffer[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: ApplicativeThrow[F]): EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
 
-  private def jsonDecoderByteBufferImpl[F[_]](m: Media[F])(implicit C: Stream.Compiler[F, F], A: ApplicativeThrow[F]): DecodeResult[F, Json] =
+  private def jsonDecoderByteBufferImpl[F[_]](m: Media[F])(implicit
+      C: Stream.Compiler[F, F],
+      A: ApplicativeThrow[F]): DecodeResult[F, Json] =
     EntityDecoder.collectBinary(m).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining)
@@ -63,13 +69,14 @@ trait CirceInstances extends JawnInstances {
     }
 
   // default cutoff value is based on benchmarks results
-  implicit def jsonDecoder[F[_]](implicit C: Stream.Compiler[F, F], A: ApplicativeThrow[F]): EntityDecoder[F, Json] =
+  implicit def jsonDecoder[F[_]](implicit
+      C: Stream.Compiler[F, F],
+      A: ApplicativeThrow[F]): EntityDecoder[F, Json] =
     jsonDecoderAdaptive(cutoff = 100000, MediaType.application.json)
 
-  def jsonDecoderAdaptive[F[_]](
-      cutoff: Long,
-      r1: MediaRange,
-      rs: MediaRange*)(implicit C: Stream.Compiler[F, F], A: ApplicativeThrow[F]): EntityDecoder[F, Json] =
+  def jsonDecoderAdaptive[F[_]](cutoff: Long, r1: MediaRange, rs: MediaRange*)(implicit
+      C: Stream.Compiler[F, F],
+      A: ApplicativeThrow[F]): EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(r1, rs: _*) { msg =>
       msg.contentLength match {
         case Some(contentLength) if contentLength < cutoff =>
@@ -78,11 +85,15 @@ trait CirceInstances extends JawnInstances {
       }
     }
 
-  def jsonOf[F[_], A: Decoder](implicit C: Stream.Compiler[F, F], M: MonadThrow[F]): EntityDecoder[F, A] =
+  def jsonOf[F[_], A: Decoder](implicit
+      C: Stream.Compiler[F, F],
+      M: MonadThrow[F]): EntityDecoder[F, A] =
     jsonOfWithMedia(MediaType.application.json)
 
   def jsonOfWithMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(implicit
-      decoder: Decoder[A], C: Stream.Compiler[F, F], A: MonadThrow[F]): EntityDecoder[F, A] =
+      decoder: Decoder[A],
+      C: Stream.Compiler[F, F],
+      A: MonadThrow[F]): EntityDecoder[F, A] =
     jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
       decoder
         .decodeJson(json)
@@ -97,7 +108,10 @@ trait CirceInstances extends JawnInstances {
     * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing
     * a [[DecodingFailures]] exception, from which the errors can be extracted.
     */
-  def accumulatingJsonOf[F[_], A](implicit C: Stream.Compiler[F, F], A: MonadThrow[F], decoder: Decoder[A]): EntityDecoder[F, A] =
+  def accumulatingJsonOf[F[_], A](implicit
+      C: Stream.Compiler[F, F],
+      A: MonadThrow[F],
+      decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeAccumulating(json.hcursor)
