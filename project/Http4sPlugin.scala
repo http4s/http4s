@@ -306,7 +306,7 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.9.0"
     val mockito = "3.5.15"
-    val netty = "4.1.55.Final"
+    val netty = "4.1.56.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
     val munitCatsEffect = "0.11.0"
