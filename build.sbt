@@ -775,7 +775,6 @@ def exampleProject(name: String) =
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(
-  Compile / doc / scalacOptions ~= {(options: Seq[String]) => options.filterNot(value => value == "-Xfatal-warnings" || value == "-Werror")},
   libraryDependencies ++= Seq(
     catsEffectTestingSpecs2,
     catsLaws,
