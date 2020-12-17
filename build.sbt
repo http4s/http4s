@@ -775,7 +775,6 @@ def exampleProject(name: String) =
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(
-  Compile / doc / scalacOptions += "-no-link-warnings",
   libraryDependencies ++= Seq(
     catsEffectTestingSpecs2,
     catsLaws,
