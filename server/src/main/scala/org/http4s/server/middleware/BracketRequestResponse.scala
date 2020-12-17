@@ -22,6 +22,7 @@ import cats.effect.syntax.all._
 import cats.implicits._
 import org.http4s._
 import org.http4s.server._
+import cats.arrow.Profunctor
 
 /** Middelwares which allow for bracketing on a Request/Response, including
   * the completion of the Response body stream.
@@ -212,9 +213,11 @@ object BracketRequestResponse {
   def bracketRequestResponseRoutesR[F[_], A](
       resource: Resource[F, A]
   )(implicit F: Bracket[F, Throwable]): ContextMiddleware[F, A] = {
+    // Compiler can't figure this out in 2.12, but it can in >= 2.13
+    val P: Profunctor[Kleisli[OptionT[F, *], *, *]] = Profunctor[Kleisli[OptionT[F, *], *, *]]
     (contextRoutes: ContextRoutes[A, F]) =>
       val contextRoutes0: ContextRoutes[(A, F[Unit]), F] =
-        contextRoutes.lmap(_.map(_._1))
+        P.lmap(contextRoutes)(_.map(_._1))
       bracketRequestResponseRoutes(
         resource.allocated
       )(_._2)(F)(contextRoutes0)
