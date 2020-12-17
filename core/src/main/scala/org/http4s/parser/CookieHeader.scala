@@ -59,7 +59,7 @@ private[parser] trait CookieHeader {
       rule {
         "\u003c" - "\u005b" |
           "\u005d" - "\u007e" |
-          '\u0021' |
+          '\u0020' | '\u0021' |
           "\u0023" - "\u002b" |
           "\u002d" - "\u003a"
       }
