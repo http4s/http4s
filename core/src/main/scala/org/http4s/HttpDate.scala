@@ -136,7 +136,7 @@ object HttpDate {
 
   /** `HTTP-date = IMF-fixdate / obs-date` */
   private[http4s] val parser: Parser1[HttpDate] = {
-    import Parser.{char, failWith, pure, string1}
+    import Parser.{char, string1}
     import Rfc5234.{digit, sp}
 
     def mkHttpDate(
