@@ -39,6 +39,7 @@ object ScaladocApiMapping {
         vaultMapping(scalaBinaryVersion)(file).toMap ++
         catsEffectMapping(scalaBinaryVersion)(file).toMap ++
         fs2CoreMapping(scalaBinaryVersion)(file).toMap ++
+        jettyMapping(file).toMap ++
         acc
     }
   }
@@ -80,6 +81,16 @@ object ScaladocApiMapping {
       Http4sPlugin.fs2Core
     if(file.toString.matches(""".+/fs2-core_[^/]+\.jar$""")) {
       Some(file -> new URL(s"https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_${scalaBinaryVersion}/${fs2Core.revision}/${fs2Core.name}_${scalaBinaryVersion}-${fs2Core.revision}-javadoc.jar/!/"))
+    } else {
+      None
+    }
+  }
+
+  private def jettyMapping(file: File): Option[(File, URL)] = {
+    val jettyMajorVersion: String =
+      Http4sPlugin.V.jetty.takeWhile(_ != '.')
+    if(file.toString.matches(""".+/jetty[^/]+\.jar$""")) {
+      Some(file -> new URL(s"https://www.eclipse.org/jetty/javadoc/jetty-${jettyMajorVersion}/index.html"))
     } else {
       None
     }

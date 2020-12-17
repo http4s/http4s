@@ -56,13 +56,43 @@ sealed class JettyBuilder[F[_]] private (
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     supportHttp2: Boolean,
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    jettyHttpConfiguration: HttpConfiguration
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
   type Self = JettyBuilder[F]
 
   private[this] val logger = getLogger
+
+  @deprecated(message = "Retained for binary compatibility", since = "0.21.15")
+  private[JettyBuilder] def this(
+      socketAddress: InetSocketAddress,
+      threadPool: ThreadPool,
+      idleTimeout: Duration,
+      asyncTimeout: Duration,
+      shutdownTimeout: Duration,
+      servletIo: ServletIo[F],
+      sslConfig: SslConfig,
+      mounts: Vector[Mount[F]],
+      serviceErrorHandler: ServiceErrorHandler[F],
+      supportHttp2: Boolean,
+      banner: immutable.Seq[String]
+  )(implicit F: ConcurrentEffect[F]) =
+    this(
+      socketAddress = socketAddress,
+      threadPool = threadPool,
+      idleTimeout = idleTimeout,
+      asyncTimeout = asyncTimeout,
+      shutdownTimeout = shutdownTimeout,
+      servletIo = servletIo,
+      sslConfig = sslConfig,
+      mounts = mounts,
+      serviceErrorHandler = serviceErrorHandler,
+      supportHttp2 = false,
+      banner = banner,
+      jettyHttpConfiguration = JettyBuilder.defaultJettyHttpConfiguration
+    )
 
   @deprecated("Retained for binary compatibility", "0.20.23")
   private[JettyBuilder] def this(
@@ -102,7 +132,8 @@ sealed class JettyBuilder[F[_]] private (
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       supportHttp2: Boolean = supportHttp2,
-      banner: immutable.Seq[String] = banner
+      banner: immutable.Seq[String] = banner,
+      jettyHttpConfiguration: HttpConfiguration = jettyHttpConfiguration
   ): Self =
     new JettyBuilder(
       socketAddress,
@@ -115,7 +146,9 @@ sealed class JettyBuilder[F[_]] private (
       mounts,
       serviceErrorHandler,
       supportHttp2,
-      banner)
+      banner,
+      jettyHttpConfiguration
+    )
 
   @deprecated(
     "Build an `SSLContext` from the first four parameters and use `withSslContext` (note lowercase). To also request client certificates, use `withSslContextAndParameters, calling either `.setWantClientAuth(true)` or `setNeedClientAuth(true)` on the `SSLParameters`.",
@@ -228,22 +261,32 @@ sealed class JettyBuilder[F[_]] private (
   def withBanner(banner: immutable.Seq[String]): Self =
     copy(banner = banner)
 
-  private def getConnector(jetty: JServer): ServerConnector =
+  /** Provide a specific [[org.eclipse.jetty.server.HttpConfiguration]].
+    *
+    * This can be used for direct low level control over many HTTP related
+    * configuration settings which http4s may not directly expose.
+    */
+  def withJettyHttpConfiguration(value: HttpConfiguration): Self =
+    copy(jettyHttpConfiguration = value)
+
+  private def getConnector(jetty: JServer): ServerConnector = {
+
+    val http1: HttpConnectionFactory = new HttpConnectionFactory(jettyHttpConfiguration)
+
     sslConfig.makeSslContextFactory match {
       case Some(sslContextFactory) =>
         if (supportHttp2) logger.warn("JettyBuilder does not support HTTP/2 with SSL at the moment")
-        new ServerConnector(jetty, sslContextFactory)
+        new ServerConnector(jetty, sslContextFactory, http1)
 
       case None =>
         if (!supportHttp2) {
-          new ServerConnector(jetty)
+          new ServerConnector(jetty, http1)
         } else {
-          val config = new HttpConfiguration()
-          val http1 = new HttpConnectionFactory(config)
-          val http2c = new HTTP2CServerConnectionFactory(config)
+          val http2c = new HTTP2CServerConnectionFactory(jettyHttpConfiguration)
           new ServerConnector(jetty, http1, http2c)
         }
     }
+  }
 
   def resource: Resource[F, Server[F]] =
     Resource(F.delay {
@@ -318,7 +361,8 @@ object JettyBuilder {
       mounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
       supportHttp2 = false,
-      banner = defaults.Banner
+      banner = defaults.Banner,
+      jettyHttpConfiguration = defaultJettyHttpConfiguration
     )
 
   private sealed trait SslConfig {
@@ -400,6 +444,10 @@ object JettyBuilder {
       case SSLClientAuthMode.Required =>
         sslContextFactory.setNeedClientAuth(true)
     }
+
+  /** The default [[org.eclipse.jetty.server.HttpConfiguration]] to use with jetty. */
+  val defaultJettyHttpConfiguration: HttpConfiguration =
+    new HttpConfiguration()
 }
 
 private final case class Mount[F[_]](f: (ServletContextHandler, Int, JettyBuilder[F]) => Unit)
