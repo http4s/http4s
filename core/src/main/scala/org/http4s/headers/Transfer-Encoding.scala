@@ -18,9 +18,9 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser1}
+import cats.parse.Parser1
 import cats.syntax.all._
-import org.http4s.internal.parsing.Rfc2616BasicRules.listSep
+import org.http4s.internal.parsing.Rfc7230
 
 object `Transfer-Encoding`
     extends HeaderKey.Internal[`Transfer-Encoding`]
@@ -29,7 +29,7 @@ object `Transfer-Encoding`
     ParseResult.fromParser(parser, "Invalid Transfer-Encoding")(s)
 
   private[http4s] val parser: Parser1[`Transfer-Encoding`] =
-    Parser.rep1Sep(TransferCoding.parser, 1, listSep).map(apply)
+    Rfc7230.headerRep1(TransferCoding.parser).map(apply)
 }
 
 final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding])
