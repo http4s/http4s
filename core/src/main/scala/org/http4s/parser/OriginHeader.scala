@@ -13,9 +13,10 @@ import java.nio.charset.{Charset, StandardCharsets}
 import org.http4s._
 import org.http4s.headers.Origin
 import org.http4s.internal.parboiled2._
-import cats.parse.{Parser, Parser1, Rfc5234}
+import cats.parse.{Parser, Rfc5234}
 import org.http4s.Uri.RegName
 import cats.implicits._
+import org.http4s.internal.parsing.Rfc3986
 
 trait OriginHeader {
   def ORIGIN(value: String): ParseResult[Origin] = {
@@ -69,25 +70,24 @@ trait OriginHeader {
 }
 
 object OriginHeader {
-  private[http4s] val parser: Parser1[Origin] = {
-    import Parser.{string1, rep, `end`, char, until1}
+  private[http4s] val parser: Parser[Origin] = {
+    import Parser.{string1, rep, rep1, `end`, char, until1}
     import Rfc5234.{alpha, digit}
 
-
-    val unknownScheme = alpha ~ rep(alpha.string orElse1 digit.string orElse1 string1("+").string orElse1 string1("-").string orElse1 string1(".").string)
+    val unknownScheme = alpha ~ rep(alpha orElse1 digit orElse1 char('+') orElse1 char('-') orElse1 char('.'))
     val http = string1("http")
     val https = string1("https")
     val scheme = List(https, http, unknownScheme).reduceLeft(_ orElse1 _).string.map(Uri.Scheme.unsafeFromString)
-    val host = until1(char(':').orElse(`end`)).string.map(RegName.apply)
-    val port = char(':') *> rep(digit).map {
-      case Nil => None
-      case li =>
-        Some(li.mkString.toInt)
+    val stringHost = until1(char(':').orElse(`end`)).map(RegName.apply)
+    val bracketedIpv6 = char('[') *> Rfc3986.ipv6 <* char(']')
+    val host = List(bracketedIpv6, Rfc3986.ipv4, stringHost).reduceLeft(_ orElse1 _)
+    val port = char(':') *> rep1(digit, 1).string.map(_.toInt)
+    val nullHost = (string1("null") *> `end`).orElse(`end`).as(Origin.Null)
+
+    val singleHost =  (scheme ~ string1("://").void ~ host ~ port.?).map { case (((sch, _), host), port) =>
+      Origin.Host(sch, host, port)
     }
 
-    (scheme ~ string1("://").void ~ host ~ port).map { case (((sch, _), host), port) =>
-      val one = Origin.Host(sch, host, port)
-      Origin.HostList(NonEmptyList.of(one))
-    }
+    nullHost orElse (singleHost ~ rep(char(' ') *> singleHost)).map(hosts => Origin.HostList(NonEmptyList.of(hosts._1, hosts._2: _*)))
   }
 }
