@@ -10,6 +10,7 @@ import cats.parse.Parser.{char, charIn, string1}
 import cats.parse.{Parser, Parser1}
 import cats.parse.Rfc5234.{digit, hexdig}
 import org.http4s.Uri.{Ipv4Address, Ipv6Address}
+import cats.syntax.applicative._
 
 /** Common rules defined in Rfc3986
   *
@@ -57,38 +58,25 @@ private[http4s] object Rfc3986 {
     val doubleColon = string1("::").void
     val h16Colon = h16 <* colon
 
-    def repSix[A](p: Parser1[A], sep: Parser[Unit] = Parser.unit) = (p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p)
-      .map { case ((((((((((one, _), two), _), three), _), four), _), five), _), six) => List(one, two, three, four, five, six) }.backtrack
-      .orElse1(repFive(p, sep))
-    def repFive[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p ~ sep ~ p ~ sep ~ p ~ sep ~ p)
-      .map { case ((((((((one, _), two), _), three), _), four), _), five) => List(one, two, three, four, five) }.backtrack
-      .orElse1(repFour(p, sep))
-    def repFour[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p ~ sep ~ p ~ sep ~ p)
-      .map { case ((((((one, _), two), _), three), _), four) => List(one, two, three, four) }.backtrack
-      .orElse1(repThree(p, sep))
-    def repThree[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p ~ sep ~ p)
-      .map { case ((((one, _), two), _), three) => List(one, two, three) }.backtrack
-      .orElse1(repTwo(p, sep))
-    def repTwo[A](p: Parser1[A], sep: Parser[Unit]) = (p ~ sep ~ p)
-      .map { case ((one, _), two) => List(one, two) }.backtrack
-      .orElse1(repOne(p))
-    def repOne[A](p: Parser1[A]) = p.map(List(_)).backtrack
+    def repN[A](n: Int, p: Parser[A], sep: Parser[Unit] = Parser.unit): Parser[List[A]] = ((p ~ sep).replicateA(n - 1) ~ p)
+      .map { case (head, tail) => head.map(_._1) :+ tail }.backtrack
+      .orElse(if (n == 1) p.map(List(_)).backtrack else repN(n - 1, p, sep).backtrack)
 
-    (repSix(h16Colon) ~ ls32)
+    (repN(6, h16Colon).with1 ~ ls32)
       .map { case (ls: collection.Seq[Short], (r0: Short, r1: Short)) => toIpv6(ls, Seq(r0, r1)) }.backtrack
-      .orElse1((doubleColon *> repFour(h16Colon, Parser.unit) ~ ls32)
+      .orElse1((doubleColon *> repN(4, h16Colon, Parser.unit) ~ ls32)
         .map { case (rs: List[Short], (r0: Short, r1: Short)) => toIpv6(Seq.empty, rs :+ r0 :+ r1) }).backtrack
       .orElse1((h16.?.with1 ~ doubleColon.void ~ h16Colon ~ h16Colon ~ h16Colon ~ ls32)
         .map { case (((((ls: Option[Short], _), r1: Short), r2: Short), r3: Short), (r4: Short, r5: Short)) => toIpv6(ls.toSeq, Seq(r1, r2, r3, r4, r5)) }).backtrack
-      .orElse1((repTwo(h16, colon.void).?.with1 ~ doubleColon.void ~ h16Colon ~ h16Colon ~ ls32)
+      .orElse1((repN(2, h16, colon.void).?.with1 ~ doubleColon.void ~ h16Colon ~ h16Colon ~ ls32)
         .map { case ((((ls: Option[List[Short]], _), r0: Short), r1: Short), (r2: Short, r3: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1, r2, r3)) }).backtrack
-      .orElse1((repThree(h16, colon.void).?.with1 ~ doubleColon ~ h16Colon ~ ls32)
+      .orElse1((repN(3, h16, colon.void).?.with1 ~ doubleColon ~ h16Colon ~ ls32)
         .map { case (((ls: Option[List[Short]], _), r0: Short), (r1: Short, r2: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1, r2)) }).backtrack
-      .orElse1((repFour(h16, colon.void).?.with1 ~ doubleColon ~ ls32)
+      .orElse1((repN(4, h16, colon.void).?.with1 ~ doubleColon ~ ls32)
         .map { case ((ls: Option[collection.Seq[Short]], _), (r0: Short, r1: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1)) }).backtrack
-      .orElse1((repFive(h16, colon.void).?.with1 ~ doubleColon ~ h16)
+      .orElse1((repN(5, h16, colon.void).?.with1 ~ doubleColon ~ h16)
         .map { case ((ls: Option[collection.Seq[Short]], _), rs: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(rs)) }).backtrack
-      .orElse1((repSix(h16, colon.void).?.with1 ~ doubleColon)
+      .orElse1((repN(6, h16, colon.void).?.with1 ~ doubleColon)
         .map { case (ls: Option[collection.Seq[Short]], _) => toIpv6(ls.getOrElse(Seq.empty), Seq.empty) }).backtrack
   }
 
