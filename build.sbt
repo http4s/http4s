@@ -793,6 +793,7 @@ lazy val commonSettings = Seq(
     specs2MatcherExtra,
     specs2Scalacheck
   ).map(_ % Test),
+  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 
 def initCommands(additionalImports: String*) =
