@@ -75,9 +75,9 @@ private[http4s] object Rfc3986 {
     def repOne[A](p: Parser1[A]) = p.map(List(_)).backtrack
 
 
-    (repSix(h16Colon) ~ ls32 <* `end`)
+    (repSix(h16Colon) ~ ls32)
       .map { case (ls: collection.Seq[Short], (r0: Short, r1: Short)) => toIpv6(ls, Seq(r0, r1)) }
-      .orElse1((doubleColon *> repSix(h16, colon) <* `end`)
+      .orElse1((doubleColon *> repSix(h16, colon))
         .map { rs: collection.Seq[Short] => toIpv6(Seq.empty, rs) }).backtrack
       .orElse1((h16.?.with1 ~ doubleColon.void ~ repFive(h16, colon) <* `end`)
         .map { case ((ls: Option[Short], _), rs: List[Short]) => toIpv6(ls.toSeq, rs) }).backtrack
