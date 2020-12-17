@@ -74,17 +74,16 @@ private[http4s] object Rfc3986 {
       .orElse1(repOne(p))
     def repOne[A](p: Parser1[A]) = p.map(List(_)).backtrack
 
-
     (repSix(h16Colon) ~ ls32)
-      .map { case (ls: collection.Seq[Short], (r0: Short, r1: Short)) => toIpv6(ls, Seq(r0, r1)) }
-      .orElse1((doubleColon *> repSix(h16, colon))
-        .map { rs: collection.Seq[Short] => toIpv6(Seq.empty, rs) }).backtrack
-      .orElse1((h16.?.with1 ~ doubleColon.void ~ repFive(h16, colon))
-        .map { case ((ls: Option[Short], _), rs: List[Short]) => toIpv6(ls.toSeq, rs) }).backtrack
-      .orElse1((repTwo(h16, colon.void).?.with1 ~ doubleColon.void ~ repFour(h16, colon))
-        .map { case ((ls: Option[List[Short]], _), rs: List[Short]) => toIpv6(ls.getOrElse(Seq.empty), rs) }).backtrack
-      .orElse1((repThree(h16, colon.void).?.with1 ~ doubleColon ~ repThree(h16, colon))
-        .map { case ((ls: Option[List[Short]], _), rs: List[Short]) => toIpv6(ls.getOrElse(Seq.empty), rs) }).backtrack
+      .map { case (ls: collection.Seq[Short], (r0: Short, r1: Short)) => toIpv6(ls, Seq(r0, r1)) }.backtrack
+      .orElse1((doubleColon *> repFour(h16Colon, Parser.unit) ~ ls32)
+        .map { case (rs: List[Short], (r0: Short, r1: Short)) => toIpv6(Seq.empty, rs :+ r0 :+ r1) }).backtrack
+      .orElse1((h16.?.with1 ~ doubleColon.void ~ h16Colon ~ h16Colon ~ h16Colon ~ ls32)
+        .map { case (((((ls: Option[Short], _), r1: Short), r2: Short), r3: Short), (r4: Short, r5: Short)) => toIpv6(ls.toSeq, Seq(r1, r2, r3, r4, r5)) }).backtrack
+      .orElse1((repTwo(h16, colon.void).?.with1 ~ doubleColon.void ~ h16Colon ~ h16Colon ~ ls32)
+        .map { case ((((ls: Option[List[Short]], _), r0: Short), r1: Short), (r2: Short, r3: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1, r2, r3)) }).backtrack
+      .orElse1((repThree(h16, colon.void).?.with1 ~ doubleColon ~ h16Colon ~ ls32)
+        .map { case (((ls: Option[List[Short]], _), r0: Short), (r1: Short, r2: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1, r2)) }).backtrack
       .orElse1((repFour(h16, colon.void).?.with1 ~ doubleColon ~ ls32)
         .map { case ((ls: Option[collection.Seq[Short]], _), (r0: Short, r1: Short)) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1)) }).backtrack
       .orElse1((repFive(h16, colon.void).?.with1 ~ doubleColon ~ h16)

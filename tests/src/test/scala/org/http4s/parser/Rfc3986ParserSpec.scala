@@ -133,6 +133,31 @@ class Rfc3986ParserSpec extends Http4sSpec {
       Rfc3986.ipv6.parse(ipv6).map(_._2.value) must beRight("2001:db8::7f00:1")
     }
 
+    "parse ipv6 address with 3 sections + a shortened section + ipv4 address for the last 32 bits" in  {
+      val ipv6 = "2001:db8:0::0:127.0.0.1"
+      Rfc3986.ipv6.parse(ipv6).map(_._2.value) must beRight("2001:db8::7f00:1")
+    }
+
+    "parse ipv6 address with 2 sections + a shortened section + ipv4 address for the last 32 bits" in  {
+      val ipv6 = "2001:db8::0:0:127.0.0.1"
+      Rfc3986.ipv6.parse(ipv6).map(_._2.value) must beRight("2001:db8::7f00:1")
+    }
+
+    "parse ipv6 address with 1 section + a shortened section + ipv4 address for the last 32 bits" in  {
+      val ipv6 = "2001::db8:0:0:127.0.0.1"
+      Rfc3986.ipv6.parse(ipv6).map(_._2.value) must beRight("2001::db8:0:0:7f00:1")
+    }
+
+    "parse ipv6 address with 0 sections + a shortened section + ipv4 address for the last 32 bits" in  {
+      val ipv6 = "::2001:db8:0:0:127.0.0.1"
+      Rfc3986.ipv6.parse(ipv6).map(_._2.value) must beRight("::2001:db8:0:0:7f00:1")
+    }
+
+    "parse ipv6 address with 0 sections + a single shortened section + ipv4 address for the last 32 bits" in  {
+      val ipv6 = "::ffff:127.0.0.1"
+      Rfc3986.ipv6.parse(ipv6).map(_._2.value) must beRight("::ffff:7f00:1")
+    }
+
     "parse random ipv6 addresses" in {
       Prop.forAll(http4sTestingArbitraryForIpv6Address.arbitrary) { (ipv6: Ipv6Address) =>
         Rfc3986.ipv6.parse(ipv6.value).map(_._2) must beRight(ipv6)
