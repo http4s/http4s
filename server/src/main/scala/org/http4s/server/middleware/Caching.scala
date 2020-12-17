@@ -66,8 +66,8 @@ object Caching {
     Expires(HttpDate.Epoch) // Expire at the epoch for no time confusion
   )
 
-  /** Helpers Contains the default arguments used to help construct
-    * middleware with [[caching]]. They serve to support the default arguments for
+  /** Helpers Contains the default arguments used to help construct middleware
+    * with caching. They serve to support the default arguments for
     * [[publicCache]] and [[privateCache]].
     */
   object Helpers {
