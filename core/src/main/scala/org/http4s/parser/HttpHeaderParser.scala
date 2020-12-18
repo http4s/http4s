@@ -30,7 +30,6 @@ object HttpHeaderParser
     with ForwardedHeader
     with LinkHeader
     with LocationHeader
-    with OriginHeader
     with ProxyAuthenticateHeader
     with RangeParser
     with RefererHeader
@@ -135,7 +134,7 @@ object HttpHeaderParser
     addParser_("LAST-MODIFIED".ci, `Last-Modified`.parse)
     addParser_("LINK".ci, `LINK`)
     addParser_("LOCATION".ci, `LOCATION`)
-    addParser_("ORIGIN".ci, `ORIGIN`)
+    addParser_("ORIGIN".ci, Origin.parse)
     addParser_("PROXY-AUTHENTICATE".ci, `PROXY_AUTHENTICATE`)
     addParser_("RANGE".ci, `RANGE`)
     addParser_("REFERER".ci, `REFERER`)
