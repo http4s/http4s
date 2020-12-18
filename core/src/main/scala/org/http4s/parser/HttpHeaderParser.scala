@@ -109,7 +109,7 @@ object HttpHeaderParser
     addParser_("ACCEPT-CHARSET".ci, `ACCEPT_CHARSET`)
     addParser_("ACCEPT-ENCODING".ci, `ACCEPT_ENCODING`)
     addParser_("ACCEPT-LANGUAGE".ci, `ACCEPT_LANGUAGE`)
-    addParser_("ACCEPT-RANGES".ci, `ACCEPT_RANGES`)
+    addParser_("ACCEPT-RANGES".ci, `Accept-Ranges`.parse)
     addParser_("AGE".ci, `AGE`)
     addParser_("ALLOW".ci, `ALLOW`)
     addParser_("AUTHORIZATION".ci, `AUTHORIZATION`)
