@@ -446,7 +446,7 @@ object JettyBuilder {
     }
 
   /** The default [[org.eclipse.jetty.server.HttpConfiguration]] to use with jetty. */
-  val defaultJettyHttpConfiguration: HttpConfiguration =
+  private val defaultJettyHttpConfiguration: HttpConfiguration =
     new HttpConfiguration()
 }
 
