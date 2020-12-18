@@ -59,7 +59,6 @@ class AuthorizationHeaderSpec extends Http4sSpec {
           Credentials.AuthParams(scheme.ci, NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))))
 
       //quoted-pair
-      //TODO: Not sure how to interpret this
       hparse("foo abc = \"\\123\"") must beRight(
         Authorization(Credentials.AuthParams(scheme.ci, NonEmptyList.of("abc" -> "\\123"))))
     }
