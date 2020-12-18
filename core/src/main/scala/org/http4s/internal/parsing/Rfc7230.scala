@@ -19,7 +19,7 @@ package org.http4s.internal.parsing
 import cats.data.NonEmptyList
 import cats.parse.{Parser, Parser1}
 import cats.parse.Parser.{char, charIn}
-import cats.parse.Rfc5234.{alpha, digit, htab, sp}
+import cats.parse.Rfc5234.{alpha, digit, dquote, htab, sp, vchar}
 
 /** Common rules defined in RFC7230
   *
@@ -39,6 +39,25 @@ private[http4s] object Rfc7230 {
 
   /* `OWS = *( SP / HTAB )` */
   val ows: Parser[Unit] = sp.orElse1(htab).rep.void
+
+  /*https://tools.ietf.org/html/rfc7230#section-3.2.3 last paragraph */
+  val bws: Parser[Unit] = ows
+
+  /*   qdtext         = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text */
+  val qdText: Parser1[Char] =
+    charIn('\t', ' ', 0x21.toChar)
+      .orElse1(charIn(0x23.toChar to 0x5b.toChar))
+      .orElse1(charIn(0x5d.toChar to 0x7e.toChar))
+      .orElse1(obsText)
+
+  val qdPairChar: Parser1[Char] = charIn('\t', ' ').orElse1(vchar).orElse1(obsText)
+
+  /* quoted-pair    = "\" ( HTAB / SP / VCHAR / obs-text ) */
+  val quotedPair: Parser1[Char] = char('\\') *> qdPairChar
+
+  /*quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE*/
+  val quotedString: Parser[String] =
+    qdText.orElse1(quotedPair).rep.string.surroundedBy(dquote)
 
   /* `1#element => *( "," OWS ) element *( OWS "," [ OWS element ] )` */
   def headerRep1[A](element: Parser1[A]): Parser1[NonEmptyList[A]] = {

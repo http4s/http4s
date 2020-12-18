@@ -23,7 +23,6 @@ object HttpHeaderParser
     with AcceptEncodingHeader
     with AcceptHeader
     with AcceptLanguageHeader
-    with AuthorizationHeader
     with CacheControlHeader
     with ContentTypeHeader
     with CookieHeader
@@ -31,11 +30,9 @@ object HttpHeaderParser
     with LinkHeader
     with LocationHeader
     with OriginHeader
-    with ProxyAuthenticateHeader
     with RangeParser
     with RefererHeader
     with StrictTransportSecurityHeader
-    with WwwAuthenticateHeader
     with ZipkinHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
@@ -113,7 +110,6 @@ object HttpHeaderParser
     addParser_("ACCEPT-RANGES".ci, `Accept-Ranges`.parse)
     addParser_("AGE".ci, `AGE`)
     addParser_("ALLOW".ci, `ALLOW`)
-    addParser_("AUTHORIZATION".ci, `AUTHORIZATION`)
     addParser_("CACHE-CONTROL".ci, `CACHE_CONTROL`)
     addParser_("CONNECTION".ci, `CONNECTION`)
     addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
@@ -136,7 +132,6 @@ object HttpHeaderParser
     addParser_("LINK".ci, `LINK`)
     addParser_("LOCATION".ci, `LOCATION`)
     addParser_("ORIGIN".ci, `ORIGIN`)
-    addParser_("PROXY-AUTHENTICATE".ci, `PROXY_AUTHENTICATE`)
     addParser_("RANGE".ci, `RANGE`)
     addParser_("REFERER".ci, `REFERER`)
     addParser_("RETRY-AFTER".ci, `Retry-After`.parse)
@@ -144,7 +139,6 @@ object HttpHeaderParser
     addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
     addParser_("TRANSFER-ENCODING".ci, `Transfer-Encoding`.parse)
     addParser_("USER-AGENT".ci, `USER_AGENT`)
-    addParser_("WWW-AUTHENTICATE".ci, `WWW_AUTHENTICATE`)
     addParser_("X-B3-FLAGS".ci, `X_B3_FLAGS`)
     addParser_("X-B3-PARENTSPANID".ci, `X_B3_PARENTSPANID`)
     addParser_("X-B3-SAMPLED".ci, `X_B3_SAMPLED`)
