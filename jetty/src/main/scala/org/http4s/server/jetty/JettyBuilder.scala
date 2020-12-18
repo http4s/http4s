@@ -446,8 +446,11 @@ object JettyBuilder {
     }
 
   /** The default [[org.eclipse.jetty.server.HttpConfiguration]] to use with jetty. */
-  private val defaultJettyHttpConfiguration: HttpConfiguration =
-    new HttpConfiguration()
+  private val defaultJettyHttpConfiguration: HttpConfiguration = {
+    val config: HttpConfiguration = new HttpConfiguration()
+    config.setRequestHeaderSize(defaults.MaxHeadersSize)
+    config
+  }
 }
 
 private final case class Mount[F[_]](f: (ServletContextHandler, Int, JettyBuilder[F]) => Unit)
