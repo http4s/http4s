@@ -142,7 +142,7 @@ object HttpHeaderParser
     addParser_("RETRY-AFTER".ci, `Retry-After`.parse)
     addParser_("SET-COOKIE".ci, `SET_COOKIE`)
     addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
-    addParser_("TRANSFER-ENCODING".ci, `TRANSFER_ENCODING`)
+    addParser_("TRANSFER-ENCODING".ci, `Transfer-Encoding`.parse)
     addParser_("USER-AGENT".ci, `USER_AGENT`)
     addParser_("WWW-AUTHENTICATE".ci, `WWW_AUTHENTICATE`)
     addParser_("X-B3-FLAGS".ci, `X_B3_FLAGS`)

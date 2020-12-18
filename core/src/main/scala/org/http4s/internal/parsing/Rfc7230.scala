@@ -38,7 +38,7 @@ private[http4s] object Rfc7230 {
   val obsText: Parser1[Char] = charIn(0x80.toChar to 0xff.toChar)
 
   /* `OWS = *( SP / HTAB )` */
-  val ows: Parser[Unit] = (sp.orElse1(htab)).rep.void
+  val ows: Parser[Unit] = sp.orElse1(htab).rep.void
 
   /* `1#element => *( "," OWS ) element *( OWS "," [ OWS element ] )` */
   def headerRep1[A](element: Parser1[A]): Parser1[NonEmptyList[A]] = {
