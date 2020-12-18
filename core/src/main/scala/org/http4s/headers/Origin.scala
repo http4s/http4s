@@ -67,7 +67,7 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
     val port = char(':') *> rep1(digit, 1).string.map(_.toInt)
     val nullHost = (string1("null") *> `end`).orElse(`end`).as(Origin.Null)
 
-    val singleHost =  (scheme ~ string1("://").void ~ host ~ port.?).map { case (((sch, _), host), port) =>
+    val singleHost =  ((scheme <* string1("://")) ~ host ~ port.?).map { case ((sch, host), port) =>
       Origin.Host(sch, host, port)
     }
 
