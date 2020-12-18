@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.parse.Parser1
 import org.http4s.internal.parsing.Rfc7235
@@ -29,7 +28,7 @@ object `Proxy-Authenticate`
     Rfc7235.challenges.map(`Proxy-Authenticate`.apply)
 
   override def parse(s: String): ParseResult[`Proxy-Authenticate`] =
-    parser.parseAll(s).leftMap(err => ParseFailure("Invalid Proxy-Authenticate", err.toString))
+    ParseResult.fromParser(parser, "Invalid Proxy-Authenticate")(s)
 }
 
 /** {{{

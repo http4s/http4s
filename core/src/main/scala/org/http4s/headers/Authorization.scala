@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import cats.syntax.all._
 import org.http4s.util.Writer
 import cats.parse._
 
@@ -29,7 +28,7 @@ object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Si
   }
 
   override def parse(s: String): ParseResult[Authorization] =
-    parser.parseAll(s).leftMap(err => ParseFailure("Invalid Authorization", err.toString))
+    ParseResult.fromParser(parser, "Invalid Authorization")(s)
 
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))

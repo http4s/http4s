@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import cats.syntax.all._
 import cats.parse.Parser1
 import org.http4s.util.Writer
 
@@ -38,7 +37,7 @@ object `Proxy-Authorization`
   }
 
   override def parse(s: String): ParseResult[`Proxy-Authorization`] =
-    parser.parseAll(s).leftMap(err => ParseFailure("Invalid Authorization", err.toString))
+    ParseResult.fromParser(parser, "Invalid Proxy-Authorization")(s)
 
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))

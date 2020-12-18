@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.parse.Parser1
 import org.http4s.internal.parsing.Rfc7235
@@ -27,7 +26,7 @@ object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with He
     Rfc7235.challenges.map(`WWW-Authenticate`.apply)
 
   override def parse(s: String): ParseResult[`WWW-Authenticate`] =
-    parser.parseAll(s).leftMap(err => ParseFailure("Invalid WWW-Authenticate", err.toString))
+    ParseResult.fromParser(parser, "Invalid WWW-Authenticate")(s)
 }
 
 final case class `WWW-Authenticate`(values: NonEmptyList[Challenge])
