@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import cats.parse.Parser1
 import cats.syntax.all._
 import org.http4s.CharsetRange.{Atom, `*`}
-import org.http4s.internal.parsing.Rfc7230
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Charset`] =
@@ -31,7 +30,7 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
 
   private[http4s] val parser: Parser1[`Accept-Charset`] = {
     import cats.parse.Parser._
-    import org.http4s.internal.parsing.Rfc7230.token
+    import org.http4s.internal.parsing.Rfc7230._
 
     val anyCharset = (char('*') *> QValue.parser)
       .map(q => if (q != QValue.One) `*`.withQValue(q) else `*`)
@@ -48,7 +47,7 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
 
     val charsetRange = anyCharset.orElse1(fromToken)
 
-    Rfc7230.headerRep1(charsetRange).map(xs => `Accept-Charset`(xs.head, xs.tail: _*))
+    headerRep1(charsetRange).map(xs => `Accept-Charset`(xs.head, xs.tail: _*))
   }
 }
 
