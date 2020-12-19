@@ -20,8 +20,6 @@ import org.http4s.syntax.string._
 object HttpHeaderParser
     extends SimpleHeaders
     with AcceptHeader
-    with AuthorizationHeader
-    with AcceptLanguageHeader
     with CacheControlHeader
     with ContentTypeHeader
     with CookieHeader
