@@ -44,7 +44,10 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     /** Base method for rendering this object efficiently */
     override def render(writer: Writer): writer.type = {
       writer << first
-      second.foreach(writer << '-' << _)
+      // the trailing '-' is necessary unless this is a suffix range
+      if (first >= 0)
+        writer << '-'
+      second.foreach(writer << _)
       writer
     }
   }
@@ -57,22 +60,21 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
   val parser: P[Range] = {
     // https://tools.ietf.org/html/rfc7233#section-3.1
 
+    def toLong(s: String): Option[Long] =
+      try Some(s.toLong)
+      catch { case _: NumberFormatException => None }
+
     val nonNegativeLong = Numbers.digits1
-      .map { ds =>
-        val l = BigInt(ds)
-        if (l < Long.MaxValue) l.toLong else Long.MaxValue
-      }
+      .mapFilter(toLong)
 
     val negativeLong = (P.char('-') ~ Numbers.digits1).string
-      .map { ds =>
-        val l = BigInt(ds)
-        if (l > Long.MinValue) l.toLong else Long.MinValue
-      }
+      .mapFilter(toLong)
 
     // byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
     val byteRangeSpec = ((nonNegativeLong <* P.char('-')) ~ nonNegativeLong.?)
       .map { case (first, last) => SubRange(first, last) }
 
+    // suffix-byte-range-spec = "-" suffix-length
     val suffixByteRangeSpec = negativeLong.map(SubRange(_))
 
     // byte-range-set  = 1#( byte-range-spec / suffix-byte-range-spec )
@@ -83,11 +85,8 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
       ((Rfc7230.token.map(RangeUnit(_)) <* P.char('=')) ~ byteRangeSet)
         .map { case (unit, ranges) => Range(unit, ranges) }
 
-    /* this accepts foo=0-100 but fails with foo=bar, it probably doesn't matter
-     but if the server doesn't deal with other types of ranges why accept anything other than bytes?
-     */
-
     // Range = byte-ranges-specifier / other-ranges-specifier
+    // other types of ranges are not supported, `other-ranges-specifier` is ignored
     byteRangesSpecifier
   }
 

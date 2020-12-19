@@ -28,7 +28,7 @@ class RangeParserSpec extends Http4sSpec {
         Range(RangeUnit.Bytes, SubRange(0, 500)),
         Range(RangeUnit.Bytes, SubRange(0, 499), SubRange(500, 999), SubRange(1000, 1500)),
         Range(RangeUnit("page"), SubRange(0, 100)),
-        Range(10), // renderValue implementation is incorrect according to rfc7233 so this fails
+        Range(10),
         Range(-90)
       )
 
