@@ -17,7 +17,9 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Numbers, Parser1, Parser => P}
+import org.http4s.headers.Range.SubRange
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
 object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKey.Singleton {
@@ -26,10 +28,37 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
 
   def apply(start: Long, end: Long): `Content-Range` = apply(Range.SubRange(start, Some(end)), None)
 
-  def apply(start: Long): `Content-Range` = apply(Range.SubRange(start, None), None)
-
   override def parse(s: String): ParseResult[`Content-Range`] =
-    HttpHeaderParser.CONTENT_RANGE(s)
+    parser.parseAll(s).left.map { e =>
+      ParseFailure("Invalid Content-Range header", e.toString)
+    }
+
+  val parser: Parser1[`Content-Range`] = {
+
+    val nonNegativeLong = Numbers.digits1
+      .mapFilter { ds =>
+        try Some(ds.toLong)
+        catch { case _: NumberFormatException => None }
+      }
+
+    // byte-range = first-byte-pos "-" last-byte-pos
+    val byteRange = ((nonNegativeLong <* P.char('-')) ~ nonNegativeLong)
+      .map { case (first, last) => SubRange(first, last) }
+
+    // byte-range-resp = byte-range "/" ( complete-length / "*" )
+    val byteRangeResp =
+      (byteRange <* P.char('/')) ~ nonNegativeLong.map(Some(_)).orElse1(P.char('*').as(None))
+
+    // byte-content-range = bytes-unit SP ( byte-range-resp / unsatisfied-range )
+    // `unsatisfied-range` is not represented
+    val byteContentRange =
+      ((Rfc7230.token.map(RangeUnit(_)) <* P.char(' ')) ~ byteRangeResp)
+        .map { case (unit, (range, length)) => `Content-Range`(unit, range, length) }
+
+    // Content-Range = byte-content-range / other-content-range
+    // other types of ranges are not supported, `other-content-range` is ignored
+    byteContentRange
+  }
 }
 
 final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long])

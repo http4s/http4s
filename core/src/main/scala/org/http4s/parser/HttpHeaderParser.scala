@@ -32,7 +32,6 @@ object HttpHeaderParser
     with LocationHeader
     with OriginHeader
     with ProxyAuthenticateHeader
-    with RangeParser
     with RefererHeader
     with StrictTransportSecurityHeader
     with WwwAuthenticateHeader
@@ -119,7 +118,7 @@ object HttpHeaderParser
     addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
     addParser_("CONTENT-ENCODING".ci, `CONTENT_ENCODING`)
     addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
-    addParser_("CONTENT-RANGE".ci, `CONTENT_RANGE`)
+    addParser_("CONTENT-RANGE".ci, `Content-Range`.parse)
     addParser_("CONTENT-TYPE".ci, `CONTENT_TYPE`)
     addParser_("COOKIE".ci, `COOKIE`)
     addParser_("DATE".ci, Date.parse)

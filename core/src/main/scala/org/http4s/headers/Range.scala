@@ -78,7 +78,7 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     val suffixByteRangeSpec = negativeLong.map(SubRange(_))
 
     // byte-range-set  = 1#( byte-range-spec / suffix-byte-range-spec )
-    val byteRangeSet = Rfc7230.headerRep1(byteRangeSpec.backtrack.orElse1(suffixByteRangeSpec))
+    val byteRangeSet = Rfc7230.headerRep1(byteRangeSpec.orElse1(suffixByteRangeSpec))
 
     // byte-ranges-specifier = bytes-unit "=" byte-range-set
     val byteRangesSpecifier =
