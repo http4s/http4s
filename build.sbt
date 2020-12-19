@@ -151,7 +151,7 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$AcceptRangesParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader$AcceptCharsetParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader"),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.parser.HttpHeaderParser$")
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.parser.HttpHeaderParser$"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.WwwAuthenticateHeader$WWWAuthenticateParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AuthorizationHeader"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ProxyAuthenticateHeader$ProxyAuthenticateParser"),
