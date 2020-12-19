@@ -60,4 +60,3 @@ object Locker {
     if (k.unique === l.unique) Some(l.a.asInstanceOf[A])
     else None
 }
-

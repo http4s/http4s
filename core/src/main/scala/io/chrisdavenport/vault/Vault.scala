@@ -92,4 +92,3 @@ object Vault {
     new Vault(v1.m ++ v2.m)
 
 }
-

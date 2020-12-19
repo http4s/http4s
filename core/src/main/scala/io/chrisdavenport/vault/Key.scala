@@ -44,4 +44,3 @@ object Key {
     def hash(x: Key[A]): Int = Hash[Unique].hash(x.unique)
   }
 }
-
