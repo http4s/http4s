@@ -22,10 +22,10 @@ import org.specs2.mutable.Specification
 
 class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`WWW-Authenticate`] {
   def hparse(value: String): ParseResult[`WWW-Authenticate`] =
-    HttpHeaderParser.WWW_AUTHENTICATE(value)
+    `WWW-Authenticate`.parse(value)
 
   override def parse(value: String) =
-    hparse(value).fold(_ => sys.error(s"Couldn't parse: $value"), identity)
+    hparse(value).fold(err => sys.error(s"Couldn't parse: `$value`, ${err.details}"), identity)
 
   val params = Map("a" -> "b", "c" -> "d")
   val c = Challenge("Basic", "foo")
@@ -54,7 +54,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
       parse(twotypes).values.toList must be_==(twoparsed)
     }
 
-    "parse mulmultiple concatenated authentications with params" in {
+    "parse multiple concatenated authentications with params" in {
       val twowparams =
         "Newauth realm=\"apps\", type=1, title=\"Login to apps\", Basic realm=\"simple\""
       val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::
