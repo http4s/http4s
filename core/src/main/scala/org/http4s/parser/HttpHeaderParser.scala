@@ -19,12 +19,9 @@ import org.http4s.syntax.string._
 
 object HttpHeaderParser
     extends SimpleHeaders
-    with AcceptHeader
     with CacheControlHeader
-    with ContentTypeHeader
     with CookieHeader
     with ForwardedHeader
-    with LinkHeader
     with LocationHeader
     with OriginHeader
     with RangeParser
@@ -100,7 +97,7 @@ object HttpHeaderParser
   }
 
   private def gatherBuiltIn(): Unit = {
-    addParser_("ACCEPT".ci, `ACCEPT`)
+    addParser_("ACCEPT".ci, Accept.parse)
     addParser_("ACCEPT-CHARSET".ci, `Accept-Charset`.parse)
     addParser_("ACCEPT-ENCODING".ci, `Accept-Encoding`.parse)
     addParser_("ACCEPT-LANGUAGE".ci, `Accept-Language`.parse)
@@ -113,7 +110,7 @@ object HttpHeaderParser
     addParser_("CONTENT-ENCODING".ci, `CONTENT_ENCODING`)
     addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
     addParser_("CONTENT-RANGE".ci, `CONTENT_RANGE`)
-    addParser_("CONTENT-TYPE".ci, `CONTENT_TYPE`)
+    addParser_("CONTENT-TYPE".ci, `Content-Type`.parse)
     addParser_("COOKIE".ci, `COOKIE`)
     addParser_("DATE".ci, Date.parse)
     addParser_("ETAG".ci, ETag.parse)
@@ -126,7 +123,7 @@ object HttpHeaderParser
     addParser_("IF-UNMODIFIED-SINCE".ci, `If-Unmodified-Since`.parse)
     addParser_("LAST-EVENT-ID".ci, `LAST_EVENT_ID`)
     addParser_("LAST-MODIFIED".ci, `Last-Modified`.parse)
-    addParser_("LINK".ci, `LINK`)
+    addParser_("LINK".ci, Link.parse)
     addParser_("LOCATION".ci, `LOCATION`)
     addParser_("ORIGIN".ci, `ORIGIN`)
     addParser_("RANGE".ci, `RANGE`)

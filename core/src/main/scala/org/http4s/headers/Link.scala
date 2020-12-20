@@ -17,12 +17,62 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
-import org.http4s.{Header, HeaderKey, ParseResult}
+import cats.parse.{Parser, Parser1}
+import cats.syntax.either._
+import org.http4s._
+import org.http4s.internal.parsing.Rfc7230.{headerRep1, quotedString, token}
+import org.http4s.parser.Rfc2616BasicRules.optWs
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Link] =
-    HttpHeaderParser.LINK(s)
+    parser.parseAll(s).leftMap(e => ParseFailure("Invalid Link header", e.toString))
+
+  private[http4s] val parser: Parser1[Link] = {
+    import cats.parse.Parser._
+
+    // TODO: it depends on org.http4s.parser.Rfc3986Parser
+    val linkValue: Parser1[LinkValue] =
+//      rule {
+//        // https://tools.ietf.org/html/rfc3986#section-4.1
+//        (AbsoluteUri | RelativeRef) ~> { (a: Uri) =>
+//          headers.LinkValue(a)
+//        }
+//      }
+      ???
+
+    val linkValueAttr: Parser1[LinkValue] = {
+      val relParser = (linkValue ~ (string1("rel=") *> token.orElse(quotedString)))
+        .map { case (link: LinkValue, rel: String) =>
+          // https://tools.ietf.org/html/rfc8288#section-3.3
+          if (link.rel.isDefined)
+            link
+          else
+            link.copy(rel = Some(rel))
+        }
+
+      val revParser = (linkValue ~ (string1("rev=") *> token.orElse(quotedString))).map {
+        case (link: LinkValue, rev: String) =>
+          link.copy(rev = Some(rev))
+      }
+
+      val titleParser = (linkValue ~ (string1("title=") *> token.orElse(quotedString))).map {
+        case (link: LinkValue, title: String) => link.copy(title = Some(title))
+      }
+
+      val typeParser = {
+        val mediaRange = string1("type=") *> MediaRange.parser.orElse1(
+          string1("\"") *> MediaRange.parser <* string1("\""))
+        (linkValue ~ mediaRange).map { case (link, tpe) => link.copy(`type` = Some(tpe)) }
+      }
+
+      relParser.orElse1(revParser).orElse1(titleParser).orElse1(typeParser)
+    }
+
+    val linkValueWithAttr: Parser1[LinkValue] =
+      char('<') *> linkValue <* char('>') ~ Parser.rep(char(';') *> optWs *> linkValueAttr)
+
+    headerRep1(linkValueWithAttr).map(links => Link(links.head, links.tail: _*))
+  }
 }
 
 final case class Link(values: NonEmptyList[LinkValue]) extends Header.RecurringRenderable {
