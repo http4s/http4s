@@ -1,16 +1,33 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s.server.middleware
 
+<<<<<<< HEAD
 import cats.data.{Kleisli, OptionT}
 import cats.effect.syntax.all._
 import cats.effect.kernel.{Async, Outcome, Temporal}
 import cats.syntax.all._
 import fs2.Stream
+=======
+import cats.data.Kleisli
+import cats.effect.{Clock, ExitCase, Sync}
+import cats.syntax.all._
+import java.util.concurrent.TimeUnit
+>>>>>>> cats-effect-3
 
 import org.http4s._
 import org.http4s.metrics.MetricsOps
@@ -28,6 +45,12 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
   */
 object Metrics {
 
+  private[this] final case class MetricsRequestContext(
+      method: Method,
+      startTime: Long,
+      classifier: Option[String]
+  )
+
   /** A server middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
@@ -43,6 +66,7 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       }
+<<<<<<< HEAD
   )(routes: HttpRoutes[F])(implicit F: Async[F]): HttpRoutes[F] =
     Kleisli(
       metricsService[F](ops, routes, emptyResponseHandler, errorResponseHandler, classifierF)(_))
@@ -190,4 +214,63 @@ object Metrics {
           case _ => F.unit
         }
       }
+=======
+  )(routes: HttpRoutes[F])(implicit F: Sync[F], clock: Clock[F]): HttpRoutes[F] =
+    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
+      (request: Request[F]) =>
+        val classifier: Option[String] = classifierF(request)
+        ops.increaseActiveRequests(classifier) *>
+          clock
+            .monotonic(TimeUnit.NANOSECONDS)
+            .map(startTime =>
+              ContextRequest(MetricsRequestContext(request.method, startTime, classifier), request))
+    } { case (context, maybeStatus, exitCase) =>
+      // Decrease active requests _first_ in case any of the other effects
+      // trigger an error. This differs from the < 0.21.14 semantics, which
+      // decreased it _after_ the other effects. This may have been the
+      // reason the active requests counter was reported to have drifted.
+      ops.decreaseActiveRequests(context.classifier) *>
+        clock
+          .monotonic(TimeUnit.NANOSECONDS)
+          .map(endTime => endTime - context.startTime)
+          .flatMap(totalTime =>
+            (exitCase match {
+              case ExitCase.Completed =>
+                (maybeStatus <+> emptyResponseHandler).traverse_(status =>
+                  ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+              case ExitCase.Error(e) =>
+                maybeStatus.fold {
+                  // If an error occurred, and the status is empty, this means
+                  // that an error occurred before the routes could generate a
+                  // response.
+                  ops.recordHeadersTime(context.method, totalTime, context.classifier) *>
+                    ops.recordAbnormalTermination(totalTime, Error(e), context.classifier) *>
+                    errorResponseHandler(e).traverse_(status =>
+                      ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+                }(status =>
+                  // If an error occurred, but the status is non-empty, this
+                  // means the error occurred during the stream processing of
+                  // the response body. In this case recordHeadersTime would
+                  // have been invoked in the normal manner so we do not need
+                  // to invoke it here.
+                  ops.recordAbnormalTermination(totalTime, Abnormal(e), context.classifier) *>
+                    ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+              case ExitCase.Canceled =>
+                ops.recordAbnormalTermination(totalTime, Canceled, context.classifier)
+            }))
+    }(F)(
+      Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>
+        routes
+          .run(contextRequest.req)
+          .semiflatMap(response =>
+            clock
+              .monotonic(TimeUnit.NANOSECONDS)
+              .map(now => now - contextRequest.context.startTime)
+              .flatTap(headerTime =>
+                ops.recordHeadersTime(
+                  contextRequest.context.method,
+                  headerTime,
+                  contextRequest.context.classifier)) *> F.pure(
+              ContextResponse(response.status, response)))))
+>>>>>>> cats-effect-3
 }

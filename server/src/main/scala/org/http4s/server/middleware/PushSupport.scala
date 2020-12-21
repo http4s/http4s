@@ -1,7 +1,17 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s
@@ -10,8 +20,13 @@ package middleware
 
 import cats.{Functor, Monad}
 import cats.data.Kleisli
+<<<<<<< HEAD
 import cats.effect.SyncIO
 import cats.implicits._
+=======
+import cats.effect.IO
+import cats.syntax.all._
+>>>>>>> cats-effect-3
 import org.log4s.getLogger
 import io.chrisdavenport.vault._
 
@@ -55,15 +70,17 @@ object PushSupport {
     def fetchAndAdd(facc: F[Vector[PushResponse[F]]], v: PushLocation): F[Vector[PushResponse[F]]] =
       routes(req.withPathInfo(Uri.Path.fromString(v.location))).value.flatMap {
         case None => emptyCollect
-        case Some(response) if !v.cascade =>
-          facc.map(_ :+ PushResponse(v.location, response))
-        case Some(response) if v.cascade =>
-          val pr = PushResponse(v.location, response)
-          response.attributes.lookup(pushLocationKey) match {
-            case Some(pushed) => // Need to gather the sub resources
-              val fsubs = collectResponse(pushed, req, verify, routes)
-              F.map2(facc, fsubs)(_ ++ _ :+ pr)
-            case None => facc.map(_ :+ pr)
+        case Some(response) =>
+          if (v.cascade) {
+            val pr = PushResponse(v.location, response)
+            response.attributes.lookup(pushLocationKey) match {
+              case Some(pushed) => // Need to gather the sub resources
+                val fsubs = collectResponse(pushed, req, verify, routes)
+                F.map2(facc, fsubs)(_ ++ _ :+ pr)
+              case None => facc.map(_ :+ pr)
+            }
+          } else {
+            facc.map(_ :+ PushResponse(v.location, response))
           }
       }
 

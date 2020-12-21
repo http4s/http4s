@@ -1,13 +1,23 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2013 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s
 
-import cats.implicits._
-import cats.{Eq, Hash, Show}
+import cats.syntax.all._
+import cats.{Hash, Order, Show}
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
 import scala.util.hashing.MurmurHash3
@@ -147,10 +157,15 @@ object Method {
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap
 
-  implicit val catsHashForHttp4sMethod: Hash[Method] = Hash.fromUniversalHashCode
+  implicit val catsInstancesForHttp4sMethod: Show[Method] with Hash[Method] with Order[Method] =
+    new Show[Method] with Hash[Method] with Order[Method] {
+      override def show(t: Method): String =
+        t.toString
 
-  @deprecated("Upgraded to hash. Kept for binary compatibility", "0.21.5")
-  def http4sEqForMethod: Eq[Method] = catsHashForHttp4sMethod
+      override def hash(x: Method): Int =
+        x.hashCode
 
-  implicit val http4sShowForMethod: Show[Method] = Show.fromToString
+      override def compare(x: Method, y: Method): Int =
+        x.name.compare(y.name)
+    }
 }

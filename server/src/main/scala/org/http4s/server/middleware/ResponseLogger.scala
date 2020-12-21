@@ -1,7 +1,17 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s
@@ -11,9 +21,17 @@ package middleware
 import cats.~>
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
+<<<<<<< HEAD
 import cats.effect.kernel.{Async, MonadCancel, Outcome, Sync}
 import cats.effect.syntax.all._
 import cats.implicits._
+=======
+import cats.effect.{Bracket, Concurrent, ExitCase, Sync}
+import cats.effect.implicits._
+import cats.effect.Sync._
+import cats.effect.concurrent.Ref
+import cats.syntax.all._
+>>>>>>> cats-effect-3
 import fs2.{Chunk, Stream}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString

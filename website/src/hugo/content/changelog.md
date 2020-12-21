@@ -8,6 +8,65 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M9 (2020-12-12)
+
+## http4s-core
+
+### Breaking changes
+
+* [#3913](https://github.com/http4s/http4s/pull/3913): Regenerated the `MimeDb` trait from the IANA registry. This shifts a few constants around and is binary breaking, but the vast majority of users won't notice.
+
+## Dependency updates
+
+* jackson-databind-2.12.0
+
+# v0.21.14 (2020-12-11)
+
+## http4s-core
+
+### Bugfixes
+
+* [#3966](https://github.com/http4s/http4s/pull/3966): In `Link` header, retain the first `rel` attribute when multiple are present
+
+### Enhancements
+
+* [#3937](https://github.com/http4s/http4s/pull/3937): Add `Order[Charset]` and `Hash[Charset]` instances
+* [#3969](https://github.com/http4s/http4s/pull/3969): Add `Order[Uri]`, `Hash[Uri]`, and `Show[Uri]`. Add the same for its component types.
+* [#3966](https://github.com/http4s/http4s/pull/3966): Add `Order[Method]` instance
+
+## http4s-server
+
+### Enhancements
+
+* [#3977](https://github.com/http4s/http4s/pull/3977): Add a `BracketRequestResponse` middleware, to reflect lifecycles between acquiring the `F[Response[F]]` and completion of the response body `Stream[F, Byte]`.  Introduces a new `ConcurrentRequests` middleware, and refactors `MaxActiveRequests` on top of it.
+
+## http4s-okhttp-client
+
+### Bugfixes
+
+* [#4006](https://github.com/http4s/http4s/pull/4006): Set `Content-Length` header on requests where available instead of always chunking
+
+## http4s-metrics
+
+### Bugfixes
+
+* [#3977](https://github.com/http4s/http4s/pull/3977): Changes from `BracketRequestResponse` middleware may address reported leaks in `decreaseActiveRequests`.  Corrects a bug in `recordHeadersTime`.  Also can now record times for abnormal terminations.
+
+## Internals
+
+Should not affect end users, but noted just in case:
+
+* [#3964](https://github.com/http4s/http4s/pull/3964): Replace `cats.implicits._` imports with `cats.syntax.all._`. Should not be user visible.
+* [#3963](https://github.com/http4s/http4s/pull/3963), [#3983](https://github.com/http4s/http4s/pull/3983): Port several tests to MUnit. This helps with CI health.
+* [#3980](https://github.com/http4s/http4s/pull/3980): Integrate new sbt-http4s-org plugin with sbt-spiewak
+
+## Dependency bumps
+
+* cats-2.3.0
+* cats-effect-2.3.0
+* dropwizard-metrics-4.1.16
+* scodec-bits-1.1.22
+
 # v1.0.0-M8 (2020-11-26)
 
 ## Breaking changes

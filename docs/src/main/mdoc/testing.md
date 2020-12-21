@@ -14,7 +14,7 @@ After reading this doc, the reader should feel comfortable writing a unit test u
 Now, let's define an `org.http4s.HttpService`.
 
 ```scala mdoc:silent
-import cats.implicits._
+import cats.syntax.all._
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.semiauto._

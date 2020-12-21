@@ -4,7 +4,13 @@ import org.http4s.sbt.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / scalaVersion := scala_213
+ThisBuild / crossScalaVersions := Seq(scala_212, scala_213)
+ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
+ThisBuild / baseVersion := "1.0"
+ThisBuild / publishGithubUser := "rossabaker"
+ThisBuild / publishFullName   := "Ross A. Baker"
+
+enablePlugins(SonatypeCiReleasePlugin)
 
 lazy val modules: List[ProjectReference] = List(
   core,
@@ -50,15 +56,16 @@ lazy val modules: List[ProjectReference] = List(
   // scalafixInput,
   // scalafixOutput,
   // scalafixRules,
-  // scalafixTests
+  // scalafixTests,
 )
 
 lazy val root = project.in(file("."))
-  .enablePlugins(PrivateProjectPlugin)
+  .enablePlugins(NoPublishPlugin)
   .settings(
     // Root project
     name := "http4s",
     description := "A minimal, Scala-idiomatic library for HTTP",
+    startYear := Some(2013),
   )
   .aggregate(modules: _*)
 
@@ -66,10 +73,11 @@ lazy val core = libraryProject("core")
   .enablePlugins(
     BuildInfoPlugin,
     MimeLoaderPlugin,
-    SilencerPlugin
+    NowarnCompatPlugin,
   )
   .settings(
     description := "Core http4s library for servers and clients",
+    startYear := Some(2013),
     buildInfoKeys := Seq[BuildInfoKey](
       version,
       scalaVersion,
@@ -87,14 +95,21 @@ lazy val core = libraryProject("core")
       scalaReflect(scalaVersion.value) % Provided,
       scodecBits,
       slf4jApi, // residual dependency from macros
-      vault,
+      unique,
+      /* vault, */
     ),
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
+    mimaBinaryIssueFilters ++= Seq(
+      // These were private[this], surfaced by 2.13.4's exhaustiveness checker
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
+    ),
   )
 
 lazy val laws = libraryProject("laws")
   .settings(
     description := "Instances and laws for testing http4s code",
+    startYear := Some(2019),
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
       catsEffectTestkit,
@@ -108,6 +123,7 @@ lazy val laws = libraryProject("laws")
 lazy val testing = libraryProject("testing")
   .settings(
     description := "Instances and laws for testing http4s code",
+    startYear := Some(2016),
     libraryDependencies ++= Seq(
       specs2Common,
       specs2Matcher,
@@ -125,16 +141,18 @@ lazy val testing = libraryProject("testing")
 
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
-  .enablePlugins(PrivateProjectPlugin)
+  .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Tests for core project",
+    startYear := Some(2013),
   )
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
-  .enablePlugins(SilencerPlugin)
+  .enablePlugins(NowarnCompatPlugin)
   .settings(
-    description := "Base library for building http4s servers"
+    description := "Base library for building http4s servers",
+    startYear := Some(2014),
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
@@ -149,6 +167,7 @@ lazy val server = libraryProject("server")
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
     description := "Support for Prometheus Metrics",
+    startYear := Some(2018),
     libraryDependencies ++= Seq(
       prometheusClient,
       prometheusCommon,
@@ -164,9 +183,10 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   )
 
 lazy val client = libraryProject("client")
-  .enablePlugins(SilencerPlugin)
+  .enablePlugins(NowarnCompatPlugin)
   .settings(
     description := "Base library for building http4s clients",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       jettyServlet % Test,
     )
@@ -181,6 +201,7 @@ lazy val client = libraryProject("client")
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
   .settings(
     description := "Support for Dropwizard Metrics",
+    startYear := Some(2018),
     libraryDependencies ++= Seq(
       dropwizardMetricsCore,
       dropwizardMetricsJson,
@@ -197,6 +218,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
 lazy val emberCore = libraryProject("ember-core")
   .settings(
     description := "Base library for ember http4s clients and servers",
+    startYear := Some(2019),
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
       log4catsTesting % Test,
@@ -226,6 +248,7 @@ lazy val emberCore = libraryProject("ember-core")
 lazy val emberServer = libraryProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
+    startYear := Some(2019),
     libraryDependencies ++= Seq(
       log4catsSlf4j,
     ),
@@ -240,6 +263,7 @@ lazy val emberServer = libraryProject("ember-server")
 lazy val emberClient = libraryProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
+    startYear := Some(2019),
     libraryDependencies ++= Seq(
       keypool,
       log4catsSlf4j,
@@ -255,6 +279,7 @@ lazy val emberClient = libraryProject("ember-client")
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       blazeHttp,
     )
@@ -264,18 +289,21 @@ lazy val blazeCore = libraryProject("blaze-core")
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
+    startYear := Some(2014),
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
+    startYear := Some(2014),
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
+    startYear := Some(2016),
     libraryDependencies ++= Seq(
       Http4sPlugin.asyncHttpClient,
       fs2ReactiveStreams,
@@ -289,6 +317,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
     description := "jetty implementation for http4s clients",
+    startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.jettyClient,
       jettyHttp,
@@ -300,6 +329,7 @@ lazy val jettyClient = libraryProject("jetty-client")
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
     description := "okhttp implementation for http4s clients",
+    startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.okhttp,
       okio,
@@ -310,6 +340,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
 lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
+    startYear := Some(2013),
     libraryDependencies ++= Seq(
       javaxServletApi % Provided,
       jettyServer % Test,
@@ -321,6 +352,7 @@ lazy val servlet = libraryProject("servlet")
 lazy val jetty = libraryProject("jetty")
   .settings(
     description := "Jetty implementation for http4s servers",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       jettyHttp2Server,
       jettyServer,
@@ -333,6 +365,7 @@ lazy val jetty = libraryProject("jetty")
 lazy val tomcat = libraryProject("tomcat")
   .settings(
     description := "Tomcat implementation for http4s servers",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       tomcatCatalina,
       tomcatCoyote,
@@ -345,12 +378,14 @@ lazy val tomcat = libraryProject("tomcat")
 lazy val theDsl = libraryProject("dsl")
   .settings(
     description := "Simple DSL for writing http4s services",
+    startYear := Some(2013),
   )
   .dependsOn(core, testing % "test->test")
 
 lazy val jawn = libraryProject("jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       jawnFs2,
       jawnParser,
@@ -361,6 +396,7 @@ lazy val jawn = libraryProject("jawn")
 lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       Http4sPlugin.argonaut,
       argonautJawn
@@ -371,6 +407,7 @@ lazy val argonaut = libraryProject("argonaut")
 lazy val boopickle = libraryProject("boopickle")
   .settings(
     description := "Provides Boopickle codecs for http4s",
+    startYear := Some(2018),
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle,
     )
@@ -380,6 +417,7 @@ lazy val boopickle = libraryProject("boopickle")
 lazy val circe = libraryProject("circe")
   .settings(
     description := "Provides Circe codecs for http4s",
+    startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore,
       circeJawn,
@@ -391,6 +429,7 @@ lazy val circe = libraryProject("circe")
 lazy val json4s = libraryProject("json4s")
   .settings(
     description := "Base library for json4s codecs for http4s",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       jawnJson4s,
       json4sCore,
@@ -401,6 +440,7 @@ lazy val json4s = libraryProject("json4s")
 lazy val json4sNative = libraryProject("json4s-native")
   .settings(
     description := "Provides json4s-native codecs for http4s",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       Http4sPlugin.json4sNative,
     )
@@ -410,6 +450,7 @@ lazy val json4sNative = libraryProject("json4s-native")
 lazy val json4sJackson = libraryProject("json4s-jackson")
   .settings(
     description := "Provides json4s-jackson codecs for http4s",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       Http4sPlugin.json4sJackson,
     )
@@ -419,6 +460,7 @@ lazy val json4sJackson = libraryProject("json4s-jackson")
 lazy val playJson = libraryProject("play-json")
   .settings(
     description := "Provides Play json codecs for http4s",
+    startYear := Some(2018),
     libraryDependencies ++= Seq(
       jawnPlay,
       Http4sPlugin.playJson,
@@ -429,6 +471,7 @@ lazy val playJson = libraryProject("play-json")
 lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
       Http4sPlugin.scalaXml,
     ),
@@ -438,6 +481,7 @@ lazy val scalaXml = libraryProject("scala-xml")
 lazy val twirl = http4sProject("twirl")
   .settings(
     description := "Twirl template support for http4s",
+    startYear := Some(2014),
     TwirlKeys.templateImports := Nil
   )
   .enablePlugins(SbtTwirl)
@@ -446,6 +490,7 @@ lazy val twirl = http4sProject("twirl")
 lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
+    startYear := Some(2018),
     libraryDependencies ++= Seq(
       scalatagsApi,
     )
@@ -454,9 +499,10 @@ lazy val scalatags = http4sProject("scalatags")
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
-  .enablePlugins(PrivateProjectPlugin)
+  .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Benchmarks for http4s",
+    startYear := Some(2015),
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
@@ -467,19 +513,19 @@ lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,
     HugoPlugin,
-    PrivateProjectPlugin,
+    NoPublishPlugin,
     ScalaUnidocPlugin,
     MdocPlugin
   )
   .settings(docsProjectSettings)
   .settings(
-    crossScalaVersions := List(scala_212),
     libraryDependencies ++= Seq(
       circeGeneric,
       circeLiteral,
       cryptobits
     ),
     description := "Documentation for http4s",
+    startYear := Some(2013),
     autoAPIMappings := true,
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
@@ -495,13 +541,9 @@ lazy val docs = http4sProject("docs")
         scalafixRules,
         scalafixTests
       ),
-    Compile / scalacOptions ~= {
-      val unwanted = Set("-Ywarn-unused:params", "-Xlint:missing-interpolator", "-Ywarn-unused:imports")
-      // unused params warnings are disabled due to undefined functions in the doc
-      _.filterNot(unwanted) :+ "-Xfatal-warnings"
-    },
     mdocIn := (sourceDirectory in Compile).value / "mdoc",
     makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
+    fatalWarningsInCI := false,
     Hugo / baseURL := {
       val docsPrefix = extractDocsPrefix(version.value)
       if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
@@ -528,10 +570,11 @@ lazy val docs = http4sProject("docs")
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
-  .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
+  .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
     description := "Common area of http4s.org",
+    startYear := Some(2013),
     Hugo / baseURL := {
       if (isCi.value) new URI(s"https://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
@@ -549,16 +592,15 @@ lazy val website = http4sProject("website")
   )
 
 lazy val examples = http4sProject("examples")
-  .enablePlugins(PrivateProjectPlugin)
+  .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Common code for http4s examples",
+    startYear := Some(2013),
     libraryDependencies ++= Seq(
       circeGeneric % Runtime,
       logbackClassic % Runtime
     ),
     TwirlKeys.templateImports := Nil,
-    undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
@@ -568,12 +610,11 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",
+    startYear := Some(2013),
     fork := true,
     libraryDependencies ++= Seq(
       circeGeneric,
     ),
-    undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -581,23 +622,21 @@ lazy val examplesEmber = exampleProject("examples-ember")
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",
+    startYear := Some(2020),
     fork := true,
-    undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(emberServer, emberClient)
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
-  .enablePlugins(JavaAppPackaging, DockerPlugin, PrivateProjectPlugin)
+  .enablePlugins(JavaAppPackaging, DockerPlugin, NoPublishPlugin)
   .settings(
     description := "Builds a docker image for a blaze-server",
+    startYear := Some(2017),
     Docker / packageName := "http4s/blaze-server",
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
-    undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(blazeServer, theDsl)
 
@@ -605,10 +644,9 @@ lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(Revolver.settings)
   .settings(
     description := "Example of http4s server on Jetty",
+    startYear := Some(2014),
     fork := true,
     reStart / mainClass := Some("com.example.http4s.jetty.JettyExample"),
-    undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(jetty)
 
@@ -616,10 +654,9 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(Revolver.settings)
   .settings(
     description := "Example of http4s server on Tomcat",
+    startYear := Some(2014),
     fork := true,
     reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample"),
-    undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(tomcat)
 
@@ -628,11 +665,10 @@ lazy val examplesWar = exampleProject("examples-war")
   .enablePlugins(JettyPlugin)
   .settings(
     description := "Example of a WAR deployment of an http4s service",
+    startYear := Some(2014),
     fork := true,
     libraryDependencies += javaxServletApi % Provided,
     Jetty / containerLibs := List(jettyRunner),
-    undeclaredCompileDependenciesTest := {},
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(servlet)
 
@@ -654,6 +690,7 @@ lazy val scalafixSettings: Seq[Setting[_]] = Seq(
   addCompilerPlugin(scalafixSemanticdb),
   scalacOptions += "-Yrangepos",
   mimaPreviousArtifacts := Set.empty,
+  startYear := Some(2018)
 )
 
 lazy val scalafixRules = project
@@ -669,7 +706,6 @@ lazy val scalafixInput = project
   .in(file("scalafix/input"))
   .settings(scalafixSettings)
   .settings(
-    skip in publish := true,
     libraryDependencies ++= List(
       "http4s-blaze-client",
       "http4s-blaze-server",
@@ -680,21 +716,24 @@ lazy val scalafixInput = project
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
-    scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) }
+    scalacOptions ~= { _.filterNot(_.startsWith("-Wunused:")) },
+    excludeFilter in headerSources := { _ => true },
   )
   // Syntax matters as much as semantics here.
-  .disablePlugins(HeaderPlugin, ScalafmtPlugin)
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafmtPlugin)
 
 lazy val scalafixOutput = project
   .in(file("scalafix/output"))
   .settings(scalafixSettings)
   .settings(
-    skip in publish := true,
     skip in compile := true,
-    Compile / doc / sources := Nil
+    Compile / doc / sources := Nil,
+    excludeFilter in headerSources := { _ => true },
   )
   // Auto-formatting prevents the tests from passing
-  .disablePlugins(HeaderPlugin, ScalafmtPlugin)
+  .enablePlugins(NoPublishPlugin)
+  .disablePlugins(ScalafmtPlugin)
 
 lazy val scalafixTests = project
   .in(file("scalafix/tests"))
@@ -713,6 +752,7 @@ lazy val scalafixTests = project
       (scalafixInput / Compile / fullClasspath).value,
   )
   .dependsOn(scalafixRules)
+  .enablePlugins(NoPublishPlugin)
   .enablePlugins(ScalafixTestkitPlugin)
   .enablePlugins(AutomateHeaderPlugin)
 
@@ -725,23 +765,19 @@ def http4sProject(name: String) =
       testFrameworks += new TestFramework("munit.Framework"),
       initCommands()
     )
-    .enablePlugins(AutomateHeaderPlugin)
+    .enablePlugins(Http4sPlugin)
 
 def libraryProject(name: String) = http4sProject(name)
 
 def exampleProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
-    .enablePlugins(PrivateProjectPlugin)
+    .enablePlugins(NoPublishPlugin)
     .settings(libraryDependencies += logbackClassic % Runtime)
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",
-  javacOptions ++= Seq(
-    "-Xlint:deprecation",
-    "-Xlint:unchecked"
-  ),
   libraryDependencies ++= Seq(
     catsEffectTestingSpecs2,
     catsLaws,
