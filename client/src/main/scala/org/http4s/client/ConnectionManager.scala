@@ -18,13 +18,8 @@ package org.http4s
 package client
 
 import cats.effect._
-<<<<<<< HEAD
 import cats.effect.std.Semaphore
-import cats.implicits._
-=======
-import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
->>>>>>> cats-effect-3
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration

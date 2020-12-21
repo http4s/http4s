@@ -19,13 +19,8 @@ package client
 package middleware
 
 import cats.effect._
-<<<<<<< HEAD
 import cats.effect.Ref
-import cats.implicits._
-=======
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import fs2._
 import org.log4s.getLogger
 import org.typelevel.ci.CIString

@@ -17,14 +17,8 @@
 package org.http4s.client.middleware
 
 import cats._
-<<<<<<< HEAD
-import cats.implicits._
-import cats.effect.kernel._
-=======
 import cats.syntax.all._
-import cats.effect._
-import cats.effect.concurrent._
->>>>>>> cats-effect-3
+import cats.effect.kernel._
 import org.http4s._
 import org.http4s.client.Client
 

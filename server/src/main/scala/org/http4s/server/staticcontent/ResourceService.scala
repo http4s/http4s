@@ -19,13 +19,8 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-<<<<<<< HEAD
 import cats.effect.Async
-import cats.implicits._
-=======
-import cats.effect.{Blocker, ContextShift, Sync}
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import java.nio.file.Paths
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger

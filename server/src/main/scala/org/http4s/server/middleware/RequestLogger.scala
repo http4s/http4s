@@ -23,12 +23,7 @@ import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
 import cats.effect.kernel.{Async, MonadCancel, Outcome, Sync}
 import cats.effect.implicits._
-<<<<<<< HEAD
-import cats.implicits._
-=======
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import fs2.{Chunk, Stream}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString

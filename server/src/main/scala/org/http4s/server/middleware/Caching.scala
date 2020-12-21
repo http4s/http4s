@@ -16,12 +16,8 @@
 
 package org.http4s.server.middleware
 
-<<<<<<< HEAD
-import cats.implicits._
-=======
 import cats._
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import cats.effect._
 import cats.data._
 import org.http4s._

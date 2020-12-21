@@ -18,13 +18,8 @@ package org.http4s
 package client
 package middleware
 
-<<<<<<< HEAD
 import cats.effect.kernel.{Resource, Temporal}
-import cats.implicits._
-=======
-import cats.effect.{Concurrent, Resource, Timer}
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.http4s.Status._

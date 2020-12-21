@@ -19,13 +19,8 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, NonEmptyList, OptionT}
-<<<<<<< HEAD
 import cats.effect.kernel.Async
-import cats.implicits._
-=======
-import cats.effect.{Blocker, ContextShift, Sync}
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import java.io.File
 import java.nio.file.NoSuchFileException
 import java.nio.file.{LinkOption, Path, Paths}

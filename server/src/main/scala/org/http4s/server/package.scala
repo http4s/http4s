@@ -18,13 +18,8 @@ package org.http4s
 
 import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
-<<<<<<< HEAD
-import cats.implicits._
-import cats.effect.SyncIO
-=======
 import cats.syntax.all._
-import cats.effect.IO
->>>>>>> cats-effect-3
+import cats.effect.SyncIO
 import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}

@@ -20,6 +20,7 @@ package client
 import cats.effect._
 import fs2.Stream
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 class PoolManagerSpec(name: String) extends Http4sSpec {
   locally {
@@ -47,7 +48,7 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
       maxConnectionsPerRequestKey = _ => 5,
       responseHeaderTimeout = Duration.Inf,
       requestTimeout = requestTimeout,
-      executionContext = testExecutionContext
+      executionContext = ExecutionContext.Implicits.global
     )
 
   "A pool manager" should {

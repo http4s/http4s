@@ -19,13 +19,8 @@ package client
 
 import cats.Applicative
 import cats.data.Kleisli
-<<<<<<< HEAD
 import cats.effect.Resource
-import cats.implicits._
-=======
-import cats.effect.{Bracket, Resource}
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}

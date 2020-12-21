@@ -23,13 +23,8 @@ import org.http4s.{Header, Http, Request, Response}
 import cats.{FlatMap, ~>}
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
-<<<<<<< HEAD
 import cats.effect.{Sync, SyncIO}
-import cats.implicits._
-=======
-import cats.effect.{IO, Sync}
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import org.typelevel.ci.CIString
 import io.chrisdavenport.vault.Key
 import java.util.UUID

@@ -21,12 +21,7 @@ import org.http4s.{Http, Response, Status}
 import cats.data.Kleisli
 import cats.effect.kernel.Temporal
 import scala.concurrent.duration.FiniteDuration
-<<<<<<< HEAD
 import cats.implicits._
-=======
-import cats.syntax.all._
-import java.util.concurrent.TimeUnit.NANOSECONDS
->>>>>>> cats-effect-3
 import scala.concurrent.duration._
 
 /** Transform a service to reject any calls the go over a given rate.

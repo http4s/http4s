@@ -20,13 +20,8 @@ package middleware
 
 import cats.{Functor, Monad}
 import cats.data.Kleisli
-<<<<<<< HEAD
 import cats.effect.SyncIO
-import cats.implicits._
-=======
-import cats.effect.IO
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import org.log4s.getLogger
 import io.chrisdavenport.vault._
 

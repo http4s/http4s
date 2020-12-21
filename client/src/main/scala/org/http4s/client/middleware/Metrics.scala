@@ -16,14 +16,8 @@
 
 package org.http4s.client.middleware
 
-<<<<<<< HEAD
 import cats.effect.kernel.{Ref, Resource, Temporal}
-import cats.implicits._
-=======
-import cats.effect.{Clock, Resource, Sync}
 import cats.syntax.all._
-import java.util.concurrent.TimeUnit
->>>>>>> cats-effect-3
 
 import org.http4s.{Request, Response, Status}
 import org.http4s.client.Client

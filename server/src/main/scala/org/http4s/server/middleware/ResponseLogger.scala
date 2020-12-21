@@ -21,17 +21,9 @@ package middleware
 import cats.~>
 import cats.arrow.FunctionK
 import cats.data.{Kleisli, OptionT}
-<<<<<<< HEAD
 import cats.effect.kernel.{Async, MonadCancel, Outcome, Sync}
 import cats.effect.syntax.all._
-import cats.implicits._
-=======
-import cats.effect.{Bracket, Concurrent, ExitCase, Sync}
-import cats.effect.implicits._
-import cats.effect.Sync._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import fs2.{Chunk, Stream}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString

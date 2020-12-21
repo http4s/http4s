@@ -20,13 +20,8 @@ package client
 import cats.~>
 import cats.data.Kleisli
 import cats.effect._
-<<<<<<< HEAD
 import cats.effect.Ref
-import cats.implicits._
-=======
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import fs2._
 import java.io.IOException
 import org.http4s.headers.Host

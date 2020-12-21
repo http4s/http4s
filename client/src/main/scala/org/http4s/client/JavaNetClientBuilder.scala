@@ -17,13 +17,8 @@
 package org.http4s
 package client
 
-<<<<<<< HEAD
 import cats.effect.{Async, Resource, Sync}
-import cats.implicits._
-=======
-import cats.effect.{Async, Blocker, ContextShift, Resource, Sync}
 import cats.syntax.all._
->>>>>>> cats-effect-3
 import fs2.Stream
 import fs2.io.{readInputStream, writeOutputStream}
 import java.io.IOException
