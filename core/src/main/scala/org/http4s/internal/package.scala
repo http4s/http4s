@@ -189,10 +189,8 @@ package object internal {
     }
 
   private[http4s] def fromCompletableFutureShift[F[_], A](
-      fcs: F[CompletableFuture[A]])(implicit
-      F: Concurrent[F],
-      CS: ContextShift[F]): F[A] =
-    F.bracketCase(fcs){ cs =>
+      fcs: F[CompletableFuture[A]])(implicit F: Concurrent[F], CS: ContextShift[F]): F[A] =
+    F.bracketCase(fcs) { cs =>
       F.async[A] { cb =>
         cs.handle[Unit] { (result, err) =>
           err match {
@@ -210,8 +208,7 @@ package object internal {
           F.delay(cs.completeExceptionally(e))
         case ExitCase.Canceled =>
           F.delay(cs.cancel(true))
-      }).void.guarantee(CS.shift)
-    )
+      }).void.guarantee(CS.shift))
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
       fa: F[A]
