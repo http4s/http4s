@@ -114,7 +114,8 @@ object QValue {
         ch('1') *> (ch('.') *> ch('0').rep.void).?.as(One)
       )
 
-    (ch(';') *> optWs *> ignoreCaseChar('q') *> ch('=') *> qValue).orElse(pure(One))
+    ((ch(';') *> optWs *> ignoreCaseChar('q') *> ch('=')) *> qValue).backtrack
+      .orElse(pure(QValue.One))
   }
 
   def parse(s: String): ParseResult[QValue] =
