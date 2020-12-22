@@ -17,6 +17,7 @@
 package org.http4s
 package parser
 
+import cats.data.NonEmptyList
 import org.http4s.headers.`Set-Cookie`
 import org.specs2.mutable.Specification
 
@@ -104,6 +105,12 @@ class CookieHeaderSpec extends Specification with HeaderParserHelper[headers.Coo
     }
     "parse a cookie (semicolon at the end)" in {
       parse(cookiestrSemicolon).values.toList must be_==(cookies)
+    }
+    "tolerate spaces" in {
+      hparse("initialTrafficSource=utmcsr=(direct)|utmcmd=(none)|utmccn=(not set);").map(
+        _.values) must beRight(
+        NonEmptyList.one(
+          RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")))
     }
   }
 }
