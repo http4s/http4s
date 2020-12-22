@@ -16,8 +16,7 @@
 
 package org.http4s
 
-import cats.effect.Blocker
-import cats.effect.IO
+import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8Decode
@@ -50,4 +49,5 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
 object Http4sSuite {
   val TestBlocker: Blocker =
     Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
+
 }
