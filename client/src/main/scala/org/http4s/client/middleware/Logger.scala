@@ -56,4 +56,18 @@ object Logger {
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage[F, A](message)(logHeaders, logBody, redactHeadersWhen)(log)
+
+  def colored[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      requestColor: String = RequestLogger.defaultRequestColor,
+      responseColor: Response[F] => String = ResponseLogger.defaultResponseColor _,
+      logAction: Option[String => F[Unit]] = None
+  )(client: Client[F]): Client[F] =
+    ResponseLogger.colored(logHeaders, logBody, redactHeadersWhen, responseColor, logAction)(
+      RequestLogger.colored(logHeaders, logBody, redactHeadersWhen, requestColor, logAction)(
+        client
+      )
+    )
 }
