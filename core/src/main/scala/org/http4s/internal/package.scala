@@ -38,6 +38,7 @@ import scala.util.control.NoStackTrace
 import scala.util.{Failure, Success}
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
+import cats.effect.ExitCase
 
 package object internal {
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
@@ -167,6 +168,7 @@ package object internal {
       }
     }
 
+  @deprecated(message = "Use fromCompletableFutureShift", since = "0.21.15")
   private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
       fcs: F[CF[A]])(implicit
       // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
@@ -185,6 +187,31 @@ package object internal {
         ()
       }.guarantee(CS.shift)
     }
+
+  private[http4s] def fromCompletableFutureShift[F[_], A](
+      fcs: F[CompletableFuture[A]])(implicit
+      F: Concurrent[F],
+      CS: ContextShift[F]): F[A] =
+    F.bracketCase(fcs){ cs =>
+      F.async[A] { cb =>
+        cs.handle[Unit] { (result, err) =>
+          err match {
+            case null => cb(Right(result))
+            case _: CancellationException => ()
+            case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
+            case ex => cb(Left(ex))
+          }
+        }; ();
+      }
+    }((cs, ec) =>
+      (ec match {
+        case ExitCase.Completed => F.unit
+        case ExitCase.Error(e) =>
+          F.delay(cs.completeExceptionally(e))
+        case ExitCase.Canceled =>
+          F.delay(cs.cancel(true))
+      }).void.guarantee(CS.shift)
+    )
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
       fa: F[A]
