@@ -21,7 +21,7 @@ lazy val modules: List[ProjectReference] = List(
   // prometheusMetrics,
   // client,
   // dropwizardMetrics,
-  // emberCore,
+  emberCore,
   // emberServer,
   // emberClient,
   blazeCore,
