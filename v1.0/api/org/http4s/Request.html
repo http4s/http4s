@@ -868,7 +868,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/a497d1a445d5757bcc865b9d2789a453abb0fbe6/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/9661f079b291560e143c67020c20b4ecd9bc45a3/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -930,7 +930,7 @@ status line, headers, and a possible request body.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Request</span><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = Uri.Path.Root)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Request.F">F</span>] = <span class="symbol"><span class="name"><a href="index.html#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span> = <span class="symbol">Vault.empty</span></span>)</span>
+        <span class="name">Request</span><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = Uri.Path.Root)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Request.F">F</span>] = <span class="symbol"><span class="name"><a href="index.html#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Vault.html#io.chrisdavenport.vault.Vault" class="extype" name="io.chrisdavenport.vault.Vault">Vault</a> = <span class="symbol">Vault.empty</span></span>)</span>
       </span>
       
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Method" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <a href="Method$.html#POST:org.http4s.Method" class="extmbr" name="org.http4s.Method#POST">Method.POST</a>, etc.</p></dd><dt class="param">uri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>fs2.Stream[F, Byte] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion</p></dd></dl></div>
@@ -1058,7 +1058,7 @@ status line, headers, and a possible request body.
         <span class="name">addCookie</span><span class="params">(<span name="cookie">cookie: <a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Add a Cookie header for the provided <span class="extype" name="Cookie">Cookie</span></p>
+      <p class="shortcomment cmt">Add a Cookie header for the provided <a href="headers/Cookie.html" class="extype" name="org.http4s.headers.Cookie">org.http4s.headers.Cookie</a></p>
     </li><li name="org.http4s.Media#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="as[A](implicitF:cats.MonadError[F,Throwable],implicitdecoder:org.http4s.EntityDecoder[F,A]):F[A]"></a><a id="as[A](MonadError[F,Throwable],EntityDecoder[F,A]):F[A]"></a>
       <span class="permalink">
@@ -1139,7 +1139,7 @@ status line, headers, and a possible request body.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">attributes</span><span class="result">: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span></span>
+        <span class="name">attributes</span><span class="result">: <a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Vault.html#io.chrisdavenport.vault.Vault" class="extype" name="io.chrisdavenport.vault.Vault">Vault</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -1187,7 +1187,7 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">bodyText</span><span class="params">(<span class="implicit">implicit </span><span name="RT">RT: <span class="extype" name="fs2.RaiseThrowable">RaiseThrowable</span>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.Request.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">bodyText</span><span class="params">(<span class="implicit">implicit </span><span name="RT">RT: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.4.6/fs2-core_2.12-2.4.6-javadoc.jar/!/fs2/RaiseThrowable.html#fs2.RaiseThrowable" class="extype" name="fs2.RaiseThrowable">RaiseThrowable</a>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>, <span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.4.6/fs2-core_2.12-2.4.6-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.Request.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Media.html" class="extype" name="org.http4s.Media">Media</a></dd></dl></div>
@@ -1219,7 +1219,7 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">change</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="attributes">attributes: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">change</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="attributes">attributes: <a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Vault.html#io.chrisdavenport.vault.Vault" class="extype" name="io.chrisdavenport.vault.Vault">Vault</a></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -1310,9 +1310,10 @@ status line, headers, and a possible request body.
         <span class="name">cookies</span><span class="result">: <a href="../../scala/index.html#List[+A]=List[A]" class="extmbr" name="scala.List">List</a>[<a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Parses all available <span class="extype" name="Cookie">Cookie</span> headers into a list of <a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a> objects.</p><div class="fullcomment"><div class="comment cmt"><p>Parses all available <span class="extype" name="Cookie">Cookie</span> headers into a list of <a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a> objects. This
-implementation is compatible with cookie headers formatted per HTTP/1 and HTTP/2, or even both
-at the same time.
+      <p class="shortcomment cmt">Parses all available <a href="headers/Cookie.html" class="extype" name="org.http4s.headers.Cookie">org.http4s.headers.Cookie</a> headers into a list of
+<a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a> objects.</p><div class="fullcomment"><div class="comment cmt"><p>Parses all available <a href="headers/Cookie.html" class="extype" name="org.http4s.headers.Cookie">org.http4s.headers.Cookie</a> headers into a list of
+<a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a> objects. This implementation is compatible with cookie
+headers formatted per HTTP/1 and HTTP/2, or even both at the same time.
 </p></div></div>
     </li><li name="org.http4s.Message#covary" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="covary[F2[x]&gt;:F[x]]:Message.this.SelfF[F2]"></a><a id="covary[F2[x]&gt;:F[x]]:SelfF[F2]"></a>
@@ -2186,12 +2187,13 @@ F might not complete until the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <span class="extype" name="io.chrisdavenport.vault.Key">Key</span>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.A">A</span></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Key.html#io.chrisdavenport.vault.Key" class="extype" name="io.chrisdavenport.vault.Key">Key</a>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.A">A</span></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <span class="extype" name="AttributeMap">AttributeMap</span>
-</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <span class="extype" name="AttributeMap">AttributeMap</span>
-</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><span class="extype" name="Key">Key</span> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended
+to the <a href="Message.html#attributes:io.chrisdavenport.vault.Vault" class="extmbr" name="org.http4s.Message#attributes">#attributes</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended
+to the <a href="Message.html#attributes:io.chrisdavenport.vault.Vault" class="extmbr" name="org.http4s.Message#attributes">#attributes</a>.
+</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Key.html" class="extype" name="io.chrisdavenport.vault.Key">io.chrisdavenport.vault.Key</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Message#withAttributes" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withAttributes(attributes:io.chrisdavenport.vault.Vault):Message.this.Self"></a><a id="withAttributes(Vault):Self"></a>
       <span class="permalink">
@@ -2204,7 +2206,7 @@ F might not complete until the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttributes</span><span class="params">(<span name="attributes">attributes: <span class="extype" name="io.chrisdavenport.vault.Vault">Vault</span></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">withAttributes</span><span class="params">(<span name="attributes">attributes: <a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Vault.html#io.chrisdavenport.vault.Vault" class="extype" name="io.chrisdavenport.vault.Vault">Vault</a></span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -2421,12 +2423,13 @@ that make no sense with an empty body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withoutAttribute</span><span class="params">(<span name="key">key: <span class="extype" name="io.chrisdavenport.vault.Key">Key</span>[_]</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">withoutAttribute</span><span class="params">(<span name="key">key: <a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Key.html#io.chrisdavenport.vault.Key" class="extype" name="io.chrisdavenport.vault.Key">Key</a>[_]</span>)</span><span class="result">: <a href="#Self=Message.this.SelfF[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Returns a new message object without the specified key in the <span class="extype" name="AttributeMap">AttributeMap</span>
-</p><div class="fullcomment"><div class="comment cmt"><p>Returns a new message object without the specified key in the <span class="extype" name="AttributeMap">AttributeMap</span>
-</p></div><dl class="paramcmts block"><dt class="param">key</dt><dd class="cmt"><p><span class="extype" name="Key">Key</span> to remove</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object without the key</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">Returns a new message object without the specified key in the
+<a href="Message.html#attributes:io.chrisdavenport.vault.Vault" class="extmbr" name="org.http4s.Message#attributes">#attributes</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a new message object without the specified key in the
+<a href="Message.html#attributes:io.chrisdavenport.vault.Vault" class="extmbr" name="org.http4s.Message#attributes">#attributes</a>.
+</p></div><dl class="paramcmts block"><dt class="param">key</dt><dd class="cmt"><p><a href="https://javadoc.io/doc/io.chrisdavenport/vault_2.12/2.0.0/io/chrisdavenport/vault/Key.html" class="extype" name="io.chrisdavenport.vault.Key">io.chrisdavenport.vault.Key</a> to remove</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object without the key</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Message#withoutContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withoutContentType:Message.this.Self"></a><a id="withoutContentType:Self"></a>
       <span class="permalink">
@@ -2479,7 +2482,7 @@ that make no sense with an empty body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.21.5) Can go into an infinite loop for charsets other than UTF-8. Replaced by bodyText">bodyAsText</span><span class="params">(<span class="implicit">implicit </span><span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.Request.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.5) Can go into an infinite loop for charsets other than UTF-8. Replaced by bodyText">bodyAsText</span><span class="params">(<span class="implicit">implicit </span><span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.4.6/fs2-core_2.12-2.4.6-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.Request.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Media.html" class="extype" name="org.http4s.Media">Media</a></dd><dt>Annotations</dt><dd>

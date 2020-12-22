@@ -167,7 +167,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A builder for <a href="../Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a> with an OkHttp backend.</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/a497d1a445d5757bcc865b9d2789a453abb0fbe6/okhttp-client/src/main/scala/org/http4s/client/okhttp/OkHttpBuilder.scala" target="_blank">OkHttpBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A builder for <a href="../Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a> with an OkHttp backend.</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/9661f079b291560e143c67020c20b4ecd9bc45a3/okhttp-client/src/main/scala/org/http4s/client/okhttp/OkHttpBuilder.scala" target="_blank">OkHttpBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -284,7 +284,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">F</span><span class="result">: <span class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
+        <span class="name">F</span><span class="result">: <a href="https://typelevel.org/cats-effect/api/cats/effect/ConcurrentEffect.html#cats.effect.ConcurrentEffect" class="extype" name="cats.effect.ConcurrentEffect">ConcurrentEffect</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.okhttp.OkHttpBuilder">OkHttpBuilder</a> → BackendBuilder</dd></dl></div>
@@ -310,7 +310,7 @@ to process requests.  The second element of the tuple shuts
 down the backend when run.</p><p>Unlike <a href="#resource:cats.effect.Resource[F,org.http4s.client.Client[F]]" class="extmbr" name="org.http4s.client.okhttp.OkHttpBuilder#resource">resource</a> and <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.okhttp.OkHttpBuilder#stream">stream</a>, there is no automatic
 release of the backend.  This function is intended for REPL
 sessions, tests, and other situations where composing a
-<span class="extype" name="cats.effect.Resource">cats.effect.Resource</span> or <span class="extype" name="fs2.Stream">fs2.Stream</span> is not tenable.
+<a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html" class="extype" name="cats.effect.Resource">cats.effect.Resource</a> or <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.4.6/fs2-core_2.12-2.4.6-javadoc.jar/!/fs2/Stream.html" class="extype" name="fs2.Stream">fs2.Stream</a> is not tenable.
 <a href="#resource:cats.effect.Resource[F,org.http4s.client.Client[F]]" class="extmbr" name="org.http4s.client.okhttp.OkHttpBuilder#resource">resource</a> or <a href="#stream:fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.okhttp.OkHttpBuilder#stream">stream</a> is recommended wherever possible.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>BackendBuilder</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -341,7 +341,7 @@ sessions, tests, and other situations where composing a
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">blocker</span><span class="result">: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>
+        <span class="name">blocker</span><span class="result">: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>
       </span>
       
       
@@ -578,7 +578,7 @@ their own.</p></div></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">resource</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
+        <span class="name">resource</span><span class="result">: <a href="https://typelevel.org/cats-effect/api/cats/effect/Resource.html#cats.effect.Resource" class="extype" name="cats.effect.Resource">Resource</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Returns the backend as a resource.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the backend as a resource.  Resource acquire waits
@@ -596,7 +596,7 @@ until the backend is ready to process requests.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stream</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
+        <span class="name">stream</span><span class="result">: <a href="https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_2.12/2.4.6/fs2-core_2.12-2.4.6-javadoc.jar/!/fs2/Stream.html#fs2.Stream" class="extype" name="fs2.Stream">Stream</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Returns the backend as a single-element stream.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the backend as a single-element stream.  The stream
@@ -715,7 +715,7 @@ The backend is shut down when the stream is finalized.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withBlocker</span><span class="params">(<span name="blocker">blocker: <span class="extype" name="cats.effect.Blocker">Blocker</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.okhttp.OkHttpBuilder">OkHttpBuilder</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
+        <span class="name">withBlocker</span><span class="params">(<span name="blocker">blocker: <a href="https://typelevel.org/cats-effect/api/cats/effect/Blocker.html#cats.effect.Blocker" class="extype" name="cats.effect.Blocker">Blocker</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.okhttp.OkHttpBuilder">OkHttpBuilder</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttpBuilder.F">F</span>]</span>
       </span>
       
       

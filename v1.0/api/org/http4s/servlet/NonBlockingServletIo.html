@@ -196,7 +196,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">NonBlockingServletIo</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="chunkSize">chunkSize: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$4">evidence$4: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>]</span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>] with <a href="https://www.scala-lang.org/api/2.12.12/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.12/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">NonBlockingServletIo</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="chunkSize">chunkSize: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$4">evidence$4: <a href="https://typelevel.org/cats-effect/api/cats/effect/Effect.html#cats.effect.Effect" class="extype" name="cats.effect.Effect">Effect</a>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>]</span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>] with <a href="https://www.scala-lang.org/api/2.12.12/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.12/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -205,7 +205,7 @@
 but consumes more CPU per request.  It is also known to cause IllegalStateExceptions in the logs
 under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
 operationally annoying.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/a497d1a445d5757bcc865b9d2789a453abb0fbe6/servlet/src/main/scala/org/http4s/servlet/ServletIo.scala" target="_blank">ServletIo.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/9661f079b291560e143c67020c20b4ecd9bc45a3/servlet/src/main/scala/org/http4s/servlet/ServletIo.scala" target="_blank">ServletIo.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -267,7 +267,7 @@ operationally annoying.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">NonBlockingServletIo</span><span class="params">(<span name="chunkSize">chunkSize: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>]</span>)</span>
+        <span class="name">NonBlockingServletIo</span><span class="params">(<span name="chunkSize">chunkSize: <a href="https://www.scala-lang.org/api/2.12.12/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Effect.html#cats.effect.Effect" class="extype" name="cats.effect.Effect">Effect</a>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>]</span>)</span>
       </span>
       
       
@@ -341,7 +341,7 @@ operationally annoying.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">F</span><span class="result">: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>]</span>
+        <span class="name">F</span><span class="result">: <a href="https://typelevel.org/cats-effect/api/cats/effect/Async.html#cats.effect.Async" class="extype" name="cats.effect.Async">Async</a>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="index.html" class="extype" name="org.http4s.servlet">servlet</a>] </dd><dt>Definition Classes</dt><dd><a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a></dd></dl></div>

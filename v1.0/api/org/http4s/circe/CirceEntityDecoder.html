@@ -139,12 +139,12 @@
                         <a href="CirceEntityCodec$.html" title="">CirceEntityCodec</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="CirceEntityDecoder$.html" title=""></a>
-                        <a class="trait" href="" title="Derive EntityDecoder if implicit Decoder is in the scope without need to explicitly call jsonOf"></a>
-                        <a href="" title="Derive EntityDecoder if implicit Decoder is in the scope without need to explicitly call jsonOf">CirceEntityDecoder</a>
+                        <a class="trait" href="" title="Derive EntityDecoder if implicit io.circe.Decoder is in the scope without need to explicitly call jsonOf."></a>
+                        <a href="" title="Derive EntityDecoder if implicit io.circe.Decoder is in the scope without need to explicitly call jsonOf.">CirceEntityDecoder</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="CirceEntityEncoder$.html" title=""></a>
-                        <a class="trait" href="CirceEntityEncoder.html" title="Derive EntityEncoder if implicit Encoder is in the scope without need to explicitly call jsonEncoderOf"></a>
-                        <a href="CirceEntityEncoder.html" title="Derive EntityEncoder if implicit Encoder is in the scope without need to explicitly call jsonEncoderOf">CirceEntityEncoder</a>
+                        <a class="trait" href="CirceEntityEncoder.html" title="Derive EntityEncoder if implicit io.circe.Encoder is in the scope without need to explicitly call jsonEncoderOf."></a>
+                        <a href="CirceEntityEncoder.html" title="Derive EntityEncoder if implicit io.circe.Encoder is in the scope without need to explicitly call jsonEncoderOf.">CirceEntityEncoder</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="CirceInstances$.html" title=""></a>
                         <a class="trait" href="CirceInstances.html" title=""></a>
@@ -155,8 +155,8 @@
                         <a href="CirceInstancesBuilder.html" title="">CirceInstancesBuilder</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="class" href="DecodingFailures.html" title="Wraps a list of decoding failures as an Exception when using accumulatingJsonOf to decode JSON messages."></a>
-                        <a href="DecodingFailures.html" title="Wraps a list of decoding failures as an Exception when using accumulatingJsonOf to decode JSON messages.">DecodingFailures</a>
+                        <a class="class" href="DecodingFailures.html" title="Wraps a list of decoding failures as an java.lang.Exception when using accumulatingJsonOf to decode JSON messages."></a>
+                        <a href="DecodingFailures.html" title="Wraps a list of decoding failures as an java.lang.Exception when using accumulatingJsonOf to decode JSON messages.">DecodingFailures</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="JsonDecoder$.html" title=""></a>
                         <a class="trait" href="JsonDecoder.html" title="F-algebra for separating the Sync required for extracting the Json from the body."></a>
@@ -191,8 +191,9 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Derive <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> if implicit <span class="extype" name="Decoder">Decoder</span> is in the scope without need to explicitly call <code>jsonOf</code>
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/a497d1a445d5757bcc865b9d2789a453abb0fbe6/circe/src/main/scala/org/http4s/circe/CirceEntityDecoder.scala" target="_blank">CirceEntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Derive <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> if implicit <a href="https://circe.github.io/circe/api/io/circe/Decoder.html" class="extype" name="io.circe.Decoder">io.circe.Decoder</a> is in the scope
+without need to explicitly call <code>jsonOf</code>.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/9661f079b291560e143c67020c20b4ecd9bc45a3/circe/src/main/scala/org/http4s/circe/CirceEntityDecoder.scala" target="_blank">CirceEntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -330,7 +331,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">circeEntityDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.circe.CirceEntityDecoder.circeEntityDecoder.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://circe.github.io/circe/api/io/circe/Decoder.html#io.circe.Decoder" class="extype" name="io.circe.Decoder">Decoder</a>[<span class="extype" name="org.http4s.circe.CirceEntityDecoder.circeEntityDecoder.A">A</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.circe.CirceEntityDecoder.circeEntityDecoder.F">F</span>, <span class="extype" name="org.http4s.circe.CirceEntityDecoder.circeEntityDecoder.A">A</span>]</span>
+        <span class="name">circeEntityDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.circe.CirceEntityDecoder.circeEntityDecoder.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://circe.github.io/circe/api/io/circe/Decoder.html#io.circe.Decoder" class="extype" name="io.circe.Decoder">Decoder</a>[<span class="extype" name="org.http4s.circe.CirceEntityDecoder.circeEntityDecoder.A">A</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.circe.CirceEntityDecoder.circeEntityDecoder.F">F</span>, <span class="extype" name="org.http4s.circe.CirceEntityDecoder.circeEntityDecoder.A">A</span>]</span>
       </span>
       
       
