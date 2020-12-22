@@ -16,11 +16,13 @@
 
 package org.http4s
 package multipart
-/*
+
 import cats._
 import cats.effect._
+import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import fs2._
+
 import java.io.File
 import org.http4s.headers._
 import org.http4s.syntax.literals._
@@ -28,7 +30,7 @@ import org.http4s.EntityEncoder._
 import org.specs2.mutable.Specification
 
 class MultipartSpec extends Specification {
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
+  private implicit val ioRuntime: IORuntime = Http4sSpec.TestIORuntime
 
   val url = uri"https://example.com/path/to/some/where"
 
@@ -90,7 +92,7 @@ class MultipartSpec extends Specification {
 
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
         val field2 = Part
-          .fileData[IO]("image", file, Http4sSpec.TestBlocker, `Content-Type`(MediaType.image.png))
+          .fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
 
         val multipart = Multipart[IO](Vector(field1, field2))
 
@@ -193,7 +195,7 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(implicitly)
-  multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlocker))
+  multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO]())
 
   "Part" >> {
     def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
@@ -212,4 +214,3 @@ I am a big moose
     }
   }
 }
- */

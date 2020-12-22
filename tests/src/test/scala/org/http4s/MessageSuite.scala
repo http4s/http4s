@@ -15,7 +15,7 @@
  */
 
 package org.http4s
-/*
+
 import cats.data.NonEmptyList
 import cats.effect.IO
 import fs2.Pure
@@ -295,4 +295,3 @@ class MessageSuite extends Http4sSuite {
     true
   }
 }
- */
