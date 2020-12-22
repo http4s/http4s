@@ -1,6 +1,7 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
+import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
@@ -633,6 +634,11 @@ lazy val docs = http4sProject("docs")
             (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
       }
     },
+    apiMappings ++= {
+      ScaladocApiMapping.mappings(
+        (ScalaUnidoc / unidoc / unidocAllClasspaths).value, scalaBinaryVersion.value
+      )
+    }
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
 
@@ -863,7 +869,8 @@ lazy val commonSettings = Seq(
         specs2Cats,
         specs2Scalacheck
       ).map(_ % Test)
-  }
+  },
+  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 
 def initCommands(additionalImports: String*) =

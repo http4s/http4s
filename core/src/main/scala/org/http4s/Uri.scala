@@ -64,7 +64,7 @@ final case class Uri(
     */
   def addSegment(newSegment: Path): Uri = copy(path = toSegment(path, newSegment))
 
-  /** This is an alias to [[addSegment(Path)]]
+  /** This is an alias to [[#addSegment]]
     */
   def /(newSegment: Path): Uri = addSegment(newSegment)
 
