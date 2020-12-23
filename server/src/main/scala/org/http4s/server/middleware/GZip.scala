@@ -24,12 +24,11 @@ import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.Stream.chunk
-import fs2.compression.deflate
+import fs2.compression._
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.zip.{CRC32, Deflater}
 import org.http4s.headers._
 import org.log4s.getLogger
-import fs2.compression.DeflateParams
 
 object GZip {
   private[this] val logger = getLogger
@@ -81,7 +80,7 @@ object GZip {
     val b = chunk(header) ++
       resp.body
         .through(trailer(trailerGen, bufferSize))
-        .through(deflate(DeflateParams(bufferSize = bufferSize, level = level))) ++
+        .through(deflate(DeflateParams(bufferSize = bufferSize, header = ZLibParams.Header.GZIP, level = level))) ++
       chunk(trailerFinish(trailerGen))
     resp
       .removeHeader(`Content-Length`)
