@@ -268,9 +268,9 @@ object Http4sPlugin extends AutoPlugin {
         RefPredicate.StartsWith(Ref.Tag("v"))
       ),
       githubWorkflowPublishPostamble := Seq(
-        setupHugoStep,
-        sitePublishStep("website"),
-        sitePublishStep("docs")
+        setupHugoStep
+        // sitePublishStep("website"),
+        // sitePublishStep("docs")
       ),
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
