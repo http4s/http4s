@@ -244,7 +244,7 @@ object CirceInstances {
       case None => Pull.output(emptyArray)
       case Some((hd, tl)) =>
         Pull.output(
-          Chunk.concatBytes(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
+          Chunk.concat(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
         ) >> // Output First Json As Chunk with leading `[`
           tl.repeatPull {
             _.uncons.flatMap {
@@ -257,7 +257,7 @@ object CirceInstances {
                     bldr += CirceInstances.comma
                     bldr += fromJsonToChunk(printer)(o)
                   }
-                  Chunk.concatBytes(bldr.result())
+                  Chunk.concat(bldr.result())
                 }
                 Pull.output(interspersed) >> Pull.pure(Some(tl))
             }

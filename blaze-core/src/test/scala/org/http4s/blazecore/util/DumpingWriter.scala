@@ -38,7 +38,7 @@ class DumpingWriter(implicit protected val F: Async[IO]) extends EntityBodyWrite
 
   def toArray: Array[Byte] =
     buffer.synchronized {
-      Chunk.concatBytes(buffer.toSeq).toArray
+      Chunk.concat(buffer.toSeq).toArray
     }
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =
