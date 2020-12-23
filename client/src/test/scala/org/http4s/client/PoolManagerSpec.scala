@@ -98,19 +98,19 @@ class PoolManagerSpec(name: String) extends Http4sSpec {
       (for {
         pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 3, requestTimeout = timeout)
         conn <- pool.borrow(key)
-        waiting1 <- pool.borrow(key).start
-        waiting2 <- pool.borrow(key).start
+        waiting1 <- pool.borrow(key).void.start
+        waiting2 <- pool.borrow(key).void.start
         _ <- IO.sleep(timeout + 20.milliseconds)
-        waiting3 <- pool.borrow(key).start
+        waiting3 <- pool.borrow(key).void.start
         _ <- pool.release(conn.connection)
         result1 <- waiting1.join
         result2 <- waiting2.join
         result3 <- waiting3.join
       } yield (result1, result2, result3)).unsafeRunTimed(10.seconds) must beSome.like {
         case (result1, result2, result3) =>
-          result1 must_== Outcome.errored[IO, Throwable, Any](WaitQueueTimeoutException)
-          result2 must_== Outcome.errored[IO, Throwable, Any](WaitQueueTimeoutException)
-          result3 must beLike { case Outcome.Succeeded(_) => ok }
+          result1 must_== Outcome.errored[IO, Throwable, Unit](WaitQueueTimeoutException)
+          result2 must_== Outcome.errored[IO, Throwable, Unit](WaitQueueTimeoutException)
+          result3 must_== Outcome.succeeded[IO, Throwable, Unit](IO.unit)
       }
     }
 
