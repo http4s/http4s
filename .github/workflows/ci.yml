@@ -136,16 +136,16 @@ jobs:
 
                 
 
-      - name: Publish docs
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
+      # - name: Publish docs
+      #   env:
+      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      #   run: |
 
-          eval "$(ssh-agent -s)"
-          echo "$SSH_PRIVATE_KEY" | ssh-add -
-          git config --global user.name "GitHub Actions CI"
-          git config --global user.email "ghactions@invalid"
-          sbt ++2.12.12 docs/makeSite docs/ghpagesPushSite
+      #     eval "$(ssh-agent -s)"
+      #     echo "$SSH_PRIVATE_KEY" | ssh-add -
+      #     git config --global user.name "GitHub Actions CI"
+      #     git config --global user.email "ghactions@invalid"
+      #     sbt ++2.12.12 docs/makeSite docs/ghpagesPushSite
 
                 
 
