@@ -19,7 +19,6 @@ package org.http4s.server.middleware
 import cats.data.Kleisli
 import cats.effect.kernel._
 import cats.syntax.all._
-import java.util.concurrent.TimeUnit
 
 import org.http4s._
 import org.http4s.metrics.MetricsOps
