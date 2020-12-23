@@ -66,7 +66,7 @@ object GZip {
       level: DeflateParams.Level,
       isZippable: Response[F] => Boolean): Response[F] =
     response match {
-      case resp if isZippable(resp) => zipResponse(bufferSize, level, resp) // TODO: nowrap?
+      case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
       case resp => resp // Don't touch it, Content-Encoding already set
     }
 

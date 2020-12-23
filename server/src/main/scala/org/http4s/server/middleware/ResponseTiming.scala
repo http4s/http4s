@@ -43,7 +43,7 @@ object ResponseTiming {
       F: Sync[F],
       clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
-      val getTime = clock.monotonic.map(_.toUnit(timeUnit))
+      val getTime = clock.monotonic.map(_.toUnit(timeUnit).toLong)
       for {
         before <- getTime
         resp <- http(req)
