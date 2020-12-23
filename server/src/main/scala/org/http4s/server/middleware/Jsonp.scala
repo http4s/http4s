@@ -76,8 +76,8 @@ object Jsonp {
   }
 
   private def beginJsonp(callback: String) =
-    Chunk.bytes((callback + "(").getBytes(StandardCharsets.UTF_8))
+    Chunk.array((callback + "(").getBytes(StandardCharsets.UTF_8))
 
   private val EndJsonp =
-    Chunk.bytes(");".getBytes(StandardCharsets.UTF_8))
+    Chunk.array(");".getBytes(StandardCharsets.UTF_8))
 }

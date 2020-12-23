@@ -147,7 +147,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val relativePath = "symlink/org/http4s/server/staticcontent/FileServiceSuite.scala"
     val path = Paths.get(defaultSystemPath).resolve(relativePath)
     val file = path.toFile
-    val bytes = Chunk.bytes(Files.readAllBytes(path))
+    val bytes = Chunk.array(Files.readAllBytes(path))
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
@@ -210,7 +210,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       .flatMap(_.body.chunks)
       .compile
       .lastOrError
-      .assertEquals(Chunk.bytes(testResource.toArray.splitAt(4)._2)) *>
+      .assertEquals(Chunk.array(testResource.toArray.splitAt(4)._2)) *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
   }
 
@@ -222,7 +222,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       .flatMap(_.body.chunks)
       .compile
       .lastOrError
-      .assertEquals(Chunk.bytes(testResource.toArray.splitAt(testResource.size - 4)._2)) *>
+      .assertEquals(Chunk.array(testResource.toArray.splitAt(testResource.size - 4)._2)) *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
   }
 
@@ -234,7 +234,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       .flatMap(_.body.chunks)
       .compile
       .lastOrError
-      .assertEquals(Chunk.bytes(testResource.toArray.slice(2, 4 + 1))) *>
+      .assertEquals(Chunk.array(testResource.toArray.slice(2, 4 + 1))) *>
       routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
     // the end number is inclusive in the Range header
   }

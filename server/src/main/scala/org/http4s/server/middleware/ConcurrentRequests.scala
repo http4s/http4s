@@ -46,9 +46,7 @@ object ConcurrentRequests {
     *       effect types to differ.
     */
   def route2[F[_]: Sync, G[_]: Async]( // TODO (ce3-ra): Sync + MonadCancel
-      onIncrement: Long => G[Unit],
-      onDecrement: Long => G[Unit]
-  ): F[ContextMiddleware[G, Long]] =
+      onIncrement: Long => G[Unit], onDecrement: Long => G[Unit]): F[ContextMiddleware[G, Long]] =
     Ref
       .in[F, G, Long](0L)
       .map(ref =>

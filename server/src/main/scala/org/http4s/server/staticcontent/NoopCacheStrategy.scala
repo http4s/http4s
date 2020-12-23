@@ -22,7 +22,8 @@ import cats.effect.Concurrent
 
 /** Cache strategy that doesn't cache anything, ever. */
 class NoopCacheStrategy[F[_]] extends CacheStrategy[F] {
-  override def cache(uriPath: Uri.Path, resp: Response[F])(implicit F: Concurrent[F]): F[Response[F]] =
+  override def cache(uriPath: Uri.Path, resp: Response[F])(implicit
+      F: Concurrent[F]): F[Response[F]] =
     F.pure(resp)
 }
 

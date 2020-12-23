@@ -112,8 +112,10 @@ object BracketRequestResponse {
     */
   def bracketRequestResponseCaseRoutes_[F[_], A, B](
       acquire: Request[F] => F[ContextRequest[F, A]]
-  )(release: (A, Option[B], Outcome[F, Throwable, Unit]) => F[Unit])(implicit // TODO: Maybe we can merge A and Outcome
+  )(release: (A, Option[B], Outcome[F, Throwable, Unit]) => F[Unit])(
+      implicit // TODO: Maybe we can merge A and Outcome
       F: MonadCancel[F, Throwable]): FullContextMiddleware[F, A, B] =
+    // format: off
     (bracketRoutes: Kleisli[OptionT[F, *], ContextRequest[F, A], ContextResponse[F, B]]) =>
       Kleisli((request: Request[F]) =>
         OptionT(
@@ -133,6 +135,7 @@ object BracketRequestResponse {
                 }
               })
         ))
+    // format: on
 
   /** Bracket on the start of a request and the completion of processing the
     * response ''body Stream''.
@@ -177,7 +180,8 @@ object BracketRequestResponse {
           contextService
             .run(ContextRequest(a, request))
             .map(response =>
-              response.copy(body = response.body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec)))))
+              response.copy(body =
+                response.body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec)))))
             .guaranteeCase { oc: Outcome[F, Throwable, Response[F]] =>
               oc match {
                 case Outcome.Succeeded(_) =>
@@ -211,7 +215,8 @@ object BracketRequestResponse {
     }
 
   // TODO (ce3-ra): replace with ExitCase#toOutcome after CE3-M5
-  def exitCaseToOutcome[F[_]](ec: ExitCase)(implicit F: Applicative[F]): Outcome[F, Throwable, Unit] = 
+  def exitCaseToOutcome[F[_]](ec: ExitCase)(implicit
+      F: Applicative[F]): Outcome[F, Throwable, Unit] =
     ec match {
       case ExitCase.Succeeded => Outcome.succeeded(F.unit)
       case ExitCase.Errored(e) => Outcome.errored(e)

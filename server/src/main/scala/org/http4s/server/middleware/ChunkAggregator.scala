@@ -34,7 +34,7 @@ object ChunkAggregator {
       f(
         response.body.chunks.compile.toVector
           .map { vec =>
-            val body = Chunk.concatBytes(vec)
+            val body = Chunk.concat(vec)
             response
               .withBodyStream(Stream.chunk(body))
               .transformHeaders(removeChunkedTransferEncoding(body.size.toLong))

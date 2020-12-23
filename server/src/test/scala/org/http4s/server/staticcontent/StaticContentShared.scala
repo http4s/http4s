@@ -35,7 +35,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
       .mkString
       .getBytes(StandardCharsets.UTF_8)
 
-    Chunk.bytes(bytes)
+    Chunk.array(bytes)
   }
 
   lazy val testResourceGzipped: Chunk[Byte] = {
@@ -43,7 +43,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     require(url != null, "Couldn't acquire resource!")
     val bytes = Files.readAllBytes(Paths.get(url.toURI))
 
-    Chunk.bytes(bytes)
+    Chunk.array(bytes)
   }
 
   lazy val testWebjarResource: Chunk[Byte] = {
@@ -51,7 +51,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
       getClass.getResourceAsStream("/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
 
-    Chunk.bytes(
+    Chunk.array(
       scala.io.Source
         .fromInputStream(s)
         .mkString
@@ -64,7 +64,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     require(url != null, "Couldn't acquire resource!")
 
     val bytes = Files.readAllBytes(Paths.get(url.toURI))
-    Chunk.bytes(bytes)
+    Chunk.array(bytes)
   }
 
   lazy val testWebjarSubResource: Chunk[Byte] = {
@@ -72,7 +72,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
       "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
 
-    Chunk.bytes(
+    Chunk.array(
       scala.io.Source
         .fromInputStream(s)
         .mkString
@@ -83,7 +83,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
       req: Request[IO],
       routes: HttpRoutes[IO] = routes): IO[(IO[Chunk[Byte]], Response[IO])] =
     routes.orNotFound(req).map { resp =>
-      (resp.body.compile.to(Array).map(Chunk.bytes), resp)
+      (resp.body.compile.to(Array).map(Chunk.array[Byte]), resp)
     }
 
 }

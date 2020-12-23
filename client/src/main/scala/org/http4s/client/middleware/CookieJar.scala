@@ -64,10 +64,10 @@ object CookieJar {
   ): Client[F] =
     Client { req =>
       for {
-        _ <- Resource.liftF(alg.evictExpired)
-        modRequest <- Resource.liftF(alg.enrichRequest(req))
+        _ <- Resource.eval(alg.evictExpired)
+        modRequest <- Resource.eval(alg.enrichRequest(req))
         out <- client.run(modRequest)
-        _ <- Resource.liftF(
+        _ <- Resource.eval(
           out.cookies
             .map(r => r.domain.fold(r.copy(domain = req.uri.host.map(_.value)))(_ => r))
             .traverse_(alg.addCookie(_, req.uri))

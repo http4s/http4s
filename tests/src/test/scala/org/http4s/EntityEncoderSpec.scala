@@ -120,9 +120,9 @@ class EntityEncoderSpec extends Http4sSpec {
       sealed case class ModelB(name: String, id: Long)
 
       implicit val w1: EntityEncoder[IO, ModelA] =
-        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.bytes("A".getBytes))
+        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.array("A".getBytes))
       implicit val w2: EntityEncoder[IO, ModelB] =
-        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.bytes("B".getBytes))
+        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.array("B".getBytes))
 
       EntityEncoder[IO, ModelA] must_== w1
       EntityEncoder[IO, ModelB] must_== w2

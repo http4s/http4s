@@ -37,8 +37,9 @@ object MaxActiveRequests {
   def inHttpApp[G[_], F[_]](
       maxActive: Long,
       defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
-  )(implicit F: Async[F], G: Sync[G])
-      : G[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
+  )(implicit
+      F: Async[F],
+      G: Sync[G]): G[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     forHttpApp2[G, F](maxActive, defaultResp)
 
   def forHttpApp[F[_]: Async](
@@ -80,10 +81,10 @@ object MaxActiveRequests {
   def inHttpRoutes[G[_], F[_]](
       maxActive: Long,
       defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable)
-  )(implicit F: Async[F], G: Sync[G]): G[Kleisli[
+  )(implicit F: Async[F], G: Sync[G]): G[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[
     OptionT[F, *],
     Request[F],
-    Response[F]] => Kleisli[OptionT[F, *], Request[F], Response[F]]] =
+    Response[F]]] =
     forHttpRoutes2[G, F](maxActive, defaultResp)
 
   def forHttpRoutes[F[_]: Async](

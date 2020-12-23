@@ -58,23 +58,25 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       }
-  )(routes: HttpRoutes[F])(implicit F: Temporal[F]): HttpRoutes[F] = // TODO (ce3-ra): Sync + MonadCancel
+  )(
+      routes: HttpRoutes[F])(implicit
+      F: Temporal[F]): HttpRoutes[F] = // TODO (ce3-ra): Sync + MonadCancel
     BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
       (request: Request[F]) =>
         val classifier: Option[String] = classifierF(request)
         ops.increaseActiveRequests(classifier) *>
-          F
-            .monotonic
+          F.monotonic
             .map(startTime =>
-              ContextRequest(MetricsRequestContext(request.method, startTime.toNanos, classifier), request))
+              ContextRequest(
+                MetricsRequestContext(request.method, startTime.toNanos, classifier),
+                request))
     } { case (context, maybeStatus, outcome) =>
       // Decrease active requests _first_ in case any of the other effects
       // trigger an error. This differs from the < 0.21.14 semantics, which
       // decreased it _after_ the other effects. This may have been the
       // reason the active requests counter was reported to have drifted.
       ops.decreaseActiveRequests(context.classifier) *>
-        F
-          .monotonic
+        F.monotonic
           .map(endTime => endTime.toNanos - context.startTime)
           .flatMap(totalTime =>
             (outcome match {
@@ -106,8 +108,7 @@ object Metrics {
         routes
           .run(contextRequest.req)
           .semiflatMap(response =>
-            F
-              .monotonic
+            F.monotonic
               .map(now => now.toNanos - contextRequest.context.startTime)
               .flatTap(headerTime =>
                 ops.recordHeadersTime(

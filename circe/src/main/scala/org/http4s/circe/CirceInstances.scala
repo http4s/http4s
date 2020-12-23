@@ -273,7 +273,7 @@ object CirceInstances {
     Chunk.singleton(']'.toByte)
 
   private final val emptyArray: Chunk[Byte] =
-    Chunk.bytes(Array('['.toByte, ']'.toByte))
+    Chunk.array(Array('['.toByte, ']'.toByte))
 
   private final val comma: Chunk[Byte] =
     Chunk.singleton(','.toByte)

@@ -172,7 +172,8 @@ trait Client[F[_]] {
 
   /** Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Async](fk: F ~> G)(gK: G ~> F): Client[G] =
+  def translate[G[_]: Async](fk: F ~> G)(gK: G ~> F)(implicit
+      F: MonadCancel[F, Throwable]): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
@@ -220,7 +221,7 @@ object Client {
           val req0 =
             addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
           Resource
-            .liftF(app(req0))
+            .eval(app(req0))
             .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
             .map(resp => resp.copy(body = go(resp.body).stream))
         }
@@ -233,7 +234,7 @@ object Client {
   def liftKleisli[F[_]: MonadCancel[*[_], Throwable]: cats.Defer, A](
       client: Client[F]): Client[Kleisli[F, A, *]] =
     Client { req: Request[Kleisli[F, A, *]] =>
-      Resource.liftF(Kleisli.ask[F, A]).flatMap { a =>
+      Resource.eval(Kleisli.ask[F, A]).flatMap { a =>
         client
           .run(req.mapK(Kleisli.applyK(a)))
           .mapK(Kleisli.liftK[F, A])

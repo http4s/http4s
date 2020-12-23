@@ -124,12 +124,12 @@ class RetrySuite extends Http4sSuite {
   }
 
   test("default retriable should ggretry exceptions") {
-    val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(new Exception("boom"))))
+    val failClient = Client[IO](_ => Resource.eval(IO.raiseError(new Exception("boom"))))
     countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(2)
   }
 
   test("default retriable should ggnot retry a TimeoutException") {
-    val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(WaitQueueTimeoutException)))
+    val failClient = Client[IO](_ => Resource.eval(IO.raiseError(WaitQueueTimeoutException)))
     countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(1)
   }
 

@@ -98,7 +98,7 @@ object EntityEncoder {
       charset: Charset = DefaultCharset,
       show: Show[A]): EntityEncoder[F, A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
+    simple[F, A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
   }
 
   def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
@@ -132,7 +132,7 @@ object EntityEncoder {
   implicit def stringEncoder[F[_]](implicit
       charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
+    simple(hdr)(s => Chunk.array(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder[F[_]](implicit
@@ -143,7 +143,7 @@ object EntityEncoder {
     simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
 
   implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
-    chunkEncoder[F].contramap(Chunk.bytes)
+    chunkEncoder[F].contramap(Chunk.array[Byte])
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
     * `Transfer-Encoding: chunked` header is set, as we cannot know
@@ -195,7 +195,7 @@ object EntityEncoder {
             // Read into a Chunk
             val b = new Array[Byte](bb.remaining())
             bb.get(b)
-            Some(Chunk.bytes(b))
+            Some(Chunk.array(b))
           }
         }
 

@@ -23,5 +23,5 @@ import org.scalacheck.Arbitrary.arbitrary
 /** Arbitraries for fs2 types that aren't ours to publish. */
 object fs2Arbitraries {
   implicit val http4sArbitraryForFs2ChunkOfBytes: Arbitrary[Chunk[Byte]] =
-    Arbitrary(Gen.containerOf[Array, Byte](arbitrary[Byte]).map(Chunk.bytes))
+    Arbitrary(Gen.containerOf[Array, Byte](arbitrary[Byte]).map(Chunk.array[Byte]))
 }

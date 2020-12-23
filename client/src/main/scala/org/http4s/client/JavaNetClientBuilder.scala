@@ -123,13 +123,13 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         } yield resp
 
       for {
-        url <- Resource.liftF(F.delay(new URL(req.uri.toString)))
+        url <- Resource.eval(F.delay(new URL(req.uri.toString)))
         conn <- Resource.make(openConnection(url)) { conn =>
           F.delay(conn.getInputStream().close()).recoverWith { case _: IOException =>
             F.delay(Option(conn.getErrorStream()).foreach(_.close()))
           }
         }
-        resp <- Resource.liftF(respond(conn))
+        resp <- Resource.eval(respond(conn))
       } yield resp
     }
 

@@ -158,7 +158,8 @@ object WebjarServiceBuilder {
       cacheStrategy: CacheStrategy[F],
       classLoader: Option[ClassLoader],
       request: Request[F],
-      preferGzipped: Boolean)(webjarAsset: WebjarAsset)(implicit F: Async[F]): OptionT[F, Response[F]] =
+      preferGzipped: Boolean)(webjarAsset: WebjarAsset)(implicit
+      F: Async[F]): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(
         webjarAsset.pathInJar,

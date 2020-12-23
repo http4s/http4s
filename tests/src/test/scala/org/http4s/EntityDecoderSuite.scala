@@ -40,7 +40,7 @@ class EntityDecoderSuite extends Http4sSuite {
     body.compile.toVector.map(_.toArray)
 
   def strBody(body: String): Stream[IO, Byte] =
-    chunk(Chunk.bytes(body.getBytes(StandardCharsets.UTF_8)))
+    chunk(Chunk.array(body.getBytes(StandardCharsets.UTF_8)))
 
   val req = Response[IO](Ok).withEntity("foo").pure[IO]
   test("flatMapR with success") {
@@ -406,7 +406,7 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
-    route(req.withBodyStream(chunk(Chunk.bytes(binData))))
+    route(req.withBodyStream(chunk(Chunk.array(binData))))
 
   test("A File EntityDecoder should write a text file from a byte string") {
     Resource
@@ -457,9 +457,9 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("binary EntityDecoder should concat Chunks") {
     val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
-    val body = chunk(Chunk.bytes(d1)) ++ chunk(Chunk.bytes(d2))
+    val body = chunk(Chunk.array(d1)) ++ chunk(Chunk.array(d2))
     val msg = Request[IO](body = body)
-    val expected = Chunk.bytes(Array[Byte](1, 2, 3, 4, 5, 6))
+    val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
     EntityDecoder.binary[IO].decode(msg, strict = false).value.assertEquals(Right(expected))
   }
 
@@ -486,7 +486,7 @@ class EntityDecoderSuite extends Http4sSuite {
   sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[IO, ErrorJson] =
     EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.application.json))(json =>
-      Chunk.bytes(json.value.getBytes()))
+      Chunk.array(json.value.getBytes()))
 
 // TODO: These won't work without an Eq for (Message[IO], Boolean) => DecodeResult[IO, A]
 //  {

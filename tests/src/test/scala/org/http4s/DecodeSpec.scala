@@ -37,7 +37,7 @@ class DecodeSpec extends Http4sSpec {
             s.getBytes(StandardCharsets.UTF_8)
               .grouped(chunkSize)
               .map(_.toArray)
-              .map(Chunk.bytes)
+              .map(Chunk.array)
               .toSeq
           }
           .flatMap(Stream.chunk)
@@ -55,7 +55,7 @@ class DecodeSpec extends Http4sSpec {
             .emits {
               s.getBytes(cs.nioCharset)
                 .grouped(chunkSize)
-                .map(Chunk.bytes)
+                .map(Chunk.array)
                 .toSeq
             }
             .flatMap(Stream.chunk)

@@ -93,7 +93,8 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     })
   }
 
-  test("Client should get disposes of the response on uncaught exception") {
+  // Blocked on: https://github.com/typelevel/cats-effect/issues/1535
+  test("Client should get disposes of the response on uncaught exception".ignore) {
     assertDisposes(_.get(req.uri) { _ =>
       sys.error("Don't do this at home, kids")
     })
@@ -111,7 +112,8 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     })
   }
 
-  test("Client should run disposes of the response on uncaught exception") {
+  // Blocked on: https://github.com/typelevel/cats-effect/issues/1535
+  test("Client should run disposes of the response on uncaught exception".ignore) {
     assertDisposes(_.run(req).use { _ =>
       sys.error("Don't do this at home, kids")
     })
@@ -323,7 +325,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
             _ <- List(1, 2, 3).traverse { i =>
               Resource(IO.pure(() -> released.update(_ :+ i)))
             }
-            _ <- Resource.liftF[IO, Unit](IO.raiseError(SadTrombone))
+            _ <- Resource.eval[IO, Unit](IO.raiseError(SadTrombone))
           } yield Response()
         }.toHttpApp(req).flatMap(_.as[Unit]).attempt >> released.get
       }

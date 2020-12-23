@@ -62,7 +62,7 @@ object Retry {
                   logger.info(e)(
                     s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
                   )
-                  F.pure(Resource.liftF(F.raiseError(e)))
+                  F.pure(Resource.eval(F.raiseError(e)))
               }
           }
         }
@@ -90,7 +90,7 @@ object Retry {
           }
           .getOrElse(0L)
       val sleepDuration = headerDuration.seconds.max(duration)
-      Resource.liftF(F.sleep(sleepDuration)) *> prepareLoop(req, attempts + 1)
+      Resource.eval(F.sleep(sleepDuration)) *> prepareLoop(req, attempts + 1)
     }
 
     Client(prepareLoop(_, 1))

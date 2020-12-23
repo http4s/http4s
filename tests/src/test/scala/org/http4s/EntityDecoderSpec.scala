@@ -47,7 +47,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
     body.compile.toVector.map(_.toArray)
 
   def strBody(body: String): Stream[IO, Byte] =
-    chunk(Chunk.bytes(body.getBytes(StandardCharsets.UTF_8)))
+    chunk(Chunk.array(body.getBytes(StandardCharsets.UTF_8)))
 
   "EntityDecoder".can {
     val req = Response[IO](Ok).withEntity("foo").pure[IO]
@@ -384,7 +384,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
     }
 
     def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
-      route(req.withBodyStream(chunk(Chunk.bytes(binData))))
+      route(req.withBodyStream(chunk(Chunk.array(binData))))
 
     "Write a text file from a byte string" in {
       val tmpFile = File.createTempFile("foo", "bar")
@@ -431,9 +431,9 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
 
     "concat Chunks" in {
       val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
-      val body = chunk(Chunk.bytes(d1)) ++ chunk(Chunk.bytes(d2))
+      val body = chunk(Chunk.array(d1)) ++ chunk(Chunk.array(d2))
       val msg = Request[IO](body = body)
-      val expected = Chunk.bytes(Array[Byte](1, 2, 3, 4, 5, 6))
+      val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
       EntityDecoder.binary[IO].decode(msg, strict = false) must returnRight(expected)
     }
 
@@ -463,7 +463,7 @@ class EntityDecoderSpec extends Http4sSpec with Http4sLegacyMatchersIO with Pend
   sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[IO, ErrorJson] =
     EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.application.json))(json =>
-      Chunk.bytes(json.value.getBytes()))
+      Chunk.array(json.value.getBytes()))
 
 // TODO: These won't work without an Eq for (Message[IO], Boolean) => DecodeResult[IO, A]
 //  {

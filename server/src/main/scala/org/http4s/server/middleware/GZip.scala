@@ -80,7 +80,12 @@ object GZip {
     val b = chunk(header) ++
       resp.body
         .through(trailer(trailerGen, bufferSize))
-        .through(deflate(DeflateParams(bufferSize = bufferSize, header = ZLibParams.Header.GZIP, level = level))) ++
+        .through(
+          deflate(
+            DeflateParams(
+              bufferSize = bufferSize,
+              header = ZLibParams.Header.GZIP,
+              level = level))) ++
       chunk(trailerFinish(trailerGen))
     resp
       .removeHeader(`Content-Length`)
@@ -91,7 +96,7 @@ object GZip {
   private val GZIP_MAGIC_NUMBER = 0x8b1f
   private val GZIP_LENGTH_MOD = Math.pow(2, 32).toLong
 
-  private val header: Chunk[Byte] = Chunk.bytes(
+  private val header: Chunk[Byte] = Chunk.array(
     Array(
       GZIP_MAGIC_NUMBER.toByte, // Magic number (int16)
       (GZIP_MAGIC_NUMBER >> 8).toByte, // Magic number  c
@@ -123,7 +128,7 @@ object GZip {
   }
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] =
-    Chunk.bytes(
+    Chunk.array(
       ByteBuffer
         .allocate(Integer.BYTES * 2)
         .order(ByteOrder.LITTLE_ENDIAN)

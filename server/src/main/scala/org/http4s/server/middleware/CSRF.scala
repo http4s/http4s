@@ -21,7 +21,7 @@ package middleware
 import cats.~>
 import cats.Applicative
 import cats.data.{EitherT, Kleisli}
-import cats.effect.{Sync, Concurrent}
+import cats.effect.{Concurrent, Sync}
 import cats.syntax.all._
 import java.nio.charset.StandardCharsets
 import java.security.{MessageDigest, SecureRandom}

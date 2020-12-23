@@ -58,8 +58,8 @@ object Metrics {
       classifierF: Request[F] => Option[String])(req: Request[F])(implicit
       F: Temporal[F]): Resource[F, Response[F]] =
     for {
-      statusRef <- Resource.liftF(F.ref[Option[Status]](None))
-      start <- Resource.liftF(F.monotonic)
+      statusRef <- Resource.eval(F.ref[Option[Status]](None))
+      start <- Resource.eval(F.monotonic)
       resp <- executeRequestAndRecordMetrics(
         client,
         ops,
@@ -89,11 +89,11 @@ object Metrics {
                 ops.recordTotalTime(req.method, status, now.toNanos - start, classifierF(req)))))
       }
       resp <- client.run(req)
-      _ <- Resource.liftF(statusRef.set(Some(resp.status)))
-      end <- Resource.liftF(F.monotonic)
-      _ <- Resource.liftF(ops.recordHeadersTime(req.method, end.toNanos - start, classifierF(req)))
+      _ <- Resource.eval(statusRef.set(Some(resp.status)))
+      end <- Resource.eval(F.monotonic)
+      _ <- Resource.eval(ops.recordHeadersTime(req.method, end.toNanos - start, classifierF(req)))
     } yield resp).handleErrorWith { (e: Throwable) =>
-      Resource.liftF(registerError(start, ops, classifierF(req))(e) *> F.raiseError[Response[F]](e))
+      Resource.eval(registerError(start, ops, classifierF(req))(e) *> F.raiseError[Response[F]](e))
     }
 
   private def registerError[F[_]](start: Long, ops: MetricsOps[F], classifier: Option[String])(

@@ -68,7 +68,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
   def renderPart(prelude: Chunk[Byte])(part: Part[F]): Stream[F, Byte] =
     Stream.chunk(prelude) ++
       Stream.chunk(renderHeaders(part.headers)) ++
-      Stream.chunk(Chunk.bytes(Boundary.CRLF.getBytes(StandardCharsets.UTF_8))) ++
+      Stream.chunk(Chunk.array(Boundary.CRLF.getBytes(StandardCharsets.UTF_8))) ++
       part.body
 
   def renderParts(boundary: Boundary)(parts: Vector[Part[F]]): Stream[F, Byte] =
@@ -79,7 +79,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
         .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
           acc ++
             renderPart(
-              Chunk.bytes(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8)))(
+              Chunk.array(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8)))(
               part)
         } ++ Stream.chunk(end(boundary))
 }
