@@ -19,7 +19,6 @@ package headers
 
 import cats.parse.Parser1
 import cats.syntax.all._
-import org.http4s.parser.Rfc2616BasicRules.optWs
 import org.http4s.util.Writer
 
 object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
@@ -30,13 +29,8 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
   override def parse(s: String): ParseResult[`Content-Type`] =
     parser.parseAll(s).leftMap(e => ParseFailure("Invalid Content-Type header", e.toString))
 
-  private[http4s] val parser: Parser1[`Content-Type`] = {
-    import cats.parse.Parser._
-
-    val EOI = char('\uFFFF') // TODO: take this parser from AdditionalRules.scala
-    val EOL = optWs *> EOI.rep // TODO: take this parser from AdditionalRules.scala
-
-    (MediaRange.parser ~ MediaType.mediaTypeExtension.rep <* EOL).map {
+  private[http4s] val parser: Parser1[`Content-Type`] =
+    (MediaRange.parser ~ MediaType.mediaTypeExtension.rep).map {
       case (range: MediaRange, exts: Seq[(String, String)]) =>
         val mediaType = range match {
           case m: MediaType => m
@@ -56,7 +50,6 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
         `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
     }
 
-  }
 }
 
 /** {{{

@@ -264,8 +264,12 @@ object MediaType extends MimeDB {
     import Rfc2616BasicRules.optWs
     import org.http4s.internal.parsing.Rfc7230.{quotedString, token}
 
+    val escapedString = "\\\\"
+    val unescapedString = "\\"
+
     (char(';') *> optWs *> token ~ (char('=') *> token.orElse(quotedString)).?).map {
-      case (s: String, s2: Option[String]) => (s, s2.getOrElse(""))
+      case (s: String, s2: Option[String]) =>
+        (s, s2.map(_.replace(escapedString, unescapedString)).getOrElse(""))
     }
   }
 
