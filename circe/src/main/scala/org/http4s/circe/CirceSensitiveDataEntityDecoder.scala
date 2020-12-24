@@ -29,7 +29,7 @@ import org.http4s.EntityDecoder
   */
 trait CirceSensitiveDataEntityDecoder {
   implicit def circeEntityDecoder[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
-    jsonOfSensitive[F, A]
+    jsonOfSensitive[F, A](_ => "<REDACTED>")
 }
 
 object CirceSensitiveDataEntityDecoder extends CirceSensitiveDataEntityDecoder
