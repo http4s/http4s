@@ -104,7 +104,7 @@ object FollowRedirect {
           val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
           hotswap
             .swap(client.run(nextReq))
-            .flatMap(nextRes => redirectLoop(req, nextRes, redirects + 1, hotswap))
+            .flatMap(nextRes => redirectLoop(nextReq, nextRes, redirects + 1, hotswap))
             .map(response =>
               response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response)))
         case _ =>
