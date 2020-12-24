@@ -36,8 +36,6 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
   *
   * All I/O operations in this client are blocking.
   *
-  * @param blockingExecutionContext An `ExecutionContext` on which
-  * blocking operations will be performed.
   * @define WHYNOSHUTDOWN Creation of the client allocates no
   * resources, and any resources allocated while using this client
   * are reclaimed by the JVM at its own leisure.
