@@ -33,7 +33,7 @@ lazy val modules: List[ProjectReference] = List(
   // servlet,
   // jetty,
   // tomcat,
-  // theDsl,
+  theDsl,
    jawn,
    argonaut,
   boopickle,
