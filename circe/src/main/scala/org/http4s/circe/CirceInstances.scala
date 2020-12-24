@@ -84,13 +84,14 @@ trait CirceInstances extends JawnInstances {
       decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonOfWithMediaHelper[F, A](r1, jsonDecodeError, rs: _*)
 
-  def jsonOfWithSensitiveMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(implicit
+  def jsonOfWithSensitiveMedia[F[_], A](redact: Json => String, r1: MediaRange, rs: MediaRange*)(
+      implicit
       F: Sync[F],
       decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonOfWithMediaHelper[F, A](
       r1,
       (json, nelDecodeFailures) =>
-        CirceInstances.jsonDecodeErrorHelper(json, _ => "<REDACTED>", nelDecodeFailures),
+        CirceInstances.jsonDecodeErrorHelper(json, redact, nelDecodeFailures),
       rs: _*
     )
 
