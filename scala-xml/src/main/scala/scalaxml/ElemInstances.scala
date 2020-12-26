@@ -18,7 +18,6 @@ package org.http4s
 package scalaxml
 
 import cats.effect.Concurrent
-import cats.syntax.all._
 import java.io.StringReader
 import javax.xml.parsers.SAXParserFactory
 
