@@ -17,7 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser1
+import cats.syntax.all._
 import org.http4s.util.Writer
 
 object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
@@ -26,7 +27,29 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
   def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
 
   override def parse(s: String): ParseResult[`Content-Type`] =
-    HttpHeaderParser.CONTENT_TYPE(s)
+    parser.parseAll(s).leftMap(e => ParseFailure("Invalid Content-Type header", e.toString))
+
+  private[http4s] val parser: Parser1[`Content-Type`] =
+    (MediaRange.parser ~ MediaType.mediaTypeExtension.rep).map {
+      case (range: MediaRange, exts: Seq[(String, String)]) =>
+        val mediaType = range match {
+          case m: MediaType => m
+          case _ =>
+            throw new ParseFailure(
+              "Invalid Content-Type header",
+              "Content-Type header doesn't support media ranges")
+        }
+
+        val (ext, charset) =
+          exts.foldLeft((Map.empty[String, String], None: Option[Charset])) {
+            case ((ext, charset), p @ (k, v)) =>
+              if (k == "charset") (ext, Charset.fromString(v).toOption)
+              else (ext + p, charset)
+          }
+
+        `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
+    }
+
 }
 
 /** {{{
