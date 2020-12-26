@@ -136,7 +136,7 @@ object HttpDate {
 
   /** `HTTP-date = IMF-fixdate / obs-date` */
   private[http4s] val parser: Parser1[HttpDate] = {
-    import Parser.{char, failWith, pure, string1}
+    import Parser.{char, string1}
     import Rfc5234.{digit, sp}
 
     def mkHttpDate(
@@ -145,13 +145,13 @@ object HttpDate {
         day: Int,
         hour: Int,
         min: Int,
-        sec: Int): Parser[HttpDate] =
+        sec: Int): Option[HttpDate] =
       try {
         val dt = ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC)
-        pure(org.http4s.HttpDate.unsafeFromZonedDateTime(dt))
+        Some(org.http4s.HttpDate.unsafeFromZonedDateTime(dt))
       } catch {
         case _: DateTimeException =>
-          failWith(s"Invalid IMF-fixdate: $year-$month-$day $hour:$min:$sec")
+          None
       }
 
     /* day-name     = %x4D.6F.6E ; "Mon", case-sensitive
@@ -165,6 +165,8 @@ object HttpDate {
     val dayName =
       List("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
         .map(string1)
+        .zipWithIndex
+        .map { case (s, i) => string1(s).as(i) }
         .reduceLeft(_.orElse1(_))
         .soft
 
@@ -231,7 +233,7 @@ object HttpDate {
      * GMT          = %x47.4D.54 ; "GMT", case-sensitive
      */
     val imfFixdate =
-      ((dayName <* string1(", ")) ~ (date1 <* sp) ~ (timeOfDay <* string1(" GMT"))).flatMap {
+      ((dayName <* string1(", ")) ~ (date1 <* sp) ~ (timeOfDay <* string1(" GMT"))).mapFilter {
         case ((_, ((day, month), year)), ((hour, min), sec)) =>
           mkHttpDate(year, month, day, hour, min, sec)
       }
@@ -268,7 +270,7 @@ object HttpDate {
      * from 2020 and hope our descendants are smarter than us.
      */
     val rfc850Date =
-      ((dayNameL <* string1(", ")) ~ (date2 <* sp) ~ (timeOfDay <* string1(" GMT"))).flatMap {
+      ((dayNameL <* string1(", ")) ~ (date2 <* sp) ~ (timeOfDay <* string1(" GMT"))).mapFilter {
         case ((_, ((day, month), year)), ((hour, min), sec)) =>
           val wrapYear = if (year < 70) (year + 2000) else (year + 1900)
           mkHttpDate(wrapYear, month, day, hour, min, sec)
@@ -282,7 +284,7 @@ object HttpDate {
     /* asctime-date = day-name SP date3 SP time-of-day SP year
      *              ; e.g., Jun  2
      */
-    val asctimeDate = ((dayName <* sp) ~ (date3 <* sp) ~ (timeOfDay <* sp) ~ year).flatMap {
+    val asctimeDate = ((dayName <* sp) ~ (date3 <* sp) ~ (timeOfDay <* sp) ~ year).mapFilter {
       case (((_, (month, day)), ((hour, min), sec)), year) =>
         mkHttpDate(year, month, day, hour, min, sec)
     }

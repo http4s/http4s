@@ -20,7 +20,6 @@ import org.http4s.syntax.string._
 object HttpHeaderParser
     extends SimpleHeaders
     with CacheControlHeader
-    with CookieHeader
     with ForwardedHeader
     with LocationHeader
     with OriginHeader
@@ -111,7 +110,7 @@ object HttpHeaderParser
     addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
     addParser_("CONTENT-RANGE".ci, `CONTENT_RANGE`)
     addParser_("CONTENT-TYPE".ci, `Content-Type`.parse)
-    addParser_("COOKIE".ci, `COOKIE`)
+    addParser_("COOKIE".ci, Cookie.parse)
     addParser_("DATE".ci, Date.parse)
     addParser_("ETAG".ci, ETag.parse)
     addParser_("EXPIRES".ci, Expires.parse)
@@ -129,7 +128,7 @@ object HttpHeaderParser
     addParser_("RANGE".ci, `RANGE`)
     addParser_("REFERER".ci, `REFERER`)
     addParser_("RETRY-AFTER".ci, `Retry-After`.parse)
-    addParser_("SET-COOKIE".ci, `SET_COOKIE`)
+    addParser_("SET-COOKIE".ci, `Set-Cookie`.parse)
     addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
     addParser_("TRANSFER-ENCODING".ci, `Transfer-Encoding`.parse)
     addParser_("USER-AGENT".ci, `USER_AGENT`)

@@ -18,12 +18,29 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Parser, Parser1}
+import cats.syntax.all._
 import org.http4s.util.Writer
 
 object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Cookie] =
-    HttpHeaderParser.COOKIE(s)
+    parser.parseAll(s).leftMap { e =>
+      ParseFailure("Invalid Cookie header", e.toString)
+    }
+
+  private[http4s] val parser: Parser1[Cookie] = {
+    import Parser.{char, string1}
+
+    /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
+    val cookieString = (RequestCookie.parser ~ (string1("; ") *> RequestCookie.parser).rep).map {
+      case (head, tail) =>
+        Cookie(NonEmptyList(head, tail))
+    }
+
+    /* We also see trailing semi-colons in the wild, and grudgingly tolerate them
+     * here. */
+    cookieString <* char(';').?
+  }
 }
 
 final case class Cookie(values: NonEmptyList[RequestCookie]) extends Header.RecurringRenderable {
