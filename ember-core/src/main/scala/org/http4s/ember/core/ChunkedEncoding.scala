@@ -42,7 +42,7 @@ private[ember] object ChunkedEncoding {
               if (endOfheader == 0)
                 go(
                   expect,
-                  Stream.chunk(Chunk.ByteVectorChunk(bv.drop(`\r\n`.size))) ++ tl
+                  Stream.chunk(Chunk.byteVector(bv.drop(`\r\n`.size))) ++ tl
                 ) //strip any leading crlf on header, as this starts with /r/n
               else if (endOfheader < 0 && nh.size > maxChunkHeaderSize)
                 Pull.raiseError[F](EmberException.ChunkedEncodingError(
@@ -61,20 +61,20 @@ private[ember] object ChunkedEncoding {
                       .flatMap { hdrs =>
                         Pull.eval(trailers.complete(hdrs)) >> Pull.done
                       }
-                  case Some(sz) => go(Right(sz), Stream.chunk(Chunk.ByteVectorChunk(rem)) ++ tl)
+                  case Some(sz) => go(Right(sz), Stream.chunk(Chunk.byteVector(rem)) ++ tl)
                 }
               }
 
             case Right(remains) =>
               if (remains == bv.size)
-                Pull.output(Chunk.ByteVectorChunk(bv)) >> go(Left(ByteVector.empty), tl)
+                Pull.output(Chunk.byteVector(bv)) >> go(Left(ByteVector.empty), tl)
               else if (remains > bv.size)
-                Pull.output(Chunk.ByteVectorChunk(bv)) >> go(Right(remains - bv.size), tl)
+                Pull.output(Chunk.byteVector(bv)) >> go(Right(remains - bv.size), tl)
               else {
                 val (out, next) = bv.splitAt(remains.toLong)
-                Pull.output(Chunk.ByteVectorChunk(out)) >> go(
+                Pull.output(Chunk.byteVector(out)) >> go(
                   Left(ByteVector.empty),
-                  Stream.chunk(Chunk.ByteVectorChunk(next)) ++ tl)
+                  Stream.chunk(Chunk.byteVector(next)) ++ tl)
               }
           }
       }
@@ -99,7 +99,7 @@ private[ember] object ChunkedEncoding {
     }
 
   private val lastChunk: Chunk[Byte] =
-    Chunk.ByteVectorChunk((ByteVector('0') ++ `\r\n` ++ `\r\n`).compact)
+    Chunk.byteVector((ByteVector('0') ++ `\r\n` ++ `\r\n`).compact)
 
   /** Encodes chunk of bytes to http chunked encoding.
     */
@@ -107,7 +107,7 @@ private[ember] object ChunkedEncoding {
     def encodeChunk(bv: ByteVector): Chunk[Byte] =
       if (bv.isEmpty) Chunk.empty
       else
-        Chunk.ByteVectorChunk(
+        Chunk.byteVector(
           ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ `\r\n` ++ bv ++ `\r\n`)
     _.mapChunks { ch =>
       encodeChunk(ch.toByteVector)
