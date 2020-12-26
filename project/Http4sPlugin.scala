@@ -332,6 +332,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
+    val unique = "2.1.0-M5"
     val vault = "2.1.0-M1"
   }
 
@@ -420,4 +421,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % V.treehugger
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % V.twirl
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % V.vault
+  lazy val unique                           = "io.chrisdavenport"      %% "unique"                    % V.unique
 }

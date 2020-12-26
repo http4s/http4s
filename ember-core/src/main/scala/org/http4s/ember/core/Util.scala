@@ -17,15 +17,19 @@
 package org.http4s.ember.core
 
 import cats._
-import cats.effect._
+import cats.effect.kernel.Clock
 import cats.syntax.all._
 import fs2._
 import fs2.io.tcp.Socket
 import scala.concurrent.duration._
-import scala.concurrent.duration.MILLISECONDS
 import java.time.Instant
 
 private[ember] object Util {
+
+  private def streamCurrentTimeMillis[F[_]](clock: Clock[F]): Stream[F, Long] =
+    Stream
+      .eval(clock.realTime)
+      .map(_.toMillis)
 
   /** The issue with a normal http body is that there is no termination character,
     * thus unless you have content-length and the client still has their input side open,
@@ -50,17 +54,16 @@ private[ember] object Util {
       socket.reads(chunkSize, None)
     def whenMayTimeout(remains: FiniteDuration): Stream[F, Byte] =
       if (remains <= 0.millis)
-        Stream
-          .eval(C.realTime(MILLISECONDS))
+        streamCurrentTimeMillis(C)
           .flatMap(now =>
             Stream.raiseError[F](
               EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
             ))
       else
         for {
-          start <- Stream.eval(C.realTime(MILLISECONDS))
+          start <- streamCurrentTimeMillis(C)
           read <- Stream.eval(socket.read(chunkSize, Some(remains))) //  Each Read Yields
-          end <- Stream.eval(C.realTime(MILLISECONDS))
+          end <- streamCurrentTimeMillis(C)
           out <- read.fold[Stream[F, Byte]](
             Stream.empty
           )(

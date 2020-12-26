@@ -1,6 +1,7 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
+import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
@@ -21,7 +22,7 @@ lazy val modules: List[ProjectReference] = List(
   // prometheusMetrics,
   // client,
   // dropwizardMetrics,
-  // emberCore,
+  emberCore,
   // emberServer,
   // emberClient,
   blazeCore,
@@ -94,7 +95,8 @@ lazy val core = libraryProject("core")
       log4s,
       scodecBits,
       slf4jApi, // residual dependency from macros
-      vault,
+      unique,
+      /* vault, */
     ),
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
@@ -442,7 +444,7 @@ lazy val circe = libraryProject("circe")
     libraryDependencies ++= Seq(
       circeCore,
       circeJawn,
-      circeTesting % Test,
+      circeTesting % Test
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -587,6 +589,11 @@ lazy val docs = http4sProject("docs")
             (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
       }
     },
+    apiMappings ++= {
+      ScaladocApiMapping.mappings(
+        (ScalaUnidoc / unidoc / unidocAllClasspaths).value, scalaBinaryVersion.value
+      )
+    }
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
 
@@ -733,7 +740,7 @@ lazy val scalafixInput = project
       "http4s-client",
       "http4s-core",
       "http4s-dsl",
-    ).map("org.http4s" %% _ % "0.21.13"),
+    ).map("org.http4s" %% _ % "0.21.14"),
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",
@@ -817,7 +824,8 @@ lazy val commonSettings = Seq(
         specs2Cats,
         specs2Scalacheck
       ).map(_ % Test)
-  }
+  },
+  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 
 def initCommands(additionalImports: String*) =

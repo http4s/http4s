@@ -36,7 +36,8 @@ import scala.concurrent.TimeoutException
   * - Time duration to process the whole response body
   * - Time duration of errors, timeouts and other abnormal terminations
   *
-  * This middleware can be extended to support any metrics ecosystem by implementing the [[MetricsOps]] type
+  * This middleware can be extended to support any metrics ecosystem by
+  * implementing the [[org.http4s.metrics.MetricsOps]] type
   */
 object Metrics {
 

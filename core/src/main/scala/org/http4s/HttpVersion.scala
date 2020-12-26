@@ -40,10 +40,10 @@ object HttpVersion {
   val `HTTP/1.0` = new HttpVersion(1, 0)
   val `HTTP/1.1` = new HttpVersion(1, 1)
   val `HTTP/2.0` = new HttpVersion(2, 0)
-  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.13")
+  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.14")
   val http4sHttpOrderForVersion: Order[HttpVersion] =
     Order.fromComparable
-  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.13")
+  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.14")
   val http4sHttpShowForVersion: Show[HttpVersion] =
     Show.fromToString
   private[this] val right_1_0 = Right(`HTTP/1.0`)

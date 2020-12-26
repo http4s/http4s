@@ -20,7 +20,8 @@ import cats.effect.Concurrent
 import org.http4s.EntityDecoder
 import play.api.libs.json.Reads
 
-/** Derive [[EntityDecoder]] if implicit [[Reads]] is in the scope without need to explicitly call `jsonOf`
+/** Derive [[EntityDecoder]] if implicit [[play.api.libs.json.Reads]] is in
+  * the scope without need to explicitly call `jsonOf`.
   */
 trait PlayEntityDecoder {
   implicit def playEntityDecoder[F[_]: Concurrent, A: Reads]: EntityDecoder[F, A] = jsonOf[F, A]
