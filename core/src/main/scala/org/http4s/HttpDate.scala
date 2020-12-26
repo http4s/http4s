@@ -91,9 +91,7 @@ object HttpDate {
     * @see https://tools.ietf.org/html/rfc7231#page-65
     */
   def fromString(s: String): ParseResult[HttpDate] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid HTTP date", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid HTTP date")(s)
 
   /** Like `fromString`, but throws on invalid input */
   def unsafeFromString(s: String): HttpDate =

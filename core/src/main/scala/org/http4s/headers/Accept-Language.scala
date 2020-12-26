@@ -19,14 +19,11 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser1
-import cats.syntax.either._
 import org.http4s.internal.parsing.Rfc7230
 
 object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Language`] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid Accept Language header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid Accept-Language header")(s)
 
   private[http4s] val parser: Parser1[`Accept-Language`] = {
     import cats.parse.Parser.{char => ch, _}

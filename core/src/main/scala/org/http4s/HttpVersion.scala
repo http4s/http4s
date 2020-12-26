@@ -54,9 +54,7 @@ object HttpVersion {
       case "HTTP/1.1" => right_1_1
       case "HTTP/1.0" => right_1_0
       case _ =>
-        parser.parseAll(s).leftMap { _ =>
-          ParseFailure("Invalid HTTP version", s"$s was not found to be a valid HTTP version")
-        }
+        ParseResult.fromParser(parser, "HTTP version")(s)
     }
 
   private val parser: Parser1[HttpVersion] = {
