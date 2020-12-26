@@ -103,6 +103,7 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
     ),
+    Compile / packageBin / mappings ~= { _.filterNot(_._2.startsWith("scala/")) },
   )
 
 lazy val laws = libraryProject("laws")
