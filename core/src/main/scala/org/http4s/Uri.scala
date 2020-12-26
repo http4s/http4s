@@ -23,7 +23,7 @@ import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
 import org.http4s.syntax.string._
-import org.http4s.util.{CaseInsensitiveString, Renderable}
+import org.http4s.util.{CaseInsensitiveString, Renderable, Writer}
 import scala.annotation.nowarn
 import scala.collection.immutable
 import scala.math.Ordered
