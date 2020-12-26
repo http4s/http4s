@@ -10,8 +10,6 @@
 
 package org.http4s.parser
 
-import cats.parse.Rfc5234.{crlf, wsp}
-import cats.parse.{Parser => P}
 import cats.syntax.all._
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
@@ -83,6 +81,9 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 }
 
 private[http4s] object Rfc2616BasicRules {
+  import cats.parse.Rfc5234.{crlf, wsp}
+  import cats.parse.{Parser => P}
+
   def lws = (crlf.rep.with1 *> wsp.rep1).void
 
   def optWs = P.rep(lws).void
