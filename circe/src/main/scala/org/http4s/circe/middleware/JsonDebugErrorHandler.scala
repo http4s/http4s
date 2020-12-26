@@ -32,7 +32,7 @@ object JsonDebugErrorHandler {
     org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.service-errors")
 
   // Can be parametric on my other PR is merged.
-  def apply[F[_]: Sync, G[_]](
+  def apply[F[_]: Concurrent, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
       redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
   ): Kleisli[F, Request[G], Response[G]] =
