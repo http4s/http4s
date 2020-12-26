@@ -20,7 +20,8 @@ import cats.effect.Concurrent
 import io.circe.Decoder
 import org.http4s.EntityDecoder
 
-/** Derive [[EntityDecoder]] if implicit [[Decoder]] is in the scope without need to explicitly call `jsonOf`
+/** Derive [[EntityDecoder]] if implicit [[io.circe.Decoder]] is in the scope
+  * without need to explicitly call `jsonOf`.
   */
 trait CirceEntityDecoder {
   implicit def circeEntityDecoder[F[_]: Concurrent, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
