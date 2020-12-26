@@ -93,6 +93,9 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
+    // https://github.com/scalacenter/scalafix/issues/1299
+    dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -297,17 +300,17 @@ object Http4sPlugin extends AutoPlugin {
     val asyncHttpClient = "2.10.5"
     val blaze = "0.14.14"
     val boopickle = "1.3.3"
-    val cats = "2.3.0"
-    val catsEffect = "2.3.0"
-    val catsEffectTesting = "0.4.2"
+    val cats = "2.3.1"
+    val catsEffect = "2.3.1"
+    val catsEffectTesting = "0.5.0"
     val catsParse = "0.2.0"
     val circe = "0.13.0"
     val cryptobits = "1.3"
-    val disciplineCore = "1.1.2"
-    val disciplineSpecs2 = "1.1.1"
-    val dropwizardMetrics = "4.1.15"
-    val fs2 = "2.5.0-M3"
-    val jacksonDatabind = "2.11.3"
+    val disciplineCore = "1.1.3"
+    val disciplineSpecs2 = "1.1.3"
+    val dropwizardMetrics = "4.1.16"
+    val fs2 = "2.5.0"
+    val jacksonDatabind = "2.11.4"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.35.v20201120"
@@ -317,23 +320,23 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.10.0-M3"
     val mockito = "3.5.15"
-    val netty = "4.1.55.Final"
+    val netty = "4.1.56.Final"
     val okio = "2.9.0"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.11.0"
-    val munitDiscipline = "1.0.3"
+    val munitCatsEffect = "0.12.0"
+    val munitDiscipline = "1.0.4"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.1"
     val prometheusClient = "0.8.1"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.1"
-    val scalacheckEffect = "0.6.0"
+    val scalacheck = "1.15.2"
+    val scalacheckEffect = "0.7.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
-    val scodecBits = "1.1.22"
+    val scodecBits = "1.1.23"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.5"
