@@ -54,7 +54,7 @@ private[parser] trait ForwardedHeader {
 
     private def Param: ParamRule =
       rule {
-        Token ~> { token: String =>
+        Token ~> { (token: String) =>
           token.toLowerCase(Locale.ROOT) match {
             case "by" => CreateOrAssignParam_by
             case "for" => CreateOrAssignParam_for
