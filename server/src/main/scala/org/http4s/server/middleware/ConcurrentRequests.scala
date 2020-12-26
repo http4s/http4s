@@ -69,7 +69,7 @@ object ConcurrentRequests {
   ): F[ContextMiddleware[F, Long]] =
     route2[F, F](onIncrement, onDecrement)
 
-  /** As [[#apply]], but runs the same effect on increment and decrement of the concurrent request count. */
+  /** As [[#route]], but runs the same effect on increment and decrement of the concurrent request count. */
   def onChangeRoute[F[_]: Async](onChange: Long => F[Unit]): F[ContextMiddleware[F, Long]] =
     route[F](onChange, onChange)
 
@@ -111,8 +111,13 @@ object ConcurrentRequests {
   ): F[Kleisli[F, ContextRequest[F, Long], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     app2[F, F](onIncrement, onDecrement)
 
+<<<<<<< HEAD
   /** As [[#apply]], but runs the same effect on increment and decrement of the concurrent request count. */
   def onChangeApp[F[_]: Async](onChange: Long => F[Unit])
+=======
+  /** As [[#app]], but runs the same effect on increment and decrement of the concurrent request count. */
+  def onChangeApp[F[_]: Sync](onChange: Long => F[Unit])
+>>>>>>> cats-effect-3
       : F[Kleisli[F, ContextRequest[F, Long], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     app[F](onChange, onChange)
 }

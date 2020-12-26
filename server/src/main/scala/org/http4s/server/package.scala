@@ -48,6 +48,9 @@ package object server {
 
     /** The time to wait for a graceful shutdown */
     val ShutdownTimeout: Duration = 30.seconds
+
+    /** Default max size of all headers. */
+    val MaxHeadersSize: Int = 40 * 1024
   }
 
   object ServerRequestKeys {

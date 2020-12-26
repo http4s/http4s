@@ -222,4 +222,37 @@ object BracketRequestResponse {
       case ExitCase.Errored(e) => Outcome.errored(e)
       case ExitCase.Canceled => Outcome.canceled
     }
+
+  // /** As [[#bracketRequestResponseRoutes]], but `acquire` and `release` are
+  //   * defined in terms of a [[cats.effect.Resource]].
+  //   *
+  //   * @note $releaseWarning
+  //   */
+  // def bracketRequestResponseRoutesR[F[_], A](
+  //     resource: Resource[F, A]
+  // )(implicit F: Bracket[F, Throwable]): ContextMiddleware[F, A] = {
+  //   (contextRoutes: ContextRoutes[A, F]) =>
+  //     val contextRoutes0: ContextRoutes[(A, F[Unit]), F] =
+  //       contextRoutes.local(_.map(_._1))
+  //     bracketRequestResponseRoutes(
+  //       resource.allocated
+  //     )(_._2)(F)(contextRoutes0)
+  // }
+
+  // /** As [[#bracketRequestResponseApp]], but `acquire` and `release` are defined
+  //   * in terms of a [[cats.effect.Resource]].
+  //   *
+  //   * @note $releaseWarning
+  //   */
+  // def bracketRequestResponseAppR[F[_], A](
+  //     resource: Resource[F, A]
+  // )(implicit F: Bracket[F, Throwable])
+  //     : Kleisli[F, ContextRequest[F, A], Response[F]] => Kleisli[F, Request[F], Response[F]] = {
+  //   (contextApp: Kleisli[F, ContextRequest[F, A], Response[F]]) =>
+  //     val contextApp0: Kleisli[F, ContextRequest[F, (A, F[Unit])], Response[F]] =
+  //       contextApp.local(_.map(_._1))
+  //     bracketRequestResponseApp(
+  //       resource.allocated
+  //     )(_._2)(F)(contextApp0)
+  // }
 }

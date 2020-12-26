@@ -12,7 +12,7 @@ package org.http4s.ember.core
 
 import cats._
 import cats.syntax.all._
-import cats.effect.concurrent.Deferred
+import cats.effect.kernel.Deferred
 import fs2._
 import scodec.bits.ByteVector
 import Shared._

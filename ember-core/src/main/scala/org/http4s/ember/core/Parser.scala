@@ -21,7 +21,7 @@ import cats.syntax.all._
 import fs2._
 import org.http4s._
 import cats.effect._
-import cats.effect.concurrent.Deferred
+import cats.effect.kernel.Deferred
 import scala.annotation.switch
 import scala.collection.mutable
 

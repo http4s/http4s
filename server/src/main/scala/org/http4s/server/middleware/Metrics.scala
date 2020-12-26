@@ -32,7 +32,7 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
   * - Time duration to send the whole response body
   * - Time duration of errors and other abnormal terminations
   *
-  * This middleware can be extended to support any metrics ecosystem by implementing the [[MetricsOps]] type
+  * This middleware can be extended to support any metrics ecosystem by implementing the [[org.http4s.metrics.MetricsOps]] type
   */
 object Metrics {
 
@@ -46,7 +46,7 @@ object Metrics {
     *
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
-    * @param errorResponseHandler a function that maps a [[Throwable]] to an optional http status code to register
+    * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register
     * @param classifierF a function that allows to add a classifier that can be customized per request
     * @return the metrics middleware
     */
