@@ -16,11 +16,10 @@
 
 package org.http4s
 package client
-package okhttp
+package jetty
 
 import cats.effect.IO
 
-class OkHttpClientSpec extends ClientRouteTestBattery("OkHttp") {
-  def clientResource =
-    OkHttpBuilder.withDefaultClient[IO](testBlocker).map(_.create)
+class JettyClientSuite extends ClientRouteTestBattery("JettyClient") {
+  def clientResource = JettyClient.resource[IO]()
 }
