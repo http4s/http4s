@@ -18,25 +18,14 @@ import org.typelevel.ci.CIString
 
 object HttpHeaderParser
     extends SimpleHeaders
-    with AcceptCharsetHeader
-    with AcceptEncodingHeader
-    with AcceptHeader
-    with AcceptLanguageHeader
-    with AuthorizationHeader
     with CacheControlHeader
-    with ContentLanguageHeader
-    with ContentLocationHeader
-    with ContentTypeHeader
     with CookieHeader
     with ForwardedHeader
-    with LinkHeader
     with LocationHeader
     with OriginHeader
-    with ProxyAuthenticateHeader
     with RangeParser
     with RefererHeader
     with StrictTransportSecurityHeader
-    with WwwAuthenticateHeader
     with ZipkinHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
@@ -108,10 +97,10 @@ object HttpHeaderParser
 
   private def gatherBuiltIn(): Unit = {
     addParser_(CIString("ACCEPT-PATCH"), `ACCEPT_PATCH`)
-    addParser_(CIString("ACCEPT"), `ACCEPT`)
-    addParser_(CIString("ACCEPT-CHARSET"), `ACCEPT_CHARSET`)
-    addParser_(CIString("ACCEPT-ENCODING"), `ACCEPT_ENCODING`)
-    addParser_(CIString("ACCEPT-LANGUAGE"), `ACCEPT_LANGUAGE`)
+    addParser_(CIString("ACCEPT"), Accept.parse)
+    addParser_(CIString("ACCEPT-CHARSET"), `Accept-Charset`.parse)
+    addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
+    addParser_(CIString("ACCEPT-LANGUAGE"), `Accept-Language`.parse)
     addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"), `ACCESS_CONTROL_ALLOW_CREDENTIALS`)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `ACCESS_CONTROL_ALLOW_HEADERS`)
@@ -127,7 +116,7 @@ object HttpHeaderParser
     addParser_(CIString("CONTENT-LENGTH"), `CONTENT_LENGTH`)
     addParser_(CIString("CONTENT-LOCATION"), `CONTENT_LOCATION`)
     addParser_(CIString("CONTENT-RANGE"), `CONTENT_RANGE`)
-    addParser_(CIString("CONTENT-TYPE"), `CONTENT_TYPE`)
+    addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
     addParser_(CIString("COOKIE"), `COOKIE`)
     addParser_(CIString("DATE"), Date.parse)
     addParser_(CIString("ETAG"), ETag.parse)
@@ -151,7 +140,7 @@ object HttpHeaderParser
     addParser_(CIString("SERVER"), `SERVER`)
     addParser_(CIString("SET-COOKIE"), `SET_COOKIE`)
     addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `STRICT_TRANSPORT_SECURITY`)
-    addParser_(CIString("TRANSFER-ENCODING"), `TRANSFER_ENCODING`)
+    addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
     addParser_(CIString("USER-AGENT"), `USER_AGENT`)
     addParser_(CIString("WWW-AUTHENTICATE"), `WWW_AUTHENTICATE`)
     addParser_(CIString("X-B3-FLAGS"), `X_B3_FLAGS`)

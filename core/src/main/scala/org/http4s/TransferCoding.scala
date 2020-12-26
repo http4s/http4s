@@ -10,11 +10,9 @@
 
 package org.http4s
 
-import cats.data.NonEmptyList
+import cats.parse.Parser1
 import cats.{Order, Show}
 import org.http4s.internal.hashLower
-import org.http4s.internal.parboiled2.{Parser => PbParser}
-import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
 import org.http4s.util._
 
 class TransferCoding private (val coding: String) extends Ordered[TransferCoding] with Renderable {
@@ -49,36 +47,16 @@ object TransferCoding {
   val gzip: TransferCoding = new TransferCodingImpl("gzip")
   val identity: TransferCoding = new TransferCodingImpl("identity")
 
-  /** Parse a Transfer Coding
-    */
-  def parse(s: String): ParseResult[TransferCoding] =
-    new Http4sParser[TransferCoding](s, "Invalid Transfer Coding") with TransferCodingParser {
-      def main = codingRule
-    }.parse
-
-  /** Parse a list of Transfer Coding entries
-    */
-  def parseList(s: String): ParseResult[NonEmptyList[TransferCoding]] =
-    new Http4sParser[NonEmptyList[TransferCoding]](s, "Invalid Transfer Coding")
-      with Rfc2616BasicRules
-      with TransferCodingParser {
-      def main =
-        rule {
-          oneOrMore(codingRule).separatedBy(ListSep) ~> { (codes: Seq[TransferCoding]) =>
-            NonEmptyList.of(codes.head, codes.tail: _*)
-          }
-        }
-    }.parse
-
-  private trait TransferCodingParser { self: PbParser =>
-    def codingRule =
-      rule {
-        "chunked" ~ push(chunked) |
-          "compress" ~ push(compress) |
-          "deflate" ~ push(deflate) |
-          "gzip" ~ push(gzip) |
-          "identity" ~ push(identity)
-      }
+  private[http4s] val parser: Parser1[TransferCoding] = {
+    import cats.parse.Parser.{ignoreCase1, oneOf1}
+    oneOf1(
+      List(
+        ignoreCase1("chunked").as(chunked),
+        ignoreCase1("compress").as(compress),
+        ignoreCase1("deflate").as(deflate),
+        ignoreCase1("gzip").as(gzip),
+        ignoreCase1("identity").as(identity)
+      ))
   }
 
   implicit val http4sOrderForTransferCoding: Order[TransferCoding] =
@@ -88,7 +66,7 @@ object TransferCoding {
   implicit val http4sInstancesForTransferCoding: HttpCodec[TransferCoding] =
     new HttpCodec[TransferCoding] {
       override def parse(s: String): ParseResult[TransferCoding] =
-        TransferCoding.parse(s)
+        ParseResult.fromParser(TransferCoding.parser, "Invalid TransferCoding")(s)
 
       override def render(writer: Writer, coding: TransferCoding): writer.type =
         writer << coding.coding
