@@ -18,11 +18,28 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser1
+import cats.syntax.either._
+import org.http4s.internal.parsing.Rfc7230
 
 object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Language`] =
-    HttpHeaderParser.ACCEPT_LANGUAGE(s)
+    parser.parseAll(s).leftMap { e =>
+      ParseFailure("Invalid Accept Language header", e.toString)
+    }
+
+  private[http4s] val parser: Parser1[`Accept-Language`] = {
+    import cats.parse.Parser.{char => ch, _}
+    import cats.parse.Rfc5234._
+    import org.http4s.internal.parsing.Rfc7230.headerRep1
+
+    val languageTag =
+      (string1(alpha.rep1(1)) ~ (ch('-') *> Rfc7230.token).rep ~ QValue.parser).map {
+        case ((main, sub), q) => LanguageTag(main, q, sub)
+      }
+
+    headerRep1(languageTag).map(tags => `Accept-Language`(tags.head, tags.tail: _*))
+  }
 }
 
 /** Request header used to indicate which natural language would be preferred for the response

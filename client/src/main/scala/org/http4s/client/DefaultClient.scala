@@ -51,8 +51,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
     req.flatMap(run(_).use(f))
 
-  /** Returns this client as a [[Kleisli]].  All connections created by this
-    * service are disposed on completion of callback task f.
+  /** Returns this client as a [[cats.data.Kleisli]].  All connections created
+    * by this service are disposed on completion of callback task f.
     *
     * This method effectively reverses the arguments to `run` followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
@@ -70,8 +70,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * underlying HTTP connection.
     *
     * This is intended for use in proxy servers.  `run`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
+    * [[toKleisli]] and [[streaming]] signatures guarantee disposal of the
+    * HTTP connection.
     */
   def toHttpApp: HttpApp[F] =
     Kleisli { req =>
@@ -85,8 +85,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * body to dispose of the underlying HTTP connection.
     *
     * This is intended for use in proxy servers.  `run`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
+    * [[toKleisli]], [[streaming]] are safer alternatives, as their signatures
+    * guarantee disposal of the HTTP connection.
     */
   @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
   def toHttpService: HttpService[F] =

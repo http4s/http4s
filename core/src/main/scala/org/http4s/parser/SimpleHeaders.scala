@@ -11,6 +11,7 @@
 package org.http4s
 package parser
 
+import cats.syntax.all._
 import cats.data.NonEmptyList
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
@@ -58,15 +59,10 @@ private[parser] trait SimpleHeaders {
     }.parse
 
   def CONTENT_ENCODING(value: String): ParseResult[`Content-Encoding`] =
-    new Http4sHeaderParser[`Content-Encoding`](value)
-      with org.http4s.ContentCoding.ContentCodingParser {
-      def entry =
-        rule {
-          EncodingRangeDecl ~ EOL ~> { (c: ContentCoding) =>
-            `Content-Encoding`(c)
-          }
-        }
-    }.parse
+    (ContentCoding.parser <* AdditionalRules.EOL)
+      .map(`Content-Encoding`(_))
+      .parseAll(value)
+      .leftMap(e => ParseFailure("Invalid header", e.toString))
 
   def CONTENT_DISPOSITION(value: String): ParseResult[`Content-Disposition`] =
     new Http4sHeaderParser[`Content-Disposition`](value) {
@@ -133,9 +129,6 @@ private[parser] trait SimpleHeaders {
             }
         }
     }.parse
-
-  def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
-    TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
     new Http4sHeaderParser[`User-Agent`](value) {

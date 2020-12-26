@@ -201,8 +201,8 @@ object EmberServerBuilder {
     )
 
   private object Defaults {
-    val host: String = "127.0.0.1"
-    val port: Int = 8000
+    val host: String = server.defaults.Host
+    val port: Int = server.defaults.HttpPort
 
     def httpApp[F[_]: Applicative]: HttpApp[F] = HttpApp.notFound[F]
     def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
@@ -214,9 +214,9 @@ object EmberServerBuilder {
     }
     val maxConcurrency: Int = Int.MaxValue
     val receiveBufferSize: Int = 256 * 1024
-    val maxHeaderSize: Int = 10 * 1024
+    val maxHeaderSize: Int = server.defaults.MaxHeadersSize
     val requestHeaderReceiveTimeout: Duration = 5.seconds
-    val idleTimeout: Duration = 60.seconds
+    val idleTimeout: Duration = server.defaults.IdleTimeout
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
   }
 }

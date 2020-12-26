@@ -17,12 +17,18 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
+import cats.parse._
 
 object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton {
+  //https://tools.ietf.org/html/rfc7235#section-4.2
+  private[http4s] val parser: Parser1[Authorization] = {
+    import org.http4s.internal.parsing.Rfc7235.credentials
+    credentials.map(Authorization(_))
+  }
+
   override def parse(s: String): ParseResult[Authorization] =
-    HttpHeaderParser.AUTHORIZATION(s)
+    ParseResult.fromParser(parser, "Invalid Authorization")(s)
 
   def apply(basic: BasicCredentials): Authorization =
     Authorization(Credentials.Token(AuthScheme.Basic, basic.token))
