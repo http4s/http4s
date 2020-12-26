@@ -61,7 +61,7 @@ object Retry {
           .getOrElse(0L)
       val sleepDuration = headerDuration.seconds.max(duration)
       F.sleep(sleepDuration) >> hotswap.swap(client.run(req).attempt).flatMap { resp =>
-        retryLoop(req, resp, attempts +1, hotswap)
+        retryLoop(req, resp, attempts + 1, hotswap)
       }
     }
 
@@ -97,8 +97,9 @@ object Retry {
       }
 
     Client { req =>
-      Hotswap[F, Either[Throwable, Response[F]]](client.run(req).attempt).flatMap { case (hotswap, resp) =>
-        Resource.eval(retryLoop(req, resp, 1, hotswap))
+      Hotswap[F, Either[Throwable, Response[F]]](client.run(req).attempt).flatMap {
+        case (hotswap, resp) =>
+          Resource.eval(retryLoop(req, resp, 1, hotswap))
       }
     }
   }
