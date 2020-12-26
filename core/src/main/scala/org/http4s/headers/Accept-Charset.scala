@@ -24,9 +24,7 @@ import org.http4s.CharsetRange.{Atom, `*`}
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Charset`] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid Accept Charset header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid Accept-Charset header")(s)
 
   private[http4s] val parser: Parser1[`Accept-Charset`] = {
     import cats.parse.Parser._

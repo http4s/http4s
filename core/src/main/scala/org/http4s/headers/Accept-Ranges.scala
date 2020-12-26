@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 import cats.parse.{Parser => P}
-import cats.implicits._
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
@@ -27,9 +26,7 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
   def none: `Accept-Ranges` = apply(Nil)
 
   override def parse(s: String): ParseResult[`Accept-Ranges`] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid Accept-Ranges header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Accept-Ranges header")(s)
 
   /* https://tools.ietf.org/html/rfc7233#appendix-C */
   val parser: P[`Accept-Ranges`] = {

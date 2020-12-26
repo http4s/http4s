@@ -18,14 +18,11 @@ package org.http4s
 package headers
 
 import cats.parse.Parser1
-import cats.syntax.all._
 import org.http4s.util.{Renderer, Writer}
 
 object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Last-Modified`] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid Last-Modified header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Last-Modified header")(s)
 
   /* `Last-Modified = HTTP-date` */
   private[http4s] val parser: Parser1[`Last-Modified`] =

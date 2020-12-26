@@ -19,7 +19,6 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser1
-import cats.syntax.all._
 import org.http4s.util.Writer
 
 object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
@@ -35,9 +34,7 @@ object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
     }
 
   override def parse(s: String): ParseResult[`Set-Cookie`] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid Set-Cookie header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid Set-Cookie header")(s)
 
   /* set-cookie-header = "Set-Cookie:" SP set-cookie-string */
   private[http4s] val parser: Parser1[`Set-Cookie`] =

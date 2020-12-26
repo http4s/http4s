@@ -87,7 +87,7 @@ object MediaRange {
   /** Parse a MediaRange
     */
   def parse(s: String): ParseResult[MediaRange] =
-    fullParser.parseAll(s).leftMap(e => ParseFailure("Invalid Media Range", e.toString))
+    ParseResult.fromParser(fullParser, "media range")(s)
 
   private[http4s] val parser: Parser1[MediaRange] = mediaRangeParser(getMediaRange)
 
@@ -244,7 +244,7 @@ object MediaType extends MimeDB {
   /** Parse a MediaType
     */
   def parse(s: String): ParseResult[MediaType] =
-    parser.parseAll(s).leftMap(e => ParseFailure("Invalid Media Type", e.toString))
+    ParseResult.fromParser(parser, "media type")(s)
 
   /** Parse a MediaType
     *

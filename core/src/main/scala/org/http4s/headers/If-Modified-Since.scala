@@ -18,16 +18,13 @@ package org.http4s
 package headers
 
 import cats.parse.Parser1
-import cats.syntax.all._
 import org.http4s.util.{Renderer, Writer}
 
 object `If-Modified-Since`
     extends HeaderKey.Internal[`If-Modified-Since`]
     with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`If-Modified-Since`] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid If-Modified-Since header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid If-Modified-Since header")(s)
 
   /* `If-Modified-Since = HTTP-date` */
   private[http4s] val parser: Parser1[`If-Modified-Since`] =
