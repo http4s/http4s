@@ -21,8 +21,8 @@ import cats.data.Chain
 import cats.effect.Sync
 import cats.syntax.all._
 import org.http4s.headers._
-import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
+import scala.collection.compat._
 import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
@@ -131,7 +131,7 @@ object UrlForm {
       urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(q => UrlForm(CollectionCompat.mapValues(q.multiParams)(Chain.fromSeq)))
+      .map(q => UrlForm(q.multiParams.view.mapValues(Chain.fromSeq).toMap))
       .leftMap { parseFailure =>
         MalformedMessageBodyFailure(parseFailure.message, None)
       }

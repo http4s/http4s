@@ -21,7 +21,7 @@ import cats.data._
 import cats.effect.IO
 import cats.syntax.all._
 import cats.kernel.laws.discipline.MonoidTests
-import org.http4s.internal.CollectionCompat
+import scala.collection.compat._
 
 class UrlFormSpec extends Http4sSpec {
 //  // TODO: arbitrary charsets would be nice
@@ -129,7 +129,7 @@ class UrlFormSpec extends Http4sSpec {
           v <- vs.toList
         } yield k -> v
         UrlForm(flattened: _*) === UrlForm(
-          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+          map.view.mapValues(nel => Chain.fromSeq(nel.toList)).toMap)
     }
 
     "construct consistently from Chain of kv-pairs and Map[String, Chain[String]]" in prop {
@@ -141,7 +141,7 @@ class UrlFormSpec extends Http4sSpec {
           v <- Chain.fromSeq(vs.toList)
         } yield k -> v
         UrlForm.fromChain(flattened) === UrlForm(
-          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+          map.view.mapValues(nel => Chain.fromSeq(nel.toList)).toMap)
     }
   }
 

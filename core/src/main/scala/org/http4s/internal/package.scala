@@ -33,6 +33,9 @@ import java.nio.{ByteBuffer, CharBuffer}
 import org.http4s.util.execution.direct
 import org.log4s.Logger
 
+import scala.collection.compat._
+import scala.collection.immutable.{Map => IMap, Seq => ISeq}
+import scala.collection.mutable.{Map => MMap, ListBuffer}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NoStackTrace
 import scala.util.{Failure, Success}
@@ -355,4 +358,15 @@ package object internal {
       tail: Eval[Int]*
   ): Int =
     reduceComparisons_(NonEmptyChain(Eval.now(head), tail: _*))
+
+  def pairsToMultiParams[K, V](map: collection.Seq[(K, Option[V])]): IMap[K, ISeq[V]] =
+    if (map.isEmpty) Map.empty
+    else {
+      val m = MMap.empty[K, ListBuffer[V]]
+      map.foreach {
+        case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
+        case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
+      }
+      m.view.mapValues(_.toList).toMap
+    }
 }

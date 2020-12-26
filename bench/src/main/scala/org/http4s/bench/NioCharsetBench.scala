@@ -21,9 +21,9 @@ import cats.syntax.all._
 import java.nio.charset.{UnsupportedCharsetException, Charset => NioCharset}
 import java.util.{HashMap, Locale}
 import java.util.concurrent.TimeUnit
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.openjdk.jmh.annotations._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 @Fork(2)
 @Threads(8)

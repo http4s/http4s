@@ -22,7 +22,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.{Blocker, ContextShift, Sync}
 import cats.syntax.all._
 import java.nio.file.{Path, Paths}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.control.NoStackTrace
 
 /** Constructs new services to serve assets from Webjars

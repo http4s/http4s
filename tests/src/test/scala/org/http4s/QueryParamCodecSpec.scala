@@ -24,10 +24,11 @@ import cats.laws.discipline.{arbitrary => _, _}
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
+
+import scala.jdk.CollectionConverters._
 
 class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   checkAll("Boolean QueryParamCodec", QueryParamCodecLaws[Boolean])

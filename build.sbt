@@ -92,6 +92,7 @@ lazy val core = libraryProject("core")
       fs2Io,
       log4s,
       parboiled,
+      scalaCollectionCompat,
       scalaReflect(scalaVersion.value) % Provided,
       scodecBits,
       slf4jApi, // residual dependency from macros
@@ -102,6 +103,9 @@ lazy val core = libraryProject("core")
       // These were private[this], surfaced by 2.13.4's exhaustiveness checker
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
+      // This was never our namespace to pollute
+      ProblemFilters.exclude[MissingClassProblem]("scala.annotation.nowarn"),
+      ProblemFilters.exclude[MissingClassProblem]("scala.annotation.nowarn$"),
     ),
   )
 

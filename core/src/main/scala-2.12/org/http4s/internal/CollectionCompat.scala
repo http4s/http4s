@@ -20,6 +20,7 @@ import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
+@deprecated("Removed in favor of scala-collection-compat", "0.21.15")
 private[http4s] object CollectionCompat {
   type LazyList[A] = Stream[A]
   val LazyList = Stream

@@ -329,6 +329,7 @@ object Http4sPlugin extends AutoPlugin {
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.2"
     val scalacheckEffect = "0.7.0"
+    val scalaCollectionCompat = "2.3.2"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
@@ -406,6 +407,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % V.scalacheck
   lazy val scalacheckEffect                 = "org.typelevel"          %% "scalacheck-effect"         % V.scalacheckEffect
   lazy val scalacheckEffectMunit            = "org.typelevel"          %% "scalacheck-effect-munit"   % V.scalacheckEffect
+  lazy val scalaCollectionCompat            = "org.scala-lang.modules" %% "scala-collection-compat"   % V.scalaCollectionCompat
   def scalaReflect(sv: String)              = "org.scala-lang"         %  "scala-reflect"             % sv
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % V.scalatags
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % V.scalaXml

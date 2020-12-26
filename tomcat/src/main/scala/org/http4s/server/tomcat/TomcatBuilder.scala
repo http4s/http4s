@@ -30,7 +30,6 @@ import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.tomcat.TomcatBuilder._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
@@ -38,6 +37,7 @@ import org.http4s.syntax.all._
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 sealed class TomcatBuilder[F[_]] private (
     socketAddress: InetSocketAddress,

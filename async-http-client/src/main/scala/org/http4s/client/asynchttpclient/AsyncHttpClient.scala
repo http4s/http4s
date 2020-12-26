@@ -31,13 +31,13 @@ import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._
 import org.reactivestreams.Publisher
 import _root_.io.netty.handler.codec.http.cookie.Cookie
 import org.asynchttpclient.uri.Uri
 import org.asynchttpclient.cookie.CookieStore
+import scala.jdk.CollectionConverters._
 
 object AsyncHttpClient {
   val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()

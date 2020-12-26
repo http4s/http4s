@@ -21,13 +21,12 @@ import java.nio.charset.StandardCharsets
 import cats.syntax.all._
 import cats.{Eval, Foldable, Hash, Order, Show}
 import org.http4s.Query._
-import org.http4s.internal.CollectionCompat
-
+import org.http4s.internal.pairsToMultiParams
 import org.http4s.internal.parboiled2.{CharPredicate, Parser}
 import org.http4s.parser.{QueryParser, RequestUriParser}
 import org.http4s.util.{Renderable, Writer}
-
-import scala.collection.immutable
+import scala.collection.compat._
+import scala.collection.immutable.{Map => IMap, Seq => ISeq}
 
 /** Collection representation of a query string
   *
@@ -133,14 +132,14 @@ final class Query private (value: Either[Vector[KeyValue], String])
     * none exist, the empty `String` "" is returned.
     */
   lazy val params: Map[String, String] =
-    CollectionCompat.mapValues(multiParams)(_.headOption.getOrElse(""))
+    multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
 
   /** Map[String, Seq[String]] representation of the [[Query]]
     *
     * Params are represented as a `Seq[String]` and may be empty.
     */
-  lazy val multiParams: Map[String, immutable.Seq[String]] =
-    CollectionCompat.pairsToMultiParams(toVector)
+  lazy val multiParams: IMap[String, ISeq[String]] =
+    pairsToMultiParams(toVector)
 
   override def equals(that: Any): Boolean =
     that match {
