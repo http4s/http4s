@@ -137,9 +137,9 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
   private def fetchResponse(req: Request[F], conn: HttpURLConnection) =
     for {
       _ <- writeBody(req, conn)
-      code <- F.delay(conn.getResponseCode)
+      code <- F.blocking(conn.getResponseCode)
       status <- F.fromEither(Status.fromInt(code))
-      headers <- F.delay(
+      headers <- F.blocking(
         Headers(
           conn.getHeaderFields.asScala
             .filter(_._1 != null)
