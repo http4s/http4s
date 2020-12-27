@@ -171,9 +171,10 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   // Attribute methods
 
-  /** Generates a new message object with the specified key/value pair appended to the [[AttributeMap]]
+  /** Generates a new message object with the specified key/value pair appended
+    * to the [[#attributes]].
     *
-    * @param key [[Key]] with which to associate the value
+    * @param key [[io.chrisdavenport.vault.Key]] with which to associate the value
     * @param value value associated with the key
     * @tparam A type of the value to store
     * @return a new message object with the key/value pair appended
@@ -181,9 +182,10 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def withAttribute[A](key: Key[A], value: A): Self =
     change(attributes = attributes.insert(key, value))
 
-  /** Returns a new message object without the specified key in the [[AttributeMap]]
+  /** Returns a new message object without the specified key in the
+    * [[#attributes]].
     *
-    * @param key [[Key]] to remove
+    * @param key [[io.chrisdavenport.vault.Key]] to remove
     * @return a new message object without the key
     */
   def withoutAttribute(key: Key[_]): Self =
@@ -344,14 +346,14 @@ final class Request[F[_]](
     */
   def params: Map[String, String] = uri.params
 
-  /** Parses all available [[Cookie]] headers into a list of [[RequestCookie]] objects. This
-    * implementation is compatible with cookie headers formatted per HTTP/1 and HTTP/2, or even both
-    * at the same time.
+  /** Parses all available [[org.http4s.headers.Cookie]] headers into a list of
+    * [[RequestCookie]] objects. This implementation is compatible with cookie
+    * headers formatted per HTTP/1 and HTTP/2, or even both at the same time.
     */
   def cookies: List[RequestCookie] =
     headers.get(Cookie).fold(List.empty[RequestCookie])(_.values.toList)
 
-  /** Add a Cookie header for the provided [[Cookie]] */
+  /** Add a Cookie header for the provided [[org.http4s.headers.Cookie]] */
   def addCookie(cookie: RequestCookie): Self =
     headers
       .get(Cookie)
@@ -517,8 +519,9 @@ object Request {
   * @param status [[Status]] code and message
   * @param headers [[Headers]] containing all response headers
   * @param body EntityBody[F] representing the possible body of the response
-  * @param attributes [[Vault]] containing additional parameters which may be used by the http4s
-  *                   backend for additional processing such as java.io.File object
+  * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+  *                   parameters which may be used by the http4s backend for
+  *                   additional processing such as java.io.File object
   */
 final case class Response[F[_]](
     status: Status = Status.Ok,
@@ -558,19 +561,21 @@ final case class Response[F[_]](
   def addCookie(cookie: ResponseCookie): Self =
     putHeaders(`Set-Cookie`(cookie))
 
-  /** Add a [[`Set-Cookie`]] header with the provided values */
+  /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Self =
     addCookie(ResponseCookie(name, content, expires))
 
-  /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified
+    * cookie from the client
+    */
   def removeCookie(cookie: ResponseCookie): Self =
     putHeaders(cookie.clearCookie)
 
-  /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Self =
     putHeaders(ResponseCookie(name, "").clearCookie)
 
-  /** Returns a list of cookies from the [[`Set-Cookie`]]
+  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion.
     */

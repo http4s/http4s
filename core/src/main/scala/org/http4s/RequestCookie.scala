@@ -15,22 +15,24 @@
  */
 
 package org.http4s
-package parser
 
-import org.http4s.headers._
-import org.http4s.internal.parboiled2._
+import cats.parse.Parser1
+import org.http4s.internal.parsing.RelaxedCookies
+import org.http4s.util.{Renderable, Writer}
 
-trait ProxyAuthenticateHeader {
-  def PROXY_AUTHENTICATE(value: String): ParseResult[`Proxy-Authenticate`] =
-    new ProxyAuthenticateParser(value).parse
+// see http://tools.ietf.org/html/rfc6265
+final case class RequestCookie(name: String, content: String) extends Renderable {
+  override lazy val renderString: String = super.renderString
 
-  private class ProxyAuthenticateParser(input: ParserInput)
-      extends ChallengeParser[`Proxy-Authenticate`](input) {
-    def entry: Rule1[`Proxy-Authenticate`] =
-      rule {
-        oneOrMore(ChallengeRule).separatedBy(ListSep) ~ EOI ~> { (xs: Seq[Challenge]) =>
-          `Proxy-Authenticate`(xs.head, xs.tail: _*)
-        }
-      }
+  override def render(writer: Writer): writer.type = {
+    writer.append(name).append('=').append(content)
+    writer
   }
+}
+
+object RequestCookie {
+  private[http4s] val parser: Parser1[RequestCookie] =
+    RelaxedCookies.cookiePair.map { case (name, value) =>
+      RequestCookie(name, value)
+    }
 }

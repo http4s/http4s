@@ -18,14 +18,11 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import cats.syntax.all._
 import org.http4s.util.{Renderer, Writer}
 
 object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Expires] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid Expires header", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid Expires header")(s)
 
   /* `Expires = HTTP-date` */
   private[http4s] val parser: Parser[Expires] = {
