@@ -26,9 +26,7 @@ import fs2.Stream
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
-import org.http4s.laws.discipline.ArbitraryInstances._
 import scala.concurrent.duration._
-import org.scalacheck.effect.PropF
 
 class RetrySuite extends Http4sSuite {
   val app = HttpRoutes
