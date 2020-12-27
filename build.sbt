@@ -127,6 +127,8 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.PROXY_AUTHENTICATE"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.WWW_AUTHENTICATE"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.AUTHORIZATION"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.RANGE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.CONTENT_RANGE"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.DATE"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.ETAG"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.EXPIRES"),
@@ -140,6 +142,7 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_ENCODING"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_CHARSET"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ContentCoding.org$http4s$ContentCoding$$<init>$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Content-Range.apply"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.org$http4s$parser$AcceptLanguageHeader$_setter_$acceptLanguageParser_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.acceptLanguageParser"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.org$http4s$parser$AcceptEncodingHeader$_setter_$acceptEncodingParser_="),
@@ -169,6 +172,8 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AuthorizationHeader$AuthorizationParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ChallengeParser"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.parser.HttpHeaderParser$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$RangeRule"),
 
       //Proxy-Authorization
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.headers.Proxy$minusAuthorization$"),
