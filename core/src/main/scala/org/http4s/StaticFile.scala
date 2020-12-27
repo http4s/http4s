@@ -154,8 +154,8 @@ object StaticFile {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
       res <- Files[F].isFile(f.toPath()).flatMap[Option[Response[F]]] { isFile =>
         if (isFile) {
-
-          if (start >= 0 && end >= start && buffsize > 0) {
+          val requireCondition = start >= 0 && end >= start && buffsize > 0
+          if (!requireCondition) {
             F.raiseError[Option[Response[F]]](new IllegalArgumentException(
               s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
           } else {

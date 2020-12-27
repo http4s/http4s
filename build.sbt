@@ -17,7 +17,7 @@ lazy val modules: List[ProjectReference] = List(
   core,
   laws,
   testing,
-  // tests,
+  tests,
   // server,
   // prometheusMetrics,
   // client,
