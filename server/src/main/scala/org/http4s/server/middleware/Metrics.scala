@@ -19,7 +19,6 @@ package org.http4s.server.middleware
 import cats.data.Kleisli
 import cats.effect.kernel._
 import cats.syntax.all._
-
 import org.http4s._
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
@@ -57,9 +56,7 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       }
-  )(
-      routes: HttpRoutes[F])(implicit
-      F: Temporal[F]): HttpRoutes[F] = // TODO (ce3-ra): Sync + MonadCancel
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
       (request: Request[F]) =>
         val classifier: Option[String] = classifierF(request)
@@ -78,7 +75,7 @@ object Metrics {
         F.monotonic
           .map(endTime => endTime.toNanos - context.startTime)
           .flatMap(totalTime =>
-            (outcome match {
+            outcome match {
               case Outcome.Succeeded(_) =>
                 (maybeStatus <+> emptyResponseHandler).traverse_(status =>
                   ops.recordTotalTime(context.method, status, totalTime, context.classifier))
@@ -101,8 +98,8 @@ object Metrics {
                     ops.recordTotalTime(context.method, status, totalTime, context.classifier))
               case Outcome.Canceled() =>
                 ops.recordAbnormalTermination(totalTime, Canceled, context.classifier)
-            }))
-    }(F)(
+            })
+    }(C)(
       Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>
         routes
           .run(contextRequest.req)
@@ -113,6 +110,6 @@ object Metrics {
                 ops.recordHeadersTime(
                   contextRequest.context.method,
                   headerTime,
-                  contextRequest.context.classifier)) *> F.pure(
+                  contextRequest.context.classifier)) *> C.pure(
               ContextResponse(response.status, response)))))
 }

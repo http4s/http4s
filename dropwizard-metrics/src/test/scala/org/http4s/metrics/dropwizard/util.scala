@@ -24,7 +24,7 @@ import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.http4s.{Request, Response}
 import org.http4s.dsl.io._
 import org.http4s.Method.GET
-import scala.concurrent.duration.TimeUnit
+import scala.concurrent.duration.FiniteDuration
 
 object util {
   def stub: PartialFunction[Request[IO], IO[Response[IO]]] = {
@@ -62,16 +62,18 @@ object util {
       new Clock[F] {
         private var count = 0L
 
-        override def realTime(unit: TimeUnit): F[Long] =
+        override def applicative: cats.Applicative[F] = Sync[F]
+
+        override def realTime: F[FiniteDuration] =
           Sync[F].delay {
             count += 50
-            unit.convert(count, TimeUnit.MILLISECONDS)
+            FiniteDuration(count, TimeUnit.MILLISECONDS)
           }
 
-        override def monotonic(unit: TimeUnit): F[Long] =
+        override def monotonic: F[FiniteDuration] =
           Sync[F].delay {
             count += 50
-            unit.convert(count, TimeUnit.MILLISECONDS)
+            FiniteDuration(count, TimeUnit.MILLISECONDS)
           }
       }
   }
