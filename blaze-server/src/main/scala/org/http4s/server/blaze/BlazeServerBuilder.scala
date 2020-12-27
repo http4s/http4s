@@ -359,7 +359,7 @@ class BlazeServerBuilder[F[_]](
         )(serverChannel => F.delay(serverChannel.close()))
 
       def logStart(server: Server): Resource[F, Unit] =
-        Resource.liftF(F.delay {
+        Resource.eval(F.delay {
           Option(banner)
             .filter(_.nonEmpty)
             .map(_.mkString("\n", "\n", ""))
@@ -369,7 +369,7 @@ class BlazeServerBuilder[F[_]](
             s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
         })
 
-      Resource.liftF(verifyTimeoutRelations()) >>
+      Resource.eval(verifyTimeoutRelations()) >>
         mkFactory
           .flatMap(mkServerChannel)
           .map[F, Server] { serverChannel =>

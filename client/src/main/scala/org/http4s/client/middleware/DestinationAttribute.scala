@@ -24,7 +24,7 @@ import io.chrisdavenport.vault._
 /** Client middleware that sets the destination attribute of every request to the specified value.
   */
 object DestinationAttribute {
-  def apply[F[_]: Sync](client: Client[F], destination: String): Client[F] =
+  def apply[F[_]: Async](client: Client[F], destination: String): Client[F] =
     Client { req =>
       client.run(req.withAttribute(Destination, destination))
     }
@@ -36,7 +36,7 @@ object DestinationAttribute {
     */
   def getDestination[F[_]](): Request[F] => Option[String] = _.attributes.lookup(Destination)
 
-  val Destination = Key.newKey[IO, String].unsafeRunSync()
+  val Destination = Key.newKey[SyncIO, String].unsafeRunSync()
 
   val EmptyDestination = ""
 }

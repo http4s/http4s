@@ -27,15 +27,15 @@ import org.http4s.syntax.all._
 
 class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   def routes: HttpRoutes[IO] =
-    webjarServiceBuilder[IO](testBlocker).toRoutes
+    webjarServiceBuilder[IO].toRoutes
 
   def routes(classLoader: ClassLoader): HttpRoutes[IO] =
-    webjarServiceBuilder[IO](testBlocker)
+    webjarServiceBuilder[IO]
       .withClassLoader(Some(classLoader))
       .toRoutes
 
   def routes(preferGzipped: Boolean): HttpRoutes[IO] =
-    webjarServiceBuilder[IO](testBlocker)
+    webjarServiceBuilder[IO]
       .withPreferGzipped(preferGzipped)
       .toRoutes
 

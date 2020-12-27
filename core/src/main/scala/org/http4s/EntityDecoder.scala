@@ -189,7 +189,7 @@ object EntityDecoder {
 
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(m.body.chunks.compile.toVector.map(Chunk.concatBytes))
+    DecodeResult.success(m.body.chunks.compile.toVector.map(bytes => Chunk.concat(bytes)))
 
   @deprecated(
     "Can go into an infinite loop for charsets other than UTF-8. Replaced by decodeText",

@@ -56,7 +56,7 @@ private[ember] object Parser {
           }
           result match {
             case ParseHeadersCompleted(headers, rest, chunked, length) =>
-              Pull.pure((headers, chunked, length, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
+              Pull.pure((headers, chunked, length, Stream.chunk(Chunk.array(rest)) ++ tl))
             case p @ ParseHeadersError(_) => Pull.raiseError[F](p)
             case p @ ParseHeadersIncomplete(_, _, _, _, _, _, _, _) =>
               if (nextArr.size <= maxHeaderLength) parseHeaders(tl, maxHeaderLength, p.some)
@@ -205,7 +205,7 @@ private[ember] object Parser {
             }
             ReqPrelude.preludeInSection(next) match {
               case ParsePreludeComplete(m, u, h, rest) =>
-                Pull.pure((m, u, h, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
+                Pull.pure((m, u, h, Stream.chunk(Chunk.array(rest)) ++ tl))
               case t @ ParsePreludeError(_, _, _, _) => Pull.raiseError[F](t)
               case p @ ParsePreludeIncomlete(_, _, method, uri, httpVersion) =>
                 if (next.size <= maxHeaderLength)
@@ -370,7 +370,7 @@ private[ember] object Parser {
   object Response {
     def parser[F[_]: Concurrent](maxHeaderLength: Int)(
         s: Stream[F, Byte]): Resource[F, Response[F]] =
-      Resource.liftF(Deferred[F, Headers]).flatMap { trailers =>
+      Resource.eval(Deferred[F, Headers]).flatMap { trailers =>
         RespPrelude
           .parsePrelude(s, maxHeaderLength, None)
           .flatMap { case (httpVersion, status, s) =>
@@ -414,7 +414,7 @@ private[ember] object Parser {
             }
             preludeInSection(next) match {
               case RespPreludeComplete(httpVersion, status, rest) =>
-                Pull.pure((httpVersion, status, Stream.chunk(Chunk.Bytes(rest)) ++ tl))
+                Pull.pure((httpVersion, status, Stream.chunk(Chunk.array(rest)) ++ tl))
               case t @ RespPreludeError(_) => Pull.raiseError[F](t)
               case RespPreludeIncomplete =>
                 if (next.size <= maxHeaderLength)

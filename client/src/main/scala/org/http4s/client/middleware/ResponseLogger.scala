@@ -19,7 +19,7 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import cats.syntax.all._
 import fs2._
 import org.typelevel.ci.CIString
@@ -35,7 +35,7 @@ object ResponseLogger {
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
+  )(client: Client[F])(implicit F: Async[F]): Client[F] =
     impl[F](logHeaders, Left(logBody), redactHeadersWhen, logAction)(client)
 
   def logBodyText[F[_]](
@@ -43,7 +43,7 @@ object ResponseLogger {
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
+  )(client: Client[F])(implicit F: Async[F]): Client[F] =
     impl[F](logHeaders, Right(logBody), redactHeadersWhen, logAction)(client)
 
   private def impl[F[_]](
@@ -51,9 +51,9 @@ object ResponseLogger {
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       redactHeadersWhen: CIString => Boolean,
       logAction: Option[String => F[Unit]]
-  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
+  )(client: Client[F])(implicit F: Async[F]): Client[F] = {
     val log = logAction.getOrElse { (s: String) =>
-      Sync[F].delay(logger.info(s))
+      F.delay(logger.info(s))
     }
 
     def logMessage(resp: Response[F]): F[Unit] =
@@ -73,7 +73,7 @@ object ResponseLogger {
     Client { req =>
       client.run(req).flatMap { response =>
         if (!logBody)
-          Resource.liftF(logMessage(response) *> F.delay(response))
+          Resource.eval(logMessage(response) *> F.delay(response))
         else
           Resource.suspend {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
@@ -81,7 +81,7 @@ object ResponseLogger {
                 F.pure(
                   response.copy(body = response.body
                     // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                    .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s)))))
+                    .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))))
                 )) { _ =>
                 val newBody = Stream
                   .eval(vec.get)

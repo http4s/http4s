@@ -98,14 +98,14 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         val buf = new Array[Byte](chunkSize)
         val len = in.read(buf)
 
-        if (len == chunkSize) cb(rightSome(Chunk.bytes(buf)))
+        if (len == chunkSize) cb(rightSome(Chunk.array(buf)))
         else if (len < 0) {
           state.compareAndSet(Ready, Complete) // will not overwrite an `Errored` state
           cb(rightNone)
         } else if (len == 0) {
           logger.warn("Encountered a read of length 0")
           cb(rightSome(Chunk.empty))
-        } else cb(rightSome(Chunk.bytes(buf, 0, len)))
+        } else cb(rightSome(Chunk.array(buf, 0, len)))
       }
 
       if (in.isFinished) Stream.empty

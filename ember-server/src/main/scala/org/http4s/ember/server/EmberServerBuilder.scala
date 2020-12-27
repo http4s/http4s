@@ -150,8 +150,8 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     for {
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
-      bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
-      shutdownSignal <- Resource.liftF(SignallingRef[F, Boolean](false))
+      bindAddress <- Resource.eval(Sync[F].delay(new InetSocketAddress(host, port)))
+      shutdownSignal <- Resource.eval(SignallingRef[F, Boolean](false))
       _ <- Concurrent[F].background(
         ServerHelpers
           .server(

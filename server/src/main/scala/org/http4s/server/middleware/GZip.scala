@@ -24,7 +24,7 @@ import cats.effect.Sync
 import cats.syntax.all._
 import fs2.{Chunk, Pipe, Pull, Stream}
 import fs2.Stream.chunk
-import fs2.compression.deflate
+import fs2.compression._
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.zip.{CRC32, Deflater}
 import org.http4s.headers._
@@ -38,7 +38,7 @@ object GZip {
   def apply[F[_]: Functor, G[_]: Sync](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
-      level: Int = Deflater.DEFAULT_COMPRESSION,
+      level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
   ): Http[F, G] =
     Kleisli { (req: Request[G]) =>
@@ -63,7 +63,7 @@ object GZip {
   private def zipOrPass[F[_]: Sync](
       response: Response[F],
       bufferSize: Int,
-      level: Int,
+      level: DeflateParams.Level,
       isZippable: Response[F] => Boolean): Response[F] =
     response match {
       case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
@@ -72,7 +72,7 @@ object GZip {
 
   private def zipResponse[F[_]: Sync](
       bufferSize: Int,
-      level: Int,
+      level: DeflateParams.Level,
       resp: Response[F]): Response[F] = {
     logger.trace("GZip middleware encoding content")
     // Need to add the Gzip header and trailer
@@ -82,10 +82,10 @@ object GZip {
         .through(trailer(trailerGen, bufferSize))
         .through(
           deflate(
-            level = level,
-            nowrap = true,
-            bufferSize = bufferSize
-          )) ++
+            DeflateParams(
+              bufferSize = bufferSize,
+              header = ZLibParams.Header.GZIP,
+              level = level))) ++
       chunk(trailerFinish(trailerGen))
     resp
       .removeHeader(`Content-Length`)
@@ -96,7 +96,7 @@ object GZip {
   private val GZIP_MAGIC_NUMBER = 0x8b1f
   private val GZIP_LENGTH_MOD = Math.pow(2, 32).toLong
 
-  private val header: Chunk[Byte] = Chunk.bytes(
+  private val header: Chunk[Byte] = Chunk.array(
     Array(
       GZIP_MAGIC_NUMBER.toByte, // Magic number (int16)
       (GZIP_MAGIC_NUMBER >> 8).toByte, // Magic number  c
@@ -128,7 +128,7 @@ object GZip {
   }
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] =
-    Chunk.bytes(
+    Chunk.array(
       ByteBuffer
         .allocate(Integer.BYTES * 2)
         .order(ByteOrder.LITTLE_ENDIAN)

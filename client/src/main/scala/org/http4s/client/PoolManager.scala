@@ -17,9 +17,10 @@
 package org.http4s
 package client
 
-import cats.effect._
-import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
+import cats.effect._
+import cats.effect.syntax.all._
+import cats.effect.std.Semaphore
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import org.log4s.getLogger
@@ -46,7 +47,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     responseHeaderTimeout: Duration,
     requestTimeout: Duration,
     semaphore: Semaphore[F],
-    implicit private val executionContext: ExecutionContext)(implicit F: Concurrent[F])
+    implicit private val executionContext: ExecutionContext)(implicit F: Async[F])
     extends ConnectionManager[F, A] {
   private sealed case class Waiting(
       key: RequestKey,
@@ -116,12 +117,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     F.ifM(F.delay(numConnectionsCheckHolds(key)))(
       incrConnection(key) *> F.start {
-        Async.shift(executionContext) *> builder(key).attempt.flatMap {
-          case Right(conn) =>
-            F.delay(callback(Right(NextConnection(conn, fresh = true))))
-          case Left(error) =>
-            disposeConnection(key, None) *> F.delay(callback(Left(error)))
-        }
+        builder(key).attempt
+          .flatMap {
+            case Right(conn) =>
+              F.delay(callback(Right(NextConnection(conn, fresh = true))))
+            case Left(error) =>
+              disposeConnection(key, None) *> F.delay(callback(Left(error)))
+          }
+          .evalOn(executionContext)
       }.void,
       addToWaitQueue(key, callback)
     )
@@ -165,8 +168,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of NextConnection
     */
   def borrow(key: RequestKey): F[NextConnection] =
-    F.asyncF { callback =>
-      semaphore.withPermit {
+    F.async { callback =>
+      semaphore.permit.use { _ =>
         if (!isClosed) {
           def go(): F[Unit] =
             getConnectionFromQueue(key).flatMap {
@@ -214,10 +217,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
                   addToWaitQueue(key, callback)
             }
 
-          F.delay(logger.debug(s"Requesting connection for $key: $stats")) *>
-            go()
+          F.delay(logger.debug(s"Requesting connection for $key: $stats")).productR(go()).as(None)
         } else
-          F.delay(callback(Left(new IllegalStateException("Connection pool is closed"))))
+          F.delay(callback(Left(new IllegalStateException("Connection pool is closed")))).as(None)
       }
     }
 
@@ -293,7 +295,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of Unit
     */
   def release(connection: A): F[Unit] =
-    semaphore.withPermit {
+    semaphore.permit.use { _ =>
       val key = connection.requestKey
       logger.debug(s"Recycling connection for $key: $stats")
       if (connection.isRecyclable)
@@ -323,7 +325,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of Unit
     */
   override def invalidate(connection: A): F[Unit] =
-    semaphore.withPermit {
+    semaphore.permit.use { _ =>
       val key = connection.requestKey
       decrConnection(key) *>
         F.delay(if (!connection.isClosed) connection.shutdown()) *>
@@ -348,7 +350,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param connection An Option of a Connection to Dispose Of.
     */
   private def disposeConnection(key: RequestKey, connection: Option[A]): F[Unit] =
-    semaphore.withPermit {
+    semaphore.permit.use { _ =>
       F.delay(logger.debug(s"Disposing of connection for $key: $stats")) *>
         decrConnection(key) *>
         F.delay {
@@ -366,7 +368,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect Of Unit
     */
   def shutdown: F[Unit] =
-    semaphore.withPermit {
+    semaphore.permit.use { _ =>
       F.delay {
         logger.info(s"Shutting down connection pool: $stats")
         if (!isClosed) {

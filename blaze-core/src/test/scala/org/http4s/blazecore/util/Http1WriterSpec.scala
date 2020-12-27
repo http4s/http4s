@@ -60,7 +60,7 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
   }
 
   val message = "Hello world!"
-  val messageBuffer = Chunk.bytes(message.getBytes(StandardCharsets.ISO_8859_1))
+  val messageBuffer = Chunk.array(message.getBytes(StandardCharsets.ISO_8859_1))
 
   final def runNonChunkedTests(
       builder: Dispatcher[IO] => TailStage[ByteBuffer] => Http1Writer[IO]) =
@@ -111,12 +111,12 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
           var counter = 2
           IO {
             counter -= 1
-            if (counter >= 0) Some(Chunk.bytes("foo".getBytes(StandardCharsets.ISO_8859_1)))
+            if (counter >= 0) Some(Chunk.array("foo".getBytes(StandardCharsets.ISO_8859_1)))
             else None
           }
         }
         val p = repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[IO]) ++ chunk(
-          Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1)))
+          Chunk.array("bar".getBytes(StandardCharsets.ISO_8859_1)))
         writeEntityBody(p)(builder(dispatcher))
           .map(_ must_== "Content-Type: text/plain\r\nContent-Length: 9\r\n\r\n" + "foofoobar")
       }

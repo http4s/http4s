@@ -53,7 +53,7 @@ class ResponseParser extends Http1ClientParser {
     val bp = {
       val bytes =
         body.toList.foldLeft(Vector.empty[Chunk[Byte]])((vec, bb) => vec :+ Chunk.byteBuffer(bb))
-      new String(Chunk.concatBytes(bytes).toArray, StandardCharsets.ISO_8859_1)
+      new String(Chunk.concat(bytes).toArray, StandardCharsets.ISO_8859_1)
     }
 
     val headers = this.headers.result().map { case (k, v) => Header(k, v): Header }.toSet

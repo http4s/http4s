@@ -54,7 +54,7 @@ trait PlayInstances {
     EntityEncoder[F, Chunk[Byte]]
       .contramap[JsValue] { json =>
         val bytes = json.toString.getBytes("UTF8")
-        Chunk.bytes(bytes)
+        Chunk.array(bytes)
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 

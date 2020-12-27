@@ -121,7 +121,7 @@ private class Http2NodeStage[F[_]](
               val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
               closePipeline(Some(e))
               cb(Either.left(InvalidBodyException(msg)))
-            } else cb(Either.right(Some(Chunk.bytes(bytes.array))))
+            } else cb(Either.right(Some(Chunk.array(bytes.array))))
 
           case Success(HeadersFrame(_, true, ts)) =>
             logger.warn("Discarding trailers: " + ts)

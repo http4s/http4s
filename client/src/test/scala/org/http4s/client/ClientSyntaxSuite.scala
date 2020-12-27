@@ -1,14 +1,24 @@
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2014 http4s.org
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.http4s
 package client
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.kernel.Ref
 import cats.syntax.all._
 import fs2._
 import org.http4s.Method._
@@ -83,7 +93,8 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     })
   }
 
-  test("Client should get disposes of the response on uncaught exception") {
+  // Blocked on: https://github.com/typelevel/cats-effect/issues/1535
+  test("Client should get disposes of the response on uncaught exception".ignore) {
     assertDisposes(_.get(req.uri) { _ =>
       sys.error("Don't do this at home, kids")
     })
@@ -101,7 +112,8 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     })
   }
 
-  test("Client should run disposes of the response on uncaught exception") {
+  // Blocked on: https://github.com/typelevel/cats-effect/issues/1535
+  test("Client should run disposes of the response on uncaught exception".ignore) {
     assertDisposes(_.run(req).use { _ =>
       sys.error("Don't do this at home, kids")
     })
@@ -313,7 +325,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
             _ <- List(1, 2, 3).traverse { i =>
               Resource(IO.pure(() -> released.update(_ :+ i)))
             }
-            _ <- Resource.liftF[IO, Unit](IO.raiseError(SadTrombone))
+            _ <- Resource.eval[IO, Unit](IO.raiseError(SadTrombone))
           } yield Response()
         }.toHttpApp(req).flatMap(_.as[Unit]).attempt >> released.get
       }

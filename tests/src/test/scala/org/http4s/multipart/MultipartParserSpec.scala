@@ -43,10 +43,10 @@ object MultipartParserSpec extends Specification {
 
     def jumbleAccum(s: String, acc: Stream[IO, Byte]): Stream[IO, Byte] =
       if (s.length <= 1)
-        acc ++ Stream.chunk(Chunk.bytes(s.getBytes()))
+        acc ++ Stream.chunk(Chunk.array(s.getBytes()))
       else {
         val (l, r) = s.splitAt(rand.nextInt(s.length - 1) + 1)
-        jumbleAccum(r, acc ++ Stream.chunk(Chunk.bytes(l.getBytes)))
+        jumbleAccum(r, acc ++ Stream.chunk(Chunk.array(l.getBytes)))
       }
 
     jumbleAccum(str, Stream.empty)
@@ -431,7 +431,7 @@ object MultipartParserSpec extends Specification {
               """bar
                   |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
             ).map(_.replace("\n", "\r\n"))
-              .map(str => Chunk.bytes(str.getBytes(StandardCharsets.UTF_8))))
+              .map(str => Chunk.array(str.getBytes(StandardCharsets.UTF_8))))
             .flatMap(Stream.chunk)
             .covary[IO]
 

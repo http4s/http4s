@@ -251,9 +251,9 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
+        // WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+        // WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
@@ -270,11 +270,14 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowPublishPostamble := Seq(
         setupHugoStep,
         sitePublishStep("website"),
-        sitePublishStep("docs")
+        // sitePublishStep("docs")
       ),
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
+      githubWorkflowAddedJobs := Seq(
+        siteBuildJob("website"), 
+        // siteBuildJob("docs")
+      ),
     )
   }
 
@@ -288,14 +291,14 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.3.3"
     val caseInsensitive = "0.3.0"
     val cats = "2.3.0"
-    val catsEffect = "3.0.0-M4"
+    val catsEffect = "3.0.0-M5"
     val catsEffectTesting = "1.0-23-f76ace5"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.2"
     val disciplineSpecs2 = "1.1.2"
     val dropwizardMetrics = "4.1.16"
-    val fs2 = "3.0.0-M6"
+    val fs2 = "3.0.0-M7"
     val jacksonDatabind = "2.12.0"
     val jawn = "1.0.1"
     val jawnFs2 = "2.0.0-M2"

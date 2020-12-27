@@ -17,7 +17,7 @@
 package org.http4s
 package client
 
-import cats.effect.{Async, Blocker, ContextShift, Resource, Sync}
+import cats.effect.{Async, Resource, Sync}
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.{readInputStream, writeOutputStream}
@@ -27,7 +27,6 @@ import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.concurrent.{ExecutionContext, blocking}
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
@@ -37,8 +36,6 @@ import scala.concurrent.{ExecutionContext, blocking}
   *
   * All I/O operations in this client are blocking.
   *
-  * @param blockingExecutionContext An `ExecutionContext` on which
-  * blocking operations will be performed.
   * @define WHYNOSHUTDOWN Creation of the client allocates no
   * resources, and any resources allocated while using this client
   * are reclaimed by the JVM at its own leisure.
@@ -48,25 +45,22 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     val readTimeout: Duration,
     val proxy: Option[Proxy],
     val hostnameVerifier: Option[HostnameVerifier],
-    val sslSocketFactory: Option[SSLSocketFactory],
-    val blocker: Blocker
-)(implicit protected val F: Async[F], cs: ContextShift[F])
+    val sslSocketFactory: Option[SSLSocketFactory]
+)(implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
   private def copy(
       connectTimeout: Duration = connectTimeout,
       readTimeout: Duration = readTimeout,
       proxy: Option[Proxy] = proxy,
       hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
-      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
-      blocker: Blocker = blocker
+      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory
   ): JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       proxy = proxy,
       hostnameVerifier = hostnameVerifier,
-      sslSocketFactory = sslSocketFactory,
-      blocker = blocker
+      sslSocketFactory = sslSocketFactory
     ) {}
 
   def withConnectTimeout(connectTimeout: Duration): JavaNetClientBuilder[F] =
@@ -98,14 +92,6 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
   def withoutSslSocketFactory: JavaNetClientBuilder[F] =
     withSslSocketFactoryOption(None)
 
-  def withBlocker(blocker: Blocker): JavaNetClientBuilder[F] =
-    copy(blocker = blocker)
-
-  @deprecated("Use withBlocker instead", "0.21.0")
-  def withBlockingExecutionContext(
-      blockingExecutionContext: ExecutionContext): JavaNetClientBuilder[F] =
-    copy(blocker = Blocker.liftExecutionContext(blockingExecutionContext))
-
   /** Creates a [[Client]].
     *
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
@@ -130,17 +116,18 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           })
           _ <- F.delay(conn.setInstanceFollowRedirects(false))
           _ <- F.delay(conn.setDoInput(true))
-          resp <- blocker.blockOn(blocking(fetchResponse(req, conn)))
+          // TODO: fix the blocking here
+          resp <- fetchResponse(req, conn)
         } yield resp
 
       for {
-        url <- Resource.liftF(F.delay(new URL(req.uri.toString)))
+        url <- Resource.eval(F.delay(new URL(req.uri.toString)))
         conn <- Resource.make(openConnection(url)) { conn =>
           F.delay(conn.getInputStream().close()).recoverWith { case _: IOException =>
             F.delay(Option(conn.getErrorStream()).foreach(_.close()))
           }
         }
-        resp <- Resource.liftF(respond(conn))
+        resp <- Resource.eval(respond(conn))
       } yield resp
     }
 
@@ -150,9 +137,9 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
   private def fetchResponse(req: Request[F], conn: HttpURLConnection) =
     for {
       _ <- writeBody(req, conn)
-      code <- F.delay(conn.getResponseCode)
+      code <- F.blocking(conn.getResponseCode)
       status <- F.fromEither(Status.fromInt(code))
-      headers <- F.delay(
+      headers <- F.blocking(
         Headers(
           conn.getHeaderFields.asScala
             .filter(_._1 != null)
@@ -180,7 +167,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
         req.body
-          .through(writeOutputStream(F.delay(conn.getOutputStream), blocker, false))
+          .through(writeOutputStream(F.delay(conn.getOutputStream), false))
           .compile
           .drain
     else
@@ -189,7 +176,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           F.delay(conn.setDoOutput(true)) *>
             F.delay(conn.setFixedLengthStreamingMode(len)) *>
             req.body
-              .through(writeOutputStream(F.delay(conn.getOutputStream), blocker, false))
+              .through(writeOutputStream(F.delay(conn.getOutputStream), false))
               .compile
               .drain
         case _ =>
@@ -203,7 +190,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
           F.delay(Option(conn.getErrorStream))
       }
     Stream.eval(inputStream).flatMap {
-      case Some(in) => readInputStream(F.pure(in), 4096, blocker, false)
+      case Some(in) => readInputStream(F.pure(in), 4096, false)
       case None => Stream.empty
     }
   }
@@ -225,13 +212,12 @@ object JavaNetClientBuilder {
   /** @param blockingExecutionContext An `ExecutionContext` on which
     * blocking operations will be performed.
     */
-  def apply[F[_]: Async: ContextShift](blocker: Blocker): JavaNetClientBuilder[F] =
+  def apply[F[_]: Async]: JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = defaults.ConnectTimeout,
       readTimeout = defaults.RequestTimeout,
       proxy = None,
       hostnameVerifier = None,
-      sslSocketFactory = None,
-      blocker = blocker
+      sslSocketFactory = None
     ) {}
 }

@@ -35,9 +35,7 @@ class TimeoutSuite extends Http4sSuite {
       Ok("Fast")
 
     case _ -> Root / "never" =>
-      IO.async[Response[IO]] { _ =>
-        ()
-      }
+      IO.never[Response[IO]]
   }
 
   val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound

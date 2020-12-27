@@ -29,10 +29,10 @@ private[http4s] class ChunkWriter(
 ) extends Writer {
   private[this] val chunks = Buffer[Chunk[Byte]]()
 
-  def toChunk: Chunk[Byte] = Chunk.concatBytes(chunks)
+  def toChunk: Chunk[Byte] = Chunk.concat(chunks)
 
   override def append(s: String): this.type = {
-    chunks += Chunk.bytes(s.getBytes(charset))
+    chunks += Chunk.array(s.getBytes(charset))
     this
   }
 }

@@ -48,7 +48,7 @@ trait Http4sSpec
     with FragmentsDsl
     with Discipline {
 
-  implicit val testIORuntime = Http4sSpec.TestIORuntime
+  implicit val testIORuntime: IORuntime = Http4sSpec.TestIORuntime
 
   protected val timeout: FiniteDuration = 10.seconds
 
@@ -127,7 +127,8 @@ object Http4sSpec {
 
   val TestIORuntime: IORuntime = {
     val blockingPool = newBlockingPool("http4s-spec-blocking")
-    val computePool = newDaemonPool("http4s-spec", timeout = true)
+    // val computePool = newDaemonPool("http4s-spec", timeout = true)
+    val computePool = newBlockingPool("http4s-spec")
     val scheduledExecutor = TestScheduler
     IORuntime.apply(
       ExecutionContext.fromExecutor(computePool),

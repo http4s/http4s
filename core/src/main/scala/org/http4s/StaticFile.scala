@@ -154,12 +154,7 @@ object StaticFile {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
       res <- Files[F].isFile(f.toPath()).flatMap[Option[Response[F]]] { isFile =>
         if (isFile) {
-          val requireCondition = start >= 0 && end >= start && buffsize > 0
-          if (!requireCondition) {
-            F.raiseError[Option[Response[F]]](new IllegalArgumentException(
-              s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
-          } else {
-
+          if (start >= 0 && end >= start && buffsize > 0) {
             val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
             F.pure(notModified(req, etagCalc, lastModified).orElse {
@@ -181,6 +176,9 @@ object StaticFile {
               logger.trace(s"Static file generated response: $r")
               r.some
             })
+          } else {
+            F.raiseError[Option[Response[F]]](new IllegalArgumentException(
+              s"requirement failed: start: $start, end: $end, buffsize: $buffsize"))
           }
 
         } else {
