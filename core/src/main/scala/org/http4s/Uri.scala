@@ -174,6 +174,7 @@ final case class Uri(
 }
 
 object Uri {
+  @deprecated("This location of the implementation complicates Dotty support", "0.21.15")
   class Macros(val c: whitebox.Context) {
     import c.universe._
 

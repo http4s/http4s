@@ -113,6 +113,7 @@ object QValue {
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
+  @deprecated("This location of the implementation complicates Dotty support", "0.21.15")
   class Macros(val c: whitebox.Context) {
     import c.universe._
 
