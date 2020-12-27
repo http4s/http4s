@@ -154,7 +154,6 @@ object StaticFile {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
       res <- Files[F].isFile(f.toPath()).flatMap[Option[Response[F]]] { isFile =>
         if (isFile) {
-
           if (start >= 0 && end >= start && buffsize > 0) {
             val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
