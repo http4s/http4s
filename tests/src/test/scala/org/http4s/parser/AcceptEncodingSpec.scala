@@ -22,7 +22,7 @@ import org.specs2.mutable.Specification
 
 class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {
   def hparse(value: String): ParseResult[`Accept-Encoding`] =
-    HttpHeaderParser.ACCEPT_ENCODING(value)
+    `Accept-Encoding`.parse(value)
 
   val gzip = `Accept-Encoding`(ContentCoding.gzip)
   val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(QValue.q(0.5)))

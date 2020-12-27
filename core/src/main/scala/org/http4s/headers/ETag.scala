@@ -19,7 +19,6 @@ package headers
 
 import cats.parse.{Parser, Parser1, Rfc5234}
 import cats.Show
-import cats.syntax.all._
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
@@ -38,9 +37,7 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
   def apply(tag: String, weak: Boolean = false): ETag = ETag(EntityTag(tag, weak))
 
   override def parse(s: String): ParseResult[ETag] =
-    parser.parseAll(s).leftMap { case e =>
-      ParseFailure("Invalid ETag", e.toString)
-    }
+    ParseResult.fromParser(parser, "ETag header")(s)
 
   /* `ETag = entity-tag`
    *

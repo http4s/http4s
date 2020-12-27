@@ -19,22 +19,12 @@ import org.http4s.syntax.string._
 
 object HttpHeaderParser
     extends SimpleHeaders
-    with AcceptCharsetHeader
-    with AcceptEncodingHeader
-    with AcceptHeader
-    with AcceptLanguageHeader
-    with AuthorizationHeader
     with CacheControlHeader
-    with ContentTypeHeader
-    with CookieHeader
     with ForwardedHeader
-    with LinkHeader
     with LocationHeader
     with OriginHeader
-    with ProxyAuthenticateHeader
     with RefererHeader
     with StrictTransportSecurityHeader
-    with WwwAuthenticateHeader
     with ZipkinHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
@@ -105,22 +95,21 @@ object HttpHeaderParser
   }
 
   private def gatherBuiltIn(): Unit = {
-    addParser_("ACCEPT".ci, `ACCEPT`)
-    addParser_("ACCEPT-CHARSET".ci, `ACCEPT_CHARSET`)
-    addParser_("ACCEPT-ENCODING".ci, `ACCEPT_ENCODING`)
-    addParser_("ACCEPT-LANGUAGE".ci, `ACCEPT_LANGUAGE`)
+    addParser_("ACCEPT".ci, Accept.parse)
+    addParser_("ACCEPT-CHARSET".ci, `Accept-Charset`.parse)
+    addParser_("ACCEPT-ENCODING".ci, `Accept-Encoding`.parse)
+    addParser_("ACCEPT-LANGUAGE".ci, `Accept-Language`.parse)
     addParser_("ACCEPT-RANGES".ci, `Accept-Ranges`.parse)
     addParser_("AGE".ci, `AGE`)
     addParser_("ALLOW".ci, `ALLOW`)
-    addParser_("AUTHORIZATION".ci, `AUTHORIZATION`)
     addParser_("CACHE-CONTROL".ci, `CACHE_CONTROL`)
     addParser_("CONNECTION".ci, `CONNECTION`)
     addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
     addParser_("CONTENT-ENCODING".ci, `CONTENT_ENCODING`)
     addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
     addParser_("CONTENT-RANGE".ci, `Content-Range`.parse)
-    addParser_("CONTENT-TYPE".ci, `CONTENT_TYPE`)
-    addParser_("COOKIE".ci, `COOKIE`)
+    addParser_("CONTENT-TYPE".ci, `Content-Type`.parse)
+    addParser_("COOKIE".ci, Cookie.parse)
     addParser_("DATE".ci, Date.parse)
     addParser_("ETAG".ci, ETag.parse)
     addParser_("EXPIRES".ci, Expires.parse)
@@ -132,18 +121,16 @@ object HttpHeaderParser
     addParser_("IF-UNMODIFIED-SINCE".ci, `If-Unmodified-Since`.parse)
     addParser_("LAST-EVENT-ID".ci, `LAST_EVENT_ID`)
     addParser_("LAST-MODIFIED".ci, `Last-Modified`.parse)
-    addParser_("LINK".ci, `LINK`)
+    addParser_("LINK".ci, Link.parse)
     addParser_("LOCATION".ci, `LOCATION`)
     addParser_("ORIGIN".ci, `ORIGIN`)
-    addParser_("PROXY-AUTHENTICATE".ci, `PROXY_AUTHENTICATE`)
     addParser_("RANGE".ci, Range.parse)
     addParser_("REFERER".ci, `REFERER`)
     addParser_("RETRY-AFTER".ci, `Retry-After`.parse)
-    addParser_("SET-COOKIE".ci, `SET_COOKIE`)
+    addParser_("SET-COOKIE".ci, `Set-Cookie`.parse)
     addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
-    addParser_("TRANSFER-ENCODING".ci, `TRANSFER_ENCODING`)
+    addParser_("TRANSFER-ENCODING".ci, `Transfer-Encoding`.parse)
     addParser_("USER-AGENT".ci, `USER_AGENT`)
-    addParser_("WWW-AUTHENTICATE".ci, `WWW_AUTHENTICATE`)
     addParser_("X-B3-FLAGS".ci, `X_B3_FLAGS`)
     addParser_("X-B3-PARENTSPANID".ci, `X_B3_PARENTSPANID`)
     addParser_("X-B3-SAMPLED".ci, `X_B3_SAMPLED`)
