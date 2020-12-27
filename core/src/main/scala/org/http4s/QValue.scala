@@ -20,8 +20,6 @@ import cats.parse.Parser
 import cats.{Order, Show}
 import org.http4s.util.Writer
 
-import scala.reflect.macros.whitebox
-
 /** A Quality Value.  Represented as thousandths for an exact representation rounded to three
   * decimal places.
   *
@@ -74,7 +72,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
     }
 }
 
-object QValue {
+object QValue extends internal.QValueDeprecated {
   lazy val One: QValue = new QValue(1000)
   lazy val Zero: QValue = new QValue(0)
 
@@ -123,35 +121,9 @@ object QValue {
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
-  class Macros(val c: whitebox.Context) {
-    import c.universe._
-
-    def qValueLiteral(d: c.Expr[Double]): Tree =
-      d.tree match {
-        case Literal(Constant(d: Double)) =>
-          QValue
-            .fromDouble(d)
-            .fold(
-              e => c.abort(c.enclosingPosition, e.details),
-              qValue => q"_root_.org.http4s.QValue.☠(${qValue.thousandths})"
-            )
-        case _ =>
-          c.abort(c.enclosingPosition, s"literal Double value required")
-      }
-  }
-
-  /** Supports a literal syntax for validated QValues.
-    *
-    * Example:
-    * {{{
-    * q(0.5).success == QValue.fromDouble(0.5)
-    * q(1.1) // does not compile: out of range
-    * val d = 0.5
-    * q(d) // does not compile: not a literal
-    * }}}
-    */
-  @deprecated("""use qValue"" string interpolation instead""", "0.20")
-  def q(d: Double): QValue = macro Macros.qValueLiteral
+  @deprecated("Use org.http4s.syntax.literals._", "<DOTTY>")
+  class Macros(override val c: DeprecatedMacrosParameter)
+      extends internal.DeprecatedMacros.QValue(c)
 
   implicit val http4sOrderForQValue: Order[QValue] = Order.fromOrdering[QValue]
   implicit val http4sShowForQValue: Show[QValue] = Show.fromToString[QValue]

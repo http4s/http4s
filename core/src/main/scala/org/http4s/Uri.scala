@@ -27,7 +27,6 @@ import org.http4s.util.{CaseInsensitiveString, Renderable, Writer}
 import scala.annotation.nowarn
 import scala.collection.immutable
 import scala.math.Ordered
-import scala.reflect.macros.whitebox
 
 /** Representation of the [[Request]] URI
   *
@@ -173,27 +172,9 @@ final case class Uri(
   }
 }
 
-object Uri {
-  class Macros(val c: whitebox.Context) {
-    import c.universe._
-
-    def uriLiteral(s: c.Expr[String]): Tree =
-      s.tree match {
-        case Literal(Constant(s: String)) =>
-          Uri
-            .fromString(s)
-            .fold(
-              e => c.abort(c.enclosingPosition, e.details),
-              _ =>
-                q"_root_.org.http4s.Uri.fromString($s).fold(throw _, _root_.scala.Predef.identity)"
-            )
-        case _ =>
-          c.abort(
-            c.enclosingPosition,
-            s"This method uses a macro to verify that a String literal is a valid URI. Use Uri.fromString if you have a dynamic String that you want to parse as a Uri."
-          )
-      }
-  }
+object Uri extends internal.UriDeprecated {
+  @deprecated("Use org.http4s.syntax.literals._", "<DOTTY>")
+  class Macros(override val c: DeprecatedMacrosParameter) extends internal.DeprecatedMacros.Uri(c)
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =
@@ -981,13 +962,6 @@ object Uri {
     out.flip()
     charset.decode(out).toString
   }
-
-  /**
-    * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
-    * at compile time.
-    */
-  @deprecated("""use uri"" string interpolation instead""", "0.20")
-  def uri(s: String): Uri = macro Uri.Macros.uriLiteral
 
   @deprecated(message = "Please use catsInstancesForHttp4sUri. Kept for binary compatibility", since = "0.21.14")
   def http4sUriEq: Eq[Uri] = catsInstancesForHttp4sUri
