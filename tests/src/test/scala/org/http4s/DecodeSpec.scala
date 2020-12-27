@@ -37,10 +37,10 @@ class DecodeSpec extends Http4sSpec {
             s.getBytes(StandardCharsets.UTF_8)
               .grouped(chunkSize)
               .map(_.toArray)
-              .map(Chunk.array)
+              .map(Chunk.array[Byte])
               .toSeq
           }
-          .flatMap(Stream.chunk)
+          .flatMap(Stream.chunk[Pure, Byte])
         val utf8Decoded = utf8Decode(source).toList.combineAll
         val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
         decoded must_== Right(utf8Decoded)
@@ -55,10 +55,10 @@ class DecodeSpec extends Http4sSpec {
             .emits {
               s.getBytes(cs.nioCharset)
                 .grouped(chunkSize)
-                .map(Chunk.array)
+                .map(Chunk.array[Byte])
                 .toSeq
             }
-            .flatMap(Stream.chunk)
+            .flatMap(Stream.chunk[Pure, Byte])
           val expected = new String(source.toVector.toArray, cs.nioCharset)
           !expected.contains("\ufffd") ==> {
             // \ufffd means we generated a String unrepresentable by the charset
