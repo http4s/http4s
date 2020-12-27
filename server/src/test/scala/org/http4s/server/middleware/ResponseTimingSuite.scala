@@ -50,7 +50,7 @@ class ResponseTimingSuite extends Http4sSuite {
 }
 
 object Sys {
-  private val currentTime: Ref[IO, Long] = Ref.unsafe[IO, Long](System.currentTimeMillis())
+  private val currentTime: Ref[IO, Long] = Ref.unsafe[IO, Long](0L)
 
   def tick(): IO[Long] = currentTime.modify(l => (l + 1L, l))
 
