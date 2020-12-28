@@ -251,7 +251,7 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        // WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
+        WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
         // WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
@@ -290,12 +290,12 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.14.14"
     val boopickle = "1.3.3"
     val caseInsensitive = "0.3.0"
-    val cats = "2.3.0"
+    val cats = "2.3.1"
     val catsEffect = "3.0.0-M5"
     val catsEffectTesting = "1.0-23-f76ace5"
     val circe = "0.13.0"
     val cryptobits = "1.3"
-    val disciplineCore = "1.1.2"
+    val disciplineCore = "1.1.3"
     val disciplineSpecs2 = "1.1.2"
     val dropwizardMetrics = "4.1.16"
     val fs2 = "3.0.0-M7"
@@ -320,12 +320,12 @@ object Http4sPlugin extends AutoPlugin {
     val prometheusClient = "0.9.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.1"
+    val scalacheck = "1.15.2"
     val scalacheckEffect = "0.6.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"
-    val scodecBits = "1.1.22"
+    val scodecBits = "1.1.23"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
     val specs2 = "4.10.5"
