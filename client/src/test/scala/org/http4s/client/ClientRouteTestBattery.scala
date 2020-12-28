@@ -44,7 +44,7 @@ abstract class ClientRouteTestBattery(name: String)
     new HttpServlet {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
         GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(r) => renderResponse(srv, r)
+          case Some(r) => renderResponse(srv, r).unsafeRunSync()
           case None => srv.sendError(404)
         }
 
@@ -128,29 +128,31 @@ abstract class ClientRouteTestBattery(name: String)
     }
   }
 
-  private def checkResponse(rec: Response[IO], expected: Response[IO]): IO[Boolean] = {
+  private def checkResponse(rec: Response[IO], expected: IO[Response[IO]]): IO[Boolean] = {
     val hs = rec.headers.toList
     for {
-      _ <- IO(rec.status must be_==(expected.status))
+      expect <- expected
+      _ <- IO(rec.status must be_==(expect.status))
       body <- rec.body.compile.to(Array)
-      expBody <- expected.body.compile.to(Array)
+      expBody <- expect.body.compile.to(Array)
       _ <- IO(body must_== expBody)
-      _ <- IO(expected.headers.foreach { h =>
+      _ <- IO(expect.headers.foreach { h =>
         h must beOneOf(hs: _*); ()
       })
-      _ <- IO(rec.httpVersion must be_==(expected.httpVersion))
+      _ <- IO(rec.httpVersion must be_==(expect.httpVersion))
     } yield true
   }
 
-  private def renderResponse(srv: HttpServletResponse, resp: Response[IO]): Unit = {
-    srv.setStatus(resp.status.code)
-    resp.headers.foreach { h =>
-      srv.addHeader(h.name.toString, h.value)
-    }
-    resp.body
-      .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
-      .compile
-      .drain
-      .unsafeRunSync()
-  }
+  private def renderResponse(srv: HttpServletResponse, response: IO[Response[IO]]): IO[Unit] =
+    for {
+      resp <- response
+      _ <- IO(srv.setStatus(resp.status.code))
+      _ <- IO(resp.headers.foreach { h =>
+        srv.addHeader(h.name.toString, h.value)
+      })
+      result <- resp.body
+        .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
+        .compile
+        .drain
+    } yield result
 }
