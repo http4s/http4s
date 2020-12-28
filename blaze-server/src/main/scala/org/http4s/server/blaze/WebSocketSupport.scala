@@ -52,7 +52,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
           WebSocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
               logger.info(s"Invalid handshake $code, $msg")
-              val fa = 
+              val fa =
                 wsContext.failureResponse
                   .map(
                     _.withHeaders(
@@ -66,7 +66,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                     case Left(_) =>
                       F.unit
                   }
-             
+
               D.unsafeRunAndForget(fa)
 
               ()
@@ -94,7 +94,15 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                   val writeSemaphore = D.unsafeRunSync(Semaphore[F](1L))
                   val sentClose = new AtomicBoolean(false)
                   val segment =
-                    LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal, writeSemaphore, D)) // TODO: there is a constructor
+                    LeafBuilder(
+                      new Http4sWSStage[F](
+                        wsContext.webSocket,
+                        sentClose,
+                        deadSignal,
+                        writeSemaphore,
+                        D
+                      )
+                    ) // TODO: there is a constructor
                       .prepend(new WSFrameAggregator)
                       .prepend(new WebSocketDecoder)
 

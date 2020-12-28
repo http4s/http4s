@@ -238,8 +238,9 @@ private class Http2NodeStage[F[_]](
 
           val fa = action.attempt.flatMap {
             case Right(_) => F.unit
-            case Left(t) => 
-              F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(closePipeline(None))
+            case Left(t) =>
+              F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(
+                closePipeline(None))
           }
 
           D.unsafeRunSync(fa)

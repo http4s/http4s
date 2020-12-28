@@ -107,7 +107,7 @@ class BlazeServerBuilder[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     val channelOptions: ChannelOptions,
-    D: Dispatcher[F],
+    D: Dispatcher[F]
 )(implicit protected val F: Async[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {

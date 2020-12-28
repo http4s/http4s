@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext.global
 import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
-  
+
   val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
 
   def builder =

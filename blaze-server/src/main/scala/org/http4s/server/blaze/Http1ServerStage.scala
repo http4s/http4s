@@ -53,8 +53,7 @@ private[blaze] object Http1ServerStage {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
-      D: Dispatcher[F])(implicit
-      F: Async[F]): Http1ServerStage[F] =
+      D: Dispatcher[F])(implicit F: Async[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
         routes,
@@ -202,8 +201,9 @@ private[blaze] class Http1ServerStage[F[_]](
               // TODO: review blocking compared to CE2
               val fa = action.attempt.flatMap {
                 case Right(_) => F.unit
-                case Left(t) => 
-                  F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(closeConnection())
+                case Left(t) =>
+                  F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(
+                    closeConnection())
               }
               val (_, token) = D.unsafeToFutureCancelable(fa)
               cancelToken = Some(token)
@@ -277,11 +277,12 @@ private[blaze] class Http1ServerStage[F[_]](
     }
 
     // TODO: pool shifting: https://github.com/http4s/http4s/blob/main/core/src/main/scala/org/http4s/internal/package.scala#L45
-    val fa = bodyEncoder.write(rr, resp.body)
+    val fa = bodyEncoder
+      .write(rr, resp.body)
       .recover { case EOF => true }
       .attempt
       .flatMap {
-        case Right(requireClose) => 
+        case Right(requireClose) =>
           if (closeOnFinish || requireClose) {
             logger.trace("Request/route requested closing connection.")
             F.delay(closeConnection())
