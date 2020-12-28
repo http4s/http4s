@@ -22,7 +22,7 @@ import org.http4s.internal.{bug, compareField, hashLower, reduceComparisons}
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.parser._
-import org.http4s.util._
+import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci.CIString
 import scala.annotation.nowarn
 import scala.collection.immutable
