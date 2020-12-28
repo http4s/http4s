@@ -21,9 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.Status._
-import org.http4s.internal.CollectionCompat
 import scala.concurrent.duration._
-import cats.effect.unsafe.implicits.global
 
 object GetRoutes {
   val SimplePath = "/simple"
@@ -34,19 +32,18 @@ object GetRoutes {
   val EmptyNotFoundPath = "/empty-not-found"
   val InternalServerErrorPath = "/internal-server-error"
 
-  def getPaths(implicit F: Temporal[IO]): Map[String, Response[IO]] =
-    CollectionCompat.mapValues(
-      Map(
-        SimplePath -> Response[IO](Ok).withEntity("simple path").pure[IO],
-        ChunkedPath -> Response[IO](Ok)
-          .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
-          .pure[IO],
-        DelayedPath ->
-          F.sleep(1.second) *>
-          Response[IO](Ok).withEntity("delayed path").pure[IO],
-        NoContentPath -> Response[IO](NoContent).pure[IO],
-        NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
-        EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],
-        InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO]
-      ))(_.unsafeRunSync())
+  def getPaths(implicit F: Temporal[IO]): Map[String, IO[Response[IO]]] =
+    Map(
+      SimplePath -> Response[IO](Ok).withEntity("simple path").pure[IO],
+      ChunkedPath -> Response[IO](Ok)
+        .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
+        .pure[IO],
+      DelayedPath ->
+        F.sleep(1.second) *>
+        Response[IO](Ok).withEntity("delayed path").pure[IO],
+      NoContentPath -> Response[IO](NoContent).pure[IO],
+      NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
+      EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],
+      InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO]
+    )
 }
