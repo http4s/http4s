@@ -193,7 +193,7 @@ object Forwarded
       ParseFailure("missing host", s"no host defined in the URI '$uri'")
   }
 
-  override def parse(s: String): ParseResult[Forwarded] = parser.HttpHeaderParser.FORWARDED(s)
+  override def parse(s: String): ParseResult[Forwarded] = ???
 }
 
 final case class Forwarded(values: NonEmptyList[Forwarded.Element])

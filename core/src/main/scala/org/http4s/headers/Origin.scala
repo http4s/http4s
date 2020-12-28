@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import cats.implicits.toBifunctorOps
 import cats.parse.{Parser, Rfc5234}
 import org.http4s.Uri.RegName
-import org.http4s.internal.parsing.Rfc3986
 import org.http4s.util.{Renderable, Writer}
 
 sealed abstract class Origin extends Header.Parsed {
@@ -76,8 +75,8 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
       .string
       .map(Uri.Scheme.unsafeFromString)
     val stringHost = until1(char(':').orElse(`end`)).map(RegName.apply)
-    val bracketedIpv6 = char('[') *> Rfc3986.ipv6 <* char(']')
-    val host = List(bracketedIpv6, Rfc3986.ipv4, stringHost).reduceLeft(_ orElse1 _)
+    val bracketedIpv6 = char('[') *> Uri.Ipv6Address.parser <* char(']')
+    val host = List(bracketedIpv6, Uri.Ipv4Address.parser, stringHost).reduceLeft(_ orElse1 _)
     val port = char(':') *> rep1(digit, 1).string.map(_.toInt)
     val nullHost = (string1("null") *> `end`).orElse(`end`).as(Origin.Null)
 

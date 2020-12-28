@@ -16,15 +16,13 @@
 
 package org.http4s
 
-import java.nio.charset.StandardCharsets
-
+import cats.parse.Parser
 import cats.syntax.all._
 import cats.{Eval, Foldable, Hash, Order, Show}
 import org.http4s.Query._
-import org.http4s.internal.CollectionCompat
-
-import org.http4s.internal.parboiled2.{CharPredicate, Parser}
-import org.http4s.parser.{QueryParser, RequestUriParser}
+import org.http4s.internal.{CharPredicate, CollectionCompat}
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, Writer}
 
 import scala.collection.immutable
@@ -193,9 +191,10 @@ object Query {
     * If parsing fails, the empty [[Query]] is returned
     */
   def fromString(query: String): Query =
-    new RequestUriParser(query, StandardCharsets.UTF_8).Query
-      .run()(Parser.DeliveryScheme.Either)
-      .fold(_ => Query.blank, _ => new Query(Right(query)))
+    parser.parseAll(query) match {
+      case Left(_) => Query.empty
+      case Right(q) => q
+    }
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
@@ -211,6 +210,19 @@ object Query {
         case Right(query) => query
         case Left(_) => Vector.empty
       }
+
+  /* query       = *( pchar / "/" / "?" )
+   *
+   * These are illegal, but common in the wild.  We will be
+   * "conservative in our sending behavior and liberal in our
+   * receiving behavior", and encode them.
+   */
+  private[http4s] val parser: Parser[Query] = {
+    import Parser.{charIn, rep}
+    import Rfc3986.pchar
+
+    rep(pchar.orElse1(charIn("/?[]"))).string.map(Query.fromString)
+  }
 
   implicit val catsInstancesForHttp4sQuery: Hash[Query] with Order[Query] with Show[Query] =
     new Hash[Query] with Order[Query] with Show[Query] {
