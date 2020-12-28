@@ -35,8 +35,7 @@ import cats.effect.std.{Dispatcher, Semaphore}
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit def F: Async[F]
 
-  // TODO: fix
-  override implicit val D: Dispatcher[F] = null
+  protected implicit def D: Dispatcher[F]
 
   override protected def renderResponse(
       req: Request[F],
@@ -68,11 +67,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                       F.unit
                   }
              
-              // TODO: pull this dispatcher out
-              Dispatcher[F].allocated.map(_._1).flatMap { dispatcher =>
-                dispatcher.unsafeRunAndForget(fa)
-                F.unit
-              }
+              D.unsafeRunAndForget(fa)
 
               ()
 
@@ -99,7 +94,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                   val writeSemaphore = D.unsafeRunSync(Semaphore[F](1L))
                   val sentClose = new AtomicBoolean(false)
                   val segment =
-                    LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal, writeSemaphore))
+                    LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal, writeSemaphore, D)) // TODO: there is a constructor
                       .prepend(new WSFrameAggregator)
                       .prepend(new WebSocketDecoder)
 

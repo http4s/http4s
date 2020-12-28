@@ -23,6 +23,7 @@ import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all._
 import cats.effect.{Async, Resource}
+import cats.effect.std.Dispatcher
 import _root_.io.chrisdavenport.vault._
 import java.io.FileInputStream
 import java.net.InetSocketAddress
@@ -105,7 +106,8 @@ class BlazeServerBuilder[F[_]](
     httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
-    val channelOptions: ChannelOptions
+    val channelOptions: ChannelOptions,
+    D: Dispatcher[F],
 )(implicit protected val F: Async[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
@@ -131,7 +133,8 @@ class BlazeServerBuilder[F[_]](
       httpApp: HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
-      channelOptions: ChannelOptions = channelOptions
+      channelOptions: ChannelOptions = channelOptions,
+      D: Dispatcher[F] = D
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
@@ -151,7 +154,8 @@ class BlazeServerBuilder[F[_]](
       httpApp,
       serviceErrorHandler,
       banner,
-      channelOptions
+      channelOptions,
+      D
     )
 
   /** Configure HTTP parser length limits
@@ -296,7 +300,8 @@ class BlazeServerBuilder[F[_]](
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        D
       )
 
     def http2Stage(engine: SSLEngine): ALPNServerSelector =
@@ -311,7 +316,8 @@ class BlazeServerBuilder[F[_]](
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        D
       )
 
     Future.successful {
@@ -398,10 +404,10 @@ class BlazeServerBuilder[F[_]](
 
 object BlazeServerBuilder {
   @deprecated("Use BlazeServerBuilder.apply with explicit executionContext instead", "0.20.22")
-  def apply[F[_]](implicit F: Async[F]): BlazeServerBuilder[F] =
-    apply(ExecutionContext.global)
+  def apply[F[_]](D: Dispatcher[F])(implicit F: Async[F]): BlazeServerBuilder[F] =
+    apply(ExecutionContext.global, D)
 
-  def apply[F[_]](executionContext: ExecutionContext)(implicit
+  def apply[F[_]](executionContext: ExecutionContext, D: Dispatcher[F])(implicit
       F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.SocketAddress,
@@ -421,7 +427,8 @@ object BlazeServerBuilder {
       httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       banner = defaults.Banner,
-      channelOptions = ChannelOptions(Vector.empty)
+      channelOptions = ChannelOptions(Vector.empty),
+      D = D
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =

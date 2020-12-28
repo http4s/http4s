@@ -42,8 +42,9 @@ private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
     sentClose: AtomicBoolean,
     deadSignal: SignallingRef[F, Boolean],
-    writeSemaphore: Semaphore[F]
-)(implicit F: Async[F], val D: Dispatcher[F])
+    writeSemaphore: Semaphore[F],
+    D: Dispatcher[F]
+)(implicit F: Async[F])
     extends TailStage[WebSocketFrame] {
 
   def name: String = "Http4s WebSocket Stage"
@@ -189,8 +190,7 @@ object Http4sWSStage {
   def apply[F[_]](
       ws: WebSocket[F],
       sentClose: AtomicBoolean,
-      deadSignal: SignallingRef[F, Boolean])(implicit
-      F: Async[F],
-      D: Dispatcher[F]): F[Http4sWSStage[F]] =
-    Semaphore[F](1L).map(new Http4sWSStage(ws, sentClose, deadSignal, _))
+      deadSignal: SignallingRef[F, Boolean],
+      D: Dispatcher[F])(implicit F: Async[F]): F[Http4sWSStage[F]] =
+    Semaphore[F](1L).map(t => new Http4sWSStage(ws, sentClose, deadSignal, t, D))
 }

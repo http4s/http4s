@@ -20,7 +20,8 @@ package blaze
 
 import cats.data.Kleisli
 import cats.effect._
-import cats.effect.concurrent.Deferred
+import cats.effect.kernel.Deferred
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -38,11 +39,16 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import _root_.io.chrisdavenport.vault._
 import org.http4s.testing.ErrorReporting._
+import scala.concurrent.ExecutionContext
 
 class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   sequential
 
+  implicit val ec: ExecutionContext = Http4sSpec.TestExecutionContext
+
   val tickWheel = new TickWheelExecutor()
+
+  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
 
   def afterAll() = tickWheel.shutdown()
 
@@ -71,7 +77,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     val httpStage = Http1ServerStage[IO](
       httpApp,
       () => Vault.empty,
-      testExecutionContext,
+      ec,
       enableWebSockets = true,
       maxReqLine,
       maxHeaders,
@@ -79,7 +85,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       silentErrorHandler,
       30.seconds,
       30.seconds,
-      tickWheel
+      tickWheel,
+      dispatcher
     )
 
     pipeline.LeafBuilder(httpStage).base(head)
@@ -476,7 +483,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
         Deferred[IO, Unit].flatMap { gate =>
           val req = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
           val app: HttpApp[IO] = HttpApp { _ =>
-            gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
+            gate.complete(()) >> canceled.complete(()) >> IO.never[Response[IO]]
           }
           for {
             head <- IO(runRequest(List(req), app))

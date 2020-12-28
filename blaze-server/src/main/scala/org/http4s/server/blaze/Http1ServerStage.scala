@@ -52,7 +52,8 @@ private[blaze] object Http1ServerStage {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(implicit
+      scheduler: TickWheelExecutor,
+      D: Dispatcher[F])(implicit
       F: Async[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
@@ -65,7 +66,8 @@ private[blaze] object Http1ServerStage {
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler) with WebSocketSupport[F]
+        scheduler,
+        D) with WebSocketSupport[F]
     else
       new Http1ServerStage(
         routes,
@@ -77,7 +79,8 @@ private[blaze] object Http1ServerStage {
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler)
+        scheduler,
+        D)
 }
 
 private[blaze] class Http1ServerStage[F[_]](
@@ -90,13 +93,12 @@ private[blaze] class Http1ServerStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit protected val F: Async[F])
+    scheduler: TickWheelExecutor,
+    val D: Dispatcher[F])(implicit protected val F: Async[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
   // micro-optimization: unwrap the routes and call its .run directly
   private[this] val runApp = httpApp.run
-
-  override val D: Dispatcher[F] = ???
 
   // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
@@ -197,18 +199,14 @@ private[blaze] class Http1ServerStage[F[_]](
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
 
             parser.synchronized {
-              // TODO: pull this dispatcher up
               // TODO: review blocking compared to CE2
-              Dispatcher[F].allocated.map(_._1).flatMap { dispatcher =>
-                val fa = action.attempt.flatMap {
-                  case Right(_) => F.unit
-                  case Left(t) => 
-                    F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(closeConnection())
-                }
-                val (_, token) = dispatcher.unsafeToFutureCancelable(fa)
-                cancelToken = Some(token)
-                F.unit
+              val fa = action.attempt.flatMap {
+                case Right(_) => F.unit
+                case Left(t) => 
+                  F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(closeConnection())
               }
+              val (_, token) = D.unsafeToFutureCancelable(fa)
+              cancelToken = Some(token)
             }
 
             ()
@@ -278,36 +276,33 @@ private[blaze] class Http1ServerStage[F[_]](
           closeOnFinish)
     }
 
-    // TODO (ce3-ra): pull this dispatcher up, because it's going to fail probably
-    Dispatcher[F].allocated.map(_._1).flatMap { dispatcher =>
-      // TODO: pool shifting: https://github.com/http4s/http4s/blob/main/core/src/main/scala/org/http4s/internal/package.scala#L45
-      val fa = bodyEncoder.write(rr, resp.body)
-        .recover { case EOF => true }
-        .attempt
-        .flatMap {
-          case Right(requireClose) => 
-            if (closeOnFinish || requireClose) {
-              logger.trace("Request/route requested closing connection.")
-              F.delay(closeConnection())
-            } else
-              F.delay {
-                bodyCleanup().onComplete {
-                  case s @ Success(_) => // Serve another request
-                    parser.reset()
-                    handleReqRead(s)
-
-                  case Failure(EOF) => closeConnection()
-
-                  case Failure(t) => fatalError(t, "Failure in body cleanup")
-                }(trampoline)
-              }
-          case Left(t) =>
-            logger.error(t)("Error writing body")
+    // TODO: pool shifting: https://github.com/http4s/http4s/blob/main/core/src/main/scala/org/http4s/internal/package.scala#L45
+    val fa = bodyEncoder.write(rr, resp.body)
+      .recover { case EOF => true }
+      .attempt
+      .flatMap {
+        case Right(requireClose) => 
+          if (closeOnFinish || requireClose) {
+            logger.trace("Request/route requested closing connection.")
             F.delay(closeConnection())
-        }
-      dispatcher.unsafeToFutureCancelable(fa)
-      F.unit
-    }
+          } else
+            F.delay {
+              bodyCleanup().onComplete {
+                case s @ Success(_) => // Serve another request
+                  parser.reset()
+                  handleReqRead(s)
+
+                case Failure(EOF) => closeConnection()
+
+                case Failure(t) => fatalError(t, "Failure in body cleanup")
+              }(trampoline)
+            }
+        case Left(t) =>
+          logger.error(t)("Error writing body")
+          F.delay(closeConnection())
+      }
+
+    D.unsafeRunAndForget(fa)
 
     ()
   }

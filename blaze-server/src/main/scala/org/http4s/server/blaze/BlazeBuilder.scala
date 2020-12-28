@@ -19,6 +19,7 @@ package server
 package blaze
 
 import cats.effect._
+import cats.effect.std.Dispatcher
 import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.security.{KeyStore, Security}
@@ -73,7 +74,8 @@ class BlazeBuilder[F[_]](
     maxHeadersLen: Int,
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    D: Dispatcher[F]
 )(implicit protected val F: Async[F])
     extends ServerBuilder[F] {
   type Self = BlazeBuilder[F]
@@ -108,7 +110,8 @@ class BlazeBuilder[F[_]](
       maxHeadersLen,
       serviceMounts,
       serviceErrorHandler,
-      banner
+      banner,
+      D
     )
 
   /** Configure HTTP parser length limits
@@ -179,7 +182,7 @@ class BlazeBuilder[F[_]](
 
   def resource: Resource[F, Server] = {
     val httpApp = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
-    var b = BlazeServerBuilder[F]
+    var b = BlazeServerBuilder[F](D)
       .bindSocketAddress(socketAddress)
       .withExecutionContext(executionContext)
       .withIdleTimeout(idleTimeout)
@@ -238,7 +241,7 @@ class BlazeBuilder[F[_]](
 
 @deprecated("Use BlazeServerBuilder instead", "0.20.0-RC1")
 object BlazeBuilder {
-  def apply[F[_]](implicit F: Async[F]): BlazeBuilder[F] =
+  def apply[F[_]](D: Dispatcher[F])(implicit F: Async[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,
@@ -253,7 +256,8 @@ object BlazeBuilder {
       maxHeadersLen = 40 * 1024,
       serviceMounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
-      banner = ServerBuilder.DefaultBanner
+      banner = ServerBuilder.DefaultBanner,
+      D = D
     )
 }
 

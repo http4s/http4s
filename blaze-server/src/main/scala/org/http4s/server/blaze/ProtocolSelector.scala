@@ -19,6 +19,7 @@ package server
 package blaze
 
 import cats.effect.Async
+import cats.effect.std.Dispatcher
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
 import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
@@ -42,7 +43,8 @@ private[blaze] object ProtocolSelector {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(implicit
+      scheduler: TickWheelExecutor,
+      D: Dispatcher[F])(implicit
       F: Async[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
@@ -56,7 +58,8 @@ private[blaze] object ProtocolSelector {
             serviceErrorHandler,
             responseHeaderTimeout,
             idleTimeout,
-            scheduler
+            scheduler,
+            D
           ))
       }
 
@@ -83,7 +86,8 @@ private[blaze] object ProtocolSelector {
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        D
       )
 
     def preference(protos: Set[String]): String =

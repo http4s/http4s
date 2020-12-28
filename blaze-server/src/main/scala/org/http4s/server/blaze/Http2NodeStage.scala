@@ -19,6 +19,7 @@ package server
 package blaze
 
 import cats.effect.Async
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2._
 import fs2.Stream._
@@ -38,7 +39,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util._
 import _root_.io.chrisdavenport.vault._
-import cats.effect.std.Dispatcher
 
 private class Http2NodeStage[F[_]](
     streamId: Int,
@@ -49,7 +49,8 @@ private class Http2NodeStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit F: Async[F])
+    scheduler: TickWheelExecutor,
+    D: Dispatcher[F])(implicit F: Async[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -235,17 +236,13 @@ private class Http2NodeStage[F[_]](
             .recoverWith(serviceErrorHandler(req))
             .flatMap(renderResponse(_))
 
-          // TODO: pull this dispatcher up
-          Dispatcher[F].allocated.map(_._1).flatMap { dispatcher =>
-            val fa = action.attempt.flatMap {
-              case Right(_) => F.unit
-              case Left(t) => 
-                F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(closePipeline(None))
-            }
-
-            dispatcher.unsafeRunSync(fa)
-            F.unit
+          val fa = action.attempt.flatMap {
+            case Right(_) => F.unit
+            case Left(t) => 
+              F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(closePipeline(None))
           }
+
+          D.unsafeRunSync(fa)
 
           ()
         }

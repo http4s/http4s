@@ -17,6 +17,7 @@
 package org.http4s.server.blaze
 
 import cats.effect.{IO, Resource}
+import cats.effect.std.Dispatcher
 import fs2.io.tls.TLSParameters
 import java.net.URL
 import java.nio.charset.StandardCharsets
@@ -43,8 +44,10 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
     HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier)
   }
 
+  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+
   def builder: BlazeServerBuilder[IO] =
-    BlazeServerBuilder[IO](global)
+    BlazeServerBuilder[IO](global, dispatcher)
       .withResponseHeaderTimeout(1.second)
 
   val service: HttpApp[IO] = HttpApp {
