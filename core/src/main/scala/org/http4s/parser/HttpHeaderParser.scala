@@ -23,7 +23,6 @@ object HttpHeaderParser
     with ForwardedHeader
     with LocationHeader
     with OriginHeader
-    with RangeParser
     with RefererHeader
     with StrictTransportSecurityHeader
     with ZipkinHeader {
@@ -108,7 +107,7 @@ object HttpHeaderParser
     addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
     addParser_("CONTENT-ENCODING".ci, `CONTENT_ENCODING`)
     addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
-    addParser_("CONTENT-RANGE".ci, `CONTENT_RANGE`)
+    addParser_("CONTENT-RANGE".ci, `Content-Range`.parse)
     addParser_("CONTENT-TYPE".ci, `Content-Type`.parse)
     addParser_("COOKIE".ci, Cookie.parse)
     addParser_("DATE".ci, Date.parse)
@@ -125,7 +124,7 @@ object HttpHeaderParser
     addParser_("LINK".ci, Link.parse)
     addParser_("LOCATION".ci, `LOCATION`)
     addParser_("ORIGIN".ci, `ORIGIN`)
-    addParser_("RANGE".ci, `RANGE`)
+    addParser_("RANGE".ci, Range.parse)
     addParser_("REFERER".ci, `REFERER`)
     addParser_("RETRY-AFTER".ci, `Retry-After`.parse)
     addParser_("SET-COOKIE".ci, `Set-Cookie`.parse)
