@@ -18,14 +18,13 @@ package org.http4s.headers
 
 import cats.data.NonEmptyList
 import cats.parse.{Parser, Parser1}
-import cats.syntax.either._
 import org.http4s._
 import org.http4s.internal.parsing.Rfc7230.{headerRep1, quotedString, token}
 import org.http4s.parser.Rfc2616BasicRules.optWs
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Link] =
-    parser.parseAll(s).leftMap(e => ParseFailure("Invalid Link header", e.toString))
+    ParseResult.fromParser(parser, "Link header")(s)
 
   private[http4s] val parser: Parser1[Link] = {
     import cats.parse.Parser._

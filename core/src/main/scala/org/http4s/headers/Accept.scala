@@ -19,13 +19,12 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser1
-import cats.syntax.either._
 import org.http4s.internal.parsing.Rfc7230.headerRep1
 import org.http4s.util.{Renderable, Writer}
 
 object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Accept] =
-    parser.parseAll(s).leftMap(e => ParseFailure("Invalid Accept header", e.toString))
+    ParseResult.fromParser(parser, "Invalid Accept header")(s)
 
   private[http4s] val parser: Parser1[Accept] = {
     val acceptParams =

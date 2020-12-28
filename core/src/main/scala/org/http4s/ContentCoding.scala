@@ -101,9 +101,7 @@ object ContentCoding {
   /** Parse a Content Coding
     */
   def parse(s: String): ParseResult[ContentCoding] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid Content Coding", e.toString)
-    }
+    ParseResult.fromParser(parser, "content coding")(s)
 
   implicit val http4sOrderForContentCoding: Order[ContentCoding] =
     Order.by(c => (c.coding.toLowerCase(ju.Locale.ENGLISH), c.qValue))

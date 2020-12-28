@@ -15,22 +15,24 @@
  */
 
 package org.http4s
-package headers
 
 import cats.parse.Parser1
-import org.http4s.util.{Renderer, Writer}
+import org.http4s.internal.parsing.RelaxedCookies
+import org.http4s.util.{Renderable, Writer}
 
-object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[Date] =
-    ParseResult.fromParser(parser, "Invalid Date header")(s)
+// see http://tools.ietf.org/html/rfc6265
+final case class RequestCookie(name: String, content: String) extends Renderable {
+  override lazy val renderString: String = super.renderString
 
-  /* `Date = HTTP-date` */
-  private[http4s] val parser: Parser1[`Date`] =
-    HttpDate.parser.map(apply)
+  override def render(writer: Writer): writer.type = {
+    writer.append(name).append('=').append(content)
+    writer
+  }
 }
 
-final case class Date(date: HttpDate) extends Header.Parsed {
-  def key: Date.type = Date
-  override def value: String = Renderer.renderString(date)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
+object RequestCookie {
+  private[http4s] val parser: Parser1[RequestCookie] =
+    RelaxedCookies.cookiePair.map { case (name, value) =>
+      RequestCookie(name, value)
+    }
 }

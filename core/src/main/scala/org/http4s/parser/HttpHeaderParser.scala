@@ -19,11 +19,8 @@ import org.typelevel.ci.CIString
 object HttpHeaderParser
     extends SimpleHeaders
     with CacheControlHeader
-    with CookieHeader
     with ForwardedHeader
     with LocationHeader
-    with OriginHeader
-    with RangeParser
     with RefererHeader
     with StrictTransportSecurityHeader
     with ZipkinHeader {
@@ -115,9 +112,9 @@ object HttpHeaderParser
     addParser_(CIString("CONTENT-LANGUAGE"), `CONTENT_LANGUAGE`)
     addParser_(CIString("CONTENT-LENGTH"), `CONTENT_LENGTH`)
     addParser_(CIString("CONTENT-LOCATION"), `CONTENT_LOCATION`)
-    addParser_(CIString("CONTENT-RANGE"), `CONTENT_RANGE`)
+    addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
     addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
-    addParser_(CIString("COOKIE"), `COOKIE`)
+    addParser_(CIString("COOKIE"), Cookie.parse)
     addParser_(CIString("DATE"), Date.parse)
     addParser_(CIString("ETAG"), ETag.parse)
     addParser_(CIString("EXPIRES"), Expires.parse)
@@ -129,16 +126,15 @@ object HttpHeaderParser
     addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
     addParser_(CIString("LAST-EVENT-ID"), `LAST_EVENT_ID`)
     addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
-    addParser_(CIString("LINK"), `LINK`)
+    addParser_(CIString("LINK"), Link.parse)
     addParser_(CIString("LOCATION"), `LOCATION`)
     addParser_(CIString("MAX-FORWARDS"), `MAX_FORWARDS`)
-    addParser_(CIString("ORIGIN"), `ORIGIN`)
-    addParser_(CIString("PROXY-AUTHENTICATE"), `PROXY_AUTHENTICATE`)
-    addParser_(CIString("RANGE"), `RANGE`)
+    addParser_(CIString("ORIGIN"), Origin.parse)
+    addParser_(CIString("RANGE"), Range.parse)
     addParser_(CIString("REFERER"), `REFERER`)
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
     addParser_(CIString("SERVER"), `SERVER`)
-    addParser_(CIString("SET-COOKIE"), `SET_COOKIE`)
+    addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
     addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `STRICT_TRANSPORT_SECURITY`)
     addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
     addParser_(CIString("USER-AGENT"), `USER_AGENT`)

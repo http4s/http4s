@@ -17,7 +17,6 @@
 package org.http4s
 
 import cats.parse.Parser
-import cats.syntax.all._
 import cats.{Order, Show}
 import org.http4s.util.Writer
 import scala.reflect.macros.blackbox
@@ -118,9 +117,7 @@ object QValue {
   }
 
   def parse(s: String): ParseResult[QValue] =
-    parser.parseAll(s).leftMap { e =>
-      ParseFailure("Invalid q-value", e.toString)
-    }
+    ParseResult.fromParser(parser, "Invalid Q-Value")(s)
 
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
