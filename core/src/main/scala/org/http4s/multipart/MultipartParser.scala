@@ -309,7 +309,7 @@ object MultipartParser {
             splitOnChunkLimited[F](
               values,
               0,
-              Chunk.bytes(c1.toArray[Byte] ++ c2.toArray[Byte]),
+              Chunk.array(c1.toArray[Byte] ++ c2.toArray[Byte]),
               Stream.empty,
               Stream.empty)
           go(remaining, ix, l, r, add)

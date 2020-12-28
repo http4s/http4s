@@ -19,7 +19,7 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import cats.syntax.all._
 import fs2._
 import org.log4s.getLogger
@@ -30,7 +30,7 @@ import org.typelevel.ci.CIString
 object RequestLogger {
   private[this] val logger = getLogger
 
-  def apply[F[_]: Concurrent](
+  def apply[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -38,7 +38,7 @@ object RequestLogger {
   )(client: Client[F]): Client[F] =
     impl[F](logHeaders, Left(logBody), redactHeadersWhen, logAction)(client)
 
-  def logBodyText[F[_]: Concurrent](
+  def logBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -46,7 +46,7 @@ object RequestLogger {
   )(client: Client[F]): Client[F] =
     impl[F](logHeaders, Right(logBody), redactHeadersWhen, logAction)(client)
 
-  private def impl[F[_]: Concurrent](
+  private def impl[F[_]: Async](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       redactHeadersWhen: CIString => Boolean,
@@ -72,7 +72,7 @@ object RequestLogger {
 
     Client { req =>
       if (!logBody)
-        Resource.liftF(logMessage(req)) *> client
+        Resource.eval(logMessage(req)) *> client
           .run(req)
       else
         Resource.suspend {
@@ -85,7 +85,7 @@ object RequestLogger {
             val changedRequest = req.withBodyStream(
               req.body
                 // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s))))
+                .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
                 .onFinalizeWeak(
                   logMessage(req.withBodyStream(newBody))
                 )

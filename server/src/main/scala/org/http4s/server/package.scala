@@ -19,7 +19,7 @@ package org.http4s
 import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.syntax.all._
-import cats.effect.IO
+import cats.effect.SyncIO
 import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}
@@ -55,7 +55,7 @@ package object server {
 
   object ServerRequestKeys {
     val SecureSession: Key[Option[SecureSession]] =
-      Key.newKey[IO, Option[SecureSession]].unsafeRunSync()
+      Key.newKey[SyncIO, Option[SecureSession]].unsafeRunSync()
   }
 
   /** A middleware is a function of one [[Service]] to another, possibly of a

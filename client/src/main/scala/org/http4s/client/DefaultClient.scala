@@ -19,13 +19,14 @@ package client
 
 import cats.Applicative
 import cats.data.Kleisli
-import cats.effect.{Bracket, Resource}
+import cats.effect.Resource
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import cats.effect.kernel.MonadCancel
 
-private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
+private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancel[F, Throwable])
     extends Client[F] {
   def run(req: Request[F]): Resource[F, Response[F]]
 

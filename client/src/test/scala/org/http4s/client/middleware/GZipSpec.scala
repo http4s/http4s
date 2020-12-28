@@ -46,7 +46,7 @@ class GZipSpec extends Http4sSpec {
 
     "not decompress when the response body is empty" in {
       val request = Request[IO](method = Method.HEAD, uri = Uri.unsafeFromString("/gziptest"))
-      val response = gzipClient.run(request).use[IO, String] { response =>
+      val response = gzipClient.run(request).use[String] { response =>
         response.status must_== Status.Ok
         response.headers.get(`Content-Encoding`) must beSome(`Content-Encoding`(ContentCoding.gzip))
 

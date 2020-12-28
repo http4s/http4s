@@ -16,25 +16,23 @@
 
 package org.http4s.server.middleware
 
-import cats.effect.IO.ioEffect
-import cats.effect.laws.util.TestContext
-import cats.effect.{IO, Timer}
+import cats.effect.IO
 import cats.implicits._
 import org.http4s.{Http4sSuite, HttpApp, Request, Status}
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.Throttle._
 import scala.concurrent.duration._
+import cats.effect.testkit.TestContext
 
 class ThrottleSuite extends Http4sSuite {
   test("LocalTokenBucket should contain initial number of tokens equal to specified capacity") {
-    val ctx = TestContext()
-    val munitTimer: Timer[IO] = ctx.timer[IO]
+    // val ctx = TestContext()
 
     val someRefillTime = 1234.milliseconds
     val capacity = 5
     val createBucket =
-      TokenBucket.local[IO](capacity, someRefillTime)(ioEffect, munitTimer.clock)
+      TokenBucket.local[IO](capacity, someRefillTime)
 
     createBucket
       .flatMap { testee =>
@@ -53,10 +51,10 @@ class ThrottleSuite extends Http4sSuite {
 
     val capacity = 1
     val createBucket =
-      TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, munitTimer.clock)
+      TokenBucket.local[IO](capacity, 100.milliseconds)
 
     val takeTokenAfterRefill = createBucket.flatMap { testee =>
-      testee.takeToken *> munitTimer.sleep(101.milliseconds) *>
+      testee.takeToken *> IO.sleep(101.milliseconds) *>
         testee.takeToken
     }
 
@@ -72,13 +70,13 @@ class ThrottleSuite extends Http4sSuite {
     val ctx = TestContext()
     val capacity = 5
     val createBucket =
-      TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, munitTimer.clock)
+      TokenBucket.local[IO](capacity, 100.milliseconds)
 
     val takeExtraToken = createBucket.flatMap { testee =>
       val takeFiveTokens: IO[List[TokenAvailability]] = (1 to 5).toList.traverse { _ =>
         testee.takeToken
       }
-      munitTimer.sleep(300.milliseconds) >> takeFiveTokens >> testee.takeToken
+      IO.sleep(300.milliseconds) >> takeFiveTokens >> testee.takeToken
     }
 
     takeExtraToken
@@ -94,7 +92,7 @@ class ThrottleSuite extends Http4sSuite {
     "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests") {
     val capacity = 1
     val createBucket =
-      TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, munitTimer.clock)
+      TokenBucket.local[IO](capacity, 100.milliseconds)
 
     val takeTokensSimultaneously = createBucket.flatMap { testee =>
       (1 to 5).toList.parTraverse(_ => testee.takeToken)
@@ -112,10 +110,10 @@ class ThrottleSuite extends Http4sSuite {
     val ctx = TestContext()
     val capacity = 1
     val createBucket =
-      TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, munitTimer.clock)
+      TokenBucket.local[IO](capacity, 100.milliseconds)
 
     val takeTwoTokens = createBucket.flatMap { testee =>
-      testee.takeToken *> munitTimer.sleep(75.milliseconds) *> testee.takeToken
+      testee.takeToken *> IO.sleep(75.milliseconds) *> testee.takeToken
     }
 
     takeTwoTokens

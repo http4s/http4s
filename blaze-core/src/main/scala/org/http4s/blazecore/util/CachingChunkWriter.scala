@@ -59,7 +59,7 @@ private[http4s] class CachingChunkWriter[F[_]](
     size = 0
   }
 
-  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer.toSeq)
+  private def toChunk: Chunk[Byte] = Chunk.concat(bodyBuffer.toSeq)
 
   override protected def exceptionFlush(): Future[Unit] = {
     val c = toChunk

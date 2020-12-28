@@ -16,12 +16,10 @@
 
 package org.http4s.testing
 
-import fs2.Chunk
-import org.scalacheck.{Arbitrary, Gen}
-import org.scalacheck.Arbitrary.arbitrary
+import cats.Eq
+import cats.effect.std.Dispatcher
 
-/** Arbitraries for fs2 types that aren't ours to publish. */
-object fs2Arbitraries {
-  implicit val http4sArbitraryForFs2ChunkOfBytes: Arbitrary[Chunk[Byte]] =
-    Arbitrary(Gen.containerOf[Array, Byte](arbitrary[Byte]).map(Chunk.array[Byte]))
+trait EqF {
+  implicit def eqF[A, F[_]](implicit eqA: Eq[A], dispatcher: Dispatcher[F]): Eq[F[A]] =
+    Eq.by[F[A], A](f => dispatcher.unsafeRunSync(f))
 }

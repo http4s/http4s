@@ -17,7 +17,7 @@
 package org.http4s.server.middleware
 
 import cats.effect.IO
-import cats.effect.concurrent.Ref
+import cats.effect.kernel.Ref
 import io.chrisdavenport.vault.Vault
 import org.http4s._
 import org.http4s.Request.Connection

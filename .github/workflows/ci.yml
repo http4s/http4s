@@ -67,14 +67,8 @@ jobs:
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
 
-      - name: Check unused dependencies
-        run: sbt ++${{ matrix.scala }} unusedCompileDependenciesTest
-
       - name: Run tests
         run: sbt ++${{ matrix.scala }} test
-
-      - name: Build docs
-        run: sbt ++${{ matrix.scala }} doc
 
   publish:
     name: Publish Artifacts
@@ -136,19 +130,6 @@ jobs:
 
                 
 
-      - name: Publish docs
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-
-          eval "$(ssh-agent -s)"
-          echo "$SSH_PRIVATE_KEY" | ssh-add -
-          git config --global user.name "GitHub Actions CI"
-          git config --global user.email "ghactions@invalid"
-          sbt ++2.12.12 docs/makeSite docs/ghpagesPushSite
-
-                
-
   website:
     name: Build website
     strategy:
@@ -177,32 +158,3 @@ jobs:
       
       - name: Build website
         run: sbt ++${{ matrix.scala }} website/makeSite
-
-  docs:
-    name: Build docs
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        scala: [2.12.12]
-        java: [adopt@1.8]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout current branch (full)
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: ${{ matrix.java }}
-
-      - name: Setup Hugo
-        run: |
-
-          echo "$HOME/bin" > $GITHUB_PATH
-          HUGO_VERSION=0.26 scripts/install-hugo
-
-      
-      - name: Build docs
-        run: sbt ++${{ matrix.scala }} docs/makeSite

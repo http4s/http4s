@@ -35,7 +35,7 @@ abstract class ClientRouteTestBattery(name: String)
     extends Http4sSpec
     with Http4sClientDsl[IO]
     with Http4sLegacyMatchersIO {
-  val timeout = 20.seconds
+  override val timeout = 20.seconds
   var address: InetSocketAddress = null
 
   def clientResource: Resource[IO, Client[IO]]
@@ -148,8 +148,7 @@ abstract class ClientRouteTestBattery(name: String)
       srv.addHeader(h.name.toString, h.value)
     }
     resp.body
-      .through(
-        writeOutputStream[IO](IO.pure(srv.getOutputStream), testBlocker, closeAfterUse = false))
+      .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
       .compile
       .drain
       .unsafeRunSync()
