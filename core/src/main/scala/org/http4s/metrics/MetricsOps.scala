@@ -103,7 +103,7 @@ object MetricsOps {
       exclude: String => Boolean,
       excludedValue: String = "*",
       pathSeparator: String = "_"
-  ): Request[F] => Option[String] = { request: Request[F] =>
+  ): Request[F] => Option[String] = { (request: Request[F]) =>
     val initial: String = request.method.name
 
     val pathList: List[String] =
