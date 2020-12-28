@@ -18,7 +18,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.Async
 import cats.syntax.all._
 import fs2._
 import fs2.Stream._
@@ -38,6 +38,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util._
 import _root_.io.chrisdavenport.vault._
+import cats.effect.std.Dispatcher
 
 private class Http2NodeStage[F[_]](
     streamId: Int,
@@ -48,7 +49,7 @@ private class Http2NodeStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F], timer: Timer[F])
+    scheduler: TickWheelExecutor)(implicit F: Async[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -102,49 +103,53 @@ private class Http2NodeStage[F[_]](
     var bytesRead = 0L
 
     val t = F.async[Option[Chunk[Byte]]] { cb =>
-      if (complete) cb(End)
-      else
-        channelRead(timeout = timeout).onComplete {
-          case Success(DataFrame(last, bytes)) =>
-            complete = last
-            bytesRead += bytes.remaining()
+      F.delay {
+        if (complete) cb(End)
+        else
+          channelRead(timeout = timeout).onComplete {
+            case Success(DataFrame(last, bytes)) =>
+              complete = last
+              bytesRead += bytes.remaining()
 
-            // Check length: invalid length is a stream error of type PROTOCOL_ERROR
-            // https://tools.ietf.org/html/draft-ietf-httpbis-http2-17#section-8.1.2  -> 8.2.1.6
-            if (complete && maxlen > 0 && bytesRead != maxlen) {
-              val msg = s"Entity too small. Expected $maxlen, received $bytesRead"
+              // Check length: invalid length is a stream error of type PROTOCOL_ERROR
+              // https://tools.ietf.org/html/draft-ietf-httpbis-http2-17#section-8.1.2  -> 8.2.1.6
+              if (complete && maxlen > 0 && bytesRead != maxlen) {
+                val msg = s"Entity too small. Expected $maxlen, received $bytesRead"
+                val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
+                closePipeline(Some(e))
+                cb(Either.left(InvalidBodyException(msg)))
+              } else if (maxlen > 0 && bytesRead > maxlen) {
+                val msg = s"Entity too large. Expected $maxlen, received bytesRead"
+                val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
+                closePipeline(Some(e))
+                cb(Either.left(InvalidBodyException(msg)))
+              } else cb(Either.right(Some(Chunk.array(bytes.array))))
+
+            case Success(HeadersFrame(_, true, ts)) =>
+              logger.warn("Discarding trailers: " + ts)
+              cb(Either.right(Some(Chunk.empty)))
+
+            case Success(other) => // This should cover it
+              val msg = "Received invalid frame while accumulating body: " + other
+              logger.info(msg)
               val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
               closePipeline(Some(e))
               cb(Either.left(InvalidBodyException(msg)))
-            } else if (maxlen > 0 && bytesRead > maxlen) {
-              val msg = s"Entity too large. Expected $maxlen, received bytesRead"
-              val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
+
+            case Failure(Cmd.EOF) =>
+              logger.debug("EOF while accumulating body")
+              cb(Either.left(InvalidBodyException("Received premature EOF.")))
+              closePipeline(None)
+
+            case Failure(t) =>
+              logger.error(t)("Error in getBody().")
+              val e = Http2Exception.INTERNAL_ERROR.rst(streamId, "Failed to read body")
+              cb(Either.left(e))
               closePipeline(Some(e))
-              cb(Either.left(InvalidBodyException(msg)))
-            } else cb(Either.right(Some(Chunk.array(bytes.array))))
+          }
 
-          case Success(HeadersFrame(_, true, ts)) =>
-            logger.warn("Discarding trailers: " + ts)
-            cb(Either.right(Some(Chunk.empty)))
-
-          case Success(other) => // This should cover it
-            val msg = "Received invalid frame while accumulating body: " + other
-            logger.info(msg)
-            val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
-            closePipeline(Some(e))
-            cb(Either.left(InvalidBodyException(msg)))
-
-          case Failure(Cmd.EOF) =>
-            logger.debug("EOF while accumulating body")
-            cb(Either.left(InvalidBodyException("Received premature EOF.")))
-            closePipeline(None)
-
-          case Failure(t) =>
-            logger.error(t)("Error in getBody().")
-            val e = Http2Exception.INTERNAL_ERROR.rst(streamId, "Failed to read body")
-            cb(Either.left(e))
-            closePipeline(Some(e))
-        }
+        None
+      }
     }
 
     repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F])
@@ -225,17 +230,25 @@ private class Http2NodeStage[F[_]](
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {
-          val action = Sync[F]
-            .suspend(raceTimeout(req))
+          val action = F
+            .defer(raceTimeout(req))
             .recoverWith(serviceErrorHandler(req))
-            .flatMap(renderResponse)
+            .flatMap(renderResponse(_))
 
-          F.runAsync(action) {
-            case Right(()) => IO.unit
-            case Left(t) =>
-              IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(closePipeline(None))
+          // TODO: pull this dispatcher up
+          Dispatcher[F].allocated.map(_._1).flatMap { dispatcher =>
+            val fa = action.attempt.flatMap {
+              case Right(_) => F.unit
+              case Left(t) => 
+                F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(closePipeline(None))
+            }
+
+            dispatcher.unsafeRunSync(fa)
+            F.unit
           }
-        }.unsafeRunSync()
+
+          ()
+        }
       })
     }
   }
@@ -264,7 +277,7 @@ private class Http2NodeStage[F[_]](
   private[this] val raceTimeout: Request[F] => F[Response[F]] =
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
-        val timeoutResponse = timer.sleep(finite).as(Response.timeout[F])
+        val timeoutResponse = F.sleep(finite).as(Response.timeout[F])
         req => F.race(runApp(req), timeoutResponse).map(_.merge)
       case _ =>
         runApp

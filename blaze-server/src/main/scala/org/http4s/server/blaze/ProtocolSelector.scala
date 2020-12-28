@@ -18,7 +18,7 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{ConcurrentEffect, Timer}
+import cats.effect.Async
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
 import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
@@ -43,8 +43,7 @@ private[blaze] object ProtocolSelector {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       scheduler: TickWheelExecutor)(implicit
-      F: ConcurrentEffect[F],
-      timer: Timer[F]): ALPNServerSelector = {
+      F: Async[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
         LeafBuilder(

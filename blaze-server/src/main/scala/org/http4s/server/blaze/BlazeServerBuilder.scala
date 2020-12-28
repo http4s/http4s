@@ -22,7 +22,7 @@ import cats.{Alternative, Applicative}
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all._
-import cats.effect.{ConcurrentEffect, Resource, Timer}
+import cats.effect.{Async, Resource}
 import _root_.io.chrisdavenport.vault._
 import java.io.FileInputStream
 import java.net.InetSocketAddress
@@ -106,7 +106,7 @@ class BlazeServerBuilder[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     val channelOptions: ChannelOptions
-)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+)(implicit protected val F: Async[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
   type Self = BlazeServerBuilder[F]
@@ -372,7 +372,7 @@ class BlazeServerBuilder[F[_]](
       Resource.eval(verifyTimeoutRelations()) >>
         mkFactory
           .flatMap(mkServerChannel)
-          .map[F, Server] { serverChannel =>
+          .map { serverChannel =>
             new Server {
               val address: InetSocketAddress =
                 serverChannel.socketAddress
@@ -398,12 +398,11 @@ class BlazeServerBuilder[F[_]](
 
 object BlazeServerBuilder {
   @deprecated("Use BlazeServerBuilder.apply with explicit executionContext instead", "0.20.22")
-  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeServerBuilder[F] =
+  def apply[F[_]](implicit F: Async[F]): BlazeServerBuilder[F] =
     apply(ExecutionContext.global)
 
   def apply[F[_]](executionContext: ExecutionContext)(implicit
-      F: ConcurrentEffect[F],
-      timer: Timer[F]): BlazeServerBuilder[F] =
+      F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
       socketAddress = defaults.SocketAddress,
       executionContext = executionContext,

@@ -74,7 +74,7 @@ class BlazeBuilder[F[_]](
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-)(implicit protected val F: ConcurrentEffect[F], timer: Timer[F])
+)(implicit protected val F: Async[F])
     extends ServerBuilder[F] {
   type Self = BlazeBuilder[F]
 
@@ -238,7 +238,7 @@ class BlazeBuilder[F[_]](
 
 @deprecated("Use BlazeServerBuilder instead", "0.20.0-RC1")
 object BlazeBuilder {
-  def apply[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F]): BlazeBuilder[F] =
+  def apply[F[_]](implicit F: Async[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,
