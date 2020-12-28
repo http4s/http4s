@@ -17,12 +17,17 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.syntax.all._
+import cats.parse.Parser
+import cats.parse.Numbers
 import org.http4s.util.Writer
 
 object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-Flags`] =
-    HttpHeaderParser.X_B3_FLAGS(s)
+    ParseResult.fromParser(parser, "X-B3-Flags header")(s)
+
+  private[http4s] val parser: Parser[`X-B3-Flags`] =
+    (Numbers.digits <* Parser.end).map(str => fromLong(str.toLong))
 
   sealed trait Flag extends Product with Serializable {
     def longValue: Long

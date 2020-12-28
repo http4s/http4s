@@ -17,12 +17,20 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.Applicative
+import cats.syntax.all._
+import cats.parse.{Parser, Rfc5234}
+import org.http4s.parser.ZipkinHeader
 import org.http4s.util.Writer
 
 object `X-B3-SpanId` extends HeaderKey.Internal[`X-B3-SpanId`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-SpanId`] =
-    HttpHeaderParser.X_B3_SPANID(s)
+    ParseResult.fromParser(parser, "X-B3-SpanId header")(s)
+
+  private[http4s] val parser: Parser[`X-B3-SpanId`] =
+    Applicative[Parser].replicateA(16, Rfc5234.hexdig).string
+      .map(ZipkinHeader.idStringToLong)
+      .map(`X-B3-SpanId`.apply)
 }
 
 final case class `X-B3-SpanId`(id: Long) extends Header.Parsed {
