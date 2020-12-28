@@ -22,7 +22,6 @@ object HttpHeaderParser
     with CacheControlHeader
     with ForwardedHeader
     with LocationHeader
-    with OriginHeader
     with RefererHeader
     with StrictTransportSecurityHeader
     with ZipkinHeader {
@@ -123,7 +122,7 @@ object HttpHeaderParser
     addParser_("LAST-MODIFIED".ci, `Last-Modified`.parse)
     addParser_("LINK".ci, Link.parse)
     addParser_("LOCATION".ci, `LOCATION`)
-    addParser_("ORIGIN".ci, `ORIGIN`)
+    addParser_("ORIGIN".ci, Origin.parse)
     addParser_("RANGE".ci, Range.parse)
     addParser_("REFERER".ci, `REFERER`)
     addParser_("RETRY-AFTER".ci, `Retry-After`.parse)

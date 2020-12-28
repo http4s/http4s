@@ -18,7 +18,10 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.implicits.toBifunctorOps
+import cats.parse.{Parser, Rfc5234}
+import org.http4s.Uri.RegName
+import org.http4s.internal.parsing.Rfc3986
 import org.http4s.util.{Renderable, Writer}
 
 sealed abstract class Origin extends Header.Parsed {
@@ -60,6 +63,34 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
       toUri.render(writer)
   }
 
+  private[http4s] val parser: Parser[Origin] = {
+    import Parser.{`end`, char, rep, rep1, string1, until1}
+    import Rfc5234.{alpha, digit}
+
+    val unknownScheme =
+      alpha ~ rep(alpha.orElse1(digit).orElse1(char('+')).orElse1(char('-')).orElse1(char('.')))
+    val http = string1("http")
+    val https = string1("https")
+    val scheme = List(https, http, unknownScheme)
+      .reduceLeft(_ orElse1 _)
+      .string
+      .map(Uri.Scheme.unsafeFromString)
+    val stringHost = until1(char(':').orElse(`end`)).map(RegName.apply)
+    val bracketedIpv6 = char('[') *> Rfc3986.ipv6 <* char(']')
+    val host = List(bracketedIpv6, Rfc3986.ipv4, stringHost).reduceLeft(_ orElse1 _)
+    val port = char(':') *> rep1(digit, 1).string.map(_.toInt)
+    val nullHost = (string1("null") *> `end`).orElse(`end`).as(Origin.Null)
+
+    val singleHost = ((scheme <* string1("://")) ~ host ~ port.?).map { case ((sch, host), port) =>
+      Origin.Host(sch, host, port)
+    }
+
+    nullHost.orElse((singleHost ~ rep(char(' ') *> singleHost)).map(hosts =>
+      Origin.HostList(NonEmptyList.of(hosts._1, hosts._2: _*))))
+  }
+
   override def parse(s: String): ParseResult[Origin] =
-    HttpHeaderParser.ORIGIN(s)
+    parser.parseAll(s).leftMap { e =>
+      ParseFailure("Invalid Origin Header", e.toString)
+    }
 }
