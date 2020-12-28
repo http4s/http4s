@@ -147,9 +147,7 @@ abstract class ClientRouteTestBattery(name: String)
     for {
       resp <- response
       _ <- IO(srv.setStatus(resp.status.code))
-      _ <- IO(resp.headers.foreach { h =>
-        srv.addHeader(h.name.toString, h.value)
-      })
+      _ <- resp.headers.toList.traverse_(h => IO(srv.addHeader(h.name.toString, h.value)))
       result <- resp.body
         .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
         .compile
