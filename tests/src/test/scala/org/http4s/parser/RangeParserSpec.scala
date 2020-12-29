@@ -17,9 +17,8 @@
 package org.http4s
 package parser
 
-import org.http4s.headers.{Range, `Content-Range`}
 import org.http4s.headers.Range.SubRange
-
+import org.http4s.headers.{Range, `Content-Range`}
 class RangeParserSpec extends Http4sSpec {
   "RangeParser" should {
     "parse Range" in {
@@ -32,23 +31,41 @@ class RangeParserSpec extends Http4sSpec {
       )
 
       forall(headers) { header =>
-        HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+        Range.parse(header.value) must beRight(header)
       }
+    }
+
+    "parse string" in {
+      val headers = Seq(
+        "bytes=0-500" -> Range(RangeUnit.Bytes, SubRange(0, 500)),
+        "bytes=0-499,500-999,1000-1500" -> Range(
+          RangeUnit.Bytes,
+          SubRange(0, 499),
+          SubRange(500, 999),
+          SubRange(1000, 1500)),
+        "page=0-100" -> Range(RangeUnit("page"), SubRange(0, 100)),
+        "bytes=10-" -> Range(10),
+        "bytes=-90" -> Range(-90)
+      )
+
+      forall(headers) { case (str, expected) =>
+        Range.parse(str) must beRight(expected)
+      }
+
+      Range.parse("bytes=10") must beLeft
     }
   }
 
   "parse Content-Range" in {
     val headers = Seq(
-      `Content-Range`(RangeUnit.Bytes, SubRange(10, None), None),
+      `Content-Range`(RangeUnit.Bytes, SubRange(10, 500), None),
       `Content-Range`(RangeUnit.Bytes, SubRange(0, 500), Some(500)),
       `Content-Range`(RangeUnit("page"), SubRange(0, 100), Some(100)),
-      `Content-Range`(10),
-      `Content-Range`(-90),
       `Content-Range`(SubRange(10, 30))
     )
 
     forall(headers) { header =>
-      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
+      `Content-Range`.parse(header.value) must beRight(header)
     }
   }
 }
