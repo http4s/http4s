@@ -57,13 +57,6 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   // This is only required for JettyClient
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
-  clientFixture.test("Strip fragments from URI".ignore) { case (_, client) =>
-    // skipped("Can only reproduce against external resource.  Help wanted.")
-    val uri = Uri.uri("https://en.wikipedia.org/wiki/Buckethead_discography#Studio_albums")
-    val body = client.run(Request[IO](uri = uri)).use(e => IO.pure(e.status))
-    body.assertEquals(Ok)
-  }
-
   clientFixture.test(s"$name Repeat a simple request") { case (jetty, client) =>
     val address = jetty.addresses.head
     val path = GetRoutes.SimplePath
