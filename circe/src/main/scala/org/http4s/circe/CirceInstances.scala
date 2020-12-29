@@ -80,14 +80,34 @@ trait CirceInstances extends JawnInstances {
   def jsonOf[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
     jsonOfWithMedia(MediaType.application.json)
 
+  def jsonOfSensitive[F[_]: Sync, A: Decoder](redact: Json => String): EntityDecoder[F, A] =
+    jsonOfWithSensitiveMedia(redact, MediaType.application.json)
+
   def jsonOfWithMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(implicit
       F: Sync[F],
       decoder: Decoder[A]): EntityDecoder[F, A] =
+    jsonOfWithMediaHelper[F, A](r1, jsonDecodeError, rs: _*)
+
+  def jsonOfWithSensitiveMedia[F[_], A](redact: Json => String, r1: MediaRange, rs: MediaRange*)(
+      implicit
+      F: Sync[F],
+      decoder: Decoder[A]): EntityDecoder[F, A] =
+    jsonOfWithMediaHelper[F, A](
+      r1,
+      (json, nelDecodeFailures) =>
+        CirceInstances.jsonDecodeErrorHelper(json, redact, nelDecodeFailures),
+      rs: _*
+    )
+
+  private def jsonOfWithMediaHelper[F[_], A](
+      r1: MediaRange,
+      decodeErrorHandler: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure,
+      rs: MediaRange*)(implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
       decoder
         .decodeJson(json)
         .fold(
-          failure => DecodeResult.failure(jsonDecodeError(json, NonEmptyList.one(failure))),
+          failure => DecodeResult.failure(decodeErrorHandler(json, NonEmptyList.one(failure))),
           DecodeResult.success(_)
         )
     }
@@ -229,8 +249,19 @@ object CirceInstances {
 
   private[circe] lazy val defaultJsonDecodeError
       : (Json, NonEmptyList[DecodingFailure]) => DecodeFailure = { (json, failures) =>
+    jsonDecodeErrorHelper(json, _.toString, failures)
+  }
+
+  private def jsonDecodeErrorHelper(
+      json: Json,
+      jsonToString: Json => String,
+      failures: NonEmptyList[DecodingFailure]
+  ): DecodeFailure = {
+
+    val str: String = jsonToString(json)
+
     InvalidMessageBodyFailure(
-      s"Could not decode JSON: $json",
+      s"Could not decode JSON: $str",
       if (failures.tail.isEmpty) Some(failures.head) else Some(DecodingFailures(failures)))
   }
 
