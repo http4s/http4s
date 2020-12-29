@@ -235,6 +235,23 @@ object Uri {
     }
   }
 
+  private[http4s] def parser(cs: JCharset): Parser1[Uri] = {
+    import cats.parse.Parser.char
+    import Uri.Scheme.{parser => scheme}
+    import Query.{parser => query}
+    import Fragment.{parser => fragment}
+
+    (scheme ~ (char(':') *> hierPart(cs)) ~ (char('?') *> query).? ~ (char('#') *> fragment).?)
+      .map { case (((s, (a, p)), q), f) =>
+        Uri(
+          scheme = Some(s),
+          authority = a,
+          path = p,
+          query = q.getOrElse(Query.empty),
+          fragment = f)
+      }
+  }
+
   private[http4s] def uriReference(cs: JCharset): Parser[Uri] = {
     import Parser.{char, string1}
     import Authority.{parser => authority}
@@ -266,7 +283,7 @@ object Uri {
             fragment = f)
       }
 
-    absoluteUri(cs).backtrack.orElse(relativeRef(cs))
+    parser(cs).backtrack.orElse(relativeRef(cs))
   }
 
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
