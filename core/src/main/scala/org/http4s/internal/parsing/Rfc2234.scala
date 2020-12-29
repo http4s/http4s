@@ -26,7 +26,7 @@ import cats.parse.Parser.{charIn}
 private[http4s] object Rfc2234 {
   /* ALPHA          =  %x41-5A / %x61-7A   ; A-Z / a-z */
   val alpha: Parser1[Char] =
-    charIn(0x41.toChar to 0x5a.toChar)
+    charIn(0x41.toChar to 0x5a.toChar).orElse1(charIn(0x61.toChar to 0x7a.toChar))
 
   /* DIGIT          =  %x30-39
    *                       ; 0-9 */

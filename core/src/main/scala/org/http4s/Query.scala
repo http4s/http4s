@@ -191,10 +191,12 @@ object Query {
     * If parsing fails, the empty [[Query]] is returned
     */
   def fromString(query: String): Query =
-    parser.parseAll(query) match {
-      case Left(_) => Query.empty
-      case Right(q) => q
-    }
+    if (query.isEmpty) new Query(Vector("" -> None))
+    else
+      QueryParser.parseQueryString(query) match {
+        case Right(query) => query
+        case Left(_) => Query.empty
+      }
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =

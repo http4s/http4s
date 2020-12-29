@@ -266,7 +266,7 @@ object Uri {
             fragment = f)
       }
 
-    absoluteUri(cs).orElse(relativeRef(cs))
+    absoluteUri(cs).backtrack.orElse(relativeRef(cs))
   }
 
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
@@ -278,7 +278,7 @@ object Uri {
                     / authority-form
                     / asterisk-form
    */
-  private val requestTargetParser: Parser1[Uri] = {
+  private val requestTargetParser: Parser[Uri] = {
     import cats.parse.Parser.char
     import Authority.{parser => authority}
     import Path.absolutePath
@@ -294,14 +294,14 @@ object Uri {
     def absoluteForm: Parser1[Uri] = absoluteUri(StandardCharsets.UTF_8)
 
     /* authority-form = authority */
-    val authorityForm: Parser1[Uri] =
+    val authorityForm: Parser[Uri] =
       authority(StandardCharsets.UTF_8).map(a => Uri(authority = Some(a)))
 
     /* asterisk-form = "*" */
     val asteriskForm: Parser1[Uri] =
       char('*').as(Uri(path = "*"))
 
-    originForm.orElse1(absoluteForm).orElse1(authorityForm).orElse1(asteriskForm)
+    originForm.orElse(absoluteForm).orElse(authorityForm).orElse(asteriskForm)
   }
 
   /** A [[org.http4s.Uri]] may begin with a scheme name that refers to a
@@ -389,41 +389,41 @@ object Uri {
     import Rfc3986.{pchar, pctEncoded, subDelims, unreserved}
 
     /* segment       = *pchar */
-    private val segment: Parser[Path] =
+    val segment: Parser[Path] =
       rep(pchar).string.map(decode(_))
 
     /* segment-nz    = 1*pchar */
-    private val segmentNz: Parser1[Path] =
+    val segmentNz: Parser1[Path] =
       rep1(pchar, 1).string.map(decode(_))
 
     /* segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
                      ; non-zero-length segment without any colon ":" */
-    private val segmentNzNc: Parser1[Path] =
+    val segmentNzNc: Parser1[Path] =
       rep1(unreserved.orElse1(pctEncoded).orElse1(subDelims).orElse1(char('@')), 1).string
         .map(decode(_))
 
     /* path-abempty  = *( "/" segment ) */
-    private[http4s] val pathAbempty: cats.parse.Parser[Path] =
+    val pathAbempty: cats.parse.Parser[Path] =
       rep(char('/') *> segment).string
 
     /* path-absolute = "/" [ segment-nz *( "/" segment ) ] */
-    private[http4s] val pathAbsolute: cats.parse.Parser1[Path] =
+    val pathAbsolute: cats.parse.Parser1[Path] =
       (char('/') *> (segmentNz *> rep(char('/') *> segment)).?).string
 
     /* path-rootless = segment-nz *( "/" segment ) */
-    private[http4s] val pathRootless: cats.parse.Parser1[Path] =
+    val pathRootless: cats.parse.Parser1[Path] =
       (segmentNz *> rep(char('/') *> segment)).string
 
     /* path-empty    = 0<pchar> */
-    private[http4s] val pathEmpty: cats.parse.Parser[Path] =
+    val pathEmpty: cats.parse.Parser[Path] =
       pure("")
 
     /* path-noscheme = segment-nz-nc *( "/" segment ) */
-    private[http4s] val pathNoscheme: cats.parse.Parser1[Path] =
+    val pathNoscheme: cats.parse.Parser1[Path] =
       (segmentNzNc *> rep(char('/') *> segment)).string
 
     /* absolute-path = 1*( "/" segment ) */
-    private[http4s] val absolutePath: cats.parse.Parser1[Path] =
+    val absolutePath: cats.parse.Parser1[Path] =
       rep1(char('/') *> segment, 1).string
   }
 
@@ -464,8 +464,8 @@ object Uri {
     import Port.{parser => port}
 
     /* authority   = [ userinfo "@" ] host [ ":" port ] */
-    private[http4s] def parser(cs: JCharset): Parser1[Authority] =
-      ((userinfo(cs) <* char('@')).?.with1 ~ host ~ (char(':') *> port).?).map {
+    def parser(cs: JCharset): Parser[Authority] =
+      ((userinfo(cs) <* char('@')).backtrack.? ~ host ~ (char(':') *> port).?).map {
         case ((ui, h), p) => Authority(userInfo = ui, host = h, port = p.flatten)
       }
 
@@ -598,9 +598,10 @@ object Uri {
 
   object Host {
     /* host          = IP-literal / IPv4address / reg-name */
-    private[http4s] val parser: Parser1[Host] = {
+    val parser: Parser[Host] = {
       import Ipv4Address.{parser => ipv4Address}
       import Ipv6Address.{parser => ipv6Address}
+      import RegName.{parser => regName}
 
       // TODO This isn't in the 0.21 model.
       /* IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" ) */
@@ -609,7 +610,7 @@ object Uri {
       /* IP-literal    = "[" ( IPv6address / IPvFuture  ) "]" */
       val ipLiteral = ipv6Address.orElse1(ipVFuture)
 
-      ipLiteral.orElse1(ipv4Address)
+      ipLiteral.orElse(ipv4Address).orElse(regName)
     }
 
     implicit val catsInstancesForHttp4sUriHost: Hash[Host] with Order[Host] with Show[Host] =
@@ -1036,6 +1037,14 @@ object Uri {
   object RegName {
     def apply(name: String): RegName = new RegName(name.ci)
 
+    /* reg-name    = *( unreserved / pct-encoded / sub-delims) */
+    val parser: Parser[RegName] = {
+      import cats.parse.Parser.rep
+      import Rfc3986.{pctEncoded, subDelims, unreserved}
+
+      rep(unreserved.orElse1(pctEncoded).orElse1(subDelims)).string.map(s => RegName(CaseInsensitiveString(decode(s))))
+    }
+
     implicit val catsInstancesForHttp4sUriRegName
         : Hash[RegName] with Order[RegName] with Show[RegName] =
       new Hash[RegName] with Order[RegName] with Show[RegName] {
@@ -1175,7 +1184,7 @@ object Uri {
       case n => b.setLength(n)
     }
 
-  private[http4s] val Unreserved =
+  private[http4s] lazy val Unreserved =
     CharPredicate.AlphaNum ++ "-_.~"
 
   private val toSkip =
