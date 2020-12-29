@@ -616,6 +616,7 @@ object Uri {
   object Host {
     /* host          = IP-literal / IPv4address / reg-name */
     val parser: Parser[Host] = {
+      import cats.parse.Parser.char
       import Ipv4Address.{parser => ipv4Address}
       import Ipv6Address.{parser => ipv6Address}
       import RegName.{parser => regName}
@@ -625,7 +626,7 @@ object Uri {
       val ipVFuture: Parser1[Nothing] = Parser.fail
 
       /* IP-literal    = "[" ( IPv6address / IPvFuture  ) "]" */
-      val ipLiteral = ipv6Address.orElse1(ipVFuture)
+      val ipLiteral = char('[') *> ipv6Address.orElse1(ipVFuture) <* char(']')
 
       ipLiteral.orElse(ipv4Address).orElse(regName)
     }

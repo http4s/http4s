@@ -33,7 +33,7 @@ private[http4s] object Rfc3986 {
   /* The spec references RFC2234, which is 0-9A-F, but it also
    * explicitly permits lowercase. */
   val hexdig: Parser1[Char] =
-    digit.orElse1(charIn("ABCDEF"))
+    digit.orElse1(charIn("ABCDEFabcdef"))
 
   /* unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~" */
   val unreserved: Parser1[Char] =
@@ -41,7 +41,14 @@ private[http4s] object Rfc3986 {
 
   /* pct-encoded   = "%" HEXDIG HEXDIG */
   val pctEncoded: Parser1[Char] =
-    (char('%') *> digit ~ digit).map { case (a, b) => (((a - '0') >> 4) + (b - '0')).toChar }
+    (char('%') *> hexdig ~ hexdig).map { case (a, b) =>
+      def toInt(c: Char) = c match {
+        case c if c >= '0' && c <= '9' => c - '0'
+        case c if c >= 'a' && c <= 'f' => c - 'a' + 10
+        case c if c >= 'A' && c <= 'F' => c - 'A' + 10
+      }
+      (toInt(a) << 4 + toInt(b)).toChar
+    }
 
   /* sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
    *               / "*" / "+" / "," / ";" / "=" */
