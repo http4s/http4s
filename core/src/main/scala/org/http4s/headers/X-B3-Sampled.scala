@@ -18,12 +18,12 @@ package org.http4s
 package headers
 
 import org.http4s.util.Writer
-import cats.parse.{Parser, Parser1, Rfc5234}
+import cats.parse.{Parser1, Rfc5234}
 
 object `X-B3-Sampled` extends HeaderKey.Internal[`X-B3-Sampled`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-Sampled`] =
-    ParseResult.fromParser(parser, "X-B3-Sampled header")(s)
-  val parser: Parser1[`X-B3-Sampled`] =
+    ParseResult.fromParser(parser, "Invalid X-B3-Sampled header")(s)
+  private[http4s] val parser: Parser1[`X-B3-Sampled`] =
     Rfc5234.bit.map(s => `X-B3-Sampled`(s == '1'))
 }
 

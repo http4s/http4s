@@ -27,7 +27,7 @@ import org.http4s.util.Writer
 
 object `X-B3-TraceId` extends HeaderKey.Internal[`X-B3-TraceId`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-TraceId`] =
-    ParseResult.fromParser(parser, "X-B3-TraceId header")(s)
+    ParseResult.fromParser(parser, "Invalid X-B3-TraceId header")(s)
 
   private[http4s] val parser: Parser[`X-B3-TraceId`] = {
     val hexValue = Applicative[Parser].replicateA(16, Rfc5234.hexdig).map { s =>
