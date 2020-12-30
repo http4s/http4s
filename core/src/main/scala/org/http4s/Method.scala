@@ -16,9 +16,10 @@
 
 package org.http4s
 
-import cats.syntax.all._
 import cats.{Hash, Order, Show}
-import org.http4s.parser.Rfc2616BasicRules
+import cats.parse.Parser1
+import cats.syntax.all._
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 import scala.util.hashing.MurmurHash3
 
@@ -58,14 +59,10 @@ object Method {
   private final val HashSeed = 0x892abd01
 
   def fromString(s: String): ParseResult[Method] =
-    allByKey.getOrElse(
-      s,
-      Rfc2616BasicRules
-        .token(s)
-        .bimap(
-          e => ParseFailure("Invalid method", e.details),
-          apply(_)
-        ))
+    allByKey.getOrElse(s, ParseResult.fromParser(parser, "method")(s))
+
+  private[http4s] val parser: Parser1[Method] =
+    Rfc7230.token.map(apply)
 
   private def apply(name: String) =
     new Method(name, isSafe = false, isIdempotent = false)

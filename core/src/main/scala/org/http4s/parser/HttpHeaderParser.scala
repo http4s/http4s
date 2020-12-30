@@ -13,30 +13,18 @@ package parser
 
 import java.util
 import org.http4s.Header.Parsed
+import org.http4s.headers._
 import org.typelevel.ci.CIString
 
 object HttpHeaderParser
     extends SimpleHeaders
-    with AcceptCharsetHeader
-    with AcceptEncodingHeader
-    with AcceptHeader
-    with AcceptLanguageHeader
-    with AuthorizationHeader
     with CacheControlHeader
     with ContentLanguageHeader
     with ContentLocationHeader
-    with ContentTypeHeader
-    with CookieHeader
     with ForwardedHeader
-    with LinkHeader
     with LocationHeader
-    with OriginHeader
-    with ProxyAuthenticateHeader
-    with RangeParser
     with RefererHeader
-    with StrictTransportSecurityHeader
-    with WwwAuthenticateHeader
-    with ZipkinHeader {
+    with StrictTransportSecurityHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -106,18 +94,18 @@ object HttpHeaderParser
   }
 
   private def gatherBuiltIn(): Unit = {
+    addParser_(CIString("ACCEPT"), Accept.parse)
+    addParser_(CIString("ACCEPT-CHARSET"), `Accept-Charset`.parse)
+    addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
+    addParser_(CIString("ACCEPT-LANGUAGE"), `Accept-Language`.parse)
     addParser_(CIString("ACCEPT-PATCH"), `ACCEPT_PATCH`)
-    addParser_(CIString("ACCEPT"), `ACCEPT`)
-    addParser_(CIString("ACCEPT-CHARSET"), `ACCEPT_CHARSET`)
-    addParser_(CIString("ACCEPT-ENCODING"), `ACCEPT_ENCODING`)
-    addParser_(CIString("ACCEPT-LANGUAGE"), `ACCEPT_LANGUAGE`)
-    addParser_(CIString("ACCEPT-RANGES"), `ACCEPT_RANGES`)
+    addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"), `ACCESS_CONTROL_ALLOW_CREDENTIALS`)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `ACCESS_CONTROL_ALLOW_HEADERS`)
     addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `ACCESS_CONTROL_EXPOSE_HEADERS`)
     addParser_(CIString("AGE"), `AGE`)
     addParser_(CIString("ALLOW"), `ALLOW`)
-    addParser_(CIString("AUTHORIZATION"), `AUTHORIZATION`)
+    addParser_(CIString("AUTHORIZATION"), Authorization.parse)
     addParser_(CIString("CACHE-CONTROL"), `CACHE_CONTROL`)
     addParser_(CIString("CONNECTION"), `CONNECTION`)
     addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
@@ -125,39 +113,39 @@ object HttpHeaderParser
     addParser_(CIString("CONTENT-LANGUAGE"), `CONTENT_LANGUAGE`)
     addParser_(CIString("CONTENT-LENGTH"), `CONTENT_LENGTH`)
     addParser_(CIString("CONTENT-LOCATION"), `CONTENT_LOCATION`)
-    addParser_(CIString("CONTENT-RANGE"), `CONTENT_RANGE`)
-    addParser_(CIString("CONTENT-TYPE"), `CONTENT_TYPE`)
-    addParser_(CIString("COOKIE"), `COOKIE`)
-    addParser_(CIString("DATE"), `DATE`)
-    addParser_(CIString("ETAG"), `ETAG`)
-    addParser_(CIString("EXPIRES"), `EXPIRES`)
+    addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
+    addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
+    addParser_(CIString("COOKIE"), Cookie.parse)
+    addParser_(CIString("DATE"), Date.parse)
+    addParser_(CIString("ETAG"), ETag.parse)
+    addParser_(CIString("EXPIRES"), Expires.parse)
     addParser_(CIString("FORWARDED"), `FORWARDED`)
     addParser_(CIString("HOST"), `HOST`)
     addParser_(CIString("IF-MATCH"), `IF_MATCH`)
-    addParser_(CIString("IF-MODIFIED-SINCE"), `IF_MODIFIED_SINCE`)
+    addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)
     addParser_(CIString("IF-NONE-MATCH"), `IF_NONE_MATCH`)
-    addParser_(CIString("IF-UNMODIFIED-SINCE"), `IF_UNMODIFIED_SINCE`)
+    addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
     addParser_(CIString("LAST-EVENT-ID"), `LAST_EVENT_ID`)
-    addParser_(CIString("LAST-MODIFIED"), `LAST_MODIFIED`)
-    addParser_(CIString("LINK"), `LINK`)
+    addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
+    addParser_(CIString("LINK"), Link.parse)
     addParser_(CIString("LOCATION"), `LOCATION`)
     addParser_(CIString("MAX-FORWARDS"), `MAX_FORWARDS`)
-    addParser_(CIString("ORIGIN"), `ORIGIN`)
-    addParser_(CIString("PROXY-AUTHENTICATE"), `PROXY_AUTHENTICATE`)
-    addParser_(CIString("RANGE"), `RANGE`)
+    addParser_(CIString("ORIGIN"), Origin.parse)
+    //addParser_(CIString("PROXY-AUTHENTICATE"), `PROXY_AUTHENTICATE`)
+    addParser_(CIString("RANGE"), Range.parse)
     addParser_(CIString("REFERER"), `REFERER`)
-    addParser_(CIString("RETRY-AFTER"), `RETRY_AFTER`)
+    addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
     addParser_(CIString("SERVER"), `SERVER`)
-    addParser_(CIString("SET-COOKIE"), `SET_COOKIE`)
+    addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
     addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `STRICT_TRANSPORT_SECURITY`)
-    addParser_(CIString("TRANSFER-ENCODING"), `TRANSFER_ENCODING`)
+    addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
     addParser_(CIString("USER-AGENT"), `USER_AGENT`)
-    addParser_(CIString("WWW-AUTHENTICATE"), `WWW_AUTHENTICATE`)
-    addParser_(CIString("X-B3-FLAGS"), `X_B3_FLAGS`)
-    addParser_(CIString("X-B3-PARENTSPANID"), `X_B3_PARENTSPANID`)
-    addParser_(CIString("X-B3-SAMPLED"), `X_B3_SAMPLED`)
-    addParser_(CIString("X-B3-SPANID"), `X_B3_SPANID`)
-    addParser_(CIString("X-B3-TRACEID"), `X_B3_TRACEID`)
+    addParser_(CIString("WWW-AUTHENTICATE"), `WWW-Authenticate`.parse)
+    addParser_(CIString("X-B3-FLAGS"), `X-B3-Flags`.parse)
+    addParser_(CIString("X-B3-PARENTSPANID"), `X-B3-ParentSpanId`.parse)
+    addParser_(CIString("X-B3-SAMPLED"), `X-B3-Sampled`.parse)
+    addParser_(CIString("X-B3-SPANID"), `X-B3-SpanId`.parse)
+    addParser_(CIString("X-B3-TRACEID"), `X-B3-TraceId`.parse)
     addParser_(CIString("X-FORWARDED-FOR"), `X_FORWARDED_FOR`)
   }
 }

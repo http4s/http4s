@@ -5,13 +5,20 @@ import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_212, scala_213)
+ThisBuild / crossScalaVersions := Seq(scala_212, scala_213, "3.0.0-M2", "3.0.0-M3")
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
 ThisBuild / baseVersion := "1.0"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
 enablePlugins(SonatypeCiReleasePlugin)
+
+versionIntroduced := Map(
+  // There is, and will hopefully not be, an 0.22.0. But this hushes
+  // MiMa for now while we bootstrap Dotty support.
+  "3.0.0-M2" -> "0.22.0",
+  "3.0.0-M3" -> "0.22.0",
+)
 
 lazy val modules: List[ProjectReference] = List(
   core,
@@ -57,7 +64,8 @@ lazy val modules: List[ProjectReference] = List(
   scalafixInput,
   scalafixOutput,
   scalafixRules,
-  scalafixTests,
+  // TODO: broken on scalafix-0.9.24
+  // scalafixTests,
 )
 
 lazy val root = project.in(file("."))
@@ -89,20 +97,124 @@ lazy val core = libraryProject("core")
       caseInsensitive,
       catsCore,
       catsEffect,
+      catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
       log4s,
-      parboiled,
-      scalaReflect(scalaVersion.value) % Provided,
       scodecBits,
       slf4jApi, // residual dependency from macros
-      vault,
+      // vault, inlined pending -M2 and -M3 release
     ),
+    libraryDependencies ++= {
+      if (isDotty.value) Seq.empty
+      else Seq(
+        scalaReflect(scalaVersion.value) % Provided,
+        parboiled,
+      )
+    },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
     mimaBinaryIssueFilters ++= Seq(
-      // These were private[this], surfaced by 2.13.4's exhaustiveness checker
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ContentCoding.org$http4s$ContentCoding$$<init>$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ContentCoding.org$http4s$ContentCoding$$<init>$default$2"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Content-Range.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.AdditionalRules.httpDate"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_CHARSET"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_CHARSET"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_ENCODING"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_ENCODING"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_LANGUAGE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_LANGUAGE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_RANGES"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_RANGES"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.AUTHORIZATION"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.CONTENT_RANGE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.CONTENT_RANGE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.CONTENT_TYPE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.COOKIE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.DATE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ETAG"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.EXPIRES"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.IF_MODIFIED_SINCE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.IF_UNMODIFIED_SINCE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.LAST_MODIFIED"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.LINK"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ORIGIN"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.PROXY_AUTHENTICATE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.RANGE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.RETRY_AFTER"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.SET_COOKIE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.TRANSFER_ENCODING"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.WWW_AUTHENTICATE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_FLAGS"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_PARENTSPANID"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_SAMPLED"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_SPANID"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_TRACEID"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.idStringToLong"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.RangeParser.ACCEPT_RANGES"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.RangeParser.ACCEPT_RANGES"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.DATE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.ETAG"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.EXPIRES"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.IF_MODIFIED_SINCE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.IF_UNMODIFIED_SINCE"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.LAST_MODIFIED"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.RETRY_AFTER"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.TRANSFER_ENCODING"),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem]("org.http4s.parser.ZipkinHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ContentCoding$ContentCodingParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.HttpVersion$Parser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.MediaParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.MediaRange$MediaRangeParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.MediaType$MediaTypeParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.QValue$QValueParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.TransferCoding$TransferCodingParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader$AcceptCharsetParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptEncodingHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptEncodingHeader$AcceptEncodingParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptHeader$AcceptParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptLanguageHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptLanguageHeader$AcceptLanguageParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AdditionalRules$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AuthorizationHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AuthorizationHeader$AuthorizationParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ChallengeParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ContentTypeHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ContentTypeHeader$ContentTypeParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.CookieHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.CookieHeader$BaseCookieParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.CookieHeader$CookieParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.CookieHeader$SetCookieParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.LinkHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.LinkHeader$LinkParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.OriginHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.OriginHeader$OriginParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ProxyAuthenticateHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ProxyAuthenticateHeader$ProxyAuthenticateParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$AcceptRangesParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$AcceptRangesParser"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$RangeRule"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.WwwAuthenticateHeader"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.WwwAuthenticateHeader$WWWAuthenticateParser"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.parser.HttpHeaderParser$"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.acceptCharsetParser"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.acceptCharsetParser"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.org$http4s$parser$AcceptCharsetHeader$_setter_$acceptCharsetParser_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.org$http4s$parser$AcceptCharsetHeader$_setter_$acceptCharsetParser_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.acceptEncodingParser"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.acceptEncodingParser"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.org$http4s$parser$AcceptEncodingHeader$_setter_$acceptEncodingParser_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.org$http4s$parser$AcceptEncodingHeader$_setter_$acceptEncodingParser_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.acceptLanguageParser"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.acceptLanguageParser"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.org$http4s$parser$AcceptLanguageHeader$_setter_$acceptLanguageParser_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.org$http4s$parser$AcceptLanguageHeader$_setter_$acceptLanguageParser_="),
     ),
   )
 
@@ -791,11 +903,19 @@ lazy val commonSettings = Seq(
     disciplineSpecs2,
     logbackClassic,
     scalacheck,
-    specs2Cats,
-    specs2Core,
-    specs2MatcherExtra,
-    specs2Scalacheck
+    specs2Core.withDottyCompat(scalaVersion.value),
+    specs2MatcherExtra.withDottyCompat(scalaVersion.value),
   ).map(_ % Test),
+  libraryDependencies ++= {
+    if (isDotty.value)
+      libraryDependencies.value
+    else
+      // These are going to be a problem
+      Seq(
+        specs2Cats,
+        specs2Scalacheck
+      ).map(_ % Test)
+  },
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 

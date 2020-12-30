@@ -16,9 +16,8 @@
 
 package org.http4s
 
+import cats.parse.Parser
 import cats.{Order, Show}
-import org.http4s.internal.parboiled2.{Parser => PbParser}
-import org.http4s.parser.{AdditionalRules, Http4sParser}
 import org.http4s.util.Writer
 import scala.reflect.macros.blackbox
 
@@ -92,23 +91,33 @@ object QValue {
   def fromString(s: String): ParseResult[QValue] =
     try fromDouble(s.toDouble)
     catch {
-      case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number")
+      case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"$s is not a number")
     }
 
   def unsafeFromString(s: String): QValue =
     fromString(s).fold(throw _, identity)
 
-  def parse(s: String): ParseResult[QValue] =
-    new Http4sParser[QValue](s, "Invalid q-value") with QValueParser {
-      def main = QualityValue
-    }.parse
+  private[http4s] val parser: Parser[QValue] = {
+    import cats.parse.Parser.{char => ch, _}
+    import cats.parse.Rfc5234._
+    import org.http4s.parser.Rfc2616BasicRules.optWs
 
-  private[http4s] trait QValueParser extends AdditionalRules { self: PbParser =>
-    def QualityValue =
-      rule { // QValue is already taken
-        ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
-      }
+    val qValue = string1(ch('0') *> (ch('.') *> digit.rep1).rep)
+      .mapFilter(
+        QValue
+          .fromString(_)
+          .toOption
+      )
+      .orElse1(
+        ch('1') *> (ch('.') *> ch('0').rep.void).?.as(One)
+      )
+
+    ((ch(';') *> optWs *> ignoreCaseChar('q') *> ch('=')) *> qValue).backtrack
+      .orElse(pure(QValue.One))
   }
+
+  def parse(s: String): ParseResult[QValue] =
+    ParseResult.fromParser(parser, "Invalid Q-Value")(s)
 
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)

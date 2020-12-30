@@ -18,6 +18,7 @@
 package org.http4s
 package parser
 
+import cats.syntax.all._
 import cats.data.NonEmptyList
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
@@ -30,13 +31,43 @@ import org.typelevel.ci.CIString
   */
 private[parser] trait SimpleHeaders {
   def ACCEPT_PATCH(value: String): ParseResult[`Accept-Patch`] =
-    new Http4sHeaderParser[`Accept-Patch`](value) with MediaType.MediaTypeParser {
+    new Http4sHeaderParser[`Accept-Patch`](value) {
       def entry =
         rule {
           oneOrMore(MediaTypeFull).separatedBy(ListSep) ~ EOL ~> { (medias: Seq[MediaType]) =>
             `Accept-Patch`(NonEmptyList(medias.head, medias.tail.toList))
           }
         }
+
+      def MediaRangeRule[A](builder: (String, String) => A): Rule1[A] =
+        rule {
+          (("*/*" ~ push("*") ~ push("*")) |
+            (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
+            ("*" ~ push("*") ~ push("*"))) ~> (builder(_, _))
+        }
+
+      def MediaTypeExtension: Rule1[(String, String)] =
+        rule {
+          ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> {
+            (s: String, s2: Option[String]) =>
+              (s, s2.getOrElse(""))
+          }
+        }
+
+      def MediaTypeFull: Rule1[MediaType] =
+        rule {
+          MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
+            (mr: MediaType, ext: Option[collection.Seq[(String, String)]]) =>
+              ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
+          }
+        }
+
+      def MediaTypeDef: Rule1[MediaType] = MediaRangeRule[MediaType](getMediaType)
+
+      private def getMediaType(mainType: String, subType: String): MediaType =
+        MediaType.all.getOrElse(
+          (mainType.toLowerCase, subType.toLowerCase),
+          new MediaType(mainType.toLowerCase, subType.toLowerCase))
     }.parse
 
   def ACCESS_CONTROL_ALLOW_CREDENTIALS(
@@ -110,15 +141,10 @@ private[parser] trait SimpleHeaders {
     }.parse
 
   def CONTENT_ENCODING(value: String): ParseResult[`Content-Encoding`] =
-    new Http4sHeaderParser[`Content-Encoding`](value)
-      with org.http4s.ContentCoding.ContentCodingParser {
-      def entry =
-        rule {
-          EncodingRangeDecl ~ EOL ~> { (c: ContentCoding) =>
-            `Content-Encoding`(c)
-          }
-        }
-    }.parse
+    (ContentCoding.parser <* AdditionalRules.EOL)
+      .map(`Content-Encoding`(_))
+      .parseAll(value)
+      .leftMap(e => ParseFailure("Invalid header", e.toString))
 
   def CONTENT_DISPOSITION(value: String): ParseResult[`Content-Disposition`] =
     new Http4sHeaderParser[`Content-Disposition`](value) {
@@ -128,38 +154,6 @@ private[parser] trait SimpleHeaders {
             (token: String, params: collection.Seq[(String, String)]) =>
               `Content-Disposition`(token, params.toMap)
           }
-        }
-    }.parse
-
-  def DATE(value: String): ParseResult[Date] =
-    new Http4sHeaderParser[Date](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (Date(_))
-        }
-    }.parse
-
-  def EXPIRES(value: String): ParseResult[Expires] =
-    new Http4sHeaderParser[Expires](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (Expires(_)) | // Valid Expires header
-            Digit1 ~ EOL ~> ((t: Int) =>
-              Expires(
-                org.http4s.HttpDate.unsafeFromEpochSecond(
-                  t.toLong / 1000L))) | // Used for bogus http servers returning 0
-            NegDigit1 ~ EOL ~> Function
-              .const(
-                Expires(org.http4s.HttpDate.Epoch)) _ // Used for bogus http servers returning -1
-        }
-    }.parse
-
-  def RETRY_AFTER(value: String): ParseResult[`Retry-After`] =
-    new Http4sHeaderParser[`Retry-After`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> ((t: org.http4s.HttpDate) => `Retry-After`(t)) | // Date value
-            Digits ~ EOL ~> ((t: String) => `Retry-After`.unsafeFromLong(t.toLong))
         }
     }.parse
 
@@ -196,35 +190,6 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
-  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] =
-    new Http4sHeaderParser[`Last-Modified`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`Last-Modified`(_))
-        }
-    }.parse
-
-  def IF_MODIFIED_SINCE(value: String): ParseResult[`If-Modified-Since`] =
-    new Http4sHeaderParser[`If-Modified-Since`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`If-Modified-Since`(_))
-        }
-    }.parse
-
-  def IF_UNMODIFIED_SINCE(value: String): ParseResult[`If-Unmodified-Since`] =
-    new Http4sHeaderParser[`If-Unmodified-Since`](value) {
-      def entry =
-        rule {
-          HttpDate ~ EOL ~> (`If-Unmodified-Since`(_))
-        }
-    }.parse
-
-  def ETAG(value: String): ParseResult[ETag] =
-    new Http4sHeaderParser[ETag](value) {
-      def entry = rule(EntityTag ~> (ETag(_: ETag.EntityTag)))
-    }.parse
-
   def IF_MATCH(value: String): ParseResult[`If-Match`] =
     new Http4sHeaderParser[`If-Match`](value) {
       def entry =
@@ -254,9 +219,6 @@ private[parser] trait SimpleHeaders {
           Digits ~ EOL ~> { (s: String) => `Max-Forwards`.unsafeFromLong(s.toLong) }
         }
     }.parse
-
-  def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
-    TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
     AGENT_SERVER(value, `User-Agent`.apply)

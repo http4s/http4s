@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package org.http4s
-package parser
+package io.chrisdavenport.unique
 
-import org.http4s.headers._
-import org.http4s.internal.parboiled2._
+import cats.Hash
+import cats.effect.Sync
 
-trait ProxyAuthenticateHeader {
-  def PROXY_AUTHENTICATE(value: String): ParseResult[`Proxy-Authenticate`] =
-    new ProxyAuthenticateParser(value).parse
+final class Unique private extends Serializable {
+  override def toString: String = s"Unique(${hashCode.toHexString})"
+}
+object Unique {
+  def newUnique[F[_]: Sync]: F[Unique] = Sync[F].delay(new Unique)
 
-  private class ProxyAuthenticateParser(input: ParserInput)
-      extends ChallengeParser[`Proxy-Authenticate`](input) {
-    def entry: Rule1[`Proxy-Authenticate`] =
-      rule {
-        oneOrMore(ChallengeRule).separatedBy(ListSep) ~ EOI ~> { (xs: Seq[Challenge]) =>
-          `Proxy-Authenticate`(xs.head, xs.tail: _*)
-        }
-      }
-  }
+  implicit val uniqueInstances: Hash[Unique] =
+    Hash.fromUniversalHashCode[Unique]
 }

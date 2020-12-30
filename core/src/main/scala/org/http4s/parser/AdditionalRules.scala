@@ -14,10 +14,12 @@
 package org.http4s
 package parser
 
+import cats.parse.{Parser => P}
 import cats.syntax.all._
-import java.time.{ZoneOffset, ZonedDateTime}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
+
+import java.time.{ZoneOffset, ZonedDateTime}
 import scala.util.Try
 
 private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
@@ -207,10 +209,8 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 }
 
 private[http4s] object AdditionalRules {
-  def httpDate(s: String): ParseResult[HttpDate] =
-    new Parser with AdditionalRules {
-      override def input: ParserInput = s
-    }.HttpDate
-      .run()(Parser.DeliveryScheme.Either)
-      .leftMap(e => ParseFailure("Invalid HTTP date", e.format(s)))
+  import Rfc2616BasicRules._
+  def EOI = P.char('\uFFFF')
+
+  def EOL = optWs *> EOI.rep
 }
