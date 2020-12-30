@@ -22,6 +22,7 @@ import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2._
+import org.http4s.internal.{Logger => InternalLogger}
 import org.typelevel.ci.CIString
 import org.log4s.getLogger
 
@@ -30,46 +31,48 @@ import org.log4s.getLogger
 object ResponseLogger {
   private[this] val logger = getLogger
 
-  def apply[F[_]](
+  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = Sync[F].delay(logger.info(s))
+
+  def apply[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
-    impl[F](logHeaders, Left(logBody), redactHeadersWhen, logAction)(client)
+  )(client: Client[F]): Client[F] =
+    impl(client, logBody) { response =>
+      Logger.logMessage[F, Response[F]](response)(
+        logHeaders,
+        logBody,
+        redactHeadersWhen
+      )(logAction.getOrElse(defaultLogAction[F]))
+    }
 
-  def logBodyText[F[_]](
+  def logBodyText[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
-    impl[F](logHeaders, Right(logBody), redactHeadersWhen, logAction)(client)
-
-  private def impl[F[_]](
-      logHeaders: Boolean,
-      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
-      redactHeadersWhen: CIString => Boolean,
-      logAction: Option[String => F[Unit]]
-  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
-    val log = logAction.getOrElse { (s: String) =>
-      Sync[F].delay(logger.info(s))
+  )(client: Client[F]): Client[F] =
+    impl(client, logBody = true) { response =>
+      InternalLogger.logMessageWithBodyText[F, Response[F]](response)(
+        logHeaders,
+        logBody,
+        redactHeadersWhen
+      )(logAction.getOrElse(defaultLogAction[F]))
     }
 
-    def logMessage(resp: Response[F]): F[Unit] =
-      logBodyText match {
-        case Left(bool) =>
-          Logger.logMessage[F, Response[F]](resp)(logHeaders, bool, redactHeadersWhen)(log(_))
-        case Right(f) =>
-          org.http4s.internal.Logger
-            .logMessageWithBodyText[F, Response[F]](resp)(logHeaders, f, redactHeadersWhen)(log(_))
-      }
-
-    val logBody: Boolean = logBodyText match {
-      case Left(bool) => bool
-      case Right(_) => true
+  def customized[F[_]: Concurrent](
+      client: Client[F],
+      logBody: Boolean = true,
+      logAction: Option[String => F[Unit]] = None
+  )(responseToText: Response[F] => F[String]): Client[F] =
+    impl(client, logBody) { response =>
+      val log = logAction.getOrElse(defaultLogAction[F] _)
+      responseToText(response).flatMap(log)
     }
 
+  private def impl[F[_]](client: Client[F], logBody: Boolean)(logMessage: Response[F] => F[Unit])(
+      implicit F: Concurrent[F]): Client[F] =
     Client { req =>
       client.run(req).flatMap { response =>
         if (!logBody)
@@ -97,6 +100,37 @@ object ResponseLogger {
           }
       }
     }
-  }
+
+  def defaultResponseColor[F[_]](response: Response[F]): String =
+    response.status.responseClass match {
+      case Status.Informational | Status.Successful | Status.Redirection => Console.GREEN
+      case Status.ClientError => Console.YELLOW
+      case Status.ServerError => Console.RED
+    }
+
+  def colored[F[_]: Concurrent](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      color: Response[F] => String = defaultResponseColor _,
+      logAction: Option[String => F[Unit]] = None
+  )(client: Client[F]): Client[F] =
+    customized(client, logBody, logAction) { response =>
+      val prelude = s"${response.httpVersion} ${response.status}"
+
+      val headers: String =
+        InternalLogger.defaultLogHeaders[F, Response[F]](response)(logHeaders, redactHeadersWhen)
+
+      val bodyText: F[String] =
+        InternalLogger.defaultLogBody[F, Response[F]](response)(logBody) match {
+          case Some(textF) => textF.map(text => s"""body="$text"""")
+          case None => Sync[F].pure("")
+        }
+
+      def spaced(x: String): String = if (x.isEmpty) x else s" $x"
+
+      bodyText
+        .map(body => s"${color(response)}$prelude${spaced(headers)}${spaced(body)}${Console.RESET}")
+    }
 
 }
