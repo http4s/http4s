@@ -154,6 +154,10 @@
                         <a class="class" href="CirceInstancesBuilder.html" title=""></a>
                         <a href="CirceInstancesBuilder.html" title="">CirceInstancesBuilder</a>
                       </li><li class="current-entities indented3">
+                        <a class="object" href="CirceSensitiveDataEntityDecoder$.html" title=""></a>
+                        <a class="trait" href="CirceSensitiveDataEntityDecoder.html" title="Derive EntityDecoder if implicit Decoder is in the scope without need to explicitly call jsonOfSensitive"></a>
+                        <a href="CirceSensitiveDataEntityDecoder.html" title="Derive EntityDecoder if implicit Decoder is in the scope without need to explicitly call jsonOfSensitive">CirceSensitiveDataEntityDecoder</a>
+                      </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="class" href="DecodingFailures.html" title="Wraps a list of decoding failures as an java.lang.Exception when using accumulatingJsonOf to decode JSON messages."></a>
                         <a href="DecodingFailures.html" title="Wraps a list of decoding failures as an java.lang.Exception when using accumulatingJsonOf to decode JSON messages.">DecodingFailures</a>
@@ -191,7 +195,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/0368053cccc66029ee3422525ef6269083dafe92/circe/src/main/scala/org/http4s/circe/CirceInstances.scala" target="_blank">CirceInstances.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/ce14ddbc4638c2da9faffad467cee9e68f80a0be/circe/src/main/scala/org/http4s/circe/CirceInstances.scala" target="_blank">CirceInstances.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -687,9 +691,9 @@ a <a href="DecodingFailures.html" class="extype" name="org.http4s.circe.Decoding
       
       
     </li><li name="org.http4s.circe.CirceInstances#jsonEncoderOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="jsonEncoderOf[F[_],A](implicitevidence$8:io.circe.Encoder[A]):org.http4s.EntityEncoder[F,A]"></a><a id="jsonEncoderOf[F[_],A](Encoder[A]):EntityEncoder[F,A]"></a>
+      <a id="jsonEncoderOf[F[_],A](implicitevidence$10:io.circe.Encoder[A]):org.http4s.EntityEncoder[F,A]"></a><a id="jsonEncoderOf[F[_],A](Encoder[A]):EntityEncoder[F,A]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/circe/CirceInstances.html#jsonEncoderOf[F[_],A](implicitevidence$8:io.circe.Encoder[A]):org.http4s.EntityEncoder[F,A]" title="Permalink">
+      <a href="../../../org/http4s/circe/CirceInstances.html#jsonEncoderOf[F[_],A](implicitevidence$10:io.circe.Encoder[A]):org.http4s.EntityEncoder[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -750,6 +754,22 @@ a <a href="DecodingFailures.html" class="extype" name="org.http4s.circe.Decoding
       </span>
       
       
+    </li><li name="org.http4s.circe.CirceInstances#jsonOfSensitive" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="jsonOfSensitive[F[_],A](redact:io.circe.Json=&gt;String)(implicitevidence$8:cats.effect.Sync[F],implicitevidence$9:io.circe.Decoder[A]):org.http4s.EntityDecoder[F,A]"></a><a id="jsonOfSensitive[F[_],A]((Json)⇒String)(Sync[F],Decoder[A]):EntityDecoder[F,A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/CirceInstances.html#jsonOfSensitive[F[_],A](redact:io.circe.Json=&gt;String)(implicitevidence$8:cats.effect.Sync[F],implicitevidence$9:io.circe.Decoder[A]):org.http4s.EntityDecoder[F,A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonOfSensitive</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="redact">redact: (<a href="https://circe.github.io/circe/api/io/circe/Json.html#io.circe.Json" class="extype" name="io.circe.Json">Json</a>) ⇒ <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfSensitive.F">F</span>]</span>, <span name="arg1">arg1: <a href="https://circe.github.io/circe/api/io/circe/Decoder.html#io.circe.Decoder" class="extype" name="io.circe.Decoder">Decoder</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfSensitive.A">A</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfSensitive.F">F</span>, <span class="extype" name="org.http4s.circe.CirceInstances.jsonOfSensitive.A">A</span>]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.circe.CirceInstances#jsonOfWithMedia" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="jsonOfWithMedia[F[_],A](r1:org.http4s.MediaRange,rs:org.http4s.MediaRange*)(implicitF:cats.effect.Sync[F],implicitdecoder:io.circe.Decoder[A]):org.http4s.EntityDecoder[F,A]"></a><a id="jsonOfWithMedia[F[_],A](MediaRange,MediaRange*)(Sync[F],Decoder[A]):EntityDecoder[F,A]"></a>
       <span class="permalink">
@@ -763,6 +783,22 @@ a <a href="DecodingFailures.html" class="extype" name="org.http4s.circe.Decoding
       </span>
       <span class="symbol">
         <span class="name">jsonOfWithMedia</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="r1">r1: <a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a></span>, <span name="rs">rs: <a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfWithMedia.F">F</span>]</span>, <span name="decoder">decoder: <a href="https://circe.github.io/circe/api/io/circe/Decoder.html#io.circe.Decoder" class="extype" name="io.circe.Decoder">Decoder</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfWithMedia.A">A</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfWithMedia.F">F</span>, <span class="extype" name="org.http4s.circe.CirceInstances.jsonOfWithMedia.A">A</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.circe.CirceInstances#jsonOfWithSensitiveMedia" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="jsonOfWithSensitiveMedia[F[_],A](redact:io.circe.Json=&gt;String,r1:org.http4s.MediaRange,rs:org.http4s.MediaRange*)(implicitF:cats.effect.Sync[F],implicitdecoder:io.circe.Decoder[A]):org.http4s.EntityDecoder[F,A]"></a><a id="jsonOfWithSensitiveMedia[F[_],A]((Json)⇒String,MediaRange,MediaRange*)(Sync[F],Decoder[A]):EntityDecoder[F,A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/CirceInstances.html#jsonOfWithSensitiveMedia[F[_],A](redact:io.circe.Json=&gt;String,r1:org.http4s.MediaRange,rs:org.http4s.MediaRange*)(implicitF:cats.effect.Sync[F],implicitdecoder:io.circe.Decoder[A]):org.http4s.EntityDecoder[F,A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonOfWithSensitiveMedia</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="redact">redact: (<a href="https://circe.github.io/circe/api/io/circe/Json.html#io.circe.Json" class="extype" name="io.circe.Json">Json</a>) ⇒ <span class="extype" name="scala.Predef.String">String</span></span>, <span name="r1">r1: <a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a></span>, <span name="rs">rs: <a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfWithSensitiveMedia.F">F</span>]</span>, <span name="decoder">decoder: <a href="https://circe.github.io/circe/api/io/circe/Decoder.html#io.circe.Decoder" class="extype" name="io.circe.Decoder">Decoder</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfWithSensitiveMedia.A">A</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonOfWithSensitiveMedia.F">F</span>, <span class="extype" name="org.http4s.circe.CirceInstances.jsonOfWithSensitiveMedia.A">A</span>]</span>
       </span>
       
       
@@ -837,9 +873,9 @@ a <a href="DecodingFailures.html" class="extype" name="org.http4s.circe.Decoding
       
       
     </li><li name="org.http4s.circe.CirceInstances#streamJsonArrayEncoderOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="streamJsonArrayEncoderOf[F[_],A](implicitevidence$9:io.circe.Encoder[A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]"></a><a id="streamJsonArrayEncoderOf[F[_],A](Encoder[A]):EntityEncoder[F,Stream[F,A]]"></a>
+      <a id="streamJsonArrayEncoderOf[F[_],A](implicitevidence$11:io.circe.Encoder[A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]"></a><a id="streamJsonArrayEncoderOf[F[_],A](Encoder[A]):EntityEncoder[F,Stream[F,A]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/circe/CirceInstances.html#streamJsonArrayEncoderOf[F[_],A](implicitevidence$9:io.circe.Encoder[A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]" title="Permalink">
+      <a href="../../../org/http4s/circe/CirceInstances.html#streamJsonArrayEncoderOf[F[_],A](implicitevidence$11:io.circe.Encoder[A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
