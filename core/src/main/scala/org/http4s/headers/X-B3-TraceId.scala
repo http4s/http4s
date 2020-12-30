@@ -17,14 +17,24 @@
 package org.http4s
 package headers
 
-import java.util.UUID
+import cats.Applicative
+import cats.parse.{Parser, Rfc5234}
+import cats.syntax.all._
 
-import org.http4s.parser.HttpHeaderParser
+import java.util.UUID
+import org.http4s.parser.ZipkinHeader
 import org.http4s.util.Writer
 
 object `X-B3-TraceId` extends HeaderKey.Internal[`X-B3-TraceId`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-TraceId`] =
-    HttpHeaderParser.X_B3_TRACEID(s)
+    ParseResult.fromParser(parser, "Invalid X-B3-TraceId header")(s)
+
+  private[http4s] val parser: Parser[`X-B3-TraceId`] = {
+    val hexValue = Applicative[Parser].replicateA(16, Rfc5234.hexdig).map { s =>
+      ZipkinHeader.idStringToLong(s.mkString(""))
+    }
+    (hexValue, hexValue.?).mapN(`X-B3-TraceId`(_, _))
+  }
 }
 
 final case class `X-B3-TraceId`(idMostSigBits: Long, idLeastSigBits: Option[Long])
