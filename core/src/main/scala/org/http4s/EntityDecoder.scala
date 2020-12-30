@@ -253,6 +253,14 @@ object EntityDecoder {
   implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
 
+  def mixedMultipart[F[_] : Sync : ContextShift](
+    blocker: Blocker,
+    headerLimit: Int = 1024,
+    maxSizeBeforeWrite: Int = 52428800,
+    maxParts: Int = 50,
+    failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
+    MultipartDecoder.mixedMultipart(blocker, headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
+
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
