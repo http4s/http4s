@@ -59,7 +59,7 @@ object Method {
   private final val HashSeed = 0x892abd01
 
   def fromString(s: String): ParseResult[Method] =
-    allByKey.getOrElse(s, ParseResult.fromParser(parser, "method")(s))
+    allByKey.getOrElse(s, ParseResult.fromParser(parser, "Invalid method")(s))
 
   private[http4s] val parser: Parser1[Method] =
     Rfc7230.token.map(apply)
