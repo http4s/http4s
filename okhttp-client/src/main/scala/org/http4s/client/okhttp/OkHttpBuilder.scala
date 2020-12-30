@@ -20,7 +20,6 @@ import java.io.IOException
 
 import cats.effect._
 import cats.syntax.all._
-import cats.effect.implicits._
 import fs2.io._
 import okhttp3.{
   Call,
@@ -36,16 +35,17 @@ import okhttp3.{
 import okio.BufferedSink
 import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.Client
-import org.http4s.internal.{BackendBuilder, invokeCallback}
+import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
-import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
+import scala.util.chaining._
+import cats.effect.std.Dispatcher
 
 /** A builder for [[org.http4s.client.Client]] with an OkHttp backend.
   *
-  * @define BLOCKINGEC an execution context onto which all blocking
-  * I/O operations will be shifted.
+  * @define DISPATCHER a [[cats.effect.std.Dispatcher]] using which
+  * we will call unsafeRunSync
   *
   * @define WHYNOSHUTDOWN It is assumed that the OkHttp client is
   * passed to us as a Resource, or that the caller will shut it down, or
@@ -53,29 +53,41 @@ import scala.util.control.NonFatal
   * their own.
   *
   * @param okHttpClient the underlying OkHttp client.
-  * @param blockingExecutionContext $BLOCKINGEC
+  * @param dispatcher $BLOCKINGEC
   */
 sealed abstract class OkHttpBuilder[F[_]] private (
     val okHttpClient: OkHttpClient,
-    val blocker: Blocker
-)(implicit protected val F: ConcurrentEffect[F], cs: ContextShift[F])
+    val dispatcher: Dispatcher[F]
+)(implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
   private[this] val logger = getLogger
 
+  type Result[F[_]] = Either[Throwable, Resource[F, Response[F]]]
+
+  private def logTap[F[_]](result: Result[F])(implicit
+      F: Async[F]): F[Either[Throwable, Resource[F, Response[F]]]] =
+    (result match {
+      case Left(e) => F.delay(logger.error(e)("Error in call back"))
+      case Right(_) => F.unit
+    }).map(_ => result)
+
+  private def invokeCallback(result: Result[F], cb: Result[F] => Unit)(implicit
+      F: Async[F]): Unit = {
+    logTap(result)
+      .flatMap(r => F.delay(cb(r)))
+      .pipe(dispatcher.unsafeRunSync)
+    ()
+  }
+
   private def copy(
       okHttpClient: OkHttpClient = okHttpClient,
-      blocker: Blocker = blocker
-  ) = new OkHttpBuilder[F](okHttpClient, blocker) {}
+      dispatcher: Dispatcher[F] = dispatcher) = new OkHttpBuilder[F](okHttpClient, dispatcher) {}
 
   def withOkHttpClient(okHttpClient: OkHttpClient): OkHttpBuilder[F] =
     copy(okHttpClient = okHttpClient)
 
-  def withBlocker(blocker: Blocker): OkHttpBuilder[F] =
-    copy(blocker = blocker)
-
-  @deprecated("Use withBlocker instead", "0.21.0")
-  def withBlockingExecutionContext(blockingExecutionContext: ExecutionContext): OkHttpBuilder[F] =
-    copy(blocker = Blocker.liftExecutionContext(blockingExecutionContext))
+  def withDispatcher(dispatcher: Dispatcher[F]): OkHttpBuilder[F] =
+    copy(dispatcher = dispatcher)
 
   /** Creates the [[org.http4s.client.Client]]
     *
@@ -87,17 +99,14 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     Resource.make(F.delay(create))(_ => F.unit)
 
   private def run(req: Request[F]) =
-    Resource.suspend(F.async[Resource[F, Response[F]]] { cb =>
+    Resource.suspend(F.async_[Resource[F, Response[F]]] { cb =>
       okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
-      ()
     })
 
-  private def handler(cb: Either[Throwable, Resource[F, Response[F]]] => Unit)(implicit
-      F: ConcurrentEffect[F],
-      cs: ContextShift[F]): Callback =
+  private def handler(cb: Result[F] => Unit)(implicit F: Async[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
-        invokeCallback(logger)(cb(Left(e)))
+        invokeCallback(Left(e), cb)
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
         val protocol = response.protocol() match {
@@ -108,7 +117,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
         }
         val status = Status.fromInt(response.code())
         val bodyStream = response.body.byteStream()
-        val body = readInputStream(F.pure(bodyStream), 1024, blocker, false)
+        val body = readInputStream(F.pure(bodyStream), 1024, false)
         val dispose = F.delay {
           bodyStream.close()
           ()
@@ -132,7 +141,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
             bodyStream.close()
             t
           }
-        invokeCallback(logger)(cb(r))
+        invokeCallback(r, cb)
       }
     }
 
@@ -141,7 +150,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
       response.headers().values(v).asScala.map(Header(v, _))
     })
 
-  private def toOkHttpRequest(req: Request[F])(implicit F: Effect[F]): OKRequest = {
+  private def toOkHttpRequest(req: Request[F])(implicit F: Async[F]): OKRequest = {
     val body = req match {
       case _ if req.isChunked || req.contentLength.isDefined =>
         new RequestBody {
@@ -151,7 +160,9 @@ sealed abstract class OkHttpBuilder[F[_]] private (
           //OKHttp will override the content-length header set below and always use "transfer-encoding: chunked" unless this method is overriden
           override def contentLength(): Long = req.contentLength.getOrElse(-1L)
 
-          override def writeTo(sink: BufferedSink): Unit =
+          override def writeTo(sink: BufferedSink): Unit = {
+            // This has to be synchronous with this method, or else
+            // chunks get silently dropped.
             req.body.chunks
               .map(_.toArray)
               .evalMap { (b: Array[Byte]) =>
@@ -161,10 +172,9 @@ sealed abstract class OkHttpBuilder[F[_]] private (
               }
               .compile
               .drain
-              // This has to be synchronous with this method, or else
-              // chunks get silently dropped.
-              .toIO
-              .unsafeRunSync()
+              .pipe(dispatcher.unsafeRunSync)
+            ()
+          }
         }
       // if it's a GET or HEAD, okhttp wants us to pass null
       case _ if req.method == Method.GET || req.method == Method.HEAD => null
@@ -185,9 +195,6 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 }
 
 /** Builder for a [[org.http4s.client.Client]] with an OkHttp backend
-  *
-  * @define BLOCKER a [[cats.effect.Blocker]] onto which all blocking
-  * I/O operations will be shifted.
   */
 object OkHttpBuilder {
   private[this] val logger = getLogger
@@ -195,28 +202,24 @@ object OkHttpBuilder {
   /** Creates a builder.
     *
     * @param okHttpClient the underlying client.
-    * @param blocker $BLOCKER
+    * @param dispatcher $DISPATCHER
     */
-  def apply[F[_]: ConcurrentEffect: ContextShift](
-      okHttpClient: OkHttpClient,
-      blocker: Blocker): OkHttpBuilder[F] =
-    new OkHttpBuilder[F](okHttpClient, blocker) {}
+  def apply[F[_]: Async](okHttpClient: OkHttpClient, dispatcher: Dispatcher[F]): OkHttpBuilder[F] =
+    new OkHttpBuilder[F](okHttpClient, dispatcher) {}
 
   /** Create a builder with a default OkHttp client.  The builder is
     * returned as a `Resource` so we shut down the OkHttp client that
     * we create.
     *
-    * @param blocker $BLOCKER
+    * @param dispatcher $DISPATCHER
     */
-  def withDefaultClient[F[_]: ConcurrentEffect: ContextShift](
-      blocker: Blocker): Resource[F, OkHttpBuilder[F]] =
-    defaultOkHttpClient.map(apply(_, blocker))
+  def withDefaultClient[F[_]: Async](dispatcher: Dispatcher[F]): Resource[F, OkHttpBuilder[F]] =
+    defaultOkHttpClient.map(apply(_, dispatcher))
 
-  private def defaultOkHttpClient[F[_]](implicit
-      F: ConcurrentEffect[F]): Resource[F, OkHttpClient] =
+  private def defaultOkHttpClient[F[_]](implicit F: Async[F]): Resource[F, OkHttpClient] =
     Resource.make(F.delay(new OkHttpClient()))(shutdown(_))
 
-  private def shutdown[F[_]](client: OkHttpClient)(implicit F: Sync[F]) =
+  private def shutdown[F[_]](client: OkHttpClient)(implicit F: Async[F]) =
     F.delay {
       try client.dispatcher.executorService().shutdown()
       catch {
