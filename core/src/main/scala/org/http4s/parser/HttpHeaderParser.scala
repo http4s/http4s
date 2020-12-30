@@ -131,7 +131,7 @@ object HttpHeaderParser
     addParser_(CIString("LOCATION"), `LOCATION`)
     addParser_(CIString("MAX-FORWARDS"), `MAX_FORWARDS`)
     addParser_(CIString("ORIGIN"), Origin.parse)
-    //addParser_(CIString("PROXY-AUTHENTICATE"), `PROXY_AUTHENTICATE`)
+    addParser_(CIString("PROXY-AUTHENTICATE"), `Proxy-Authenticate`.parse)
     addParser_(CIString("RANGE"), Range.parse)
     addParser_(CIString("REFERER"), `REFERER`)
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
