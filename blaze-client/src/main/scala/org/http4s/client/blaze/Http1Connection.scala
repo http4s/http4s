@@ -29,7 +29,7 @@ import org.http4s.{headers => H}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
-import org.http4s.blazecore.util.Http1Writer
+import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
 import scala.annotation.tailrec
@@ -347,7 +347,13 @@ private final class Http1Connection[F[_]](
       req: Request[F],
       closeHeader: Boolean,
       rr: StringWriter): Http1Writer[F] =
-    getEncoder(req, rr, getHttpMinor(req), closeHeader)
+    if (suppressBody(req))
+      new BodylessWriter(this, closeHeader)(implicitly, executionContext)
+    else
+      getEncoder(req, rr, getHttpMinor(req), closeHeader)
+
+  private def suppressBody(req: Request[F]) =
+    NoPayloadMethods.contains(req.method)
 }
 
 private object Http1Connection {
@@ -383,4 +389,7 @@ private object Http1Connection {
       writer
     } else writer
   }
+
+  private val NoPayloadMethods: Set[Method] =
+    Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
 }
