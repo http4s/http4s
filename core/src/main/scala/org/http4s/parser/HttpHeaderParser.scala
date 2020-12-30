@@ -22,6 +22,7 @@ object HttpHeaderParser
     with ContentLanguageHeader
     with ContentLocationHeader
     with ForwardedHeader
+    with LinkHeader
     with LocationHeader
     with RefererHeader
     with StrictTransportSecurityHeader {

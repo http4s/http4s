@@ -31,43 +31,13 @@ import org.typelevel.ci.CIString
   */
 private[parser] trait SimpleHeaders {
   def ACCEPT_PATCH(value: String): ParseResult[`Accept-Patch`] =
-    new Http4sHeaderParser[`Accept-Patch`](value) {
+    new Http4sHeaderParser[`Accept-Patch`](value) with MediaType.MediaTypeParser {
       def entry =
         rule {
           oneOrMore(MediaTypeFull).separatedBy(ListSep) ~ EOL ~> { (medias: Seq[MediaType]) =>
             `Accept-Patch`(NonEmptyList(medias.head, medias.tail.toList))
           }
         }
-
-      def MediaRangeRule[A](builder: (String, String) => A): Rule1[A] =
-        rule {
-          (("*/*" ~ push("*") ~ push("*")) |
-            (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
-            ("*" ~ push("*") ~ push("*"))) ~> (builder(_, _))
-        }
-
-      def MediaTypeExtension: Rule1[(String, String)] =
-        rule {
-          ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> {
-            (s: String, s2: Option[String]) =>
-              (s, s2.getOrElse(""))
-          }
-        }
-
-      def MediaTypeFull: Rule1[MediaType] =
-        rule {
-          MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-            (mr: MediaType, ext: Option[collection.Seq[(String, String)]]) =>
-              ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
-          }
-        }
-
-      def MediaTypeDef: Rule1[MediaType] = MediaRangeRule[MediaType](getMediaType)
-
-      private def getMediaType(mainType: String, subType: String): MediaType =
-        MediaType.all.getOrElse(
-          (mainType.toLowerCase, subType.toLowerCase),
-          new MediaType(mainType.toLowerCase, subType.toLowerCase))
     }.parse
 
   def ACCESS_CONTROL_ALLOW_CREDENTIALS(

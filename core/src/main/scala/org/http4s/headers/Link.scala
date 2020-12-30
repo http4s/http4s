@@ -20,24 +20,21 @@ import cats.data.NonEmptyList
 import cats.parse.{Parser, Parser1}
 import org.http4s._
 import org.http4s.internal.parsing.Rfc7230.{headerRep1, quotedString, token}
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.parser.Rfc2616BasicRules.optWs
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Link] =
-    ParseResult.fromParser(parser, "Link header")(s)
+    HttpHeaderParser.LINK(s)
+  // TODO depends on #4095
+  //ParseResult.fromParser(parser, "Invalid Link header")(s)
 
   private[http4s] val parser: Parser1[Link] = {
     import cats.parse.Parser._
 
-    // TODO: it depends on org.http4s.parser.Rfc3986Parser
     val linkValue: Parser1[LinkValue] =
-//      rule {
-//        // https://tools.ietf.org/html/rfc3986#section-4.1
-//        (AbsoluteUri | RelativeRef) ~> { (a: Uri) =>
-//          headers.LinkValue(a)
-//        }
-//      }
-      ???
+      // TODO depends on #4095
+      Parser.failWith("Not implemented")
 
     val linkValueAttr: Parser1[LinkValue] = {
       val relParser = (linkValue ~ (string1("rel=") *> token.orElse(quotedString)))
