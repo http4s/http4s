@@ -53,7 +53,7 @@ import cats.effect.std.Dispatcher
   * their own.
   *
   * @param okHttpClient the underlying OkHttp client.
-  * @param dispatcher $BLOCKINGEC
+  * @param dispatcher $DISPATCHER
   */
 sealed abstract class OkHttpBuilder[F[_]] private (
     val okHttpClient: OkHttpClient,
@@ -62,7 +62,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     extends BackendBuilder[F, Client[F]] {
   private[this] val logger = getLogger
 
-  type Result[F[_]] = Either[Throwable, Resource[F, Response[F]]]
+  private type Result[F[_]] = Either[Throwable, Resource[F, Response[F]]]
 
   private def logTap[F[_]](result: Result[F])(implicit
       F: Async[F]): F[Either[Throwable, Resource[F, Response[F]]]] =
