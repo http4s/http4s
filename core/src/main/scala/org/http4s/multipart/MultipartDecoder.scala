@@ -71,10 +71,10 @@ private[http4s] object MultipartDecoder {
     */
   def mixedMultipart[F[_]: Sync: ContextShift](
       blocker: Blocker,
-      headerLimit: Int = 1024,
-      maxSizeBeforeWrite: Int = 52428800,
-      maxParts: Int = 50,
-      failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
+      headerLimit: Int,
+      maxSizeBeforeWrite: Int,
+      maxParts: Int,
+      failOnLimit: Boolean): EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
