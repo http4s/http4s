@@ -22,7 +22,6 @@ import cats.data.Kleisli
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.effect.std.Dispatcher
-import cats.syntax.all._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H}
