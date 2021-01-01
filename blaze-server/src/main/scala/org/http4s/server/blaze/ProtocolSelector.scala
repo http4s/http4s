@@ -44,7 +44,7 @@ private[blaze] object ProtocolSelector {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
-      D: Dispatcher[F])(implicit F: Async[F]): ALPNServerSelector = {
+      dispatcher: Dispatcher[F])(implicit F: Async[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
         LeafBuilder(
@@ -58,7 +58,7 @@ private[blaze] object ProtocolSelector {
             responseHeaderTimeout,
             idleTimeout,
             scheduler,
-            D
+            dispatcher
           ))
       }
 
@@ -86,7 +86,7 @@ private[blaze] object ProtocolSelector {
         responseHeaderTimeout,
         idleTimeout,
         scheduler,
-        D
+        dispatcher
       )
 
     def preference(protos: Set[String]): String =

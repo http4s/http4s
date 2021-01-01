@@ -32,7 +32,7 @@ private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], tra
     implicit
     protected val F: Async[F],
     protected val ec: ExecutionContext,
-    protected val D: Dispatcher[F])
+    protected val dispatcher: Dispatcher[F])
     extends Http1Writer[F] {
   import ChunkWriter._
 

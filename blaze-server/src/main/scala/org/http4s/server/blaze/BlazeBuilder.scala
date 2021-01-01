@@ -75,7 +75,7 @@ class BlazeBuilder[F[_]](
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
-    D: Dispatcher[F]
+    dispatcher: Dispatcher[F]
 )(implicit protected val F: Async[F])
     extends ServerBuilder[F] {
   type Self = BlazeBuilder[F]
@@ -111,7 +111,7 @@ class BlazeBuilder[F[_]](
       serviceMounts,
       serviceErrorHandler,
       banner,
-      D
+      dispatcher
     )
 
   /** Configure HTTP parser length limits
@@ -182,7 +182,7 @@ class BlazeBuilder[F[_]](
 
   def resource: Resource[F, Server] = {
     val httpApp = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
-    var b = BlazeServerBuilder[F](D)
+    var b = BlazeServerBuilder[F](dispatcher)
       .bindSocketAddress(socketAddress)
       .withExecutionContext(executionContext)
       .withIdleTimeout(idleTimeout)
@@ -241,7 +241,7 @@ class BlazeBuilder[F[_]](
 
 @deprecated("Use BlazeServerBuilder instead", "0.20.0-RC1")
 object BlazeBuilder {
-  def apply[F[_]](D: Dispatcher[F])(implicit F: Async[F]): BlazeBuilder[F] =
+  def apply[F[_]](dispatcher: Dispatcher[F])(implicit F: Async[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,
@@ -257,7 +257,7 @@ object BlazeBuilder {
       serviceMounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
       banner = ServerBuilder.DefaultBanner,
-      D = D
+      dispatcher = dispatcher
     )
 }
 

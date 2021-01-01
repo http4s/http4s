@@ -50,7 +50,7 @@ private class Http2NodeStage[F[_]](
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     scheduler: TickWheelExecutor,
-    D: Dispatcher[F])(implicit F: Async[F])
+    dispatcher: Dispatcher[F])(implicit F: Async[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -243,7 +243,7 @@ private class Http2NodeStage[F[_]](
                 closePipeline(None))
           }
 
-          D.unsafeRunSync(fa)
+          dispatcher.unsafeRunSync(fa)
 
           ()
         }

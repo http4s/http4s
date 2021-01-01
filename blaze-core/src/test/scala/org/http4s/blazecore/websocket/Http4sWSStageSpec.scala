@@ -72,7 +72,7 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
   }
 
   object TestWebsocketStage {
-    def apply()(implicit D: Dispatcher[IO]): IO[TestWebsocketStage] =
+    def apply()(implicit dispatcher: Dispatcher[IO]): IO[TestWebsocketStage] =
       for {
         outQ <- Queue.unbounded[IO, WebSocketFrame]
         backendInQ <- Queue.unbounded[IO, WebSocketFrame]
@@ -83,7 +83,7 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
           IO(closeHook.set(true)))
         deadSignal <- SignallingRef[IO, Boolean](false)
         wsHead <- WSTestHead()
-        http4sWSStage <- Http4sWSStage[IO](ws, closeHook, deadSignal, D)
+        http4sWSStage <- Http4sWSStage[IO](ws, closeHook, deadSignal, dispatcher)
         head = LeafBuilder(http4sWSStage).base(wsHead)
         _ <- IO(head.sendInboundCommand(Command.Connected))
       } yield new TestWebsocketStage(outQ, head, closeHook, backendInQ)

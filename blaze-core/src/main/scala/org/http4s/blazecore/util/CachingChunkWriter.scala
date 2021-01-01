@@ -36,7 +36,7 @@ private[http4s] class CachingChunkWriter[F[_]](
     bufferMaxSize: Int)(
     implicit protected val F: Async[F],
     protected val ec: ExecutionContext,
-    implicit protected val D: Dispatcher[F])
+    implicit protected val dispatcher: Dispatcher[F])
     extends Http1Writer[F] {
   import ChunkWriter._
 

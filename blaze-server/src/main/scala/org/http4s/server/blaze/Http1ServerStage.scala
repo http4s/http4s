@@ -19,6 +19,7 @@ package server
 package blaze
 
 import cats.effect.Async
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import io.chrisdavenport.vault._
 import java.nio.ByteBuffer
@@ -37,7 +38,6 @@ import org.typelevel.ci.CIString
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
-import cats.effect.std.Dispatcher
 import scala.concurrent.Await
 
 private[blaze] object Http1ServerStage {
@@ -53,7 +53,7 @@ private[blaze] object Http1ServerStage {
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
-      D: Dispatcher[F])(implicit F: Async[F]): Http1ServerStage[F] =
+      dispatcher: Dispatcher[F])(implicit F: Async[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
         routes,
@@ -66,7 +66,7 @@ private[blaze] object Http1ServerStage {
         responseHeaderTimeout,
         idleTimeout,
         scheduler,
-        D) with WebSocketSupport[F]
+        dispatcher) with WebSocketSupport[F]
     else
       new Http1ServerStage(
         routes,
@@ -79,7 +79,7 @@ private[blaze] object Http1ServerStage {
         responseHeaderTimeout,
         idleTimeout,
         scheduler,
-        D)
+        dispatcher)
 }
 
 private[blaze] class Http1ServerStage[F[_]](
@@ -93,7 +93,7 @@ private[blaze] class Http1ServerStage[F[_]](
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     scheduler: TickWheelExecutor,
-    val D: Dispatcher[F])(implicit protected val F: Async[F])
+    val dispatcher: Dispatcher[F])(implicit protected val F: Async[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
   // micro-optimization: unwrap the routes and call its .run directly
@@ -192,20 +192,20 @@ private[blaze] class Http1ServerStage[F[_]](
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {
-            val action = F
-              .defer(raceTimeout(req))
+            val action = raceTimeout(req)
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
-
-            parser.synchronized {
-              // TODO: review blocking compared to CE2
-              val fa = action.attempt.flatMap {
+              .attempt
+              .flatMap {
                 case Right(_) => F.unit
                 case Left(t) =>
                   F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(
                     closeConnection())
               }
-              val (_, token) = D.unsafeToFutureCancelable(fa)
+
+            parser.synchronized {
+              // TODO: review blocking compared to CE2
+              val (_, token) = dispatcher.unsafeToFutureCancelable(action)
               cancelToken = Some(token)
             }
 
@@ -303,7 +303,7 @@ private[blaze] class Http1ServerStage[F[_]](
           F.delay(closeConnection())
       }
 
-    D.unsafeRunAndForget(fa)
+    dispatcher.unsafeRunAndForget(fa)
 
     ()
   }

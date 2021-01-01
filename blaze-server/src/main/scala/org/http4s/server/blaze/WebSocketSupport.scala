@@ -35,7 +35,7 @@ import cats.effect.std.{Dispatcher, Semaphore}
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit def F: Async[F]
 
-  protected implicit def D: Dispatcher[F]
+  protected implicit def dispatcher: Dispatcher[F]
 
   override protected def renderResponse(
       req: Request[F],
@@ -67,7 +67,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                       F.unit
                   }
 
-              D.unsafeRunAndForget(fa)
+              dispatcher.unsafeRunAndForget(fa)
 
               ()
 
@@ -90,8 +90,8 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 case Success(_) =>
                   logger.debug("Switching pipeline segments for websocket")
 
-                  val deadSignal = D.unsafeRunSync(SignallingRef[F, Boolean](false))
-                  val writeSemaphore = D.unsafeRunSync(Semaphore[F](1L))
+                  val deadSignal = dispatcher.unsafeRunSync(SignallingRef[F, Boolean](false))
+                  val writeSemaphore = dispatcher.unsafeRunSync(Semaphore[F](1L))
                   val sentClose = new AtomicBoolean(false)
                   val segment =
                     LeafBuilder(
@@ -100,7 +100,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                         sentClose,
                         deadSignal,
                         writeSemaphore,
-                        D
+                        dispatcher
                       )
                     ) // TODO: there is a constructor
                       .prepend(new WSFrameAggregator)
