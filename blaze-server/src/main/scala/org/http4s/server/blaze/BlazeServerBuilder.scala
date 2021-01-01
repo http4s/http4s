@@ -406,10 +406,6 @@ class BlazeServerBuilder[F[_]](
 }
 
 object BlazeServerBuilder {
-  @deprecated("Use BlazeServerBuilder.apply with explicit executionContext instead", "0.20.22")
-  def apply[F[_]](dispatcher: Dispatcher[F])(implicit F: Async[F]): BlazeServerBuilder[F] =
-    apply(ExecutionContext.global, dispatcher)
-
   def apply[F[_]](executionContext: ExecutionContext, dispatcher: Dispatcher[F])(implicit
       F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
