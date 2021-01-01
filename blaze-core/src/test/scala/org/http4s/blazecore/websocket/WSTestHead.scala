@@ -92,13 +92,17 @@ sealed abstract class WSTestHead(
 
   def pollBatch(batchSize: Int, timeoutSeconds: Long): IO[List[WebSocketFrame]] = {
     def batch(acc: List[WebSocketFrame]): IO[List[WebSocketFrame]] =
-      if (acc.length >= batchSize) {
-        IO.pure(acc)
-      } else {
+      if (acc.length == 0) {
+        outQueue.take.flatMap { frame =>
+          batch(List(frame))
+        }
+      } else if (acc.length < batchSize) {
         outQueue.tryTake.flatMap {
           case Some(frame) => batch(acc :+ frame)
           case None => IO.pure(acc)
         }
+      } else {
+        IO.pure(acc)
       }
 
     batch(Nil)

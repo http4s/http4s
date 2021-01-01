@@ -78,7 +78,7 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
         backendInQ <- Queue.unbounded[IO, WebSocketFrame]
         closeHook = new AtomicBoolean(false)
         ws = WebSocketSeparatePipe[IO](
-          Stream.eval(outQ.take),
+          Stream.repeatEval(outQ.take),
           _.evalMap(backendInQ.offer),
           IO(closeHook.set(true)))
         deadSignal <- SignallingRef[IO, Boolean](false)
