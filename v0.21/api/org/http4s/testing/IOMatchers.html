@@ -162,7 +162,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.21.0-RC2) Provided by specs2-cats in org.specs2.matcher.IOMatchers">IOMatchers</span><span class="result"> extends <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.21.0-RC2) Provided by specs2-cats in org.specs2.matcher.IOMatchers">IOMatchers</span><span class="result"> extends <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>]</span>
       </span>
       </h4>
 
@@ -171,11 +171,11 @@
 </p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-RC2)</i> Provided by specs2-cats in org.specs2.matcher.IOMatchers</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.14/testing/src/main/scala/org/http4s/testing/IOMatchers.scala" target="_blank">IOMatchers.scala</a></dd></dl><div class="toggleContainer block">
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.21.0-RC2)</i> Provided by specs2-cats in org.specs2.matcher.IOMatchers</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.15/testing/src/main/scala/org/http4s/testing/IOMatchers.scala" target="_blank">IOMatchers.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<span class="extype" name="cats.effect.IO">IO</span>], <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>], <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">
               Known Subclasses
@@ -328,7 +328,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">F</span><span class="result">: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
+        <span class="name">F</span><span class="result">: <a href="https://typelevel.org/cats-effect/api/cats/effect/Sync.html#cats.effect.Sync" class="extype" name="cats.effect.Sync">Sync</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a> → <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
@@ -594,7 +594,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">runAwait</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="fa">fa: <span class="extype" name="cats.effect.IO">IO</span>[<span class="extype" name="org.http4s.testing.IOMatchers.runAwait.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.testing.IOMatchers.runAwait.A">A</span></span>
+        <span class="name">runAwait</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="fa">fa: <a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>[<span class="extype" name="org.http4s.testing.IOMatchers.runAwait.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.testing.IOMatchers.runAwait.A">A</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a> → <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
@@ -610,7 +610,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">runWithTimeout</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="fa">fa: <span class="extype" name="cats.effect.IO">IO</span>[<span class="extype" name="org.http4s.testing.IOMatchers.runWithTimeout.A">A</span>]</span>, <span name="timeout">timeout: <a href="https://www.scala-lang.org/api/2.12.12/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="org.http4s.testing.IOMatchers.runWithTimeout.A">A</span>]</span>
+        <span class="name">runWithTimeout</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="fa">fa: <a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>[<span class="extype" name="org.http4s.testing.IOMatchers.runWithTimeout.A">A</span>]</span>, <span name="timeout">timeout: <a href="https://www.scala-lang.org/api/2.12.12/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="org.http4s.testing.IOMatchers.runWithTimeout.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a> → <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
@@ -725,7 +725,7 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="org.http4s.testing.RunTimedMatchers">
-              <h3>Inherited from <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<span class="extype" name="cats.effect.IO">IO</span>]</h3>
+              <h3>Inherited from <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

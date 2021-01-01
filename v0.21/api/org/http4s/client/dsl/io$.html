@@ -164,7 +164,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">io</span><span class="result"> extends <a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
+        <span class="name">io</span><span class="result"> extends <a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>]</span>
       </span>
       </h4>
 
@@ -183,11 +183,11 @@
 <span class="kw">val</span> r: IO[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).as[<span class="std">String</span>]
 <span class="kw">val</span> r2: DecodeResult[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).attemptAs[<span class="std">String</span>] <span class="cmt">// implicitly resolve the decoder</span>
 <span class="kw">val</span> req1 = r.unsafeRunSync()
-<span class="kw">val</span> req2 = r.unsafeRunSync() <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.14/client/src/main/scala/org/http4s/client/dsl/io.scala" target="_blank">io.scala</a></dd></dl><div class="toggleContainer block">
+<span class="kw">val</span> req2 = r.unsafeRunSync() <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.21.15/client/src/main/scala/org/http4s/client/dsl/io.scala" target="_blank">io.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a>[<span class="extype" name="cats.effect.IO">IO</span>], <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>], <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.12/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -432,7 +432,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">http4sHeadersDecoder</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>, <span name="decoder">decoder: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="cats.effect.IO">IO</span>, <span class="extype" name="org.http4s.client.dsl.Http4sClientDsl.http4sHeadersDecoder.T">T</span>]</span>)</span><span class="result">: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="cats.effect.IO">IO</span>, (<a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <span class="extype" name="org.http4s.client.dsl.Http4sClientDsl.http4sHeadersDecoder.T">T</span>)]</span>
+        <span class="name">http4sHeadersDecoder</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>]</span>, <span name="decoder">decoder: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>, <span class="extype" name="org.http4s.client.dsl.Http4sClientDsl.http4sHeadersDecoder.T">T</span>]</span>)</span><span class="result">: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>, (<a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <span class="extype" name="org.http4s.client.dsl.Http4sClientDsl.http4sHeadersDecoder.T">T</span>)]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a></dd></dl></div>
@@ -448,7 +448,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">http4sNoBodyOps</span><span class="params">(<span name="method">method: <a href="../../Method.html" class="extype" name="org.http4s.Method">Method</a> with <a href="../../Method$$NoBody.html" class="extype" name="org.http4s.Method.NoBody">NoBody</a></span>)</span><span class="result">: <a href="Http4sClientDsl$$NoBodyOps.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl.NoBodyOps">NoBodyOps</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
+        <span class="name">http4sNoBodyOps</span><span class="params">(<span name="method">method: <a href="../../Method.html" class="extype" name="org.http4s.Method">Method</a> with <a href="../../Method$$NoBody.html" class="extype" name="org.http4s.Method.NoBody">NoBody</a></span>)</span><span class="result">: <a href="Http4sClientDsl$$NoBodyOps.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl.NoBodyOps">NoBodyOps</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a></dd></dl></div>
@@ -464,7 +464,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">http4sWithBodySyntax</span><span class="params">(<span name="method">method: <a href="../../Method.html" class="extype" name="org.http4s.Method">Method</a> with <a href="../../Method$$PermitsBody.html" class="extype" name="org.http4s.Method.PermitsBody">PermitsBody</a></span>)</span><span class="result">: <a href="Http4sClientDsl$$WithBodyOps.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl.WithBodyOps">WithBodyOps</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
+        <span class="name">http4sWithBodySyntax</span><span class="params">(<span name="method">method: <a href="../../Method.html" class="extype" name="org.http4s.Method">Method</a> with <a href="../../Method$$PermitsBody.html" class="extype" name="org.http4s.Method.PermitsBody">PermitsBody</a></span>)</span><span class="result">: <a href="Http4sClientDsl$$WithBodyOps.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl.WithBodyOps">WithBodyOps</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a></dd></dl></div>
@@ -649,7 +649,7 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="org.http4s.client.dsl.Http4sClientDsl">
-              <h3>Inherited from <a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a>[<span class="extype" name="cats.effect.IO">IO</span>]</h3>
+              <h3>Inherited from <a href="Http4sClientDsl.html" class="extype" name="org.http4s.client.dsl.Http4sClientDsl">Http4sClientDsl</a>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="../../../../scala/index.html#AnyRef=Object" class="extmbr" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
