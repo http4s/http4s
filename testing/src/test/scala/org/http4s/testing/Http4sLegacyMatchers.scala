@@ -24,6 +24,7 @@ import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.specs2.matcher.{RunTimedMatchers => Specs2RunTimedMatchers, _}
 
+@deprecated("Use Http4sSuite and munit-cats-effect-instead", "0.21.6")
 trait Http4sLegacyMatchers[F[_]] extends Matchers with Specs2RunTimedMatchers[F] {
   def haveStatus(expected: Status): Matcher[Response[F]] =
     be_===(expected) ^^ { (r: Response[F]) =>

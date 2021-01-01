@@ -20,6 +20,7 @@ package testing
 import cats.effect.{ContextShift, IO, Timer}
 import org.specs2.matcher.{IOMatchers => Specs2IOMatchers}
 
+@deprecated("Use Http4sSuite and munit-cats-effect-instead", "0.21.6")
 trait Http4sLegacyMatchersIO extends Http4sLegacyMatchers[IO] with Specs2IOMatchers {
   self: Http4sSpec =>
   override val catsEffectContextShift: ContextShift[IO] = contextShift
