@@ -19,7 +19,7 @@ package blazecore
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import fs2.concurrent.Queue
+import cats.effect.std.Queue
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
@@ -85,7 +85,7 @@ final class QueueTestHead(queue: Queue[IO, Option[ByteBuffer]]) extends TestHead
   override def readRequest(size: Int): Future[ByteBuffer] = {
     val p = Promise[ByteBuffer]()
     p.completeWith(
-      queue.dequeue1
+      queue.take
         .flatMap {
           case Some(bb) => IO.pure(bb)
           case None => IO.raiseError(EOF)
