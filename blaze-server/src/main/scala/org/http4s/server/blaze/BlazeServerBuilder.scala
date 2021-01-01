@@ -56,7 +56,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scodec.bits.ByteVector
 
-/** BlazeBuilder is the component for the builder pattern aggregating
+/** BlazeServerBuilder is the component for the builder pattern aggregating
   * different components to finally serve requests.
   *
   * Variables:
