@@ -144,7 +144,7 @@ private final class Http1Connection[F[_]](
       case Left(e) =>
         F.raiseError(e)
       case Right(req) =>
-        F.suspend {
+        F.defer {
           val initWriterSize: Int = 512
           val rr: StringWriter = new StringWriter(initWriterSize)
           val isServer: Boolean = false
@@ -161,7 +161,7 @@ private final class Http1Connection[F[_]](
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
-            val idleTimeoutS = timeoutFiber.join.attempt.map {
+            val idleTimeoutS = timeoutFiber.joinAndEmbedNever.attempt.map {
               case Right(t) => Left(t): Either[Throwable, Unit]
               case Left(t) => Left(t): Either[Throwable, Unit]
             }
@@ -178,11 +178,11 @@ private final class Http1Connection[F[_]](
 
             val res = writeRequest.start >> response
 
-            F.racePair(res, timeoutFiber.join).flatMap {
-              case Left((r, _)) =>
+            F.race(res, timeoutFiber.joinAndEmbedNever).flatMap {
+              case Left(r) =>
                 F.pure(r)
-              case Right((fiber, t)) =>
-                fiber.cancel >> F.raiseError(t)
+              case Right(t) =>
+                F.raiseError(t)
             }
           }
         }

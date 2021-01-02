@@ -63,7 +63,7 @@ object BlazeClient {
               invalidate(next.connection)
           }
 
-        def idleTimeoutStage(conn: A) =
+        def idleTimeoutStage(conn: A): Resource[F, Option[F[Unit]]] =
           Resource.makeCase {
             idleTimeout match {
               case d: FiniteDuration =>
