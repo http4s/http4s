@@ -23,7 +23,7 @@ lazy val modules: List[ProjectReference] = List(
   client,
   dropwizardMetrics,
   emberCore,
-  // emberServer,
+  emberServer,
   // emberClient,
   blazeCore,
   blazeServer,

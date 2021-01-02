@@ -31,11 +31,10 @@ import _root_.io.chrisdavenport.log4cats.Logger
 import _root_.io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.ServerHelpers
 
-final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
+final class EmberServerBuilder[F[_]: Async] private (
     val host: String,
     val port: Int,
     private val httpApp: HttpApp[F],
-    private val blockerOpt: Option[Blocker],
     private val tlsInfoOpt: Option[(TLSContext, TLSParameters)],
     private val sgOpt: Option[SocketGroup],
     private val onError: Throwable => Response[F],
@@ -49,45 +48,10 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val logger: Logger[F]
 ) { self =>
 
-  @deprecated("Kept for binary compatibility", "0.21.7")
-  private[EmberServerBuilder] def this(
-      host: String,
-      port: Int,
-      httpApp: HttpApp[F],
-      blockerOpt: Option[Blocker],
-      tlsInfoOpt: Option[(TLSContext, TLSParameters)],
-      sgOpt: Option[SocketGroup],
-      onError: Throwable => Response[F],
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      maxConcurrency: Int,
-      receiveBufferSize: Int,
-      maxHeaderSize: Int,
-      requestHeaderReceiveTimeout: Duration,
-      additionalSocketOptions: List[SocketOptionMapping[_]],
-      logger: Logger[F]) =
-    this(
-      host = host,
-      port = port,
-      httpApp = httpApp,
-      blockerOpt = blockerOpt,
-      tlsInfoOpt = tlsInfoOpt,
-      sgOpt = sgOpt,
-      onError = onError,
-      onWriteFailure = onWriteFailure,
-      maxConcurrency = maxConcurrency,
-      receiveBufferSize = receiveBufferSize,
-      maxHeaderSize = maxHeaderSize,
-      requestHeaderReceiveTimeout = requestHeaderReceiveTimeout,
-      idleTimeout = EmberServerBuilder.Defaults.idleTimeout,
-      additionalSocketOptions = additionalSocketOptions,
-      logger = logger
-    )
-
   private def copy(
       host: String = self.host,
       port: Int = self.port,
       httpApp: HttpApp[F] = self.httpApp,
-      blockerOpt: Option[Blocker] = self.blockerOpt,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup] = self.sgOpt,
       onError: Throwable => Response[F] = self.onError,
@@ -104,7 +68,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       host = host,
       port = port,
       httpApp = httpApp,
-      blockerOpt = blockerOpt,
       tlsInfoOpt = tlsInfoOpt,
       sgOpt = sgOpt,
       onError = onError,
@@ -130,9 +93,6 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withoutTLS =
     copy(tlsInfoOpt = None)
 
-  def withBlocker(blocker: Blocker) =
-    copy(blockerOpt = blocker.pure[Option])
-
   def withIdleTimeout(idleTimeout: Duration) =
     copy(idleTimeout = idleTimeout)
 
@@ -148,8 +108,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   def build: Resource[F, Server] =
     for {
-      blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
-      sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
+      sg <- sgOpt.fold(SocketGroup[F]())(_.pure[Resource[F, *]])
       bindAddress <- Resource.eval(Sync[F].delay(new InetSocketAddress(host, port)))
       shutdownSignal <- Resource.eval(SignallingRef[F, Boolean](false))
       _ <- Concurrent[F].background(
@@ -181,12 +140,11 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 }
 
 object EmberServerBuilder {
-  def default[F[_]: Concurrent: Timer: ContextShift]: EmberServerBuilder[F] =
+  def default[F[_]: Async]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Defaults.host,
       port = Defaults.port,
       httpApp = Defaults.httpApp[F],
-      blockerOpt = None,
       tlsInfoOpt = None,
       sgOpt = None,
       onError = Defaults.onError[F],

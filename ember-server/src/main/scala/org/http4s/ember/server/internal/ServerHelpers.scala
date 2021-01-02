@@ -18,6 +18,7 @@ package org.http4s.ember.server.internal
 
 import fs2._
 import fs2.concurrent._
+import fs2.io.Network
 import fs2.io.tcp._
 import fs2.io.tls._
 import cats.effect._
@@ -40,7 +41,7 @@ private[server] object ServerHelpers {
   private val close = Connection(NonEmptyList.of(closeCi))
   private val keepAlive = Connection(NonEmptyList.one(CIString("keep-alive")))
 
-  def server[F[_]: Concurrent: ContextShift](
+  def server[F[_]: Network](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
       sg: SocketGroup,
@@ -58,7 +59,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration = 60.seconds,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit C: Clock[F]): Stream[F, Nothing] = {
+  )(implicit C: Temporal[F]): Stream[F, Nothing] = {
     // Termination Signal, if not present then does not terminate.
     val termSignal: F[SignallingRef[F, Boolean]] =
       terminationSignal.fold(SignallingRef[F, Boolean](false))(_.pure[F])
@@ -76,11 +77,16 @@ private[server] object ServerHelpers {
       }
 
       SignallingRef[F, Boolean](initial).flatMap { timeoutSignal =>
-        C.realTime(MILLISECONDS)
+        C.realTime
           .flatMap(now =>
             Parser.Request
               .parser(maxHeaderSize)(
-                readWithTimeout[F](socket, now, readDuration, timeoutSignal.get, receiveBufferSize)
+                readWithTimeout[F](
+                  socket,
+                  now.toMillis,
+                  readDuration,
+                  timeoutSignal.get,
+                  receiveBufferSize)
               )
               .flatMap { req =>
                 timeoutSignal.set(false).as(req)
@@ -112,7 +118,7 @@ private[server] object ServerHelpers {
         .attempt
         .flatMap {
           case Left(err) => onWriteFailure(request, resp, err)
-          case Right(()) => Sync[F].pure(())
+          case Right(()) => C.pure(())
         }
 
     def postProcessResponse(req: Request[F], resp: Response[F]): F[Response[F]] = {
