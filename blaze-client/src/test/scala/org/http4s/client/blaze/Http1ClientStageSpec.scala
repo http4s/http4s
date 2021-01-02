@@ -19,10 +19,9 @@ package client
 package blaze
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
+import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import fs2.Stream
-import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.LeafBuilder
@@ -33,6 +32,8 @@ import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class Http1ClientStageSpec extends Http4sSpec {
+  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+
   val trampoline = org.http4s.blaze.util.Execution.trampoline
 
   val www_foo_test = Uri.uri("http://www.foo.test")
@@ -53,7 +54,8 @@ class Http1ClientStageSpec extends Http4sSpec {
       maxChunkSize = Int.MaxValue,
       chunkBufferMaxSize = 1024,
       parserMode = ParserMode.Strict,
-      userAgent = userAgent
+      userAgent = userAgent,
+      dispatcher = dispatcher
     )
 
   private def mkBuffer(s: String): ByteBuffer =
@@ -62,7 +64,7 @@ class Http1ClientStageSpec extends Http4sSpec {
   private def bracketResponse[T](req: Request[IO], resp: String)(
       f: Response[IO] => IO[T]): IO[T] = {
     val stage = mkConnection(FooRequestKey)
-    IO.suspend {
+    IO.defer {
       val h = new SeqTestHead(resp.toSeq.map { chr =>
         val b = ByteBuffer.allocate(1)
         b.put(chr.toByte).flip()
@@ -95,10 +97,10 @@ class Http1ClientStageSpec extends Http4sSpec {
           b
         }
         .noneTerminate
-        .through(q.enqueue)
+        .through(_.evalMap(q.offer))
         .compile
         .drain).start
-      req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(())))
+      req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(()).void))
       response <- stage.runRequest(req0, IO.never)
       result <- response.as[String]
       _ <- IO(h.stageShutdown())

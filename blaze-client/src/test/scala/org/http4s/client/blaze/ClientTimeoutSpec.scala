@@ -19,10 +19,9 @@ package client
 package blaze
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
+import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import fs2.Stream
-import fs2.concurrent.Queue
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -34,6 +33,8 @@ import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class ClientTimeoutSpec extends Http4sSpec {
+  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
   /** the map method allows to "post-process" the fragments after their creation */
@@ -47,13 +48,14 @@ class ClientTimeoutSpec extends Http4sSpec {
   private def mkConnection(requestKey: RequestKey): Http1Connection[IO] =
     new Http1Connection(
       requestKey = requestKey,
-      executionContext = testExecutionContext,
+      executionContext = Http4sSpec.TestExecutionContext,
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
       chunkBufferMaxSize = 1024 * 1024,
       parserMode = ParserMode.Strict,
-      userAgent = None
+      userAgent = None,
+      dispatcher = dispatcher
     )
 
   private def mkBuffer(s: String): ByteBuffer =
@@ -70,7 +72,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
-      ec = testExecutionContext
+      ec = Http4sSpec.TestExecutionContext
     )
   }
 
@@ -99,13 +101,13 @@ class ClientTimeoutSpec extends Http4sSpec {
             .awakeEvery[IO](2.seconds)
             .map(_ => "1".toByte)
             .take(4)
-            .onFinalizeWeak(d.complete(()))
+            .onFinalizeWeak[IO](d.complete(()).void)
         req = Request(method = Method.POST, uri = www_foo_com, body = body)
         tail = mkConnection(RequestKey.fromRequest(req))
         q <- Queue.unbounded[IO, Option[ByteBuffer]]
         h = new QueueTestHead(q)
         (f, b) = resp.splitAt(resp.length - 1)
-        _ <- (q.enqueue1(Some(mkBuffer(f))) >> d.get >> q.enqueue1(Some(mkBuffer(b)))).start
+        _ <- (q.offer(Some(mkBuffer(f))) >> d.get >> q.offer(Some(mkBuffer(b)))).start
         c = mkClient(h, tail)(idleTimeout = 1.second)
         s <- c.fetchAs[String](req)
       } yield s).unsafeRunSync() must throwA[TimeoutException]
@@ -144,8 +146,8 @@ class ClientTimeoutSpec extends Http4sSpec {
       val (f, b) = resp.splitAt(resp.length - 1)
       (for {
         q <- Queue.unbounded[IO, Option[ByteBuffer]]
-        _ <- q.enqueue1(Some(mkBuffer(f)))
-        _ <- (timer.sleep(1500.millis) >> q.enqueue1(Some(mkBuffer(b)))).start
+        _ <- q.offer(Some(mkBuffer(f)))
+        _ <- (IO.sleep(1500.millis) >> q.offer(Some(mkBuffer(b)))).start
         h = new QueueTestHead(q)
         c = mkClient(h, tail)(idleTimeout = 500.millis)
         s <- c.fetchAs[String](FooRequest)
@@ -156,7 +158,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val tail = mkConnection(FooRequestKey)
       (for {
         q <- Queue.unbounded[IO, Option[ByteBuffer]]
-        _ <- (timer.sleep(10.seconds) >> q.enqueue1(Some(mkBuffer(resp)))).start
+        _ <- (IO.sleep(10.seconds) >> q.offer(Some(mkBuffer(resp)))).start
         h = new QueueTestHead(q)
         c = mkClient(h, tail)(responseHeaderTimeout = 500.millis)
         s <- c.fetchAs[String](FooRequest)
@@ -186,7 +188,7 @@ class ClientTimeoutSpec extends Http4sSpec {
         idleTimeout = Duration.Inf,
         requestTimeout = 50.millis,
         scheduler = tickWheel,
-        ec = testExecutionContext
+        ec = Http4sSpec.TestExecutionContext
       )
 
       // if the unsafeRunTimed timeout is hit, it's a NoSuchElementException,

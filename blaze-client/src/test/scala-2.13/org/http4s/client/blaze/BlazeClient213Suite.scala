@@ -18,7 +18,6 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s._
@@ -39,7 +38,7 @@ class BlazeClient213Suite extends BlazeClientBase {
         mkClient(1, requestTimeout = 2.second).use { client =>
           val submit =
             client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))
-          submit *> munitTimer.sleep(3.seconds) *> submit
+          submit *> IO.sleep(3.seconds) *> submit
         }
       }
       .assertEquals(Status.Ok)
@@ -60,7 +59,7 @@ class BlazeClient213Suite extends BlazeClientBase {
           client.expect[String](h).map(_.nonEmpty)
         }
         .map(_.forall(identity))
-    }.assert
+    }.assertEquals(true)
   }
 
   jettyScaffold.test("behave and not deadlock on failures with parTraverse") {
@@ -98,7 +97,7 @@ class BlazeClient213Suite extends BlazeClientBase {
 
         allRequests
           .map(_.forall(identity))
-      }.assert
+      }.assertEquals(true)
   }
 
   jettyScaffold.test(
@@ -135,7 +134,7 @@ class BlazeClient213Suite extends BlazeClientBase {
 
         allRequests
           .map(_.forall(identity))
-      }.assert
+      }.assertEquals(true)
   }
 
   jettyScaffold.test("call a second host after reusing connections on a first") {

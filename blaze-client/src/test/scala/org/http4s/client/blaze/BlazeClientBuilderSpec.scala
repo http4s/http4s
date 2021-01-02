@@ -19,10 +19,13 @@ package client
 package blaze
 
 import cats.effect.IO
+import cats.effect.std.Dispatcher
 import org.http4s.blaze.channel.ChannelOptions
 
 class BlazeClientBuilderSpec extends Http4sSpec {
-  def builder = BlazeClientBuilder[IO](testExecutionContext)
+  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+
+  def builder = BlazeClientBuilder[IO](Http4sSpec.TestExecutionContext, dispatcher)
 
   "ChannelOptions" should {
     "default to empty" in {

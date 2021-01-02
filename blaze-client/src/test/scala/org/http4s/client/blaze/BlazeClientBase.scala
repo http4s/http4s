@@ -18,6 +18,7 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import javax.net.ssl.SSLContext
 import javax.servlet.ServletOutputStream
@@ -28,6 +29,8 @@ import org.http4s.client.testroutes.GetRoutes
 import scala.concurrent.duration._
 
 trait BlazeClientBase extends Http4sSuite {
+  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
   def mkClient(
@@ -39,7 +42,7 @@ trait BlazeClientBase extends Http4sSuite {
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
   ) = {
     val builder: BlazeClientBuilder[IO] =
-      BlazeClientBuilder[IO](munitExecutionContext)
+      BlazeClientBuilder[IO](munitExecutionContext, dispatcher)
         .withCheckEndpointAuthentication(false)
         .withResponseHeaderTimeout(responseHeaderTimeout)
         .withRequestTimeout(requestTimeout)
@@ -60,21 +63,23 @@ trait BlazeClientBase extends Http4sSuite {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
         GetRoutes.getPaths.get(req.getRequestURI) match {
           case Some(resp) =>
-            srv.setStatus(resp.status.code)
-            resp.headers.foreach { h =>
-              srv.addHeader(h.name.toString, h.value)
-            }
-
-            val os: ServletOutputStream = srv.getOutputStream
-
-            val writeBody: IO[Unit] = resp.body
-              .evalMap { byte =>
-                IO(os.write(Array(byte)))
+            resp.flatMap { res =>
+              srv.setStatus(res.status.code)
+              res.headers.foreach { h =>
+                srv.addHeader(h.name.toString, h.value)
               }
-              .compile
-              .drain
-            val flushOutputStream: IO[Unit] = IO(os.flush())
-            (writeBody *> flushOutputStream).unsafeRunSync()
+
+              val os: ServletOutputStream = srv.getOutputStream
+
+              val writeBody: IO[Unit] = res.body
+                .evalMap { byte =>
+                  IO(os.write(Array(byte)))
+                }
+                .compile
+                .drain
+              val flushOutputStream: IO[Unit] = IO(os.flush())
+              writeBody >> flushOutputStream
+            }.unsafeRunSync()
 
           case None => srv.sendError(404)
         }

@@ -18,7 +18,6 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import java.util.concurrent.TimeoutException
@@ -48,7 +47,7 @@ class BlazeClientSuite extends BlazeClientBase {
       val port = sslAddress.getPort
       val u = Uri.fromString(s"https://$name:$port/simple").yolo
       val resp = mkClient(1).use(_.expect[String](u))
-      resp.map(_.length > 0).assert
+      resp.map(_.length > 0).assertEquals(true)
   }
 
   jettyScaffold
@@ -64,7 +63,7 @@ class BlazeClientSuite extends BlazeClientBase {
         resp.map {
           case Left(_: ConnectionFailure) => true
           case _ => false
-        }.assert
+        }.assertEquals(true)
     }
 
   jettyScaffold.test("Blaze Http1Client should obey response header timeout") {
@@ -96,7 +95,7 @@ class BlazeClientSuite extends BlazeClientBase {
           } yield r
         }
         .map(_.isRight)
-        .assert
+        .assertEquals(true)
   }
 
   jettyScaffold.test("Blaze Http1Client should drain waiting connections after shutdown") {
@@ -120,10 +119,10 @@ class BlazeClientSuite extends BlazeClientBase {
             .start
 
           // Wait 100 millis to shut down
-          IO.sleep(100.millis) *> resp.flatMap(_.join)
+          IO.sleep(100.millis) *> resp.flatMap(_.joinAndEmbedNever)
         }
 
-      resp.assert
+      resp.assertEquals(true)
   }
 
   jettyScaffold.test("Blaze Http1Client should cancel infinite request on completion") {
@@ -135,7 +134,7 @@ class BlazeClientSuite extends BlazeClientBase {
       Deferred[IO, Unit]
         .flatMap { reqClosed =>
           mkClient(1, requestTimeout = 10.seconds).use { client =>
-            val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
+            val body = Stream(0.toByte).repeat.onFinalizeWeak[IO](reqClosed.complete(()).void)
             val req = Request[IO](
               method = Method.POST,
               uri = Uri.fromString(s"http://$name:$port/").yolo
@@ -181,6 +180,6 @@ class BlazeClientSuite extends BlazeClientBase {
             e.getMessage === "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
           case _ => false
         }
-        .assert
+        .assertEquals(true)
     }
 }
