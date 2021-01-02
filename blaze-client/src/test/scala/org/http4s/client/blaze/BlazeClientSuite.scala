@@ -60,10 +60,12 @@ class BlazeClientSuite extends BlazeClientBase {
         val resp = mkClient(1, sslContextOption = None)
           .use(_.expect[String](u))
           .attempt
-        resp.map {
-          case Left(_: ConnectionFailure) => true
-          case _ => false
-        }.assertEquals(true)
+        resp
+          .map {
+            case Left(_: ConnectionFailure) => true
+            case _ => false
+          }
+          .assertEquals(true)
     }
 
   jettyScaffold.test("Blaze Http1Client should obey response header timeout") {

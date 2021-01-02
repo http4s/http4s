@@ -81,9 +81,10 @@ object BlazeClient {
           borrow.use { next =>
             idleTimeoutStage(next.connection).use { stageOpt =>
               val idleTimeoutF = stageOpt match {
-                case Some(stage) => F.async[TimeoutException] { cb =>
-                  F.delay(stage.init(cb)).as(None)
-                }
+                case Some(stage) =>
+                  F.async[TimeoutException] { cb =>
+                    F.delay(stage.init(cb)).as(None)
+                  }
                 case None => F.never[TimeoutException]
               }
               val res = next.connection
@@ -124,7 +125,7 @@ object BlazeClient {
                         F.async[TimeoutException] { cb =>
                           F.delay(stage.init(cb)) >> gate.complete(()).as(None)
                         }
-                      } { stage => F.delay(stage.removeStage()) }
+                      }(stage => F.delay(stage.removeStage()))
 
                     F.race(gate.get *> res, responseHeaderTimeoutF)
                       .flatMap[Resource[F, Response[F]]] {
@@ -147,8 +148,8 @@ object BlazeClient {
                   scheduler.schedule(
                     new Runnable {
                       def run() =
-                        cb(Right(
-                          new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
+                        cb(Right(new TimeoutException(
+                          s"Request to $key timed out after ${d.toMillis} ms")))
                     },
                     ec,
                     d

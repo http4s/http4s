@@ -207,7 +207,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withChannelOptions(channelOptions: ChannelOptions): BlazeClientBuilder[F] =
     copy(channelOptions = channelOptions)
 
-  def withDispatcher(dispatcher: Dispatcher[F]): BlazeClientBuilder[F] = 
+  def withDispatcher(dispatcher: Dispatcher[F]): BlazeClientBuilder[F] =
     copy(dispatcher = dispatcher)
 
   def resource: Resource[F, Client[F]] =
@@ -302,7 +302,9 @@ object BlazeClientBuilder {
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
     */
-  def apply[F[_]: Async](executionContext: ExecutionContext, dispatcher: Dispatcher[F]): BlazeClientBuilder[F] =
+  def apply[F[_]: Async](
+      executionContext: ExecutionContext,
+      dispatcher: Dispatcher[F]): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,

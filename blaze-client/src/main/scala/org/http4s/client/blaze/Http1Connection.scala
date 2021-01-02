@@ -196,7 +196,8 @@ private final class Http1Connection[F[_]](
       doesntHaveBody: Boolean,
       idleTimeoutS: F[Either[Throwable, Unit]]): F[Response[F]] =
     F.async[Response[F]] { cb =>
-      F.delay(readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)).as(None)
+      F.delay(readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS))
+        .as(None)
     }
 
   // this method will get some data, and try to continue parsing using the implicit ec
