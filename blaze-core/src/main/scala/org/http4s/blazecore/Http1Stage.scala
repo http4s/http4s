@@ -46,7 +46,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
   protected implicit def F: Async[F]
 
-  protected implicit def D: Dispatcher[F]
+  protected implicit def dispatcher: Dispatcher[F]
 
   protected def chunkBufferMaxSize: Int
 

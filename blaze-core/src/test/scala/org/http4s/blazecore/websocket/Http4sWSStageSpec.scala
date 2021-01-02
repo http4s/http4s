@@ -18,10 +18,10 @@ package org.http4s.blazecore
 package websocket
 
 import fs2.Stream
-import fs2.concurrent.{Queue, SignallingRef}
+import fs2.concurrent.SignallingRef
 import cats.effect.IO
 import cats.syntax.all._
-import cats.effect.std.Dispatcher
+import cats.effect.std.{Dispatcher, Queue}
 import cats.effect.testing.specs2.CatsEffect
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.Http4sSpec
@@ -47,7 +47,7 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
       Stream
         .emits(w)
         .covary[IO]
-        .through(outQ.enqueue)
+        .through(_.evalMap(outQ.offer))
         .compile
         .drain
 
@@ -58,7 +58,7 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
       head.poll(timeoutSeconds)
 
     def pollBackendInbound(timeoutSeconds: Long = 4L): IO[Option[WebSocketFrame]] =
-      IO.race(backendInQ.dequeue1, IO.sleep(timeoutSeconds.seconds))
+      IO.race(backendInQ.take, IO.sleep(timeoutSeconds.seconds))
         .map(_.fold(Some(_), _ => None))
 
     def pollBatchOutputbound(batchSize: Int, timeoutSeconds: Long = 4L): IO[List[WebSocketFrame]] =
@@ -72,15 +72,18 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
   }
 
   object TestWebsocketStage {
-    def apply()(implicit D: Dispatcher[IO]): IO[TestWebsocketStage] =
+    def apply()(implicit dispatcher: Dispatcher[IO]): IO[TestWebsocketStage] =
       for {
         outQ <- Queue.unbounded[IO, WebSocketFrame]
         backendInQ <- Queue.unbounded[IO, WebSocketFrame]
         closeHook = new AtomicBoolean(false)
-        ws = WebSocketSeparatePipe[IO](outQ.dequeue, backendInQ.enqueue, IO(closeHook.set(true)))
+        ws = WebSocketSeparatePipe[IO](
+          Stream.repeatEval(outQ.take),
+          _.evalMap(backendInQ.offer),
+          IO(closeHook.set(true)))
         deadSignal <- SignallingRef[IO, Boolean](false)
         wsHead <- WSTestHead()
-        http4sWSStage <- Http4sWSStage[IO](ws, closeHook, deadSignal)
+        http4sWSStage <- Http4sWSStage[IO](ws, closeHook, deadSignal, dispatcher)
         head = LeafBuilder(http4sWSStage).base(wsHead)
         _ <- IO(head.sendInboundCommand(Command.Connected))
       } yield new TestWebsocketStage(outQ, head, closeHook, backendInQ)

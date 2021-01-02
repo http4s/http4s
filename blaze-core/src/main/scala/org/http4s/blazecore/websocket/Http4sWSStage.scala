@@ -42,8 +42,9 @@ private[http4s] class Http4sWSStage[F[_]](
     ws: WebSocket[F],
     sentClose: AtomicBoolean,
     deadSignal: SignallingRef[F, Boolean],
-    writeSemaphore: Semaphore[F]
-)(implicit F: Async[F], val D: Dispatcher[F])
+    writeSemaphore: Semaphore[F],
+    dispatcher: Dispatcher[F]
+)(implicit F: Async[F])
     extends TailStage[WebSocketFrame] {
 
   def name: String = "Http4s WebSocket Stage"
@@ -168,16 +169,17 @@ private[http4s] class Http4sWSStage[F[_]](
       case t =>
         F.delay(logger.error(t)("Error closing Web Socket"))
     }
-    D.unsafeRunAndForget(result)
+    dispatcher.unsafeRunAndForget(result)
   }
 
   // #2735
   // stageShutdown can be called from within an effect, at which point there exists the risk of a deadlock if
   // 'unsafeRunSync' is called and all threads are involved in tearing down a connection.
   override protected def stageShutdown(): Unit = {
-    D.unsafeRunAndForget(F.handleError(deadSignal.set(true)) { t =>
+    val fa = F.handleError(deadSignal.set(true)) { t =>
       logger.error(t)("Error setting dead signal")
-    })
+    }
+    dispatcher.unsafeRunAndForget(fa)
     super.stageShutdown()
   }
 }
@@ -189,8 +191,7 @@ object Http4sWSStage {
   def apply[F[_]](
       ws: WebSocket[F],
       sentClose: AtomicBoolean,
-      deadSignal: SignallingRef[F, Boolean])(implicit
-      F: Async[F],
-      D: Dispatcher[F]): F[Http4sWSStage[F]] =
-    Semaphore[F](1L).map(new Http4sWSStage(ws, sentClose, deadSignal, _))
+      deadSignal: SignallingRef[F, Boolean],
+      dispatcher: Dispatcher[F])(implicit F: Async[F]): F[Http4sWSStage[F]] =
+    Semaphore[F](1L).map(t => new Http4sWSStage(ws, sentClose, deadSignal, t, dispatcher))
 }
