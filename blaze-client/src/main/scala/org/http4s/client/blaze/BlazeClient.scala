@@ -63,7 +63,7 @@ object BlazeClient {
               invalidate(next.connection)
           }
 
-        def idleTimeoutStage(conn: A): Resource[F, Option[F[Unit]]] =
+        def idleTimeoutStage(conn: A): Resource[F, Option[IdleTimeoutStage[ByteBuffer]]] =
           Resource.makeCase {
             idleTimeout match {
               case d: FiniteDuration =>
@@ -81,7 +81,9 @@ object BlazeClient {
           borrow.use { next =>
             idleTimeoutStage(next.connection).use { stageOpt =>
               val idleTimeoutF = stageOpt match {
-                case Some(stage) => F.async[TimeoutException](stage.init)
+                case Some(stage) => F.async[TimeoutException] { cb =>
+                  F.delay(stage.init(cb)).as(None)
+                }
                 case None => F.never[TimeoutException]
               }
               val res = next.connection
@@ -119,15 +121,15 @@ object BlazeClient {
                         next.connection.spliceBefore(stage)
                         stage
                       }.bracket { stage =>
-                        F.asyncF[TimeoutException] { cb =>
-                          F.delay(stage.init(cb)) >> gate.complete(())
+                        F.async[TimeoutException] { cb =>
+                          F.delay(stage.init(cb)) >> gate.complete(()).as(None)
                         }
                       } { stage => F.delay(stage.removeStage()) }
 
-                    F.racePair(gate.get *> res, responseHeaderTimeoutF)
+                    F.race(gate.get *> res, responseHeaderTimeoutF)
                       .flatMap[Resource[F, Response[F]]] {
-                        case Left((r, fiber)) => fiber.cancel.as(r)
-                        case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+                        case Left(r) => F.pure(r)
+                        case Right(t) => F.raiseError(t)
                       }
                   }
                 case _ => res
@@ -138,22 +140,24 @@ object BlazeClient {
         val res = loop
         requestTimeout match {
           case d: FiniteDuration =>
-            F.racePair(
+            F.race(
               res,
-              F.cancelable[TimeoutException] { cb =>
-                val c = scheduler.schedule(
-                  new Runnable {
-                    def run() =
-                      cb(Right(
-                        new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
-                  },
-                  ec,
-                  d)
-                F.delay(c.cancel())
+              F.async[TimeoutException] { cb =>
+                F.delay {
+                  scheduler.schedule(
+                    new Runnable {
+                      def run() =
+                        cb(Right(
+                          new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms")))
+                    },
+                    ec,
+                    d
+                  )
+                }.map(c => Some(F.delay(c.cancel())))
               }
             ).flatMap[Resource[F, Response[F]]] {
-              case Left((r, fiber)) => fiber.cancel.as(r)
-              case Right((fiber, t)) => fiber.cancel >> F.raiseError(t)
+              case Left(r) => F.pure(r)
+              case Right(t) => F.raiseError(t)
             }
           case _ =>
             res

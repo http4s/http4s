@@ -19,6 +19,7 @@ package client
 package blaze
 
 import cats.effect.kernel.{Async, Resource}
+import cats.effect.std.Dispatcher
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
@@ -46,7 +47,8 @@ private final class Http1Connection[F[_]](
     maxChunkSize: Int,
     override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
-    userAgent: Option[`User-Agent`]
+    userAgent: Option[`User-Agent`],
+    override val dispatcher: Dispatcher[F]
 )(implicit protected val F: Async[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {

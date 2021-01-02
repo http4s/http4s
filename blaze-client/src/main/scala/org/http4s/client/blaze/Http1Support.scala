@@ -19,6 +19,7 @@ package client
 package blaze
 
 import cats.effect.kernel.Async
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -52,7 +53,8 @@ final private class Http1Support[F[_]](
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions,
-    connectTimeout: Duration
+    connectTimeout: Duration,
+    dispatcher: Dispatcher[F]
 )(implicit F: Async[F]) {
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
@@ -100,7 +102,8 @@ final private class Http1Support[F[_]](
       maxChunkSize = maxChunkSize,
       chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = parserMode,
-      userAgent = userAgent
+      userAgent = userAgent,
+      dispatcher = dispatcher
     )
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
