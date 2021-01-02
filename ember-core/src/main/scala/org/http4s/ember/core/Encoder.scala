@@ -27,9 +27,7 @@ private[ember] object Encoder {
   private val CRLF = "\r\n"
   val chunkedTansferEncodingHeaderRaw = "Transfer-Encoding: chunked"
 
-  def respToBytes[F[_]](
-      resp: Response[F],
-      writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+  def respToBytes[F[_]](resp: Response[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = resp.isChunked
     val initSection = {
       var appliedContentLength = false
