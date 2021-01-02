@@ -182,9 +182,7 @@ class Http1ClientStageSuite extends Http4sSuite {
 
       val result = tail.runRequest(FooRequest, IO.never).unsafeRunSync()
 
-      intercept[InvalidBodyException] {
-        result.body.compile.drain.unsafeRunSync()
-      }
+      result.body.compile.drain.intercept[InvalidBodyException]
     } finally tail.shutdown()
   }
 
@@ -319,9 +317,7 @@ class Http1ClientStageSuite extends Http4sSuite {
         } yield hs
       }
 
-      intercept[IllegalStateException] {
-        hs.unsafeRunSync()
-      }
+      hs.intercept[IllegalStateException]
     }
   }
 }

@@ -34,15 +34,9 @@ import scala.concurrent.duration._
 class ClientTimeoutSuite extends Http4sSuite {
   val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
 
-  // val fixture = ResourceFixture(Resource.make(IO(TickWheelExecutor(tick = 50.millis)))(tickWheel => tickWheel))
-  val fixture = FunFixture[TickWheelExecutor](
-    setup = { _ =>
-      new TickWheelExecutor(tick = 50.millis)
-    },
-    teardown = { tickWheel =>
-      tickWheel.shutdown()
-    }
-  )
+  def fixture = ResourceFixture(
+    Resource.make(IO(new TickWheelExecutor(tick = 50.millis)))(tickWheel =>
+      IO(tickWheel.shutdown())))
 
   val www_foo_com = Uri.uri("http://www.foo.com")
   val FooRequest = Request[IO](uri = www_foo_com)
@@ -52,7 +46,7 @@ class ClientTimeoutSuite extends Http4sSuite {
   private def mkConnection(requestKey: RequestKey): Http1Connection[IO] =
     new Http1Connection(
       requestKey = requestKey,
-      executionContext = munitExecutionContext,
+      executionContext = Http4sSpec.TestExecutionContext,
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
@@ -79,7 +73,7 @@ class ClientTimeoutSuite extends Http4sSuite {
       idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
-      ec = munitExecutionContext
+      ec = Http4sSpec.TestExecutionContext
     )
   }
 
@@ -88,9 +82,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
     val c = mkClient(h, tail, tickWheel)(idleTimeout = 1.second)
 
-    intercept[TimeoutException] {
-      c.fetchAs[String](FooRequest).unsafeRunSync()
-    }
+    c.fetchAs[String](FooRequest).intercept[TimeoutException]
   }
 
   fixture.test("Request timeout on slow response") { tickWheel =>
@@ -98,31 +90,27 @@ class ClientTimeoutSuite extends Http4sSuite {
     val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
     val c = mkClient(h, tail, tickWheel)(requestTimeout = 1.second)
 
-    intercept[TimeoutException] {
-      c.fetchAs[String](FooRequest).unsafeRunSync()
-    }
+    c.fetchAs[String](FooRequest).intercept[TimeoutException]
   }
 
   fixture.test("Idle timeout on slow POST body") { tickWheel =>
-    intercept[TimeoutException] {
-      (for {
-        d <- Deferred[IO, Unit]
-        body =
-          Stream
-            .awakeEvery[IO](2.seconds)
-            .map(_ => "1".toByte)
-            .take(4)
-            .onFinalizeWeak[IO](d.complete(()).void)
-        req = Request(method = Method.POST, uri = www_foo_com, body = body)
-        tail = mkConnection(RequestKey.fromRequest(req))
-        q <- Queue.unbounded[IO, Option[ByteBuffer]]
-        h = new QueueTestHead(q)
-        (f, b) = resp.splitAt(resp.length - 1)
-        _ <- (q.offer(Some(mkBuffer(f))) >> d.get >> q.offer(Some(mkBuffer(b)))).start
-        c = mkClient(h, tail, tickWheel)(idleTimeout = 1.second)
-        s <- c.fetchAs[String](req)
-      } yield s).unsafeRunSync()
-    }
+    (for {
+      d <- Deferred[IO, Unit]
+      body =
+        Stream
+          .awakeEvery[IO](2.seconds)
+          .map(_ => "1".toByte)
+          .take(4)
+          .onFinalizeWeak[IO](d.complete(()).void)
+      req = Request(method = Method.POST, uri = www_foo_com, body = body)
+      tail = mkConnection(RequestKey.fromRequest(req))
+      q <- Queue.unbounded[IO, Option[ByteBuffer]]
+      h = new QueueTestHead(q)
+      (f, b) = resp.splitAt(resp.length - 1)
+      _ <- (q.offer(Some(mkBuffer(f))) >> d.get >> q.offer(Some(mkBuffer(b)))).start
+      c = mkClient(h, tail, tickWheel)(idleTimeout = 1.second)
+      s <- c.fetchAs[String](req)
+    } yield s).intercept[TimeoutException]
   }
 
   fixture.test("Not timeout on only marginally slow POST body") { tickWheel =>
@@ -150,37 +138,31 @@ class ClientTimeoutSuite extends Http4sSuite {
     val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
     val c = mkClient(h, tail, tickWheel)(requestTimeout = 1.second)
 
-    intercept[TimeoutException] {
-      c.fetchAs[String](FooRequest).unsafeRunSync()
-    }
+    c.fetchAs[String](FooRequest).intercept[TimeoutException]
   }
 
   fixture.test("Idle timeout on slow response body") { tickWheel =>
     val tail = mkConnection(FooRequestKey)
     val (f, b) = resp.splitAt(resp.length - 1)
-    intercept[TimeoutException] {
-      (for {
-        q <- Queue.unbounded[IO, Option[ByteBuffer]]
-        _ <- q.offer(Some(mkBuffer(f)))
-        _ <- (IO.sleep(1500.millis) >> q.offer(Some(mkBuffer(b)))).start
-        h = new QueueTestHead(q)
-        c = mkClient(h, tail, tickWheel)(idleTimeout = 500.millis)
-        s <- c.fetchAs[String](FooRequest)
-      } yield s).unsafeRunSync()
-    }
+    (for {
+      q <- Queue.unbounded[IO, Option[ByteBuffer]]
+      _ <- q.offer(Some(mkBuffer(f)))
+      _ <- (IO.sleep(1500.millis) >> q.offer(Some(mkBuffer(b)))).start
+      h = new QueueTestHead(q)
+      c = mkClient(h, tail, tickWheel)(idleTimeout = 500.millis)
+      s <- c.fetchAs[String](FooRequest)
+    } yield s).intercept[TimeoutException]
   }
 
   fixture.test("Response head timeout on slow header") { tickWheel =>
     val tail = mkConnection(FooRequestKey)
-    intercept[TimeoutException] {
-      (for {
-        q <- Queue.unbounded[IO, Option[ByteBuffer]]
-        _ <- (IO.sleep(10.seconds) >> q.offer(Some(mkBuffer(resp)))).start
-        h = new QueueTestHead(q)
-        c = mkClient(h, tail, tickWheel)(responseHeaderTimeout = 500.millis)
-        s <- c.fetchAs[String](FooRequest)
-      } yield s).unsafeRunSync()
-    }
+    (for {
+      q <- Queue.unbounded[IO, Option[ByteBuffer]]
+      _ <- (IO.sleep(10.seconds) >> q.offer(Some(mkBuffer(resp)))).start
+      h = new QueueTestHead(q)
+      c = mkClient(h, tail, tickWheel)(responseHeaderTimeout = 500.millis)
+      s <- c.fetchAs[String](FooRequest)
+    } yield s).intercept[TimeoutException]
   }
 
   fixture.test("No Response head timeout on fast header") { tickWheel =>
@@ -214,8 +196,6 @@ class ClientTimeoutSuite extends Http4sSuite {
     // if establishing connection fails first then it's an IOException
 
     // The expected behaviour is that the requestTimeout will happen first, but fetchAs will additionally wait for the IO.sleep(1000.millis) to complete.
-    intercept[TimeoutException] {
-      c.fetchAs[String](FooRequest).unsafeRunTimed(1500.millis).get
-    }
+    c.fetchAs[String](FooRequest).timeout(1500.millis).intercept[TimeoutException]
   }
 }
