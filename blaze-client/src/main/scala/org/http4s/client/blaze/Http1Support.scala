@@ -18,7 +18,7 @@ package org.http4s
 package client
 package blaze
 
-import cats.effect._
+import cats.effect.kernel.Async
 import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -53,7 +53,7 @@ final private class Http1Support[F[_]](
     userAgent: Option[`User-Agent`],
     channelOptions: ChannelOptions,
     connectTimeout: Duration
-)(implicit F: ConcurrentEffect[F]) {
+)(implicit F: Async[F]) {
   private val connectionManager = new ClientChannelFactory(
     bufferSize,
     asynchronousChannelGroup,

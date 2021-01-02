@@ -27,7 +27,7 @@ lazy val modules: List[ProjectReference] = List(
   // emberClient,
   blazeCore,
   blazeServer,
-  // blazeClient,
+  blazeClient,
   // asyncHttpClient,
   // jettyClient,
   // okHttpClient,

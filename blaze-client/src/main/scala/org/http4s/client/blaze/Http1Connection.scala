@@ -18,7 +18,7 @@ package org.http4s
 package client
 package blaze
 
-import cats.effect._
+import cats.effect.kernel.{Async, Resource}
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
@@ -47,10 +47,11 @@ private final class Http1Connection[F[_]](
     override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`]
-)(implicit protected val F: ConcurrentEffect[F])
+)(implicit protected val F: Async[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
   import org.http4s.client.blaze.Http1Connection._
+  import Resource.ExitCase
 
   override def name: String = getClass.getName
   private val parser =
@@ -113,7 +114,7 @@ private final class Http1Connection[F[_]](
     }
 
   def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] =
-    F.suspend[Response[F]] {
+    F.defer[Response[F]] {
       stageState.get match {
         case Idle =>
           if (stageState.compareAndSet(Idle, Running)) {
@@ -192,8 +193,9 @@ private final class Http1Connection[F[_]](
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
       idleTimeoutS: F[Either[Throwable, Unit]]): F[Response[F]] =
-    F.async[Response[F]](cb =>
-      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS))
+    F.async[Response[F]] { cb =>
+      F.delay(readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)).as(None)
+    }
 
   // this method will get some data, and try to continue parsing using the implicit ec
   private def readAndParsePrelude(
@@ -266,7 +268,7 @@ private final class Http1Connection[F[_]](
 
             val attrs = Vault.empty.insert[F[Headers]](
               Message.Keys.TrailerHeaders[F],
-              F.suspend {
+              F.defer {
                 if (parser.contentComplete()) F.pure(trailers.get())
                 else
                   F.raiseError(
@@ -290,12 +292,12 @@ private final class Http1Connection[F[_]](
           attributes -> rawBody
         } else
           attributes -> rawBody.onFinalizeCaseWeak {
-            case ExitCase.Completed =>
-              Async.shift(executionContext) *> F.delay { trailerCleanup(); cleanup(); }
-            case ExitCase.Error(_) | ExitCase.Canceled =>
-              Async.shift(executionContext) *> F.delay {
+            case ExitCase.Succeeded =>
+              F.delay { trailerCleanup(); cleanup(); }.evalOn(executionContext)
+            case ExitCase.Errored(_) | ExitCase.Canceled =>
+              F.delay {
                 trailerCleanup(); cleanup(); stageShutdown()
-              }
+              }.evalOn(executionContext)
           }
       }
       cb(

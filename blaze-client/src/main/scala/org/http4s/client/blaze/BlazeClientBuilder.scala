@@ -19,7 +19,7 @@ package client
 package blaze
 
 import cats.syntax.all._
-import cats.effect._
+import cats.effect.kernel.{Async, Resource}
 import java.nio.channels.AsynchronousChannelGroup
 
 import javax.net.ssl.SSLContext
@@ -59,7 +59,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions
-)(implicit protected val F: ConcurrentEffect[F])
+)(implicit protected val F: Async[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
@@ -258,7 +258,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     }
 
   private def connectionManager(scheduler: TickWheelExecutor)(implicit
-      F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
+      F: Async[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,
@@ -294,7 +294,7 @@ object BlazeClientBuilder {
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
     */
-  def apply[F[_]: ConcurrentEffect](executionContext: ExecutionContext): BlazeClientBuilder[F] =
+  def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
@@ -317,19 +317,4 @@ object BlazeClientBuilder {
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty)
     ) {}
-
-  /** Creates a BlazeClientBuilder
-    *
-    * @param executionContext the ExecutionContext for blaze's internal Futures
-    * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
-    */
-  @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "1.0.0")
-  def apply[F[_]: ConcurrentEffect](
-      executionContext: ExecutionContext,
-      sslContext: Option[SSLContext] = SSLContextOption.tryDefaultSslContext)
-      : BlazeClientBuilder[F] =
-    sslContext match {
-      case None => apply(executionContext).withoutSslContext
-      case Some(sslCtx) => apply(executionContext).withSslContext(sslCtx)
-    }
 }
