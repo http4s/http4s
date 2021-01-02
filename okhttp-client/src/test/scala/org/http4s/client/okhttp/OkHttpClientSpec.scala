@@ -19,8 +19,11 @@ package client
 package okhttp
 
 import cats.effect.IO
+import cats.effect.std.Dispatcher
 
 class OkHttpClientSpec extends ClientRouteTestBattery("OkHttp") {
   def clientResource =
-    OkHttpBuilder.withDefaultClient[IO](testBlocker).map(_.create)
+    Dispatcher[IO].flatMap { dispatcher =>
+      OkHttpBuilder.withDefaultClient[IO](dispatcher).map(_.create)
+    }
 }
