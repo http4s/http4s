@@ -268,7 +268,7 @@ object CirceInstances {
   // Constant byte chunks for the stream as JSON array encoder.
 
   private def fromJsonToChunk(printer: Printer)(json: Json): Chunk[Byte] =
-    Chunk.byteBuffer(printer.printToByteBuffer(json))
+    Chunk.ByteBuffer.view(printer.printToByteBuffer(json))
 
   private def streamedJsonArray[F[_]](printer: Printer)(s: Stream[F, Json]): Stream[F, Byte] =
     s.pull.uncons1.flatMap {
