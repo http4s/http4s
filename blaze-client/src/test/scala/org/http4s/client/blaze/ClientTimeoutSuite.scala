@@ -52,7 +52,7 @@ class ClientTimeoutSuite extends Http4sSuite {
   private def mkConnection(requestKey: RequestKey): Http1Connection[IO] =
     new Http1Connection(
       requestKey = requestKey,
-      executionContext = Http4sSpec.TestExecutionContext,
+      executionContext = munitExecutionContext,
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
@@ -79,7 +79,7 @@ class ClientTimeoutSuite extends Http4sSuite {
       idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
-      ec = Http4sSpec.TestExecutionContext
+      ec = munitExecutionContext
     )
   }
 
@@ -206,7 +206,7 @@ class ClientTimeoutSuite extends Http4sSuite {
       idleTimeout = Duration.Inf,
       requestTimeout = 50.millis,
       scheduler = tickWheel,
-      ec = Http4sSpec.TestExecutionContext
+      ec = munitExecutionContext
     )
 
     // if the unsafeRunTimed timeout is hit, it's a NoSuchElementException,
