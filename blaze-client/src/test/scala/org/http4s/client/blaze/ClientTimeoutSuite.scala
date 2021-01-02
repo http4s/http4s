@@ -34,6 +34,7 @@ import scala.concurrent.duration._
 class ClientTimeoutSuite extends Http4sSuite {
   val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
 
+  // val fixture = ResourceFixture(Resource.make(IO(TickWheelExecutor(tick = 50.millis)))(tickWheel => tickWheel))
   val fixture = FunFixture[TickWheelExecutor](
     setup = { _ =>
       new TickWheelExecutor(tick = 50.millis)

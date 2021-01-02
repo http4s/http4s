@@ -25,7 +25,7 @@ import org.http4s.blaze.channel.ChannelOptions
 class BlazeClientBuilderSuite extends Http4sSuite {
   val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
 
-  def builder = BlazeClientBuilder[IO](Http4sSpec.TestExecutionContext, dispatcher)
+  def builder = BlazeClientBuilder[IO](munitExecutionContext, dispatcher)
 
   test("default to empty") {
     assertEquals(builder.channelOptions, ChannelOptions(Vector.empty))
