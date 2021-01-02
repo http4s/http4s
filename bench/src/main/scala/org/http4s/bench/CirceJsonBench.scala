@@ -20,6 +20,7 @@ package bench
 import java.util.concurrent.TimeUnit
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import io.circe._
 import io.circe.parser._
 import org.http4s.circe._

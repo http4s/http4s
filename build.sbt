@@ -46,7 +46,7 @@ lazy val modules: List[ProjectReference] = List(
   scalaXml,
   twirl,
   scalatags,
-  // bench,
+  bench,
   // examples,
   // examplesBlaze,
   // examplesDocker,
@@ -54,10 +54,10 @@ lazy val modules: List[ProjectReference] = List(
   // examplesJetty,
   // examplesTomcat,
   // examplesWar,
-  // scalafixInput,
-  // scalafixOutput,
-  // scalafixRules,
-  // scalafixTests,
+  scalafixInput,
+  scalafixOutput,
+  scalafixRules,
+  scalafixTests,
 )
 
 lazy val root = project.in(file("."))
