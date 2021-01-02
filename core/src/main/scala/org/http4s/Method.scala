@@ -58,7 +58,7 @@ object Method {
   sealed trait NoBody extends Method
 
   def fromString(s: String): ParseResult[Method] =
-    allByKey.getOrElse(s, ParseResult.fromParser(parser, "method")(s))
+    allByKey.getOrElse(s, ParseResult.fromParser(parser, "Invalid method")(s))
 
   private[http4s] val parser: Parser1[Method] =
     Rfc7230.token.map(new Method(_) with Semantics.Default)
