@@ -16,10 +16,14 @@
 
 package org.http4s
 package client
-package jetty
+package okhttp
 
 import cats.effect.IO
+import cats.effect.std.Dispatcher
 
-class JettyClientSpec extends ClientRouteTestBattery("JettyClient") {
-  override def clientResource = JettyClient.resource[IO]()
+class OkHttpClientSuite extends ClientRouteTestBattery("OkHttp") {
+  def clientResource =
+    Dispatcher[IO].flatMap { dispatcher =>
+      OkHttpBuilder.withDefaultClient[IO](dispatcher).map(_.create)
+    }
 }

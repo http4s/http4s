@@ -8,6 +8,65 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M10 (2020-12-31)
+
+## http4s-client
+
+### Enhancements
+
+* [#4051](https://github.com/http4s/http4s/pull/4051): Add `customized` function to `Logger` middleware that takes a function to produce the log string. Add a `colored` implementation on that that adds colors to the logs.
+
+## Dependency updates
+
+* argonaut-6.3.3
+
+# v0.21.15 (2020-12-31)
+
+## http4s-core
+
+### Enhancements
+
+* [#4014](https://github.com/http4s/http4s/pull/4014): Tolerate spaces in cookie headers. These are illegal per RFC6265, but commonly seen in the wild.
+* [#4113](https://github.com/http4s/http4s/pull/4113): Expose a mixed multipart decoder that buffers large file parts to a temporary file.
+
+## http4s-server
+
+### Enhancements
+
+* [#4026](https://github.com/http4s/http4s/pull/4026): Add `Resource`-based constructors to the `BracketRequestResponse` middleware.
+o* [#4037](https://github.com/http4s/http4s/pull/4037): Normalize some default settings between server backends to standard http4s defaults, to make a more similar experience between backends.  This changes some defaults for Ember and Jetty backends.
+
+## http4s-jetty
+
+### Enhancements
+
+* [#4032](https://github.com/http4s/http4s/pull/4032): Add an `HttpConfiguration` parameter to the Jetty builder to support deeper configuration than what is otherwise available on the builer.  Use it for both HTTP/1 and HTTP/2.
+
+## http4s-jetty-client
+
+### Enhancements
+
+* [#4110](https://github.com/http4s/http4s/pull/4110): Provide an `SslContextFactory` in the default configuration. Before this, secure requests would throw a `NullPointerException` unless a custom Jetty `HttpClient` was used.
+
+## Documentation
+
+* [#4020](https://github.com/http4s/http4s/pull/4020): Improvements to scaladoc. Link to other projects' scaladoc where we can and various cleanups of our own.
+* [#4025](https://github.com/http4s/http4s/pull/4025): Publish our own API URL, so other scaladoc can link to us
+
+## http4s-circe
+
+* [#4012](https://github.com/http4s/http4s/pull/4012): Add sensitive EntityDecoders for circe that filter JSON that couldn't be decoded before logging it.
+
+## Dependency bumps
+
+* cats-2.3.1
+* cats-effect-2.3.1
+* discipline-core-1.1.3
+* fs2-2.5.0
+* jackson-databind-2.11.4
+* netty-4.1.56.Final
+* scodec-bits-1.1.23
+
 # v1.0.0-M9 (2020-12-12)
 
 ## http4s-core

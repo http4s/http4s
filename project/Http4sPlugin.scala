@@ -77,7 +77,7 @@ object Http4sPlugin extends AutoPlugin {
     // Broke binary compatibility with 2.10.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.2"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
@@ -285,8 +285,8 @@ object Http4sPlugin extends AutoPlugin {
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val argonaut = "6.3.2"
-    val asyncHttpClient = "2.12.1"
+    val argonaut = "6.3.3"
+    val asyncHttpClient = "2.12.2"
     val blaze = "0.14.14"
     val boopickle = "1.3.3"
     val caseInsensitive = "0.3.0"
@@ -296,11 +296,11 @@ object Http4sPlugin extends AutoPlugin {
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.3"
-    val disciplineSpecs2 = "1.1.2"
+    val disciplineSpecs2 = "1.1.3"
     val dropwizardMetrics = "4.1.16"
     val fs2 = "3.0.0-M7"
     val jacksonDatabind = "2.12.0"
-    val jawn = "1.0.1"
+    val jawn = "1.0.3"
     val jawnFs2 = "2.0.0-M2"
     val jetty = "9.4.35.v20201120"
     val json4s = "3.6.10"
@@ -310,8 +310,8 @@ object Http4sPlugin extends AutoPlugin {
     val log4s = "1.9.0"
     val mockito = "3.5.15"
     val munit = "0.7.18"
-    val munitCatsEffect = "0.11.0"
-    val munitDiscipline = "1.0.3"
+    val munitCatsEffect = "0.12.0"
+    val munitDiscipline = "1.0.4"
     val netty = "4.1.54.Final"
     val okio = "2.9.0"
     val okhttp = "4.9.0"
@@ -321,7 +321,7 @@ object Http4sPlugin extends AutoPlugin {
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.2"
-    val scalacheckEffect = "0.6.0"
+    val scalacheckEffect = "0.7.0"
     val scalafix = _root_.scalafix.sbt.BuildInfo.scalafixVersion
     val scalatags = "0.9.2"
     val scalaXml = "1.3.0"

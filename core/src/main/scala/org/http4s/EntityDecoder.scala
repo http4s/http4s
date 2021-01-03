@@ -249,6 +249,13 @@ object EntityDecoder {
   implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
 
+  def mixedMultipart[F[_]: Concurrent: Files](
+      headerLimit: Int = 1024,
+      maxSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 50,
+      failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
+    MultipartDecoder.mixedMultipart(headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
+
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
