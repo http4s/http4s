@@ -19,24 +19,21 @@ package org.http4s.ember.client.internal
 import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.concurrent._
 import org.http4s._
-import org.specs2.mutable.Specification
-import cats.effect.testing.specs2.CatsIO
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
 import io.chrisdavenport.keypool.Reusable
 import scala.concurrent.duration._
 
-class ClientHelpersSpec extends Specification with CatsIO {
+class ClientHelpersSpec extends Http4sSpec {
   "Request Preprocessing" should {
     "add a date header if not present" in {
       ClientHelpers
         .preprocessRequest(Request[IO](), None)
         .map { req =>
           req.headers.get(Date) must beSome
-        }
+        }.unsafeRunSync()
     }
     "not add a date header if already present" in {
       ClientHelpers
@@ -49,7 +46,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
           req.headers.get(Date) must beSome.like { case d: Date =>
             d.date === HttpDate.Epoch
           }
-        }
+        }.unsafeRunSync()
     }
     "add a connection keep-alive header if not present" in {
       ClientHelpers
@@ -58,7 +55,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
           req.headers.get(Connection) must beSome.like { case c: Connection =>
             c.hasKeepAlive must beTrue
           }
-        }
+        }.unsafeRunSync()
     }
 
     "not add a connection header if already present" in {
@@ -71,7 +68,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
           req.headers.get(Connection) must beSome.like { case c: Connection =>
             c.hasKeepAlive must beFalse
           }
-        }
+        }.unsafeRunSync()
     }
 
     "add default user-agent" in {
@@ -79,7 +76,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
         .preprocessRequest(Request[IO](), EmberClientBuilder.default[IO].userAgent)
         .map { req =>
           req.headers.get(`User-Agent`) must beSome
-        }
+        }.unsafeRunSync()
     }
 
     "not change a present user-agent" in {
@@ -94,14 +91,14 @@ class ClientHelpersSpec extends Specification with CatsIO {
           req.headers.get(`User-Agent`) must beSome.like { case e =>
             e.product.value must_=== name
           }
-        }
+        }.unsafeRunSync()
     }
   }
 
   "Postprocess response" should {
     "reuse when body is run" in {
 
-      for {
+      (for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
         testResult <-
@@ -117,11 +114,11 @@ class ClientHelpersSpec extends Specification with CatsIO {
                   r must beEqualTo(Reusable.Reuse)
                 }
             }
-      } yield testResult
+      } yield testResult).unsafeRunSync()
     }
 
     "do not reuse when body is not run" in {
-      for {
+      (for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
         testResult <-
@@ -136,11 +133,11 @@ class ClientHelpersSpec extends Specification with CatsIO {
                 r must beEqualTo(Reusable.DontReuse)
               }
             }
-      } yield testResult
+      } yield testResult).unsafeRunSync()
     }
 
     "do not reuse when error encountered running stream" in {
-      for {
+      (for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
         testResult <-
@@ -156,11 +153,11 @@ class ClientHelpersSpec extends Specification with CatsIO {
                   r must beEqualTo(Reusable.DontReuse)
                 }
             }
-      } yield testResult
+      } yield testResult).unsafeRunSync()
     }
 
     "do not reuse when cancellation encountered running stream" in {
-      for {
+      (for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
         testResult <-
@@ -182,11 +179,11 @@ class ClientHelpersSpec extends Specification with CatsIO {
                   r must beEqualTo(Reusable.DontReuse)
                 }
             }
-      } yield testResult
+      } yield testResult).unsafeRunSync()
     }.pendingUntilFixed
 
     "do not reuse when connection close is set on request" in {
-      for {
+      (for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
         testResult <-
@@ -202,11 +199,11 @@ class ClientHelpersSpec extends Specification with CatsIO {
                   r must beEqualTo(Reusable.DontReuse)
                 }
             }
-      } yield testResult
+      } yield testResult).unsafeRunSync()
     }
 
     "do not reuse when connection close is set on response" in {
-      for {
+      (for {
         reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
 
         testResult <-
@@ -222,7 +219,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
                   r must beEqualTo(Reusable.DontReuse)
                 }
             }
-      } yield testResult
+      } yield testResult).unsafeRunSync()
     }
   }
 }

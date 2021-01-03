@@ -24,7 +24,7 @@ lazy val modules: List[ProjectReference] = List(
   dropwizardMetrics,
   emberCore,
   // emberServer,
-  // emberClient,
+  emberClient,
   blazeCore,
   blazeServer,
   // blazeClient,
@@ -266,7 +266,7 @@ lazy val emberClient = libraryProject("ember-client")
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      keypool,
+      // keypool // temporarily inlined
       log4catsSlf4j,
     ),
     mimaBinaryIssueFilters ++= Seq(
