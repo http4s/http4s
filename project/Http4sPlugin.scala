@@ -78,7 +78,7 @@ object Http4sPlugin extends AutoPlugin {
     // Broke binary compatibility with 2.10.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.2"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
@@ -287,7 +287,7 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val argonaut = "6.3.3"
-    val asyncHttpClient = "2.12.1"
+    val asyncHttpClient = "2.12.2"
     val blaze = "0.14.14"
     val boopickle = "1.3.3"
     val caseInsensitive = "0.3.0"

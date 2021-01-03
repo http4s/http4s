@@ -32,7 +32,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a 2xx response") {
     case (registry, client) =>
-      client.expect[String]("ok").attempt.map { resp =>
+      client.expect[String]("/ok").attempt.map { resp =>
         assertEquals(count(registry, "2xx_responses", "client"), 1.0)
         assertEquals(count(registry, "active_requests", "client"), 0.0)
         assertEquals(count(registry, "2xx_headers_duration", "client"), 0.05)
@@ -44,7 +44,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a 4xx response") {
     case (registry, client) =>
-      client.expect[String]("bad-request").attempt.map { resp =>
+      client.expect[String]("/bad-request").attempt.map { resp =>
         assertEquals(count(registry, "4xx_responses", "client"), 1.0)
         assertEquals(count(registry, "active_requests", "client"), 0.0)
         assertEquals(count(registry, "4xx_headers_duration", "client"), 0.05)
@@ -59,7 +59,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a 5xx response") {
     case (registry, client) =>
-      client.expect[String]("internal-server-error").attempt.map { resp =>
+      client.expect[String]("/internal-server-error").attempt.map { resp =>
         assertEquals(count(registry, "5xx_responses", "client"), 1.0)
         assertEquals(count(registry, "active_requests", "client"), 0.0)
         assertEquals(count(registry, "5xx_headers_duration", "client"), 0.05)
@@ -74,7 +74,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a GET request") {
     case (registry, client) =>
-      client.expect[String]("ok").attempt.map { resp =>
+      client.expect[String]("/ok").attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "get"), 1.0)
@@ -87,7 +87,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a POST request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](POST, Uri.unsafeFromString("ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](POST, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "post"), 1.0)
@@ -100,7 +100,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a PUT request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](PUT, Uri.unsafeFromString("ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](PUT, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "put"), 1.0)
@@ -113,7 +113,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a DELETE request") {
     case (registry, client) =>
-      client.expect[String](Request[IO](DELETE, Uri.unsafeFromString("ok"))).attempt.map { resp =>
+      client.expect[String](Request[IO](DELETE, Uri.unsafeFromString("/ok"))).attempt.map { resp =>
         assertEquals(resp, Right("200 OK"))
 
         assertEquals(count(registry, "2xx_responses", "client", "delete"), 1.0)
@@ -126,13 +126,13 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register an error") {
     case (registry, client) =>
-      client.expect[String]("error").attempt.map { resp =>
+      client.expect[String]("/error").attempt.map { resp =>
         assert(resp match {
           case Left(_: IOException) => true
           case _ => false
         })
 
-        assertEquals(count(registry, "errors", "client"), 1.0)
+        assertEquals(count(registry, "errors", "client", cause = "java.io.IOException"), 1.0)
         assertEquals(count(registry, "active_requests", "client"), 0.0)
       }
   }
@@ -140,7 +140,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   meteredClient().test(
     "A http client with a prometheus metrics middleware should register a timeout") {
     case (registry, client) =>
-      client.expect[String]("timeout").attempt.map { resp =>
+      client.expect[String]("/timeout").attempt.map { resp =>
         assert(resp match {
           case Left(_: TimeoutException) => true
           case _ => false
@@ -153,7 +153,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
 
   val classifier = (_: Request[IO]) => Some("classifier")
   meteredClient(classifier).test("use the provided request classifier") { case (registry, client) =>
-    client.expect[String]("ok").attempt.map { resp =>
+    client.expect[String]("/ok").attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
 
       assertEquals(count(registry, "2xx_responses", "client", "get", "classifier"), 1.0)
@@ -165,7 +165,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
 
   // This tests can't be easily done in munit-cats-effect as it wants to test after the Resource is freed
   meteredClient().test("unregister collectors".ignore) { case (cr, client) =>
-    client.expect[String]("ok").as(cr).map { registry =>
+    client.expect[String]("/ok").as(cr).map { registry =>
       assertEquals(count(registry, "2xx_responses", "client"), 0.0)
       assertEquals(count(registry, "active_requests", "client"), 0.0)
       assertEquals(count(registry, "2xx_headers_duration", "client"), 0.0)

@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v1.0.0-M10 (2020-12-31)
+
+## http4s-client
+
+### Enhancements
+
+* [#4051](https://github.com/http4s/http4s/pull/4051): Add `customized` function to `Logger` middleware that takes a function to produce the log string. Add a `colored` implementation on that that adds colors to the logs.
+
+## Dependency updates
+
+* argonaut-6.3.3
+
 # v0.21.15 (2020-12-31)
 
 ## http4s-core
@@ -66,6 +78,8 @@ o* [#4037](https://github.com/http4s/http4s/pull/4037): Normalize some default s
 ## Dependency updates
 
 * jackson-databind-2.12.0
+
+# v0.21.14 (2020-12-11)
 
 ## http4s-core
 

@@ -24,53 +24,35 @@ import org.typelevel.ci.CIString
 
 object Logger {
 
+  def defaultLogHeaders[F[_], A <: Message[F]](message: A)(
+      logHeaders: Boolean,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
+    if (logHeaders)
+      message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
+    else ""
+
+  def defaultLogBody[F[_]: Sync, A <: Message[F]](message: A)(logBody: Boolean): Option[F[String]] =
+    if (logBody) {
+      val isBinary = message.contentType.exists(_.mediaType.binary)
+      val isJson = message.contentType.exists(mT =>
+        mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json"))
+      val bodyStream = if (!isBinary || isJson) {
+        message.bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
+      } else {
+        message.body.map(b => java.lang.Integer.toHexString(b & 0xff))
+      }
+      Some(bodyStream.compile.string)
+    } else None
+
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
-    val charset = message.charset
-    val isBinary = message.contentType.exists(_.mediaType.binary)
-    val isJson = message.contentType.exists(mT =>
-      mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json"))
 
-    val isText = !isBinary || isJson
+    val logBodyText = (_: Stream[F, Byte]) => defaultLogBody[F, A](message)(logBody)
 
-    def prelude =
-      message match {
-        case Request(method, uri, httpVersion, _, _, _) =>
-          s"$httpVersion $method $uri"
-
-        case Response(status, httpVersion, _, _, _) =>
-          s"$httpVersion $status"
-      }
-
-    val headers =
-      if (logHeaders)
-        message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
-      else ""
-
-    val bodyStream =
-      if (logBody && isText)
-        message.bodyText(implicitly, charset.getOrElse(Charset.`UTF-8`))
-      else if (logBody)
-        message.body
-          .map(b => java.lang.Integer.toHexString(b & 0xff))
-      else
-        Stream.empty.covary[F]
-
-    val bodyText =
-      if (logBody)
-        bodyStream.compile.string
-          .map(text => s"""body="$text"""")
-      else
-        F.pure("")
-
-    def spaced(x: String): String = if (x.isEmpty) x else s" $x"
-
-    bodyText
-      .map(body => s"$prelude${spaced(headers)}${spaced(body)}")
-      .flatMap(log)
+    logMessageWithBodyText[F, A](message)(logHeaders, logBodyText, redactHeadersWhen)(log)
   }
 
   def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
@@ -80,17 +62,11 @@ object Logger {
       log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
     def prelude =
       message match {
-        case Request(method, uri, httpVersion, _, _, _) =>
-          s"$httpVersion $method $uri"
-
-        case Response(status, httpVersion, _, _, _) =>
-          s"$httpVersion $status"
+        case Request(method, uri, httpVersion, _, _, _) => s"$httpVersion $method $uri"
+        case Response(status, httpVersion, _, _, _) => s"$httpVersion $status"
       }
 
-    val headers: String =
-      if (logHeaders)
-        message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
-      else ""
+    val headers: String = defaultLogHeaders[F, A](message)(logHeaders, redactHeadersWhen)
 
     val bodyText: F[String] =
       logBodyText(message.body) match {
