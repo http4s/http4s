@@ -176,12 +176,7 @@ class BlazeClientSuite extends BlazeClientBase {
         .use { client =>
           client.status(Request[IO](uri = uri"http://example.invalid/"))
         }
-        .attempt
-        .map {
-          case Left(e: ConnectionFailure) =>
-            e.getMessage === "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
-          case _ => false
-        }
-        .assertEquals(true)
+        .interceptMessage[ConnectionFailure](
+          "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
     }
 }

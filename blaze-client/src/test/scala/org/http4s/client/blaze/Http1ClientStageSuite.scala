@@ -45,6 +45,13 @@ class Http1ClientStageSuite extends Http4sSuite {
   // Common throw away response
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
+  private val fooConnection = FunFixture[Http1Connection[IO]](
+    setup = { _ =>
+      mkConnection(FooRequestKey)
+    },
+    teardown = { tail => tail.shutdown() }
+  )
+
   private def mkConnection(key: RequestKey, userAgent: Option[`User-Agent`] = None) =
     new Http1Connection[IO](
       key,
@@ -137,53 +144,38 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Fail when attempting to get a second request with one in progress") {
-    val tail = mkConnection(FooRequestKey)
+  fooConnection.test("Fail when attempting to get a second request with one in progress") { tail =>
     val (frag1, frag2) = resp.splitAt(resp.length - 1)
+
     val h = new SeqTestHead(List(mkBuffer(frag1), mkBuffer(frag2), mkBuffer(resp)))
     LeafBuilder(tail).base(h)
 
-    try {
-      tail.runRequest(FooRequest, IO.never).unsafeRunAsync {
-        case Right(_) => (); case Left(_) => ()
-      } // we remain in the body
-
-      intercept[Http1Connection.InProgressException.type] {
-        tail
-          .runRequest(FooRequest, IO.never)
-          .unsafeRunSync()
-      }
-    } finally tail.shutdown()
+    (for {
+      done <- IO.deferred[Unit]
+      _ <- tail.runRequest(FooRequest, done.complete(()) >> IO.never) // we remain in the body
+      _ <- tail.runRequest(FooRequest, IO.never)
+    } yield ()).intercept[Http1Connection.InProgressException.type]
   }
 
-  test("Reset correctly") {
-    val tail = mkConnection(FooRequestKey)
-    try {
-      val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
-      LeafBuilder(tail).base(h)
+  fooConnection.test("Reset correctly") { tail =>
+    val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
+    LeafBuilder(tail).base(h)
 
-      // execute the first request and run the body to reset the stage
-      tail.runRequest(FooRequest, IO.never).unsafeRunSync().body.compile.drain.unsafeRunSync()
-
-      val result = tail.runRequest(FooRequest, IO.never).unsafeRunSync()
-      tail.shutdown()
-
-      assertEquals(result.headers.size, 1)
-    } finally tail.shutdown()
+    // execute the first request and run the body to reset the stage
+    tail.runRequest(FooRequest, IO.never).flatMap(_.body.compile.drain) >>
+      tail.runRequest(FooRequest, IO.never).map(_.headers.size).assertEquals(1)
   }
 
-  test("Alert the user if the body is to short") {
+  fooConnection.test("Alert the user if the body is to short") { tail =>
     val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
-    val tail = mkConnection(FooRequestKey)
 
-    try {
-      val h = new SeqTestHead(List(mkBuffer(resp)))
-      LeafBuilder(tail).base(h)
+    val h = new SeqTestHead(List(mkBuffer(resp)))
+    LeafBuilder(tail).base(h)
 
-      val result = tail.runRequest(FooRequest, IO.never).unsafeRunSync()
-
-      result.body.compile.drain.intercept[InvalidBodyException]
-    } finally tail.shutdown()
+    tail
+      .runRequest(FooRequest, IO.never)
+      .flatMap(_.body.compile.drain)
+      .intercept[InvalidBodyException]
   }
 
   test("Interpret a lack of length with a EOF as a valid message") {
@@ -226,19 +218,14 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Not add a User-Agent header when configured with None") {
+  fooConnection.test("Not add a User-Agent header when configured with None") { tail =>
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-    val tail = mkConnection(FooRequestKey)
 
-    try {
-      val (request, response) = getSubmission(FooRequest, resp, tail).unsafeRunSync()
-      tail.shutdown()
-
+    getSubmission(FooRequest, resp, tail).map { case (request, response) =>
       val requestLines = request.split("\r\n").toList
-
       assertEquals(requestLines.find(_.startsWith("User-Agent")), None)
       assertEquals(response, "done")
-    } finally tail.shutdown()
+    }
   }
 
   // TODO fs2 port - Currently is elevating the http version to 1.1 causing this test to fail
@@ -263,28 +250,23 @@ class Http1ClientStageSuite extends Http4sSuite {
     getSubmission(req, resp).map(_._2).assertEquals("done")
   }
 
-  test("Not expect body if request was a HEAD request") {
+  fooConnection.test("Not expect body if request was a HEAD request") { tail =>
     val contentLength = 12345L
     val resp = s"HTTP/1.1 200 OK\r\nContent-Length: $contentLength\r\n\r\n"
     val headRequest = FooRequest.withMethod(Method.HEAD)
-    val tail = mkConnection(FooRequestKey)
-    try {
-      val h = new SeqTestHead(List(mkBuffer(resp)))
-      LeafBuilder(tail).base(h)
 
-      val response = tail.runRequest(headRequest, IO.never).unsafeRunSync()
+    val h = new SeqTestHead(List(mkBuffer(resp)))
+    LeafBuilder(tail).base(h)
+
+    tail.runRequest(headRequest, IO.never).flatMap { response =>
       assertEquals(response.contentLength, Some(contentLength))
 
       // connection reusable immediately after headers read
       assert(tail.isRecyclable)
 
       // body is empty due to it being HEAD request
-      val length = response.body.compile.toVector
-        .unsafeRunSync()
-        .foldLeft(0L)((long, _) => long + 1L)
-
-      assertEquals(length, 0L)
-    } finally tail.shutdown()
+      response.body.compile.toVector.map(_.foldLeft(0L)((long, _) => long + 1L)).assertEquals(0L)
+    }
   }
 
   {
