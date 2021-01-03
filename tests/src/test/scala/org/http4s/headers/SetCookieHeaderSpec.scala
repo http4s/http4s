@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import cats.syntax.all._
-import org.http4s.headers.`Set-Cookie`
 import org.specs2.mutable.Specification
 
 class SetCookieHeaderSpec extends Specification {
