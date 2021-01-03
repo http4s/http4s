@@ -21,6 +21,7 @@ import cats.parse.{Parser, Parser1}
 import org.http4s._
 import org.http4s.internal.parsing.Rfc7230.{headerRep1, quotedString, token}
 import org.http4s.parser.Rfc2616BasicRules.optWs
+import java.nio.charset.StandardCharsets
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Link] =
@@ -29,17 +30,15 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
   private[http4s] val parser: Parser1[Link] = {
     import cats.parse.Parser._
 
-    // TODO: it depends on org.http4s.parser.Rfc3986Parser
-    val linkValue: Parser1[LinkValue] =
-//      rule {
-//        // https://tools.ietf.org/html/rfc3986#section-4.1
-//        (AbsoluteUri | RelativeRef) ~> { (a: Uri) =>
-//          headers.LinkValue(a)
-//        }
-//      }
-      ???
-
-    val linkValueAttr: Parser1[LinkValue] = {
+    // https://tools.ietf.org/html/rfc3986#section-4.1
+    val linkValue: Parser[LinkValue] = {
+      import Uri._
+      uriReference(StandardCharsets.UTF_8).map { uri =>
+        headers.LinkValue(uri)
+      }
+    }
+      
+    val linkValueAttr: Parser[LinkValue] = {
       val relParser = (linkValue ~ (string1("rel=") *> token.orElse(quotedString)))
         .map { case (link: LinkValue, rel: String) =>
           // https://tools.ietf.org/html/rfc8288#section-3.3
@@ -64,7 +63,7 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
         (linkValue ~ mediaRange).map { case (link, tpe) => link.copy(`type` = Some(tpe)) }
       }
 
-      relParser.orElse1(revParser).orElse1(titleParser).orElse1(typeParser)
+      relParser.orElse(revParser).orElse(titleParser).orElse(typeParser)
     }
 
     val linkValueWithAttr: Parser1[LinkValue] =
