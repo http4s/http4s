@@ -21,6 +21,8 @@ import cats.syntax.all._
 import fs2._
 import fs2.text.utf8Decode
 import org.http4s.internal.threads.newBlockingPool
+import org.http4s.internal.threads.newDaemonPool
+import scala.concurrent.ExecutionContext
 import munit._
 
 /** Common stack for http4s' munit based tests
@@ -50,4 +52,9 @@ object Http4sSuite {
   val TestBlocker: Blocker =
     Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
 
+  val TestExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
+
+  val TestContextShift: ContextShift[IO] =
+    IO.contextShift(TestExecutionContext)
 }

@@ -193,7 +193,7 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(implicitly)
-  multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlocker))
+  multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO](Http4sSpec.TestBlocker))
 
   "Part" >> {
     def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)

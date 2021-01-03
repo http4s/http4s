@@ -22,7 +22,7 @@ import cats.parse.{Parser, Parser1}
 import cats.parse.Rfc5234.{alpha, digit, sp}
 import org.http4s.{Challenge, Credentials}
 import org.http4s.internal.parsing.Rfc7230.{bws, headerRep1, ows, quotedString, token}
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 
 private[http4s] object Rfc7235 {
   /*  token68 = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" )
@@ -38,7 +38,7 @@ private[http4s] object Rfc7235 {
     (token <* char('=').void.surroundedBy(bws)) ~ authParamValue
 
   //auth-scheme = token
-  val scheme: Parser1[CaseInsensitiveString] = token.map(CaseInsensitiveString(_))
+  val scheme: Parser1[CIString] = token.map(CIString(_))
 
   /*
     challenge = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *(
