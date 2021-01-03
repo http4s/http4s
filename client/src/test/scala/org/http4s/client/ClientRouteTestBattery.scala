@@ -38,7 +38,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     new HttpServlet {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
         GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(r) => r.flatMap(renderResponse(srv, _)).unsafeRunSync() // We are outside the IO world
+          case Some(r) =>
+            r.flatMap(renderResponse(srv, _)).unsafeRunSync() // We are outside the IO world
           case None => srv.sendError(404)
         }
 
@@ -133,8 +134,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       srv.addHeader(h.name.toString, h.value)
     }
     resp.body
-      .through(
-        writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
+      .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
       .compile
       .drain
   }

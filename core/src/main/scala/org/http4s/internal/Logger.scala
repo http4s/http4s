@@ -31,7 +31,8 @@ object Logger {
       message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
     else ""
 
-  def defaultLogBody[F[_]: Concurrent, A <: Message[F]](message: A)(logBody: Boolean): Option[F[String]] =
+  def defaultLogBody[F[_]: Concurrent, A <: Message[F]](message: A)(
+      logBody: Boolean): Option[F[String]] =
     if (logBody) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
