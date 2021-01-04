@@ -5,7 +5,7 @@ import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_212, scala_213, "3.0.0-M2", "3.0.0-M3")
+ThisBuild / crossScalaVersions := Seq(scala_212, scala_213) // "3.0.0-M2", "3.0.0-M3"
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
 ThisBuild / baseVersion := "0.21"
 ThisBuild / publishGithubUser := "rossabaker"
@@ -214,6 +214,21 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.acceptLanguageParser"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.org$http4s$parser$AcceptLanguageHeader$_setter_$acceptLanguageParser_="),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.org$http4s$parser$AcceptLanguageHeader$_setter_$acceptLanguageParser_="),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Uri.Unreserved"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Query.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.GenDelims"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.SubDelims"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.Unreserved"),
+
+      //Proxy-Authorization
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.headers.Proxy$minusAuthorization$"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.parse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.matchHeader"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.from"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.unapply"),
+      ProblemFilters.exclude[StaticVirtualMemberProblem]("org.http4s.headers.Proxy-Authorization.name"),
+      ProblemFilters.exclude[StaticVirtualMemberProblem]("org.http4s.headers.Proxy-Authorization.toString"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.unapply"),
     ),
   )
 
@@ -226,6 +241,14 @@ lazy val laws = libraryProject("laws")
       catsLaws,
       disciplineCore,
       scalacheck,
+    ),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$org$http4s$laws$discipline$ArbitraryInstances$$tchars_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonTchar_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonToken_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$$tchars"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonTchar"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonToken")
     ),
   )
   .dependsOn(core)

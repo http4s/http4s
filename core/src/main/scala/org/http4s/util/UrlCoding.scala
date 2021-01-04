@@ -12,7 +12,7 @@ package org.http4s.util
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
-import org.http4s.internal.parboiled2.CharPredicate
+import org.http4s.internal.CharPredicate
 
 private[http4s] object UrlCodingUtils {
   @deprecated("Moved to org.http4s.Uri.Unreserved", "0.20.13")
