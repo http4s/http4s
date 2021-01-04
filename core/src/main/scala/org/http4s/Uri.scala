@@ -554,7 +554,7 @@ object Uri {
 
       val username = rep(unreserved.orElse1(pctEncoded).orElse1(subDelims)).string
       val password = rep(
-        unreserved.orElse1(pctEncoded).orElse1(subDelims).orElse1(char(':'))).string
+        unreserved.orElse1(pctEncoded).orElse1(subDelims).orElse1(charIn(':'))).string
       (username ~ (char(':') *> password).?).map { case (u, p) =>
         UserInfo(decode(u, cs), p.map(decode(_, cs)))
       }
