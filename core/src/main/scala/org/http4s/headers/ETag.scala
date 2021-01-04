@@ -26,7 +26,7 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
   final case class EntityTag(tag: String, weakness: Weakness = Strong) {
     override def toString(): String =
       weakness match {
-        case EntityTag.Weak   => "W/\"" + tag + '"'
+        case EntityTag.Weak => "W/\"" + tag + '"'
         case EntityTag.Strong => "\"" + tag + '"'
       }
   }
