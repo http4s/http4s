@@ -20,20 +20,28 @@ package headers
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 import cats.Show
+import org.http4s.headers.ETag.EntityTag.{Strong, Weakness}
 
 object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
-  final case class EntityTag(tag: String, weak: Boolean = false) {
-    override def toString() =
-      if (weak) "W/\"" + tag + '"'
-      else "\"" + tag + '"'
+  final case class EntityTag(tag: String, weakness: Weakness = Strong) {
+    override def toString(): String =
+      weakness match {
+        case EntityTag.Weak   => "W/\"" + tag + '"'
+        case EntityTag.Strong => "\"" + tag + '"'
+      }
   }
 
   object EntityTag {
     implicit val http4sShowForEntityTag: Show[EntityTag] =
       Show.fromToString
+
+    sealed trait Weakness extends Product with Serializable
+    case object Weak extends Weakness
+    case object Strong extends Weakness
   }
 
-  def apply(tag: String, weak: Boolean = false): ETag = ETag(EntityTag(tag, weak))
+  def apply(tag: String, weakness: Weakness = Strong): ETag =
+    ETag(EntityTag(tag, weakness))
 
   override def parse(s: String): ParseResult[ETag] =
     HttpHeaderParser.ETAG(s)
