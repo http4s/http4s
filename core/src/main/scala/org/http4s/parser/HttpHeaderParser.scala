@@ -23,8 +23,7 @@ object HttpHeaderParser
     with ForwardedHeader
     with LocationHeader
     with RefererHeader
-    with StrictTransportSecurityHeader
-    with ZipkinHeader {
+    with StrictTransportSecurityHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -130,11 +129,11 @@ object HttpHeaderParser
     addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
     addParser_("TRANSFER-ENCODING".ci, `Transfer-Encoding`.parse)
     addParser_("USER-AGENT".ci, `USER_AGENT`)
-    addParser_("X-B3-FLAGS".ci, `X_B3_FLAGS`)
-    addParser_("X-B3-PARENTSPANID".ci, `X_B3_PARENTSPANID`)
-    addParser_("X-B3-SAMPLED".ci, `X_B3_SAMPLED`)
-    addParser_("X-B3-SPANID".ci, `X_B3_SPANID`)
-    addParser_("X-B3-TRACEID".ci, `X_B3_TRACEID`)
+    addParser_("X-B3-FLAGS".ci, `X-B3-Flags`.parse)
+    addParser_("X-B3-PARENTSPANID".ci, `X-B3-ParentSpanId`.parse)
+    addParser_("X-B3-SAMPLED".ci, `X-B3-Sampled`.parse)
+    addParser_("X-B3-SPANID".ci, `X-B3-SpanId`.parse)
+    addParser_("X-B3-TRACEID".ci, `X-B3-TraceId`.parse)
     addParser_("X-FORWARDED-FOR".ci, `X_FORWARDED_FOR`)
   }
 }

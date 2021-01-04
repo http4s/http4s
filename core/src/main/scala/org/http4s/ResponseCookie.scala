@@ -14,6 +14,7 @@ import cats.parse.{Parser, Parser1, Rfc5234}
 import java.time.{DateTimeException, ZoneOffset, ZonedDateTime}
 import org.http4s.internal.parsing.{Rfc1034, Rfc2616, Rfc6265}
 import org.http4s.util.{Renderable, Writer}
+import scala.runtime.AbstractFunction10
 
 /** @param extension The extension attributes of the cookie.  If there is more
   * than one, they are joined by semi-colon, which must not appear in an
@@ -76,7 +77,20 @@ final case class ResponseCookie(
     copy(extension = self.extension.fold(Option(extension))(old => Some(old + "; " + extension)))
 }
 
-object ResponseCookie {
+object ResponseCookie
+    extends AbstractFunction10[
+      String,
+      String,
+      Option[HttpDate],
+      Option[Long],
+      Option[String],
+      Option[String],
+      SameSite,
+      Boolean,
+      Boolean,
+      Option[String],
+      ResponseCookie
+    ] {
   private[http4s] val parser: Parser1[ResponseCookie] = {
     import Parser.{char, charIn, failWith, ignoreCase1, pure, rep, string1}
     import Rfc2616.Rfc1123Date
