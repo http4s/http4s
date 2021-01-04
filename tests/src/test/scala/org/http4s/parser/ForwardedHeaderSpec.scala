@@ -31,7 +31,7 @@ class ForwardedHeaderSpec extends Specification with Tables {
   import ForwardedHeaderSpec._
 
   "FORWARDED" should {
-    def parse(input: String) = HttpHeaderParser.FORWARDED(input)
+    def parse(input: String) = Forwarded.parse(input)
 
     "parse" >> {
       "single simple elements" in {

@@ -17,17 +17,21 @@
 package org.http4s.headers
 
 import java.net.{Inet4Address, Inet6Address}
-
 import cats.data.NonEmptyList
 import cats.syntax.either._
 import org.http4s._
 import org.http4s.util.{Renderable, Writer}
+import cats.parse.{Numbers, Parser1, Rfc5234, Parser => P}
+import org.http4s.Uri.{Ipv4Address, Ipv6Address}
+import org.http4s.internal.parsing.Rfc7230
+
+import java.util.Locale
+import scala.util.Try
 
 object Forwarded
     extends HeaderKey.Internal[Forwarded]
     with HeaderKey.Recurring
-    with ForwardedRenderers
-    with parser.ForwardedModelParsing {
+    with ForwardedRenderers {
 
   final case class Node(nodeName: Node.Name, nodePort: Option[Node.Port] = None)
 
@@ -80,14 +84,58 @@ object Forwarded
     sealed abstract case class Obfuscated private (value: String) extends Name with Port
 
     object Obfuscated {
+      val parser: Parser1[Obfuscated] =
+        (P.char('_') ~
+          P.rep1(P.oneOf1(List(Rfc5234.alpha, Rfc5234.digit, P.charIn("._-"))), 1)).string
+          .map(Obfuscated.apply)
+
       def fromString(s: String): ParseResult[Obfuscated] =
-        new ModelNodeObfuscatedParser(s).parse
+        parser.parseAll(s).left.map { e =>
+          ParseFailure(s"invalid obfuscated value '$s'", e.toString)
+        }
 
       /** Unsafe constructor for internal use only. */
       private[http4s] def apply(s: String): Obfuscated = new Obfuscated(s) {}
     }
 
-    def fromString(s: String): ParseResult[Node] = new ModelNodeParser(s).parse
+    def fromString(s: String): ParseResult[Node] =
+      parser.parseAll(s).left.map { e =>
+        ParseFailure(s"invalid node '$s'", e.toString)
+      }
+
+    val parser: Parser1[Node] = {
+      // https://tools.ietf.org/html/rfc7239#section-4
+
+      def modelNodePortFromString(str: String): Option[Node.Port] =
+        Try(Integer.parseUnsignedInt(str)).toOption.flatMap(Node.Port.fromInt(_).toOption)
+
+      // node-port = port / obfport
+      // port      = 1*5DIGIT
+      // obfport   = "_" 1*(ALPHA / DIGIT / "." / "_" / "-")
+      val nodePort: P[Node.Port] =
+        Numbers.digits1
+          // is it worth it to consume only up to 5 chars or just let it fail later?
+          .mapFilter(digits => modelNodePortFromString(digits))
+          .orElse(Obfuscated.parser)
+
+      // nodename = IPv4address / "[" IPv6address "]" / "unknown" / obfnode
+      // obfnode  = "_" 1*( ALPHA / DIGIT / "." / "_" / "-")
+      val nodeName: Parser1[Node.Name] =
+        P.oneOf1[Node.Name](
+          List(
+            Ipv4Address.parser.map(Node.Name.Ipv4),
+            Ipv6Address.parser
+              .between(P.char('['), P.char(']'))
+              .map(Node.Name.Ipv6),
+            P.string1("unknown").as(Node.Name.Unknown),
+            Obfuscated.parser
+          )
+        )
+
+      // node = nodename [ ":" node-port ]
+      (nodeName ~ (P.char(':') *> nodePort).?)
+        .map { case (n, p) => Node(n, p) }
+    }
   }
 
   sealed abstract case class Host private (host: Uri.Host, port: Option[Int])
@@ -121,7 +169,34 @@ object Forwarded
 
     /** Parses host and optional port number from the given string according to RFC3986.
       */
-    def fromString(s: String): ParseResult[Host] = new ModelHostParser(s).parse
+    def fromString(s: String): ParseResult[Host] =
+      parser.parseAll(s).left.map { e =>
+        ParseFailure(s"invalid host '$s'", e.toString)
+      }
+
+    val parser: P[Host] = {
+      // this is awkward but the spec allows an empty port number
+      val port: P[Option[Int]] = Numbers.digits
+        .mapFilter { s =>
+          if (s.isEmpty) Some(None)
+          else {
+            try {
+              val i = s.toInt
+              Option.when(i <= PortMax)(Some(i))
+            } catch { case _: NumberFormatException => None }
+          }
+        }
+
+      // ** RFC7230 **
+      // Host     = uri-host [ ":" port ]
+      // uri-host = <host, see [RFC3986], Section 3.2.2>
+      // port     = <port, see [RFC3986], Section 3.2.3>
+
+      // ** RFC3986 **
+      // port = *DIGIT
+      (Uri.Host.parser ~ (P.char(':') *> port).?)
+        .map { case (h, p) => apply(h, p.flatten) }
+    }
   }
 
   type Proto = Uri.Scheme
@@ -193,7 +268,80 @@ object Forwarded
       ParseFailure("missing host", s"no host defined in the URI '$uri'")
   }
 
-  override def parse(s: String): ParseResult[Forwarded] = parser.HttpHeaderParser.FORWARDED(s)
+  override def parse(s: String): ParseResult[Forwarded] =
+    parser.parseAll(s).left.map { e =>
+      ParseFailure("Invalid header", e.toString)
+    }
+
+  private val parser: P[Forwarded] = {
+    // https://tools.ietf.org/html/rfc7239#section-4
+
+    // A utility so that we can decode multiple pairs and join them in a single element
+    trait Pair {
+      def create: Element
+      def merge(e: Element): Element
+    }
+
+    object Pair {
+      def apply(c: Element, m: Element => Element): Pair = new Pair {
+        override def create: Element = c
+        override def merge(e: Element): Element = m(e)
+      }
+    }
+
+    def quoted[A](p: P[A]): P[A] =
+      Rfc7230.token
+        .orElse(Rfc7230.quotedString)
+        .flatMap(str =>
+          p.parseAll(str)
+            .fold(_ => P.fail[A], P.pure)) // this looks not very good
+
+    // forwarded-pair = token "=" value
+    // The syntax of a "by" value, after potential quoted-string unescaping
+    // conforms to the "node" ABNF
+    // The syntax of a "for" value, after potential quoted-string
+    // unescaping, conforms to the "node" ABNF
+    // The syntax for a "host" value, after potential quoted-string
+    // unescaping, MUST conform to the Host ABNF described in Section 5.4 of
+    // [RFC7230].
+    // The syntax of a "proto" value, after potential quoted-string
+    // unescaping, MUST conform to the URI scheme name as defined in Section 3.1 in
+    // [RFC3986]
+
+    val host = Host.parser
+    val proto = Uri.Scheme.parser
+    val node = Node.parser
+
+    val forwardedPair = P.oneOf1(
+      List(
+        Rfc7230.token
+          .flatMap(tok =>
+            tok.toLowerCase(Locale.ROOT) match {
+              case "by" =>
+                P.char('=') *> quoted(node).map(n => Pair(Element.fromBy(n), _.withBy(n)))
+              case "for" =>
+                P.char('=') *> quoted(node).map(n => Pair(Element.fromFor(n), _.withFor(n)))
+              case "host" =>
+                P.char('=') *> quoted(host).map(h => Pair(Element.fromHost(h), _.withHost(h)))
+              case "proto" =>
+                P.char('=') *> quoted(proto).map(p => Pair(Element.fromProto(p), _.withProto(p)))
+              case other =>
+                P.failWith(s"expected parameters: 'by', 'for', 'host' or 'proto', but got '$other'")
+            })
+      )
+    )
+
+    // forwarded-element = [ forwarded-pair ] *( ";" [ forwarded-pair ] )
+    val forwardedElement =
+      P.rep1Sep(forwardedPair, 1, P.char(';'))
+        .map(pairs => pairs.tail.foldLeft(pairs.head.create)((z, x) => x.merge(z)))
+
+    // Forwarded = 1#forwarded-element
+    Rfc7230
+      .headerRep1(forwardedElement)
+      .map(Forwarded.apply)
+  }
+
 }
 
 final case class Forwarded(values: NonEmptyList[Forwarded.Element])
