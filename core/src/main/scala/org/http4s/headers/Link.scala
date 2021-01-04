@@ -24,11 +24,18 @@ import org.http4s.parser.Rfc2616BasicRules.optWs
 import java.nio.charset.StandardCharsets
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
+
   override def parse(s: String): ParseResult[Link] =
     ParseResult.fromParser(parser, "Link header")(s)
 
   private[http4s] val parser: Parser1[Link] = {
     import cats.parse.Parser._
+
+    sealed trait LinkParam
+    final case class Rel(value: String) extends LinkParam
+    final case class Rev(value: String) extends LinkParam
+    final case class Title(value: String) extends LinkParam
+    final case class Type(value: MediaRange) extends LinkParam
 
     // https://tools.ietf.org/html/rfc3986#section-4.1
     val linkValue: Parser[LinkValue] = {
@@ -77,12 +84,6 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
 
     headerRep1(linkValueWithAttr).map(links => Link(links.head, links.tail: _*))
   }
-
-  sealed trait LinkParam
-  final case class Rel(value: String) extends LinkParam
-  final case class Rev(value: String) extends LinkParam
-  final case class Title(value: String) extends LinkParam
-  final case class Type(value: MediaRange) extends LinkParam
 }
 
 final case class Link(values: NonEmptyList[LinkValue]) extends Header.RecurringRenderable {
