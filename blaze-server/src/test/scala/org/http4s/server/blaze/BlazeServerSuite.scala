@@ -20,7 +20,6 @@ package blaze
 
 import cats.syntax.all._
 import cats.effect._
-import cats.effect.std.Dispatcher
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.channel.ChannelOptions
@@ -33,10 +32,8 @@ import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
 
-  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
-
   def builder =
-    BlazeServerBuilder[IO](global, dispatcher)
+    BlazeServerBuilder[IO](global)
       .withResponseHeaderTimeout(1.second)
 
   val service: HttpApp[IO] = HttpApp {
