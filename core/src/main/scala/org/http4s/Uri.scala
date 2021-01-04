@@ -365,14 +365,18 @@ object Uri {
 
     /* scheme      = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ) */
     private[http4s] val parser: Parser1[Scheme] = {
-      import Parser.{charIn, rep, string1}
+      import Parser.{charIn, rep, string1, not}
       import Rfc3986.{alpha, digit}
 
-      string1("https")
+      val unary = alpha.orElse1(digit).orElse1(charIn("+-."))
+
+      (string1("https") <* not(unary))
         .as(https)
-        .orElse1(string1("http").as(http))
+        .backtrack
+        .orElse1((string1("http") <* not(unary)).as(http))
+        .backtrack
         .orElse1(
-          (alpha *> rep(alpha.orElse1(digit).orElse1(charIn("+-.")))).string.map(new Scheme(_)))
+          (alpha *> rep(unary)).string.map(new Scheme(_)))
     }
 
     private[http4s] trait Parser { self: PbParser =>
