@@ -219,7 +219,7 @@ object Query {
    * "conservative in our sending behavior and liberal in our
    * receiving behavior", and encode them.
    */
-  private[http4s] val parser: Parser[Query] = {
+  private[http4s] def parser: Parser[Query] = {
     import Parser.{charIn, rep}
     import Rfc3986.pchar
 

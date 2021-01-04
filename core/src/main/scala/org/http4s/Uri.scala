@@ -303,7 +303,7 @@ object Uri {
 
     /* origin-form    = absolute-path [ "?" query ] */
     val originForm: Parser1[Uri] =
-      (absolutePath ~ query.?).map { case (p, q) =>
+      (absolutePath ~ (char('?') *> query).?).map { case (p, q) =>
         Uri(scheme = None, authority = None, path = p, query = q.getOrElse(Query.empty))
       }
 
