@@ -115,18 +115,17 @@ class Rfc3986ParserSpec extends Http4sSpec {
 
     "only parse part of an invalid ipv6 address where a single section is shortened (must be 2 or more)" in {
       val invalidIp = "2001:db8::1:1:1:1:1"
-      Ipv6Address.fromString(invalidIp).map(_.value) must beRight("2001:db8::1:1:1:1")
+      Ipv6Address.fromString(invalidIp).map(_.value) must beLeft
     }
 
     "only parse part of an ipv6 address where multiple sections are shortened (only 1 allowed)" in {
       val invalidIp = "56FE::2159:5BBC::6594"
-      Ipv6Address.fromString(invalidIp).map(_.value) must beRight("56fe::2159:5bbc")
+      Ipv6Address.fromString(invalidIp).map(_.value) must beLeft
     }
 
     "parse an ipv6 address which is too long (only parse what can be used)" in {
       val ipv6 = "56FE:2159:5BBC:6594:1234:5678:9018:0123:2020"
-      Ipv6Address.fromString(ipv6).map(_.value) must beRight(
-        "56fe:2159:5bbc:6594:1234:5678:9018:123")
+      Ipv6Address.fromString(ipv6).map(_.value) must beLeft
     }
 
     "not parse an ipv6 address which is too short" in {
