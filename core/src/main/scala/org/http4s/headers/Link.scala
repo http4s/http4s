@@ -55,23 +55,24 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
       val typeParser = {
         val mediaRange = string1("type=") *> MediaRange.parser.orElse1(
           string1("\"") *> MediaRange.parser <* string1("\""))
-        mediaRange.map { tpe => Type(tpe) }
+        mediaRange.map(tpe => Type(tpe))
       }
 
       relParser.orElse(revParser).orElse(titleParser).orElse(typeParser)
     }
 
     val linkValueWithAttr: Parser1[LinkValue] =
-      ((char('<') *> linkValue <* char('>')) ~ Parser.rep(char(';') *> optWs *> linkParam)).map { case (linkValue, linkParams) =>
-        linkParams.foldLeft(linkValue) { case (lv, lp) => 
-          lp match {
-            case Rel(rel) =>
-              if (lv.rel.isDefined) lv else lv.copy(rel = Some(rel))
-            case Rev(rev) => lv.copy(rev = Some(rev))
-            case Title(title) => lv.copy(title = Some(title))
-            case Type(tpe) => lv.copy(`type` = Some(tpe))
+      ((char('<') *> linkValue <* char('>')) ~ Parser.rep(char(';') *> optWs *> linkParam)).map {
+        case (linkValue, linkParams) =>
+          linkParams.foldLeft(linkValue) { case (lv, lp) =>
+            lp match {
+              case Rel(rel) =>
+                if (lv.rel.isDefined) lv else lv.copy(rel = Some(rel))
+              case Rev(rev) => lv.copy(rev = Some(rev))
+              case Title(title) => lv.copy(title = Some(title))
+              case Type(tpe) => lv.copy(`type` = Some(tpe))
+            }
           }
-        }
       }
 
     headerRep1(linkValueWithAttr).map(links => Link(links.head, links.tail: _*))

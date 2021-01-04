@@ -365,7 +365,7 @@ object Uri {
 
     /* scheme      = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ) */
     private[http4s] val parser: Parser1[Scheme] = {
-      import Parser.{charIn, rep, string1, not}
+      import Parser.{charIn, not, rep, string1}
       import Rfc3986.{alpha, digit}
 
       val unary = alpha.orElse1(digit).orElse1(charIn("+-."))
@@ -375,8 +375,7 @@ object Uri {
         .backtrack
         .orElse1((string1("http") <* not(unary)).as(http))
         .backtrack
-        .orElse1(
-          (alpha *> rep(unary)).string.map(new Scheme(_)))
+        .orElse1((alpha *> rep(unary)).string.map(new Scheme(_)))
     }
 
     private[http4s] trait Parser { self: PbParser =>
