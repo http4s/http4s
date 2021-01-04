@@ -30,7 +30,7 @@ lazy val modules: List[ProjectReference] = List(
   // blazeClient,
   // asyncHttpClient,
   // jettyClient,
-  // okHttpClient,
+  okHttpClient,
   // servlet,
   // jetty,
   // tomcat,
