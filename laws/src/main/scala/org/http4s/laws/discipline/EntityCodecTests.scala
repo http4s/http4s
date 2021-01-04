@@ -24,12 +24,10 @@ import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._
 import cats.laws.discipline._
 import org.scalacheck.{Arbitrary, Prop, Shrink}
+import org.scalacheck.effect.PropF
 
 trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
   def laws: EntityCodecLaws[F, A]
-
-  implicit def eqDecodeFailure: Eq[DecodeFailure] =
-    Eq.fromUniversalEquals[DecodeFailure]
 
   def entityCodec(implicit
       arbitraryA: Arbitrary[A],
@@ -44,6 +42,14 @@ trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
         laws.entityCodecRoundTrip(a)
       }
     )
+
+  def entityCodecF(implicit
+      arbitraryA: Arbitrary[A],
+      shrinkA: Shrink[A],
+      eqA: Eq[A]
+  ): List[(String, PropF[IO])] =
+    LawAdapter.isEqPropF("roundTrip", laws.entityCodecRoundTrip _) :: entityEncoderF
+
 }
 
 object EntityCodecTests {
