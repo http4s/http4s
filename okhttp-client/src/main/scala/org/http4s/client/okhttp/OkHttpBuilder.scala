@@ -39,8 +39,8 @@ import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
 import scala.util.control.NonFatal
-import scala.util.chaining._
 import cats.effect.std.Dispatcher
+import OkHttpBuilder._
 
 /** A builder for [[org.http4s.client.Client]] with an OkHttp backend.
   *
@@ -60,22 +60,11 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     val dispatcher: Dispatcher[F]
 )(implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
-  private[this] val logger = getLogger
-
-  private type Result[F[_]] = Either[Throwable, Resource[F, Response[F]]]
-
-  private def logTap[F[_]](result: Result[F])(implicit
-      F: Async[F]): F[Either[Throwable, Resource[F, Response[F]]]] =
-    (result match {
-      case Left(e) => F.delay(logger.error(e)("Error in call back"))
-      case Right(_) => F.unit
-    }).map(_ => result)
 
   private def invokeCallback(result: Result[F], cb: Result[F] => Unit)(implicit
       F: Async[F]): Unit = {
-    logTap(result)
-      .flatMap(r => F.delay(cb(r)))
-      .pipe(dispatcher.unsafeRunSync)
+    val f = logTap(result).flatMap(r => F.delay(cb(r)))
+    dispatcher.unsafeRunSync(f)
     ()
   }
 
@@ -163,7 +152,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
           override def writeTo(sink: BufferedSink): Unit = {
             // This has to be synchronous with this method, or else
             // chunks get silently dropped.
-            req.body.chunks
+            val f = req.body.chunks
               .map(_.toArray)
               .evalMap { (b: Array[Byte]) =>
                 F.delay {
@@ -172,7 +161,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
               }
               .compile
               .drain
-              .pipe(dispatcher.unsafeRunSync)
+            dispatcher.unsafeRunSync(f)
             ()
           }
         }
@@ -238,4 +227,13 @@ object OkHttpBuilder {
             logger.warn(t)("Unable to close cache when disposing of OkHttp client")
         }
     }
+
+  private type Result[F[_]] = Either[Throwable, Resource[F, Response[F]]]
+
+  private def logTap[F[_]](result: Result[F])(implicit
+      F: Async[F]): F[Either[Throwable, Resource[F, Response[F]]]] =
+    (result match {
+      case Left(e) => F.delay(logger.error(e)("Error in call back"))
+      case Right(_) => F.unit
+    }).map(_ => result)
 }
