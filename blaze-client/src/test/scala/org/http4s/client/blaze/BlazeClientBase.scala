@@ -18,7 +18,6 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
-import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import javax.net.ssl.SSLContext
 import javax.servlet.ServletOutputStream

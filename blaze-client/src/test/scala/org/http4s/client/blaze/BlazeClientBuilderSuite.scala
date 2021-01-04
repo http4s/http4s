@@ -19,7 +19,6 @@ package client
 package blaze
 
 import cats.effect.IO
-import cats.effect.std.Dispatcher
 import org.http4s.blaze.channel.ChannelOptions
 
 class BlazeClientBuilderSuite extends Http4sSuite {
