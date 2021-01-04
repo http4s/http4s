@@ -174,6 +174,11 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.parser.HttpHeaderParser$"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$RangeRule"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Uri.Unreserved"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Query.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.GenDelims"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.SubDelims"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.Unreserved"),
 
       //Proxy-Authorization
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.headers.Proxy$minusAuthorization$"),
@@ -196,6 +201,14 @@ lazy val laws = libraryProject("laws")
       catsLaws,
       disciplineCore,
       scalacheck,
+    ),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$org$http4s$laws$discipline$ArbitraryInstances$$tchars_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonTchar_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonToken_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$$tchars"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonTchar"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonToken")
     ),
   )
   .dependsOn(core)
