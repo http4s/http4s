@@ -162,12 +162,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">EntityTag</span><span class="params">(<span name="tag">tag: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="weak">weak: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.12/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.12/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">EntityTag</span><span class="params">(<span name="tag">tag: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="weakness">weakness: <a href="ETag$$EntityTag$$Weakness.html" class="extype" name="org.http4s.headers.ETag.EntityTag.Weakness">Weakness</a> = <span class="symbol"><span class="name"><a href="../../index.html">Strong</a></span></span></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.12/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.12/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/659c58ba4eb024295799433048b316b3b00c9277/core/src/main/scala/org/http4s/headers/ETag.scala" target="_blank">ETag.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/a0087dd4b52092c07deb7a479a7fac31878d3781/core/src/main/scala/org/http4s/headers/ETag.scala" target="_blank">ETag.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -218,9 +218,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.headers.ETag.EntityTag#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(tag:String,weak:Boolean):org.http4s.headers.ETag.EntityTag"></a><a id="&lt;init&gt;:EntityTag"></a>
+      <a id="&lt;init&gt;(tag:String,weakness:org.http4s.headers.ETag.EntityTag.Weakness):org.http4s.headers.ETag.EntityTag"></a><a id="&lt;init&gt;:EntityTag"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/ETag$$EntityTag.html#&lt;init&gt;(tag:String,weak:Boolean):org.http4s.headers.ETag.EntityTag" title="Permalink">
+      <a href="../../../org/http4s/headers/ETag$$EntityTag.html#&lt;init&gt;(tag:String,weakness:org.http4s.headers.ETag.EntityTag.Weakness):org.http4s.headers.ETag.EntityTag" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -229,7 +229,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">EntityTag</span><span class="params">(<span name="tag">tag: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="weak">weak: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>)</span>
+        <span class="name">EntityTag</span><span class="params">(<span name="tag">tag: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="weakness">weakness: <a href="ETag$$EntityTag$$Weakness.html" class="extype" name="org.http4s.headers.ETag.EntityTag.Weakness">Weakness</a> = <span class="symbol"><span class="name"><a href="../../index.html">Strong</a></span></span></span>)</span>
       </span>
       
       
@@ -502,7 +502,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.headers.ETag.EntityTag">EntityTag</a> → AnyRef → Any</dd></dl></div>
@@ -574,10 +574,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.headers.ETag.EntityTag#weak" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="weak:Boolean"></a>
+    </li><li name="org.http4s.headers.ETag.EntityTag#weakness" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="weakness:org.http4s.headers.ETag.EntityTag.Weakness"></a><a id="weakness:Weakness"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/ETag$$EntityTag.html#weak:Boolean" title="Permalink">
+      <a href="../../../org/http4s/headers/ETag$$EntityTag.html#weakness:org.http4s.headers.ETag.EntityTag.Weakness" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -586,7 +586,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">weak</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">weakness</span><span class="result">: <a href="ETag$$EntityTag$$Weakness.html" class="extype" name="org.http4s.headers.ETag.EntityTag.Weakness">Weakness</a></span>
       </span>
       
       
