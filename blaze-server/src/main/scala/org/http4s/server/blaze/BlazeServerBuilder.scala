@@ -376,8 +376,8 @@ class BlazeServerBuilder[F[_]](
       })
 
     for {
+      dispatcher <- Dispatcher[F]
       scheduler <- tickWheelResource
-      dispatcher <- Resource.eval(Dispatcher[F].allocated.map(_._1))
 
       _ <- Resource.eval(verifyTimeoutRelations())
 
