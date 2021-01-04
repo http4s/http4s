@@ -29,9 +29,11 @@ import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
+import org.http4s.laws.discipline.EntityCodecTests
+import io.circe.testing.instances._
 
 // Originally based on ArgonautSuite
-class CirceSuite extends JawnDecodeSupportSuite[Json] {
+class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   implicit val testContext = TestContext()
 
   val CirceInstancesWithCustomErrors = CirceInstances.builder
@@ -325,5 +327,5 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
       .assertEquals(true)
   }
 
-  // checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
+  checkAllPropF("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodecF)
 }

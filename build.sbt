@@ -114,7 +114,10 @@ lazy val laws = libraryProject("laws")
       catsLaws,
       disciplineCore,
       scalacheck,
+      scalacheckEffectMunit,
+      munitCatsEffect
     ),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
   )
   .dependsOn(core)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 http4s.org
+ * Copyright 2016 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,20 @@
  */
 
 package org.http4s
-package circe.test // Get out of circe package so we can import custom instances
 
-import cats.effect.IO
-import cats.effect.laws.util.TestContext
-import cats.effect.laws.util.TestInstances._
-import io.circe._
-import io.circe.testing.instances._
-import org.http4s.circe._
-import org.http4s.laws.discipline.EntityCodecTests
+import munit.ScalaCheckEffectSuite
+import org.scalacheck.effect.PropF
 
-// Originally based on ArgonautSuite
-class CirceSpec extends Http4sSpec {
-  implicit val testContext = TestContext()
-  checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
+/** Poor's man discipline runner to check a set of PropF[F]
+  */
+trait Http4sLawSuite extends ScalaCheckEffectSuite {
+  def checkAllPropF[F[_]](
+      name: String,
+      original: List[(String, PropF[F])]
+  )(implicit loc: munit.Location): Unit =
+    original.foreach { case (l, p) =>
+      test(s"$name - $l") {
+        p
+      }
+    }
 }
