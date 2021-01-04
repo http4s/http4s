@@ -549,7 +549,7 @@ object Uri {
 
     /* userinfo    = *( unreserved / pct-encoded / sub-delims / ":" ) */
     private[http4s] def parser(cs: JCharset): cats.parse.Parser[UserInfo] = {
-      import Parser.{char, rep}
+      import Parser.{char, charIn, rep}
       import Rfc3986.{pctEncoded, subDelims, unreserved}
 
       val username = rep(unreserved.orElse1(pctEncoded).orElse1(subDelims)).string
