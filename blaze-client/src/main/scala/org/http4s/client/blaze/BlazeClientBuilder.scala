@@ -59,8 +59,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val executionContext: ExecutionContext,
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
-    val channelOptions: ChannelOptions,
-    val dispatcher: Dispatcher[F]
+    val channelOptions: ChannelOptions
 )(implicit protected val F: Async[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
@@ -88,8 +87,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       executionContext: ExecutionContext = executionContext,
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
-      channelOptions: ChannelOptions = channelOptions,
-      dispatcher: Dispatcher[F] = dispatcher
+      channelOptions: ChannelOptions = channelOptions
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -111,8 +109,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       executionContext = executionContext,
       scheduler = scheduler,
       asynchronousChannelGroup = asynchronousChannelGroup,
-      channelOptions = channelOptions,
-      dispatcher = dispatcher
+      channelOptions = channelOptions
     ) {}
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
@@ -207,15 +204,13 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withChannelOptions(channelOptions: ChannelOptions): BlazeClientBuilder[F] =
     copy(channelOptions = channelOptions)
 
-  def withDispatcher(dispatcher: Dispatcher[F]): BlazeClientBuilder[F] =
-    copy(dispatcher = dispatcher)
-
   def resource: Resource[F, Client[F]] =
     for {
+      dispatcher <- Dispatcher[F]
       scheduler <- scheduler
       _ <- Resource.eval(verifyAllTimeoutsAccuracy(scheduler))
       _ <- Resource.eval(verifyTimeoutRelations())
-      manager <- connectionManager(scheduler)
+      manager <- connectionManager(scheduler, dispatcher)
     } yield BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
@@ -264,7 +259,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         logger.warn(s"requestTimeout ($requestTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
 
-  private def connectionManager(scheduler: TickWheelExecutor)(implicit
+  private def connectionManager(scheduler: TickWheelExecutor, dispatcher: Dispatcher[F])(implicit
       F: Async[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
@@ -302,9 +297,7 @@ object BlazeClientBuilder {
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
     */
-  def apply[F[_]: Async](
-      executionContext: ExecutionContext,
-      dispatcher: Dispatcher[F]): BlazeClientBuilder[F] =
+  def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
@@ -325,7 +318,6 @@ object BlazeClientBuilder {
       executionContext = executionContext,
       scheduler = tickWheelResource,
       asynchronousChannelGroup = None,
-      channelOptions = ChannelOptions(Vector.empty),
-      dispatcher = dispatcher
+      channelOptions = ChannelOptions(Vector.empty)
     ) {}
 }

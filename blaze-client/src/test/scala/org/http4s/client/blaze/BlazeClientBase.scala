@@ -29,8 +29,6 @@ import org.http4s.client.testroutes.GetRoutes
 import scala.concurrent.duration._
 
 trait BlazeClientBase extends Http4sSuite {
-  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
-
   val tickWheel = new TickWheelExecutor(tick = 50.millis)
 
   def mkClient(
@@ -42,7 +40,7 @@ trait BlazeClientBase extends Http4sSuite {
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
   ) = {
     val builder: BlazeClientBuilder[IO] =
-      BlazeClientBuilder[IO](munitExecutionContext, dispatcher)
+      BlazeClientBuilder[IO](munitExecutionContext)
         .withCheckEndpointAuthentication(false)
         .withResponseHeaderTimeout(responseHeaderTimeout)
         .withRequestTimeout(requestTimeout)

@@ -23,9 +23,7 @@ import cats.effect.std.Dispatcher
 import org.http4s.internal.threads.newDaemonPoolExecutionContext
 
 class BlazeHttp1ClientSuite extends ClientRouteTestBattery("BlazeClient") {
-  def dispatcher: Dispatcher[IO] = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
   def clientResource =
     BlazeClientBuilder[IO](
-      newDaemonPoolExecutionContext("blaze-pooled-http1-client-spec", timeout = true),
-      dispatcher).resource
+      newDaemonPoolExecutionContext("blaze-pooled-http1-client-spec", timeout = true)).resource
 }
