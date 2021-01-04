@@ -46,7 +46,7 @@ lazy val modules: List[ProjectReference] = List(
   scalaXml,
   twirl,
   scalatags,
-  // bench,
+  bench,
   // examples,
   // examplesBlaze,
   // examplesDocker,
@@ -54,10 +54,10 @@ lazy val modules: List[ProjectReference] = List(
   // examplesJetty,
   // examplesTomcat,
   // examplesWar,
-  // scalafixInput,
-  // scalafixOutput,
-  // scalafixRules,
-  // scalafixTests,
+  scalafixInput,
+  scalafixOutput,
+  scalafixRules,
+  scalafixTests,
 )
 
 lazy val root = project.in(file("."))
@@ -105,6 +105,7 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
     ),
+    Compile / packageBin / mappings ~= { _.filterNot(_._2.startsWith("scala/")) },
   )
 
 lazy val laws = libraryProject("laws")

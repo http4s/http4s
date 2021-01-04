@@ -195,7 +195,7 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(implicitly)
-  multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO]())
+  multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO]())
 
   "Part" >> {
     def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)

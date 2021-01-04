@@ -20,7 +20,7 @@ package middleware
 
 import cats.effect._
 import fs2.io.readInputStream
-import org.http4s.Uri.uri
+import org.http4s.syntax.literals._
 import org.http4s.dsl.io._
 import scala.io.Source
 
@@ -47,12 +47,12 @@ class LoggerSuite extends Http4sSuite {
     ResponseLogger(true, true)(Client.fromHttpApp(testApp))
 
   test("ResponseLogger should not affect a Get") {
-    val req = Request[IO](uri = uri("/request"))
+    val req = Request[IO](uri = uri"/request")
     responseLoggerClient.status(req).assertEquals(Status.Ok)
   }
 
   test("ResponseLogger should not affect a Post") {
-    val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
     val res = responseLoggerClient.expect[String](req)
     res.assertEquals(expectedBody)
   }
@@ -60,12 +60,12 @@ class LoggerSuite extends Http4sSuite {
   val requestLoggerClient = RequestLogger.apply(true, true)(Client.fromHttpApp(testApp))
 
   test("RequestLogger should not affect a Get") {
-    val req = Request[IO](uri = uri("/request"))
+    val req = Request[IO](uri = uri"/request")
     requestLoggerClient.status(req).assertEquals(Status.Ok)
   }
 
   test("RequestLogger should not affect a Post") {
-    val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
     val res = requestLoggerClient.expect[String](req)
     res.assertEquals(expectedBody)
   }
@@ -74,12 +74,12 @@ class LoggerSuite extends Http4sSuite {
     Logger(true, true)(Client.fromHttpApp(testApp)).toHttpApp
 
   test("Logger should not affect a Get") {
-    val req = Request[IO](uri = uri("/request"))
+    val req = Request[IO](uri = uri"/request")
     loggerApp(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("Logger should not affect a Post") {
-    val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
     val res = loggerApp(req)
     res.map(_.status).assertEquals(Status.Ok)
     res.flatMap(_.as[String]).assertEquals(expectedBody)

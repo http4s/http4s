@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,16 @@
 
 package org.http4s
 package client
-package jetty
+package blaze
 
 import cats.effect.IO
+import cats.effect.std.Dispatcher
+import org.http4s.internal.threads.newDaemonPoolExecutionContext
 
-class JettyClientSpec extends ClientRouteTestBattery("JettyClient") {
-  override def clientResource = JettyClient.resource[IO]()
+class BlazeHttp1ClientSuite extends ClientRouteTestBattery("BlazeClient") {
+  def dispatcher: Dispatcher[IO] = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+  def clientResource =
+    BlazeClientBuilder[IO](
+      newDaemonPoolExecutionContext("blaze-pooled-http1-client-spec", timeout = true),
+      dispatcher).resource
 }

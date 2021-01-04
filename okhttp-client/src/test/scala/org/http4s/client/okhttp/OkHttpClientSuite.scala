@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 http4s.org
+ * Copyright 2018 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 
 package org.http4s
-package testing
+package client
+package okhttp
 
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
-import scala.concurrent.duration.FiniteDuration
+import cats.effect.std.Dispatcher
 
-trait Http4sLegacyMatchersIO extends Http4sLegacyMatchers[IO] {
-
-  protected def runWithTimeout[A](fa: IO[A], d: FiniteDuration): A = fa.timeout(d).unsafeRunSync()
-  protected def runAwait[A](fa: IO[A]): A = fa.unsafeRunSync()
-
+class OkHttpClientSuite extends ClientRouteTestBattery("OkHttp") {
+  def clientResource =
+    Dispatcher[IO].flatMap { dispatcher =>
+      OkHttpBuilder.withDefaultClient[IO](dispatcher).map(_.create)
+    }
 }
