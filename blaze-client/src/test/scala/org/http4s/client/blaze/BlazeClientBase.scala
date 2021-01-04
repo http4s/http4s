@@ -60,21 +60,25 @@ trait BlazeClientBase extends Http4sSuite {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
         GetRoutes.getPaths.get(req.getRequestURI) match {
           case Some(resp) =>
-            srv.setStatus(resp.status.code)
-            resp.headers.foreach { h =>
-              srv.addHeader(h.name.toString, h.value)
-            }
+            resp
+              .flatMap { res =>
+                srv.setStatus(res.status.code)
+                res.headers.foreach { h =>
+                  srv.addHeader(h.name.toString, h.value)
+                }
 
-            val os: ServletOutputStream = srv.getOutputStream
+                val os: ServletOutputStream = srv.getOutputStream
 
-            val writeBody: IO[Unit] = resp.body
-              .evalMap { byte =>
-                IO(os.write(Array(byte)))
+                val writeBody: IO[Unit] = res.body
+                  .evalMap { byte =>
+                    IO(os.write(Array(byte)))
+                  }
+                  .compile
+                  .drain
+                val flushOutputStream: IO[Unit] = IO(os.flush())
+                writeBody >> flushOutputStream
               }
-              .compile
-              .drain
-            val flushOutputStream: IO[Unit] = IO(os.flush())
-            (writeBody *> flushOutputStream).unsafeRunSync()
+              .unsafeRunSync()
 
           case None => srv.sendError(404)
         }
