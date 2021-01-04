@@ -196,7 +196,7 @@ object Uri {
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =
-    ParseResult.fromParser(uriReference(StandardCharsets.UTF_8), "Invalid URI reference")(s)
+    ParseResult.fromParser(uriReference(StandardCharsets.UTF_8), "Invalid URI")(s)
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
     *  fails, throws a [[ParseFailure]].
@@ -370,8 +370,7 @@ object Uri {
 
       string1("https")
         .as(https)
-        .orElse1(string1("http"))
-        .as(http)
+        .orElse1(string1("http").as(http))
         .orElse1(
           (alpha *> rep(alpha.orElse1(digit).orElse1(charIn("+-.")))).string.map(new Scheme(_)))
     }

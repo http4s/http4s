@@ -94,9 +94,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         Uri.fromString("http://example.org/a file") must beLeft(
           ParseFailure(
             "Invalid URI",
-            """Invalid input ' ', expected Pchar, '/', '?', '#' or 'EOI' (line 1, column 21):
-http://example.org/a file
-                    ^""".replace("\r", "")
+            "Error(20,NonEmptyList(EndOfString(20,25)))"
           ))
       }
     }
