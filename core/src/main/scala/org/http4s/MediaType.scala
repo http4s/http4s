@@ -92,10 +92,10 @@ object MediaRange {
   private[http4s] val parser: Parser1[MediaRange] = mediaRangeParser(getMediaRange)
 
   private[http4s] val fullParser: Parser1[MediaRange] = {
-    val extension = Parser.rep1(MediaType.mediaTypeExtension, 1).?
+    val extension = MediaType.mediaTypeExtension.rep
 
     (parser ~ extension).map { case (mr, ext) =>
-      ext.fold(mr)(ex => mr.withExtensions(ex.toList.toMap))
+      mr.withExtensions(ext.toMap)
     }
   }
 
@@ -234,10 +234,10 @@ object MediaType extends MimeDB {
 
   val parser: Parser1[MediaType] = {
     val mediaType = MediaRange.mediaRangeParser(getMediaType)
-    val extension = Parser.rep1(mediaTypeExtension, 1).?
+    val extension = mediaTypeExtension.rep
 
     (mediaType ~ extension).map { case (mr, ext) =>
-      ext.fold(mr)(ex => mr.withExtensions(ex.toList.toMap))
+      mr.withExtensions(ext.toMap)
     }
   }
 
