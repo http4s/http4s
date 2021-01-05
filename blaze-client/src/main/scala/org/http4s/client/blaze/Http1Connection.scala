@@ -18,7 +18,7 @@ package org.http4s
 package client
 package blaze
 
-import cats.effect.kernel.{Async, Resource}
+import cats.effect.kernel.{Async, Deferred, Resource}
 import cats.effect.std.Dispatcher
 import cats.effect.implicits._
 import cats.syntax.all._
@@ -162,30 +162,34 @@ private final class Http1Connection[F[_]](
             case None => getHttpMinor(req) == 0
           }
 
-          idleTimeoutF.start.flatMap { timeoutFiber =>
-            val idleTimeoutS = timeoutFiber.joinAndEmbedNever.attempt.map {
-              case Right(t) => Left(t): Either[Throwable, Unit]
-              case Left(t) => Left(t): Either[Throwable, Unit]
-            }
-
-            val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
-              .write(rr, req.body)
-              .onError {
-                case EOF => F.unit
-                case t => F.delay(logger.error(t)("Error rendering request"))
+          Deferred[F, Unit].product(idleTimeoutF.start).flatMap {
+            case (writeComplete, timeoutFiber) =>
+              val idleTimeoutS = timeoutFiber.joinAndEmbedNever.attempt.map {
+                case Right(t) => Left(t): Either[Throwable, Unit]
+                case Left(t) => Left(t): Either[Throwable, Unit]
               }
 
-            val response: F[Response[F]] =
-              receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
+              val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
+                .write(rr, req.body)
+                .guarantee(writeComplete.complete(()).void)
+                .onError {
+                  case EOF => F.unit
+                  case t => F.delay(logger.error(t)("Error rendering request"))
+                }
 
-            val res = writeRequest.start >> response
+              val response: F[Response[F]] =
+                receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
 
-            F.race(res, timeoutFiber.joinAndEmbedNever).flatMap {
-              case Left(r) =>
-                F.pure(r)
-              case Right(t) =>
-                F.raiseError(t)
-            }
+              val res = writeRequest.background.use(_ => response)
+
+              F.race(res, timeoutFiber.joinAndEmbedNever)
+                .flatMap[Response[F]] {
+                  case Left(r) =>
+                    F.pure(r)
+                  case Right(t) =>
+                    F.raiseError(t)
+                }
+                .productL(writeComplete.get.void)
           }
         }
     }
