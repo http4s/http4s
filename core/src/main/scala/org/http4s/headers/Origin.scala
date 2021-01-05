@@ -84,8 +84,8 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
       Origin.Host(sch, host, port)
     }
 
-    nullHost.orElse((singleHost ~ rep(char(' ') *> singleHost)).map(hosts =>
-      Origin.HostList(NonEmptyList.of(hosts._1, hosts._2: _*))))
+    nullHost.orElse(Parser.rep1Sep(singleHost, 1, char(' ')).map(hosts =>
+      Origin.HostList(hosts)))
   }
 
   override def parse(s: String): ParseResult[Origin] =
