@@ -186,29 +186,29 @@ private final class Http1Connection[F[_]](
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
-              val idleTimeoutS = timeoutFiber.joinAndEmbedNever.attempt.map {
-                case Right(t) => Left(t): Either[Throwable, Unit]
-                case Left(t) => Left(t): Either[Throwable, Unit]
+            val idleTimeoutS = timeoutFiber.joinAndEmbedNever.attempt.map {
+              case Right(t) => Left(t): Either[Throwable, Unit]
+              case Left(t) => Left(t): Either[Throwable, Unit]
+            }
+
+            val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
+              .write(rr, req.body)
+              .guarantee(F.delay(resetWrite()))
+              .onError {
+                case EOF => F.unit
+                case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-              val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
-                .write(rr, req.body)
-                .guarantee(F.delay(resetWrite()))
-                .onError {
-                  case EOF => F.unit
-                  case t => F.delay(logger.error(t)("Error rendering request"))
-                }
+            val response: F[Response[F]] = writeRequest.start >>
+              receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
 
-              val response: F[Response[F]] = writeRequest.start >>
-                receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
-
-              F.race(response, timeoutFiber.joinAndEmbedNever)
-                .flatMap[Response[F]] {
-                  case Left(r) =>
-                    F.pure(r)
-                  case Right(t) =>
-                    F.raiseError(t)
-                }
+            F.race(response, timeoutFiber.joinAndEmbedNever)
+              .flatMap[Response[F]] {
+                case Left(r) =>
+                  F.pure(r)
+                case Right(t) =>
+                  F.raiseError(t)
+              }
           }
         }
     }
