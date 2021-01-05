@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.Parser1
+import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7230.headerRep1
 import org.http4s.util.{Renderable, Writer}
 
@@ -26,9 +26,9 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Accept] =
     ParseResult.fromParser(parser, "Invalid Accept header")(s)
 
-  private[http4s] val parser: Parser1[Accept] = {
+  private[http4s] val parser: Parser[Accept] = {
     val acceptParams =
-      (QValue.parser ~ MediaType.mediaTypeExtension.rep).map { case (qValue, ext) =>
+      (QValue.parser ~ MediaType.mediaTypeExtension.rep0).map { case (qValue, ext) =>
         (
           qValue,
           ext
@@ -36,11 +36,11 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
       }
 
     val qAndExtension =
-      acceptParams.orElse(MediaType.mediaTypeExtension.rep1.map { s =>
+      acceptParams.orElse(MediaType.mediaTypeExtension.rep.map { s =>
         (org.http4s.QValue.One, s.toList)
       })
 
-    val fullRange: Parser1[MediaRangeAndQValue] = (MediaRange.parser ~ qAndExtension.?).map {
+    val fullRange: Parser[MediaRangeAndQValue] = (MediaRange.parser ~ qAndExtension.?).map {
       case (mr, params) =>
         val (qValue, extensions) = params.getOrElse((QValue.One, Seq.empty))
         mr.withExtensions(extensions.toMap).withQValue(qValue)

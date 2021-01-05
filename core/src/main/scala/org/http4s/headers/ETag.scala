@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Parser1, Rfc5234}
+import cats.parse.{Parser0, Parser, Rfc5234}
 import cats.Show
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
@@ -43,20 +43,20 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
    *
    * @see [[https://tools.ietf.org/html/rfc7232#section-2.3]]
    */
-  private[http4s] val parser: Parser1[ETag] = {
-    import Parser.{charIn, string1}
+  private[http4s] val parser: Parser[ETag] = {
+    import Parser.{charIn, string}
     import Rfc5234.{dquote}
     import Rfc7230.{obsText}
 
     // weak       = %x57.2F ; "W/", case-sensitive
-    val weak = string1("W/").as(true)
+    val weak = string("W/").as(true)
 
     // etagc      = %x21 / %x23-7E / obs-text
     //            ; VCHAR except double quotes, plus obs-text
-    val etagc = charIn(0x21.toChar, 0x23.toChar to 0x7e.toChar: _*).orElse1(obsText)
+    val etagc = charIn(0x21.toChar, 0x23.toChar to 0x7e.toChar: _*).orElse(obsText)
 
     // opaque-tag = DQUOTE *etagc DQUOTE
-    val opaqueTag = dquote *> etagc.rep.string <* dquote
+    val opaqueTag = dquote *> etagc.rep0.string <* dquote
 
     // entity-tag = [ weak ] opaque-tag
     val entityTag = (weak.?.with1 ~ opaqueTag).map { case (weakness, tag) =>

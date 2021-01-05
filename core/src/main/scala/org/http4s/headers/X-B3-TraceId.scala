@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.Applicative
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.{Parser0, Rfc5234}
 import cats.syntax.all._
 
 import java.util.UUID
@@ -29,8 +29,8 @@ object `X-B3-TraceId` extends HeaderKey.Internal[`X-B3-TraceId`] with HeaderKey.
   override def parse(s: String): ParseResult[`X-B3-TraceId`] =
     ParseResult.fromParser(parser, "Invalid X-B3-TraceId header")(s)
 
-  private[http4s] val parser: Parser[`X-B3-TraceId`] = {
-    val hexValue = Applicative[Parser].replicateA(16, Rfc5234.hexdig).map { s =>
+  private[http4s] val parser: Parser0[`X-B3-TraceId`] = {
+    val hexValue = Applicative[Parser0].replicateA(16, Rfc5234.hexdig).map { s =>
       ZipkinHeader.idStringToLong(s.mkString(""))
     }
     (hexValue, hexValue.?).mapN(`X-B3-TraceId`(_, _))

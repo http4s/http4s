@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser1
+import cats.parse.Parser
 import org.http4s.util.{Renderer, Writer}
 
 object `If-Unmodified-Since`
@@ -27,7 +27,7 @@ object `If-Unmodified-Since`
     ParseResult.fromParser(parser, "Invalid If-Unmodified-Since header")(s)
 
   /* `If-Modified-Since = HTTP-date` */
-  private[http4s] val parser: Parser1[`If-Unmodified-Since`] =
+  private[http4s] val parser: Parser[`If-Unmodified-Since`] =
     HttpDate.parser.map(apply)
 }
 

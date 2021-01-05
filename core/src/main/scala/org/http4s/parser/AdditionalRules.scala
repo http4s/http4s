@@ -14,7 +14,7 @@
 package org.http4s
 package parser
 
-import cats.parse.{Parser => P}
+import cats.parse.{Parser0 => P0}
 import cats.syntax.all._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
@@ -212,5 +212,5 @@ private[http4s] object AdditionalRules {
   import Rfc2616BasicRules._
   def EOI = P.char('\uFFFF')
 
-  def EOL = optWs *> EOI.rep
+  def EOL = optWs *> EOI.rep0
 }

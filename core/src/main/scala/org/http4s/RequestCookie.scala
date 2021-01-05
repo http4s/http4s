@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.parse.Parser1
+import cats.parse.Parser
 import org.http4s.internal.parsing.RelaxedCookies
 import org.http4s.util.{Renderable, Writer}
 import scala.runtime.AbstractFunction2
@@ -32,7 +32,7 @@ final case class RequestCookie(name: String, content: String) extends Renderable
 }
 
 object RequestCookie extends AbstractFunction2[String, String, RequestCookie] {
-  private[http4s] val parser: Parser1[RequestCookie] =
+  private[http4s] val parser: Parser[RequestCookie] =
     RelaxedCookies.cookiePair.map { case (name, value) =>
       RequestCookie(name, value)
     }

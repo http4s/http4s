@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.Applicative
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.{Parser0, Rfc5234}
 import org.http4s.parser.ZipkinHeader
 import org.http4s.util.Writer
 
@@ -26,8 +26,8 @@ object `X-B3-SpanId` extends HeaderKey.Internal[`X-B3-SpanId`] with HeaderKey.Si
   override def parse(s: String): ParseResult[`X-B3-SpanId`] =
     ParseResult.fromParser(parser, "Invalid X-B3-SpanId header")(s)
 
-  private[http4s] val parser: Parser[`X-B3-SpanId`] =
-    Applicative[Parser]
+  private[http4s] val parser: Parser0[`X-B3-SpanId`] =
+    Applicative[Parser0]
       .replicateA(16, Rfc5234.hexdig)
       .string
       .map(ZipkinHeader.idStringToLong)
