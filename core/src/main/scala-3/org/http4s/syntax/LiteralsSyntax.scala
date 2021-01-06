@@ -34,8 +34,7 @@ trait LiteralsSyntax {
 object LiteralsSyntax {
 
   trait Validator[A] {
-    def validate(s: String): Option[String]
-    def build(s: String)(using Quotes): Expr[A]
+    def validate(s: String)(using Quotes): Either[String, Expr[A]]
   }
 
   def validateUri(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
@@ -54,23 +53,18 @@ object LiteralsSyntax {
     validate(qvalue, strCtxExpr, argsExpr)
 
   def validate[A](validator: Validator[A], strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes): Expr[A] = {
-    strCtxExpr.unlift match {
-      case Some(sc) => validate(validator, sc.parts, argsExpr)
-      case None =>
-        report.error("StringContext args must be statically known")
-        ???
-    }
+    val sc = strCtxExpr.unliftOrError
+    validate(validator, sc.parts, argsExpr)
   }
 
   private def validate[A](validator: Validator[A], parts: Seq[String], argsExpr: Expr[Seq[Any]])(using Quotes): Expr[A] = {
     if (parts.size == 1) {
       val literal = parts.head
       validator.validate(literal) match {
-        case Some(err) =>
+        case Left(err) =>
           report.error(err)
           ???
-        case None =>
-          validator.build(literal)
+        case Right(expr) => expr
       }
     } else {
       report.error("interpolation not supported", argsExpr)
@@ -79,51 +73,37 @@ object LiteralsSyntax {
   }
 
   object uri extends Validator[Uri] {
-    def validate(s: String): Option[String] =
-      Uri.fromString(s).fold(err => Some(err.message), _ => None)
-    def build(s: String)(using Quotes): Expr[Uri] =
-      '{Uri.unsafeFromString(${Expr(s)})},
+    def validate(s: String)(using Quotes): Either[String, Expr[Uri]] =
+      Uri.fromString(s).fold(err => Left(err.message), value => Right(Expr(value)))
   }
 
   object scheme extends Validator[Uri.Scheme] {
-    def validate(s: String): Option[String] =
-      Uri.Scheme.fromString(s).fold(err => Some(err.message), _ => None)
-    def build(s: String)(using Quotes): Expr[Uri.Scheme] =
-      '{Uri.Scheme.unsafeFromString(${Expr(s)})},
+    def validate(s: String): Either[String, Expr[Uri.Scheme]] =
+      Uri.Scheme.fromString(s).fold(err => Left(err.message), value => Right(Expr(value)))
   }
 
   object path extends Validator[Uri.Path] {
-    def validate(s: String): Option[String] =
-      uri.validate(s)
-    def build(s: String)(using Quotes): Expr[Uri.Path] =
-      '{Uri.Path.fromString(${Expr(s)})},
+    def validate(s: String): Either[String, Expr[Uri.Path]] =
+      Uri.fromString(s).fold(err => Left(err.message), value => Right(Expr(value.path)))
   }
 
   object ipv4 extends Validator[Uri.Ipv4Address] {
-    def validate(s: String): Option[String] =
-      Uri.Ipv4Address.fromString(s).fold(err => Some(err.message), _ => None)
-    def build(s: String)(using Quotes): Expr[Uri.Ipv4Address] =
-      '{Uri.Ipv4Address.unsafeFromString(${Expr(s)})},
+    def validate(s: String): Either[String, Expr[Uri.Ipv4Address]] =
+      Uri.Ipv4Address.fromString(s).fold(err => Left(err.message), value => Right(Expr(value)))
   }
 
   object ipv6 extends Validator[Uri.Ipv6Address] {
-    def validate(s: String): Option[String] =
-      Uri.Ipv6Address.fromString(s).fold(err => Some(err.message), _ => None)
-    def build(s: String)(using Quotes): Expr[Uri.Ipv6Address] =
-      '{Uri.Ipv6Address.unsafeFromString(${Expr(s)})},
+    def validate(s: String): Either[String, Expr[Uri.Ipv6Address]] =
+      Uri.Ipv6Address.fromString(s).fold(err => Left(err.message), value => Right(Expr(value.path)))
   }
 
   object mediatype extends Validator[MediaType] {
-    def validate(s: String): Option[String] =
-      MediaType.parse(s).fold(err => Some(err.message), _ => None)
-    def build(s: String)(using Quotes): Expr[MediaType] =
-      '{MediaType.unsafeParse(${Expr(s)})},
+    def validate(s: String): Either[String, Expr[MediaType]] =
+      MediaType.parse(s).fold(err => Left(err.message), _ => value => Right(Expr(value.path)))
   }
 
   object qvalue extends Validator[QValue] {
-    def validate(s: String): Option[String] =
-      QValue.fromString(s).fold(err => Some(err.message), _ => None)
-    def build(s: String)(using Quotes): Expr[QValue] =
-      '{QValue.unsafeFromString(${Expr(s)})},
+    def validate(s: String): Either[String, Expr[QValue]] =
+      QValue.fromString(s).fold(err => Left(err.message), _ => value => Right(Expr(value.path)))
   }
 }
