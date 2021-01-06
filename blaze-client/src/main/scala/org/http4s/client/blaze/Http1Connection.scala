@@ -107,26 +107,49 @@ private final class Http1Connection[F[_]](
     }
 
   @tailrec
-  def reset(): Unit =
-    stageState.get() match {
-      case v @ (Running | Idle) =>
-        if (stageState.compareAndSet(v, Idle)) parser.reset()
-        else reset()
-      case Error(_) => // NOOP: we don't reset on an error.
+  def resetRead(): Unit = {
+    val state = stageState.get()
+    val nextState = state match {
+      case Idle => Some(Idle)
+      case ReadWrite => Some(Write)
+      case Read => Some(Idle)
+      case _ => None
     }
+
+    nextState match {
+      case Some(n) => if (stageState.compareAndSet(state, n)) parser.reset() else resetRead()
+      case None => ()
+    }
+  }
+
+  @tailrec
+  def resetWrite(): Unit = {
+    val state = stageState.get()
+    val nextState = state match {
+      case Idle => Some(Idle)
+      case ReadWrite => Some(Read)
+      case Write => Some(Idle)
+      case _ => None
+    }
+
+    nextState match {
+      case Some(n) => if (stageState.compareAndSet(state, n)) () else resetWrite()
+      case None => ()
+    }
+  }
 
   def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] =
     F.defer[Response[F]] {
       stageState.get match {
         case Idle =>
-          if (stageState.compareAndSet(Idle, Running)) {
+          if (stageState.compareAndSet(Idle, ReadWrite)) {
             logger.debug(s"Connection was idle. Running.")
             executeRequest(req, idleTimeoutF)
           } else {
             logger.debug(s"Connection changed state since checking it was idle. Looping.")
             runRequest(req, idleTimeoutF)
           }
-        case Running =>
+        case ReadWrite | Read | Write =>
           logger.error(s"Tried to run a request already in running state.")
           F.raiseError(InProgressException)
         case Error(e) =>
@@ -170,22 +193,22 @@ private final class Http1Connection[F[_]](
 
             val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
               .write(rr, req.body)
+              .guarantee(F.delay(resetWrite()))
               .onError {
                 case EOF => F.unit
                 case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-            val response: F[Response[F]] =
+            val response: F[Response[F]] = writeRequest.start >>
               receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
 
-            val res = writeRequest.start >> response
-
-            F.race(res, timeoutFiber.joinAndEmbedNever).flatMap {
-              case Left(r) =>
-                F.pure(r)
-              case Right(t) =>
-                F.raiseError(t)
-            }
+            F.race(response, timeoutFiber.joinAndEmbedNever)
+              .flatMap[Response[F]] {
+                case Left(r) =>
+                  F.pure(r)
+                case Right(t) =>
+                  F.raiseError(t)
+              }
           }
         }
     }
@@ -211,8 +234,10 @@ private final class Http1Connection[F[_]](
       case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
       case Failure(EOF) =>
         stageState.get match {
-          case Idle | Running => shutdown(); cb(Left(EOF))
           case Error(e) => cb(Left(e))
+          case _ =>
+            shutdown()
+            cb(Left(EOF))
         }
 
       case Failure(t) =>
@@ -252,7 +277,7 @@ private final class Http1Connection[F[_]](
           stageShutdown()
         } else {
           logger.debug(s"Resetting $name after completing request.")
-          reset()
+          resetRead()
         }
 
       val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
@@ -361,7 +386,9 @@ private object Http1Connection {
   // ADT representing the state that the ClientStage can be in
   private sealed trait State
   private case object Idle extends State
-  private case object Running extends State
+  private case object ReadWrite extends State
+  private case object Read extends State
+  private case object Write extends State
   private final case class Error(exc: Throwable) extends State
 
   private def getHttpMinor[F[_]](req: Request[F]): Int = req.httpVersion.minor
