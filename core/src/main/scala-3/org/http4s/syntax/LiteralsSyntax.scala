@@ -38,17 +38,17 @@ private[syntax] object LiteralsSyntax {
   }
 
   def validateUri(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(uri, strCtxExpr, argsExpr)
+    validate(s => Uri.fromString(s).map(value => Expr(value)), strCtxExpr, argsExpr)
   def validateUriScheme(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(scheme, strCtxExpr, argsExpr)
+    validate(s => Uri.Scheme.fromString(s).map(value => Expr(value)), strCtxExpr, argsExpr)
   def validatePath(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(path, strCtxExpr, argsExpr)
+    validate(s => Uri.fromString(s).map(value => Expr(value.path)), strCtxExpr, argsExpr)
   def validateIpv4(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(ipv4, strCtxExpr, argsExpr)
+    validate(s => Uri.Ipv4Address.fromString(s).map(value => Expr(value)), strCtxExpr, argsExpr)
   def validateIpv6(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(ipv6, strCtxExpr, argsExpr)
+    validate(s => Uri.Ipv6Address.fromString(s).map(value => Expr(value)), strCtxExpr, argsExpr)
   def validateMediatype(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(mediatype, strCtxExpr, argsExpr)
+    validate(s => MediaType.parse(s).map(value => Expr(value)), strCtxExpr, argsExpr)
   def validateQvalue(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
     validate(qvalue, strCtxExpr, argsExpr)
 
@@ -72,39 +72,9 @@ private[syntax] object LiteralsSyntax {
     }
   }
 
-  object uri extends Validator[Uri] {
-    def validate(s: String)(using Quotes): ParseResult[Expr[Uri]] =
-      Uri.fromString(s).map(value => Expr(value))
-  }
-
-  object scheme extends Validator[Uri.Scheme] {
-    def validate(s: String): ParseResult[Expr[Uri.Scheme]] =
-      Uri.Scheme.fromString(s).map(value => Expr(value))
-  }
-
-  object path extends Validator[Uri.Path] {
-    def validate(s: String): ParseResult[Expr[Uri.Path]] =
-      Uri.fromString(s).map(value => Expr(value.path))
-  }
-
-  object ipv4 extends Validator[Uri.Ipv4Address] {
-    def validate(s: String): ParseResult[Expr[Uri.Ipv4Address]] =
-      Uri.Ipv4Address.fromString(s).map(value => Expr(value))
-  }
-
-  object ipv6 extends Validator[Uri.Ipv6Address] {
-    def validate(s: String): ParseResult[Expr[Uri.Ipv6Address]] =
-      Uri.Ipv6Address.fromString(s).map(value => Expr(value))
-  }
-
-  object mediatype extends Validator[MediaType] {
-    def validate(s: String): ParseResult[Expr[MediaType]] =
-      MediaType.parse(s).map(value => Expr(value))
-  }
-
   object qvalue extends Validator[QValue] {
     def validate(s: String): ParseResult[Expr[QValue]] =
-      //QValue.fromString(s).map(value => Expr(value))
+    //QValue.fromString(s).map(value => Expr(value))
       ??? //todo: enable
   }
 }
