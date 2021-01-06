@@ -31,7 +31,7 @@ trait LiteralsSyntax {
   }
 }
 
-object LiteralsSyntax {
+private[syntax] object LiteralsSyntax {
 
   trait Validator[A] {
     def validate(s: String)(using Quotes): ParseResult[Expr[A]]
