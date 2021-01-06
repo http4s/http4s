@@ -34,7 +34,7 @@ trait LiteralsSyntax {
 object LiteralsSyntax {
 
   trait Validator[A] {
-    def validate(s: String)(using Quotes): Either[String, Expr[A]]
+    def validate(s: String)(using Quotes): ParseResult[Expr[A]]
   }
 
   def validateUri(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
@@ -62,7 +62,7 @@ object LiteralsSyntax {
       val literal = parts.head
       validator.validate(literal) match {
         case Left(err) =>
-          report.error(err)
+          report.error(err.message)
           ???
         case Right(expr) => expr
       }
@@ -73,37 +73,38 @@ object LiteralsSyntax {
   }
 
   object uri extends Validator[Uri] {
-    def validate(s: String)(using Quotes): Either[String, Expr[Uri]] =
-      Uri.fromString(s).fold(err => Left(err.message), value => Right(Expr(value)))
+    def validate(s: String)(using Quotes): ParseResult[Expr[Uri]] =
+      Uri.fromString(s).map(value => Expr(value))
   }
 
   object scheme extends Validator[Uri.Scheme] {
-    def validate(s: String): Either[String, Expr[Uri.Scheme]] =
-      Uri.Scheme.fromString(s).fold(err => Left(err.message), value => Right(Expr(value)))
+    def validate(s: String): ParseResult[Expr[Uri.Scheme]] =
+      Uri.Scheme.fromString(s).map(value => Expr(value))
   }
 
   object path extends Validator[Uri.Path] {
-    def validate(s: String): Either[String, Expr[Uri.Path]] =
-      Uri.fromString(s).fold(err => Left(err.message), value => Right(Expr(value.path)))
+    def validate(s: String): ParseResult[Expr[Uri.Path]] =
+      Uri.fromString(s).map(value => Expr(value.path))
   }
 
   object ipv4 extends Validator[Uri.Ipv4Address] {
-    def validate(s: String): Either[String, Expr[Uri.Ipv4Address]] =
-      Uri.Ipv4Address.fromString(s).fold(err => Left(err.message), value => Right(Expr(value)))
+    def validate(s: String): ParseResult[Expr[Uri.Ipv4Address]] =
+      Uri.Ipv4Address.fromString(s).map(value => Expr(value))
   }
 
   object ipv6 extends Validator[Uri.Ipv6Address] {
-    def validate(s: String): Either[String, Expr[Uri.Ipv6Address]] =
-      Uri.Ipv6Address.fromString(s).fold(err => Left(err.message), value => Right(Expr(value.path)))
+    def validate(s: String): ParseResult[Expr[Uri.Ipv6Address]] =
+      Uri.Ipv6Address.fromString(s).map(value => Expr(value))
   }
 
   object mediatype extends Validator[MediaType] {
-    def validate(s: String): Either[String, Expr[MediaType]] =
-      MediaType.parse(s).fold(err => Left(err.message), _ => value => Right(Expr(value.path)))
+    def validate(s: String): ParseResult[Expr[MediaType]] =
+      MediaType.parse(s).map(value => Expr(value))
   }
 
   object qvalue extends Validator[QValue] {
-    def validate(s: String): Either[String, Expr[QValue]] =
-      QValue.fromString(s).fold(err => Left(err.message), _ => value => Right(Expr(value.path)))
+    def validate(s: String): ParseResult[Expr[QValue]] =
+      //QValue.fromString(s).map(value => Expr(value))
+      ??? //todo: enable
   }
 }
