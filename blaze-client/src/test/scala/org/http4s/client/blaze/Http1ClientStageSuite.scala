@@ -157,15 +157,6 @@ class Http1ClientStageSuite extends Http4sSuite {
     } yield ()).intercept[Http1Connection.InProgressException.type]
   }
 
-  fooConnection.test("Reset correctly") { tail =>
-    val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
-    LeafBuilder(tail).base(h)
-
-    // execute the first request and run the body to reset the stage
-    tail.runRequest(FooRequest, IO.never).flatMap(_.body.compile.drain) >>
-      tail.runRequest(FooRequest, IO.never).map(_.headers.size).assertEquals(1)
-  }
-
   fooConnection.test("Alert the user if the body is to short") { tail =>
     val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
 
