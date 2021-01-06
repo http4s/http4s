@@ -86,7 +86,7 @@ object HttpDate {
   val Epoch: HttpDate =
     unsafeFromEpochSecond(0)
 
-  /** Parses a date according to RFC7321, Section 7.1.1.1
+  /** Parses a date according to RFC7231, Section 7.1.1.1
     *
     * @see https://tools.ietf.org/html/rfc7231#page-65
     */
