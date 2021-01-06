@@ -230,6 +230,11 @@ class UriParserSpec extends Http4sSpec {
         u must_== Uri(path = path"/a/b", query = Query(("foo", None)))
       }
     }
+    "parse a path-absolute uri with query and fragment" in {
+      Uri.fromString("/a/b?foo#bar") must beRight.like { case u =>
+        u must_== Uri(path = path"/a/b", query = Query(("foo", None)), fragment = Some("bar"))
+      }
+    }
   }
 
   "String interpolator" should {
