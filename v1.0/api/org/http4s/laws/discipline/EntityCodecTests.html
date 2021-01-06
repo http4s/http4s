@@ -150,6 +150,10 @@
                         <a class="trait" href="HttpCodecTests.html" title=""></a>
                         <a href="HttpCodecTests.html" title="">HttpCodecTests</a>
                       </li><li class="current-entities indented4">
+                        <a class="object" href="LawAdapter$.html" title=""></a>
+                        <a class="trait" href="LawAdapter.html" title=""></a>
+                        <a href="LawAdapter.html" title="">LawAdapter</a>
+                      </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="arbitrary$.html" title=""></a>
                         <a href="arbitrary$.html" title="">arbitrary</a>
@@ -183,7 +187,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/f99b0af88d48395bd3ad6ad8a222bd66f3a34c96/laws/src/main/scala/org/http4s/laws/discipline/EntityCodecTests.scala" target="_blank">EntityCodecTests.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/f1a4ab056aee18cb5927ff45ee8bdd14bba5366e/laws/src/main/scala/org/http4s/laws/discipline/EntityCodecTests.scala" target="_blank">EntityCodecTests.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -446,6 +450,22 @@
       </span>
       
       
+    </li><li name="org.http4s.laws.discipline.EntityCodecTests#entityCodecF" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="entityCodecF(implicitarbitraryA:org.scalacheck.Arbitrary[A],implicitshrinkA:org.scalacheck.Shrink[A],impliciteqA:cats.Eq[A]):List[(String,org.scalacheck.effect.PropF[cats.effect.IO])]"></a><a id="entityCodecF(Arbitrary[A],Shrink[A],Eq[A]):List[(String,PropF[IO])]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/laws/discipline/EntityCodecTests.html#entityCodecF(implicitarbitraryA:org.scalacheck.Arbitrary[A],implicitshrinkA:org.scalacheck.Shrink[A],impliciteqA:cats.Eq[A]):List[(String,org.scalacheck.effect.PropF[cats.effect.IO])]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">entityCodecF</span><span class="params">(<span class="implicit">implicit </span><span name="arbitraryA">arbitraryA: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<span class="extype" name="org.http4s.laws.discipline.EntityCodecTests.A">A</span>]</span>, <span name="shrinkA">shrinkA: <span class="extype" name="org.scalacheck.Shrink">Shrink</span>[<span class="extype" name="org.http4s.laws.discipline.EntityCodecTests.A">A</span>]</span>, <span name="eqA">eqA: <span class="extype" name="cats.Eq">Eq</span>[<span class="extype" name="org.http4s.laws.discipline.EntityCodecTests.A">A</span>]</span>)</span><span class="result">: <a href="../../../../scala/index.html#List[+A]=List[A]" class="extmbr" name="scala.List">List</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="org.scalacheck.effect.PropF">PropF</span>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>])]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.laws.discipline.EntityEncoderTests#entityEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="entityEncoder(implicitarbitraryA:org.scalacheck.Arbitrary[A],implicitshrinkA:org.scalacheck.Shrink[A],impliciteqFBoolean:cats.Eq[F[Boolean]]):EntityEncoderTests.this.RuleSet"></a><a id="entityEncoder(Arbitrary[A],Shrink[A],Eq[F[Boolean]]):RuleSet"></a>
       <span class="permalink">
@@ -459,6 +479,22 @@
       </span>
       <span class="symbol">
         <span class="name">entityEncoder</span><span class="params">(<span class="implicit">implicit </span><span name="arbitraryA">arbitraryA: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<span class="extype" name="org.http4s.laws.discipline.EntityCodecTests.A">A</span>]</span>, <span name="shrinkA">shrinkA: <span class="extype" name="org.scalacheck.Shrink">Shrink</span>[<span class="extype" name="org.http4s.laws.discipline.EntityCodecTests.A">A</span>]</span>, <span name="eqFBoolean">eqFBoolean: <span class="extype" name="cats.Eq">Eq</span>[<span class="extype" name="org.http4s.laws.discipline.EntityCodecTests.F">F</span>[<a href="https://www.scala-lang.org/api/2.12.12/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]]</span>)</span><span class="result">: <a href="#RuleSetextendsAnyRef" class="extmbr" name="org.http4s.laws.discipline.EntityCodecTests.RuleSet">RuleSet</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderTests.html" class="extype" name="org.http4s.laws.discipline.EntityEncoderTests">EntityEncoderTests</a></dd></dl></div>
+    </li><li name="org.http4s.laws.discipline.EntityEncoderTests#entityEncoderF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="entityEncoderF(implicitarbitraryA:org.scalacheck.Arbitrary[A],implicitshrinkA:org.scalacheck.Shrink[A]):List[(String,org.scalacheck.effect.PropF[cats.effect.IO])]"></a><a id="entityEncoderF(Arbitrary[A],Shrink[A]):List[(String,PropF[IO])]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/laws/discipline/EntityCodecTests.html#entityEncoderF(implicitarbitraryA:org.scalacheck.Arbitrary[A],implicitshrinkA:org.scalacheck.Shrink[A]):List[(String,org.scalacheck.effect.PropF[cats.effect.IO])]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">entityEncoderF</span><span class="params">(<span class="implicit">implicit </span><span name="arbitraryA">arbitraryA: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<span class="extype" name="org.http4s.laws.discipline.EntityCodecTests.A">A</span>]</span>, <span name="shrinkA">shrinkA: <span class="extype" name="org.scalacheck.Shrink">Shrink</span>[<span class="extype" name="org.http4s.laws.discipline.EntityCodecTests.A">A</span>]</span>)</span><span class="result">: <a href="../../../../scala/index.html#List[+A]=List[A]" class="extmbr" name="scala.List">List</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="org.scalacheck.effect.PropF">PropF</span>[<a href="https://typelevel.org/cats-effect/api/cats/effect/IO.html#cats.effect.IO" class="extype" name="cats.effect.IO">IO</a>])]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderTests.html" class="extype" name="org.http4s.laws.discipline.EntityEncoderTests">EntityEncoderTests</a></dd></dl></div>
@@ -478,22 +514,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.laws.discipline.EntityCodecTests#eqDecodeFailure" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="eqDecodeFailure:cats.Eq[org.http4s.DecodeFailure]"></a><a id="eqDecodeFailure:Eq[DecodeFailure]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/laws/discipline/EntityCodecTests.html#eqDecodeFailure:cats.Eq[org.http4s.DecodeFailure]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">eqDecodeFailure</span><span class="result">: <span class="extype" name="cats.Eq">Eq</span>[<a href="../../DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>]</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
