@@ -287,7 +287,7 @@ object Uri {
                     / authority-form
                     / asterisk-form
    */
-  private val requestTargetParser: Parser[Uri] = {
+  private lazy val requestTargetParser: Parser[Uri] = {
     import cats.parse.Parser.char
     import Authority.{parser => authority}
     import Path.absolutePath
