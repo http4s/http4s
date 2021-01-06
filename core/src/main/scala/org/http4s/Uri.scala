@@ -17,7 +17,7 @@ import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset}
 import java.nio.charset.StandardCharsets
-import org.http4s.internal.{CharPredicate, bug, compareField, hashLower, reduceComparisons}
+import org.http4s.internal.{UriCoding, bug, compareField, hashLower, reduceComparisons}
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.internal.parsing.Rfc3986
@@ -1204,15 +1204,7 @@ object Uri {
       case n => b.setLength(n)
     }
 
-  private[http4s] lazy val Unreserved =
-    CharPredicate.AlphaNum ++ "-_.~"
-
-  private val toSkip =
-    Unreserved ++ "!$&'()*+,;=:/?@"
-
-  private val HexUpperCaseChars = (0 until 16).map { i =>
-    Character.toUpperCase(Character.forDigit(i, 16))
-  }
+  private[http4s] def Unreserved = UriCoding.Unreserved
 
   /** Percent-encodes a string.  Depending on the parameters, this method is
     * appropriate for URI or URL form encoding.  Any resulting percent-encodings
@@ -1230,24 +1222,8 @@ object Uri {
       toEncode: String,
       charset: JCharset = StandardCharsets.UTF_8,
       spaceIsPlus: Boolean = false,
-      toSkip: Char => Boolean = toSkip): String = {
-    val in = charset.encode(toEncode)
-    val out = CharBuffer.allocate((in.remaining() * 3).toInt)
-    while (in.hasRemaining) {
-      val c = in.get().toChar
-      if (toSkip(c)) {
-        out.put(c)
-      } else if (c == ' ' && spaceIsPlus) {
-        out.put('+')
-      } else {
-        out.put('%')
-        out.put(HexUpperCaseChars((c >> 4) & 0xf))
-        out.put(HexUpperCaseChars(c & 0xf))
-      }
-    }
-    out.flip()
-    out.toString
-  }
+      toSkip: Char => Boolean = UriCoding.toSkip): String =
+    UriCoding.encode(toEncode, charset, spaceIsPlus, toSkip)
 
   private val SkipEncodeInPath =
     Unreserved ++ ":@!$&'()*+,;="
@@ -1306,7 +1282,7 @@ object Uri {
         // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
         // however there are cases where a string can be partially decoded
         // so we have to make sure the non us-ascii chars get preserved properly.
-        if (this.toSkip(c)) {
+        if (UriCoding.toSkip(c)) {
           out.put(c.toByte)
         } else {
           out.put(charset.encode(String.valueOf(c)))

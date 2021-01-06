@@ -20,7 +20,7 @@ import cats.parse.Parser
 import cats.syntax.all._
 import cats.{Eval, Foldable, Hash, Order, Show}
 import org.http4s.Query._
-import org.http4s.internal.{CharPredicate, CollectionCompat}
+import org.http4s.internal.{CollectionCompat, UriCoding}
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, Writer}
@@ -104,7 +104,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
       var first = true
 
       def encode(s: String) =
-        Uri.encode(s, spaceIsPlus = false, toSkip = NoEncode)
+        UriCoding.encode(s, spaceIsPlus = false, toSkip = UriCoding.QueryNoEncode)
 
       pairs.foreach {
         case (n, None) =>
@@ -164,14 +164,6 @@ object Query {
 
   /** Represents a query string with no keys or values: `?` */
   val blank = new Query(Vector("" -> None))
-
-  /*
-   * "The characters slash ("/") and question mark ("?") may represent data
-   * within the query component... it is sometimes better for usability to
-   * avoid percent-encoding those characters."
-   *   -- http://tools.ietf.org/html/rfc3986#section-3.4
-   */
-  private val NoEncode: CharPredicate = Uri.Unreserved ++ "?/"
 
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)
