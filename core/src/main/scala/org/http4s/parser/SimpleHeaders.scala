@@ -22,7 +22,6 @@ import cats.data.NonEmptyList
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
-import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
 import org.typelevel.ci.CIString
 
@@ -222,7 +221,7 @@ private[parser] trait SimpleHeaders {
 
   def ETAG(value: String): ParseResult[ETag] =
     new Http4sHeaderParser[ETag](value) {
-      def entry = rule(EntityTag ~> (ETag(_: ETag.EntityTag)))
+      def entry = rule(EntityTag ~> (ETag(_: EntityTag)))
     }.parse
 
   def IF_MATCH(value: String): ParseResult[`If-Match`] =
