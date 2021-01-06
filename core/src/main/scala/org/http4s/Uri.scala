@@ -418,7 +418,7 @@ object Uri {
     /* segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
                      ; non-zero-length segment without any colon ":" */
     val segmentNzNc: P[Path] =
-      unreserved.orElse1(pctEncoded).orElse1(subDelims).orElse1(char('@')).reporElseorElseorElse.string
+      unreserved.orElse(pctEncoded).orElse(subDelims).orElse(char('@')).rep.string
         .map(decode(_))
 
     /* path-abempty  = *( "/" segment ) */
@@ -457,7 +457,7 @@ object Uri {
      * Not URL decoded.
      */
     private[http4s] val parser: P0[Fragment] =
-      pchar.orElse1(charIn("/?")).rep0orElse.string
+      pchar.orElse(charIn("/?")).rep0.string
   }
 
   final case class Authority(
@@ -554,8 +554,8 @@ object Uri {
       import cats.parse.Parser.{char, charIn}
       import Rfc3986.{pctEncoded, subDelims, unreserved}
 
-      val username = unreserved.orElse1(pctEncoded).orElse1(subDelims).rep0orElseorElse.string
-      val password = unreserved.orElse1(pctEncoded).orElse1(subDelims).orElse1(charIn(':')).rep0orElseorElseorElse.string
+      val username = unreserved.orElse(pctEncoded).orElse(subDelims).rep0.string
+      val password = unreserved.orElse(pctEncoded).orElse(subDelims).orElse(charIn(':')).rep0.string
       (username ~ (char(':') *> password).?).map { case (u, p) =>
         UserInfo(decode(u, cs), p.map(decode(_, cs)))
       }
@@ -1060,7 +1060,7 @@ object Uri {
     val parser: P0[RegName] = {
       import Rfc3986.{pctEncoded, subDelims, unreserved}
 
-      unreserved.orElse1(pctEncoded).orElse1(subDelims).rep0orElseorElse.string.map(s => RegName(CaseInsensitiveString(decode(s))))
+      unreserved.orElse(pctEncoded).orElse(subDelims).rep0.string.map(s => RegName(CaseInsensitiveString(decode(s))))
     }
 
     implicit val catsInstancesForHttp4sUriRegName

@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Numbers, Parser0 => P0}
+import cats.parse.{Numbers, Parser0 => P0, Parser => P}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 
@@ -64,10 +64,10 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
       try Some(s.toLong)
       catch { case _: NumberFormatException => None }
 
-    val nonNegativeLong = Numbers.digits1
+    val nonNegativeLong = Numbers.digits
       .mapFilter(toLong)
 
-    val negativeLong = (P.char('-') ~ Numbers.digits1).string
+    val negativeLong = (P.char('-') ~ Numbers.digits).string
       .mapFilter(toLong)
 
     // byte-range-spec = first-byte-pos "-" [ last-byte-pos ]

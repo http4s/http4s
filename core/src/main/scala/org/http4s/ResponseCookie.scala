@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.parse.{Parser0, Parser, Rfc5234}
+import cats.parse.{Parser, Rfc5234}
 import java.time.{DateTimeException, ZoneOffset, ZonedDateTime}
 import org.http4s.internal.parsing.{Rfc1034, Rfc2616, Rfc6265}
 import org.http4s.util.{Renderable, Writer}

@@ -46,7 +46,7 @@ private[http4s] object Rfc1034 {
      * letter or a digit.  Host software MUST support this more liberal
      * syntax.
      */
-    val label = repSep(letDig.rep1,1,char('-'))rep
+    val label = repSep(letDig.rep, 1, char('-'))
 
     /* <subdomain> ::= <label> | <subdomain> "." <label> */
     repSep(label,1,char('.')).string.map(CIString(_))

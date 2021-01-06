@@ -82,7 +82,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 
 private[http4s] object Rfc2616BasicRules {
   import cats.parse.Rfc5234.{crlf, wsp}
-  import cats.parse.{Parser0 => P0}
+  import cats.parse.{Parser => P}
 
   def lws = (crlf.rep0.with1 *> wsp.rep).void
 

@@ -14,7 +14,7 @@
 package org.http4s
 package parser
 
-import cats.parse.{Parser0 => P0}
+import cats.parse.{Parser => P}
 import cats.syntax.all._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}

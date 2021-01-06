@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.{Numbers, Parser, Parser0 => P0}
+import cats.parse.{Numbers, Parser => P}
 import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
@@ -36,9 +36,9 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
       ParseFailure("Invalid Content-Range header", e.toString)
     }
 
-  val parser: Parser[`Content-Range`] = {
+  val parser: P[`Content-Range`] = {
 
-    val nonNegativeLong = Numbers.digits1
+    val nonNegativeLong = Numbers.digits
       .mapFilter { ds =>
         try Some(ds.toLong)
         catch { case _: NumberFormatException => None }

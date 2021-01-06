@@ -220,10 +220,10 @@ object Query {
    * receiving behavior", and encode them.
    */
   private[http4s] lazy val parser: Parser0[Query] = {
-    import Parser.charIn
+    import cats.parse.Parser.charIn
     import Rfc3986.pchar
 
-    pchar.orElse1(charIn("/?[]")).rep0orElse.string.map(Query.fromString)
+    pchar.orElse(charIn("/?[]")).rep0.string.map(Query.fromString)
   }
 
   implicit val catsInstancesForHttp4sQuery: Hash[Query] with Order[Query] with Show[Query] =

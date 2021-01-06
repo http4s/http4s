@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser0, Parser, Rfc5234}
+import cats.parse.{Parser, Rfc5234}
 import cats.Show
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer

@@ -19,7 +19,7 @@ package org.http4s
 import cats.Functor
 import cats.effect.Clock
 import cats.implicits._
-import cats.parse.{Parser0, Parser, Rfc5234}
+import cats.parse.{Parser, Rfc5234}
 import java.time.{DateTimeException, Instant, ZoneOffset, ZonedDateTime}
 import org.http4s.util.{Renderable, Writer}
 import scala.concurrent.duration.SECONDS
@@ -162,7 +162,7 @@ object HttpDate {
      */
     val dayName =
       List("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-        .map(string1)
+        .map(string)
         .zipWithIndex
         .map { case (s, i) => string(s).as(i) }
         .reduceLeft(_.orElse(_))
@@ -253,7 +253,7 @@ object HttpDate {
      */
     val dayNameL =
       List("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-        .map(string1)
+        .map(string)
         .reduceLeft(_.orElse(_))
 
     /* rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT

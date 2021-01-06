@@ -19,7 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.implicits.toBifunctorOps
-import cats.parse.{Parser0, Rfc5234}
+import cats.parse.{Parser, Parser0, Rfc5234}
 import org.http4s.Uri.RegName
 import org.http4s.util.{Renderable, Writer}
 
@@ -63,11 +63,11 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
   }
 
   private[http4s] val parser: Parser0[Origin] = {
-    import Parser.{`end`, char, string, until}
+    import cats.parse.Parser.{`end`, char, string, until}
     import Rfc5234.{alpha, digit}
 
     val unknownScheme =
-      alpha ~ alpha.orElse1(digit).orElse1(char('+')).orElse1(char('-')).orElse1(char('.')).rep0orElseorElseorElseorElse
+      alpha ~ alpha.orElse(digit).orElse(char('+')).orElse(char('-')).orElse(char('.')).rep0
     val http = string("http")
     val https = string("https")
     val scheme = List(https, http, unknownScheme)

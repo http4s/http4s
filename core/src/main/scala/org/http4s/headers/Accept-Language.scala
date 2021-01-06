@@ -31,7 +31,7 @@ object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with Head
     import org.http4s.internal.parsing.Rfc7230.headerRep1
 
     val languageTag =
-      (string(alpha.rep1(1))rep ~ (ch('-') *> Rfc7230.token).rep0 ~ QValue.parser).map {
+      (string(alpha.rep) ~ (ch('-') *> Rfc7230.token).rep0 ~ QValue.parser).map {
         case ((main, sub), q) => LanguageTag(main, q, sub)
       }
 

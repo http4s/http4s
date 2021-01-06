@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser0
+import cats.parse.{Parser, Parser0}
 import org.http4s.util.{Renderer, Writer}
 
 object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {

@@ -103,7 +103,7 @@ object QValue {
     import cats.parse.Rfc5234._
     import org.http4s.parser.Rfc2616BasicRules.optWs
 
-    val qValue = string(ch('0') *> (ch('.') *> digit.rep1).rep)reprep0
+    val qValue = string(ch('0') *> (ch('.') *> digit.rep).rep0)
       .mapFilter(
         QValue
           .fromString(_)

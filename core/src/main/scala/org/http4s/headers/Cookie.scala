@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser0, Parser}
+import cats.parse.Parser
 import org.http4s.util.Writer
 
 object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
