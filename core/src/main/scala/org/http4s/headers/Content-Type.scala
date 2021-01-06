@@ -29,7 +29,7 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
     ParseResult.fromParser(parser, "Invalid Content-Type header")(s)
 
   private[http4s] val parser: Parser1[`Content-Type`] =
-    (MediaRange.parser ~ MediaType.mediaTypeExtension.rep).map {
+    (MediaRange.parser ~ MediaRange.mediaTypeExtensionParser.rep).map {
       case (range: MediaRange, exts: Seq[(String, String)]) =>
         val mediaType = range match {
           case m: MediaType => m

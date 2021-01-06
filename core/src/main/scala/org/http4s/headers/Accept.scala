@@ -28,7 +28,7 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
 
   private[http4s] val parser: Parser1[Accept] = {
     val acceptParams =
-      (QValue.parser ~ MediaType.mediaTypeExtension.rep).map { case (qValue, ext) =>
+      (QValue.parser ~ MediaRange.mediaTypeExtensionParser.rep).map { case (qValue, ext) =>
         (
           qValue,
           ext
@@ -36,7 +36,7 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
       }
 
     val qAndExtension =
-      acceptParams.orElse(MediaType.mediaTypeExtension.rep1.map { s =>
+      acceptParams.orElse(MediaRange.mediaTypeExtensionParser.rep1.map { s =>
         (org.http4s.QValue.One, s.toList)
       })
 

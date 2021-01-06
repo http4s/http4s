@@ -127,6 +127,14 @@ lazy val laws = libraryProject("laws")
       disciplineCore,
       scalacheck,
     ),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$org$http4s$laws$discipline$ArbitraryInstances$$tchars_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonTchar_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonToken_="),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$$tchars"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonTchar"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonToken")
+    ),
   )
   .dependsOn(core)
 

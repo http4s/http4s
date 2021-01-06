@@ -90,13 +90,30 @@ object MediaRange {
   def parse(s: String): ParseResult[MediaRange] =
     ParseResult.fromParser(fullParser, "media range")(s)
 
+  private[http4s] val mediaTypeExtensionParser: Parser1[(String, String)] = {
+    import Parser.char
+    import Rfc2616BasicRules.optWs
+    import org.http4s.internal.parsing.Rfc7230.{quotedString, token}
+
+    val escapedString = "\\\\"
+    val unescapedString = "\\"
+
+    (char(';') *> optWs *> token ~ (char('=') *> token.orElse(quotedString)).?).map {
+      case (s: String, s2: Option[String]) =>
+        (s, s2.map(_.replace(escapedString, unescapedString)).getOrElse(""))
+    }
+  }
+
   private[http4s] val parser: Parser1[MediaRange] = mediaRangeParser(getMediaRange)
 
   private[http4s] val fullParser: Parser1[MediaRange] = {
-    val extension = Parser.rep1(MediaType.mediaTypeExtension, 1).?
+    val extensions = Parser.rep(MediaRange.mediaTypeExtensionParser)
 
-    (parser ~ extension).map { case (mr, ext) =>
-      ext.fold(mr)(ex => mr.withExtensions(ex.toList.toMap))
+    (parser ~ extensions).map { case (mr, exts) =>
+      exts match {
+        case Nil => mr
+        case _ => mr.withExtensions(exts.toMap)
+      }
     }
   }
 
@@ -270,10 +287,13 @@ object MediaType extends MimeDB {
 
   val parser: Parser1[MediaType] = {
     val mediaType = MediaRange.mediaRangeParser(getMediaType)
-    val extension = Parser.rep1(mediaTypeExtension, 1).?
+    val extensions = Parser.rep(MediaRange.mediaTypeExtensionParser)
 
-    (mediaType ~ extension).map { case (mr, ext) =>
-      ext.fold(mr)(ex => mr.withExtensions(ex.toList.toMap))
+    (mediaType ~ extensions).map { case (mr, exts) =>
+      exts match {
+        case Nil => mr
+        case _ => mr.withExtensions(exts.toMap)
+      }
     }
   }
 
@@ -311,20 +331,6 @@ object MediaType extends MimeDB {
     MediaType.all.getOrElse(
       (mainType.toLowerCase, subType.toLowerCase),
       new MediaType(mainType.toLowerCase, subType.toLowerCase))
-
-  private[http4s] def mediaTypeExtension: Parser1[(String, String)] = {
-    import Parser.char
-    import Rfc2616BasicRules.optWs
-    import org.http4s.internal.parsing.Rfc7230.{quotedString, token}
-
-    val escapedString = "\\\\"
-    val unescapedString = "\\"
-
-    (char(';') *> optWs *> token ~ (char('=') *> token.orElse(quotedString)).?).map {
-      case (s: String, s2: Option[String]) =>
-        (s, s2.map(_.replace(escapedString, unescapedString)).getOrElse(""))
-    }
-  }
 
   implicit val http4sEqForMediaType: Eq[MediaType] =
     Eq.fromUniversalEquals
