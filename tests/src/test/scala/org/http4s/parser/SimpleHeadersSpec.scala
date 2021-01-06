@@ -18,9 +18,11 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
+
 import java.net.InetAddress
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
+import org.http4s.headers.ETag.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSpec {
@@ -143,10 +145,10 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse ETag" in {
-      ETag.EntityTag("hash", weak = true).toString() must_== "W/\"hash\""
-      ETag.EntityTag("hash", weak = false).toString() must_== "\"hash\""
+      ETag.EntityTag("hash", Weak).toString() must_== "W/\"hash\""
+      ETag.EntityTag("hash", Strong).toString() must_== "\"hash\""
 
-      val headers = Seq(ETag("hash"), ETag("hash", true))
+      val headers = Seq(ETag("hash"), ETag("hash", Weak))
 
       foreach(headers) { header =>
         HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
@@ -158,7 +160,7 @@ class SimpleHeadersSpec extends Http4sSpec {
         `If-None-Match`(EntityTag("hash")),
         `If-None-Match`(EntityTag("123-999")),
         `If-None-Match`(EntityTag("123-999"), EntityTag("hash")),
-        `If-None-Match`(EntityTag("123-999", weak = true), EntityTag("hash")),
+        `If-None-Match`(EntityTag("123-999", Weak), EntityTag("hash")),
         `If-None-Match`.`*`
       )
       foreach(headers) { header =>

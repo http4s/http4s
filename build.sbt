@@ -126,15 +126,10 @@ lazy val laws = libraryProject("laws")
       catsLaws,
       disciplineCore,
       scalacheck,
+      scalacheckEffectMunit,
+      munitCatsEffect
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$org$http4s$laws$discipline$ArbitraryInstances$$tchars_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonTchar_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonToken_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$$tchars"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonTchar"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonToken")
-    ),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
   )
   .dependsOn(core)
 

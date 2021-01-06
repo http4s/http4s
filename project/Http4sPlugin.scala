@@ -319,7 +319,7 @@ object Http4sPlugin extends AutoPlugin {
     val munitDiscipline = "1.0.4"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
-    val playJson = "2.9.1"
+    val playJson = "2.9.2"
     val prometheusClient = "0.9.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"

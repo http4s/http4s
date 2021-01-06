@@ -19,22 +19,30 @@ package headers
 
 import cats.parse.{Parser, Parser1, Rfc5234}
 import cats.Show
+import org.http4s.headers.ETag.EntityTag.{Strong, Weakness}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
 object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
-  final case class EntityTag(tag: String, weak: Boolean = false) {
-    override def toString() =
-      if (weak) "W/\"" + tag + '"'
-      else "\"" + tag + '"'
+  final case class EntityTag(tag: String, weakness: Weakness = Strong) {
+    override def toString(): String =
+      weakness match {
+        case EntityTag.Weak => "W/\"" + tag + '"'
+        case EntityTag.Strong => "\"" + tag + '"'
+      }
   }
 
   object EntityTag {
     implicit val http4sShowForEntityTag: Show[EntityTag] =
       Show.fromToString
+
+    sealed trait Weakness extends Product with Serializable
+    case object Weak extends Weakness
+    case object Strong extends Weakness
   }
 
-  def apply(tag: String, weak: Boolean = false): ETag = ETag(EntityTag(tag, weak))
+  def apply(tag: String, weakness: Weakness = Strong): ETag =
+    ETag(EntityTag(tag, weakness))
 
   override def parse(s: String): ParseResult[ETag] =
     ParseResult.fromParser(parser, "ETag header")(s)
@@ -49,7 +57,7 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
     import Rfc7230.{obsText}
 
     // weak       = %x57.2F ; "W/", case-sensitive
-    val weak = string1("W/").as(true)
+    val weak = string1("W/").as(EntityTag.Weak)
 
     // etagc      = %x21 / %x23-7E / obs-text
     //            ; VCHAR except double quotes, plus obs-text
@@ -60,7 +68,7 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
 
     // entity-tag = [ weak ] opaque-tag
     val entityTag = (weak.?.with1 ~ opaqueTag).map { case (weakness, tag) =>
-      new EntityTag(tag, weakness.getOrElse(false))
+      new EntityTag(tag, weakness.getOrElse(EntityTag.Strong))
     }
 
     entityTag.map(ETag.apply)
