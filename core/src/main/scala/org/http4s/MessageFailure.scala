@@ -19,6 +19,7 @@ package org.http4s
 import cats.{Eq, MonadError}
 import cats.syntax.all._
 import cats.instances.either._
+import cats.parse.Parser
 import scala.util.control.{NoStackTrace, NonFatal}
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
@@ -76,6 +77,10 @@ object ParseResult {
     catch {
       case NonFatal(e) => Left(ParseFailure(sanitized, e.getMessage))
     }
+
+  private[http4s] def fromParser[A](parser: Parser[A], errorMessage: => String)(
+      s: String): ParseResult[A] =
+    parser.parseAll(s).leftMap(e => ParseFailure(errorMessage, e.toString))
 
   implicit val parseResultMonad: MonadError[ParseResult, ParseFailure] =
     catsStdInstancesForEither[ParseFailure]

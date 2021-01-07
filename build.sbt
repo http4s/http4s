@@ -13,6 +13,13 @@ ThisBuild / publishFullName   := "Ross A. Baker"
 
 enablePlugins(SonatypeCiReleasePlugin)
 
+versionIntroduced := Map(
+  // There is, and will hopefully not be, an 0.22.0. But this hushes
+  // MiMa for now while we bootstrap Dotty support.
+  "3.0.0-M2" -> "0.22.0",
+  "3.0.0-M3" -> "0.22.0",
+)
+
 lazy val modules: List[ProjectReference] = List(
   core,
   laws,
@@ -57,7 +64,8 @@ lazy val modules: List[ProjectReference] = List(
   scalafixInput,
   scalafixOutput,
   scalafixRules,
-  scalafixTests,
+  // TODO: broken on scalafix-0.9.24
+  // scalafixTests,
 )
 
 lazy val root = project.in(file("."))
@@ -89,21 +97,22 @@ lazy val core = libraryProject("core")
       caseInsensitive,
       catsCore,
       catsEffect,
+      catsParse.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core,
       fs2Io,
       log4s,
-      parboiled,
-      scalaReflect(scalaVersion.value) % Provided,
       scodecBits,
       slf4jApi, // residual dependency from macros
-      vault,
+      // vault, inlined pending -M2 and -M3 release
     ),
+    libraryDependencies ++= {
+      if (isDotty.value) Seq.empty
+      else Seq(
+        scalaReflect(scalaVersion.value) % Provided,
+        parboiled,
+      )
+    },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
-    mimaBinaryIssueFilters ++= Seq(
-      // These were private[this], surfaced by 2.13.4's exhaustiveness checker
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
-    ),
     Compile / packageBin / mappings ~= { _.filterNot(_._2.startsWith("scala/")) },
   )
 
@@ -229,25 +238,6 @@ lazy val emberCore = libraryProject("ember-core")
     libraryDependencies ++= Seq(
       log4catsTesting % Test,
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Shared.chunk2ByteVector"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Request.parser"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request.parser"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.splitHeader"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response.parser")
-    )
   )
   .dependsOn(core, testing % "test->test")
 
@@ -258,11 +248,6 @@ lazy val emberServer = libraryProject("ember-server")
     libraryDependencies ++= Seq(
       log4catsSlf4j,
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
-    )
   )
   .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
 
@@ -274,11 +259,6 @@ lazy val emberClient = libraryProject("ember-client")
       keypool,
       log4catsSlf4j,
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-    )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -795,11 +775,19 @@ lazy val commonSettings = Seq(
     disciplineSpecs2,
     logbackClassic,
     scalacheck,
-    specs2Cats,
-    specs2Core,
-    specs2MatcherExtra,
-    specs2Scalacheck
+    specs2Core.withDottyCompat(scalaVersion.value),
+    specs2MatcherExtra.withDottyCompat(scalaVersion.value),
   ).map(_ % Test),
+  libraryDependencies ++= {
+    if (isDotty.value)
+      libraryDependencies.value
+    else
+      // These are going to be a problem
+      Seq(
+        specs2Cats,
+        specs2Scalacheck
+      ).map(_ % Test)
+  },
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 

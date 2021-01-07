@@ -16,8 +16,8 @@
 
 package org.http4s
 package headers
-
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Parser => P}
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
 object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
@@ -26,7 +26,30 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
   def none: `Accept-Ranges` = apply(Nil)
 
   override def parse(s: String): ParseResult[`Accept-Ranges`] =
-    HttpHeaderParser.ACCEPT_RANGES(s)
+    ParseResult.fromParser(parser, "Accept-Ranges header")(s)
+
+  /* https://tools.ietf.org/html/rfc7233#appendix-C */
+  val parser: P[`Accept-Ranges`] = {
+
+    val none = P.string1("none").as(Nil)
+
+    val rangeUnit = Rfc7230.token.map(org.http4s.RangeUnit.apply)
+
+    /*
+     Accept-Ranges     = acceptable-ranges
+     OWS               = <OWS, see [RFC7230], Section 3.2.3>
+     acceptable-ranges = ( *( "," OWS ) range-unit *( OWS "," [ OWS range-unit ] ) ) / "none"
+     */
+    val acceptableRanges: P[List[RangeUnit]] =
+      P.oneOf(
+        List(
+          none,
+          Rfc7230.headerRep1(rangeUnit).map(_.toList)
+        )
+      )
+
+    acceptableRanges.map(headers.`Accept-Ranges`.apply)
+  }
 }
 
 final case class `Accept-Ranges` private[http4s] (rangeUnits: List[RangeUnit])

@@ -18,7 +18,8 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Numbers, Parser => P}
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 
 // See https://tools.ietf.org/html/rfc7233
@@ -43,13 +44,52 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     /** Base method for rendering this object efficiently */
     override def render(writer: Writer): writer.type = {
       writer << first
-      second.foreach(writer << '-' << _)
+      // the trailing '-' is necessary unless this is a suffix range
+      if (first >= 0)
+        writer << '-'
+      second.foreach(writer << _)
       writer
     }
   }
 
   override def parse(s: String): ParseResult[Range] =
-    HttpHeaderParser.RANGE(s)
+    parser.parseAll(s).left.map { e =>
+      ParseFailure("Invalid Range header", e.toString)
+    }
+
+  val parser: P[Range] = {
+    // https://tools.ietf.org/html/rfc7233#section-3.1
+
+    def toLong(s: String): Option[Long] =
+      try Some(s.toLong)
+      catch { case _: NumberFormatException => None }
+
+    val nonNegativeLong = Numbers.digits1
+      .mapFilter(toLong)
+
+    val negativeLong = (P.char('-') ~ Numbers.digits1).string
+      .mapFilter(toLong)
+
+    // byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
+    val byteRangeSpec = ((nonNegativeLong <* P.char('-')) ~ nonNegativeLong.?)
+      .map { case (first, last) => SubRange(first, last) }
+
+    // suffix-byte-range-spec = "-" suffix-length
+    val suffixByteRangeSpec = negativeLong.map(SubRange(_))
+
+    // byte-range-set  = 1#( byte-range-spec / suffix-byte-range-spec )
+    val byteRangeSet = Rfc7230.headerRep1(byteRangeSpec.orElse1(suffixByteRangeSpec))
+
+    // byte-ranges-specifier = bytes-unit "=" byte-range-set
+    val byteRangesSpecifier =
+      ((Rfc7230.token.map(RangeUnit(_)) <* P.char('=')) ~ byteRangeSet)
+        .map { case (unit, ranges) => Range(unit, ranges) }
+
+    // Range = byte-ranges-specifier / other-ranges-specifier
+    // other types of ranges are not supported, `other-ranges-specifier` is ignored
+    byteRangesSpecifier
+  }
+
 }
 
 final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange])
