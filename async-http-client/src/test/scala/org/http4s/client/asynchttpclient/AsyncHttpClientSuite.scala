@@ -77,15 +77,15 @@ class AsyncHttpClientSuite extends ClientRouteTestBattery("AsyncHttpClient") wit
 
   test("AsyncHttpClientStats should correctly get the stats from the underlying ClientStats") {
 
-    val clientWithStats: Resource[IO, Client[IO]] = Dispatcher[IO].flatMap { dispatcher => 
+    val clientWithStats: Resource[IO, Client[IO]] = Dispatcher[IO].flatMap { dispatcher =>
       Resource(
-      IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig))
-        .map(c =>
-          (
-            new ClientWithStats(
-              AsyncHttpClient(c, dispatcher),
-              new AsyncHttpClientStats[IO](c.getClientStats)),
-            IO.delay(c.close()))))
+        IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig))
+          .map(c =>
+            (
+              new ClientWithStats(
+                AsyncHttpClient(c, dispatcher),
+                new AsyncHttpClientStats[IO](c.getClientStats)),
+              IO.delay(c.close()))))
     }
 
     val clientStats: Resource[IO, AsyncHttpClientStats[IO]] = clientWithStats.map {

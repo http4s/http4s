@@ -47,10 +47,13 @@ object AsyncHttpClient {
     .setCookieStore(new NoOpCookieStore)
     .build()
 
-  def apply[F[_]](httpClient: AsyncHttpClient, dispatcher: Dispatcher[F])(implicit F: Async[F]): Client[F] =
+  def apply[F[_]](httpClient: AsyncHttpClient, dispatcher: Dispatcher[F])(implicit
+      F: Async[F]): Client[F] =
     Client[F] { req =>
       Resource(F.async[(Response[F], F[Unit])] { cb =>
-        F.delay(httpClient.executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher))).as(None)
+        F.delay(
+          httpClient.executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher)))
+          .as(None)
       })
     }
 
@@ -61,7 +64,8 @@ object AsyncHttpClient {
   def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: Async[F]): Resource[F, Client[F]] =
     Dispatcher[F].flatMap { dispatcher =>
-      Resource.make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close()))
+      Resource
+        .make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close()))
         .map(client => apply(client, dispatcher))
     }
 
@@ -87,8 +91,8 @@ object AsyncHttpClient {
     configurationFn(defaultConfigBuilder).build()
   }
 
-  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])], dispatcher: Dispatcher[F])(implicit
-      F: Async[F]) =
+  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])], dispatcher: Dispatcher[F])(
+      implicit F: Async[F]) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
@@ -119,7 +123,7 @@ object AsyncHttpClient {
           _ <-
             invokeCallbackF[F](cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
         } yield ()
-        
+
         dispatcher.unsafeRunSync(eff)
 
         state
@@ -150,7 +154,7 @@ object AsyncHttpClient {
       override def onCompleted(): Unit = {
         val fa = onStreamCalled.get
           .ifM(ifTrue = F.unit, ifFalse = invokeCallbackF[F](cb(Right(response -> dispose))))
-          
+
         dispatcher.unsafeRunSync(fa)
       }
     }
@@ -159,7 +163,9 @@ object AsyncHttpClient {
   private def invokeCallbackF[F[_]](invoked: => Unit)(implicit F: Async[F]): F[Unit] =
     F.start(F.delay(invoked)).flatMap(_.joinAndEmbedNever)
 
-  private def toAsyncRequest[F[_]: Async](request: Request[F], dispatcher: Dispatcher[F]): AsyncRequest = {
+  private def toAsyncRequest[F[_]: Async](
+      request: Request[F],
+      dispatcher: Dispatcher[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers.toList)
       headers.add(h.name.toString, h.value)
@@ -170,9 +176,12 @@ object AsyncHttpClient {
       .build()
   }
 
-  private def getBodyGenerator[F[_]: Async](req: Request[F], dispatcher: Dispatcher[F]): BodyGenerator = {
+  private def getBodyGenerator[F[_]: Async](
+      req: Request[F],
+      dispatcher: Dispatcher[F]): BodyGenerator = {
     val publisher = StreamUnicastPublisher(
-      req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)), dispatcher)
+      req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)),
+      dispatcher)
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)
     else
       req.contentLength match {
