@@ -19,9 +19,9 @@ package client
 package asynchttpclient
 
 import cats.effect._
-import cats.effect.concurrent._
+import cats.effect.kernel.{Async, Resource}
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import cats.effect.implicits._
 import fs2.Stream._
 import fs2._
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
@@ -47,28 +47,23 @@ object AsyncHttpClient {
     .setCookieStore(new NoOpCookieStore)
     .build()
 
-  def apply[F[_]](httpClient: AsyncHttpClient)(implicit F: ConcurrentEffect[F]): Client[F] =
+  def apply[F[_]](httpClient: AsyncHttpClient, dispatcher: Dispatcher[F])(implicit F: Async[F]): Client[F] =
     Client[F] { req =>
       Resource(F.async[(Response[F], F[Unit])] { cb =>
-        httpClient.executeRequest(toAsyncRequest(req), asyncHandler(cb))
-        ()
+        F.delay(httpClient.executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher))).as(None)
       })
     }
-
-  /** Allocates a Client and its shutdown mechanism for freeing resources.
-    */
-  def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
-    F.delay(new DefaultAsyncHttpClient(config))
-      .map(c => (apply(c), F.delay(c.close())))
 
   /** Create an HTTP client based on the AsyncHttpClient library
     *
     * @param config configuration for the client
     */
   def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    Resource(allocate(config))
+      F: Async[F]): Resource[F, Client[F]] =
+    Dispatcher[F].flatMap { dispatcher =>
+      Resource.make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close()))
+        .map(client => apply(client, dispatcher))
+    }
 
   /** Create a bracketed HTTP client based on the AsyncHttpClient library.
     *
@@ -77,7 +72,7 @@ object AsyncHttpClient {
     * shutdown when the stream terminates.
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+      F: Async[F]): Stream[F, Client[F]] =
     Stream.resource(resource(config))
 
   /** Create a custom AsyncHttpClientConfig
@@ -92,8 +87,8 @@ object AsyncHttpClient {
     configurationFn(defaultConfigBuilder).build()
   }
 
-  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])])(implicit
-      F: ConcurrentEffect[F]) =
+  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])], dispatcher: Dispatcher[F])(implicit
+      F: Async[F]) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
@@ -105,7 +100,7 @@ object AsyncHttpClient {
         val eff = for {
           _ <- onStreamCalled.set(true)
 
-          subscriber <- StreamSubscriber[F, HttpResponseBodyPart]
+          subscriber <- StreamSubscriber[F, HttpResponseBodyPart](dispatcher)
 
           subscribeF = F.delay(publisher.subscribe(subscriber))
 
@@ -124,8 +119,8 @@ object AsyncHttpClient {
           _ <-
             invokeCallbackF[F](cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))
         } yield ()
-
-        eff.runAsync(_ => IO.unit).unsafeRunSync()
+        
+        dispatcher.unsafeRunSync(eff)
 
         state
       }
@@ -143,39 +138,41 @@ object AsyncHttpClient {
         state
       }
 
-      override def onThrowable(throwable: Throwable): Unit =
-        onStreamCalled.get
+      override def onThrowable(throwable: Throwable): Unit = {
+        val fa = onStreamCalled.get
           .ifM(
-            ifTrue = deferredThrowable.complete(throwable),
+            ifTrue = deferredThrowable.complete(throwable).void,
             ifFalse = invokeCallbackF(cb(Left(throwable))))
-          .runAsync(_ => IO.unit)
-          .unsafeRunSync()
 
-      override def onCompleted(): Unit =
-        onStreamCalled.get
+        dispatcher.unsafeRunSync(fa)
+      }
+
+      override def onCompleted(): Unit = {
+        val fa = onStreamCalled.get
           .ifM(ifTrue = F.unit, ifFalse = invokeCallbackF[F](cb(Right(response -> dispose))))
-          .runAsync(_ => IO.unit)
-          .unsafeRunSync()
+          
+        dispatcher.unsafeRunSync(fa)
+      }
     }
 
   // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
-  private def invokeCallbackF[F[_]](invoked: => Unit)(implicit F: Concurrent[F]): F[Unit] =
-    F.start(F.delay(invoked)).flatMap(_.join)
+  private def invokeCallbackF[F[_]](invoked: => Unit)(implicit F: Async[F]): F[Unit] =
+    F.start(F.delay(invoked)).flatMap(_.joinAndEmbedNever)
 
-  private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
+  private def toAsyncRequest[F[_]: Async](request: Request[F], dispatcher: Dispatcher[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers.toList)
       headers.add(h.name.toString, h.value)
     new RequestBuilder(request.method.renderString)
       .setUrl(request.uri.renderString)
       .setHeaders(headers)
-      .setBody(getBodyGenerator(request))
+      .setBody(getBodyGenerator(request, dispatcher))
       .build()
   }
 
-  private def getBodyGenerator[F[_]: ConcurrentEffect](req: Request[F]): BodyGenerator = {
+  private def getBodyGenerator[F[_]: Async](req: Request[F], dispatcher: Dispatcher[F]): BodyGenerator = {
     val publisher = StreamUnicastPublisher(
-      req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)))
+      req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)), dispatcher)
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)
     else
       req.contentLength match {
