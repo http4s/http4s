@@ -17,7 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Parser, Parser1}
+import org.http4s.parser.{AdditionalRules, Rfc2616BasicRules}
 import org.http4s.util.Writer
 import scala.concurrent.duration.FiniteDuration
 
@@ -56,7 +57,33 @@ object `Strict-Transport-Security`
     fromLong(maxAge, includeSubDomains, preload).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Strict-Transport-Security`] =
-    HttpHeaderParser.STRICT_TRANSPORT_SECURITY(s)
+    ParseResult.fromParser(parser, "Invalid `Strict-Transport-Security` header")(s)
+
+  private[http4s] val parser: Parser[`Strict-Transport-Security`] = {
+    val maxAge: Parser1[`Strict-Transport-Security`] =
+      (Parser.string1("max-age=") *> AdditionalRules.Digits).map { (age: Long) =>
+        `Strict-Transport-Security`
+          .unsafeFromLong(maxAge = age, includeSubDomains = false, preload = false)
+      }
+
+    sealed trait StsAttribute
+    case object IncludeSubDomains extends StsAttribute
+    case object Preload extends StsAttribute
+
+    val stsAttributes: Parser[StsAttribute] = Parser
+      .string1("includeSubDomains")
+      .as(IncludeSubDomains)
+      .orElse(Parser.string1("preload").as(Preload))
+
+    (maxAge ~ Parser
+      .rep(Parser.string1(";") *> Rfc2616BasicRules.optWs *> stsAttributes)).map {
+      case (sts, attributes) =>
+        attributes.foldLeft(sts) {
+          case (sts, IncludeSubDomains) => sts.withIncludeSubDomains(true)
+          case (sts, Preload) => sts.withPreload(true)
+        }
+    }
+  }
 }
 
 sealed abstract case class `Strict-Transport-Security`(

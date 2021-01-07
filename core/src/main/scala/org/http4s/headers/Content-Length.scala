@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.parser.AdditionalRules
 import org.http4s.util.Writer
 
 /** Constructs a `Content-Length` header.
@@ -47,5 +47,7 @@ object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with Header
     fromLong(length).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Content-Length`] =
-    HttpHeaderParser.CONTENT_LENGTH(s)
+    ParseResult.fromParser(parser, "Invalid Content-Length header")(s)
+
+  private[http4s] val parser = AdditionalRules.Digits.map(fromLong).mapFilter(_.toOption)
 }

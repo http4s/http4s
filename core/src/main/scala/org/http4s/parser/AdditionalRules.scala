@@ -14,12 +14,13 @@
 package org.http4s
 package parser
 
-import cats.parse.{Parser => P}
+import cats.parse.{Parser1, Parser => P}
 import cats.syntax.all._
 import java.time.{ZoneOffset, ZonedDateTime}
 import org.http4s.headers.ETag.EntityTag.{Strong, Weak, Weakness}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
+import org.http4s.internal.parsing.Rfc3986
 import scala.util.Try
 
 private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
@@ -213,4 +214,11 @@ private[http4s] object AdditionalRules {
   def EOI = P.char('\uFFFF')
 
   def EOL = optWs *> EOI.rep
+
+  val Digits: Parser1[Long] = P.rep1(Rfc3986.digit, 1).string.mapFilter { s =>
+    try Some(s.toLong)
+    catch {
+      case _: NumberFormatException => None
+    }
+  }
 }
