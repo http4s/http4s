@@ -85,7 +85,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       rr,
       minor,
       closeOnFinish,
-      Http1Stage.omitEmptyContentLength(req))
+      Http1Stage.omitEmptyContentLength(req)
+    )
   }
 
   /** Get the proper body encoder based on the request,
