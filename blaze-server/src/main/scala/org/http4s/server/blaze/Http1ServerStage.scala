@@ -273,7 +273,8 @@ private[blaze] class Http1ServerStage[F[_]](
           resp.trailerHeaders,
           rr,
           parser.minorVersion(),
-          closeOnFinish)
+          closeOnFinish,
+          false)
     }
 
     // TODO: pool shifting: https://github.com/http4s/http4s/blob/main/core/src/main/scala/org/http4s/internal/package.scala#L45
