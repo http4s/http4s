@@ -33,7 +33,8 @@ import scala.concurrent._
 private[http4s] class CachingChunkWriter[F[_]](
     pipe: TailStage[ByteBuffer],
     trailer: F[Headers],
-    bufferMaxSize: Int)(
+    bufferMaxSize: Int,
+    omitEmptyContentLength: Boolean)(
     implicit protected val F: Async[F],
     protected val ec: ExecutionContext,
     implicit protected val dispatcher: Dispatcher[F])
@@ -89,14 +90,19 @@ private[http4s] class CachingChunkWriter[F[_]](
           val hbuff = ByteBuffer.wrap(h.result.getBytes(ISO_8859_1))
           pipe.channelWrite(hbuff :: body :: Nil)
         } else {
-          h << s"Content-Length: 0\r\n\r\n"
+          if (!omitEmptyContentLength)
+            h << s"Content-Length: 0\r\n"
+          h << "\r\n"
           val hbuff = ByteBuffer.wrap(h.result.getBytes(ISO_8859_1))
           pipe.channelWrite(hbuff)
         }
-      } else if (!chunk.isEmpty) writeBodyChunk(chunk, true).flatMap { _ =>
+      } else if (!chunk.isEmpty) {
+        writeBodyChunk(chunk, true).flatMap { _ =>
+          writeTrailer(pipe, trailer)
+        }
+      } else {
         writeTrailer(pipe, trailer)
       }
-      else writeTrailer(pipe, trailer)
 
     f.map(Function.const(false))
   }
