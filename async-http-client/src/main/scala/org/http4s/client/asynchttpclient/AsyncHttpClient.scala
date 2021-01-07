@@ -57,6 +57,12 @@ object AsyncHttpClient {
       })
     }
 
+  /** Allocates a Client and its shutdown mechanism for freeing resources.
+    */
+  def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
+      F: Async[F]): F[(Client[F], F[Unit])] =
+    resource(config).allocated
+
   /** Create an HTTP client based on the AsyncHttpClient library
     *
     * @param config configuration for the client
