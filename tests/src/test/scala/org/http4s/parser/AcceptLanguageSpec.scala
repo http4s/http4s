@@ -22,7 +22,7 @@ import org.specs2.mutable.Specification
 
 class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-Language`] {
   def hparse(value: String): ParseResult[`Accept-Language`] =
-    HttpHeaderParser.ACCEPT_LANGUAGE(value)
+    `Accept-Language`.parse(value)
 
   val en = `Accept-Language`(LanguageTag("en"))
   val fr = `Accept-Language`(LanguageTag("fr"))

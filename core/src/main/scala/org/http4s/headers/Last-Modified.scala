@@ -17,12 +17,16 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser1
 import org.http4s.util.{Renderer, Writer}
 
 object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Last-Modified`] =
-    HttpHeaderParser.LAST_MODIFIED(s)
+    ParseResult.fromParser(parser, "Last-Modified header")(s)
+
+  /* `Last-Modified = HTTP-date` */
+  private[http4s] val parser: Parser1[`Last-Modified`] =
+    HttpDate.parser.map(apply)
 }
 
 /** Response header that indicates the time at which the server believes the

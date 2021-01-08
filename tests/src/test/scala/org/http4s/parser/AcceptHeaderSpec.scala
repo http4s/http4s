@@ -27,7 +27,8 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
   val `audio/mod`: MediaType =
     new MediaType("audio", "mod", MediaType.Uncompressible, MediaType.Binary, List("mod"))
 
-  def hparse(value: String): ParseResult[Accept] = HttpHeaderParser.ACCEPT(value)
+  def hparse(value: String): ParseResult[Accept] =
+    Accept.parse(value)
 
   def ext = Map("foo" -> "bar", "baz" -> "whatever")
 

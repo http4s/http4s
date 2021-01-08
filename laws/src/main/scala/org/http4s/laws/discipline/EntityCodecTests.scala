@@ -20,15 +20,13 @@ package discipline
 
 import cats.Eq
 import cats.effect._
+import cats.effect.std.Dispatcher
 import cats.laws.discipline._
 import org.scalacheck.{Arbitrary, Prop, Shrink}
-import cats.effect.std.Dispatcher
+import org.scalacheck.effect.PropF
 
 trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
   def laws: EntityCodecLaws[F, A]
-
-  implicit def eqDecodeFailure: Eq[DecodeFailure] =
-    Eq.fromUniversalEquals[DecodeFailure]
 
   def entityCodec(implicit
       arbitraryA: Arbitrary[A],
@@ -49,11 +47,20 @@ trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
       }
     )
   }
+
+  def entityCodecF(implicit
+      arbitraryA: Arbitrary[A],
+      shrinkA: Shrink[A],
+      eqA: Eq[A]
+  ): List[(String, PropF[F])] = {
+    implicit val F: Sync[F] = laws.F
+    LawAdapter.isEqPropF("roundTrip", laws.entityCodecRoundTrip _) :: entityEncoderF
+  }
 }
 
 object EntityCodecTests {
   def apply[F[_], A](implicit
-      F: Concurrent[F],
+      F: Sync[F],
       entityEncoderFA: EntityEncoder[F, A],
       entityDecoderFA: EntityDecoder[F, A]
   ): EntityCodecTests[F, A] =

@@ -1,5 +1,6 @@
 package org.http4s.sbt
 
+import dotty.tools.sbtplugin.DottyPlugin.autoImport._
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport._ // autoImport vs. UpdateKeys necessary here for implicit
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
@@ -103,6 +104,7 @@ object Http4sPlugin extends AutoPlugin {
           "src/main/scala/org/http4s/ResponseCookie.scala",
           "src/main/scala/org/http4s/TransferCoding.scala",
           "src/main/scala/org/http4s/Uri.scala",
+          "src/main/scala/org/http4s/internal/CharPredicate.scala",
           "src/main/scala/org/http4s/parser/AcceptCharsetHeader.scala",
           "src/main/scala/org/http4s/parser/AcceptEncodingHeader.scala",
           "src/main/scala/org/http4s/parser/AcceptHeader.scala",
@@ -293,6 +295,7 @@ object Http4sPlugin extends AutoPlugin {
     val cats = "2.3.1"
     val catsEffect = "3.0.0-M5"
     val catsEffectTesting = "1.0-23-f76ace5"
+    val catsParse = "0.2.0"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.3"
@@ -307,7 +310,7 @@ object Http4sPlugin extends AutoPlugin {
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
-    val log4s = "1.9.0"
+    val log4s = "1.10.0-M3"
     val mockito = "3.5.15"
     val munit = "0.7.18"
     val munitCatsEffect = "0.12.0"
@@ -316,7 +319,7 @@ object Http4sPlugin extends AutoPlugin {
     val okio = "2.9.0"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
-    val playJson = "2.9.1"
+    val playJson = "2.9.2"
     val prometheusClient = "0.9.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
@@ -332,7 +335,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.0.0"
+    val vault = "2.1.0-M1"
     val unique = "2.1.0-M5"
   }
 
@@ -350,6 +353,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsEffectTestkit                = "org.typelevel"          %% "cats-effect-testkit"       % V.catsEffect
   lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % V.catsEffectTesting
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
+  lazy val catsParse                        = "org.typelevel"          %% "cats-parse"                % V.catsParse
   lazy val circeCore                        = "io.circe"               %% "circe-core"                % V.circe
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % V.circe
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % V.circe

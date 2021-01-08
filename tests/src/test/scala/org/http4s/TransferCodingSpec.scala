@@ -16,7 +16,6 @@
 
 package org.http4s
 
-import cats.data.NonEmptyList
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.util.Renderer
@@ -44,15 +43,11 @@ class TransferCodingSpec extends Http4sSpec {
       }
   }
 
-  "parse" should {
-    "parse single items" in {
+  "parser" should {
+    "parse TransferCoding" in {
       prop { (a: TransferCoding) =>
-        TransferCoding.parseList(a.coding) must_== ParseResult.success(NonEmptyList.one(a))
+        TransferCoding.parser.parseAll(a.coding) must beRight(a)
       }
-    }
-    "parse multiple items" in {
-      TransferCoding.parseList("gzip, chunked") must_== ParseResult.success(
-        NonEmptyList.of(TransferCoding.gzip, TransferCoding.chunked))
     }
   }
 

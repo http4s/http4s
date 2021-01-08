@@ -22,7 +22,7 @@ import cats.effect._
 import cats.laws._
 
 trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
-  implicit def F: Concurrent[F]
+  implicit def F: Sync[F]
   implicit def encoder: EntityEncoder[F, A]
   implicit def decoder: EntityDecoder[F, A]
 
@@ -36,11 +36,11 @@ trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
 
 object EntityCodecLaws {
   def apply[F[_], A](implicit
-      concurrent: Concurrent[F],
+      sync: Sync[F],
       entityEncoderFA: EntityEncoder[F, A],
       entityDecoderFA: EntityDecoder[F, A]): EntityCodecLaws[F, A] =
     new EntityCodecLaws[F, A] {
-      val F = concurrent
+      val F = synco
       val encoder = entityEncoderFA
       val decoder = entityDecoderFA
     }

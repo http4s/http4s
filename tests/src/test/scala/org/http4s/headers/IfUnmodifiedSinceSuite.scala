@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,17 @@
  */
 
 package org.http4s
-package circe.test // Get out of circe package so we can import custom instances
+package headers
 
-//import cats.effect.IO
-//import cats.effect.testkit.TestContext
-//import cats.instances.boolean._
-//import io.circe._
-//import io.circe.testing.instances._
-//import org.http4s.circe._
-//import org.http4s.laws.discipline.EntityCodecTests
+import java.time.{Month, ZoneOffset, ZonedDateTime}
 
-// Originally based on ArgonautSpec
-class CirceSpec extends Http4sSpec {
-//  implicit val testContext = TestContext()
-//  checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
+class IfUnmodifiedSinceSuite extends Http4sSuite {
+  val rfc7232Example = HttpDate.unsafeFromZonedDateTime(
+    ZonedDateTime.of(1994, Month.OCTOBER.getValue, 29, 19, 43, 31, 0, ZoneOffset.UTC))
+
+  test("parse If-Unmodified-Since") {
+    assertEquals(
+      `If-Unmodified-Since`.parse("Sat, 29 Oct 1994 19:43:31 GMT"),
+      Right(`If-Unmodified-Since`(rfc7232Example)))
+  }
 }
