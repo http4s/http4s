@@ -18,11 +18,11 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Content-Type`
-import org.http4s.MediaType
 import org.specs2.mutable.Specification
 
 class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Content-Type`] {
-  def hparse(value: String): ParseResult[`Content-Type`] = HttpHeaderParser.CONTENT_TYPE(value)
+  def hparse(value: String): ParseResult[`Content-Type`] =
+    `Content-Type`.parse(value)
 
   def simple = `Content-Type`(MediaType.text.html)
   def charset = `Content-Type`(MediaType.text.html, Charset.`UTF-8`)

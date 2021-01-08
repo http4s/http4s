@@ -18,14 +18,18 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.syntax.eq._
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser1
+import cats.syntax.all._
+import org.http4s.internal.parsing.Rfc7230
 
 object `Transfer-Encoding`
     extends HeaderKey.Internal[`Transfer-Encoding`]
     with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Transfer-Encoding`] =
-    HttpHeaderParser.TRANSFER_ENCODING(s)
+    ParseResult.fromParser(parser, "Invalid Transfer-Encoding")(s)
+
+  private[http4s] val parser: Parser1[`Transfer-Encoding`] =
+    Rfc7230.headerRep1(TransferCoding.parser).map(apply)
 }
 
 final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding])
