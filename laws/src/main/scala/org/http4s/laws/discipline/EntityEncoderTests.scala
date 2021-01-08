@@ -49,7 +49,7 @@ trait EntityEncoderTests[F[_], A] extends Laws {
       arbitraryA: Arbitrary[A],
       shrinkA: Shrink[A]
   ): List[(String, PropF[F])] = {
-    implicit val syncF: Sync[F] = laws.F
+    implicit val F: MonadThrow[F] = laws.F
     List(
       LawAdapter.isEqPropF("accurateContentLength", laws.accurateContentLengthIfDefined _),
       LawAdapter.booleanPropF(
@@ -64,7 +64,7 @@ trait EntityEncoderTests[F[_], A] extends Laws {
 
 object EntityEncoderTests {
   def apply[F[_], A](implicit
-      syncF: Sync[F],
+      F0: Concurrent[F],
       entityEncoderFA: EntityEncoder[F, A]
   ): EntityEncoderTests[F, A] =
     new EntityEncoderTests[F, A] {

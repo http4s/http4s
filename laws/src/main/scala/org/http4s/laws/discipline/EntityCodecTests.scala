@@ -53,14 +53,14 @@ trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
       shrinkA: Shrink[A],
       eqA: Eq[A]
   ): List[(String, PropF[F])] = {
-    implicit val F: Sync[F] = laws.F
+    implicit val F: Concurrent[F] = laws.F
     LawAdapter.isEqPropF("roundTrip", laws.entityCodecRoundTrip _) :: entityEncoderF
   }
 }
 
 object EntityCodecTests {
   def apply[F[_], A](implicit
-      F: Sync[F],
+      F: Concurrent[F],
       entityEncoderFA: EntityEncoder[F, A],
       entityDecoderFA: EntityDecoder[F, A]
   ): EntityCodecTests[F, A] =
