@@ -41,14 +41,6 @@ private[http4s] class CachingChunkWriter[F[_]](
     extends Http1Writer[F] {
   import ChunkWriter._
 
-  @deprecated("Preserved for binary compatibility", "0.21.16")
-  private[CachingChunkWriter] def this(
-      pipe: TailStage[ByteBuffer],
-      trailer: F[Headers],
-      bufferMaxSize: Int
-  )(implicit F: Effect[F], ec: ExecutionContext) =
-    this(pipe, trailer, bufferMaxSize, false)(F, ec)
-
   private[this] var pendingHeaders: StringWriter = _
   private[this] var bodyBuffer: Buffer[Chunk[Byte]] = Buffer()
   private[this] var size: Int = 0
