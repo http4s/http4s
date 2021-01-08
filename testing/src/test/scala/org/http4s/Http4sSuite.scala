@@ -25,6 +25,8 @@ import munit._
 /** Common stack for http4s' munit based tests
   */
 trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {
+  // The default munit EC causes an IllegalArgumentException in
+  // BatchExecutor on Scala 2.12.
   override val munitExecutionContext = Http4sSpec.TestExecutionContext
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
