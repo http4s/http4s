@@ -23,7 +23,6 @@ import java.net.URL
 import java.nio.file.Files
 
 import org.http4s.Status._
-import org.http4s.headers.ETag.EntityTag
 import org.http4s.headers._
 import cats.data.Nested
 import java.net.UnknownHostException

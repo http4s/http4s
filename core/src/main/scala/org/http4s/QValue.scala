@@ -19,7 +19,7 @@ package org.http4s
 import cats.parse.Parser
 import cats.{Order, Show}
 import org.http4s.util.Writer
-import scala.reflect.macros.blackbox
+import scala.reflect.macros.whitebox
 
 /** A Quality Value.  Represented as thousandths for an exact representation rounded to three
   * decimal places.
@@ -122,7 +122,8 @@ object QValue {
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
-  class Macros(val c: blackbox.Context) {
+  @deprecated("This location of the implementation complicates Dotty support", "0.21.16")
+  class Macros(val c: whitebox.Context) {
     import c.universe._
 
     def qValueLiteral(d: c.Expr[Double]): Tree =

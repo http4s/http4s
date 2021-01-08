@@ -18,7 +18,7 @@ import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{StringWriter, Writer}
 
-import scala.reflect.macros.blackbox
+import scala.reflect.macros.whitebox
 import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
@@ -348,7 +348,8 @@ object MediaType extends MimeDB {
       }
     }
 
-  class Macros(val c: blackbox.Context) {
+  @deprecated("This location of the implementation complicates Dotty support", "0.21.16")
+  class Macros(val c: whitebox.Context) {
     import c.universe._
 
     def mediaTypeLiteral(s: c.Expr[String]): Tree =

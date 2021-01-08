@@ -23,7 +23,6 @@ import cats.data.NonEmptyList
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
-import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
 import org.typelevel.ci.CIString
 

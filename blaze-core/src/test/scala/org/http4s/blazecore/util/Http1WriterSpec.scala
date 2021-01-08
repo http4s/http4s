@@ -124,12 +124,12 @@ class Http1WriterSpec extends Http4sSpec with CatsEffect {
 
   "CachingChunkWriter" should {
     runNonChunkedTests(implicit dispatcher =>
-      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
+      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024, false))
   }
 
   "CachingStaticWriter" should {
     runNonChunkedTests(implicit dispatcher =>
-      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024))
+      tail => new CachingChunkWriter[IO](tail, IO.pure(Headers.empty), 1024 * 1024, false))
   }
 
   "FlushingChunkWriter" should {

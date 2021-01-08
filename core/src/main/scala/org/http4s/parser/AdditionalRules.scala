@@ -17,7 +17,7 @@ package parser
 import cats.parse.{Parser => P}
 import cats.syntax.all._
 import java.time.{ZoneOffset, ZonedDateTime}
-import org.http4s.headers.ETag.EntityTag.{Strong, Weak, Weakness}
+import org.http4s.EntityTag.{Strong, Weak, Weakness}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
 import scala.util.Try
@@ -190,7 +190,7 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
      opaque-tag = DQUOTE *etagc DQUOTE
      etagc      = %x21 / %x23-7E / obs-text ; VCHAR except double quotes, plus obs-text
    */
-  def EntityTag: Rule1[headers.ETag.EntityTag] = {
+  def EntityTag: Rule1[EntityTag] = {
     def weak: Rule1[Weakness] = rule("W/" ~ push(Weak) | push(Strong))
 
     // obs-text: http://tools.ietf.org/html/rfc7230#section-3.2.6
@@ -202,7 +202,7 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
     rule {
       weak ~ opaqueTag ~> { (weakness: Weakness, tag: String) =>
-        headers.ETag.EntityTag(tag, weakness)
+        org.http4s.EntityTag(tag, weakness)
       }
     }
   }
