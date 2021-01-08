@@ -22,7 +22,7 @@ import cats.effect.{IO, Resource}
 import org.asynchttpclient.DefaultAsyncHttpClient
 import org.asynchttpclient.HostStats
 
-class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with Http4sSuite {
+class AsyncHttpClientSuite extends ClientRouteTestBattery("AsyncHttpClient") with Http4sSuite {
 
   def clientResource: Resource[IO, Client[IO]] = AsyncHttpClient.resource[IO]()
 
@@ -75,15 +75,13 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
   }
 
   test("AsyncHttpClientStats should correctly get the stats from the underlying ClientStats") {
-
-    val clientWithStats: Resource[IO, Client[IO]] = Resource(
-      IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig))
-        .map(c =>
-          (
-            new ClientWithStats(
-              AsyncHttpClient.apply(c),
-              new AsyncHttpClientStats[IO](c.getClientStats)),
-            IO.delay(c.close()))))
+    val clientWithStats: Resource[IO, Client[IO]] =
+      for {
+        httpClient <- Resource.make(
+          IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig)))(client =>
+          IO(client.close()))
+        client <- AsyncHttpClient.fromClient[IO](httpClient)
+      } yield new ClientWithStats(client, new AsyncHttpClientStats[IO](httpClient.getClientStats))
 
     val clientStats: Resource[IO, AsyncHttpClientStats[IO]] = clientWithStats.map {
       case client: ClientWithStats => client.getStats
