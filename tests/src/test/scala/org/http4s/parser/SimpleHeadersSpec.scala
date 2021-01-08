@@ -21,8 +21,7 @@ import cats.data.NonEmptyList
 
 import java.net.InetAddress
 import org.http4s.headers._
-import org.http4s.headers.ETag.EntityTag
-import org.http4s.headers.ETag.EntityTag.{Strong, Weak}
+import org.http4s.EntityTag.{Strong, Weak}
 import org.typelevel.ci.CIString
 
 class SimpleHeadersSpec extends Http4sSpec {
@@ -145,8 +144,8 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse ETag" in {
-      ETag.EntityTag("hash", Weak).toString() must_== "W/\"hash\""
-      ETag.EntityTag("hash", Strong).toString() must_== "\"hash\""
+      EntityTag("hash", Weak).toString() must_== "W/\"hash\""
+      EntityTag("hash", Strong).toString() must_== "\"hash\""
 
       val headers = Seq(ETag("hash"), ETag("hash", Weak))
 
