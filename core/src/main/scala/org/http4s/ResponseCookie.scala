@@ -87,7 +87,7 @@ object ResponseCookie {
     val cookiePair = (cookieName <* char('=')) ~ cookieValue
 
     /* sane-cookie-date  = <rfc1123-date, defined in [RFC2616], Section 3.3.1> */
-    val saneCookieDate = Rfc2616.rfc1123Date.flatMap { date: Rfc1123Date =>
+    val saneCookieDate = Rfc2616.rfc1123Date.flatMap { (date: Rfc1123Date) =>
       import date._
       try {
         val dt = ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC)
@@ -100,7 +100,7 @@ object ResponseCookie {
 
     /* expires-av        = "Expires=" sane-cookie-date */
     val expiresAv = ignoreCase1("Expires=").with1 *> saneCookieDate.map {
-      expires: HttpDate => (cookie: ResponseCookie) => cookie.withExpires(expires)
+      (expires: HttpDate) => (cookie: ResponseCookie) => cookie.withExpires(expires)
     }
 
     /* non-zero-digit    = %x31-39
@@ -114,7 +114,7 @@ object ResponseCookie {
      *                   ; user agent.
      */
     val maxAgeAv = ignoreCase1("Max-Age=") *> (nonZeroDigit ~ rep(digit)).string.map {
-      maxAge: String => (cookie: ResponseCookie) => cookie.withMaxAge(maxAge.toLong)
+      (maxAge: String) => (cookie: ResponseCookie) => cookie.withMaxAge(maxAge.toLong)
     }
 
     /* domain-value      = <subdomain>
@@ -129,7 +129,7 @@ object ResponseCookie {
      * a leading dot, which is invalid per domain-value.
      */
     val domainAv = ignoreCase1("Domain=") *> (char('.').? ~ domainValue).string.map {
-      domain: String => (cookie: ResponseCookie) => cookie.withDomain(domain)
+      (domain: String) => (cookie: ResponseCookie) => cookie.withDomain(domain)
     }
 
     /* av-octet = %x20-3A / %x3C-7E
