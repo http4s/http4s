@@ -28,7 +28,7 @@ import io.chrisdavenport.vault._
 private[blaze] final class Http1ServerParser[F[_]](
     logger: Logger,
     maxRequestLine: Int,
-    maxHeadersLen: Int)(implicit F: Effect[F])
+    maxHeadersLen: Int)(implicit F: Async[F])
     extends blaze.http.parser.Http1ServerParser(maxRequestLine, maxHeadersLen, 2 * 1024) {
   private var uri: String = _
   private var method: String = _
@@ -54,7 +54,7 @@ private[blaze] final class Http1ServerParser[F[_]](
       if (minorVersion() == 1 && isChunked)
         attrs.insert(
           Message.Keys.TrailerHeaders[F],
-          F.suspend[Headers] {
+          F.defer[Headers] {
             if (!contentComplete())
               F.raiseError(
                 new IllegalStateException(

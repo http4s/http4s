@@ -31,7 +31,6 @@ import scala.concurrent.ExecutionContext.global
 import munit.TestOptions
 
 class BlazeServerSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
 
   def builder =
     BlazeServerBuilder[IO](global)
@@ -120,11 +119,11 @@ class BlazeServerSuite extends Http4sSuite {
     }
 
   blazeServer.test("route requests on the service executor") { server =>
-    get(server, "/thread/routing").map(_.startsWith("http4s-spec-")).assertEquals(true)
+    get(server, "/thread/routing").map(_.startsWith("io-compute-")).assertEquals(true)
   }
 
   blazeServer.test("execute the service task on the service executor") { server =>
-    get(server, "/thread/effect").map(_.startsWith("http4s-spec-")).assertEquals(true)
+    get(server, "/thread/effect").map(_.startsWith("io-compute-")).assertEquals(true)
   }
 
   blazeServer.test("be able to echo its input") { server =>

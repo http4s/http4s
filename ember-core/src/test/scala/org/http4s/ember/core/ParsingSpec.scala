@@ -17,21 +17,19 @@
 package org.http4s.ember.core
 
 import org.specs2.mutable.Specification
-import cats.effect._
 import org.http4s._
 import org.http4s.implicits._
 import scodec.bits.ByteVector
 // import io.chrisdavenport.log4cats.testing.TestingLogger
-import cats.effect.testing.specs2.CatsIO
 import fs2._
-import cats.effect.concurrent._
+import cats.effect.unsafe.implicits.global
+import cats.effect._
 import cats.data.OptionT
 import cats.syntax.all._
-import fs2.Chunk.ByteVectorChunk
 import org.http4s.ember.core.Parser.Request.ReqPrelude.ParsePreludeComplete
 import org.http4s.headers.Expires
 
-class ParsingSpec extends Specification with CatsIO {
+class ParsingSpec extends Specification {
   sequential
   object Helpers {
     def stripLines(s: String): String = s.replace("\r\n", "\n")
@@ -58,7 +56,7 @@ class ParsingSpec extends Specification with CatsIO {
       Parser.Response.parser[F](Int.MaxValue)(byteStream) //(logger)
     }
 
-    def forceScopedParsing[F[_]: Sync](s: String): Stream[F, Byte] = {
+    def forceScopedParsing[F[_]: Concurrent](s: String): Stream[F, Byte] = {
       val pivotPoint = s.trim().length - 1
       val firstChunk = s.substring(0, pivotPoint).replace("\n", "\r\n")
       val secondChunk = s.substring(pivotPoint, s.length).replace("\n", "\r\n")
@@ -185,7 +183,7 @@ class ParsingSpec extends Specification with CatsIO {
       val baseBv = ByteVector.fromBase64(base).get
 
       Parser.Response
-        .parser[IO](defaultMaxHeaderLength)(Stream.chunk(ByteVectorChunk(baseBv)))
+        .parser[IO](defaultMaxHeaderLength)(Stream.chunk(Chunk.byteVector(baseBv)))
         .use { resp =>
           resp.body.through(text.utf8Decode).compile.string
 

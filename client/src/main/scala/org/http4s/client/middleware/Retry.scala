@@ -18,7 +18,7 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.{Concurrent, Resource, Timer}
+import cats.effect.kernel.{Resource, Temporal}
 import cats.syntax.all._
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -28,42 +28,15 @@ import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
+import cats.effect.std.Hotswap
 
 object Retry {
   private[this] val logger = getLogger
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
-    def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
-      Resource.suspend[F, Response[F]](F.continual(client.run(req).allocated) {
-        case Right((response, dispose)) =>
-          policy(req, Right(response), attempts) match {
-            case Some(duration) =>
-              logger.info(
-                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
-              dispose >> F.pure(
-                nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
-            case None =>
-              F.pure(Resource.make(F.pure(response))(_ => dispose))
-          }
-
-        case Left(e) =>
-          policy(req, Left(e), attempts) match {
-            case Some(duration) =>
-              // info instead of error(e), because e is not discarded
-              logger.info(e)(
-                s"Request threw an exception on attempt #$attempts. Retrying after $duration")
-              F.pure(nextAttempt(req, attempts, duration, None))
-            case None =>
-              logger.info(e)(
-                s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
-              )
-              F.pure(Resource.liftF(F.raiseError(e)))
-          }
-      })
-
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(client: Client[F])(
+      implicit F: Temporal[F]): Client[F] = {
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
       val headers = request.headers.redactSensitive(redactWhen).toList.mkString(",")
       val uri = request.uri.renderString
@@ -75,7 +48,8 @@ object Retry {
         req: Request[F],
         attempts: Int,
         duration: FiniteDuration,
-        retryHeader: Option[`Retry-After`]): Resource[F, Response[F]] = {
+        retryHeader: Option[`Retry-After`],
+        hotswap: Hotswap[F, Either[Throwable, Response[F]]]): F[Response[F]] = {
       val headerDuration =
         retryHeader
           .map { h =>
@@ -86,10 +60,44 @@ object Retry {
           }
           .getOrElse(0L)
       val sleepDuration = headerDuration.seconds.max(duration)
-      Resource.liftF(T.sleep(sleepDuration)) *> prepareLoop(req, attempts + 1)
+      F.sleep(sleepDuration) >> retryLoop(req, attempts + 1, hotswap)
     }
 
-    Client(prepareLoop(_, 1))
+    def retryLoop(
+        req: Request[F],
+        attempts: Int,
+        hotswap: Hotswap[F, Either[Throwable, Response[F]]]): F[Response[F]] =
+      hotswap.swap(client.run(req).attempt).flatMap {
+        case Right(response) =>
+          policy(req, Right(response), attempts) match {
+            case Some(duration) =>
+              logger.info(
+                s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+              nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`), hotswap)
+            case None =>
+              F.pure(response)
+          }
+
+        case Left(e) =>
+          policy(req, Left(e), attempts) match {
+            case Some(duration) =>
+              // info instead of error(e), because e is not discarded
+              logger.info(e)(
+                s"Request threw an exception on attempt #$attempts. Retrying after $duration")
+              nextAttempt(req, attempts, duration, None, hotswap)
+            case None =>
+              logger.info(e)(
+                s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
+              )
+              F.raiseError(e)
+          }
+      }
+
+    Client { req =>
+      Hotswap.create[F, Either[Throwable, Response[F]]].flatMap { hotswap =>
+        Resource.eval(retryLoop(req, 1, hotswap))
+      }
+    }
   }
 }
 

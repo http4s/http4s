@@ -18,7 +18,8 @@ package org.http4s
 package client
 package blaze
 
-import cats.effect._
+import cats.effect.kernel.{Async, Resource}
+import cats.effect.std.Dispatcher
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
@@ -46,11 +47,13 @@ private final class Http1Connection[F[_]](
     maxChunkSize: Int,
     override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
-    userAgent: Option[`User-Agent`]
-)(implicit protected val F: ConcurrentEffect[F])
+    userAgent: Option[`User-Agent`],
+    override val dispatcher: Dispatcher[F]
+)(implicit protected val F: Async[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
   import org.http4s.client.blaze.Http1Connection._
+  import Resource.ExitCase
 
   override def name: String = getClass.getName
   private val parser =
@@ -104,26 +107,49 @@ private final class Http1Connection[F[_]](
     }
 
   @tailrec
-  def reset(): Unit =
-    stageState.get() match {
-      case v @ (Running | Idle) =>
-        if (stageState.compareAndSet(v, Idle)) parser.reset()
-        else reset()
-      case Error(_) => // NOOP: we don't reset on an error.
+  def resetRead(): Unit = {
+    val state = stageState.get()
+    val nextState = state match {
+      case Idle => Some(Idle)
+      case ReadWrite => Some(Write)
+      case Read => Some(Idle)
+      case _ => None
     }
 
+    nextState match {
+      case Some(n) => if (stageState.compareAndSet(state, n)) parser.reset() else resetRead()
+      case None => ()
+    }
+  }
+
+  @tailrec
+  def resetWrite(): Unit = {
+    val state = stageState.get()
+    val nextState = state match {
+      case Idle => Some(Idle)
+      case ReadWrite => Some(Read)
+      case Write => Some(Idle)
+      case _ => None
+    }
+
+    nextState match {
+      case Some(n) => if (stageState.compareAndSet(state, n)) () else resetWrite()
+      case None => ()
+    }
+  }
+
   def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] =
-    F.suspend[Response[F]] {
+    F.defer[Response[F]] {
       stageState.get match {
         case Idle =>
-          if (stageState.compareAndSet(Idle, Running)) {
+          if (stageState.compareAndSet(Idle, ReadWrite)) {
             logger.debug(s"Connection was idle. Running.")
             executeRequest(req, idleTimeoutF)
           } else {
             logger.debug(s"Connection changed state since checking it was idle. Looping.")
             runRequest(req, idleTimeoutF)
           }
-        case Running =>
+        case ReadWrite | Read | Write =>
           logger.error(s"Tried to run a request already in running state.")
           F.raiseError(InProgressException)
         case Error(e) =>
@@ -143,7 +169,7 @@ private final class Http1Connection[F[_]](
       case Left(e) =>
         F.raiseError(e)
       case Right(req) =>
-        F.suspend {
+        F.defer {
           val initWriterSize: Int = 512
           val rr: StringWriter = new StringWriter(initWriterSize)
           val isServer: Boolean = false
@@ -160,29 +186,29 @@ private final class Http1Connection[F[_]](
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
-            val idleTimeoutS = timeoutFiber.join.attempt.map {
+            val idleTimeoutS = timeoutFiber.joinAndEmbedNever.attempt.map {
               case Right(t) => Left(t): Either[Throwable, Unit]
               case Left(t) => Left(t): Either[Throwable, Unit]
             }
 
             val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
               .write(rr, req.body)
+              .guarantee(F.delay(resetWrite()))
               .onError {
                 case EOF => F.unit
                 case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-            val response: F[Response[F]] =
+            val response: F[Response[F]] = writeRequest.start >>
               receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
 
-            val res = writeRequest.start >> response
-
-            F.racePair(res, timeoutFiber.join).flatMap {
-              case Left((r, _)) =>
-                F.pure(r)
-              case Right((fiber, t)) =>
-                fiber.cancel >> F.raiseError(t)
-            }
+            F.race(response, timeoutFiber.joinAndEmbedNever)
+              .flatMap[Response[F]] {
+                case Left(r) =>
+                  F.pure(r)
+                case Right(t) =>
+                  F.raiseError(t)
+              }
           }
         }
     }
@@ -192,8 +218,10 @@ private final class Http1Connection[F[_]](
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
       idleTimeoutS: F[Either[Throwable, Unit]]): F[Response[F]] =
-    F.async[Response[F]](cb =>
-      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS))
+    F.async[Response[F]] { cb =>
+      F.delay(readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS))
+        .as(None)
+    }
 
   // this method will get some data, and try to continue parsing using the implicit ec
   private def readAndParsePrelude(
@@ -206,8 +234,10 @@ private final class Http1Connection[F[_]](
       case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
       case Failure(EOF) =>
         stageState.get match {
-          case Idle | Running => shutdown(); cb(Left(EOF))
           case Error(e) => cb(Left(e))
+          case _ =>
+            shutdown()
+            cb(Left(EOF))
         }
 
       case Failure(t) =>
@@ -247,7 +277,7 @@ private final class Http1Connection[F[_]](
           stageShutdown()
         } else {
           logger.debug(s"Resetting $name after completing request.")
-          reset()
+          resetRead()
         }
 
       val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
@@ -266,7 +296,7 @@ private final class Http1Connection[F[_]](
 
             val attrs = Vault.empty.insert[F[Headers]](
               Message.Keys.TrailerHeaders[F],
-              F.suspend {
+              F.defer {
                 if (parser.contentComplete()) F.pure(trailers.get())
                 else
                   F.raiseError(
@@ -290,12 +320,12 @@ private final class Http1Connection[F[_]](
           attributes -> rawBody
         } else
           attributes -> rawBody.onFinalizeCaseWeak {
-            case ExitCase.Completed =>
-              Async.shift(executionContext) *> F.delay { trailerCleanup(); cleanup(); }
-            case ExitCase.Error(_) | ExitCase.Canceled =>
-              Async.shift(executionContext) *> F.delay {
+            case ExitCase.Succeeded =>
+              F.delay { trailerCleanup(); cleanup(); }.evalOn(executionContext)
+            case ExitCase.Errored(_) | ExitCase.Canceled =>
+              F.delay {
                 trailerCleanup(); cleanup(); stageShutdown()
-              }
+              }.evalOn(executionContext)
           }
       }
       cb(
@@ -356,7 +386,9 @@ private object Http1Connection {
   // ADT representing the state that the ClientStage can be in
   private sealed trait State
   private case object Idle extends State
-  private case object Running extends State
+  private case object ReadWrite extends State
+  private case object Read extends State
+  private case object Write extends State
   private final case class Error(exc: Throwable) extends State
 
   private def getHttpMinor[F[_]](req: Request[F]): Int = req.httpVersion.minor

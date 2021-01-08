@@ -19,7 +19,7 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
@@ -33,7 +33,7 @@ object ResponseLogger {
 
   private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = Sync[F].delay(logger.info(s))
 
-  def apply[F[_]: Concurrent](
+  def apply[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -47,7 +47,7 @@ object ResponseLogger {
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
-  def logBodyText[F[_]: Concurrent](
+  def logBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -61,7 +61,7 @@ object ResponseLogger {
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
-  def customized[F[_]: Concurrent](
+  def customized[F[_]: Async](
       client: Client[F],
       logBody: Boolean = true,
       logAction: Option[String => F[Unit]] = None
@@ -72,11 +72,11 @@ object ResponseLogger {
     }
 
   private def impl[F[_]](client: Client[F], logBody: Boolean)(logMessage: Response[F] => F[Unit])(
-      implicit F: Concurrent[F]): Client[F] =
+      implicit F: Async[F]): Client[F] =
     Client { req =>
       client.run(req).flatMap { response =>
         if (!logBody)
-          Resource.liftF(logMessage(response) *> F.delay(response))
+          Resource.eval(logMessage(response) *> F.delay(response))
         else
           Resource.suspend {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
@@ -84,7 +84,7 @@ object ResponseLogger {
                 F.pure(
                   response.copy(body = response.body
                     // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                    .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s)))))
+                    .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))))
                 )) { _ =>
                 val newBody = Stream
                   .eval(vec.get)
@@ -108,7 +108,7 @@ object ResponseLogger {
       case Status.ServerError => Console.RED
     }
 
-  def colored[F[_]: Concurrent](
+  def colored[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,

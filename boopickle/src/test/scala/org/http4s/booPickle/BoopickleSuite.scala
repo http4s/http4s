@@ -18,12 +18,12 @@ package org.http4s
 package booPickle
 
 import boopickle.Default._
-import cats.effect.IO
 import cats.Eq
-import cats.effect.laws.util.TestContext
+import cats.effect.IO
+import cats.effect.testkit.TestContext
+import org.http4s.MediaType
 import org.http4s.headers.`Content-Type`
 import org.http4s.laws.discipline.EntityCodecTests
-import org.http4s.MediaType
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 

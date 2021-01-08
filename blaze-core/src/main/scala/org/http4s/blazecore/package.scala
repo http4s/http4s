@@ -20,6 +20,7 @@ import cats.effect.{Resource, Sync}
 import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
 
 package object blazecore {
+
   private[http4s] def tickWheelResource[F[_]](implicit F: Sync[F]): Resource[F, TickWheelExecutor] =
     Resource(F.delay {
       val s = new TickWheelExecutor()

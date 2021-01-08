@@ -18,9 +18,8 @@ package org.http4s
 package multipart
 
 import java.nio.charset.StandardCharsets
-
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.unsafe.IORuntime
 import cats.instances.string._
 import fs2._
 import org.http4s.headers._
@@ -29,7 +28,7 @@ import org.specs2.mutable._
 import org.specs2.specification.core.{Fragment, Fragments}
 
 object MultipartParserSpec extends Specification {
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
+  private implicit val ioRuntime: IORuntime = Http4sSpec.TestIORuntime
 
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
 
@@ -44,10 +43,10 @@ object MultipartParserSpec extends Specification {
 
     def jumbleAccum(s: String, acc: Stream[IO, Byte]): Stream[IO, Byte] =
       if (s.length <= 1)
-        acc ++ Stream.chunk(Chunk.bytes(s.getBytes()))
+        acc ++ Stream.chunk(Chunk.array(s.getBytes()))
       else {
         val (l, r) = s.splitAt(rand.nextInt(s.length - 1) + 1)
-        jumbleAccum(r, acc ++ Stream.chunk(Chunk.bytes(l.getBytes)))
+        jumbleAccum(r, acc ++ Stream.chunk(Chunk.array(l.getBytes)))
       }
 
     jumbleAccum(str, Stream.empty)
@@ -432,7 +431,7 @@ object MultipartParserSpec extends Specification {
               """bar
                   |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
             ).map(_.replace("\n", "\r\n"))
-              .map(str => Chunk.bytes(str.getBytes(StandardCharsets.UTF_8))))
+              .map(str => Chunk.array(str.getBytes(StandardCharsets.UTF_8))))
             .flatMap(Stream.chunk)
             .covary[IO]
 
@@ -565,7 +564,7 @@ object MultipartParserSpec extends Specification {
           val checkReachedTheEnd: IO[Boolean] = for {
             // This should be false until we drain the whole input.
             ref <- Ref[IO].of(false)
-            trackedInput = unspool(input, chunkSize) ++ Stream.eval_(ref.set(true))
+            trackedInput = unspool(input, chunkSize) ++ Stream.eval(ref.set(true)).drain
 
             _ <- trackedInput.through(multipartPipe(boundary)).compile.drain
 
@@ -604,9 +603,9 @@ object MultipartParserSpec extends Specification {
 
   multipartParserTests(
     "mixed file parser",
-    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlocker),
-    MultipartParser.parseStreamedFile[IO](_, Http4sSpec.TestBlocker, _),
-    MultipartParser.parseToPartsStreamedFile[IO](_, Http4sSpec.TestBlocker)
+    MultipartParser.parseStreamedFile[IO](_),
+    MultipartParser.parseStreamedFile[IO](_, _),
+    MultipartParser.parseToPartsStreamedFile[IO](_)
   )
 
   "Multipart mixed file parser" should {
@@ -628,8 +627,7 @@ object MultipartParserSpec extends Specification {
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results =
-        unspool(input).through(
-          MultipartParser.parseStreamedFile[IO](boundaryTest, Http4sSpec.TestBlocker, maxParts = 1))
+        unspool(input).through(MultipartParser.parseStreamedFile[IO](boundaryTest, maxParts = 1))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers =
@@ -660,11 +658,7 @@ object MultipartParserSpec extends Specification {
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results = unspool(input).through(
-        MultipartParser.parseStreamedFile[IO](
-          boundaryTest,
-          Http4sSpec.TestBlocker,
-          maxParts = 1,
-          failOnLimit = true))
+        MultipartParser.parseStreamedFile[IO](boundaryTest, maxParts = 1, failOnLimit = true))
 
       results.compile.last.map(_.get).unsafeRunSync() must throwA[MalformedMessageBodyFailure]
     }

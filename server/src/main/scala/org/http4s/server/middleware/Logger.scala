@@ -22,8 +22,7 @@ import cats.~>
 import cats.arrow.FunctionK
 import cats.syntax.all._
 import cats.data.OptionT
-import cats.effect.{Bracket, Concurrent, Sync}
-import cats.effect.Sync._
+import cats.effect.kernel.{Async, MonadCancel}
 import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
@@ -39,9 +38,9 @@ object Logger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(implicit G: Bracket[G, Throwable], F: Concurrent[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: MonadCancel[G, Throwable], F: Async[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
-      Sync[F].delay(logger.info(s))
+      F.delay(logger.info(s))
     }
     ResponseLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(
       RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
@@ -54,16 +53,16 @@ object Logger {
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None
-  )(http: Http[G, F])(implicit G: Bracket[G, Throwable], F: Concurrent[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: MonadCancel[G, Throwable], F: Async[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
-      Sync[F].delay(logger.info(s))
+      F.delay(logger.info(s))
     }
     ResponseLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(
       RequestLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(http)
     )
   }
 
-  def httpApp[F[_]: Concurrent](
+  def httpApp[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -71,7 +70,7 @@ object Logger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpAppLogBodyText[F[_]: Concurrent](
+  def httpAppLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -79,7 +78,7 @@ object Logger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     logBodyText(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpRoutes[F[_]: Concurrent](
+  def httpRoutes[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -87,7 +86,7 @@ object Logger {
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def httpRoutesLogBodyText[F[_]: Concurrent](
+  def httpRoutesLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -99,7 +98,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] =
+      log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage[F, A](message)(logHeaders, logBody, redactHeadersWhen)(log)
 }

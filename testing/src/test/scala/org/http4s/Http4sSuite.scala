@@ -16,20 +16,18 @@
 
 package org.http4s
 
-import cats.effect._
+import cats.effect.IO
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8Decode
-import org.http4s.internal.threads.newBlockingPool
-import org.http4s.internal.threads.newDaemonPool
-import scala.concurrent.ExecutionContext
 import munit._
 
 /** Common stack for http4s' munit based tests
   */
 trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {
-
-  val testBlocker: Blocker = Http4sSpec.TestBlocker
+  // The default munit EC causes an IllegalArgumentException in
+  // BatchExecutor on Scala 2.12.
+  override val munitExecutionContext = Http4sSpec.TestExecutionContext
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -46,15 +44,4 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
       .last
       .map(_.getOrElse(""))
 
-}
-
-object Http4sSuite {
-  val TestBlocker: Blocker =
-    Blocker.liftExecutorService(newBlockingPool("http4s-spec-blocking"))
-
-  val TestExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
-
-  val TestContextShift: ContextShift[IO] =
-    IO.contextShift(TestExecutionContext)
 }

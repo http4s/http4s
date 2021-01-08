@@ -16,7 +16,7 @@
 
 package org.http4s.circe
 
-import cats.effect.Sync
+import cats.effect.Concurrent
 import io.circe.Decoder
 import org.http4s.EntityDecoder
 
@@ -28,7 +28,7 @@ import org.http4s.EntityDecoder
   * that includes the sensitive JSON.
   */
 trait CirceSensitiveDataEntityDecoder {
-  implicit def circeEntityDecoder[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
+  implicit def circeEntityDecoder[F[_]: Concurrent, A: Decoder]: EntityDecoder[F, A] =
     jsonOfSensitive[F, A](_ => "<REDACTED>")
 }
 

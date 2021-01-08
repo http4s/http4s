@@ -29,7 +29,7 @@ trait AsyncSyntax {
 final class AsyncOps[F[_], A](val self: Async[F]) extends AnyVal {
   @deprecated("Has nothing to do with HTTP. Use `IO.fromFuture(IO(future)).to[F]`", "0.19.1")
   def fromFuture(future: Eval[Future[A]])(implicit ec: ExecutionContext): F[A] =
-    self.async { cb =>
+    self.async_ { cb =>
       import scala.util.{Failure, Success}
 
       future.value.onComplete {
