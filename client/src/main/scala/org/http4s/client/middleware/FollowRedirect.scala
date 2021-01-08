@@ -24,6 +24,7 @@ import org.http4s.Method._
 import org.http4s.headers._
 import org.typelevel.ci.CIString
 import _root_.io.chrisdavenport.vault._
+import cats.effect.std.Hotswap
 
 /** Client middleware to follow redirect responses.
   *
@@ -93,27 +94,28 @@ object FollowRedirect {
       )
     }
 
-    def prepareLoop(req: Request[F], redirects: Int): F[Resource[F, Response[F]]] =
-      F.continual(client.run(req).allocated) {
-        case Right((resp, dispose)) =>
-          (methodForRedirect(req, resp), resp.headers.get(Location)) match {
-            case (Some(method), Some(loc)) if redirects < maxRedirects =>
-              val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
-              dispose >> prepareLoop(nextReq, redirects + 1).map(_.map { response =>
-                // prepend because `prepareLoop` is recursive
-                response.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(response))
-              })
-            case _ =>
-              // IF the response is missing the Location header, OR there is no method to redirect,
-              // OR we have exceeded max number of redirections, THEN we redirect no more
-              Resource.make(resp.pure[F])(_ => dispose).pure[F]
-          }
-
-        case Left(e) =>
-          F.raiseError(e)
+    def redirectLoop(
+        req: Request[F],
+        redirects: Int,
+        hotswap: Hotswap[F, Response[F]]): F[Response[F]] =
+      hotswap.swap(client.run(req)).flatMap { resp =>
+        (methodForRedirect(req, resp), resp.headers.get(Location)) match {
+          case (Some(method), Some(loc)) if redirects < maxRedirects =>
+            val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
+            redirectLoop(nextReq, redirects + 1, hotswap)
+              .map(res => res.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(res)))
+          case _ =>
+            // IF the response is missing the Location header, OR there is no method to redirect,
+            // OR we have exceeded max number of redirections, THEN we redirect no more
+            resp.pure[F]
+        }
       }
 
-    Client(req => Resource.suspend(prepareLoop(req, 0)))
+    Client { req =>
+      Hotswap.create[F, Response[F]].flatMap { case hotswap =>
+        Resource.eval(redirectLoop(req, 0, hotswap))
+      }
+    }
   }
 
   private def methodForRedirect[F[_]](req: Request[F], resp: Response[F]): Option[Method] =
@@ -160,7 +162,7 @@ object FollowRedirect {
         None
     }
 
-  private val redirectUrisKey = Key.newKey[IO, List[Uri]].unsafeRunSync()
+  private val redirectUrisKey = Key.newKey[SyncIO, List[Uri]].unsafeRunSync()
 
   /** Get the redirection URIs for a `response`.
     * Excludes the initial request URI

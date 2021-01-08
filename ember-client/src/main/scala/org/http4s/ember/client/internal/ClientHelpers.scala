@@ -60,7 +60,7 @@ private[client] object ClientHelpers {
       additionalSocketOptions: List[SocketOptionMapping[_]]
   ): Resource[F, RequestKeySocket[F]] =
     for {
-      address <- Resource.liftF(getAddress(requestKey))
+      address <- Resource.eval(getAddress(requestKey))
       initSocket <- sg.client[F](address, additionalSocketOptions = additionalSocketOptions)
       socket <- {
         if (requestKey.scheme === Uri.Scheme.https)
@@ -114,13 +114,13 @@ private[client] object ClientHelpers {
       for {
         start <- RT.clock.realTime(MILLISECONDS)
         _ <- writeRequestToSocket(req, socket, Option(fin))
-        timeoutSignal <- Resource.liftF(SignallingRef[F, Boolean](true))
+        timeoutSignal <- Resource.eval(SignallingRef[F, Boolean](true))
         sent <- RT.clock.realTime(MILLISECONDS)
         remains = fin - (sent - start).millis
         resp <- Parser.Response.parser[F](maxResponseHeaderSize)(
           readWithTimeout(socket, start, remains, timeoutSignal.get, chunkSize)
         )
-        _ <- Resource.liftF(timeoutSignal.set(false).void)
+        _ <- Resource.eval(timeoutSignal.set(false).void)
       } yield resp
 
     def writeRead(req: Request[F]) =
@@ -130,7 +130,7 @@ private[client] object ClientHelpers {
       }
 
     for {
-      processedReq <- Resource.liftF(preprocessRequest(request, userAgent))
+      processedReq <- Resource.eval(preprocessRequest(request, userAgent))
       resp <- writeRead(processedReq)
       processedResp <- postProcessResponse(processedReq, resp, reuseable)
     } yield processedResp

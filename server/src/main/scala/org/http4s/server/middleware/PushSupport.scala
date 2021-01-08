@@ -20,7 +20,7 @@ package middleware
 
 import cats.{Functor, Monad}
 import cats.data.Kleisli
-import cats.effect.IO
+import cats.effect.SyncIO
 import cats.syntax.all._
 import org.log4s.getLogger
 import io.chrisdavenport.vault._
@@ -109,11 +109,12 @@ object PushSupport {
   private[PushSupport] final case class PushLocation(location: String, cascade: Boolean)
   private[http4s] final case class PushResponse[F[_]](location: String, resp: Response[F])
 
-  private[PushSupport] val pushLocationKey = Key.newKey[IO, Vector[PushLocation]].unsafeRunSync()
+  private[PushSupport] val pushLocationKey =
+    Key.newKey[SyncIO, Vector[PushLocation]].unsafeRunSync()
   private[http4s] def pushResponsesKey[F[_]]: Key[F[Vector[PushResponse[F]]]] =
     Keys.PushResponses.asInstanceOf[Key[F[Vector[PushResponse[F]]]]]
 
   private[this] object Keys {
-    val PushResponses: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
+    val PushResponses: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
   }
 }

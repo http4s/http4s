@@ -17,10 +17,10 @@
 package org.http4s
 
 import cats.{Applicative, Functor, Monad, SemigroupK}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2._
-import fs2.io.file.writeAll
+import fs2.io.file.Files
 import java.io.File
 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scala.annotation.implicitNotFound
@@ -188,81 +188,76 @@ object EntityDecoder {
     }
 
   /** Helper method which simply gathers the body into a single Chunk */
-  def collectBinary[F[_]: Sync](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(m.body.chunks.compile.toVector.map(Chunk.concatBytes))
+  def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
+    DecodeResult.success(m.body.chunks.compile.toVector.map(bytes => Chunk.concat(bytes)))
 
   @deprecated(
     "Can go into an infinite loop for charsets other than UTF-8. Replaced by decodeText",
     "0.21.5")
   def decodeString[F[_]](
-      m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
+      m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
     m.bodyAsText.compile.string
 
   /** Decodes a message to a String */
   def decodeText[F[_]](
-      m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): F[String] =
+      m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
     m.bodyText.compile.string
 
   /////////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
-  def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
+  def error[F[_], T](t: Throwable)(implicit F: Concurrent[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
         DecodeResult(m.body.compile.drain *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 
-  implicit def binary[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
+  implicit def binary[F[_]: Concurrent]: EntityDecoder[F, Chunk[Byte]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
 
   @deprecated("Use `binary` instead", "0.19.0-M2")
-  def binaryChunk[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
+  def binaryChunk[F[_]: Concurrent]: EntityDecoder[F, Chunk[Byte]] =
     binary[F]
 
-  implicit def byteArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Byte]] =
+  implicit def byteArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Byte]] =
     binary.map(_.toArray)
 
   implicit def text[F[_]](implicit
-      F: Sync[F],
+      F: Concurrent[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(chunk =>
         new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
 
-  implicit def charArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Char]] =
+  implicit def charArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
 
   // File operations
-  def binFile[F[_]](file: File, blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+  def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = writeAll[F](file.toPath, blocker)
+      val pipe = Files[F].writeAll(file.toPath)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
-  def textFile[F[_]](file: File, blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+  def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = writeAll[F](file.toPath, blocker)
+      val pipe = Files[F].writeAll(file.toPath)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
     }
 
-  implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
+  implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
 
-  def mixedMultipart[F[_]: Sync: ContextShift](
-      blocker: Blocker,
+  def mixedMultipart[F[_]: Concurrent: Files](
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
-    MultipartDecoder.mixedMultipart(blocker, headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
+    MultipartDecoder.mixedMultipart(headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
 
   /** An entity decoder that ignores the content and returns unit. */
-  implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
+  implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       DecodeResult.success(msg.body.drain.compile.drain)
     }

@@ -14,66 +14,68 @@
  * limitations under the License.
  */
 
-package org.http4s.client.blaze
+package org.http4s
+package client
+package blaze
 
 import java.util.concurrent.atomic.AtomicInteger
-import org.http4s.Http4sSpec
 import org.http4s.blaze.pipeline.{Command, HeadStage, LeafBuilder, TailStage}
 import org.http4s.blazecore.util.FutureUnit
 import scala.concurrent.{Await, Awaitable, Future, Promise}
 import scala.concurrent.duration._
 
-class ReadBufferStageSpec extends Http4sSpec {
-  "ReadBufferStage" should {
-    "Launch read request on startup" in {
-      val (readProbe, _) = makePipeline
+class ReadBufferStageSuite extends Http4sSuite {
+  test("Launch read request on startup") {
+    val (readProbe, _) = makePipeline
 
-      readProbe.inboundCommand(Command.Connected)
-      readProbe.readCount.get must_== 1
-    }
+    readProbe.inboundCommand(Command.Connected)
+    assertEquals(readProbe.readCount.get, 1)
+  }
 
-    "Trigger a buffered read after a read takes the already resolved read" in {
-      // The ReadProbe class returns futures that are already satisifed,
-      // so buffering happens during each read call
-      val (readProbe, tail) = makePipeline
+  test("Trigger a buffered read after a read takes the already resolved read") {
+    // The ReadProbe class returns futures that are already satisifed,
+    // so buffering happens during each read call
+    val (readProbe, tail) = makePipeline
 
-      readProbe.inboundCommand(Command.Connected)
-      readProbe.readCount.get must_== 1
+    readProbe.inboundCommand(Command.Connected)
+    assertEquals(readProbe.readCount.get, 1)
 
+    awaitResult(tail.channelRead())
+    assertEquals(readProbe.readCount.get, 2)
+  }
+
+  test(
+    "Trigger a buffered read after a read command takes a pending read, and that read resolves") {
+    // The ReadProbe class returns futures that are already satisifed,
+    // so buffering happens during each read call
+    val slowHead = new ReadHead
+    val tail = new NoopTail
+    makePipeline(slowHead, tail)
+
+    slowHead.inboundCommand(Command.Connected)
+    assertEquals(slowHead.readCount.get, 1)
+
+    val firstRead = slowHead.lastRead
+    val f = tail.channelRead()
+    assert(!f.isCompleted)
+    assertEquals(slowHead.readCount.get, 1)
+
+    firstRead.success(())
+    assert(f.isCompleted)
+
+    // Now we have buffered a second read
+    assertEquals(slowHead.readCount.get, 2)
+  }
+
+  test("Return an IllegalStateException when trying to do two reads at once") {
+    val slowHead = new ReadHead
+    val tail = new NoopTail
+    makePipeline(slowHead, tail)
+
+    slowHead.inboundCommand(Command.Connected)
+    tail.channelRead()
+    intercept[IllegalStateException] {
       awaitResult(tail.channelRead())
-      readProbe.readCount.get must_== 2
-    }
-
-    "Trigger a buffered read after a read command takes a pending read, and that read resolves" in {
-      // The ReadProbe class returns futures that are already satisifed,
-      // so buffering happens during each read call
-      val slowHead = new ReadHead
-      val tail = new NoopTail
-      makePipeline(slowHead, tail)
-
-      slowHead.inboundCommand(Command.Connected)
-      slowHead.readCount.get must_== 1
-
-      val firstRead = slowHead.lastRead
-      val f = tail.channelRead()
-      f.isCompleted must_== false
-      slowHead.readCount.get must_== 1
-
-      firstRead.success(())
-      f.isCompleted must_== true
-
-      // Now we have buffered a second read
-      slowHead.readCount.get must_== 2
-    }
-
-    "Return an IllegalStateException when trying to do two reads at once" in {
-      val slowHead = new ReadHead
-      val tail = new NoopTail
-      makePipeline(slowHead, tail)
-
-      slowHead.inboundCommand(Command.Connected)
-      tail.channelRead()
-      awaitResult(tail.channelRead()) must throwA[IllegalStateException]
     }
   }
 

@@ -18,7 +18,6 @@ package org.http4s.client
 package blaze
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s._
@@ -39,7 +38,7 @@ class BlazeClient213Suite extends BlazeClientBase {
         mkClient(1, requestTimeout = 2.second).use { client =>
           val submit =
             client.status(Request[IO](uri = Uri.fromString(s"http://$name:$port/simple").yolo))
-          submit *> munitTimer.sleep(3.seconds) *> submit
+          submit *> IO.sleep(3.seconds) *> submit
         }
       }
       .assertEquals(Status.Ok)
@@ -53,89 +52,95 @@ class BlazeClient213Suite extends BlazeClientBase {
       Uri.fromString(s"http://$name:$port/simple").yolo
     }
 
-    mkClient(3).use { client =>
-      (1 to Runtime.getRuntime.availableProcessors * 5).toList
-        .parTraverse { _ =>
-          val h = hosts(Random.nextInt(hosts.length))
-          client.expect[String](h).map(_.nonEmpty)
-        }
-        .map(_.forall(identity))
-    }.assert
+    mkClient(3)
+      .use { client =>
+        (1 to Runtime.getRuntime.availableProcessors * 5).toList
+          .parTraverse { _ =>
+            val h = hosts(Random.nextInt(hosts.length))
+            client.expect[String](h).map(_.nonEmpty)
+          }
+          .map(_.forall(identity))
+      }
+      .assertEquals(true)
   }
 
   jettyScaffold.test("behave and not deadlock on failures with parTraverse") {
     case (jettyServer, _) =>
       val addresses = jettyServer.addresses
-      mkClient(3).use { client =>
-        val failedHosts = addresses.map { address =>
-          val name = address.getHostName
-          val port = address.getPort
-          Uri.fromString(s"http://$name:$port/internal-server-error").yolo
-        }
-
-        val successHosts = addresses.map { address =>
-          val name = address.getHostName
-          val port = address.getPort
-          Uri.fromString(s"http://$name:$port/simple").yolo
-        }
-
-        val failedRequests =
-          (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
-            val h = failedHosts(Random.nextInt(failedHosts.length))
-            client.expect[String](h)
+      mkClient(3)
+        .use { client =>
+          val failedHosts = addresses.map { address =>
+            val name = address.getHostName
+            val port = address.getPort
+            Uri.fromString(s"http://$name:$port/internal-server-error").yolo
           }
 
-        val sucessRequests =
-          (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
-            val h = successHosts(Random.nextInt(successHosts.length))
-            client.expect[String](h).map(_.nonEmpty)
+          val successHosts = addresses.map { address =>
+            val name = address.getHostName
+            val port = address.getPort
+            Uri.fromString(s"http://$name:$port/simple").yolo
           }
 
-        val allRequests = for {
-          _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
-          r <- sucessRequests
-        } yield r
+          val failedRequests =
+            (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
+              val h = failedHosts(Random.nextInt(failedHosts.length))
+              client.expect[String](h)
+            }
 
-        allRequests
-          .map(_.forall(identity))
-      }.assert
+          val sucessRequests =
+            (1 to Runtime.getRuntime.availableProcessors * 5).toList.parTraverse { _ =>
+              val h = successHosts(Random.nextInt(successHosts.length))
+              client.expect[String](h).map(_.nonEmpty)
+            }
+
+          val allRequests = for {
+            _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
+            r <- sucessRequests
+          } yield r
+
+          allRequests
+            .map(_.forall(identity))
+        }
+        .assertEquals(true)
   }
 
   jettyScaffold.test(
     "Blaze Http1Client should behave and not deadlock on failures with parSequence") {
     case (jettyServer, _) =>
       val addresses = jettyServer.addresses
-      mkClient(3).use { client =>
-        val failedHosts = addresses.map { address =>
-          val name = address.getHostName
-          val port = address.getPort
-          Uri.fromString(s"http://$name:$port/internal-server-error").yolo
+      mkClient(3)
+        .use { client =>
+          val failedHosts = addresses.map { address =>
+            val name = address.getHostName
+            val port = address.getPort
+            Uri.fromString(s"http://$name:$port/internal-server-error").yolo
+          }
+
+          val successHosts = addresses.map { address =>
+            val name = address.getHostName
+            val port = address.getPort
+            Uri.fromString(s"http://$name:$port/simple").yolo
+          }
+
+          val failedRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
+            val h = failedHosts(Random.nextInt(failedHosts.length))
+            client.expect[String](h)
+          }.parSequence
+
+          val sucessRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
+            val h = successHosts(Random.nextInt(successHosts.length))
+            client.expect[String](h).map(_.nonEmpty)
+          }.parSequence
+
+          val allRequests = for {
+            _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
+            r <- sucessRequests
+          } yield r
+
+          allRequests
+            .map(_.forall(identity))
         }
-
-        val successHosts = addresses.map { address =>
-          val name = address.getHostName
-          val port = address.getPort
-          Uri.fromString(s"http://$name:$port/simple").yolo
-        }
-
-        val failedRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
-          val h = failedHosts(Random.nextInt(failedHosts.length))
-          client.expect[String](h)
-        }.parSequence
-
-        val sucessRequests = (1 to Runtime.getRuntime.availableProcessors * 5).toList.map { _ =>
-          val h = successHosts(Random.nextInt(successHosts.length))
-          client.expect[String](h).map(_.nonEmpty)
-        }.parSequence
-
-        val allRequests = for {
-          _ <- failedRequests.handleErrorWith(_ => IO.unit).replicateA(5)
-          r <- sucessRequests
-        } yield r
-
-        allRequests
-          .map(_.forall(identity))
-      }.assert
+        .assertEquals(true)
   }
 
   jettyScaffold.test("call a second host after reusing connections on a first") {

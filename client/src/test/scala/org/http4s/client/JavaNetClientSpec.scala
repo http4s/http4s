@@ -19,6 +19,6 @@ package client
 
 import cats.effect.IO
 
-class JavaNetClientSuite extends ClientRouteTestBattery("JavaNetClient") {
-  def clientResource = JavaNetClientBuilder[IO](testBlocker).resource
+class JavaNetClientSpec extends ClientRouteTestBattery("JavaNetClient") {
+  def clientResource = JavaNetClientBuilder[IO].resource
 }

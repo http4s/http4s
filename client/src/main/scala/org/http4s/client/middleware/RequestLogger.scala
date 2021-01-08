@@ -19,7 +19,7 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import cats.syntax.all._
 import fs2._
 import org.log4s.getLogger
@@ -33,7 +33,7 @@ object RequestLogger {
 
   private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = Sync[F].delay(logger.info(s))
 
-  def apply[F[_]: Concurrent](
+  def apply[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -47,7 +47,7 @@ object RequestLogger {
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
-  def logBodyText[F[_]: Concurrent](
+  def logBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -61,7 +61,7 @@ object RequestLogger {
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
-  def customized[F[_]: Concurrent](
+  def customized[F[_]: Async](
       client: Client[F],
       logBody: Boolean = true,
       logAction: Option[String => F[Unit]] = None
@@ -72,10 +72,11 @@ object RequestLogger {
     }
 
   private def impl[F[_]](client: Client[F], logBody: Boolean)(logMessage: Request[F] => F[Unit])(
-      implicit F: Concurrent[F]): Client[F] =
+      implicit F: Async[F]): Client[F] =
     Client { req =>
       if (!logBody)
-        Resource.liftF(logMessage(req)) *> client.run(req)
+        Resource.eval(logMessage(req)) *> client
+          .run(req)
       else
         Resource.suspend {
           Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
@@ -87,7 +88,7 @@ object RequestLogger {
             val changedRequest = req.withBodyStream(
               req.body
                 // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s))))
+                .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
                 .onFinalizeWeak(
                   logMessage(req.withBodyStream(newBody)).attempt
                     .flatMap {
@@ -104,13 +105,13 @@ object RequestLogger {
 
   val defaultRequestColor: String = Console.BLUE
 
-  def colored[F[_]: Concurrent](
+  def colored[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       color: String = defaultRequestColor,
       logAction: Option[String => F[Unit]] = None
-  )(client: Client[F]): Client[F] =
+  )(client: Client[F])(implicit F: Async[F]): Client[F] =
     customized(client, logBody, logAction) { request =>
       import Console._
       val methodColor =

@@ -38,7 +38,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     new HttpServlet {
       override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
         GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(r) => renderResponse(srv, r).unsafeRunSync() // We are outside the IO world
+          case Some(r) =>
+            r.flatMap(renderResponse(srv, _)).unsafeRunSync() // We are outside the IO world
           case None => srv.sendError(404)
         }
 
@@ -52,10 +53,6 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
 
   def clientFixture: FunFixture[(JettyScaffold, Client[IO])] =
     ResourceFixture(((JettyScaffold[IO](1, false, testServlet), clientResource)).tupled)
-
-  // Need to override the context shift from munitCatsEffect
-  // This is only required for JettyClient
-  implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
   clientFixture.test(s"$name Repeat a simple request") { case (jetty, client) =>
     val address = jetty.addresses.head
@@ -114,7 +111,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
       client
         .run(req)
-        .use(resp => checkResponse(resp, expected))
+        .use(resp => expected.flatMap(checkResponse(resp, _)))
         .assert
     }
   }
@@ -137,8 +134,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       srv.addHeader(h.name.toString, h.value)
     }
     resp.body
-      .through(
-        writeOutputStream[IO](IO.pure(srv.getOutputStream), testBlocker, closeAfterUse = false))
+      .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
       .compile
       .drain
   }

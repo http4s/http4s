@@ -116,7 +116,7 @@ object AsyncHttpClient {
           body =
             subscriber
               .stream(bodyDisposal.set(F.unit) >> subscribeF)
-              .flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+              .flatMap(part => chunk(Chunk.array(part.getBodyPartBytes)))
               .mergeHaltBoth(Stream.eval(deferredThrowable.get.flatMap(F.raiseError[Byte])))
 
           responseWithBody = response.copy(body = body)

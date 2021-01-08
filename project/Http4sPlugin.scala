@@ -83,9 +83,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
-    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
-    // https://github.com/scalacenter/scalafix/issues/1299
-    dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -258,7 +255,7 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
         WorkflowStep.Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+        // WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
       ),
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
@@ -275,11 +272,14 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowPublishPostamble := Seq(
         setupHugoStep,
         sitePublishStep("website"),
-        sitePublishStep("docs")
+        // sitePublishStep("docs")
       ),
       // this results in nonexistant directories trying to be compressed
       githubWorkflowArtifactUpload := false,
-      githubWorkflowAddedJobs := Seq(siteBuildJob("website"), siteBuildJob("docs")),
+      githubWorkflowAddedJobs := Seq(
+        siteBuildJob("website"), 
+        // siteBuildJob("docs")
+      ),
     )
   }
 
@@ -293,18 +293,18 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.3.3"
     val caseInsensitive = "0.3.0"
     val cats = "2.3.1"
-    val catsEffect = "2.3.1"
-    val catsEffectTesting = "0.5.0"
+    val catsEffect = "3.0.0-M5"
+    val catsEffectTesting = "1.0-23-f76ace5"
     val catsParse = "0.2.0"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.3"
     val disciplineSpecs2 = "1.1.3"
     val dropwizardMetrics = "4.1.16"
-    val fs2 = "2.5.0"
+    val fs2 = "3.0.0-M7"
     val jacksonDatabind = "2.12.0"
-    val jawn = "1.0.1"
-    val jawnFs2 = "1.0.0"
+    val jawn = "1.0.3"
+    val jawnFs2 = "2.0.0-M2"
     val jetty = "9.4.35.v20201120"
     val json4s = "3.6.10"
     val log4cats = "1.1.1"
@@ -312,11 +312,11 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.3"
     val log4s = "1.10.0-M3"
     val mockito = "3.5.15"
-    val netty = "4.1.56.Final"
-    val okio = "2.9.0"
     val munit = "0.7.18"
     val munitCatsEffect = "0.12.0"
     val munitDiscipline = "1.0.4"
+    val netty = "4.1.54.Final"
+    val okio = "2.9.0"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.2"
@@ -336,6 +336,7 @@ object Http4sPlugin extends AutoPlugin {
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.0-M1"
+    val unique = "2.1.0-M5"
   }
 
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
@@ -349,6 +350,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsCore                         = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
+  lazy val catsEffectTestkit                = "org.typelevel"          %% "cats-effect-testkit"       % V.catsEffect
   lazy val catsEffectTestingSpecs2          = "com.codecommit"         %% "cats-effect-testing-specs2" % V.catsEffectTesting
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % V.cats
   lazy val catsParse                        = "org.typelevel"          %% "cats-parse"                % V.catsParse
@@ -368,7 +370,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % V.fs2
   lazy val jacksonDatabind                  = "com.fasterxml.jackson.core" % "jackson-databind"       % V.jacksonDatabind
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % V.servlet
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % V.jawnFs2
+  lazy val jawnFs2                          = "org.typelevel"          %% "jawn-fs2"                  % V.jawnFs2
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % V.jawn
   lazy val jawnParser                       = "org.typelevel"          %% "jawn-parser"               % V.jawn
   lazy val jawnPlay                         = "org.typelevel"          %% "jawn-play"                 % V.jawn
@@ -389,7 +391,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % V.log4s
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % V.logback
   lazy val munit                            = "org.scalameta"          %% "munit"                     % V.munit
-  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-2"       % V.munitCatsEffect
+  lazy val munitCatsEffect                  = "org.typelevel"          %% "munit-cats-effect-3"       % V.munitCatsEffect
   lazy val munitDiscipline                  = "org.typelevel"          %% "discipline-munit"          % V.munitDiscipline
   lazy val nettyBuffer                      = "io.netty"               %  "netty-buffer"              % V.netty
   lazy val nettyCodecHttp                   = "io.netty"               %  "netty-codec-http"          % V.netty
@@ -422,4 +424,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % V.treehugger
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % V.twirl
   lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % V.vault
+  lazy val unique                           = "io.chrisdavenport"      %% "unique"                    % V.unique
 }

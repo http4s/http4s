@@ -33,7 +33,7 @@ class EntityLimiterSuite extends Http4sSuite {
     case r if r.pathInfo == path"/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
   }
 
-  val b = chunk(Chunk.bytes("hello".getBytes(StandardCharsets.UTF_8)))
+  val b = chunk(Chunk.array("hello".getBytes(StandardCharsets.UTF_8)))
 
   test("Allow reasonable entities") {
     EntityLimiter(routes, 100)
