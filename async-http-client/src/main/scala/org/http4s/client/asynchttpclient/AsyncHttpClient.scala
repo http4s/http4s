@@ -75,18 +75,9 @@ object AsyncHttpClient {
     */
   def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
       F: Async[F]): Resource[F, Client[F]] =
-    Dispatcher[F].flatMap { dispatcher =>
-      Resource
-        .make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close()))
-        .map { httpClient =>
-          Client[F] { req =>
-            Resource(F.async[(Response[F], F[Unit])] { cb =>
-              F.delay(httpClient
-                .executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher)))
-                .as(None)
-            })
-          }
-        }
+    Resource.make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close())).flatMap {
+      httpClient =>
+        apply(httpClient)
     }
 
   /** Create a bracketed HTTP client based on the AsyncHttpClient library.
