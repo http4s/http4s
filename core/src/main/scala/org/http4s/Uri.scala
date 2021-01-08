@@ -50,7 +50,7 @@ final case class Uri(
   /** Adds the path exactly as described. Any path element must be urlencoded ahead of time.
     * @param path the path string to replace
     */
-  @deprecated("Use {withPath(Uri.Path)} instead", "1.0.0-M1")
+  @deprecated("Use {withPath(Uri.Path)} instead", "0.22.0-M1")
   def withPath(path: String): Uri = copy(path = Uri.Path.fromString(path))
 
   def withPath(path: Uri.Path): Uri = copy(path = path)
@@ -512,10 +512,10 @@ object Uri {
 
     def startsWithString(path: String): Boolean = startsWith(Path.fromString(path))
 
-    @deprecated("Misnamed, use findSplit(prefix) instead", since = "1.0.0-M5")
+    @deprecated("Misnamed, use findSplit(prefix) instead", since = "0.22.0-M1")
     def indexOf(prefix: Path): Option[Int] = findSplit(prefix)
 
-    @deprecated("Misnamed, use findSplitOfString(prefix) instead", since = "1.0.0-M5")
+    @deprecated("Misnamed, use findSplitOfString(prefix) instead", since = "0.22.0-M1")
     def indexOfString(path: String): Option[Int] = findSplit(Path.fromString(path))
 
     def findSplit(prefix: Path): Option[Int] =
@@ -1491,11 +1491,6 @@ object Uri {
     */
   @deprecated("""use uri"" string interpolation instead""", "0.20")
   def uri(s: String): Uri = macro Uri.Macros.uriLiteral
-
-  @deprecated(
-    message = "Please use catsInstancesForHttp4sUri. Kept for binary compatibility",
-    since = "0.21.14")
-  def http4sUriEq: Eq[Uri] = catsInstancesForHttp4sUri
 
   implicit val catsInstancesForHttp4sUri: Hash[Uri] with Order[Uri] with Show[Uri] =
     new Hash[Uri] with Order[Uri] with Show[Uri] {

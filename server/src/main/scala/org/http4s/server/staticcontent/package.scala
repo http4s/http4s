@@ -34,7 +34,7 @@ package object staticcontent {
     ResourceServiceBuilder[F](basePath, blocker)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  @deprecated("use resourceServiceBuilder", "1.0.0-M1")
+  @deprecated("use resourceServiceBuilder", "0.22.0-M1")
   def resourceService[F[_]: Sync: ContextShift](config: ResourceService.Config[F]): HttpRoutes[F] =
     ResourceService(config)
 
@@ -47,7 +47,7 @@ package object staticcontent {
     WebjarServiceBuilder[F](blocker)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */
-  @deprecated("use webjarServiceBuilder", "1.0.0-M1")
+  @deprecated("use webjarServiceBuilder", "0.22.0-M1")
   def webjarService[F[_]: Sync: ContextShift](config: WebjarService.Config[F]): HttpRoutes[F] =
     WebjarService(config)
 

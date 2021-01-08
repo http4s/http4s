@@ -281,7 +281,7 @@ final class Request[F[_]](
   private def caret =
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
 
-  @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "1.0.0-M1")
+  @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "0.22.0-M1")
   def withPathInfo(pi: String): Self =
     withPathInfo(Uri.Path.fromString(pi))
   def withPathInfo(pi: Uri.Path): Self =
