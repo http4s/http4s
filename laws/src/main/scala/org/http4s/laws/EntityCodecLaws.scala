@@ -36,11 +36,11 @@ trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
 
 object EntityCodecLaws {
   def apply[F[_], A](implicit
-      sync: Sync[F],
+      F0: Sync[F],
       entityEncoderFA: EntityEncoder[F, A],
       entityDecoderFA: EntityDecoder[F, A]): EntityCodecLaws[F, A] =
     new EntityCodecLaws[F, A] {
-      val F = synco
+      val F = F0
       val encoder = entityEncoderFA
       val decoder = entityDecoderFA
     }

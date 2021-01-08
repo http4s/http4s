@@ -22,7 +22,6 @@ import cats.syntax.all._
 import cats.parse.{Parser, Parser1, Rfc5234}
 import java.time.{DateTimeException, Instant, ZoneOffset, ZonedDateTime}
 import org.http4s.util.{Renderable, Writer}
-import scala.concurrent.duration.SECONDS
 
 /** An HTTP-date value represents time as an instance of Coordinated Universal
   * Time (UTC). It expresses time at a resolution of one second.  By using it
