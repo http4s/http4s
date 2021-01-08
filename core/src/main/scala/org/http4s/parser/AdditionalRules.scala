@@ -215,7 +215,7 @@ private[http4s] object AdditionalRules {
 
   def EOL = optWs *> EOI.rep
 
-  val Digits: Parser1[Long] = P.rep1(Rfc3986.digit, 1).string.mapFilter { s =>
+  val NonNegativeLong: Parser1[Long] = P.rep1(Rfc3986.digit, 1).string.mapFilter { s =>
     try Some(s.toLong)
     catch {
       case _: NumberFormatException => None

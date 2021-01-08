@@ -49,5 +49,5 @@ object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with Header
   def parse(s: String): ParseResult[`Content-Length`] =
     ParseResult.fromParser(parser, "Invalid Content-Length header")(s)
 
-  private[http4s] val parser = AdditionalRules.Digits.map(fromLong).mapFilter(_.toOption)
+  private[http4s] val parser = AdditionalRules.NonNegativeLong.map(fromLong).mapFilter(_.toOption)
 }

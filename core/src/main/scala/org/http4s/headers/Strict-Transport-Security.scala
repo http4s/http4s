@@ -61,7 +61,7 @@ object `Strict-Transport-Security`
 
   private[http4s] val parser: Parser[`Strict-Transport-Security`] = {
     val maxAge: Parser1[`Strict-Transport-Security`] =
-      (Parser.string1("max-age=") *> AdditionalRules.Digits).map { (age: Long) =>
+      (Parser.ignoreCase1("max-age=") *> AdditionalRules.NonNegativeLong).map { (age: Long) =>
         `Strict-Transport-Security`
           .unsafeFromLong(maxAge = age, includeSubDomains = false, preload = false)
       }
@@ -71,9 +71,9 @@ object `Strict-Transport-Security`
     case object Preload extends StsAttribute
 
     val stsAttributes: Parser[StsAttribute] = Parser
-      .string1("includeSubDomains")
+      .ignoreCase1("includeSubDomains")
       .as(IncludeSubDomains)
-      .orElse(Parser.string1("preload").as(Preload))
+      .orElse(Parser.ignoreCase1("preload").as(Preload))
 
     (maxAge ~ Parser
       .rep(Parser.string1(";") *> Rfc2616BasicRules.optWs *> stsAttributes)).map {

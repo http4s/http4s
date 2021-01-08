@@ -39,7 +39,7 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
 
   override def parse(s: String): ParseResult[Age] =
     ParseResult.fromParser(parser, "Invalid Age header")(s)
-  private[http4s] val parser = AdditionalRules.Digits.map(unsafeFromLong)
+  private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
 }
 
 /** Constructs an Age header.

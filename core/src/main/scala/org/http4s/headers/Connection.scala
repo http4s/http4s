@@ -18,10 +18,8 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse._
 import cats.syntax.all._
-import org.http4s.internal.parsing.Rfc2616
-import org.http4s.parser.Rfc2616BasicRules
+import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
 
@@ -31,10 +29,9 @@ object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurrin
   override def parse(s: String): ParseResult[Connection] =
     ParseResult.fromParser(parser, "Invalid Connection header")(s)
 
-  private[http4s] val parser =
-    Parser.rep1Sep(Rfc2616.token, 1, Rfc2616BasicRules.listSep).map { (xs: NonEmptyList[String]) =>
-      Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
-    }
+  private[http4s] val parser = Rfc7230.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
+    Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
+  }
 }
 
 final case class Connection(values: NonEmptyList[CIString]) extends Header.Recurring {
