@@ -25,6 +25,7 @@ import munit._
 /** Common stack for http4s' munit based tests
   */
 trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {
+  override val munitExecutionContext = Http4sSpec.TestExecutionContext
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
