@@ -28,7 +28,7 @@ import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci.CIString
 import scala.collection.immutable
 import scala.math.Ordered
-import scala.reflect.macros.blackbox
+import scala.reflect.macros.whitebox
 
 /** Representation of the [[Request]] URI
   *
@@ -165,7 +165,8 @@ final case class Uri(
 }
 
 object Uri {
-  class Macros(val c: blackbox.Context) {
+  @deprecated("This location of the implementation complicates Dotty support", "0.21.16")
+  class Macros(val c: whitebox.Context) {
     import c.universe._
 
     def uriLiteral(s: c.Expr[String]): Tree =

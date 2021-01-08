@@ -266,7 +266,8 @@ private[blaze] class Http1ServerStage[F[_]](
           resp.trailerHeaders,
           rr,
           parser.minorVersion(),
-          closeOnFinish)
+          closeOnFinish,
+          false)
     }
 
     unsafeRunAsync(bodyEncoder.write(rr, resp.body).recover { case EOF => true }) {

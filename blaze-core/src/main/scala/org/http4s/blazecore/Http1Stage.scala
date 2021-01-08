@@ -67,12 +67,32 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       true
     }
 
-  /** Get the proper body encoder based on the message headers */
+  /** Get the proper body encoder based on the request */
   final protected def getEncoder(
-      msg: Message[F],
+      req: Request[F],
       rr: StringWriter,
       minor: Int,
       closeOnFinish: Boolean): Http1Writer[F] = {
+    val headers = req.headers
+    getEncoder(
+      Connection.from(headers),
+      `Transfer-Encoding`.from(headers),
+      `Content-Length`.from(headers),
+      req.trailerHeaders,
+      rr,
+      minor,
+      closeOnFinish,
+      Http1Stage.omitEmptyContentLength(req)
+    )
+  }
+
+  @deprecated("Preserved for binary compatibility", "0.21.16")
+  protected def getEncoder(
+      msg: Message[F],
+      rr: StringWriter,
+      minor: Int,
+      closeOnFinish: Boolean
+  ): Http1Writer[F] = {
     val headers = msg.headers
     getEncoder(
       Connection.from(headers),
@@ -81,10 +101,12 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       msg.trailerHeaders,
       rr,
       minor,
-      closeOnFinish)
+      closeOnFinish,
+      false
+    )
   }
 
-  /** Get the proper body encoder based on the message headers,
+  /** Get the proper body encoder based on the request,
     * adding the appropriate Connection and Transfer-Encoding headers along the way
     */
   final protected def getEncoder(
@@ -94,7 +116,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       trailer: F[Headers],
       rr: StringWriter,
       minor: Int,
-      closeOnFinish: Boolean): Http1Writer[F] =
+      closeOnFinish: Boolean,
+      omitEmptyContentLength: Boolean): Http1Writer[F] =
     lengthHeader match {
       case Some(h) if bodyEncoding.forall(!_.hasChunked) || minor == 0 =>
         // HTTP 1.1: we have a length and no chunked encoding
@@ -142,9 +165,29 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
             case None => // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
               logger.trace("Using Caching Chunk Encoder")
-              new CachingChunkWriter(this, trailer, chunkBufferMaxSize)
+              new CachingChunkWriter(this, trailer, chunkBufferMaxSize, omitEmptyContentLength)
           }
     }
+
+  @deprecated("Preserved for binary compatibility", "0.21.16")
+  protected def getEncoder(
+      connectionHeader: Option[Connection],
+      bodyEncoding: Option[`Transfer-Encoding`],
+      lengthHeader: Option[`Content-Length`],
+      trailer: F[Headers],
+      rr: StringWriter,
+      minor: Int,
+      closeOnFinish: Boolean
+  ): Http1Writer[F] =
+    getEncoder(
+      connectionHeader,
+      bodyEncoding,
+      lengthHeader,
+      trailer,
+      rr,
+      minor,
+      closeOnFinish,
+      false)
 
   /** Makes a [[EntityBody]] and a function used to drain the line if terminated early.
     *
@@ -268,6 +311,9 @@ object Http1Stage {
   private var currentEpoch: Long = _
   private var cachedString: String = _
 
+  private val NoPayloadMethods: Set[Method] =
+    Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
+
   private def currentDate: String = {
     val now = Instant.now()
     val epochSecond = now.getEpochSecond
@@ -302,4 +348,7 @@ object Http1Stage {
       rr << Date.name << ": " << currentDate << "\r\n"
     ()
   }
+
+  private def omitEmptyContentLength[F[_]](req: Request[F]) =
+    NoPayloadMethods.contains(req.method)
 }
