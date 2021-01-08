@@ -47,14 +47,20 @@ object AsyncHttpClient {
     .setCookieStore(new NoOpCookieStore)
     .build()
 
-  def apply[F[_]](httpClient: AsyncHttpClient, dispatcher: Dispatcher[F])(implicit
-      F: Async[F]): Client[F] =
-    Client[F] { req =>
-      Resource(F.async[(Response[F], F[Unit])] { cb =>
-        F.delay(
-          httpClient.executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher)))
-          .as(None)
-      })
+  /** Create a HTTP client with an existing AsyncHttpClient client. The supplied client is NOT
+    * closed by this Resource!
+    */
+  def apply[F[_]](httpClient: AsyncHttpClient)(implicit F: Async[F]): Resource[F, Client[F]] =
+    Dispatcher[F].flatMap { dispatcher =>
+      val client = Client[F] { req =>
+        Resource(F.async[(Response[F], F[Unit])] { cb =>
+          F.delay(httpClient
+            .executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher)))
+            .as(None)
+        })
+      }
+
+      Resource.eval(F.pure(client))
     }
 
   /** Allocates a Client and its shutdown mechanism for freeing resources.
@@ -72,7 +78,15 @@ object AsyncHttpClient {
     Dispatcher[F].flatMap { dispatcher =>
       Resource
         .make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close()))
-        .map(client => apply(client, dispatcher))
+        .map { httpClient =>
+          Client[F] { req =>
+            Resource(F.async[(Response[F], F[Unit])] { cb =>
+              F.delay(httpClient
+                .executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher)))
+                .as(None)
+            })
+          }
+        }
     }
 
   /** Create a bracketed HTTP client based on the AsyncHttpClient library.

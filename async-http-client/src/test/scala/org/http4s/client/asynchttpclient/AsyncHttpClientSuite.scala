@@ -19,7 +19,6 @@ package client
 package asynchttpclient
 
 import cats.effect.{IO, Resource}
-import cats.effect.std.Dispatcher
 import org.asynchttpclient.DefaultAsyncHttpClient
 import org.asynchttpclient.HostStats
 
@@ -76,17 +75,13 @@ class AsyncHttpClientSuite extends ClientRouteTestBattery("AsyncHttpClient") wit
   }
 
   test("AsyncHttpClientStats should correctly get the stats from the underlying ClientStats") {
-
-    val clientWithStats: Resource[IO, Client[IO]] = Dispatcher[IO].flatMap { dispatcher =>
-      Resource(
-        IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig))
-          .map(c =>
-            (
-              new ClientWithStats(
-                AsyncHttpClient(c, dispatcher),
-                new AsyncHttpClientStats[IO](c.getClientStats)),
-              IO.delay(c.close()))))
-    }
+    val clientWithStats: Resource[IO, Client[IO]] =
+      for {
+        httpClient <- Resource.make(
+          IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig)))(client =>
+          IO(client.close()))
+        client <- AsyncHttpClient[IO](httpClient)
+      } yield new ClientWithStats(client, new AsyncHttpClientStats[IO](httpClient.getClientStats))
 
     val clientStats: Resource[IO, AsyncHttpClientStats[IO]] = clientWithStats.map {
       case client: ClientWithStats => client.getStats
