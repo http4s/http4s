@@ -67,24 +67,26 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       true
     }
 
-  /** Get the proper body encoder based on the message headers */
+  /** Get the proper body encoder based on the request */
   final protected def getEncoder(
-      msg: Message[F],
+      req: Request[F],
       rr: StringWriter,
       minor: Int,
       closeOnFinish: Boolean): Http1Writer[F] = {
-    val headers = msg.headers
+    val headers = req.headers
     getEncoder(
       Connection.from(headers),
       `Transfer-Encoding`.from(headers),
       `Content-Length`.from(headers),
-      msg.trailerHeaders,
+      req.trailerHeaders,
       rr,
       minor,
-      closeOnFinish)
+      closeOnFinish,
+      Http1Stage.omitEmptyContentLength(req)
+    )
   }
 
-  /** Get the proper body encoder based on the message headers,
+  /** Get the proper body encoder based on the request,
     * adding the appropriate Connection and Transfer-Encoding headers along the way
     */
   final protected def getEncoder(
@@ -94,7 +96,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       trailer: F[Headers],
       rr: StringWriter,
       minor: Int,
-      closeOnFinish: Boolean): Http1Writer[F] =
+      closeOnFinish: Boolean,
+      omitEmptyContentLength: Boolean): Http1Writer[F] =
     lengthHeader match {
       case Some(h) if bodyEncoding.forall(!_.hasChunked) || minor == 0 =>
         // HTTP 1.1: we have a length and no chunked encoding
@@ -142,7 +145,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
             case None => // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
               logger.trace("Using Caching Chunk Encoder")
-              new CachingChunkWriter(this, trailer, chunkBufferMaxSize)
+              new CachingChunkWriter(this, trailer, chunkBufferMaxSize, omitEmptyContentLength)
           }
     }
 
@@ -268,6 +271,9 @@ object Http1Stage {
   private var currentEpoch: Long = _
   private var cachedString: String = _
 
+  private val NoPayloadMethods: Set[Method] =
+    Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
+
   private def currentDate: String = {
     val now = Instant.now()
     val epochSecond = now.getEpochSecond
@@ -302,4 +308,7 @@ object Http1Stage {
       rr << Date.name << ": " << currentDate << "\r\n"
     ()
   }
+
+  private def omitEmptyContentLength[F[_]](req: Request[F]) =
+    NoPayloadMethods.contains(req.method)
 }
