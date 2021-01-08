@@ -50,7 +50,7 @@ object AsyncHttpClient {
   /** Create a HTTP client with an existing AsyncHttpClient client. The supplied client is NOT
     * closed by this Resource!
     */
-  def apply[F[_]](httpClient: AsyncHttpClient)(implicit F: Async[F]): Resource[F, Client[F]] =
+  def fromClient[F[_]](httpClient: AsyncHttpClient)(implicit F: Async[F]): Resource[F, Client[F]] =
     Dispatcher[F].flatMap { dispatcher =>
       val client = Client[F] { req =>
         Resource(F.async[(Response[F], F[Unit])] { cb =>
@@ -77,7 +77,7 @@ object AsyncHttpClient {
       F: Async[F]): Resource[F, Client[F]] =
     Resource.make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close())).flatMap {
       httpClient =>
-        apply(httpClient)
+        fromClient(httpClient)
     }
 
   /** Create a bracketed HTTP client based on the AsyncHttpClient library.

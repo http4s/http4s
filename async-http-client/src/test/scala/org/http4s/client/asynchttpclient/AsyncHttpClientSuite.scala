@@ -80,7 +80,7 @@ class AsyncHttpClientSuite extends ClientRouteTestBattery("AsyncHttpClient") wit
         httpClient <- Resource.make(
           IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig)))(client =>
           IO(client.close()))
-        client <- AsyncHttpClient[IO](httpClient)
+        client <- AsyncHttpClient.fromClient[IO](httpClient)
       } yield new ClientWithStats(client, new AsyncHttpClientStats[IO](httpClient.getClientStats))
 
     val clientStats: Resource[IO, AsyncHttpClientStats[IO]] = clientWithStats.map {
