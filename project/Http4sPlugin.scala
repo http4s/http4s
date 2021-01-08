@@ -78,6 +78,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.2"),    
     // No release notes. If it's compatible with 6.2.5, prove it and PR it.
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut"),
     dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.1"),
