@@ -19,8 +19,7 @@ package client
 package blaze
 
 import cats.effect._
-import cats.effect.std.{Dispatcher, Queue}
-import cats.syntax.all._
+import cats.effect.std.Queue
 import fs2.Stream
 
 import java.io.IOException
