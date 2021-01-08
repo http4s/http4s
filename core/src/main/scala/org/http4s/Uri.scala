@@ -1219,7 +1219,7 @@ object Uri {
           })
         .backtrack
         .orElse1((repN(6, h16, colon.void).?.with1 <* doubleColon)
-          .map { ls: Option[collection.Seq[Short]] => toIpv6(ls.getOrElse(Seq.empty), Seq.empty) })
+          .map {(ls: Option[collection.Seq[Short]]) => toIpv6(ls.getOrElse(Seq.empty), Seq.empty)})
         .backtrack
     }
 
