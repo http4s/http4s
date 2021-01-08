@@ -19,20 +19,21 @@ package client
 package blaze
 
 import cats.effect._
-import cats.effect.std.{Dispatcher, Queue}
-import cats.syntax.all._
+import cats.effect.std.Queue
 import fs2.Stream
+
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead}
 import org.http4s.client.blaze.bits.DefaultUserAgent
 import org.http4s.headers.`User-Agent`
+import org.http4s.testing.DispatcherIOFixture
 import org.typelevel.ci.CIString
+
 import scala.concurrent.duration._
 
-class Http1ClientStageSuite extends Http4sSuite {
-  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
 
   val trampoline = org.http4s.blaze.util.Execution.trampoline
 
@@ -62,7 +63,7 @@ class Http1ClientStageSuite extends Http4sSuite {
       chunkBufferMaxSize = 1024,
       parserMode = ParserMode.Strict,
       userAgent = userAgent,
-      dispatcher = dispatcher
+      dispatcher = dispatcher()
     )
 
   private def mkBuffer(s: String): ByteBuffer =

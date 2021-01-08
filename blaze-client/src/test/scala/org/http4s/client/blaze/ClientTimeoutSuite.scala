@@ -22,17 +22,19 @@ import cats.effect._
 import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import fs2.Stream
+
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead, SlowTestHead}
+import org.http4s.testing.DispatcherIOFixture
+
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
-class ClientTimeoutSuite extends Http4sSuite {
-  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
 
   def fixture = ResourceFixture(
     Resource.make(IO(new TickWheelExecutor(tick = 50.millis)))(tickWheel =>
@@ -53,7 +55,7 @@ class ClientTimeoutSuite extends Http4sSuite {
       chunkBufferMaxSize = 1024 * 1024,
       parserMode = ParserMode.Strict,
       userAgent = None,
-      dispatcher = dispatcher
+      dispatcher = dispatcher()
     )
 
   private def mkBuffer(s: String): ByteBuffer =
