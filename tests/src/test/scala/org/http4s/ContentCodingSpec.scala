@@ -66,7 +66,7 @@ class ContentCodingSpec extends Http4sSpec {
       ContentCoding.parse("mycoding") must_== ContentCoding.fromString("mycoding")
     }
     "parse with quality" in {
-      ContentCoding.parse("gzip;q=0.8") must_== Right(ContentCoding.gzip.withQValue(QValue.q(0.8)))
+      ContentCoding.parse("gzip;q=0.8") must_== Right(ContentCoding.gzip.withQValue(qValue"0.8"))
     }
     "fail on empty" in {
       ContentCoding.parse("") must beLeft
@@ -83,7 +83,7 @@ class ContentCodingSpec extends Http4sSpec {
       ContentCoding.parse("*fahon") must_== ParseResult.success(
         ContentCoding.unsafeFromString("*fahon"))
       ContentCoding.parse("*fahon;q=0.1") must_== ParseResult.success(
-        ContentCoding.unsafeFromString("*fahon").withQValue(QValue.q(0.1)))
+        ContentCoding.unsafeFromString("*fahon").withQValue(qValue"0.1"))
     }
   }
 
