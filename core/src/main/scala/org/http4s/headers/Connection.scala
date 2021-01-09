@@ -19,7 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
 
@@ -27,7 +27,11 @@ import org.typelevel.ci.CIString
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
 object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Connection] =
-    HttpHeaderParser.CONNECTION(s)
+    ParseResult.fromParser(parser, "Invalid Connection header")(s)
+
+  private[http4s] val parser = Rfc7230.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
+    Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
+  }
 }
 
 final case class Connection(values: NonEmptyList[CIString]) extends Header.Recurring {

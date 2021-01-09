@@ -24,8 +24,7 @@ object HttpHeaderParser
     with ForwardedHeader
     with LinkHeader
     with LocationHeader
-    with RefererHeader
-    with StrictTransportSecurityHeader {
+    with RefererHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -104,15 +103,15 @@ object HttpHeaderParser
     addParser_(CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"), `ACCESS_CONTROL_ALLOW_CREDENTIALS`)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `ACCESS_CONTROL_ALLOW_HEADERS`)
     addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `ACCESS_CONTROL_EXPOSE_HEADERS`)
-    addParser_(CIString("AGE"), `AGE`)
+    addParser_(CIString("AGE"), Age.parse)
     addParser_(CIString("ALLOW"), `ALLOW`)
     addParser_(CIString("AUTHORIZATION"), Authorization.parse)
     addParser_(CIString("CACHE-CONTROL"), `CACHE_CONTROL`)
-    addParser_(CIString("CONNECTION"), `CONNECTION`)
+    addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
     addParser_(CIString("CONTENT-ENCODING"), `CONTENT_ENCODING`)
     addParser_(CIString("CONTENT-LANGUAGE"), `CONTENT_LANGUAGE`)
-    addParser_(CIString("CONTENT-LENGTH"), `CONTENT_LENGTH`)
+    addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
     addParser_(CIString("CONTENT-LOCATION"), `CONTENT_LOCATION`)
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
     addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
@@ -138,7 +137,7 @@ object HttpHeaderParser
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
     addParser_(CIString("SERVER"), `SERVER`)
     addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
-    addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `STRICT_TRANSPORT_SECURITY`)
+    addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `Strict-Transport-Security`.parse)
     addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
     addParser_(CIString("USER-AGENT"), `USER_AGENT`)
     addParser_(CIString("WWW-AUTHENTICATE"), `WWW-Authenticate`.parse)

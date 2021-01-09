@@ -18,8 +18,9 @@
 package org.http4s
 package parser
 
-import cats.syntax.all._
 import cats.data.NonEmptyList
+import cats.syntax.all._
+import org.http4s.headers.ETag.EntityTag
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
@@ -89,26 +90,6 @@ private[parser] trait SimpleHeaders {
         }
     }.parse
 
-  def CONNECTION(value: String): ParseResult[Connection] =
-    new Http4sHeaderParser[Connection](value) {
-      def entry =
-        rule(
-          oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (xs: Seq[String]) =>
-            Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
-          }
-        )
-    }.parse
-
-  def CONTENT_LENGTH(value: String): ParseResult[`Content-Length`] =
-    new Http4sHeaderParser[`Content-Length`](value) {
-      def entry =
-        rule {
-          Digits ~ EOL ~> { (s: String) =>
-            `Content-Length`.unsafeFromLong(s.toLong)
-          }
-        }
-    }.parse
-
   def CONTENT_ENCODING(value: String): ParseResult[`Content-Encoding`] =
     (ContentCoding.parser <* AdditionalRules.EOL)
       .map(`Content-Encoding`(_))
@@ -123,14 +104,6 @@ private[parser] trait SimpleHeaders {
             (token: String, params: collection.Seq[(String, String)]) =>
               `Content-Disposition`(token, params.toMap)
           }
-        }
-    }.parse
-
-  def AGE(value: String): ParseResult[Age] =
-    new Http4sHeaderParser[Age](value) {
-      def entry =
-        rule {
-          Digits ~ EOL ~> ((t: String) => Age.unsafeFromLong(t.toLong))
         }
     }.parse
 
