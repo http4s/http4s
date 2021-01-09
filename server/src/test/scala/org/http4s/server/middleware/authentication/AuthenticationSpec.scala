@@ -40,13 +40,13 @@ class AuthenticationSpec extends Http4sSpec {
   val username = "Test User"
   val password = "Test Password"
 
-  def authStore(u: String) =
+  def authStore(u: String): IO[Option[(String, String)]] =
     IO.pure {
       if (u === username) Some(u -> password)
       else None
     }
 
-  def validatePassword(creds: BasicCredentials) =
+  def validatePassword(creds: BasicCredentials): IO[Option[String]] =
     IO.pure {
       if (creds.username == username && creds.password == password) Some(creds.username)
       else None
@@ -142,20 +142,23 @@ class AuthenticationSpec extends Http4sSpec {
     }
 
     // Send a request without authorization, receive challenge.
-    def doDigestAuth1(digest: HttpApp[IO]) = {
+    def doDigestAuth1(digest: HttpApp[IO]): IO[Challenge] = {
       // Get auth data
       val req = Request[IO](uri = Uri(path = "/"))
-      val res = digest(req).unsafeRunSync()
-
-      res.status must_=== Unauthorized
-      val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
-      opt must beSome
-      parse(opt.get).values.head
+      digest(req).map { res =>
+        res.status must_=== Unauthorized
+        val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
+        opt must beSome
+        parse(opt.get).values.head
+      }
     }
 
     // Respond to a challenge with a correct response.
     // If withReplay is true, also send a replayed request.
-    def doDigestAuth2(digest: HttpApp[IO], challenge: Challenge, withReplay: Boolean) = {
+    def doDigestAuth2(
+        digest: HttpApp[IO],
+        challenge: Challenge,
+        withReplay: Boolean): IO[(Response[IO], Response[IO])] = {
       // Second request with credentials
       val method = "GET"
       val uri = "/"
@@ -180,25 +183,27 @@ class AuthenticationSpec extends Http4sSpec {
       val header = Authorization(Credentials.AuthParams("Digest".ci, params))
 
       val req2 = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
-      val res2 = digest(req2).unsafeRunSync()
-
-      if (withReplay) {
-        val res3 = digest(req2).unsafeRunSync()
-        (res2, res3)
-      } else
-        (res2, null)
+      digest(req2).flatMap { res2 =>
+        if (withReplay) digest(req2).map(res3 => (res2, res3))
+        else IO.pure((res2, null))
+      }
     }
 
     "Respond to a request with correct credentials" in {
       val digestAuthService = digestAuthMiddleware(service)
-      val challenge = doDigestAuth1(digestAuthService.orNotFound)
 
-      (challenge match {
-        case Challenge("Digest", `realm`, _) => true
-        case _ => false
-      }) must beTrue
+      val results = for {
+        challenge <- doDigestAuth1(digestAuthService.orNotFound)
+        _ <- IO {
+          (challenge match {
+            case Challenge("Digest", `realm`, _) => true
+            case _ => false
+          }) must beTrue
+        }
+        results <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
+      } yield results
 
-      val (res2, res3) = doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
+      val (res2, res3) = results.unsafeRunSync()
 
       res2.status must_=== Ok
 
@@ -214,18 +219,21 @@ class AuthenticationSpec extends Http4sSpec {
       val digestAuthService = digestAuthMiddleware(service)
       val results = (1 to n)
         .map(_ =>
-          IO {
-            val challenge = doDigestAuth1(digestAuthService.orNotFound)
-            (challenge match {
-              case Challenge("Digest", `realm`, _) => true
-              case _ => false
-            }) must_== true
-            val res = doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)._1
-            // We don't check whether res.status is Ok since it may not
-            // be due to the low nonce stale timer.  Instead, we check
-            // that it's found.
-            res.status mustNotEqual NotFound
-          })
+          for {
+            challenge <- doDigestAuth1(digestAuthService.orNotFound)
+            _ <- IO {
+              (challenge match {
+                case Challenge("Digest", `realm`, _) => true
+                case _ => false
+              }) must_== true
+            }
+            res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false).map(
+              _._1)
+          } yield
+          // We don't check whether res.status is Ok since it may not
+          // be due to the low nonce stale timer.  Instead, we check
+          // that it's found.
+          res.status mustNotEqual NotFound)
         .toList
       results.parSequence.unsafeRunSync()
 
@@ -235,18 +243,19 @@ class AuthenticationSpec extends Http4sSpec {
     "Avoid many concurrent replay attacks" in {
       val n = 100
       val digestAuthService = digestAuthMiddleware(service)
-      val challenge = doDigestAuth1(digestAuthService.orNotFound)
-      val results = (1 to n)
-        .map(_ =>
-          IO {
-            val res = doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)._1
-            res.status
-          })
-        .toList
+      val results = for {
+        challenge <- doDigestAuth1(digestAuthService.orNotFound)
+        results <- (1 to n)
+          .map(_ =>
+            doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false).map(
+              _._1.status))
+          .toList
+          .parSequence
+      } yield results
 
-      val res = results.parSequence.unsafeRunSync()
-      res.filter(s => s == Ok).size must_=== 1
-      res.filter(s => s == Unauthorized).size must_=== n - 1
+      val res = results.unsafeRunSync()
+      res.count(s => s == Ok) must_=== 1
+      res.count(s => s == Unauthorized) must_=== n - 1
 
       ok
     }
