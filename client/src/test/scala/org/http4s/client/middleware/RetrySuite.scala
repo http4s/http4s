@@ -25,7 +25,10 @@ import cats.syntax.all._
 import fs2.Stream
 import org.http4s.Uri.uri
 import org.http4s.dsl.io._
+import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForStatus
 import org.http4s.syntax.all._
+import org.scalacheck.effect.PropF
+
 import scala.concurrent.duration._
 
 class RetrySuite extends Http4sSuite {
@@ -84,11 +87,11 @@ class RetrySuite extends Http4sSuite {
     ).traverse { case (s, r) => countRetries(defaultClient, GET, s, EmptyBody).assertEquals(r) }
   }
 
-  // test("default retriable should not retry non-idempotent methods") {
-  //   PropF.forAllF { (s: Status) =>
-  //     countRetries(defaultClient, POST, s, EmptyBody).assertEquals(1)
-  //   }
-  // }
+  test("default retriable should not retry non-idempotent methods") {
+    PropF.forAllF { (s: Status) =>
+      countRetries(defaultClient, POST, s, EmptyBody).assertEquals(1)
+    }
+  }
 
   def resubmit(method: Method)(
       retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) =
