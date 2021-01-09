@@ -47,9 +47,13 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
   val tickWheel = new TickWheelExecutor()
 
-  val dispatcher = Dispatcher[IO].allocated.map(_._1).unsafeRunSync()
+  val dispatcherAndShutdown = Dispatcher[IO].allocated.unsafeRunSync()
+  val dispatcher = dispatcherAndShutdown._1
 
-  def afterAll() = tickWheel.shutdown()
+  def afterAll() = {
+    tickWheel.shutdown()
+    dispatcherAndShutdown._2.unsafeRunSync()
+  }
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
