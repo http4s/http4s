@@ -85,13 +85,15 @@ private[jetty] final case class ResponseListener[F[_]](
     copy.put(content).flip()
     enqueue(Item.Buf(copy)) {
       case Right(_) => F.delay(callback.succeeded())
-      case Left(e) => F.delay(logger.error(e)("Error in asynchronous callback")) >> F.delay(callback.failed(e))
+      case Left(e) =>
+        F.delay(logger.error(e)("Error in asynchronous callback")) >> F.delay(callback.failed(e))
     }
   }
 
   override def onFailure(response: JettyResponse, failure: Throwable): Unit =
     if (responseSent) enqueue(Item.Raise(failure))(_ => F.unit)
-    else D.unsafeRunAndForget(F.delay(cb(Left(failure))).attempt.flatMap(loggingAsyncCallback(logger)))
+    else
+      D.unsafeRunAndForget(F.delay(cb(Left(failure))).attempt.flatMap(loggingAsyncCallback(logger)))
 
   // the entire response has been received
   override def onSuccess(response: JettyResponse): Unit =
