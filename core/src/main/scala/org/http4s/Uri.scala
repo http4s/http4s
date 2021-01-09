@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.{Eq, Eval, Hash, Order, Show}
+import cats.{Eval, Hash, Order, Show}
 import cats.data.NonEmptyList
 import cats.kernel.Semigroup
 import cats.parse.{Parser, Parser1}
