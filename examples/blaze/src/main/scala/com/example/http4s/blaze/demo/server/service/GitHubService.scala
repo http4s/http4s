@@ -38,7 +38,7 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
 
   val authorize: Stream[F, Byte] = {
     val uri = Uri
-      .uri("https://github.com")
+      .unsafeFromString("https://github.com")
       .withPath("/login/oauth/authorize")
       .withQueryParam("client_id", ClientId)
       .withQueryParam("redirect_uri", RedirectUri)
@@ -50,7 +50,7 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
 
   def accessToken(code: String, state: String): F[String] = {
     val uri = Uri
-      .uri("https://github.com")
+      .unsafeFromString("https://github.com")
       .withPath("/login/oauth/access_token")
       .withQueryParam("client_id", ClientId)
       .withQueryParam("client_secret", ClientSecret)
@@ -64,7 +64,7 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
   }
 
   def userData(accessToken: String): F[String] = {
-    val request = Request[F](uri = Uri.uri("https://api.github.com/user"))
+    val request = Request[F](uri = Uri.unsafeFromString("https://api.github.com/user"))
       .putHeaders(Header("Authorization", s"token $accessToken"))
 
     client.expect[String](request)

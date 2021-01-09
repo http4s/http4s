@@ -18,7 +18,6 @@ package org.http4s.server.middleware
 
 import cats.effect.IO
 import org.http4s._
-import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
@@ -28,7 +27,7 @@ class ErrorHandlingSuite extends Http4sSuite {
       IO.raiseError(t)
     }
 
-  val request = Request[IO](GET, uri("/error"))
+  val request = Request[IO](GET, uri"/error")
 
   test("Handle errors based on the default service error handler") {
     ErrorHandling(

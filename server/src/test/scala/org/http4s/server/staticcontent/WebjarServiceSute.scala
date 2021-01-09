@@ -21,7 +21,6 @@ package staticcontent
 import cats.effect.IO
 import java.nio.file.Paths
 import org.http4s.Method.{GET, POST}
-import org.http4s.Uri.uri
 import org.http4s.syntax.all._
 import org.http4s.server.staticcontent.WebjarService.Config
 
@@ -53,7 +52,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Decodes path segments") {
-    val req = Request[IO](uri = uri("/deep+purple/machine+head/space+truckin%27.txt"))
+    val req = Request[IO](uri = uri"/deep+purple/machine+head/space+truckin%27.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
@@ -88,22 +87,22 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Not find missing file") {
-    val req = Request[IO](uri = uri("/test-lib/1.0.0/doesnotexist.txt"))
+    val req = Request[IO](uri = uri"/test-lib/1.0.0/doesnotexist.txt")
     routes.apply(req).value.assertEquals(Option.empty[Response[IO]])
   }
 
   test("Not find missing library") {
-    val req = Request[IO](uri = uri("/1.0.0/doesnotexist.txt"))
+    val req = Request[IO](uri = uri"/1.0.0/doesnotexist.txt")
     routes.apply(req).value.assertEquals(Option.empty[Response[IO]])
   }
 
   test("Return bad request on missing version") {
-    val req = Request[IO](uri = uri("/test-lib//doesnotexist.txt"))
+    val req = Request[IO](uri = uri"/test-lib//doesnotexist.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
 
   test("Not find blank asset") {
-    val req = Request[IO](uri = uri("/test-lib/1.0.0/"))
+    val req = Request[IO](uri = uri"/test-lib/1.0.0/")
     routes.apply(req).value.assertEquals(Option.empty[Response[IO]])
   }
 

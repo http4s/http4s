@@ -20,7 +20,7 @@ package dsl
 import cats.data.Validated._
 import cats.effect.IO
 import cats.syntax.all._
-import org.http4s.Uri.uri
+import org.http4s.syntax.all._
 import org.http4s.dsl.io._
 
 final case class Limit(l: Long)
@@ -107,12 +107,12 @@ class PathInHttpRoutesSuite extends Http4sSuite {
       response.flatMap(_.as[String]).assertEquals("id: 12345")
   }
   test("Path DSL within HttpService should GET /?{start}") {
-    val response = serve(Request(GET, uri("/?start=1")))
+    val response = serve(Request(GET, uri"/?start=1"))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("start: 1")
   }
   test("Path DSL within HttpService should GET /?{start,limit}") {
-    val response = serve(Request(GET, uri("/?start=1&limit=2")))
+    val response = serve(Request(GET, uri"/?start=1&limit=2"))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("start: 1, limit: 2")
   }
