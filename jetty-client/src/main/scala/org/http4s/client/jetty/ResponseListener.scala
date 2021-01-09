@@ -93,7 +93,8 @@ private[jetty] final case class ResponseListener[F[_]](
   override def onFailure(response: JettyResponse, failure: Throwable): Unit =
     if (responseSent) enqueue(Item.Raise(failure))(_ => F.unit)
     else
-      D.unsafeRunAndForget(F.delay(cb(Left(failure))).attempt.flatMap(loggingAsyncCallback[F, Unit](logger)))
+      D.unsafeRunAndForget(
+        F.delay(cb(Left(failure))).attempt.flatMap(loggingAsyncCallback[F, Unit](logger)))
 
   // the entire response has been received
   override def onSuccess(response: JettyResponse): Unit =
