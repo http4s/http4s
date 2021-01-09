@@ -18,23 +18,10 @@ package org.http4s.testing
 
 import cats.effect.IO
 import cats.effect.std.Dispatcher
-import org.http4s.Http4sSuite
+import munit.CatsEffectFunFixtures
 
-trait DispatcherIOFixture { this: Http4sSuite =>
+trait DispatcherIOFixture { this: CatsEffectFunFixtures =>
 
-  val dispatcher: Fixture[Dispatcher[IO]] = new Fixture[Dispatcher[IO]]("dispatcher") {
-    var dispatcher: Dispatcher[IO] = _
-    var shutdown: IO[Unit] = _
-    override def apply(): Dispatcher[IO] = dispatcher
-
-    override def beforeAll(): Unit = {
-      val dispatcherAndShutdown = Dispatcher[IO].allocated.unsafeRunSync()
-      dispatcher = dispatcherAndShutdown._1
-      shutdown = dispatcherAndShutdown._2
-    }
-
-    override def afterAll(): Unit =
-      shutdown.unsafeRunSync()
-  }
+  def dispatcher: FunFixture[Dispatcher[IO]] = ResourceFixture(Dispatcher[IO])
 
 }
