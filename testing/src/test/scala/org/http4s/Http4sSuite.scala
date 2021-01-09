@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats.effect.IO
+import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8Decode
@@ -28,6 +29,7 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
   // The default munit EC causes an IllegalArgumentException in
   // BatchExecutor on Scala 2.12.
   override val munitExecutionContext = Http4sSpec.TestExecutionContext
+  override implicit val ioRuntime: IORuntime = Http4sSpec.TestIORuntime
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
