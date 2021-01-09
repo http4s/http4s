@@ -19,7 +19,6 @@ package client
 package jetty
 
 import cats.effect._
-import cats.effect.implicits._
 import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import fs2._
@@ -31,9 +30,8 @@ import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
 import org.http4s.client.jetty.ResponseListener.Item
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.http4s.internal.loggingAsyncCallback
 import org.log4s.getLogger
-
-import scala.concurrent.CancellationException
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[Item]],
@@ -65,7 +63,7 @@ private[jetty] final case class ResponseListener[F[_]](
       }
       .leftMap { t => abort(t, response); t }
 
-    D.unsafeRunSync(F.blocking(cb(r)).guaranteeCase(loggingAsyncCallback(logger)))
+    D.unsafeRunAndForget(F.delay(cb(r)).attempt.flatMap(loggingAsyncCallback(logger)))
   }
 
   private def getHttpVersion(version: JHttpVersion): HttpVersion =
@@ -86,18 +84,14 @@ private[jetty] final case class ResponseListener[F[_]](
     val copy = ByteBuffer.allocate(content.remaining())
     copy.put(content).flip()
     enqueue(Item.Buf(copy)) {
-      case Outcome.Succeeded(_) => F.blocking(callback.succeeded())
-      case Outcome.Canceled() =>
-        F.delay(logger.error("Cancellation during asynchronous callback")) >> F.blocking(
-          callback.failed(new CancellationException))
-      case Outcome.Errored(e) =>
-        F.delay(logger.error(e)("Error in asynchronous callback")) >> F.blocking(callback.failed(e))
+      case Right(_) => F.delay(callback.succeeded())
+      case Left(e) => F.delay(logger.error(e)("Error in asynchronous callback")) >> F.delay(callback.failed(e))
     }
   }
 
   override def onFailure(response: JettyResponse, failure: Throwable): Unit =
     if (responseSent) enqueue(Item.Raise(failure))(_ => F.unit)
-    else D.unsafeRunSync(F.blocking(cb(Left(failure))).guaranteeCase(loggingAsyncCallback(logger)))
+    else D.unsafeRunAndForget(F.delay(cb(Left(failure))).attempt.flatMap(loggingAsyncCallback(logger)))
 
   // the entire response has been received
   override def onSuccess(response: JettyResponse): Unit =
@@ -114,10 +108,10 @@ private[jetty] final case class ResponseListener[F[_]](
       closeStream()
 
   private def closeStream(): Unit =
-    enqueue(Item.Done)(loggingAsyncCallback(logger))
+    enqueue(Item.Done)(loggingAsyncCallback[F, Unit](logger))
 
-  private def enqueue(item: Item)(cb: Outcome[F, Throwable, Unit] => F[Unit]): Unit =
-    D.unsafeRunSync(queue.offer(item.some).guaranteeCase(cb))
+  private def enqueue(item: Item)(cb: Either[Throwable, Unit] => F[Unit]): Unit =
+    D.unsafeRunAndForget(queue.offer(item.some).attempt.flatMap(cb))
 }
 
 private[jetty] object ResponseListener {
