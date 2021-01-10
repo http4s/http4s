@@ -20,6 +20,7 @@ import cats.syntax.all._
 import cats.effect._
 import cats.effect.implicits._
 import cats.effect.concurrent._
+import fs2.Stream
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
@@ -29,6 +30,9 @@ private[server] abstract class Shutdown[F[_]] {
   def signal: F[Unit]
   def newConnection: F[Unit]
   def removeConnection: F[Unit]
+
+  def trackConnection: Stream[F, Unit] =
+    Stream.bracket(newConnection)(_ => removeConnection)
 }
 
 private[server] object Shutdown {

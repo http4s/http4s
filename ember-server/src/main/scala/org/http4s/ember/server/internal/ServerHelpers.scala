@@ -152,6 +152,13 @@ private[server] object ServerHelpers {
         .drain
 
     // TODO: Rely on stream interruption or fiber cancellation?
+
+    // TODO: The prefetch a really dirty hack that hurts performance a bit.
+    // We want to be able to close the server channel _before_ forcing sockets to close,
+    // so it goes without saying that we need to divorce the scopes that they live on.
+    // prefetch runs things through a queue and gives us back the consuming stream, so that
+    // when the original stream interrupts, it can finalize while still letting the current
+    // one run. I think we can write a custom combinator that achieves both
     Stream
       .resource(
         sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
@@ -159,7 +166,7 @@ private[server] object ServerHelpers {
       .prefetch
       .map { connect =>
         // TODO: should we check if the server is shutdown?
-        Stream.bracket(shutdown.newConnection)(_ => shutdown.removeConnection) >>
+        shutdown.trackConnection >>
           Stream
             .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
             .flatMap(withUpgradedSocket(_))
