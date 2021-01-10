@@ -16,8 +16,9 @@
 
 package org.http4s.servlet
 
-import cats.effect._
 import cats.syntax.all._
+import cats.effect.kernel.Async
+import cats.effect.std.Dispatcher
 import io.chrisdavenport.vault._
 import java.net.InetSocketAddress
 import java.security.cert.X509Certificate
@@ -25,13 +26,16 @@ import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import org.http4s._
 import org.http4s.headers.`Transfer-Encoding`
+
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
 
-abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
-    F: Effect[F])
+abstract class Http4sServlet[F[_]](
+    service: HttpApp[F],
+    servletIo: ServletIo[F],
+    dispatcher: Dispatcher[F])(implicit F: Async[F])
     extends HttpServlet {
   protected val logger = getLogger
 
@@ -42,7 +46,10 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
   private[this] var serverSoftware: ServerSoftware = _
 
   object ServletRequestKeys {
-    val HttpSession: Key[Option[HttpSession]] = Key.newKey[IO, Option[HttpSession]].unsafeRunSync()
+    val HttpSession: Key[Option[HttpSession]] = {
+      val result = Key.newKey[F, Option[HttpSession]]
+      dispatcher.unsafeRunSync(result)
+    }
   }
 
   override def init(config: ServletConfig): Unit = {
