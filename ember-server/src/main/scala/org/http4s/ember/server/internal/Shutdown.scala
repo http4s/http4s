@@ -47,17 +47,16 @@ private[server] object Shutdown {
 
       // TODO: Deal with cancellation
       override def await(timeout: Duration): F[Unit] =
-        signal.set(true) >> state.modify {
-          case s @ State(_, activeConnections, unblock) =>
-            if (activeConnections == 0) {
-              s.copy(isShutdown = true) -> F.unit
-            } else {
-              val fa = timeout match {
-                case fi: FiniteDuration => unblock.get.timeout(fi)
-                case _ => unblock.get
-              }
-              s.copy(isShutdown = true) -> fa
+        signal.set(true) >> state.modify { case s @ State(_, activeConnections, unblock) =>
+          if (activeConnections == 0) {
+            s.copy(isShutdown = true) -> F.unit
+          } else {
+            val fa = timeout match {
+              case fi: FiniteDuration => unblock.get.timeout(fi)
+              case _ => unblock.get
             }
+            s.copy(isShutdown = true) -> fa
+          }
         }.flatten
 
       override def newConnection: F[Unit] =
@@ -66,14 +65,13 @@ private[server] object Shutdown {
         }
 
       override def removeConnection: F[Unit] =
-        state.modify {
-          case s @ State(isShutdown, activeConnections, unblock) =>
-            val nextConnections = activeConnections - 1
-            if (isShutdown && nextConnections == 0) {
-              State(true, 0, unblock) -> unblock.complete(())
-            } else {
-              s.copy(activeConnections = nextConnections) -> F.unit
-            }
+        state.modify { case s @ State(isShutdown, activeConnections, unblock) =>
+          val nextConnections = activeConnections - 1
+          if (isShutdown && nextConnections == 0) {
+            State(true, 0, unblock) -> unblock.complete(())
+          } else {
+            s.copy(activeConnections = nextConnections) -> F.unit
+          }
         }.flatten
     }
   }
