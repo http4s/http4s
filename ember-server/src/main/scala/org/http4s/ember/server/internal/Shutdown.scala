@@ -20,6 +20,7 @@ import cats.syntax.all._
 import cats.effect._
 import cats.effect.implicits._
 import cats.effect.concurrent._
+import fs2.concurrent.SignallingRef
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
@@ -28,6 +29,8 @@ private[server] abstract class Shutdown[F[_]] {
   def await(timeout: Duration): F[Unit]
   def newConnection: F[Unit]
   def removeConnection: F[Unit]
+
+  def signal: SignallingRef[F, Boolean]
 }
 
 private[server] object Shutdown {
@@ -38,10 +41,13 @@ private[server] object Shutdown {
     for {
       unblock <- Deferred[F, Unit]
       state <- Ref.of[F, State](State(false, 0, unblock))
+      terminationSignal <- SignallingRef[F, Boolean](false)
     } yield new Shutdown[F] {
+      override val signal: SignallingRef[F, Boolean] = terminationSignal
+
       // TODO: Deal with cancellation
       override def await(timeout: Duration): F[Unit] =
-        state.modify {
+        signal.set(true) >> state.modify {
           case s @ State(_, activeConnections, unblock) =>
             if (activeConnections == 0) {
               s.copy(isShutdown = true) -> F.unit

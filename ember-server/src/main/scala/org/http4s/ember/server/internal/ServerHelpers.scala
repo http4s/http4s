@@ -152,21 +152,17 @@ private[server] object ServerHelpers {
         .drain
 
     // TODO: Rely on stream interruption or fiber cancellation?
-    Stream
-      .eval(SignallingRef[F, Boolean](false))
-      .flatMap { terminationSignal =>
-        sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
-          .map { connect =>
-            // TODO: should we check if the server is shutdown?
-            Stream.bracket(shutdown.newConnection)(_ => shutdown.removeConnection) >>
-              Stream
-                .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
-                .flatMap(withUpgradedSocket(_))
-          }
-          .parJoin(maxConcurrency)
-          .interruptWhen(terminationSignal)
-          .drain
+    sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+      .map { connect =>
+        // TODO: should we check if the server is shutdown?
+        Stream.bracket(shutdown.newConnection)(_ => shutdown.removeConnection) >>
+          Stream
+            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
+            .flatMap(withUpgradedSocket(_))
       }
+      .parJoin(maxConcurrency)
+      .interruptWhen(shutdown.signal)
+      .drain
 
   }
 }
