@@ -20,55 +20,54 @@ import cats.syntax.all._
 import cats.effect._
 import cats.effect.implicits._
 import cats.effect.concurrent._
-import fs2.concurrent.SignallingRef
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 private[server] abstract class Shutdown[F[_]] {
-  // TODO: timeout could just be done by the caller
+  // TODO: timeout could just be done at call site
   def await(timeout: Duration): F[Unit]
+  def signal: F[Unit]
   def newConnection: F[Unit]
   def removeConnection: F[Unit]
-
-  def signal: SignallingRef[F, Boolean]
 }
 
 private[server] object Shutdown {
 
   def apply[F[_]](implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
-    case class State(isShutdown: Boolean, activeConnections: Int, unblock: Deferred[F, Unit])
+    case class State(isShutdown: Boolean, activeConnections: Int)
 
     for {
-      unblock <- Deferred[F, Unit]
-      state <- Ref.of[F, State](State(false, 0, unblock))
-      terminationSignal <- SignallingRef[F, Boolean](false)
+      unblockStart <- Deferred[F, Unit]
+      unblockFinish <- Deferred[F, Unit]
+      state <- Ref.of[F, State](State(false, 0))
     } yield new Shutdown[F] {
-      override val signal: SignallingRef[F, Boolean] = terminationSignal
-
       // TODO: Deal with cancellation
       override def await(timeout: Duration): F[Unit] =
-        signal.set(true) >> state.modify { case s @ State(_, activeConnections, unblock) =>
-          if (activeConnections == 0) {
-            s.copy(isShutdown = true) -> F.unit
+        unblockStart.complete(()) >> state.modify { case s @ State(_, activeConnections) =>
+          val fa = if (activeConnections == 0) {
+            F.unit
           } else {
-            val fa = timeout match {
-              case fi: FiniteDuration => unblock.get.timeout(fi)
-              case _ => unblock.get
+            timeout match {
+              case fi: FiniteDuration => unblockFinish.get.timeout(fi)
+              case _ => unblockFinish.get
             }
-            s.copy(isShutdown = true) -> fa
           }
+          s.copy(isShutdown = true) -> fa
         }.flatten
 
-      override def newConnection: F[Unit] =
+      override val signal: F[Unit] =
+        unblockStart.get
+
+      override val newConnection: F[Unit] =
         state.update { s =>
           s.copy(activeConnections = s.activeConnections + 1)
         }
 
-      override def removeConnection: F[Unit] =
-        state.modify { case s @ State(isShutdown, activeConnections, unblock) =>
+      override val removeConnection: F[Unit] =
+        state.modify { case s @ State(isShutdown, activeConnections) =>
           val nextConnections = activeConnections - 1
           if (isShutdown && nextConnections == 0) {
-            State(true, 0, unblock) -> unblock.complete(())
+            State(true, 0) -> unblockFinish.complete(())
           } else {
             s.copy(activeConnections = nextConnections) -> F.unit
           }

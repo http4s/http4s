@@ -334,6 +334,7 @@ class BlazeServerBuilder[F[_]](
     }
   }
 
+  <<<<<<<.Updated(upstream)
   def resource: Resource[F, Server[F]] =
     tickWheelResource.flatMap { scheduler =>
       def resolveAddress(address: InetSocketAddress) =
@@ -385,6 +386,68 @@ class BlazeServerBuilder[F[_]](
           }
           .flatTap(logStart)
     }
+  =======
+  def resource: Resource[F, Server] = {
+    def resolveAddress(address: InetSocketAddress) =
+      if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
+      else address
+
+    val mkFactory: Resource[F, ServerChannelGroup] = Resource.make(F.delay {
+      if (isNio2)
+        NIO2SocketServerGroup
+          .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
+      else
+        NIO1SocketServerGroup
+          .fixedGroup(connectorPoolSize, bufferSize, channelOptions, selectorThreadFactory)
+    })(factory => F.delay(factory.closeGroup()))
+
+    def mkServerChannel(
+        factory: ServerChannelGroup,
+        scheduler: TickWheelExecutor,
+        dispatcher: Dispatcher[F]): Resource[F, ServerChannel] = {
+      val createServerChannel = sslConfig.makeContext.map { ctxOpt =>
+        val engineCfg = ctxOpt.map(ctx => (ctx, sslConfig.configureEngine _))
+        val address = resolveAddress(socketAddress)
+        factory.bind(address, pipelineFactory(scheduler, engineCfg, dispatcher)).get
+      }
+      Resource.make(createServerChannel)(serverChannel => F.delay(serverChannel.close()))
+    }
+
+    def logStart(server: Server): Resource[F, Unit] =
+      Resource.eval(F.delay {
+        Option(banner)
+          .filter(_.nonEmpty)
+          .map(_.mkString("\n", "\n", ""))
+          .foreach(logger.info(_))
+
+        logger.info(
+          s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
+      })
+
+    for {
+      // blaze doesn't have graceful shutdowns, which means it may continue to submit effects,
+      // ever after the server has acknowledged shutdown, so we just need to allocate
+      dispatcher <- Dispatcher[F]
+      scheduler <- tickWheelResource
+
+      _ <- Resource.eval(verifyTimeoutRelations())
+
+      factory <- mkFactory
+      serverChannel <- mkServerChannel(factory, scheduler, dispatcher)
+      server = new Server {
+        val address: InetSocketAddress =
+          serverChannel.socketAddress
+
+        val isSecure = sslConfig.isSecure
+
+        override def toString: String =
+          s"BlazeServer($address)"
+      }
+
+      _ <- logStart(server)
+    } yield server
+  }
+  >>>>>>>.Stashed(changes)
 
   private def verifyTimeoutRelations(): F[Unit] =
     F.delay {

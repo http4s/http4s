@@ -30,6 +30,32 @@ import scala.concurrent.duration._
 
 object EmberServerSimpleExample extends IOApp {
 
+//  (Stream.repeatEval(IO(5)).interruptAfter(5.seconds) ++ Stream.repeatEval(IO(10)).interruptAfter(5.seconds))
+//    .evalMap(i => IO(println(i)))
+
+  val resource: Resource[IO, Unit] = Resource.make(IO(println("A")))(_ => IO(println("B")))
+
+  val stream: Stream[IO, Unit] =
+    Stream
+      .resource(resource)
+      .flatMap { _ =>
+        def go: Stream[IO, Unit] =
+          Stream.eval[IO, Unit](IO(println("tick"))).delayBy(1.seconds) ++ go
+        go.interruptAfter(5.seconds)
+      }
+      .prefetch
+
+  def run2(args: List[String]): IO[ExitCode] =
+    stream
+//      .map(_ => Stream.never[IO])
+      .map(_ => Stream.eval(IO(println("Finished"))).delayBy(5.seconds))
+      .parJoinUnbounded
+      .drain
+      .compile
+      .drain
+      .void
+      .as(ExitCode.Success)
+
   def run(args: List[String]): IO[ExitCode] = {
     val host = "0.0.0.0"
     val port = 8080
@@ -61,7 +87,7 @@ object EmberServerSimpleExample extends IOApp {
             resp <- Ok(json)
           } yield resp
         case GET -> Root =>
-          timer.sleep(10.seconds) >> Ok(Json.obj("root" -> Json.fromString("GET")))
+          timer.sleep(15.seconds) >> Ok(Json.obj("root" -> Json.fromString("GET")))
         case GET -> Root / "hello" / name =>
           Ok(show"Hi $name!")
         case GET -> Root / "chunked" =>
