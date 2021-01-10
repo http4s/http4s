@@ -26,6 +26,8 @@ import org.http4s.circe._
 import _root_.io.circe._
 import _root_.org.http4s.ember.server.EmberServerBuilder
 
+import scala.concurrent.duration._
+
 object EmberServerSimpleExample extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] = {
@@ -43,11 +45,13 @@ object EmberServerSimpleExample extends IOApp {
     } yield server
   }.use(server =>
     IO.delay(println(s"Server Has Started at ${server.address}")) >>
-      IO.never.as(ExitCode.Success))
+      IO.sleep(5.seconds).flatTap(_ => IO(println("going to close shortly"))).as(ExitCode.Success))
 
-  def service[F[_]: Sync]: HttpApp[F] = {
+  def service[F[_]](implicit F: Async[F], timer: Timer[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
+
+    import scala.concurrent.duration._
 
     HttpRoutes
       .of[F] {
@@ -57,7 +61,7 @@ object EmberServerSimpleExample extends IOApp {
             resp <- Ok(json)
           } yield resp
         case GET -> Root =>
-          Ok(Json.obj("root" -> Json.fromString("GET")))
+          timer.sleep(10.seconds) >> Ok(Json.obj("root" -> Json.fromString("GET")))
         case GET -> Root / "hello" / name =>
           Ok(show"Hi $name!")
         case GET -> Root / "chunked" =>
