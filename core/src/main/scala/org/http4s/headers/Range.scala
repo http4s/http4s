@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Numbers, Parser => P}
+import cats.parse.{Numbers, Parser0 => P0, Parser => P}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
 
@@ -57,17 +57,17 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
       ParseFailure("Invalid Range header", e.toString)
     }
 
-  val parser: P[Range] = {
+  val parser: P0[Range] = {
     // https://tools.ietf.org/html/rfc7233#section-3.1
 
     def toLong(s: String): Option[Long] =
       try Some(s.toLong)
       catch { case _: NumberFormatException => None }
 
-    val nonNegativeLong = Numbers.digits1
+    val nonNegativeLong = Numbers.digits
       .mapFilter(toLong)
 
-    val negativeLong = (P.char('-') ~ Numbers.digits1).string
+    val negativeLong = (P.char('-') ~ Numbers.digits).string
       .mapFilter(toLong)
 
     // byte-range-spec = first-byte-pos "-" [ last-byte-pos ]
@@ -78,7 +78,7 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     val suffixByteRangeSpec = negativeLong.map(SubRange(_))
 
     // byte-range-set  = 1#( byte-range-spec / suffix-byte-range-spec )
-    val byteRangeSet = Rfc7230.headerRep1(byteRangeSpec.orElse1(suffixByteRangeSpec))
+    val byteRangeSet = Rfc7230.headerRep1(byteRangeSpec.orElse(suffixByteRangeSpec))
 
     // byte-ranges-specifier = bytes-unit "=" byte-range-set
     val byteRangesSpecifier =

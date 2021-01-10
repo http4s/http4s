@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser
+import cats.parse.Parser0
 import cats.parse.Numbers
 import org.http4s.util.Writer
 
@@ -25,7 +25,7 @@ object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Sing
   override def parse(s: String): ParseResult[`X-B3-Flags`] =
     ParseResult.fromParser(parser, "Invalid X-B3-Flags header")(s)
 
-  private[http4s] val parser: Parser[`X-B3-Flags`] =
+  private[http4s] val parser: Parser0[`X-B3-Flags`] =
     Numbers.digits
       .mapFilter { str =>
         try Some(str.toLong)

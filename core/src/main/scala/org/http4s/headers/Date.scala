@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser1
+import cats.parse.Parser
 import org.http4s.util.{Renderer, Writer}
 
 object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
@@ -25,7 +25,7 @@ object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
     ParseResult.fromParser(parser, "Invalid Date header")(s)
 
   /* `Date = HTTP-date` */
-  private[http4s] val parser: Parser1[`Date`] =
+  private[http4s] val parser: Parser[`Date`] =
     HttpDate.parser.map(apply)
 }
 

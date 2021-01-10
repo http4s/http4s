@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.Parser1
+import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.internal.parsing.Rfc7230
 
@@ -28,7 +28,7 @@ object `Transfer-Encoding`
   override def parse(s: String): ParseResult[`Transfer-Encoding`] =
     ParseResult.fromParser(parser, "Invalid Transfer-Encoding")(s)
 
-  private[http4s] val parser: Parser1[`Transfer-Encoding`] =
+  private[http4s] val parser: Parser[`Transfer-Encoding`] =
     Rfc7230.headerRep1(TransferCoding.parser).map(apply)
 }
 
