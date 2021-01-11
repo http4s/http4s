@@ -134,8 +134,9 @@ lazy val laws = libraryProject("laws")
   .dependsOn(core)
 
 lazy val testing = libraryProject("testing")
+  .enablePlugins(NoPublishPlugin)
   .settings(
-    description := "Instances and laws for testing http4s code",
+    description := "Internal utilities for http4s tests",
     startYear := Some(2016),
     libraryDependencies ++= Seq(
       catsEffectLaws,
@@ -147,10 +148,6 @@ lazy val testing = libraryProject("testing")
       scalacheckEffect,
       scalacheckEffectMunit,
     ),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
   )
   .dependsOn(laws)
 
