@@ -23,7 +23,6 @@ import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all._
 import cats.effect.{ConcurrentEffect, Resource, Timer}
-import _root_.io.chrisdavenport.vault._
 import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -50,6 +49,7 @@ import org.http4s.server.ServerRequestKeys
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.blaze.BlazeServerBuilder._
 import org.log4s.getLogger
+import org.typelevel.vault._
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._

@@ -25,9 +25,9 @@ import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
 import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.blaze.util.TickWheelExecutor
+import org.typelevel.vault._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-import io.chrisdavenport.vault._
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private[blaze] object ProtocolSelector {

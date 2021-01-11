@@ -20,7 +20,7 @@ import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.syntax.all._
 import cats.effect.IO
-import io.chrisdavenport.vault._
+import org.typelevel.vault._
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.log4s.getLogger

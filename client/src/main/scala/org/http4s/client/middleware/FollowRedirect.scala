@@ -23,7 +23,7 @@ import cats.syntax.all._
 import org.http4s.Method._
 import org.http4s.headers._
 import org.typelevel.ci.CIString
-import _root_.io.chrisdavenport.vault._
+import org.typelevel.vault._
 
 /** Client middleware to follow redirect responses.
   *

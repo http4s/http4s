@@ -22,12 +22,12 @@ import cats.syntax.all._
 import cats.effect.IO
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
-import _root_.io.chrisdavenport.vault._
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+import org.typelevel.vault._
 
 import scala.util.hashing.MurmurHash3
 
