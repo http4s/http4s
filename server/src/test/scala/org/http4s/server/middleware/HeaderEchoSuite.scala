@@ -21,7 +21,6 @@ import cats.implicits._
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.Uri.uri
 import org.http4s.syntax.all._
 import org.http4s.util.CaseInsensitiveString
 
@@ -36,7 +35,7 @@ class HeaderEchoSuite extends Http4sSuite {
   def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {
     val requestMatchingSingleHeaderKey =
       Request[G](
-        uri = uri("/request"),
+        uri = uri"/request",
         headers = Headers.of(Header("someheaderkey", "someheadervalue"))
       )
 
@@ -58,7 +57,7 @@ class HeaderEchoSuite extends Http4sSuite {
   test("echo multiple headers") {
     val requestMatchingMultipleHeaderKeys =
       Request[IO](
-        uri = uri("/request"),
+        uri = uri"/request",
         headers = Headers.of(
           Header("someheaderkey", "someheadervalue"),
           Header("anotherheaderkey", "anotherheadervalue")))
@@ -81,7 +80,7 @@ class HeaderEchoSuite extends Http4sSuite {
   test("echo only the default headers where none match the key") {
     val requestMatchingNotPresentHeaderKey =
       Request[IO](
-        uri = uri("/request"),
+        uri = uri"/request",
         headers = Headers.of(Header("someunmatchedheader", "someunmatchedvalue")))
 
     val testee = HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService)

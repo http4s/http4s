@@ -22,7 +22,6 @@ import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2.Stream
-import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
@@ -40,17 +39,17 @@ class DefaultHeadSuite extends Http4sSuite {
   val app = DefaultHead(httpRoutes).orNotFound
 
   test("honor HEAD routes") {
-    val req = Request[IO](Method.HEAD, uri = uri("/special"))
+    val req = Request[IO](Method.HEAD, uri = uri"/special")
     app(req).map(_.headers.get("X-Handled-By".ci).map(_.value)).assertEquals(Some("HEAD"))
   }
 
   test("return truncated body of corresponding GET on fallthrough") {
-    val req = Request[IO](Method.HEAD, uri = uri("/hello"))
+    val req = Request[IO](Method.HEAD, uri = uri"/hello")
     app(req).flatMap(_.as[String]).assertEquals("")
   }
 
   test("retain all headers of corresponding GET on fallthrough") {
-    val get = Request[IO](Method.GET, uri = uri("/hello"))
+    val get = Request[IO](Method.GET, uri = uri"/hello")
     val head = get.withMethod(Method.HEAD)
     val getHeaders = app(get).map(_.headers)
     val headHeaders = app(head).map(_.headers)
@@ -73,7 +72,7 @@ class DefaultHeadSuite extends Http4sSuite {
   }
 
   test("be created via the httpRoutes constructor") {
-    val req = Request[IO](Method.HEAD, uri = uri("/hello"))
+    val req = Request[IO](Method.HEAD, uri = uri"/hello")
     DefaultHead.httpRoutes(httpRoutes).orNotFound(req).flatMap(_.as[String]).assertEquals("")
   }
 }

@@ -36,7 +36,8 @@ class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F]) {
   def run: F[Unit] =
     BlazeClientBuilder[F](global).stream
       .flatMap { client =>
-        val request = Request[F](uri = Uri.uri("http://localhost:8080/v1/dirs?depth=3"))
+        val request =
+          Request[F](uri = Uri.unsafeFromString("http://localhost:8080/v1/dirs?depth=3"))
         for {
           response <- client.stream(request).flatMap(_.body.chunks.through(fs2.text.utf8DecodeC))
           _ <- S.putStr(response)

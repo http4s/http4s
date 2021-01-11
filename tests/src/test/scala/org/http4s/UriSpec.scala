@@ -171,18 +171,18 @@ http://example.org/a file
 
   "Uri copy" should {
     "support updating the schema" in {
-      uri("http://example.com/").copy(scheme = Scheme.https.some) must_== uri(
-        "https://example.com/")
+      uri"http://example.com/".copy(scheme = Scheme.https.some) must_==
+        uri"https://example.com/"
       // Must add the authority to set the scheme and host
-      uri("/route/").copy(
+      uri"/route/".copy(
         scheme = Scheme.https.some,
-        authority = Some(Authority(None, RegName("example.com")))) must_== uri(
-        "https://example.com/route/")
+        authority = Some(Authority(None, RegName("example.com")))) must_==
+        uri"https://example.com/route/"
       // You can add a port too
-      uri("/route/").copy(
+      uri"/route/".copy(
         scheme = Scheme.https.some,
-        authority = Some(Authority(None, RegName("example.com"), Some(8443)))) must_== uri(
-        "https://example.com:8443/route/")
+        authority = Some(Authority(None, RegName("example.com"), Some(8443)))) must_==
+        uri"https://example.com:8443/route/"
     }
   }
 
@@ -291,7 +291,7 @@ http://example.org/a file
     }
 
     "not append a '/' unless it's in the path" in {
-      uri("http://www.example.com").toString must_== "http://www.example.com"
+      uri"http://www.example.com".toString must_== "http://www.example.com"
     }
 
     "render email address" in {
@@ -974,7 +974,7 @@ http://example.org/a file
 
   "Uri.equals" should {
     "be false between an empty path and a trailing slash after an authority" in {
-      uri("http://example.com") must_!= uri("http://example.com/")
+      uri"http://example.com" must_!= uri"http://example.com/"
     }
   }
 
@@ -986,28 +986,28 @@ http://example.org/a file
 
   "/" should {
     "encode space as %20" in {
-      uri("http://example.com/") / " " must_== uri("http://example.com/%20")
+      uri"http://example.com/" / " " must_== uri"http://example.com/%20"
     }
 
     "encode generic delimiters that aren't pchars" in {
       // ":" and "@" are valid pchars
-      uri("http://example.com") / ":/?#[]@" must_== uri("http://example.com/:%2F%3F%23%5B%5D@")
+      uri"http://example.com" / ":/?#[]@" must_== uri"http://example.com/:%2F%3F%23%5B%5D@"
     }
 
     "encode percent sequences" in {
-      uri("http://example.com") / "%2F" must_== uri("http://example.com/%252F")
+      uri"http://example.com" / "%2F" must_== uri"http://example.com/%252F"
     }
 
     "not encode sub-delims" in {
-      uri("http://example.com") / "!$&'()*+,;=" must_== uri("http://example.com/!$&'()*+,;=")
+      uri"http://example.com" / "!$&'()*+,;=" must_== uri"http://example.com/!$$&'()*+,;="
     }
 
     "UTF-8 encode characters" in {
-      uri("http://example.com/") / "ö" must_== uri("http://example.com/%C3%B6")
+      uri"http://example.com/" / "ö" must_== uri"http://example.com/%C3%B6"
     }
 
     "not make bad URIs" >> forAll { (s: String) =>
-      Uri.fromString((uri("http://example.com/") / s).toString) must beRight
+      Uri.fromString((uri"http://example.com/" / s).toString) must beRight
     }
   }
 

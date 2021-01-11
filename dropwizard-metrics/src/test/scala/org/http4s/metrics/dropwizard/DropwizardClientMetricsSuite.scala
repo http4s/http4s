@@ -27,7 +27,7 @@ import org.http4s.client.{Client, UnexpectedStatus}
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
 import org.http4s.metrics.dropwizard.util._
-import org.http4s.Uri.uri
+import org.http4s.syntax.all._
 import java.util.Arrays
 
 class DropwizardClientMetricsSuite extends Http4sSuite {
@@ -130,7 +130,7 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test5")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](POST, uri("ok"))).attempt.map { resp =>
+    meteredClient.expect[String](Request[IO](POST, uri"ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.post-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -155,7 +155,7 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test6")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](PUT, uri("ok"))).attempt.map { resp =>
+    meteredClient.expect[String](Request[IO](PUT, uri"ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.put-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
@@ -180,7 +180,7 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test7")
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-    meteredClient.expect[String](Request[IO](DELETE, uri("ok"))).attempt.map { resp =>
+    meteredClient.expect[String](Request[IO](DELETE, uri"ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.delete-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)

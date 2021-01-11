@@ -77,7 +77,7 @@ class CookieJarSpec extends Specification with CatsIO {
     }
 
     "not apply if not given a domain" in {
-      val req = Request[IO](Method.GET, uri = Uri.uri("http://google.com"))
+      val req = Request[IO](Method.GET, uri = uri"http://google.com")
       val cookie = ResponseCookie(
         "foo",
         "bar",
@@ -87,7 +87,7 @@ class CookieJarSpec extends Specification with CatsIO {
     }
 
     "apply if a subdomain" in {
-      val req = Request[IO](Method.GET, uri = Uri.uri("http://api.google.com"))
+      val req = Request[IO](Method.GET, uri = uri"http://api.google.com")
       val cookie = ResponseCookie(
         "foo",
         "bar",
@@ -97,7 +97,7 @@ class CookieJarSpec extends Specification with CatsIO {
     }
 
     "not apply if the wrong subdomain" in {
-      val req = Request[IO](Method.GET, uri = Uri.uri("http://api.google.com"))
+      val req = Request[IO](Method.GET, uri = uri"http://api.google.com")
       val cookie = ResponseCookie(
         "foo",
         "bar",
@@ -107,7 +107,7 @@ class CookieJarSpec extends Specification with CatsIO {
     }
 
     "not apply if the superdomain" in {
-      val req = Request[IO](Method.GET, uri = Uri.uri("http://google.com"))
+      val req = Request[IO](Method.GET, uri = uri"http://google.com")
       val cookie = ResponseCookie(
         "foo",
         "bar",
