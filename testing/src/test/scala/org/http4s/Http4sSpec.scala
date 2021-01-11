@@ -138,5 +138,4 @@ object Http4sSpec {
 
   val TestTimer: Timer[IO] =
     IO.timer(TestExecutionContext, TestScheduler)
-
 }

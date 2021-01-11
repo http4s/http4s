@@ -151,22 +151,6 @@ class Http1ClientStageSpec extends Http4sSpec {
       } finally tail.shutdown()
     }
 
-    "Reset correctly" in {
-      val tail = mkConnection(FooRequestKey)
-      try {
-        val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
-        LeafBuilder(tail).base(h)
-
-        // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest, IO.never).unsafeRunSync().body.compile.drain.unsafeRunSync()
-
-        val result = tail.runRequest(FooRequest, IO.never).unsafeRunSync()
-        tail.shutdown()
-
-        result.headers.size must_== 1
-      } finally tail.shutdown()
-    }
-
     "Alert the user if the body is to short" in {
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
       val tail = mkConnection(FooRequestKey)
