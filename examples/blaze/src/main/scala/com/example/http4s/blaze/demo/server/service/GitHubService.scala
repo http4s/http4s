@@ -38,8 +38,7 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
   case class AccessTokenResponse(access_token: String)
 
   val authorize: Stream[F, Byte] = {
-    val uri = Uri
-      .uri("https://github.com")
+    val uri = uri"https://github.com"
       .withPath(path"/login/oauth/authorize")
       .withQueryParam("client_id", ClientId)
       .withQueryParam("redirect_uri", RedirectUri)

@@ -21,6 +21,7 @@ import cats.effect.IO
 import cats.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
+import org.http4s.syntax.all._
 import org.json4s.{JValue, JsonFormat}
 import org.json4s.DefaultReaders._
 import org.json4s.DefaultWriters._
@@ -92,7 +93,7 @@ trait Json4sSuite[J] extends JawnDecodeSupportSuite[JValue] {
 
   test("JsonFormat[Uri] should round trip") {
     // TODO would benefit from Arbitrary[Uri]
-    val uri = Uri.uri("http://www.example.com/")
+    val uri = uri"http://www.example.com/"
     val format = implicitly[JsonFormat[Uri]]
     assertEquals(format.read(format.write(uri)), uri)
   }

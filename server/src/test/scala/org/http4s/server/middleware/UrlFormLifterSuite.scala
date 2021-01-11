@@ -43,7 +43,7 @@ class UrlFormLifterSuite extends Http4sSuite {
 
   test("Add application/x-www-form-urlencoded bodies after query params") {
     val req =
-      Request[IO](method = Method.POST, uri = Uri.uri("/foo?foo=biz"))
+      Request[IO](method = Method.POST, uri = uri"/foo?foo=biz")
         .withEntity(urlForm)
         .pure[IO]
     req.flatMap(app.run).map(_.status).assertEquals(Ok) *>

@@ -39,7 +39,7 @@ class ClientTimeoutSpec extends Http4sSpec {
   /** the map method allows to "post-process" the fragments after their creation */
   override def map(fs: => Fragments) = super.map(fs) ^ step(tickWheel.shutdown())
 
-  val www_foo_com = Uri.uri("http://www.foo.com")
+  val www_foo_com = uri"http://www.foo.com"
   val FooRequest = Request[IO](uri = www_foo_com)
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"

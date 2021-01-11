@@ -21,7 +21,7 @@ import cats.effect.laws.util.TestContext
 import cats.effect.{IO, Timer}
 import cats.implicits._
 import org.http4s.{Http4sSuite, HttpApp, Request, Status}
-import org.http4s.Uri.uri
+import org.http4s.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.Throttle._
 import scala.concurrent.duration._
@@ -138,7 +138,7 @@ class ThrottleSuite extends Http4sSuite {
     }
 
     val testee = Throttle(limitNotReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
-    val req = Request[IO](uri = uri("/"))
+    val req = Request[IO](uri = uri"/")
 
     testee(req).map(_.status === Status.Ok).assertEquals(true)
   }
@@ -149,7 +149,7 @@ class ThrottleSuite extends Http4sSuite {
     }
 
     val testee = Throttle(limitReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
-    val req = Request[IO](uri = uri("/"))
+    val req = Request[IO](uri = uri"/")
 
     testee(req).map(_.status === Status.TooManyRequests).assertEquals(true)
   }

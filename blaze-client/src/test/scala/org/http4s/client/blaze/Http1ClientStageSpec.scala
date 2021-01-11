@@ -35,7 +35,7 @@ import scala.concurrent.duration._
 class Http1ClientStageSpec extends Http4sSpec {
   val trampoline = org.http4s.blaze.util.Execution.trampoline
 
-  val www_foo_test = Uri.uri("http://www.foo.test")
+  val www_foo_test = uri"http://www.foo.test"
   val FooRequest = Request[IO](uri = www_foo_test)
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
 
