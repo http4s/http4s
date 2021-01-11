@@ -34,13 +34,13 @@ class AcceptEncodingSpec extends HeaderLaws {
 
   "matches atom before splatted" in {
     val acceptEncoding =
-      `Accept-Encoding`(ContentCoding.*, ContentCoding.gzip.withQValue(QValue.q(0.5)))
-    acceptEncoding.qValue(ContentCoding.gzip) must_== QValue.q(0.5)
+      `Accept-Encoding`(ContentCoding.*, ContentCoding.gzip.withQValue(qValue"0.5"))
+    acceptEncoding.qValue(ContentCoding.gzip) must_== qValue"0.5"
   }
 
   "matches splatted if atom not present" in {
     val acceptEncoding =
-      `Accept-Encoding`(ContentCoding.*, ContentCoding.compress.withQValue(QValue.q(0.5)))
+      `Accept-Encoding`(ContentCoding.*, ContentCoding.compress.withQValue(qValue"0.5"))
     acceptEncoding.qValue(ContentCoding.gzip) must_== QValue.One
   }
 
@@ -53,12 +53,12 @@ class AcceptEncodingSpec extends HeaderLaws {
   "rejects content coding matching splat with q=0" in {
     val acceptEncoding = `Accept-Encoding`(
       ContentCoding.*.withQValue(QValue.Zero),
-      ContentCoding.compress.withQValue(QValue.q(0.5)))
+      ContentCoding.compress.withQValue(qValue"0.5"))
     acceptEncoding.qValue(ContentCoding.gzip) must_== QValue.Zero
   }
 
   "rejects unmatched content coding" in {
-    val acceptEncoding = `Accept-Encoding`(ContentCoding.compress.withQValue(QValue.q(0.5)))
+    val acceptEncoding = `Accept-Encoding`(ContentCoding.compress.withQValue(qValue"0.5"))
     acceptEncoding.qValue(ContentCoding.gzip) must_== QValue.Zero
   }
 }
