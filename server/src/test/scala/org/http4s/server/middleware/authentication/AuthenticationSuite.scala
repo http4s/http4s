@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.http4s
-package server
-package middleware
-package authentication
+package org.http4s.server.middleware.authentication
 
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.syntax.all._
+import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
+import org.http4s.syntax.all._
+import org.http4s.util.{CaseInsensitiveString => CIString}
 import scala.concurrent.duration._
 
-class AuthenticationSpec extends Http4sSpec {
+class AuthenticationSuite extends Http4sSuite {
   def nukeService(launchTheNukes: => Unit) =
     AuthedRoutes.of[String, IO] { case GET -> Root / "launch-the-nukes" as user =>
       for {
@@ -59,60 +59,63 @@ class AuthenticationSpec extends Http4sSpec {
 
   val basicAuthMiddleware = BasicAuth(realm, validatePassword _)
 
-  "Failure to authenticate" should {
-    "not run unauthorized routes" in {
-      val req = Request[IO](uri = Uri(path = "/launch-the-nukes"))
-      var isNuked = false
-      val authedValidateNukeService = basicAuthMiddleware(nukeService {
-        isNuked = true
-      })
-      val res = authedValidateNukeService.orNotFound(req).unsafeRunSync()
-      isNuked must_=== false
-      res.status must_=== Unauthorized
-    }
+  test("Failure to authenticate should not run unauthorized routes") {
+    val req = Request[IO](uri = uri"/launch-the-nukes")
+    var isNuked = false
+    val authedValidateNukeService = basicAuthMiddleware(nukeService {
+      isNuked = true
+    })
+    for {
+      res <- authedValidateNukeService.orNotFound(req)
+      _ <- IO(assert(!isNuked))
+    } yield assertEquals(res.status, Unauthorized)
   }
 
-  "BasicAuthentication" should {
+  { // BasicAuthentication
     val basicAuthedService = basicAuthMiddleware(service)
 
-    "Respond to a request without authentication with 401" in {
-      val req = Request[IO](uri = Uri(path = "/"))
-      val res = basicAuthedService.orNotFound(req).unsafeRunSync()
-
-      res.status must_=== Unauthorized
-      res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+    test("BasicAuthentication should respond to a request without authentication with 401") {
+      val req = Request[IO](uri = uri"/")
+      basicAuthedService.orNotFound(req).map { res =>
+        assertEquals(res.status, Unauthorized)
+        assertEquals(
+          res.headers.get(`WWW-Authenticate`).map(_.value),
+          Some(Challenge("Basic", realm).toString))
+      }
     }
 
-    "Respond to a request with unknown username with 401" in {
+    test("BasicAuthentication should respond to a request with unknown username with 401") {
       val req = Request[IO](
         uri = Uri(path = "/"),
         headers = Headers.of(Authorization(BasicCredentials("Wrong User", password))))
-      val res = basicAuthedService.orNotFound(req).unsafeRunSync()
-
-      res.status must_=== Unauthorized
-      res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+      basicAuthedService.orNotFound(req).map { res =>
+        assertEquals(res.status, Unauthorized)
+        assertEquals(
+          res.headers.get(`WWW-Authenticate`).map(_.value),
+          Some(Challenge("Basic", realm).toString))
+      }
     }
 
-    "Respond to a request with wrong password with 401" in {
+    test("BasicAuthentication should respond to a request with wrong password with 401") {
       val req = Request[IO](
         uri = Uri(path = "/"),
         headers = Headers.of(Authorization(BasicCredentials(username, "Wrong Password"))))
-      val res = basicAuthedService.orNotFound(req).unsafeRunSync()
-
-      res.status must_=== Unauthorized
-      res.headers.get(`WWW-Authenticate`).map(_.value) must beSome(
-        Challenge("Basic", realm, Nil.toMap).toString)
+      basicAuthedService.orNotFound(req).map { res =>
+        assertEquals(res.status, Unauthorized)
+        assertEquals(
+          res.headers.get(`WWW-Authenticate`).map(_.value),
+          Some(Challenge("Basic", realm).toString))
+      }
     }
 
-    "Respond to a request with correct credentials" in {
+    test("BasicAuthentication should respond to a request with correct credentials") {
       val req = Request[IO](
         uri = Uri(path = "/"),
         headers = Headers.of(Authorization(BasicCredentials(username, password))))
-      val res = basicAuthedService.orNotFound(req).unsafeRunSync()
-
-      res.status must_=== Ok
+      basicAuthedService
+        .orNotFound(req)
+        .map(_.status)
+        .assertEquals(Ok)
     }
   }
 
@@ -121,24 +124,24 @@ class AuthenticationSpec extends Http4sSpec {
       .WWW_AUTHENTICATE(value)
       .fold(_ => sys.error(s"Couldn't parse: $value"), identity)
 
-  "DigestAuthentication" should {
+  { // DigestAuthentication
     val digestAuthMiddleware = DigestAuth(realm, authStore)
 
-    "Respond to a request without authentication with 401" in {
+    test("DigestAuthentication should respond to a request without authentication with 401") {
       val authedService = digestAuthMiddleware(service)
-      val req = Request[IO](uri = Uri(path = "/"))
-      val res = authedService.orNotFound(req).unsafeRunSync()
-
-      res.status must_=== Unauthorized
-      val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
-      opt must beSome
-      val challenge = parse(opt.get).values.head
-      (challenge match {
-        case Challenge("Digest", `realm`, _) => true
-        case _ => false
-      }) must beTrue
-
-      ok
+      val req = Request[IO](uri = uri"/")
+      authedService.orNotFound(req).map { res =>
+        assertEquals(res.status, Unauthorized)
+        val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
+        assert(clue(opt).isDefined)
+        val challenge = parse(opt.get).values.head
+        assert(
+          challenge match {
+            case Challenge("Digest", `realm`, _) => true
+            case _ => false
+          },
+          challenge)
+      }
     }
 
     // Send a request without authorization, receive challenge.
@@ -146,9 +149,9 @@ class AuthenticationSpec extends Http4sSpec {
       // Get auth data
       val req = Request[IO](uri = Uri(path = "/"))
       digest(req).map { res =>
-        res.status must_=== Unauthorized
+        assertEquals(res.status, Unauthorized)
         val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
-        opt must beSome
+        assert(clue(opt).isDefined)
         parse(opt.get).values.head
       }
     }
@@ -189,31 +192,30 @@ class AuthenticationSpec extends Http4sSpec {
       }
     }
 
-    "Respond to a request with correct credentials" in {
+    test("DigestAuthentication should respond to a request with correct credentials") {
       val digestAuthService = digestAuthMiddleware(service)
 
-      val results = for {
+      for {
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         _ <- IO {
-          (challenge match {
-            case Challenge("Digest", `realm`, _) => true
-            case _ => false
-          }) must beTrue
+          assert(
+            challenge match {
+              case Challenge("Digest", `realm`, _) => true
+              case _ => false
+            },
+            challenge)
         }
-        results <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
-      } yield results
+        (res2, res3) <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
+      } yield {
+        assertEquals(res2.status, Ok)
 
-      val (res2, res3) = results.unsafeRunSync()
-
-      res2.status must_=== Ok
-
-      // Digest prevents replay
-      res3.status must_=== Unauthorized
-
-      ok
+        // Digest prevents replay
+        assertEquals(res3.status, Unauthorized)
+      }
     }
 
-    "Respond to many concurrent requests while cleaning up nonces" in {
+    test(
+      "DigestAuthentication should respond to many concurrent requests while cleaning up nonces") {
       val n = 100
       val digestAuthMiddleware = DigestAuth(realm, authStore, 2.millis, 2.millis)
       val digestAuthService = digestAuthMiddleware(service)
@@ -222,25 +224,25 @@ class AuthenticationSpec extends Http4sSpec {
           for {
             challenge <- doDigestAuth1(digestAuthService.orNotFound)
             _ <- IO {
-              (challenge match {
-                case Challenge("Digest", `realm`, _) => true
-                case _ => false
-              }) must_== true
+              assert(
+                (challenge match {
+                  case Challenge("Digest", `realm`, _) => true
+                  case _ => false
+                }),
+                challenge)
             }
-            res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false).map(
-              _._1)
+            res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
+              .map(_._1)
           } yield
           // We don't check whether res.status is Ok since it may not
           // be due to the low nonce stale timer.  Instead, we check
           // that it's found.
-          res.status mustNotEqual NotFound)
+          assertNotEquals(res.status, NotFound))
         .toList
-      results.parSequence.unsafeRunSync()
-
-      ok
+      results.parSequence
     }
 
-    "Avoid many concurrent replay attacks" in {
+    test("DigestAuthentication should avoid many concurrent replay attacks") {
       val n = 100
       val digestAuthService = digestAuthMiddleware(service)
       val results = for {
@@ -253,14 +255,13 @@ class AuthenticationSpec extends Http4sSpec {
           .parSequence
       } yield results
 
-      val res = results.unsafeRunSync()
-      res.count(s => s == Ok) must_=== 1
-      res.count(s => s == Unauthorized) must_=== n - 1
-
-      ok
+      results.map { res =>
+        assertEquals(res.count(s => s == Ok), 1)
+        assertEquals(res.count(s => s == Unauthorized), n - 1)
+      }
     }
 
-    "Respond to invalid requests with 401" in {
+    test("DigestAuthentication should respond to invalid requests with 401") {
       val digestAuthService = digestAuthMiddleware(service)
       val method = "GET"
       val uri = "/"
@@ -283,21 +284,17 @@ class AuthenticationSpec extends Http4sSpec {
         "method" -> method
       )
 
-      val expected = (0 to params.size).map(_ => Unauthorized)
+      val expected = List.fill(params.size + 1)(Unauthorized)
 
       val result = (0 to params.size).map { i =>
         val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
         val header = Authorization(
-          Credentials.AuthParams("Digest".ci, invalidParams.head, invalidParams.tail: _*))
-        val req = Request[IO](uri = Uri(path = "/"), headers = Headers.of(header))
-        val res = digestAuthService.orNotFound(req).unsafeRunSync()
-
-        res.status
+          Credentials.AuthParams(CIString("Digest"), invalidParams.head, invalidParams.tail: _*))
+        val req = Request[IO](uri = uri"/", headers = Headers.of(header))
+        digestAuthService.orNotFound(req).map(_.status)
       }
 
-      expected must_=== result
-
-      ok
+      result.toList.parSequence.assertEquals(expected)
     }
   }
 }
