@@ -24,7 +24,7 @@ import io.circe.generic.auto._
 import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
-import org.http4s.{Header, Request, Uri}
+import org.http4s.{Header, Request}
 import org.http4s.syntax.literals._
 
 // See: https://developer.github.com/apps/building-oauth-apps/authorization-options-for-oauth-apps/#web-application-flow
