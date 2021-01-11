@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderer, Writer}
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Try
@@ -38,7 +38,8 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
     fromLong(age).fold(throw _, identity)
 
   override def parse(s: String): ParseResult[Age] =
-    HttpHeaderParser.AGE(s)
+    ParseResult.fromParser(parser, "Invalid Age header")(s)
+  private[http4s] val parser = AdditionalRules.NonNegativeLong.map(unsafeFromLong)
 }
 
 /** Constructs an Age header.
