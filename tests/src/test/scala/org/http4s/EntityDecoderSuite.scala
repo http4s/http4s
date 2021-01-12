@@ -339,7 +339,7 @@ class EntityDecoderSuite extends Http4sSuite {
           cb(Right(s))
           IO.pure(Response())
         }
-        .as(Some(IO.unit))
+        .as(None)
     }.assertEquals("hooray")
   }
 
