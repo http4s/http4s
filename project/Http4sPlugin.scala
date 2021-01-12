@@ -89,11 +89,14 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
     // Unsure about binary compatibility
     dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.1"),    
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
     // https://github.com/scalacenter/scalafix/issues/1299
     dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
+    // Unsure about binary compatibility
+    dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -305,7 +308,7 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.3"
     val disciplineSpecs2 = "1.1.3"
-    val dropwizardMetrics = "4.1.16"
+    val dropwizardMetrics = "4.1.17"
     val fs2 = "2.5.0"
     val jacksonDatabind = "2.11.4"
     val jawn = "1.0.1"
@@ -324,7 +327,7 @@ object Http4sPlugin extends AutoPlugin {
     val munitDiscipline = "1.0.4"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
-    val playJson = "2.9.1"
+    val playJson = "2.9.2"
     val prometheusClient = "0.8.1"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
