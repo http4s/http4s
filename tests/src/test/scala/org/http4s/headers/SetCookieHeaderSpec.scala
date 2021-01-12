@@ -76,7 +76,7 @@ class SetCookieHeaderSpec extends Specification {
       c.extension must beSome("http4s=fun; rfc6265=not-fun")
     }
 
-    "parse with an two extensions around a common attribute" in {
+    "parse with two extensions around a common attribute" in {
       val cookiestr = "myname=\"foo\"; http4s=fun; Domain=example.com; rfc6265=not-fun"
       val c = parse(cookiestr).cookie
       c.domain must beSome("example.com")
