@@ -17,8 +17,8 @@
 package org.http4s
 package internal.parsing
 
-import cats.parse.Parser.{char, charIn, string1}
-import cats.parse.Parser1
+import cats.parse.Parser.{char, charIn, string}
+import cats.parse.Parser
 import cats.syntax.all._
 
 /** Common rules defined in Rfc3986
@@ -26,21 +26,21 @@ import cats.syntax.all._
   * @see [[https://tools.ietf.org/html/rfc3986]]
   */
 private[http4s] object Rfc3986 {
-  def alpha: Parser1[Char] = Rfc2234.alpha
+  def alpha: Parser[Char] = Rfc2234.alpha
 
-  def digit: Parser1[Char] = Rfc2234.digit
+  def digit: Parser[Char] = Rfc2234.digit
 
   /* The spec references RFC2234, which is 0-9A-F, but it also
    * explicitly permits lowercase. */
-  val hexdig: Parser1[Char] =
-    digit.orElse1(charIn("ABCDEFabcdef"))
+  val hexdig: Parser[Char] =
+    digit.orElse(charIn("ABCDEFabcdef"))
 
   /* unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~" */
-  val unreserved: Parser1[Char] =
-    alpha.orElse1(digit).orElse1(charIn("-._~"))
+  val unreserved: Parser[Char] =
+    alpha.orElse(digit).orElse(charIn("-._~"))
 
   /* pct-encoded   = "%" HEXDIG HEXDIG */
-  val pctEncoded: Parser1[Char] =
+  val pctEncoded: Parser[Char] =
     (char('%') *> hexdig ~ hexdig).map { case (a, b) =>
       def toInt(c: Char) = c match {
         case c if c >= '0' && c <= '9' => c - '0'
@@ -52,22 +52,22 @@ private[http4s] object Rfc3986 {
 
   /* sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
    *               / "*" / "+" / "," / ";" / "=" */
-  val subDelims: Parser1[Char] =
+  val subDelims: Parser[Char] =
     charIn("!$&'()*+,;=")
 
   /* pchar         = unreserved / pct-encoded / sub-delims / ":" / "@" */
-  val pchar: Parser1[Char] =
-    unreserved.orElse1(pctEncoded).orElse1(subDelims).orElse1(charIn(":@"))
+  val pchar: Parser[Char] =
+    unreserved.orElse(pctEncoded).orElse(subDelims).orElse(charIn(":@"))
 
-  val ipv4Bytes: Parser1[(Byte, Byte, Byte, Byte)] = {
+  val ipv4Bytes: Parser[(Byte, Byte, Byte, Byte)] = {
     val decOctet = (char('1') ~ digit ~ digit).backtrack
-      .orElse1(char('2') ~ charIn('0' to '4') ~ digit)
+      .orElse(char('2') ~ charIn('0' to '4') ~ digit)
       .backtrack
-      .orElse1(string1("25") ~ charIn('0' to '5'))
+      .orElse(string("25") ~ charIn('0' to '5'))
       .backtrack
-      .orElse1(charIn('1' to '9') ~ digit)
+      .orElse(charIn('1' to '9') ~ digit)
       .backtrack
-      .orElse1(digit)
+      .orElse(digit)
       .string
       .map(_.toInt.toByte)
       .backtrack

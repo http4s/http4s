@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.parse.Parser1
+import cats.parse.Parser
 import cats.syntax.all._
 import cats.{Order, Show}
 import org.http4s.util._
@@ -87,7 +87,7 @@ object ContentCoding {
       .map(c => c.coding -> c)
       .toMap
 
-  private[http4s] val parser: Parser1[ContentCoding] = {
+  private[http4s] val parser: Parser[ContentCoding] = {
     import org.http4s.internal.parsing.Rfc7230.token
 
     val contentCoding = token.map(s => ContentCoding.standard.getOrElse(s, new ContentCoding(s)))

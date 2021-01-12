@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser
+import cats.parse.{Parser, Parser0}
 import org.http4s.util.{Renderer, Writer}
 
 object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
@@ -25,7 +25,7 @@ object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
     ParseResult.fromParser(parser, "Invalid Expires header")(s)
 
   /* `Expires = HTTP-date` */
-  private[http4s] val parser: Parser[Expires] = {
+  private[http4s] val parser: Parser0[Expires] = {
     import Parser.anyChar
 
     def httpDate = HttpDate.parser
@@ -33,7 +33,7 @@ object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
     // A cache recipient MUST interpret invalid date formats, especially the
     // value "0", as representing a time in the past (i.e., "already
     // expired").
-    def invalid = anyChar.rep.as(HttpDate.Epoch)
+    def invalid = anyChar.rep0.as(HttpDate.Epoch)
 
     httpDate.orElse(invalid).map(apply)
   }

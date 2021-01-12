@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser1
+import cats.parse.Parser
 import org.http4s.util.Writer
 
 /** {{{
@@ -31,7 +31,7 @@ object `Proxy-Authorization`
     extends HeaderKey.Internal[`Proxy-Authorization`]
     with HeaderKey.Singleton {
   //https://tools.ietf.org/html/rfc7235#section-4.2
-  private[http4s] val parser: Parser1[`Proxy-Authorization`] = {
+  private[http4s] val parser: Parser[`Proxy-Authorization`] = {
     import org.http4s.internal.parsing.Rfc7235.credentials
     credentials.map(`Proxy-Authorization`(_))
   }

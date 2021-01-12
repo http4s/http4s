@@ -16,7 +16,7 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser1
+import cats.parse.Parser
 import cats.parse.Parser.{charIn}
 
 /** Common rules defined in RFC2234.
@@ -25,11 +25,11 @@ import cats.parse.Parser.{charIn}
   */
 private[http4s] object Rfc2234 {
   /* ALPHA          =  %x41-5A / %x61-7A   ; A-Z / a-z */
-  val alpha: Parser1[Char] =
-    charIn(0x41.toChar to 0x5a.toChar).orElse1(charIn(0x61.toChar to 0x7a.toChar))
+  val alpha: Parser[Char] =
+    charIn(0x41.toChar to 0x5a.toChar).orElse(charIn(0x61.toChar to 0x7a.toChar))
 
   /* DIGIT          =  %x30-39
    *                       ; 0-9 */
-  val digit: Parser1[Char] =
+  val digit: Parser[Char] =
     charIn(0x30.toChar to 0x39.toChar)
 }
