@@ -32,11 +32,11 @@ import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
+import org.typelevel.vault._
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-import _root_.io.chrisdavenport.vault._
 
 private final class Http1Connection[F[_]](
     val requestKey: RequestKey,

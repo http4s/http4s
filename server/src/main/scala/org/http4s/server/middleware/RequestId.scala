@@ -26,7 +26,7 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.{IO, Sync}
 import cats.syntax.all._
 import org.typelevel.ci.CIString
-import io.chrisdavenport.vault.Key
+import org.typelevel.vault.Key
 import java.util.UUID
 
 /** Propagate a `X-Request-Id` header to the response, generate a UUID

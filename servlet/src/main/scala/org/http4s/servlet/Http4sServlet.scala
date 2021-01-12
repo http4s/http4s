@@ -18,7 +18,6 @@ package org.http4s.servlet
 
 import cats.effect._
 import cats.syntax.all._
-import io.chrisdavenport.vault._
 import java.net.InetSocketAddress
 import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
@@ -29,6 +28,7 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
+import org.typelevel.vault._
 
 abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
     F: Effect[F])

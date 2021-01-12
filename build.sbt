@@ -103,7 +103,7 @@ lazy val core = libraryProject("core")
       log4s,
       scodecBits,
       slf4jApi, // residual dependency from macros
-      // vault, inlined pending -M2 and -M3 release
+      vault,
     ),
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty

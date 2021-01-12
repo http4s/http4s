@@ -33,11 +33,11 @@ import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.{End, Http2Writer}
 import org.typelevel.ci.CIString
+import org.typelevel.vault._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util._
-import _root_.io.chrisdavenport.vault._
 
 private class Http2NodeStage[F[_]](
     streamId: Int,
