@@ -18,7 +18,10 @@ package org.http4s
 package servlet
 
 import cats.syntax.all._
-import cats.effect.{IO, Resource, Timer}
+import cats.effect.{IO, Resource}
+import cats.effect.kernel.Temporal
+import cats.effect.std.Dispatcher
+
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.eclipse.jetty.server.HttpConfiguration
@@ -33,6 +36,7 @@ import scala.io.Source
 import scala.concurrent.duration._
 
 class BlockingHttp4sServletSuite extends Http4sSuite {
+
   lazy val service = HttpRoutes
     .of[IO] {
       case GET -> Root / "simple" =>
@@ -40,25 +44,23 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
       case req @ POST -> Root / "echo" =>
         Ok(req.body)
       case GET -> Root / "shifted" =>
-        IO.shift(munitExecutionContext) *>
-          // Wait for a bit to make sure we lose the race
-          Timer[IO].sleep(50.millis) *>
-          Ok("shifted")
+        // Wait for a bit to make sure we lose the race
+        Temporal[IO].sleep(50.milli) *> Ok("shifted")
     }
     .orNotFound
 
   def servletServer: FunFixture[Int] =
-    ResourceFixture[Int](serverPortR)
+    ResourceFixture(Dispatcher[IO].flatMap(d => serverPortR(d)))
 
   def get(serverPort: Int, path: String): IO[String] =
-    testBlocker.delay[IO, String](
+    IO(
       Source
         .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
         .getLines()
         .mkString)
 
   def post(serverPort: Int, path: String, body: String): IO[String] =
-    testBlocker.delay[IO, String] {
+    IO {
       val url = new URL(s"http://127.0.0.1:$serverPort/$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
       val bytes = body.getBytes(StandardCharsets.UTF_8)
@@ -81,28 +83,34 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
     get(server, "shifted").assertEquals("shifted")
   }
 
-  lazy val servlet = new BlockingHttp4sServlet[IO](
-    service = service,
-    servletIo = org.http4s.servlet.BlockingServletIo(4096, testBlocker),
-    serviceErrorHandler = DefaultServiceErrorHandler
-  )
+  val servlet: Dispatcher[IO] => Http4sServlet[IO] = { dispatcher =>
+    new BlockingHttp4sServlet[IO](
+      service = service,
+      servletIo = org.http4s.servlet.BlockingServletIo(4096),
+      serviceErrorHandler = DefaultServiceErrorHandler,
+      dispatcher
+    )
+  }
 
-  lazy val serverPortR = Resource
-    .make(IO(new EclipseServer))(server => IO(server.stop()))
-    .evalMap { server =>
-      IO {
-        val connector =
-          new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()))
+  lazy val serverPortR: Dispatcher[IO] => Resource[IO, Int] = { dispatcher =>
+    Resource
+      .make(IO(new EclipseServer))(server => IO(server.stop()))
+      .evalMap { server =>
+        IO {
+          val connector =
+            new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()))
 
-        val context = new ServletContextHandler
-        context.addServlet(new ServletHolder(servlet), "/*")
+          val context = new ServletContextHandler
+          context.addServlet(new ServletHolder(servlet(dispatcher)), "/*")
 
-        server.addConnector(connector)
-        server.setHandler(context)
+          server.addConnector(connector)
+          server.setHandler(context)
 
-        server.start()
+          server.start()
 
-        connector.getLocalPort
+          connector.getLocalPort
+        }
       }
-    }
+  }
+
 }
