@@ -80,6 +80,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
     // https://github.com/scalacenter/scalafix/issues/1299
     dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
+    // Unsure about binary compatibility
+    dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -294,7 +296,7 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.3"
     val disciplineSpecs2 = "1.1.3"
-    val dropwizardMetrics = "4.1.16"
+    val dropwizardMetrics = "4.1.17"
     val fs2 = "2.5.0"
     val jacksonDatabind = "2.12.1"
     val jawn = "1.0.1"
