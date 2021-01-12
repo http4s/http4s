@@ -19,6 +19,7 @@ package client
 package jetty
 
 import cats.effect._
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2._
 import org.eclipse.jetty.client.HttpClient
@@ -31,20 +32,23 @@ object JettyClient {
   private val logger: Logger = getLogger
 
   def allocate[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] = {
+      F: Async[F]): F[(Client[F], F[Unit])] = resource(client).allocated
+
+  def resource[F[_]](client: HttpClient = defaultHttpClient())(implicit
+      F: Async[F]): Resource[F, Client[F]] = Dispatcher[F].flatMap { implicit D =>
     val acquire = F
       .pure(client)
       .flatTap(client => F.delay(client.start()))
       .map(client =>
         Client[F] { req =>
-          Resource.suspend(F.asyncF[Resource[F, Response[F]]] { cb =>
+          Resource.suspend(F.async[Resource[F, Response[F]]] { cb =>
             F.bracket(StreamRequestContentProvider()) { dcp =>
               val jReq = toJettyRequest(client, req, dcp)
               for {
                 rl <- ResponseListener(cb)
                 _ <- F.delay(jReq.send(rl))
                 _ <- dcp.write(req)
-              } yield ()
+              } yield Option.empty[F[Unit]]
             } { dcp =>
               F.delay(dcp.close())
             }
@@ -53,15 +57,11 @@ object JettyClient {
     val dispose = F
       .delay(client.stop())
       .handleErrorWith(t => F.delay(logger.error(t)("Unable to shut down Jetty client")))
-    acquire.map((_, dispose))
+    Resource.make(acquire)(_ => dispose)
   }
 
-  def resource[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    Resource(allocate[F](client))
-
   def stream[F[_]](client: HttpClient = defaultHttpClient())(implicit
-      F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+      F: Async[F]): Stream[F, Client[F]] =
     Stream.resource(resource(client))
 
   def defaultHttpClient(): HttpClient = {
