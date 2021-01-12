@@ -70,26 +70,25 @@ class BlazeServerSuite extends Http4sSuite {
       (_: TestOptions, _: Server) => IO.unit,
       (_: Server) => IO.sleep(100.milliseconds) *> IO.unit)
 
-  // This should be in IO and shifted but I'm tired of fighting this.
-  def get(server: Server, path: String): IO[String] = IO {
+  def get(server: Server, path: String): IO[String] = IO.blocking {
     Source
       .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
       .getLines()
       .mkString
   }
 
-  // This should be in IO and shifted but I'm tired of fighting this.
   def getStatus(server: Server, path: String): IO[Status] = {
     val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
     for {
-      conn <- IO(url.openConnection().asInstanceOf[HttpURLConnection])
+      conn <- IO.blocking(url.openConnection().asInstanceOf[HttpURLConnection])
       _ = conn.setRequestMethod("GET")
-      status <- IO.fromEither(Status.fromInt(conn.getResponseCode()))
+      status <- IO
+        .blocking(conn.getResponseCode())
+        .flatMap(code => IO.fromEither(Status.fromInt(code)))
     } yield status
   }
 
-  // This too
-  def post(server: Server, path: String, body: String): IO[String] = IO {
+  def post(server: Server, path: String, body: String): IO[String] = IO.blocking {
     val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
     val conn = url.openConnection().asInstanceOf[HttpURLConnection]
     val bytes = body.getBytes(StandardCharsets.UTF_8)
@@ -100,13 +99,12 @@ class BlazeServerSuite extends Http4sSuite {
     Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
   }
 
-  // This too
   def postChunkedMultipart(
       server: Server,
       path: String,
       boundary: String,
       body: String): IO[String] =
-    IO {
+    IO.blocking {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
       val bytes = body.getBytes(StandardCharsets.UTF_8)
