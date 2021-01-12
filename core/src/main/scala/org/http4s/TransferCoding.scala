@@ -57,7 +57,8 @@ object TransferCoding {
 
   private[http4s] val parser: Parser[TransferCoding] = {
     import cats.parse.Parser.{ignoreCase, oneOf}
-    oneOf(List(
+    oneOf(
+      List(
         ignoreCase("chunked").as(chunked),
         ignoreCase("compress").as(compress),
         ignoreCase("deflate").as(deflate),

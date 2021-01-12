@@ -17,7 +17,7 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser0, Parser}
+import cats.parse.{Parser, Parser0}
 import org.http4s._
 import org.http4s.internal.parsing.Rfc7230.{headerRep1, quotedString, token}
 import org.http4s.parser.HttpHeaderParser

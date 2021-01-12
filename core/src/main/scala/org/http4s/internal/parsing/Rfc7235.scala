@@ -18,7 +18,7 @@ package org.http4s.internal.parsing
 
 import cats.data.NonEmptyList
 import cats.parse.Parser.{char, charIn}
-import cats.parse.{Parser0, Parser}
+import cats.parse.{Parser, Parser0}
 import cats.parse.Rfc5234.{alpha, digit, sp}
 import org.http4s.{Challenge, Credentials}
 import org.http4s.internal.parsing.Rfc7230.{bws, headerRep1, ows, quotedString, token}
@@ -45,7 +45,8 @@ private[http4s] object Rfc7235 {
     OWS "," [ OWS auth-param ] ) ] ) ]
    */
   val challenge: Parser[Challenge] =
-    ((scheme <* sp) ~ authParam.backtrack.repSep0(char(',').surroundedBy(ows))
+    ((scheme <* sp) ~ authParam.backtrack
+      .repSep0(char(',').surroundedBy(ows))
       .map(_.toMap))
       .map { case (scheme, params) =>
         //Model does not support token68 challenges

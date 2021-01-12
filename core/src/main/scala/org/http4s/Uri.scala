@@ -587,7 +587,12 @@ object Uri {
       /* segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
                      ; non-zero-length segment without any colon ":" */
       lazy val segmentNzNc: P[Segment] =
-        unreserved.orElse(pctEncoded).orElse(subDelims).orElse(char('@')).rep.string
+        unreserved
+          .orElse(pctEncoded)
+          .orElse(subDelims)
+          .orElse(char('@'))
+          .rep
+          .string
           .map(new Segment(_))
 
       implicit val http4sInstancesForSegment: Order[Segment] =

@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser0, Parser}
+import cats.parse.{Parser, Parser0}
 import org.http4s.parser.{AdditionalRules, Rfc2616BasicRules}
 import org.http4s.util.Writer
 import scala.concurrent.duration.FiniteDuration
@@ -70,7 +70,8 @@ object `Strict-Transport-Security`
     case object IncludeSubDomains extends StsAttribute
     case object Preload extends StsAttribute
 
-    val stsAttributes: Parser0[StsAttribute] = Parser.ignoreCase("includeSubDomains")
+    val stsAttributes: Parser0[StsAttribute] = Parser
+      .ignoreCase("includeSubDomains")
       .as(IncludeSubDomains)
       .orElse(Parser.ignoreCase("preload").as(Preload))
 

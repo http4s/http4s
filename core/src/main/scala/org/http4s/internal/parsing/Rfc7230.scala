@@ -17,7 +17,7 @@
 package org.http4s.internal.parsing
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser0, Parser}
+import cats.parse.{Parser, Parser0}
 import cats.parse.Parser.{char, charIn}
 import cats.parse.Rfc5234.{alpha, digit, dquote, htab, sp, vchar}
 
