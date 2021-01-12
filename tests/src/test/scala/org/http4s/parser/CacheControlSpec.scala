@@ -24,7 +24,7 @@ import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] {
-  def hparse(value: String): ParseResult[`Cache-Control`] = HttpHeaderParser.CACHE_CONTROL(value)
+  def hparse(value: String): ParseResult[`Cache-Control`] = `Cache-Control`.parse(value)
 
   // Default values
   val valueless = List(

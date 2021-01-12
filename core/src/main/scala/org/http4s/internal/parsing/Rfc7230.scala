@@ -55,9 +55,12 @@ private[http4s] object Rfc7230 {
   /* quoted-pair    = "\" ( HTAB / SP / VCHAR / obs-text ) */
   val quotedPair: Parser[Char] = char('\\') *> qdPairChar
 
+  private def surroundedBy[A](a: Parser0[A], b: Parser[Any]): Parser[A] =
+    b *> a <* b
+
   /*quoted-string  = DQUOTE *( qdtext / quoted-pair ) DQUOTE*/
-  val quotedString: Parser0[String] =
-    qdText.orElse(quotedPair).rep0.string.surroundedBy(dquote)
+  val quotedString: Parser[String] =
+    surroundedBy(qdText.orElse(quotedPair).rep0.string, dquote)
 
   /* `1#element => *( "," OWS ) element *( OWS "," [ OWS element ] )` */
   def headerRep1[A](element: Parser[A]): Parser[NonEmptyList[A]] = {
