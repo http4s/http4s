@@ -18,7 +18,8 @@ package org.http4s
 package server
 package jetty
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.{IO, Temporal}
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import java.net.{HttpURLConnection, URL}
 import java.io.IOException
@@ -28,12 +29,11 @@ import scala.concurrent.duration._
 import scala.io.Source
 
 class JettyServerSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
 
-  def builder = JettyBuilder[IO]
+  def builder(dispatcher: Dispatcher[IO]) = JettyBuilder[IO](dispatcher)
 
-  val serverR =
-    builder
+  val serverR = { dispatcher: Dispatcher[IO] =>
+    builder(dispatcher)
       .bindAny()
       .withAsyncTimeout(3.seconds)
       .mountService(
@@ -52,25 +52,25 @@ class JettyServerSuite extends Http4sSuite {
             IO.never
 
           case GET -> Root / "slow" =>
-            implicitly[Timer[IO]].sleep(50.millis) *> Ok("slow")
+            Temporal[IO].sleep(50.millis) *> Ok("slow")
         },
         "/"
       )
       .resource
+  }
 
   def jettyServer: FunFixture[Server] =
-    ResourceFixture[Server](serverR)
+    ResourceFixture[Server](Dispatcher[IO].flatMap(serverR))
 
   def get(server: Server, path: String): IO[String] =
-    testBlocker.blockOn(
-      IO(
-        Source
-          .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-          .getLines()
-          .mkString))
+    IO.blocking(
+      Source
+        .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+        .getLines()
+        .mkString)
 
   def post(server: Server, path: String, body: String): IO[String] =
-    testBlocker.blockOn(IO {
+    IO.blocking {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
       val bytes = body.getBytes(StandardCharsets.UTF_8)
@@ -79,7 +79,7 @@ class JettyServerSuite extends Http4sSuite {
       conn.setDoOutput(true)
       conn.getOutputStream.write(bytes)
       Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
-    })
+    }
 
   jettyServer.test("ChannelOptions should should route requests on the service executor") {
     server =>

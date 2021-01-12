@@ -18,7 +18,8 @@ package org.http4s
 package server
 package jetty
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
+import cats.effect.std.Dispatcher
 import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.http4s.dsl.io._
@@ -26,8 +27,6 @@ import org.http4s.servlet.AsyncHttp4sServlet
 import org.http4s.syntax.all._
 
 object Issue454 {
-  implicit val cs: ContextShift[IO] = Http4sSpec.TestContextShift
-
   // If the bug is not triggered right away, try increasing or
   // repeating the request. Also if you decrease the data size (to
   // say 32mb, the bug does not manifest so often, but the stack
@@ -43,29 +42,32 @@ object Issue454 {
     insanelyHugeData(insanelyHugeData.length - 1) = '-' // end marker
   }
 
-  def main(args: Array[String]): Unit = {
-    val server = new Server
+  def main(args: Array[String]): Unit =
+    Dispatcher[IO].use { dispatcher =>
+      val servlet = new AsyncHttp4sServlet[IO](
+        service = HttpRoutes
+          .of[IO] { case GET -> Root =>
+            Ok(insanelyHugeData)
+          }
+          .orNotFound,
+        servletIo = org.http4s.servlet.NonBlockingServletIo(4096),
+        serviceErrorHandler = DefaultServiceErrorHandler,
+        dispatcher = dispatcher
+      )
+      val server = new Server
 
-    val connector = new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()))
-    connector.setPort(5555)
+      val connector =
+        new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()))
+      connector.setPort(5555)
 
-    val context = new ServletContextHandler
-    context.setContextPath("/")
-    context.addServlet(new ServletHolder(servlet), "/")
+      val context = new ServletContextHandler
+      context.setContextPath("/")
+      context.addServlet(new ServletHolder(servlet), "/")
 
-    server.addConnector(connector)
-    server.setHandler(context)
+      server.addConnector(connector)
+      server.setHandler(context)
 
-    server.start()
-  }
-
-  val servlet = new AsyncHttp4sServlet[IO](
-    service = HttpRoutes
-      .of[IO] { case GET -> Root =>
-        Ok(insanelyHugeData)
-      }
-      .orNotFound,
-    servletIo = org.http4s.servlet.NonBlockingServletIo(4096),
-    serviceErrorHandler = DefaultServiceErrorHandler
-  )
+      server.start()
+      IO.unit
+    }
 }

@@ -19,6 +19,8 @@ package server
 package jetty
 
 import cats.effect._
+import cats.effect.kernel.Async
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.util
@@ -57,8 +59,9 @@ sealed class JettyBuilder[F[_]] private (
     private val serviceErrorHandler: ServiceErrorHandler[F],
     supportHttp2: Boolean,
     banner: immutable.Seq[String],
-    jettyHttpConfiguration: HttpConfiguration
-)(implicit protected val F: ConcurrentEffect[F])
+    jettyHttpConfiguration: HttpConfiguration,
+    dispatcher: Dispatcher[F]
+)(implicit protected val F: Async[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
   type Self = JettyBuilder[F]
@@ -77,8 +80,9 @@ sealed class JettyBuilder[F[_]] private (
       mounts: Vector[Mount[F]],
       serviceErrorHandler: ServiceErrorHandler[F],
       supportHttp2: Boolean,
-      banner: immutable.Seq[String]
-  )(implicit F: ConcurrentEffect[F]) =
+      banner: immutable.Seq[String],
+      dispatcher: Dispatcher[F]
+  )(implicit F: Async[F]) =
     this(
       socketAddress = socketAddress,
       threadPool = threadPool,
@@ -91,7 +95,8 @@ sealed class JettyBuilder[F[_]] private (
       serviceErrorHandler = serviceErrorHandler,
       supportHttp2 = false,
       banner = banner,
-      jettyHttpConfiguration = JettyBuilder.defaultJettyHttpConfiguration
+      jettyHttpConfiguration = JettyBuilder.defaultJettyHttpConfiguration,
+      dispatcher = dispatcher
     )
 
   @deprecated("Retained for binary compatibility", "0.20.23")
@@ -105,8 +110,9 @@ sealed class JettyBuilder[F[_]] private (
       sslConfig: SslConfig,
       mounts: Vector[Mount[F]],
       serviceErrorHandler: ServiceErrorHandler[F],
-      banner: immutable.Seq[String]
-  )(implicit F: ConcurrentEffect[F]) =
+      banner: immutable.Seq[String],
+      dispatcher: Dispatcher[F]
+  )(implicit F: Async[F]) =
     this(
       socketAddress = socketAddress,
       threadPool = threadPool,
@@ -118,7 +124,8 @@ sealed class JettyBuilder[F[_]] private (
       mounts = mounts,
       serviceErrorHandler = serviceErrorHandler,
       supportHttp2 = false,
-      banner = banner
+      banner = banner,
+      dispatcher = dispatcher
     )
 
   private def copy(
@@ -133,7 +140,8 @@ sealed class JettyBuilder[F[_]] private (
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       supportHttp2: Boolean = supportHttp2,
       banner: immutable.Seq[String] = banner,
-      jettyHttpConfiguration: HttpConfiguration = jettyHttpConfiguration
+      jettyHttpConfiguration: HttpConfiguration = jettyHttpConfiguration,
+      dispatcher: Dispatcher[F] = dispatcher
   ): Self =
     new JettyBuilder(
       socketAddress,
@@ -147,7 +155,8 @@ sealed class JettyBuilder[F[_]] private (
       serviceErrorHandler,
       supportHttp2,
       banner,
-      jettyHttpConfiguration
+      jettyHttpConfiguration,
+      dispatcher
     )
 
   @deprecated(
@@ -224,7 +233,8 @@ sealed class JettyBuilder[F[_]] private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        serviceErrorHandler = builder.serviceErrorHandler
+        serviceErrorHandler = builder.serviceErrorHandler,
+        dispatcher
       )
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)
@@ -337,7 +347,7 @@ sealed class JettyBuilder[F[_]] private (
     })
 
   private def shutdown(jetty: JServer): F[Unit] =
-    F.async[Unit] { cb =>
+    F.async_[Unit] { cb =>
       jetty.addLifeCycleListener(
         new AbstractLifeCycle.AbstractLifeCycleListener {
           override def lifeCycleStopped(ev: LifeCycle) = cb(Right(()))
@@ -349,7 +359,7 @@ sealed class JettyBuilder[F[_]] private (
 }
 
 object JettyBuilder {
-  def apply[F[_]: ConcurrentEffect] =
+  def apply[F[_]: Async](dispatcher: Dispatcher[F]) =
     new JettyBuilder[F](
       socketAddress = defaults.SocketAddress,
       threadPool = new QueuedThreadPool(),
@@ -362,7 +372,8 @@ object JettyBuilder {
       serviceErrorHandler = DefaultServiceErrorHandler,
       supportHttp2 = false,
       banner = defaults.Banner,
-      jettyHttpConfiguration = defaultJettyHttpConfiguration
+      jettyHttpConfiguration = defaultJettyHttpConfiguration,
+      dispatcher = dispatcher
     )
 
   private sealed trait SslConfig {
