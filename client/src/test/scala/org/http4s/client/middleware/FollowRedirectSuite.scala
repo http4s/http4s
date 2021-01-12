@@ -22,7 +22,6 @@ import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import java.util.concurrent.atomic._
-import org.http4s.Uri.uri
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
@@ -53,10 +52,10 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
         )
 
       case _ -> Root / "different-authority" =>
-        TemporaryRedirect(Location(uri("http://www.example.com/ok")))
+        TemporaryRedirect(Location(uri"http://www.example.com/ok"))
       case _ -> Root / status =>
         Response[IO](status = Status.fromInt(status.toInt).yolo)
-          .putHeaders(Location(uri("/ok")))
+          .putHeaders(Location(uri"/ok"))
           .pure[IO]
     }
     .orNotFound
@@ -71,7 +70,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   test("FollowRedirect should Strip payload headers when switching to GET") {
     // We could test others, and other scenarios, but this was a pain.
-    val req = Request[IO](PUT, uri("http://localhost/303")).withEntity("foo")
+    val req = Request[IO](PUT, uri"http://localhost/303").withEntity("foo")
     client
       .run(req)
       .use { case Ok(resp) =>
@@ -85,12 +84,12 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val statefulApp = HttpRoutes
       .of[IO] { case GET -> Root / "loop" =>
         val body = loopCounter.incrementAndGet.toString
-        MovedPermanently(Location(uri("/loop"))).map(_.withEntity(body))
+        MovedPermanently(Location(uri"/loop")).map(_.withEntity(body))
       }
       .orNotFound
     val client = FollowRedirect(3)(Client.fromHttpApp(statefulApp))
     client
-      .run(Request[IO](uri = uri("http://localhost/loop")))
+      .run(Request[IO](uri = uri"http://localhost/loop"))
       .use {
         case MovedPermanently(resp) => resp.as[String].map(_.toInt)
         case _ => IO.pure(-1)
@@ -104,7 +103,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
       Resource.make(app.run(req))(_ => IO { disposed = disposed + 1 }.void)
     val client = FollowRedirect(3)(Client(disposingService))
     // one for the original, one for the redirect
-    client.expect[String](uri("http://localhost/301")).map(_ => disposed).assertEquals(2)
+    client.expect[String](uri"http://localhost/301").map(_ => disposed).assertEquals(2)
   }
 
   test("FollowRedirect should Not hang when redirecting") {
@@ -116,7 +115,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
             case false => IO.raiseError(new IllegalStateException("Exhausted all connections"))
           })(_ => semaphore.release)
         val client = FollowRedirect(3)(Client(f))
-        client.status(Request[IO](uri = uri("http://localhost/loop/3")))
+        client.status(Request[IO](uri = uri"http://localhost/loop/3"))
       }
       .assertEquals(Status.Ok)
   }
@@ -125,7 +124,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     "FollowRedirect should Not send sensitive headers when redirecting to a different authority") {
     val req = PUT(
       "Don't expose mah secrets!",
-      uri("http://localhost/different-authority"),
+      uri"http://localhost/different-authority",
       Header("Authorization", "Bearer s3cr3t"))
     client
       .run(req)
@@ -138,7 +137,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   test("FollowRedirect should Send sensitive headers when redirecting to same authority") {
     val req = PUT(
       "You already know mah secrets!",
-      uri("http://localhost/307"),
+      uri"http://localhost/307",
       Header("Authorization", "Bearer s3cr3t"))
     client
       .run(req)
@@ -150,21 +149,21 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   test("FollowRedirect should Record the intermediate URIs") {
     client
-      .run(Request[IO](uri = uri("http://localhost/loop/0")))
+      .run(Request[IO](uri = uri"http://localhost/loop/0"))
       .use { case Ok(resp) =>
         IO.pure(FollowRedirect.getRedirectUris(resp))
       }
       .assertEquals(
         List(
-          uri("http://localhost/loop/1"),
-          uri("http://localhost/loop/2"),
-          uri("http://localhost/loop/3")
+          uri"http://localhost/loop/1",
+          uri"http://localhost/loop/2",
+          uri"http://localhost/loop/3"
         ))
   }
 
   test("FollowRedirect should Not add any URIs when there are no redirects") {
     client
-      .run(Request[IO](uri = uri("http://localhost/loop/100")))
+      .run(Request[IO](uri = uri"http://localhost/loop/100"))
       .use { case Ok(resp) =>
         IO.pure(FollowRedirect.getRedirectUris(resp))
       }

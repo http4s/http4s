@@ -58,7 +58,7 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
       })
 
       hostClient
-        .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+        .expect[String](Request[IO](GET, uri"https://http4s.org/"))
         .unsafeRunSync() must_== "http4s.org"
     }
 
@@ -68,7 +68,7 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
       })
 
       hostClient
-        .expect[String](Request[IO](GET, Uri.uri("https://http4s.org:1983/")))
+        .expect[String](Request[IO](GET, uri"https://http4s.org:1983/"))
         .unsafeRunSync() must_== "http4s.org:1983"
     }
 
@@ -80,7 +80,7 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
       val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
 
       hostClient
-        .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+        .expect[String](Request[IO](GET, uri"https://http4s.org/"))
         .unsafeRunSync() must_== "http4s.org"
     }
 
@@ -97,7 +97,7 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
           Deferred[IO, ExitCase[Throwable]]
             .flatTap { exitCase =>
               cancelClient
-                .expect[String](Request[IO](GET, Uri.uri("https://http4s.org/")))
+                .expect[String](Request[IO](GET, uri"https://http4s.org/"))
                 .guaranteeCase(exitCase.complete)
                 .start
                 .flatTap(fiber =>

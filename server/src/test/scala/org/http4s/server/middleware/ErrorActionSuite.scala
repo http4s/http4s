@@ -20,7 +20,6 @@ import cats.effect.IO
 import cats.effect.concurrent.Ref
 import org.http4s._
 import org.http4s.Request.Connection
-import org.http4s.Uri.uri
 import org.http4s.syntax.all._
 import org.http4s.dsl.io._
 import org.typelevel.vault.Vault
@@ -37,7 +36,7 @@ class ErrorActionSuite extends Http4sSuite {
 
   val req = Request[IO](
     GET,
-    uri("/error"),
+    uri"/error",
     attributes = Vault.empty.insert(
       Request.Keys.ConnectionInfo,
       Connection(

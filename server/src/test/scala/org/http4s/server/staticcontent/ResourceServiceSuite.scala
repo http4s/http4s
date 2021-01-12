@@ -22,7 +22,6 @@ import cats.effect.IO
 import cats.syntax.all._
 import java.nio.file.Paths
 import fs2._
-import org.http4s.Uri.uri
 import org.http4s.headers.{
   `Accept-Encoding`,
   `Content-Encoding`,
@@ -45,11 +44,11 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val app = TranslateUri("/foo")(routes).orNotFound
 
     {
-      val req = Request[IO](uri = uri("/foo/testresource.txt"))
+      val req = Request[IO](uri = uri"/foo/testresource.txt")
       Stream.eval(app(req)).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
         app(req).map(_.status).assertEquals(Status.Ok)
     } *> {
-      val req = Request[IO](uri = uri("/testresource.txt"))
+      val req = Request[IO](uri = uri"/testresource.txt")
       app(req).map(_.status).assertEquals(Status.NotFound)
     }
   }
@@ -63,7 +62,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Decodes path segments") {
-    val req = Request[IO](uri = uri("/space+truckin%27.txt"))
+    val req = Request[IO](uri = uri"/space+truckin%27.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
@@ -173,13 +172,13 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Not send unmodified files") {
-    val req = Request[IO](uri = uri("/testresource.txt"))
+    val req = Request[IO](uri = uri"/testresource.txt")
       .putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
 
     runReq(req).map(_._2.status).assertEquals(Status.NotModified)
   }
 
   test("doesn't crash on /") {
-    routes.orNotFound(Request[IO](uri = uri("/"))).map(_.status).assertEquals(Status.NotFound)
+    routes.orNotFound(Request[IO](uri = uri"/")).map(_.status).assertEquals(Status.NotFound)
   }
 }

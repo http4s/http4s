@@ -34,13 +34,13 @@ class AcceptCharsetSpec extends HeaderLaws {
 
   "matches atom before splatted" in {
     val acceptCharset =
-      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.`UTF-8`, QValue.q(0.5)))
-    acceptCharset.qValue(Charset.`UTF-8`) must_== QValue.q(0.5)
+      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.`UTF-8`, qValue"0.5"))
+    acceptCharset.qValue(Charset.`UTF-8`) must_== qValue"0.5"
   }
 
   "matches splatted if atom not present" in {
     val acceptCharset =
-      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.`ISO-8859-1`, QValue.q(0.5)))
+      `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"))
     acceptCharset.qValue(Charset.`UTF-8`) must_== QValue.One
   }
 
@@ -53,12 +53,12 @@ class AcceptCharsetSpec extends HeaderLaws {
   "rejects charset matching splat with q=0" in {
     val acceptCharset = `Accept-Charset`(
       CharsetRange.*.withQValue(QValue.Zero),
-      CharsetRange.Atom(Charset.`ISO-8859-1`, QValue.q(0.5)))
+      CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"))
     acceptCharset.qValue(Charset.`UTF-8`) must_== QValue.Zero
   }
 
   "rejects unmatched charset" in {
-    val acceptCharset = `Accept-Charset`(CharsetRange.Atom(Charset.`ISO-8859-1`, QValue.q(0.5)))
+    val acceptCharset = `Accept-Charset`(CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"))
     acceptCharset.qValue(Charset.`UTF-8`) must_== QValue.Zero
   }
 }

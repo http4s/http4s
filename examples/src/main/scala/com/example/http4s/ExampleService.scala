@@ -26,6 +26,7 @@ import org.http4s.headers._
 import org.http4s.multipart.Multipart
 import org.http4s.scalaxml._
 import org.http4s.server._
+import org.http4s.syntax.all._
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
@@ -68,7 +69,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 
       case GET -> Root / "redirect" =>
         // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
-        TemporaryRedirect(Location(Uri.uri("/http4s/")))
+        TemporaryRedirect(Location(uri"/http4s/"))
 
       case GET -> Root / "content-change" =>
         // EntityEncoder typically deals with appropriate headers, but they can be overridden
