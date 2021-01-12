@@ -16,15 +16,15 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser.{char, charIn, rep}
-import cats.parse.Parser1
+import cats.parse.Parser.{char, charIn}
+import cats.parse.Parser
 import cats.parse.Rfc5234.dquote
 
 /** Common rules defined in RFC6265
   *
   * @see [[https://tools.ietf.org/html/rfc6265] RFC6265, HTTP State Management Mechanism]
   */
-private[http4s] abstract class Cookies(cookieOctet: Parser1[Char]) {
+private[http4s] abstract class Cookies(cookieOctet: Parser[Char]) {
   /* token             = <token, defined in [RFC2616], Section 2.2> */
   def token = Rfc2616.token
 
@@ -32,7 +32,7 @@ private[http4s] abstract class Cookies(cookieOctet: Parser1[Char]) {
   def cookieName = token
 
   /* cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE ) */
-  val cookieValue = (dquote *> rep(cookieOctet) <* dquote).orElse(rep(cookieOctet)).string
+  val cookieValue = (dquote *> cookieOctet.rep0 <* dquote).orElse(cookieOctet.rep0).string
 
   /* cookie-pair       = cookie-name "=" cookie-value */
   val cookiePair = (cookieName <* char('=')) ~ cookieValue

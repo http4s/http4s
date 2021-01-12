@@ -10,7 +10,7 @@
 
 package org.http4s
 
-import cats.parse.{Parser, Parser1, Rfc5234}
+import cats.parse.{Parser0, Parser, Rfc5234}
 import java.time.{DateTimeException, ZoneOffset, ZonedDateTime}
 import org.http4s.internal.parsing.{Rfc1034, Rfc2616, Rfc6265}
 import org.http4s.util.{Renderable, Writer}
@@ -77,8 +77,8 @@ final case class ResponseCookie(
 }
 
 object ResponseCookie {
-  private[http4s] val parser: Parser1[ResponseCookie] = {
-    import Parser.{char, charIn, failWith, ignoreCase1, pure, rep, string1}
+  private[http4s] val parser: Parser[ResponseCookie] = {
+    import Parser.{char, charIn, failWith, ignoreCase, pure, string}
     import Rfc2616.Rfc1123Date
     import Rfc5234.digit
     import Rfc6265.{cookieName, cookieValue}
@@ -99,7 +99,7 @@ object ResponseCookie {
     }
 
     /* expires-av        = "Expires=" sane-cookie-date */
-    val expiresAv = ignoreCase1("Expires=").with1 *> saneCookieDate.map {
+    val expiresAv = ignoreCase("Expires=").with1 *> saneCookieDate.map {
       (expires: HttpDate) => (cookie: ResponseCookie) => cookie.withExpires(expires)
     }
 
@@ -113,7 +113,7 @@ object ResponseCookie {
      *                   ; are limited to dates representable by the
      *                   ; user agent.
      */
-    val maxAgeAv = ignoreCase1("Max-Age=") *> (nonZeroDigit ~ rep(digit)).string.map {
+    val maxAgeAv = ignoreCase("Max-Age=") *> (nonZeroDigit ~ digit.rep0).string.map {
       (maxAge: String) => (cookie: ResponseCookie) => cookie.withMaxAge(maxAge.toLong)
     }
 
@@ -128,7 +128,7 @@ object ResponseCookie {
      * But https://tools.ietf.org/html/rfc6265#section-5.2.3 mandates
      * a leading dot, which is invalid per domain-value.
      */
-    val domainAv = ignoreCase1("Domain=") *> (char('.').? ~ domainValue).string.map {
+    val domainAv = ignoreCase("Domain=") *> (char('.').? ~ domainValue).string.map {
       (domain: String) => (cookie: ResponseCookie) => cookie.withDomain(domain)
     }
 
@@ -138,26 +138,26 @@ object ResponseCookie {
      * as proposed by https://www.rfc-editor.org/errata/eid3444
      */
     val avOctet = charIn(0x20.toChar to 0x3a.toChar)
-      .orElse1(charIn(0x3c.toChar to 0x7e.toChar))
+      .orElse(charIn(0x3c.toChar to 0x7e.toChar))
 
     /* path-value = *av-octet
      *
      * as amended by https://www.rfc-editor.org/errata/eid3444
      */
-    val pathValue = avOctet.rep.string
+    val pathValue = avOctet.rep0.string
 
     /* path-av           = "Path=" path-value */
-    val pathAv = ignoreCase1("Path=") *> pathValue.map { case path: String =>
+    val pathAv = ignoreCase("Path=") *> pathValue.map { case path: String =>
       (cookie: ResponseCookie) => cookie.withPath(path)
     }
 
     /* secure-av         = "Secure" */
-    val secureAv = ignoreCase1("Secure").as { (cookie: ResponseCookie) =>
+    val secureAv = ignoreCase("Secure").as { (cookie: ResponseCookie) =>
       cookie.withSecure(true)
     }
 
     /* httponly-av       = "HttpOnly" */
-    val httponlyAv = ignoreCase1("HttpOnly").as { (cookie: ResponseCookie) =>
+    val httponlyAv = ignoreCase("HttpOnly").as { (cookie: ResponseCookie) =>
       cookie.withHttpOnly(true)
     }
 
@@ -167,15 +167,15 @@ object ResponseCookie {
      * Anything but "strict" or "lax" is "none"
      */
     val samesiteValue =
-      (ignoreCase1("strict")
+      (ignoreCase("strict")
         .as(SameSite.Strict))
-        .orElse1(ignoreCase1("lax").as(SameSite.Lax))
-        .orElse(avOctet.rep.as(SameSite.None))
+        .orElse(ignoreCase("lax").as(SameSite.Lax))
+        .orElse(avOctet.rep0.as(SameSite.None))
 
     /* samesite-av       = "SameSite" BWS "=" BWS samesite-value
      * from https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-06
      */
-    val samesiteAv = ignoreCase1("SameSite=") *> samesiteValue.map {
+    val samesiteAv = ignoreCase("SameSite=") *> samesiteValue.map {
       (sameSite: SameSite) => (cookie: ResponseCookie) => cookie.withSameSite(sameSite)
     }
 
@@ -183,7 +183,7 @@ object ResponseCookie {
      *
      * as amended by https://www.rfc-editor.org/errata/eid3444
      */
-    val extensionAv = avOctet.rep1.string.map { (ext: String) => (cookie: ResponseCookie) =>
+    val extensionAv = avOctet.rep.string.map { (ext: String) => (cookie: ResponseCookie) =>
       cookie.addExtension(ext)
     }
 
@@ -192,16 +192,16 @@ object ResponseCookie {
      *                     extension-av
      */
     val cookieAv = expiresAv
-      .orElse1(maxAgeAv)
-      .orElse1(domainAv)
-      .orElse1(pathAv)
-      .orElse1(secureAv)
-      .orElse1(httponlyAv)
-      .orElse1(samesiteAv)
+      .orElse(maxAgeAv)
+      .orElse(domainAv)
+      .orElse(pathAv)
+      .orElse(secureAv)
+      .orElse(httponlyAv)
+      .orElse(samesiteAv)
       .orElse(extensionAv)
 
     /* set-cookie-string = cookie-pair *( ";" SP cookie-av ) */
-    (cookiePair ~ (string1("; ") *> cookieAv).rep).map { case ((name, value), avs) =>
+    (cookiePair ~ (string("; ") *> cookieAv).rep0).map { case ((name, value), avs) =>
       avs.foldLeft(ResponseCookie(name, value))((p, f) => f(p))
     }
   }

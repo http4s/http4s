@@ -22,7 +22,7 @@ import cats.parse._
 
 object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton {
   //https://tools.ietf.org/html/rfc7235#section-4.2
-  private[http4s] val parser: Parser1[Authorization] = {
+  private[http4s] val parser: Parser[Authorization] = {
     import org.http4s.internal.parsing.Rfc7235.credentials
     credentials.map(Authorization(_))
   }

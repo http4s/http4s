@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser1, Rfc5234}
+import cats.parse.{Parser, Rfc5234}
 import org.http4s.util.{Renderer, Writer}
 import org.http4s.util.Renderable._
 import scala.concurrent.duration.FiniteDuration
@@ -44,15 +44,15 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
     ParseResult.fromParser(parser, "Retry-After header")(s)
 
   /* `Retry-After = HTTP-date / delay-seconds` */
-  private[http4s] val parser: Parser1[`Retry-After`] = {
+  private[http4s] val parser: Parser[`Retry-After`] = {
     import Rfc5234.digit
 
     def httpDate = HttpDate.parser.map(apply)
 
     /* delay-seconds  = 1*DIGIT */
-    def delaySeconds = digit.rep1.string.map(s => unsafeFromLong(s.toLong))
+    def delaySeconds = digit.rep.string.map(s => unsafeFromLong(s.toLong))
 
-    httpDate.orElse1(delaySeconds)
+    httpDate.orElse(delaySeconds)
   }
 }
 

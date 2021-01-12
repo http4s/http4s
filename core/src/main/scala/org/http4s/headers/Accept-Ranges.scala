@@ -16,7 +16,7 @@
 
 package org.http4s
 package headers
-import cats.parse.{Parser => P}
+import cats.parse.{Parser0 => P0}
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
@@ -29,9 +29,9 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
     ParseResult.fromParser(parser, "Accept-Ranges header")(s)
 
   /* https://tools.ietf.org/html/rfc7233#appendix-C */
-  val parser: P[`Accept-Ranges`] = {
+  val parser: P0[`Accept-Ranges`] = {
 
-    val none = P.string1("none").as(Nil)
+    val none = Parser.string("none").as(Nil)
 
     val rangeUnit = Rfc7230.token.map(org.http4s.RangeUnit.apply)
 
@@ -40,8 +40,8 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
      OWS               = <OWS, see [RFC7230], Section 3.2.3>
      acceptable-ranges = ( *( "," OWS ) range-unit *( OWS "," [ OWS range-unit ] ) ) / "none"
      */
-    val acceptableRanges: P[List[RangeUnit]] =
-      P.oneOf(
+    val acceptableRanges: P0[List[RangeUnit]] =
+      Parser.oneOf0(
         List(
           none,
           Rfc7230.headerRep1(rangeUnit).map(_.toList)

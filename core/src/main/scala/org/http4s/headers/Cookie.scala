@@ -18,18 +18,18 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser1}
+import cats.parse.{Parser0, Parser}
 import org.http4s.util.Writer
 
 object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Cookie] =
     ParseResult.fromParser(parser, "Invalid Cookie header")(s)
 
-  private[http4s] val parser: Parser1[Cookie] = {
-    import Parser.{char, string1}
+  private[http4s] val parser: Parser[Cookie] = {
+    import Parser.{char, string}
 
     /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
-    val cookieString = (RequestCookie.parser ~ (string1("; ") *> RequestCookie.parser).rep).map {
+    val cookieString = (RequestCookie.parser ~ (string("; ") *> RequestCookie.parser).rep0).map {
       case (head, tail) =>
         Cookie(NonEmptyList(head, tail))
     }

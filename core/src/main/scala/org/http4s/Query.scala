@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.parse.Parser
+import cats.parse.Parser0
 import cats.syntax.all._
 import cats.{Eval, Foldable, Hash, Order, Show}
 import java.nio.charset.StandardCharsets
@@ -216,11 +216,11 @@ object Query {
    * "conservative in our sending behavior and liberal in our
    * receiving behavior", and encode them.
    */
-  private[http4s] lazy val parser: Parser[Query] = {
-    import Parser.{charIn, rep}
+  private[http4s] lazy val parser: Parser0[Query] = {
+    import Parser.charIn
     import Rfc3986.pchar
 
-    rep(pchar.orElse1(charIn("/?[]"))).string.map(Query.fromString)
+    pchar.orElse1(charIn("/?[]")).rep0orElse.string.map(Query.fromString)
   }
 
   implicit val catsInstancesForHttp4sQuery: Hash[Query] with Order[Query] with Show[Query] =

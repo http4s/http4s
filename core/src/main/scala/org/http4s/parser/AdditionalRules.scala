@@ -14,7 +14,7 @@
 package org.http4s
 package parser
 
-import cats.parse.{Parser1, Parser => P}
+import cats.parse.{Parser, Parser0 => P0}
 import cats.syntax.all._
 import java.time.{ZoneOffset, ZonedDateTime}
 import org.http4s.EntityTag.{Strong, Weak, Weakness}
@@ -213,9 +213,9 @@ private[http4s] object AdditionalRules {
   import Rfc2616BasicRules._
   def EOI = P.char('\uFFFF')
 
-  def EOL = optWs *> EOI.rep
+  def EOL = optWs *> EOI.rep0
 
-  val NonNegativeLong: Parser1[Long] = P.rep1(Rfc3986.digit, 1).string.mapFilter { s =>
+  val NonNegativeLong: Parser[Long] = Rfc3986.digit.rep.string.mapFilter { s =>
     try Some(s.toLong)
     catch {
       case _: NumberFormatException => None
