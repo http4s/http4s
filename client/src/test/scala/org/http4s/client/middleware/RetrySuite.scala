@@ -23,7 +23,6 @@ import cats.effect.kernel.Ref
 import cats.effect.std.Semaphore
 import cats.syntax.all._
 import fs2.Stream
-import org.http4s.Uri.uri
 import org.http4s.dsl.io._
 import org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForStatus
 import org.http4s.syntax.all._
@@ -61,7 +60,7 @@ class RetrySuite extends Http4sSuite {
       }
     }
     val retryClient = Retry[IO](policy)(client)
-    val req = Request[IO](method, uri("http://localhost/") / status.code.toString).withEntity(body)
+    val req = Request[IO](method, uri"http://localhost/" / status.code.toString).withEntity(body)
     retryClient
       .run(req)
       .use { _ =>
@@ -102,7 +101,7 @@ class RetrySuite extends Http4sSuite {
           case false => ref.update(_ => true) *> IO.pure("")
           case true => IO.pure("OK")
         })
-        val req = Request[IO](method, uri("http://localhost/status-from-body")).withEntity(body)
+        val req = Request[IO](method, uri"http://localhost/status-from-body").withEntity(body)
         val policy = RetryPolicy[IO](
           (attempts: Int) =>
             if (attempts >= 2) None

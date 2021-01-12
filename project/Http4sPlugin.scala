@@ -77,6 +77,9 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
+    dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
+    // https://github.com/scalacenter/scalafix/issues/1299
+    dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -294,9 +297,9 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.1.3"
     val disciplineSpecs2 = "1.1.3"
-    val dropwizardMetrics = "4.1.16"
+    val dropwizardMetrics = "4.1.17"
     val fs2 = "3.0.0-M7"
-    val jacksonDatabind = "2.12.0"
+    val jacksonDatabind = "2.12.1"
     val jawn = "1.0.3"
     val jawnFs2 = "2.0.0-M2"
     val jetty = "9.4.35.v20201120"
@@ -304,13 +307,13 @@ object Http4sPlugin extends AutoPlugin {
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
-    val log4s = "1.10.0-M3"
+    val log4s = "1.10.0-M4"
     val mockito = "3.5.15"
     val munit = "0.7.18"
     val munitCatsEffect = "0.12.0"
     val munitDiscipline = "1.0.4"
-    val netty = "4.1.54.Final"
-    val okio = "2.9.0"
+    val netty = "4.1.56.Final"
+    val okio = "2.10.0"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
     val playJson = "2.9.2"
@@ -329,8 +332,8 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.0-M1"
-    val unique = "2.1.0-M5"
+    val unique = "2.1.0-M10"
+    val vault = "2.1.0-M11"
   }
 
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
@@ -417,6 +420,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val tomcatUtilScan                   = "org.apache.tomcat"      %  "tomcat-util-scan"          % V.tomcat
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % V.treehugger
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % V.twirl
-  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % V.vault
-  lazy val unique                           = "io.chrisdavenport"      %% "unique"                    % V.unique
+  lazy val vault                            = "org.typelevel"          %% "vault"                     % V.vault
 }

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.chrisdavenport.vault
+package org.typelevel.vault
 
 import cats.effect.Sync
 import cats.Hash
 import cats.implicits._
-import io.chrisdavenport.unique.Unique
+import org.typelevel.unique.Unique
 
 /** A unique value tagged with a specific type to that unique.
   * Since it can only be created as a result of that, it links

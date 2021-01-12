@@ -23,7 +23,7 @@ import cats.data.Kleisli
 import cats.effect.SyncIO
 import cats.syntax.all._
 import org.log4s.getLogger
-import io.chrisdavenport.vault._
+import org.typelevel.vault._
 
 object PushSupport {
   private[this] val logger = getLogger

@@ -25,9 +25,9 @@ import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.alternative._
 import cats.{Monad, ~>}
-import io.chrisdavenport.vault.Key
 import org.http4s.Http
 import org.typelevel.ci.CIString
+import org.typelevel.vault.Key
 
 object HttpMethodOverrider {
 

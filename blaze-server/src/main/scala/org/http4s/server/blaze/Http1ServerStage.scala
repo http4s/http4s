@@ -21,7 +21,6 @@ package blaze
 import cats.effect.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import io.chrisdavenport.vault._
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
@@ -35,6 +34,7 @@ import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.util.StringWriter
 import org.typelevel.ci.CIString
+import org.typelevel.vault._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}

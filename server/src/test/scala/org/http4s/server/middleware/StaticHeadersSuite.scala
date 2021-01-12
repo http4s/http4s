@@ -20,7 +20,6 @@ import cats.effect._
 import org.http4s._
 import org.http4s.syntax.all._
 import org.http4s.dsl.io._
-import org.http4s.Uri.uri
 
 class StaticHeadersSuite extends Http4sSuite {
   val testService = HttpRoutes.of[IO] {
@@ -31,7 +30,7 @@ class StaticHeadersSuite extends Http4sSuite {
   }
 
   test("add a no-cache header to a response") {
-    val req = Request[IO](uri = uri("/request"))
+    val req = Request[IO](uri = uri"/request")
     val resp = StaticHeaders.`no-cache`(testService).orNotFound(req)
 
     resp

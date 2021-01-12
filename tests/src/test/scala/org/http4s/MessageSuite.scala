@@ -23,8 +23,8 @@ import java.net.{InetAddress, InetSocketAddress}
 
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.syntax.all._
-import _root_.io.chrisdavenport.vault._
 import org.typelevel.ci.CIString
+import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
   val local = InetSocketAddress.createUnresolved("www.local.com", 8080)

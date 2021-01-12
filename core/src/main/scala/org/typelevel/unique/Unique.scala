@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.chrisdavenport.unique
+package org.typelevel.unique
 
 import cats.Hash
 import cats.effect.Sync

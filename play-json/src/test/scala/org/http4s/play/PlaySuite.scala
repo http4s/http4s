@@ -22,6 +22,7 @@ import cats.effect.IO
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.play._
+import org.http4s.syntax.all._
 
 // Originally based on CirceSpec
 class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
@@ -61,7 +62,7 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
 
   test("Uri codec should round trip") {
     // TODO would benefit from Arbitrary[Uri]
-    val uri = Uri.uri("http://www.example.com/")
+    val uri = uri"http://www.example.com/"
 
     assertEquals(Json.fromJson[Uri](Json.toJson(uri)).asOpt, Some(uri))
   }

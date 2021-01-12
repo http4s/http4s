@@ -16,21 +16,20 @@
 
 package org.http4s.servlet
 
-import cats.syntax.all._
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
-import io.chrisdavenport.vault._
+import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import org.http4s._
 import org.http4s.headers.`Transfer-Encoding`
-
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
+import org.typelevel.vault._
 
 abstract class Http4sServlet[F[_]](
     service: HttpApp[F],
