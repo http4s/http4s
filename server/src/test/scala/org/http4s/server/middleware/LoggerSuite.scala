@@ -22,7 +22,7 @@ import cats.syntax.all._
 import cats.effect._
 import fs2.io.readInputStream
 import org.http4s.dsl.io._
-import org.http4s.Uri.uri
+import org.http4s.syntax.all._
 import scala.io.Source
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
@@ -47,12 +47,12 @@ class LoggerSuite extends Http4sSuite {
   val respApp = ResponseLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("response should not affect a Get") {
-    val req = Request[IO](uri = uri("/request"))
+    val req = Request[IO](uri = uri"/request")
     respApp(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("response should not affect a Post") {
-    val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
     respApp(req)
       .flatMap { res =>
         res
@@ -67,12 +67,12 @@ class LoggerSuite extends Http4sSuite {
   val reqApp = RequestLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("request should not affect a Get") {
-    val req = Request[IO](uri = uri("/request"))
+    val req = Request[IO](uri = uri"/request")
     reqApp(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("request should not affect a Post") {
-    val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
     reqApp(req)
       .flatMap { res =>
         res.as[String].map(_ === expectedBody && res.status === Status.Ok)
@@ -83,12 +83,12 @@ class LoggerSuite extends Http4sSuite {
   val loggerApp = Logger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("logger should not affect a Get") {
-    val req = Request[IO](uri = uri("/request"))
+    val req = Request[IO](uri = uri"/request")
     loggerApp(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("logger should not affect a Post") {
-    val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
     loggerApp(req)
       .flatMap { res =>
         res.as[String].map(_ === expectedBody && res.status === Status.Ok)

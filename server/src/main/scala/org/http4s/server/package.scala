@@ -20,11 +20,11 @@ import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.syntax.all._
 import cats.effect.SyncIO
-import io.chrisdavenport.vault._
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+import org.typelevel.vault._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 

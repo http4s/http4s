@@ -19,7 +19,7 @@ package org.http4s.client.middleware
 import cats.effect._
 import org.http4s._
 import org.http4s.client.Client
-import io.chrisdavenport.vault._
+import org.typelevel.vault._
 
 /** Client middleware that sets the destination attribute of every request to the specified value.
   */

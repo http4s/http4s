@@ -21,9 +21,9 @@ import cats.effect._
 import cats.syntax.all._
 import java.nio.ByteBuffer
 import org.log4s.Logger
+import org.typelevel.vault._
 import scala.collection.mutable.ListBuffer
 import scala.util.Either
-import io.chrisdavenport.vault._
 
 private[blaze] final class Http1ServerParser[F[_]](
     logger: Logger,

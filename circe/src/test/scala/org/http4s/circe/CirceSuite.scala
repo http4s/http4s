@@ -27,6 +27,7 @@ import io.circe.syntax._
 import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.circe._
+import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
@@ -274,7 +275,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
 
   test("Uri codec round trip") {
     // TODO would benefit from Arbitrary[Uri]
-    val uri = Uri.uri("http://www.example.com/")
+    val uri = uri"http://www.example.com/"
     assertEquals(uri.asJson.as[Uri], Right(uri))
   }
 

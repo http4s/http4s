@@ -22,6 +22,7 @@ import cats.effect.Ref
 import org.http4s._
 import org.http4s.dsl.io._
 import org.typelevel.ci.CIString
+import org.http4s.syntax.all._
 
 import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
@@ -38,7 +39,7 @@ class ResponseTimingSuite extends Http4sSuite {
   }
 
   test("add a custom header with timing info") {
-    val req = Request[IO](uri = Uri.uri("/request"))
+    val req = Request[IO](uri = uri"/request")
     val app = ResponseTiming(thisService)
     val res = app(req)
 

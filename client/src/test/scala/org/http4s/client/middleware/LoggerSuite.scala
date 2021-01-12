@@ -20,7 +20,7 @@ package middleware
 
 import cats.effect._
 import fs2.io.readInputStream
-import org.http4s.syntax.literals._
+import org.http4s.syntax.all._
 import org.http4s.dsl.io._
 import scala.io.Source
 

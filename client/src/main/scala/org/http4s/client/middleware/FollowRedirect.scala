@@ -19,12 +19,12 @@ package client
 package middleware
 
 import cats.effect._
+import cats.effect.std.Hotswap
 import cats.syntax.all._
 import org.http4s.Method._
 import org.http4s.headers._
 import org.typelevel.ci.CIString
-import _root_.io.chrisdavenport.vault._
-import cats.effect.std.Hotswap
+import org.typelevel.vault._
 
 /** Client middleware to follow redirect responses.
   *

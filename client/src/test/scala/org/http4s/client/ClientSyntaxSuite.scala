@@ -23,7 +23,6 @@ import cats.syntax.all._
 import fs2._
 import org.http4s.Method._
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
-import org.http4s.Uri.uri
 import org.http4s.syntax.all._
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
@@ -46,7 +45,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   val client: Client[IO] = Client.fromHttpApp(app)
 
-  val req: Request[IO] = Request(GET, uri("http://www.foo.bar/"))
+  val req: Request[IO] = Request(GET, uri"http://www.foo.bar/")
 
   object SadTrombone extends Exception("sad trombone")
 
@@ -202,7 +201,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   test(
     "Client should return an unexpected status when expecting a URI returns unsuccessful status") {
     client
-      .expect[String](uri("http://www.foo.com/status/500"))
+      .expect[String](uri"http://www.foo.com/status/500")
       .attempt
       .assertEquals(
         Left(
@@ -215,7 +214,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   test("Client should handle an unexpected status when calling a URI with expectOr") {
     case class Boom(status: Status, body: String) extends Exception
     client
-      .expectOr[String](uri("http://www.foo.com/status/500")) { resp =>
+      .expectOr[String](uri"http://www.foo.com/status/500") { resp =>
         resp.as[String].map(Boom(resp.status, _))
       }
       .attempt
@@ -223,18 +222,18 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should add Accept header on expect") {
-    client.expect[String](uri("http://www.foo.com/echoheaders")).assertEquals("Accept: text/*")
+    client.expect[String](uri"http://www.foo.com/echoheaders").assertEquals("Accept: text/*")
   }
 
   test("Client should add Accept header on expect for requests") {
     client
-      .expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders")))
+      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals("Accept: text/*")
   }
 
   test("Client should add Accept header on expect for requests") {
     client
-      .expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders")))
+      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals("Accept: text/*")
   }
 
@@ -243,19 +242,19 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val edec =
       EntityDecoder.decodeBy[IO, String](MediaType.image.jpeg)(_ => DecodeResult.success("foo!"))
     client
-      .expect(Request[IO](GET, uri("http://www.foo.com/echoheaders")))(
+      .expect(Request[IO](GET, uri"http://www.foo.com/echoheaders"))(
         EntityDecoder.text[IO].orElse(edec))
       .assertEquals("Accept: text/*, image/jpeg")
   }
 
   test("Client should return empty with expectOption and not found") {
     client
-      .expectOption[String](Request[IO](GET, uri("http://www.foo.com/random-not-found")))
+      .expectOption[String](Request[IO](GET, uri"http://www.foo.com/random-not-found"))
       .assertEquals(Option.empty[String])
   }
   test("Client should return expected value with expectOption and a response") {
     client
-      .expectOption[String](Request[IO](GET, uri("http://www.foo.com/echoheaders")))
+      .expectOption[String](Request[IO](GET, uri"http://www.foo.com/echoheaders"))
       .assertEquals(
         "Accept: text/*".some
       )
@@ -334,7 +333,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   test("RequestResponseGenerator should Generate requests based on Method") {
     // The PUT: /put path just echoes the body
-    client.expect[String](GET(uri("http://www.foo.com/"))).assertEquals("hello") *>
-      client.expect[String](PUT("hello?", uri("http://www.foo.com/put"))).assertEquals("hello?")
+    client.expect[String](GET(uri"http://www.foo.com/")).assertEquals("hello") *>
+      client.expect[String](PUT("hello?", uri"http://www.foo.com/put")).assertEquals("hello?")
   }
 }
