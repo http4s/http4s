@@ -24,7 +24,7 @@ import org.specs2.mutable.Specification
 class ContentLanguageSpec extends Specification with HeaderParserHelper[`Content-Language`] {
 
   override def hparse(value: String): ParseResult[`Content-Language`] =
-    HttpHeaderParser.CONTENT_LANGUAGE(value)
+    `Content-Language`.parse(value)
 
   val en = `Content-Language`(LanguageTag("en"))
   val en_IN = `Content-Language`(LanguageTag("en", "IN"))

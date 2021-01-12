@@ -18,11 +18,25 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Parser, Rfc5234}
+import org.http4s.internal.parsing.Rfc2616
+import org.http4s.parser.Rfc2616BasicRules
 
 object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with HeaderKey.Recurring {
   override def parse(s: String): org.http4s.ParseResult[`Content-Language`] =
-    HttpHeaderParser.CONTENT_LANGUAGE(s)
+    ParseResult.fromParser(parser, "Invalid Content-Language header")(s)
+
+  private[http4s] val parser: Parser[headers.`Content-Language`] = {
+    val languageTag: Parser[LanguageTag] =
+      (Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0).map {
+        case (main: String, sub: collection.Seq[String]) =>
+          LanguageTag(main, org.http4s.QValue.One, sub.toList)
+      }
+    languageTag.repSep(Rfc2616BasicRules.listSep).map { tags =>
+      headers.`Content-Language`(tags)
+    }
+  }
+
 }
 
 //RFC - https://tools.ietf.org/html/rfc3282#page-2

@@ -19,7 +19,6 @@ import org.typelevel.ci.CIString
 object HttpHeaderParser
     extends SimpleHeaders
     with CacheControlHeader
-    with ContentLanguageHeader
     with ContentLocationHeader
     with ForwardedHeader
     with LinkHeader
@@ -110,7 +109,7 @@ object HttpHeaderParser
     addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
     addParser_(CIString("CONTENT-ENCODING"), `CONTENT_ENCODING`)
-    addParser_(CIString("CONTENT-LANGUAGE"), `CONTENT_LANGUAGE`)
+    addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
     addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
     addParser_(CIString("CONTENT-LOCATION"), `CONTENT_LOCATION`)
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
