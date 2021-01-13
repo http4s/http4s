@@ -16,10 +16,7 @@ import org.http4s.Header.Parsed
 import org.http4s.headers._
 import org.typelevel.ci.CIString
 
-object HttpHeaderParser
-    extends SimpleHeaders
-    with ForwardedHeader
-    with LinkHeader {
+object HttpHeaderParser extends SimpleHeaders with ForwardedHeader with LinkHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
