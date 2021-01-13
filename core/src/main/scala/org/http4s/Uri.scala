@@ -245,39 +245,37 @@ object Uri {
       }
   }
 
-  private[http4s] def uriReference(cs: JCharset): Parser0[Uri] = {
-    import cats.parse.Parser.{char, string}
+  /* relative-part = "//" authority path-abempty
+                   / path-absolute
+                   / path-noscheme
+                   / path-empty
+   */
+  private[http4s] def relativePart(cs: JCharset): Parser0[(Option[Authority], Path)] = {
+    import cats.parse.Parser.string
     import Authority.{parser => authority}
     import Path.{pathAbempty, pathAbsolute, pathEmpty, pathNoscheme}
+
+    ((string("//") *> authority(cs) ~ pathAbempty)
+      .map { case (a, p) => (Some(a), p) })
+      .orElse(pathAbsolute.map((None, _)))
+      .orElse(pathNoscheme.map((None, _)))
+      .orElse(pathEmpty.map((None, _)))
+  }
+
+  /* relative-ref  = relative-part [ "?" query ] [ "#" fragment ] */
+  private[http4s] def relativeRef(cs: JCharset): Parser0[Uri] = {
+    import cats.parse.Parser.char
     import Query.{parser => query}
     import Fragment.{parser => fragment}
 
-    /* relative-part = "//" authority path-abempty
-                     / path-absolute
-                     / path-noscheme
-                     / path-empty
-     */
-    def relativePart(cs: JCharset): Parser0[(Option[Authority], Path)] =
-      ((string("//") *> authority(cs) ~ pathAbempty)
-        .map { case (a, p) => (Some(a), p) })
-        .orElse(pathAbsolute.map((None, _)))
-        .orElse(pathNoscheme.map((None, _)))
-        .orElse(pathEmpty.map((None, _)))
-
-    /* relative-ref  = relative-part [ "?" query ] [ "#" fragment ] */
-    def relativeRef(cs: JCharset): Parser0[Uri] =
-      (relativePart(cs) ~ (char('?') *> query).? ~ (char('#') *> fragment).?).map {
-        case (((a, p), q), f) =>
-          Uri(
-            scheme = None,
-            authority = a,
-            path = p,
-            query = q.getOrElse(Query.empty),
-            fragment = f)
-      }
-
-    parser(cs).backtrack.orElse(relativeRef(cs))
+    (relativePart(cs) ~ (char('?') *> query).? ~ (char('#') *> fragment).?).map {
+      case (((a, p), q), f) =>
+        Uri(scheme = None, authority = a, path = p, query = q.getOrElse(Query.empty), fragment = f)
+    }
   }
+
+  private[http4s] def uriReference(cs: JCharset): Parser0[Uri] =
+    parser(cs).backtrack.orElse(relativeRef(cs))
 
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
   def requestTarget(s: String): ParseResult[Uri] =
