@@ -18,12 +18,8 @@ import org.typelevel.ci.CIString
 
 object HttpHeaderParser
     extends SimpleHeaders
-    with CacheControlHeader
-    with ContentLocationHeader
     with ForwardedHeader
-    with LinkHeader
-    with LocationHeader
-    with RefererHeader {
+    with LinkHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -105,13 +101,13 @@ object HttpHeaderParser
     addParser_(CIString("AGE"), Age.parse)
     addParser_(CIString("ALLOW"), `ALLOW`)
     addParser_(CIString("AUTHORIZATION"), Authorization.parse)
-    addParser_(CIString("CACHE-CONTROL"), `CACHE_CONTROL`)
+    addParser_(CIString("CACHE-CONTROL"), `Cache-Control`.parse)
     addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
     addParser_(CIString("CONTENT-ENCODING"), `CONTENT_ENCODING`)
     addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
     addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
-    addParser_(CIString("CONTENT-LOCATION"), `CONTENT_LOCATION`)
+    addParser_(CIString("CONTENT-LOCATION"), `Content-Location`.parse)
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
     addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
     addParser_(CIString("COOKIE"), Cookie.parse)
@@ -127,12 +123,12 @@ object HttpHeaderParser
     addParser_(CIString("LAST-EVENT-ID"), `LAST_EVENT_ID`)
     addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
     addParser_(CIString("LINK"), Link.parse)
-    addParser_(CIString("LOCATION"), `LOCATION`)
+    addParser_(CIString("LOCATION"), Location.parse)
     addParser_(CIString("MAX-FORWARDS"), `MAX_FORWARDS`)
     addParser_(CIString("ORIGIN"), Origin.parse)
     addParser_(CIString("PROXY-AUTHENTICATE"), `Proxy-Authenticate`.parse)
     addParser_(CIString("RANGE"), Range.parse)
-    addParser_(CIString("REFERER"), `REFERER`)
+    addParser_(CIString("REFERER"), Referer.parse)
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
     addParser_(CIString("SERVER"), `SERVER`)
     addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
