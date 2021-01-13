@@ -36,9 +36,8 @@ class EmberServerSuite extends Http4sSuite {
     import scala.concurrent.duration._
 
     HttpRoutes
-      .of[F] {
-        case GET -> Root =>
-          Ok("Hello!")
+      .of[F] { case GET -> Root =>
+        Ok("Hello!")
       }
       .orNotFound
   }
@@ -58,7 +57,11 @@ class EmberServerSuite extends Http4sSuite {
   def fixture: FunFixture[(Server[IO], Client[IO])] =
     FunFixture.map2(server, client)
 
-  fixture.test("server shutdown waits for outstanding responses to complete") { case (server, client) =>
-    IO.sleep(3.seconds) >> client.get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO]).timeout(5.seconds).assertEquals(Status.Ok)
+  fixture.test("server shutdown waits for outstanding responses to complete") {
+    case (server, client) =>
+      IO.sleep(3.seconds) >> client
+        .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
+        .timeout(5.seconds)
+        .assertEquals(Status.Ok)
   }
 }

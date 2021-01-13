@@ -43,7 +43,8 @@ private[server] object Shutdown {
       case _ => timedShutdown(timeout)
     }
 
-  private def timedShutdown[F[_]](timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
+  private def timedShutdown[F[_]](
+      timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
     case class State(isShutdown: Boolean, active: Int)
 
     for {
@@ -52,19 +53,23 @@ private[server] object Shutdown {
       state <- Ref.of[F, State](State(false, 0))
     } yield new Shutdown[F] {
       override val await: F[Unit] =
-        unblockStart.complete(()).flatMap { _ =>
-          state.modify { case s @ State(_, active) =>
-            val fa = if (active == 0) {
-              F.unit
-            } else {
-              timeout match {
-                case fi: FiniteDuration => unblockFinish.get.timeout(fi)
-                case _ => unblockFinish.get
+        unblockStart
+          .complete(())
+          .flatMap { _ =>
+            state.modify { case s @ State(_, active) =>
+              val fa = if (active == 0) {
+                F.unit
+              } else {
+                timeout match {
+                  case fi: FiniteDuration => unblockFinish.get.timeout(fi)
+                  case _ => unblockFinish.get
+                }
               }
+              s.copy(isShutdown = true) -> fa
             }
-            s.copy(isShutdown = true) -> fa
           }
-        }.uncancelable.flatten
+          .uncancelable
+          .flatten
 
       override val signal: F[Unit] =
         unblockStart.get
@@ -75,14 +80,17 @@ private[server] object Shutdown {
         }
 
       override val removeConnection: F[Unit] =
-        state.modify { case s @ State(isShutdown, active) =>
-          val conns = active - 1
-          if (isShutdown && conns <= 0) {
-            s.copy(active = conns) -> unblockFinish.complete(())
-          } else {
-            s.copy(active = conns) -> F.unit
+        state
+          .modify { case s @ State(isShutdown, active) =>
+            val conns = active - 1
+            if (isShutdown && conns <= 0) {
+              s.copy(active = conns) -> unblockFinish.complete(())
+            } else {
+              s.copy(active = conns) -> F.unit
+            }
           }
-        }.flatten.uncancelable
+          .flatten
+          .uncancelable
     }
   }
 
