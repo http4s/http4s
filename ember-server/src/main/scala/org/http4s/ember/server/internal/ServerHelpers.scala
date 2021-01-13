@@ -157,10 +157,8 @@ private[server] object ServerHelpers {
     // prefetch runs things through a queue and gives us back the consuming stream, so that
     // when the original stream interrupts, it can finalize while still letting the current
     // one run. I think we can write a custom combinator that achieves both
-    Stream
-      .resource(
-        sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
-      .flatMap { case (_, sockets) => sockets.interruptWhen(shutdown.signal.attempt) }
+    sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+      .interruptWhen(shutdown.signal.attempt)
       .prefetch
       .map { connect =>
         shutdown.trackConnection >>

@@ -140,6 +140,9 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withIdleTimeout(idleTimeout: Duration) =
     copy(idleTimeout = idleTimeout)
 
+  def withShutdownTimeout(shutdownTimeout: Duration) =
+    copy(shutdownTimeout = shutdownTimeout)
+
   def withOnError(onError: Throwable => Response[F]) = copy(onError = onError)
   def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
@@ -155,7 +158,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       bindAddress <- Resource.liftF(Sync[F].delay(new InetSocketAddress(host, port)))
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
-      shutdown <- Resource.liftF(Shutdown[F])
+      shutdown <- Resource.liftF(Shutdown[F](shutdownTimeout))
       _ <- Concurrent[F].background(
         ServerHelpers
           .server(
@@ -177,7 +180,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           .compile
           .drain
       )
-      _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await(shutdownTimeout))
+      _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
     } yield new Server[F] {
       def address: InetSocketAddress = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined

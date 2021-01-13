@@ -25,8 +25,7 @@ import fs2.Stream
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 private[server] abstract class Shutdown[F[_]] {
-  // TODO: timeout could just be done at call site
-  def await(timeout: Duration): F[Unit]
+  def await: F[Unit]
   def signal: F[Unit]
   def newConnection: F[Unit]
   def removeConnection: F[Unit]
@@ -37,7 +36,14 @@ private[server] abstract class Shutdown[F[_]] {
 
 private[server] object Shutdown {
 
-  def apply[F[_]](implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
+  def apply[F[_]](timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] =
+    timeout match {
+      case fi: FiniteDuration =>
+        if (fi.length == 0) immediateShutdown else timedShutdown(timeout)
+      case _ => timedShutdown(timeout)
+    }
+
+  private def timedShutdown[F[_]](timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
     case class State(isShutdown: Boolean, active: Int)
 
     for {
@@ -45,7 +51,7 @@ private[server] object Shutdown {
       unblockFinish <- Deferred[F, Unit]
       state <- Ref.of[F, State](State(false, 0))
     } yield new Shutdown[F] {
-      override def await(timeout: Duration): F[Unit] =
+      override val await: F[Unit] =
         unblockStart.complete(()).flatMap { _ =>
           state.modify { case s @ State(_, active) =>
             val fa = if (active == 0) {
@@ -79,5 +85,16 @@ private[server] object Shutdown {
         }.flatten.uncancelable
     }
   }
+
+  private def immediateShutdown[F[_]](implicit F: Concurrent[F]): F[Shutdown[F]] =
+    Deferred[F, Unit].map { unblock =>
+      new Shutdown[F] {
+        override val await: F[Unit] = unblock.complete(())
+        override val signal: F[Unit] = unblock.get
+        override val newConnection: F[Unit] = F.unit
+        override val removeConnection: F[Unit] = F.unit
+        override val trackConnection: Stream[F, Unit] = Stream.empty
+      }
+    }
 
 }
