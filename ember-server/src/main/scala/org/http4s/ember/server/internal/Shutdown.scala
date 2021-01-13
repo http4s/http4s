@@ -61,7 +61,7 @@ private[server] object Shutdown {
                 F.unit
               } else {
                 timeout match {
-                  case fi: FiniteDuration => unblockFinish.get.timeout(fi)
+                  case fi: FiniteDuration => unblockFinish.get.timeoutTo(fi, F.unit)
                   case _ => unblockFinish.get
                 }
               }

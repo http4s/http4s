@@ -33,8 +33,6 @@ class EmberServerSuite extends Http4sSuite {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
-    import scala.concurrent.duration._
-
     HttpRoutes
       .of[F] { case GET -> Root =>
         Ok("Hello!")
@@ -57,11 +55,10 @@ class EmberServerSuite extends Http4sSuite {
   def fixture: FunFixture[(Server[IO], Client[IO])] =
     FunFixture.map2(server, client)
 
-  fixture.test("server responds to requests") {
-    case (server, client) =>
-      IO.sleep(3.seconds) >> client
-        .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
-        .timeout(5.seconds)
-        .assertEquals(Status.Ok)
+  fixture.test("server responds to requests") { case (server, client) =>
+    IO.sleep(3.seconds) >> client
+      .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
+      .timeout(5.seconds)
+      .assertEquals(Status.Ok)
   }
 }
