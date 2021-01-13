@@ -19,7 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.{Parser, Rfc5234}
-import org.http4s.internal.parsing.Rfc2616
+import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
 import org.http4s.parser.Rfc2616BasicRules
 
 object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with HeaderKey.Recurring {
@@ -32,7 +32,7 @@ object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with He
         case (main: String, sub: collection.Seq[String]) =>
           LanguageTag(main, org.http4s.QValue.One, sub.toList)
       }
-    languageTag.repSep(Rfc2616BasicRules.listSep).map { tags =>
+    Rfc7230.headerRep1(languageTag).map { tags =>
       headers.`Content-Language`(tags)
     }
   }
