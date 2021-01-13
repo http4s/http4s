@@ -39,7 +39,7 @@ lazy val modules: List[ProjectReference] = List(
   jettyClient,
   okHttpClient,
   // servlet,
-  // jetty,
+  jetty,
   // tomcat,
   theDsl,
    jawn,
