@@ -258,7 +258,7 @@ lazy val emberServer = libraryProject("ember-server")
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
     )
   )
-  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
 
 lazy val emberClient = libraryProject("ember-client")
   .settings(
