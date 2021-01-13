@@ -19,7 +19,6 @@ package server
 package jetty
 
 import cats.effect.{IO, Temporal}
-import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import java.net.{HttpURLConnection, URL}
 import java.io.IOException
@@ -30,10 +29,10 @@ import scala.io.Source
 
 class JettyServerSuite extends Http4sSuite {
 
-  def builder(dispatcher: Dispatcher[IO]) = JettyBuilder[IO](dispatcher)
+  def builder = JettyBuilder[IO]
 
-  val serverR = { dispatcher: Dispatcher[IO] =>
-    builder(dispatcher)
+  val serverR =
+    builder
       .bindAny()
       .withAsyncTimeout(3.seconds)
       .mountService(
@@ -57,10 +56,9 @@ class JettyServerSuite extends Http4sSuite {
         "/"
       )
       .resource
-  }
 
   def jettyServer: FunFixture[Server] =
-    ResourceFixture[Server](Dispatcher[IO].flatMap(serverR))
+    ResourceFixture[Server](serverR)
 
   def get(server: Server, path: String): IO[String] =
     IO.blocking(

@@ -59,8 +59,7 @@ sealed class JettyBuilder[F[_]] private (
     private val serviceErrorHandler: ServiceErrorHandler[F],
     supportHttp2: Boolean,
     banner: immutable.Seq[String],
-    jettyHttpConfiguration: HttpConfiguration,
-    dispatcher: Dispatcher[F]
+    jettyHttpConfiguration: HttpConfiguration
 )(implicit protected val F: Async[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
@@ -80,8 +79,7 @@ sealed class JettyBuilder[F[_]] private (
       mounts: Vector[Mount[F]],
       serviceErrorHandler: ServiceErrorHandler[F],
       supportHttp2: Boolean,
-      banner: immutable.Seq[String],
-      dispatcher: Dispatcher[F]
+      banner: immutable.Seq[String]
   )(implicit F: Async[F]) =
     this(
       socketAddress = socketAddress,
@@ -95,8 +93,7 @@ sealed class JettyBuilder[F[_]] private (
       serviceErrorHandler = serviceErrorHandler,
       supportHttp2 = false,
       banner = banner,
-      jettyHttpConfiguration = JettyBuilder.defaultJettyHttpConfiguration,
-      dispatcher = dispatcher
+      jettyHttpConfiguration = JettyBuilder.defaultJettyHttpConfiguration
     )
 
   @deprecated("Retained for binary compatibility", "0.20.23")
@@ -110,8 +107,7 @@ sealed class JettyBuilder[F[_]] private (
       sslConfig: SslConfig,
       mounts: Vector[Mount[F]],
       serviceErrorHandler: ServiceErrorHandler[F],
-      banner: immutable.Seq[String],
-      dispatcher: Dispatcher[F]
+      banner: immutable.Seq[String]
   )(implicit F: Async[F]) =
     this(
       socketAddress = socketAddress,
@@ -124,8 +120,7 @@ sealed class JettyBuilder[F[_]] private (
       mounts = mounts,
       serviceErrorHandler = serviceErrorHandler,
       supportHttp2 = false,
-      banner = banner,
-      dispatcher = dispatcher
+      banner = banner
     )
 
   private def copy(
@@ -140,8 +135,7 @@ sealed class JettyBuilder[F[_]] private (
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       supportHttp2: Boolean = supportHttp2,
       banner: immutable.Seq[String] = banner,
-      jettyHttpConfiguration: HttpConfiguration = jettyHttpConfiguration,
-      dispatcher: Dispatcher[F] = dispatcher
+      jettyHttpConfiguration: HttpConfiguration = jettyHttpConfiguration
   ): Self =
     new JettyBuilder(
       socketAddress,
@@ -155,8 +149,7 @@ sealed class JettyBuilder[F[_]] private (
       serviceErrorHandler,
       supportHttp2,
       banner,
-      jettyHttpConfiguration,
-      dispatcher
+      jettyHttpConfiguration
     )
 
   @deprecated(
@@ -206,7 +199,7 @@ sealed class JettyBuilder[F[_]] private (
       servlet: HttpServlet,
       urlMapping: String,
       name: Option[String] = None): Self =
-    copy(mounts = mounts :+ Mount[F] { (context, index, _) =>
+    copy(mounts = mounts :+ Mount[F] { (context, index, _, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     })
@@ -217,7 +210,7 @@ sealed class JettyBuilder[F[_]] private (
       name: Option[String],
       dispatches: util.EnumSet[DispatcherType]
   ): Self =
-    copy(mounts = mounts :+ Mount[F] { (context, index, _) =>
+    copy(mounts = mounts :+ Mount[F] { (context, index, _, _) =>
       val filterName = name.getOrElse(s"filter-$index")
       val filterHolder = new FilterHolder(filter)
       filterHolder.setName(filterName)
@@ -228,7 +221,7 @@ sealed class JettyBuilder[F[_]] private (
     mountHttpApp(service.orNotFound, prefix)
 
   def mountHttpApp(service: HttpApp[F], prefix: String): Self =
-    copy(mounts = mounts :+ Mount[F] { (context, index, builder) =>
+    copy(mounts = mounts :+ Mount[F] { (context, index, builder, dispatcher) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
@@ -299,52 +292,53 @@ sealed class JettyBuilder[F[_]] private (
   }
 
   def resource: Resource[F, Server] =
-    Resource(F.delay {
-      val jetty = new JServer(threadPool)
+    Dispatcher[F].flatMap(dispatcher =>
+      Resource(F.delay {
+        val jetty = new JServer(threadPool)
 
-      val context = new ServletContextHandler()
-      context.setContextPath("/")
+        val context = new ServletContextHandler()
+        context.setContextPath("/")
 
-      jetty.setHandler(context)
+        jetty.setHandler(context)
 
-      val connector = getConnector(jetty)
+        val connector = getConnector(jetty)
 
-      connector.setHost(socketAddress.getHostString)
-      connector.setPort(socketAddress.getPort)
-      connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
-      jetty.addConnector(connector)
+        connector.setHost(socketAddress.getHostString)
+        connector.setPort(socketAddress.getPort)
+        connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
+        jetty.addConnector(connector)
 
-      // Jetty graceful shutdown does not work without a stats handler
-      val stats = new StatisticsHandler
-      stats.setHandler(jetty.getHandler)
-      jetty.setHandler(stats)
+        // Jetty graceful shutdown does not work without a stats handler
+        val stats = new StatisticsHandler
+        stats.setHandler(jetty.getHandler)
+        jetty.setHandler(stats)
 
-      jetty.setStopTimeout(shutdownTimeout match {
-        case d: FiniteDuration => d.toMillis
-        case _ => 0L
-      })
+        jetty.setStopTimeout(shutdownTimeout match {
+          case d: FiniteDuration => d.toMillis
+          case _ => 0L
+        })
 
-      for ((mount, i) <- mounts.zipWithIndex)
-        mount.f(context, i, this)
+        for ((mount, i) <- mounts.zipWithIndex)
+          mount.f(context, i, this, dispatcher)
 
-      jetty.start()
+        jetty.start()
 
-      val server = new Server {
-        lazy val address: InetSocketAddress = {
-          val host = socketAddress.getHostString
-          val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
-          new InetSocketAddress(host, port)
+        val server = new Server {
+          lazy val address: InetSocketAddress = {
+            val host = socketAddress.getHostString
+            val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
+            new InetSocketAddress(host, port)
+          }
+
+          lazy val isSecure: Boolean = sslConfig.isSecure
         }
 
-        lazy val isSecure: Boolean = sslConfig.isSecure
-      }
+        banner.foreach(logger.info(_))
+        logger.info(
+          s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
 
-      banner.foreach(logger.info(_))
-      logger.info(
-        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
-
-      server -> shutdown(jetty)
-    })
+        server -> shutdown(jetty)
+      }))
 
   private def shutdown(jetty: JServer): F[Unit] =
     F.async_[Unit] { cb =>
@@ -359,7 +353,7 @@ sealed class JettyBuilder[F[_]] private (
 }
 
 object JettyBuilder {
-  def apply[F[_]: Async](dispatcher: Dispatcher[F]) =
+  def apply[F[_]: Async] =
     new JettyBuilder[F](
       socketAddress = defaults.SocketAddress,
       threadPool = new QueuedThreadPool(),
@@ -372,8 +366,7 @@ object JettyBuilder {
       serviceErrorHandler = DefaultServiceErrorHandler,
       supportHttp2 = false,
       banner = defaults.Banner,
-      jettyHttpConfiguration = defaultJettyHttpConfiguration,
-      dispatcher = dispatcher
+      jettyHttpConfiguration = defaultJettyHttpConfiguration
     )
 
   private sealed trait SslConfig {
@@ -464,4 +457,5 @@ object JettyBuilder {
   }
 }
 
-private final case class Mount[F[_]](f: (ServletContextHandler, Int, JettyBuilder[F]) => Unit)
+private final case class Mount[F[_]](
+    f: (ServletContextHandler, Int, JettyBuilder[F], Dispatcher[F]) => Unit)
