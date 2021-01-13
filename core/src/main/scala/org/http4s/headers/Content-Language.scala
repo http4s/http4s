@@ -20,7 +20,6 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.{Parser, Rfc5234}
 import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
-import org.http4s.parser.Rfc2616BasicRules
 
 object `Content-Language` extends HeaderKey.Internal[`Content-Language`] with HeaderKey.Recurring {
   override def parse(s: String): org.http4s.ParseResult[`Content-Language`] =
