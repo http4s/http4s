@@ -68,7 +68,7 @@ class AsyncHttp4sServlet[F[_]](
           case Right(()) => F.delay(ctx.complete)
           case Left(t) => F.delay(errorHandler(servletRequest, servletResponse)(t))
         }
-      dispatcher.unsafeRunSync(result)
+      dispatcher.unsafeRunAndForget(result)
     } catch errorHandler(servletRequest, servletResponse)
 
   private def handleRequest(
@@ -82,7 +82,8 @@ class AsyncHttp4sServlet[F[_]](
 
       val timeout =
         F.async_[Response[F]] { cb =>
-          val _ = gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb)))
+          val _ =
+            dispatcher.unsafeRunSync(gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb))))
         }
       val response =
         gate.get *>
