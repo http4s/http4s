@@ -420,6 +420,16 @@ object Uri {
         case Authority(_, h, _) => writer << h
         case _ => writer
       }
+
+    def asSocketAddress: Option[ip4s.SocketAddress[ip4s.IpAddress]] =
+      port.flatMap(ip4s.Port.apply).flatMap { p =>
+        host.fold(
+          ipv4 => Some(ip4s.SocketAddress[ip4s.Ipv4Address](ipv4, p)),
+          // TODO ipv6 when we incorporate the Comcast one
+          _ => None,
+          _ => None
+        )
+      }
   }
 
   object Authority {
