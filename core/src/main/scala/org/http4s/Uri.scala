@@ -813,19 +813,22 @@ object Uri {
   }
 
   object Host {
+
+    // TODO This isn't in the 0.21 model.
+    /* IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" ) */
+    private[http4s] val ipVFuture: P[Nothing] = P.fail
+
+    /* IP-literal    = "[" ( IPv6address / IPvFuture  ) "]" */
+    private[http4s] val ipLiteral = {
+      import cats.parse.Parser.char
+      import Ipv6Address.{parser => ipv6Address}
+      char('[') *> ipv6Address.orElse(ipVFuture) <* char(']')
+    }
+
     /* host          = IP-literal / IPv4address / reg-name */
     val parser: Parser0[Host] = {
-      import cats.parse.Parser.char
       import Ipv4Address.{parser => ipv4Address}
-      import Ipv6Address.{parser => ipv6Address}
       import RegName.{parser => regName}
-
-      // TODO This isn't in the 0.21 model.
-      /* IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" ) */
-      val ipVFuture: P[Nothing] = P.fail
-
-      /* IP-literal    = "[" ( IPv6address / IPvFuture  ) "]" */
-      val ipLiteral = char('[') *> ipv6Address.orElse(ipVFuture) <* char(']')
 
       ipLiteral.orElse(ipv4Address).orElse(regName)
     }

@@ -17,13 +17,15 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser
 import org.http4s.util.Writer
 
 object `Access-Control-Allow-Credentials`
     extends HeaderKey.Internal[`Access-Control-Allow-Credentials`] {
   override def parse(s: String): ParseResult[`Access-Control-Allow-Credentials`] =
-    HttpHeaderParser.ACCESS_CONTROL_ALLOW_CREDENTIALS(s)
+    ParseResult.fromParser(parser, "invalid Access-Control-Allow-Credentials")(s)
+
+  private[http4s] val parser = Parser.string("true").as(`Access-Control-Allow-Credentials`())
 }
 
 // https://fetch.spec.whatwg.org/#http-access-control-allow-credentials

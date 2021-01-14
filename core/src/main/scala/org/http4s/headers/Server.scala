@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse._
 import org.http4s.util.Writer
 
 object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
@@ -25,7 +25,15 @@ object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
     new Server(id, Nil)
 
   override def parse(s: String): ParseResult[Server] =
-    HttpHeaderParser.SERVER(s)
+    ParseResult.fromParser(parser, "invalid Server")(s)
+
+  private[http4s] val parser = {
+    val rws = Parser.charIn(' ', '	').rep.void
+    (ProductId.parser ~ (rws *> (ProductId.parser.orElse(ProductComment.parser))).rep0).map {
+      case (product: ProductId, tokens: List[ProductIdOrComment]) =>
+        Server(product, tokens)
+    }
+  }
 }
 
 /** Server header

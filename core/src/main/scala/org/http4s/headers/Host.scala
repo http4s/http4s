@@ -17,14 +17,31 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser
+import org.http4s.parser.Rfc2616BasicRules
+import org.http4s.internal.parsing.{Rfc2616, Rfc3986}
 import org.http4s.util.Writer
 
 object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
 
   override def parse(s: String): ParseResult[Host] =
-    HttpHeaderParser.HOST(s)
+    ParseResult.fromParser(parser, "Invalid Host")(s)
+
+  //  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
+  //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
+  //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
+  private[http4s] val parser = {
+    val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { case s =>
+      try Some(s.toInt)
+      catch { case _: NumberFormatException => None }
+    }
+
+    val host = Rfc2616.token.orElse(Uri.Host.ipLiteral.string).backtrack <* Rfc2616BasicRules.optWs
+    (host ~ port.?).map { case (h: String, p: Option[Int]) =>
+      Host(h, p)
+    }
+  }
 }
 
 /** A Request header, that provides the host and port informatio

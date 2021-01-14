@@ -18,13 +18,20 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import cats.parse._
 import java.net.InetAddress
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
 object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`X-Forwarded-For`] =
-    HttpHeaderParser.X_FORWARDED_FOR(s)
+    ParseResult.fromParser(parser, "Invalid X-Forwarded-For")(s)
+  private[http4s] val parser: Parser[`X-Forwarded-For`] =
+    Rfc7230
+      .headerRep1(
+        (Uri.Ipv4Address.parser.map(_.toInet4Address).backtrack | Uri.Ipv6Address.parser.map(
+          _.toInet6Address)).map(s => Some(s)) | (Parser.string("unknown").as(None)))
+      .map(`X-Forwarded-For`.apply)
 }
 
 final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]])

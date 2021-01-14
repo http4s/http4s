@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.parser.AdditionalRules
 import org.http4s.util.Writer
 
 /** Request header, used with the TRACE and OPTION request methods,
@@ -45,6 +45,8 @@ object `Max-Forwards` extends HeaderKey.Internal[`Max-Forwards`] with HeaderKey.
     fromLong(length).fold(throw _, identity)
 
   override def parse(s: String): ParseResult[`Max-Forwards`] =
-    HttpHeaderParser.MAX_FORWARDS(s)
+    ParseResult.fromParser(parser, "invalid Max-Forwards")(s)
+
+  private[http4s] val parser = AdditionalRules.NonNegativeLong.mapFilter(l => fromLong(l).toOption)
 
 }
