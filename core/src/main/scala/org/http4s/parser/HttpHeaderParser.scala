@@ -16,7 +16,7 @@ import org.http4s.Header.Parsed
 import org.http4s.headers._
 import org.typelevel.ci.CIString
 
-object HttpHeaderParser extends SimpleHeaders with ContentLanguageHeader with ForwardedHeader {
+object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -102,7 +102,7 @@ object HttpHeaderParser extends SimpleHeaders with ContentLanguageHeader with Fo
     addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
     addParser_(CIString("CONTENT-ENCODING"), `CONTENT_ENCODING`)
-    addParser_(CIString("CONTENT-LANGUAGE"), `CONTENT_LANGUAGE`)
+    addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
     addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
     addParser_(CIString("CONTENT-LOCATION"), `Content-Location`.parse)
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
