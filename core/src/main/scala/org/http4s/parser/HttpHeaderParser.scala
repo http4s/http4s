@@ -103,7 +103,7 @@ object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
     addParser_(CIString("CACHE-CONTROL"), `Cache-Control`.parse)
     addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
-    addParser_(CIString("CONTENT-ENCODING"), `CONTENT_ENCODING`)
+    addParser_(CIString("CONTENT-ENCODING"), `Content-Encoding`.parse)
     addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
     addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
     addParser_(CIString("CONTENT-LOCATION"), `Content-Location`.parse)
