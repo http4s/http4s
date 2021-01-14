@@ -31,18 +31,6 @@ import org.typelevel.ci.CIString
   */
 private[parser] trait SimpleHeaders {
 
-  def ACCESS_CONTROL_ALLOW_HEADERS(value: String): ParseResult[`Access-Control-Allow-Headers`] =
-    new Http4sHeaderParser[`Access-Control-Allow-Headers`](value) {
-      def entry =
-        rule {
-          oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (tokens: Seq[String]) =>
-            `Access-Control-Allow-Headers`(
-              NonEmptyList.of(CIString(tokens.head), tokens.tail.map(CIString(_)): _*)
-            )
-          }
-        }
-    }.parse
-
   def ACCESS_CONTROL_EXPOSE_HEADERS(value: String): ParseResult[`Access-Control-Expose-Headers`] =
     new Http4sHeaderParser[`Access-Control-Expose-Headers`](value) {
       def entry =
