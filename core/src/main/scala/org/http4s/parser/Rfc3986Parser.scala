@@ -29,7 +29,7 @@ private[http4s] trait Rfc3986Parser
     extends Parser
     with Uri.Scheme.Parser
     with Uri.UserInfo.Parser
-    with Uri.Ipv4Address.Parser
+    with Uri.Ipv4Parser
     with Uri.Ipv6Address.Parser
     with IpParser
     with StringBuilding {

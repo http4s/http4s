@@ -40,7 +40,8 @@ private[http4s] trait ForwardedModelParsing { model: Forwarded.type =>
 
     protected final def ModelNodeName: Rule1[model.Node.Name] =
       rule {
-        (rfc.ipv4Address ~> model.Node.Name.Ipv4) |
+        (rfc.ipv4Bytes ~> ((a: Byte, b: Byte, c: Byte, d: Byte) =>
+          model.Node.Name.ofIpv4Address(a, b, c, d))) |
           ('[' ~ rfc.ipv6Address ~ ']' ~> model.Node.Name.Ipv6) |
           ("unknown" ~ push(model.Node.Name.Unknown)) |
           ModelNodeObfuscated

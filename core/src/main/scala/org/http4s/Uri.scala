@@ -15,6 +15,7 @@ import cats.data.NonEmptyList
 import cats.kernel.Semigroup
 import cats.parse.{Parser0, Parser => P}
 import cats.syntax.all._
+import com.comcast.ip4s
 import java.net.{Inet4Address, Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset => JCharset}
@@ -800,23 +801,60 @@ object Uri {
       }
   }
 
-  sealed trait Host extends Renderable {
+  sealed abstract class Host extends Renderable with Product with Serializable {
     def value: String
+
+    def fold[A](
+        ipv4: ip4s.Ipv4Address => A,
+        ipv6: Ipv6Address => A,
+        regName: RegName => A
+    ): A = this match {
+      case Host.Ipv4(address) => ipv4(address)
+      case address: Ipv6Address => ipv6(address)
+      case rn: RegName => regName(rn)
+    }
 
     override def render(writer: Writer): writer.type =
       this match {
         case RegName(n) => writer << n
-        case a: Ipv4Address => writer << a.value
         case a: Ipv6Address => writer << '[' << a << ']'
         case _ => writer
       }
   }
 
   object Host {
+    private[Host] case class Ipv4(address: ip4s.Ipv4Address) extends Host {
+      def value = address.toUriString
+    }
+
+    object Ipv4 {
+      def fromBytes(a: Byte, b: Byte, c: Byte, d: Byte): Host =
+        apply(ip4s.Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
+      def fromByteArray(bytes: Array[Byte]): ParseResult[Host] =
+        bytes match {
+          case Array(a, b, c, d) =>
+            Right(fromBytes(a, b, c, d))
+          case _ =>
+            Left(
+              ParseFailure("Invalid IPv4 address", s"Byte array not exactly four bytes: ${bytes}"))
+        }
+
+      def fromInet4Address(address: Inet4Address): Host =
+        apply(ip4s.Ipv4Address.fromInet4Address(address))
+
+      def fromString(s: String): ParseResult[Host] =
+        ParseResult.fromParser(parser, "Invalid IPv4 address for URI")(s)
+      def unsafeFromString(s: String): Host =
+        fromString(s).fold(throw _, identity)
+
+      private[http4s] val parser: cats.parse.Parser[Host] =
+        Rfc3986.ipv4Bytes.map { case (a, b, c, d) => Host.Ipv4.fromBytes(a, b, c, d) }
+    }
+
     /* host          = IP-literal / IPv4address / reg-name */
     val parser: Parser0[Host] = {
       import cats.parse.Parser.char
-      import Ipv4Address.{parser => ipv4Address}
+      import Host.Ipv4.{parser => ipv4Address}
       import Ipv6Address.{parser => ipv6Address}
       import RegName.{parser => regName}
 
@@ -833,19 +871,12 @@ object Uri {
     implicit val catsInstancesForHttp4sUriHost: Hash[Host] with Order[Host] with Show[Host] =
       new Hash[Host] with Order[Host] with Show[Host] {
         override def hash(x: Host): Int =
-          x match {
-            case x: Ipv4Address =>
-              x.hash
-            case x: Ipv6Address =>
-              x.hash
-            case x: RegName =>
-              x.hash
-          }
+          x.hashCode
 
         override def compare(x: Host, y: Host): Int =
           (x, y) match {
-            case (x: Ipv4Address, y: Ipv4Address) =>
-              x.compare(y)
+            case (x: Ipv4, y: Ipv4) =>
+              x.address.compare(y.address)
             case (x: Ipv6Address, y: Ipv6Address) =>
               x.compare(y)
             case (x: RegName, y: RegName) =>
@@ -853,9 +884,9 @@ object Uri {
 
             // Differing ADT constructors
             // Ipv4Address is arbitrarily considered > all Ipv6Address and RegName
-            case (_: Ipv4Address, _) =>
+            case (_: Ipv4, _) =>
               1
-            case (_, _: Ipv4Address) =>
+            case (_, _: Ipv4) =>
               -1
 
             // Ipv6Address is arbitrarily considered > all RegName
@@ -870,106 +901,27 @@ object Uri {
       }
   }
 
-  @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
-  type IPv4 = Ipv4Address
+  @deprecated("No longer a public type. Use Host.Ipv4 for constructors.", "0.22.0-RC1")
+  val Ipv4Address = Host.Ipv4
 
-  @deprecated("Renamed to Ipv4Address, modeled as case class of bytes", "0.21.0-M2")
-  object IPv4 {
-    @deprecated("Use Ipv4Address.fromString(ciString.value)", "0.21.0-M2")
-    def apply(ciString: CIString): ParseResult[Ipv4Address] =
-      Ipv4Address.fromString(ciString.toString)
-  }
-
-  final case class Ipv4Address(a: Byte, b: Byte, c: Byte, d: Byte)
-      extends Host
-      with Ordered[Ipv4Address]
-      with Serializable {
-    override def toString: String = s"Ipv4Address($value)"
-
-    override def compare(that: Ipv4Address): Int = {
-      var cmp = a.compareTo(that.a)
-      if (cmp == 0) cmp = b.compareTo(that.b)
-      if (cmp == 0) cmp = c.compareTo(that.c)
-      if (cmp == 0) cmp = d.compareTo(that.d)
-      cmp
-    }
-
-    def toByteArray: Array[Byte] =
-      Array(a, b, c, d)
-
-    def toInet4Address: Inet4Address =
-      InetAddress.getByAddress(toByteArray).asInstanceOf[Inet4Address]
-
-    def value: String =
-      new StringBuilder()
-        .append(a & 0xff)
-        .append(".")
-        .append(b & 0xff)
-        .append(".")
-        .append(c & 0xff)
-        .append(".")
-        .append(d & 0xff)
-        .toString
-  }
-
-  object Ipv4Address {
-    def fromString(s: String): ParseResult[Ipv4Address] =
-      ParseResult.fromParser(parser, "Invalid IPv4 Address")(s)
-
-    /** Like `fromString`, but throws on invalid input */
-    def unsafeFromString(s: String): Ipv4Address =
-      fromString(s).fold(throw _, identity)
-
-    def fromByteArray(bytes: Array[Byte]): ParseResult[Ipv4Address] =
-      bytes match {
-        case Array(a, b, c, d) =>
-          Right(Ipv4Address(a, b, c, d))
-        case _ =>
-          Left(ParseFailure("Invalid Ipv4Address", s"Byte array not exactly four bytes: ${bytes}"))
-      }
-
-    def fromInet4Address(address: Inet4Address): Ipv4Address =
-      address.getAddress match {
-        case Array(a, b, c, d) =>
-          Ipv4Address(a, b, c, d)
-        case array =>
-          throw bug(s"Inet4Address.getAddress not exactly four bytes: ${array}")
-      }
-
-    private[http4s] trait Parser { self: PbParser with IpParser =>
-      def ipv4Address: Rule1[Ipv4Address] =
-        rule {
-          // format: off
-        decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~>
-        { (a: Byte, b: Byte, c: Byte, d: Byte) => new Ipv4Address(a, b, c, d) }
+  // This will be removed once Forwarded is ported
+  private[http4s] trait Ipv4Parser { self: PbParser with IpParser =>
+    def ipv4Bytes =
+      rule {
+        // format: off
+        decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet
         // format:on
       }
 
-      private def decOctet = rule {capture(DecOctet) ~> (_.toInt.toByte)}
-    }
-
-    private[http4s] val parser: P[Ipv4Address] =
-      Rfc3986.ipv4Bytes.map { case (a, b, c, d) => Ipv4Address(a, b, c, d) }
-
-    implicit val http4sInstancesForIpv4Address: HttpCodec[Ipv4Address]
-      with Order[Ipv4Address]
-      with Hash[Ipv4Address]
-      with Show[Ipv4Address] =
-      new HttpCodec[Ipv4Address]
-        with Order[Ipv4Address]
-        with Hash[Ipv4Address]
-        with Show[Ipv4Address] {
-        def parse(s: String): ParseResult[Ipv4Address] =
-          Ipv4Address.fromString(s)
-        def render(writer: Writer, ipv4: Ipv4Address): writer.type =
-          writer << ipv4.value
-
-        def compare(x: Ipv4Address, y: Ipv4Address): Int = x.compareTo(y)
-
-        def hash(x: Ipv4Address): Int = x.hashCode
-
-        def show(x: Ipv4Address): String = x.toString
+    def ipv4Address: Rule1[Host] =
+      rule {
+        // format: off
+        ipv4Bytes ~>
+        { (a: Byte, b: Byte, c: Byte, d: Byte) => Host.Ipv4.fromBytes(a, b, c, d) }
+        // format:on
       }
+
+    private def decOctet = rule {capture(DecOctet) ~> (_.toInt.toByte)}
   }
 
   @deprecated("Renamed to Ipv6Address, modeled as case class of bytes", "0.21.0-M2")

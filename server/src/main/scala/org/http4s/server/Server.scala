@@ -34,7 +34,7 @@ abstract class Server {
         Uri.Authority(
           host = address.getAddress match {
             case ipv4: Inet4Address =>
-              Uri.Ipv4Address.fromInet4Address(ipv4)
+              Uri.Host.Ipv4.fromInet4Address(ipv4)
             case ipv6: Inet6Address =>
               Uri.Ipv6Address.fromInet6Address(ipv6)
             case weird =>

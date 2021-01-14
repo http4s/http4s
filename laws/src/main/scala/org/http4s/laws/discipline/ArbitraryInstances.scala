@@ -26,6 +26,8 @@ import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
 import cats.syntax.all._
 import cats.instances.order._
+import com.comcast.ip4s.Arbitraries._
+import com.comcast.ip4s.Ipv4Address
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -646,19 +648,6 @@ private[http4s] trait ArbitraryInstances {
     oneOf(g, const(ev.empty))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val http4sTestingArbitraryForIpv4Address: Arbitrary[Uri.Ipv4Address] = Arbitrary {
-    for {
-      a <- getArbitrary[Byte]
-      b <- getArbitrary[Byte]
-      c <- getArbitrary[Byte]
-      d <- getArbitrary[Byte]
-    } yield Uri.Ipv4Address(a, b, c, d)
-  }
-
-  implicit val http4sTestingCogenForIpv4Address: Cogen[Uri.Ipv4Address] =
-    Cogen[(Byte, Byte, Byte, Byte)].contramap(ipv4 => (ipv4.a, ipv4.b, ipv4.c, ipv4.d))
-
-  // https://tools.ietf.org/html/rfc3986#appendix-A
   implicit val http4sTestingArbitraryForIpv6Address: Arbitrary[Uri.Ipv6Address] = Arbitrary {
     for {
       a <- getArbitrary[Short]
@@ -682,7 +671,10 @@ private[http4s] trait ArbitraryInstances {
     val http4sTestingRegNameGen: Gen[Uri.RegName] =
       listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
     Arbitrary(
-      oneOf(getArbitrary[Uri.Ipv4Address], getArbitrary[Uri.Ipv6Address], http4sTestingRegNameGen)
+      oneOf(
+        getArbitrary[Ipv4Address].map(Uri.Host.Ipv4.apply),
+        getArbitrary[Uri.Ipv6Address],
+        http4sTestingRegNameGen)
     )
   }
 
@@ -969,10 +961,10 @@ object ArbitraryInstances extends ArbitraryInstances {
     Cogen[CIString].contramap(_.host)
 
   implicit val http4sTestingCogenForUriHost: Cogen[Uri.Host] =
-    Cogen[Either[Uri.RegName, Either[Uri.Ipv4Address, Uri.Ipv6Address]]].contramap {
+    Cogen[Either[Uri.RegName, Either[Uri.Host, Uri.Ipv6Address]]].contramap {
       case value: Uri.RegName => Left(value)
-      case value: Uri.Ipv4Address => Right(Left(value))
       case value: Uri.Ipv6Address => Right(Right(value))
+      case value: Uri.Host => Right(Left(value))
     }
 
   implicit val http4sTestingCogenForAuthority: Cogen[Uri.Authority] =
