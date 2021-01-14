@@ -409,7 +409,7 @@ object Uri {
 
   final case class Authority(
       userInfo: Option[UserInfo] = None,
-      host: Host = RegName("localhost"),
+      host: Host = Host.unsafeFromString("localhost"),
       port: Option[Int] = None)
       extends Renderable {
     override def render(writer: Writer): writer.type =
@@ -806,33 +806,42 @@ object Uri {
 
     def asIpAddress: Option[ip4s.IpAddress]
     def asIpv4Address: Option[ip4s.Ipv4Address]
+    def asHostname: Option[ip4s.Hostname]
 
     def fold[A](
         ipv4: ip4s.Ipv4Address => A,
         ipv6: Ipv6Address => A,
-        regName: RegName => A
+        regName: CIString => A
     ): A = this match {
       case Host.Ipv4(address) => ipv4(address)
       case address: Ipv6Address => ipv6(address)
-      case rn: RegName => regName(rn)
+      case Host.RegisteredName(name) => regName(name)
     }
 
     override def render(writer: Writer): writer.type =
       this match {
-        case RegName(n) => writer << n
+        case Host.Ipv4(a) => writer << a.toUriString
+        case Host.RegisteredName(n) => writer << n
         case a: Ipv6Address => writer << '[' << a << ']'
-        case _ => writer
       }
   }
 
   object Host {
-    private[Host] case class Ipv4(address: ip4s.Ipv4Address) extends Host {
+    private[Host] final case class Ipv4(address: ip4s.Ipv4Address) extends Host {
       def value = address.toUriString
       def asIpAddress: Option[ip4s.IpAddress] = Some(address)
       def asIpv4Address: Option[ip4s.Ipv4Address] = Some(address)
+      def asHostname: Option[ip4s.Hostname] = None
     }
 
-    def ipv4(address: ip4s.Ipv4Address): Ipv4 =
+    private[Host] final case class RegisteredName(name: CIString) extends Host {
+      def value: String = name.toString
+      def asIpAddress: Option[ip4s.IpAddress] = None
+      def asIpv4Address: Option[ip4s.Ipv4Address] = None
+      def asHostname: Option[ip4s.Hostname] = ip4s.Hostname(value)
+    }
+
+    def ipv4(address: ip4s.Ipv4Address): Host =
       Ipv4(address)
 
     def fromBytes(a: Byte, b: Byte, c: Byte, d: Byte): Host =
@@ -860,11 +869,21 @@ object Uri {
     val ipv4Parser: cats.parse.Parser[Host] =
       Rfc3986.ipv4Bytes.map { case (a, b, c, d) => Host.fromBytes(a, b, c, d) }
 
+    /* reg-name    = *( unreserved / pct-encoded / sub-delims) */
+    val regNameParser: Parser0[Host] = {
+      import Rfc3986.{pctEncoded, subDelims, unreserved}
+      unreserved
+        .orElse(pctEncoded)
+        .orElse(subDelims)
+        .rep0
+        .string
+        .map(s => new Host.RegisteredName(CIString(decode(s))))
+    }
+
     /* host          = IP-literal / IPv4address / reg-name */
     val parser: Parser0[Host] = {
       import cats.parse.Parser.char
       import Ipv6Address.{parser => ipv6Address}
-      import RegName.{parser => regName}
 
       // TODO This isn't in the 0.21 model.
       /* IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" ) */
@@ -873,7 +892,7 @@ object Uri {
       /* IP-literal    = "[" ( IPv6address / IPvFuture  ) "]" */
       val ipLiteral = char('[') *> ipv6Address.orElse(ipVFuture) <* char(']')
 
-      ipLiteral.orElse(ipv4Parser).orElse(regName)
+      ipLiteral.orElse(ipv4Parser).orElse(regNameParser)
     }
 
     implicit val catsInstancesForHttp4sUriHost: Hash[Host] with Order[Host] with Show[Host] =
@@ -887,8 +906,8 @@ object Uri {
               x.address.compare(y.address)
             case (x: Ipv6Address, y: Ipv6Address) =>
               x.compare(y)
-            case (x: RegName, y: RegName) =>
-              x.compare(y)
+            case (x: RegisteredName, y: RegisteredName) =>
+              x.name.compare(y.name)
 
             // Differing ADT constructors
             // Ipv4Address is arbitrarily considered > all Ipv6Address and RegName
@@ -1021,6 +1040,7 @@ object Uri {
 
     def asIpAddress: Option[ip4s.IpAddress] = None
     def asIpv4Address: Option[ip4s.Ipv4Address] = None
+    def asHostname: Option[ip4s.Hostname] = None    
   }
 
   object Ipv6Address {
@@ -1199,36 +1219,6 @@ object Uri {
         def hash(x: Ipv6Address): Int = x.hashCode
 
         def show(x: Ipv6Address): String = x.toString
-      }
-  }
-
-  final case class RegName(host: CIString) extends Host {
-    def value: String = host.toString
-    def asIpAddress: Option[ip4s.IpAddress] = None
-    def asIpv4Address: Option[ip4s.Ipv4Address] = None
-  }
-
-  object RegName {
-    def apply(name: String): RegName = new RegName(CIString(name))
-
-    /* reg-name    = *( unreserved / pct-encoded / sub-delims) */
-    val parser: Parser0[RegName] = {
-      import Rfc3986.{pctEncoded, subDelims, unreserved}
-
-      unreserved.orElse(pctEncoded).orElse(subDelims).rep0.string.map(s => RegName(CIString(decode(s))))
-    }
-
-    implicit val catsInstancesForHttp4sUriRegName
-        : Hash[RegName] with Order[RegName] with Show[RegName] =
-      new Hash[RegName] with Order[RegName] with Show[RegName] {
-        override def hash(x: RegName): Int =
-          x.hashCode
-
-        override def compare(x: RegName, y: RegName): Int =
-          x.host.compare(y.host)
-
-        override def show(a: RegName): String =
-          a.toString
       }
   }
 

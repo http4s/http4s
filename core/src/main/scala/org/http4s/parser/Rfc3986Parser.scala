@@ -23,7 +23,6 @@ import org.http4s.{Query => Q}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.internal.parboiled2.support.HNil
-import org.typelevel.ci.CIString
 
 private[http4s] trait Rfc3986Parser
     extends Parser
@@ -100,7 +99,7 @@ private[http4s] trait Rfc3986Parser
     ipv4Address |
     "[" ~ ipv6Address ~ "]" |
     capture(RegName) ~> { (s: String) =>
-      org.http4s.Uri.RegName(CIString(decode(s)))
+      org.http4s.Uri.Host.unsafeFromString(decode(s))
     }
     // format:on
   }

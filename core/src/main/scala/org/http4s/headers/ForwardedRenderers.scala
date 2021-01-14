@@ -16,11 +16,8 @@
 
 package org.http4s.headers
 
-import java.nio.charset.StandardCharsets
-
 import cats.Eval
 import cats.syntax.flatMap._
-import org.http4s.Uri
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderer, Writer}
 
@@ -56,17 +53,8 @@ private[http4s] trait ForwardedRenderers {
   }
 
   implicit val http4sForwardedHostRenderer: Renderer[Host] = new Renderer[Host] {
-    // See in `Rfc3986Parser`: `RegName` -> `SubDelims`
-    private val RegNameChars = Uri.Unreserved ++ "!$&'()*+,;="
-
     override def render(writer: Writer, host: Host): writer.type = {
-      host.host match {
-        case Uri.RegName(name) =>
-          // TODO: A workaround for #1651, remove when the former issue gets fixed.
-          writer << Uri.encode(name.toString, StandardCharsets.ISO_8859_1, toSkip = RegNameChars)
-        case other =>
-          writer << other
-      }
+      writer << host
       host.port.fold[writer.type](writer)(writer << ':' << _)
     }
   }

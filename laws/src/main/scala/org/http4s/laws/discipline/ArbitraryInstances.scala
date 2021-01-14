@@ -666,10 +666,9 @@ private[http4s] trait ArbitraryInstances {
       .contramap(ipv6 => (ipv6.a, ipv6.b, ipv6.c, ipv6.d, ipv6.e, ipv6.f, ipv6.g, ipv6.h))
 
   implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = {
-    // Duplicated in the companion object for binary compatibility. This should
-    // be removed before 1.0.0.
-    val http4sTestingRegNameGen: Gen[Uri.RegName] =
-      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
+    val http4sTestingRegNameGen: Gen[Uri.Host] =
+      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn =>
+        Uri.Host.unsafeFromString(rn.mkString))
     Arbitrary(
       oneOf(
         getArbitrary[Ipv4Address].map(Uri.Host.ipv4),
@@ -953,18 +952,16 @@ object ArbitraryInstances extends ArbitraryInstances {
   implicit val http4sTestingCogenForQuery: Cogen[Query] =
     Cogen[Vector[(String, Option[String])]].contramap(_.toVector)
 
-  implicit val http4sTestingArbitraryForRegName: Arbitrary[Uri.RegName] =
-    Arbitrary(
-      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString)))
-
-  implicit val http4sTestingCogenForRegName: Cogen[Uri.RegName] =
-    Cogen[CIString].contramap(_.host)
+  private implicit val cogenForIpv4Address: Cogen[Ipv4Address] =
+    Cogen[Array[Byte]].contramap(_.toBytes)
 
   implicit val http4sTestingCogenForUriHost: Cogen[Uri.Host] =
-    Cogen[Either[Uri.RegName, Either[Uri.Host, Uri.Ipv6Address]]].contramap {
-      case value: Uri.RegName => Left(value)
-      case value: Uri.Ipv6Address => Right(Right(value))
-      case value: Uri.Host => Right(Left(value))
+    Cogen[Either[CIString, Either[Ipv4Address, Uri.Ipv6Address]]].contramap {
+      _.fold(
+        ipv4 => Right(Left(ipv4)),
+        ipv6 => Right(Right(ipv6)),
+        name => Left(name)
+      )
     }
 
   implicit val http4sTestingCogenForAuthority: Cogen[Uri.Authority] =

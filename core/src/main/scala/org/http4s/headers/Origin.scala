@@ -20,7 +20,6 @@ package headers
 import cats.data.NonEmptyList
 import cats.implicits.toBifunctorOps
 import cats.parse.{Parser, Parser0, Rfc5234}
-import org.http4s.Uri.RegName
 import org.http4s.util.{Renderable, Writer}
 
 sealed abstract class Origin extends Header.Parsed {
@@ -74,7 +73,7 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
       .reduceLeft(_ orElse _)
       .string
       .map(Uri.Scheme.unsafeFromString)
-    val stringHost = until(char(':').orElse(`end`)).map(RegName.apply)
+    val stringHost = until(char(':').orElse(`end`)).map(Uri.Host.unsafeFromString)
     val bracketedIpv6 = char('[') *> Uri.Ipv6Address.parser <* char(']')
     val host = List(bracketedIpv6, Uri.Host.ipv4Parser, stringHost).reduceLeft(_ orElse _)
     val port = char(':') *> digit.rep.string.map(_.toInt)

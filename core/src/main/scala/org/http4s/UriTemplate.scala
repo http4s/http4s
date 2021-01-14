@@ -229,11 +229,11 @@ object UriTemplate {
     }
 
   protected def renderHost(h: Host): String =
-    h match {
-      case RegName(n) => n.toString
-      case a: Ipv6Address => "[" + a.value + "]"
-      case a => a.value
-    }
+    h.fold(
+      _.toUriString,
+      "[" + _.value + "]",
+      _.toString
+    )
 
   protected def renderScheme(s: Scheme): String =
     (new StringWriter << s << ":").result
