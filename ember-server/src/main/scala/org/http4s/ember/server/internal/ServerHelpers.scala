@@ -153,7 +153,7 @@ private[server] object ServerHelpers {
 
     sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
       .interruptWhen(shutdown.signal.attempt)
-      // Divorce the scopes of the server stream and handler streams so the 
+      // Divorce the scopes of the server stream and handler streams so the
       // former can be terminated while handlers complete.
       .prefetch
       .map { connect =>
