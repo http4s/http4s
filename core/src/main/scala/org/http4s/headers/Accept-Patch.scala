@@ -24,7 +24,7 @@ import org.http4s.internal.parsing.Rfc7230
 
 object `Accept-Patch` extends HeaderKey.Internal[`Accept-Patch`] with HeaderKey.Recurring {
 
-  val parser = Rfc7230.headerRep1(MediaType.parser).map(`Accept-Patch`.apply)
+  private[http4s] val parser = Rfc7230.headerRep1(MediaType.parser).map(`Accept-Patch`.apply)
 
   override def parse(s: String): ParseResult[`Accept-Patch`] =
     ParseResult.fromParser(parser, "invalid Accept-Patch")(s)

@@ -23,7 +23,7 @@ import org.http4s.util.Writer
 object `Access-Control-Allow-Credentials`
     extends HeaderKey.Internal[`Access-Control-Allow-Credentials`] {
 
-  val parser = Parser.string("true").as(`Access-Control-Allow-Credentials`())
+  private[http4s] val parser = Parser.string("true").as(`Access-Control-Allow-Credentials`())
 
   override def parse(s: String): ParseResult[`Access-Control-Allow-Credentials`] =
     ParseResult.fromParser(parser, "invalid Access-Control-Allow-Credentials")(s)
