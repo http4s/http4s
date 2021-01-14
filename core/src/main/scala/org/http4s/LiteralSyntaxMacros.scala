@@ -43,13 +43,6 @@ object LiteralSyntaxMacros {
       Uri.Scheme.fromString(_).isRight,
       s => c.universe.reify(Uri.Scheme.unsafeFromString(s.splice)))
 
-  def ipv4AddressInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Host] =
-    singlePartInterpolator(c)(
-      args,
-      "Ipv4Address",
-      Uri.Host.Ipv4.fromString(_).isRight,
-      s => c.universe.reify(Uri.Host.Ipv4.unsafeFromString(s.splice)))
-
   def ipv6AddressInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Ipv6Address] =
     singlePartInterpolator(c)(
       args,

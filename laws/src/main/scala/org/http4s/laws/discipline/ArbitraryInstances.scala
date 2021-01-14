@@ -672,7 +672,7 @@ private[http4s] trait ArbitraryInstances {
       listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
     Arbitrary(
       oneOf(
-        getArbitrary[Ipv4Address].map(Uri.Host.Ipv4.apply),
+        getArbitrary[Ipv4Address].map(Uri.Host.ipv4),
         getArbitrary[Uri.Ipv6Address],
         http4sTestingRegNameGen)
     )

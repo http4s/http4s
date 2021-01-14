@@ -827,34 +827,37 @@ object Uri {
       def value = address.toUriString
     }
 
-    object Ipv4 {
-      def fromBytes(a: Byte, b: Byte, c: Byte, d: Byte): Host =
-        apply(ip4s.Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
-      def fromByteArray(bytes: Array[Byte]): ParseResult[Host] =
-        bytes match {
-          case Array(a, b, c, d) =>
-            Right(fromBytes(a, b, c, d))
-          case _ =>
-            Left(
-              ParseFailure("Invalid IPv4 address", s"Byte array not exactly four bytes: ${bytes}"))
-        }
+    def ipv4(address: ip4s.Ipv4Address): Ipv4 =
+      Ipv4(address)
 
-      def fromInet4Address(address: Inet4Address): Host =
-        apply(ip4s.Ipv4Address.fromInet4Address(address))
+    def fromBytes(a: Byte, b: Byte, c: Byte, d: Byte): Host =
+      Ipv4(ip4s.Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
 
-      def fromString(s: String): ParseResult[Host] =
-        ParseResult.fromParser(parser, "Invalid IPv4 address for URI")(s)
-      def unsafeFromString(s: String): Host =
-        fromString(s).fold(throw _, identity)
+    def fromByteArray(bytes: Array[Byte]): ParseResult[Host] =
+      bytes match {
+        case Array(a, b, c, d) =>
+          Right(fromBytes(a, b, c, d))
+        case _ =>
+          Left(ParseFailure("Invalid URI host", s"Byte array not exactly four bytes: ${bytes}"))
+      }
 
-      private[http4s] val parser: cats.parse.Parser[Host] =
-        Rfc3986.ipv4Bytes.map { case (a, b, c, d) => Host.Ipv4.fromBytes(a, b, c, d) }
-    }
+    def fromInetAddress(address: InetAddress): Host =
+      address match {
+        case addr: Inet4Address => Ipv4(ip4s.Ipv4Address.fromInet4Address(addr))
+        case addr: Inet6Address => Ipv6Address.fromInet6Address(addr)
+      }
+
+    def fromString(s: String): ParseResult[Host] =
+      ParseResult.fromParser(parser, "Invalid address for URI")(s)
+    def unsafeFromString(s: String): Host =
+      fromString(s).fold(throw _, identity)
+
+    val ipv4Parser: cats.parse.Parser[Host] =
+      Rfc3986.ipv4Bytes.map { case (a, b, c, d) => Host.fromBytes(a, b, c, d) }
 
     /* host          = IP-literal / IPv4address / reg-name */
     val parser: Parser0[Host] = {
       import cats.parse.Parser.char
-      import Host.Ipv4.{parser => ipv4Address}
       import Ipv6Address.{parser => ipv6Address}
       import RegName.{parser => regName}
 
@@ -865,7 +868,7 @@ object Uri {
       /* IP-literal    = "[" ( IPv6address / IPvFuture  ) "]" */
       val ipLiteral = char('[') *> ipv6Address.orElse(ipVFuture) <* char(']')
 
-      ipLiteral.orElse(ipv4Address).orElse(regName)
+      ipLiteral.orElse(ipv4Parser).orElse(regName)
     }
 
     implicit val catsInstancesForHttp4sUriHost: Hash[Host] with Order[Host] with Show[Host] =
@@ -901,9 +904,6 @@ object Uri {
       }
   }
 
-  @deprecated("No longer a public type. Use Host.Ipv4 for constructors.", "0.22.0-RC1")
-  val Ipv4Address = Host.Ipv4
-
   // This will be removed once Forwarded is ported
   private[http4s] trait Ipv4Parser { self: PbParser with IpParser =>
     def ipv4Bytes =
@@ -917,7 +917,7 @@ object Uri {
       rule {
         // format: off
         ipv4Bytes ~>
-        { (a: Byte, b: Byte, c: Byte, d: Byte) => Host.Ipv4.fromBytes(a, b, c, d) }
+        { (a: Byte, b: Byte, c: Byte, d: Byte) => Host.fromBytes(a, b, c, d) }
         // format:on
       }
 
