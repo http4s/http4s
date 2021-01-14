@@ -21,7 +21,6 @@ package parser
 import cats.data.NonEmptyList
 import org.http4s.headers.ETag.EntityTag
 import java.net.InetAddress
-import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.http4s.internal.parboiled2.Rule1
 
@@ -37,21 +36,6 @@ private[parser] trait SimpleHeaders {
             (token: String, params: collection.Seq[(String, String)]) =>
               `Content-Disposition`(token, params.toMap)
           }
-        }
-    }.parse
-
-//  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
-//  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
-//  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
-  def HOST(value: String): ParseResult[Host] =
-    new Http4sHeaderParser[Host](value) with Rfc3986Parser {
-      def charset = StandardCharsets.UTF_8
-
-      def entry =
-        rule {
-          (Token | IpLiteral) ~ OptWS ~
-            optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOL ~> (org.http4s.headers
-              .Host(_: String, _: Option[Int]))
         }
     }.parse
 
