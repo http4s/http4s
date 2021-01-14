@@ -30,16 +30,6 @@ import org.typelevel.ci.CIString
 /** parser rules for all headers that can be parsed with one simple rule
   */
 private[parser] trait SimpleHeaders {
-  def ACCESS_CONTROL_ALLOW_CREDENTIALS(
-      value: String): ParseResult[`Access-Control-Allow-Credentials`] =
-    new Http4sHeaderParser[`Access-Control-Allow-Credentials`](value) {
-      def entry =
-        rule {
-          str("true") ~ EOL ~> { () =>
-            `Access-Control-Allow-Credentials`()
-          }
-        }
-    }.parse
 
   def ACCESS_CONTROL_ALLOW_HEADERS(value: String): ParseResult[`Access-Control-Allow-Headers`] =
     new Http4sHeaderParser[`Access-Control-Allow-Headers`](value) {
