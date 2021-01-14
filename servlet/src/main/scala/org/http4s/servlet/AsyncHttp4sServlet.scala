@@ -81,10 +81,8 @@ class AsyncHttp4sServlet[F[_]](
       // before the response can complete.
 
       val timeout =
-        F.async_[Response[F]] { cb =>
-          val _ =
-            dispatcher.unsafeRunSync(gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb))))
-        }
+        F.async[Response[F]](cb =>
+          gate.complete(ctx.addListener(new AsyncTimeoutHandler(cb))).as(Option.empty[F[Unit]]))
       val response =
         gate.get *>
           F.defer(serviceFn(request))
