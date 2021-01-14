@@ -29,22 +29,6 @@ import org.http4s.internal.parboiled2.Rule1
   */
 private[parser] trait SimpleHeaders {
 
-  def ALLOW(value: String): ParseResult[Allow] =
-    new Http4sHeaderParser[Allow](value) {
-      def entry =
-        rule {
-          zeroOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (ts: Seq[String]) =>
-            val ms = ts.map(
-              Method
-                .fromString(_)
-                .toOption
-                .getOrElse(sys.error("Impossible. Please file a bug report.")))
-            Allow(ms.toSet)
-          }
-        }
-    }.parse
-
-
   def CONTENT_DISPOSITION(value: String): ParseResult[`Content-Disposition`] =
     new Http4sHeaderParser[`Content-Disposition`](value) {
       def entry =

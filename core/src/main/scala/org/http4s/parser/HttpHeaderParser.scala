@@ -98,7 +98,7 @@ object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
     addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `Access-Control-Allow-Headers`.parse)
     addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `Access-Control-Expose-Headers`.parse)
     addParser_(CIString("AGE"), Age.parse)
-    addParser_(CIString("ALLOW"), `ALLOW`)
+    addParser_(CIString("ALLOW"), Allow.parse)
     addParser_(CIString("AUTHORIZATION"), Authorization.parse)
     addParser_(CIString("CACHE-CONTROL"), `Cache-Control`.parse)
     addParser_(CIString("CONNECTION"), Connection.parse)
