@@ -804,6 +804,9 @@ object Uri {
   sealed abstract class Host extends Renderable with Product with Serializable {
     def value: String
 
+    def asIpAddress: Option[ip4s.IpAddress]
+    def asIpv4Address: Option[ip4s.Ipv4Address]
+
     def fold[A](
         ipv4: ip4s.Ipv4Address => A,
         ipv6: Ipv6Address => A,
@@ -825,6 +828,8 @@ object Uri {
   object Host {
     private[Host] case class Ipv4(address: ip4s.Ipv4Address) extends Host {
       def value = address.toUriString
+      def asIpAddress: Option[ip4s.IpAddress] = Some(address)
+      def asIpv4Address: Option[ip4s.Ipv4Address] = Some(address)
     }
 
     def ipv4(address: ip4s.Ipv4Address): Ipv4 =
@@ -1013,6 +1018,9 @@ object Uri {
         }
       sb.toString
     }
+
+    def asIpAddress: Option[ip4s.IpAddress] = None
+    def asIpv4Address: Option[ip4s.Ipv4Address] = None
   }
 
   object Ipv6Address {
@@ -1196,6 +1204,8 @@ object Uri {
 
   final case class RegName(host: CIString) extends Host {
     def value: String = host.toString
+    def asIpAddress: Option[ip4s.IpAddress] = None
+    def asIpv4Address: Option[ip4s.Ipv4Address] = None
   }
 
   object RegName {
