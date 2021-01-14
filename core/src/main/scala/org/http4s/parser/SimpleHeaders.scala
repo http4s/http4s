@@ -25,23 +25,10 @@ import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.http4s.internal.parboiled2.Rule1
-import org.typelevel.ci.CIString
 
 /** parser rules for all headers that can be parsed with one simple rule
   */
 private[parser] trait SimpleHeaders {
-
-  def ACCESS_CONTROL_EXPOSE_HEADERS(value: String): ParseResult[`Access-Control-Expose-Headers`] =
-    new Http4sHeaderParser[`Access-Control-Expose-Headers`](value) {
-      def entry =
-        rule {
-          oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { (tokens: Seq[String]) =>
-            `Access-Control-Expose-Headers`(
-              NonEmptyList.of(CIString(tokens.head), tokens.tail.map(CIString(_)): _*)
-            )
-          }
-        }
-    }.parse
 
   def ALLOW(value: String): ParseResult[Allow] =
     new Http4sHeaderParser[Allow](value) {

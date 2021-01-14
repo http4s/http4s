@@ -18,16 +18,19 @@ package org.http4s
 package headers
 
 import org.typelevel.ci.CIString
-import org.http4s.parser.HttpHeaderParser
 import org.http4s.util._
 import cats.data.NonEmptyList
+import org.http4s.internal.parsing.Rfc7230
 
 object `Access-Control-Expose-Headers`
     extends HeaderKey.Internal[`Access-Control-Expose-Headers`]
     with HeaderKey.Recurring {
 
+  val parser =
+    Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
+
   override def parse(s: String): ParseResult[`Access-Control-Expose-Headers`] =
-    HttpHeaderParser.ACCESS_CONTROL_EXPOSE_HEADERS(s)
+    ParseResult.fromParser(parser, "invalid Access-Control-Expose-Headers")(s)
 }
 
 final case class `Access-Control-Expose-Headers`(values: NonEmptyList[CIString])
