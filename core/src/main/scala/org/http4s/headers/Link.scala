@@ -20,16 +20,13 @@ import cats.data.NonEmptyList
 import cats.parse.{Parser, Parser0}
 import org.http4s._
 import org.http4s.internal.parsing.Rfc7230.{headerRep1, quotedString, token}
-import org.http4s.parser.HttpHeaderParser
 import org.http4s.parser.Rfc2616BasicRules.optWs
 import java.nio.charset.StandardCharsets
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
 
   override def parse(s: String): ParseResult[Link] =
-    HttpHeaderParser.LINK(s)
-  // TODO depends on #4095
-  //ParseResult.fromParser(parser, "Invalid Link header")(s)
+    ParseResult.fromParser(parser, "Invalid Link header")(s)
 
   private[http4s] val parser: Parser[Link] = {
     import cats.parse.Parser._
