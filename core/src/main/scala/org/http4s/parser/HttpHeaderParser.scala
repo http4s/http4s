@@ -90,7 +90,7 @@ object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
     addParser_(CIString("ACCEPT-CHARSET"), `Accept-Charset`.parse)
     addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
     addParser_(CIString("ACCEPT-LANGUAGE"), `Accept-Language`.parse)
-    addParser_(CIString("ACCEPT-PATCH"), `ACCEPT_PATCH`)
+    addParser_(CIString("ACCEPT-PATCH"), `Accept-Patch`.parse)
     addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"), `ACCESS_CONTROL_ALLOW_CREDENTIALS`)
     addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `ACCESS_CONTROL_ALLOW_HEADERS`)
