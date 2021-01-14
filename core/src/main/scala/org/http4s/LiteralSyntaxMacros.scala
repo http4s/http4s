@@ -43,6 +43,14 @@ object LiteralSyntaxMacros {
       Uri.Scheme.fromString(_).isRight,
       s => c.universe.reify(Uri.Scheme.unsafeFromString(s.splice)))
 
+  @deprecated("Use the ip4s macro", "0.22.0-RC1")
+  def ipv4AddressInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Host] =
+    singlePartInterpolator(c)(
+      args,
+      "Ipv4Address",
+      Uri.Host.ipv4Parser.parseAll(_).isRight,
+      s => c.universe.reify(Uri.Host.unsafeFromString(s.splice)))
+
   def ipv6AddressInterpolator(c: blackbox.Context)(args: c.Expr[Any]*): c.Expr[Uri.Ipv6Address] =
     singlePartInterpolator(c)(
       args,
