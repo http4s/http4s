@@ -18,6 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
+import org.http4s.parser.AdditionalRules
 import org.http4s.util.Writer
 
 object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton {
@@ -27,13 +28,11 @@ object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Sing
   override def parse(s: String): ParseResult[`User-Agent`] =
     ParseResult.fromParser(parser, "Invalid User-Agent")(s)
 
-  private[http4s] val parser = {
-    val rws = Parser.charIn(' ', '	').rep.void
-    (ProductId.parser ~ (rws *> (ProductId.parser.orElse(ProductComment.parser))).rep0).map {
+  private[http4s] val parser =
+    AdditionalRules.ServerAgentParser.map {
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
         `User-Agent`(product, tokens)
     }
-  }
 }
 
 /** User-Agent header

@@ -19,8 +19,9 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.parser.Rfc2616BasicRules
-import org.http4s.internal.parsing.{Rfc2616, Rfc3986}
+import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import org.http4s.util.Writer
+import scala.util.Try
 
 object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
@@ -32,12 +33,11 @@ object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
   //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
   private[http4s] val parser = {
-    val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { case s =>
-      try Some(s.toInt)
-      catch { case _: NumberFormatException => None }
+    val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
+      Try(s.toInt).toOption
     }
 
-    val host = Rfc2616.token.orElse(Uri.Host.ipLiteral.string).backtrack <* Rfc2616BasicRules.optWs
+    val host = Rfc7230.token.orElse(Uri.Host.ipLiteral.string).backtrack <* Rfc7230.ows
     (host ~ port.?).map { case (h: String, p: Option[Int]) =>
       Host(h, p)
     }
