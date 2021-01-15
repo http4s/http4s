@@ -32,13 +32,14 @@ object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
   //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
   private[http4s] val parser = {
+    val host =
+      (Uri.Ipv4Address.parser).orElse(Uri.RegName.parser)
     val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
       Try(s.toInt).toOption
     }
 
-    val host = Rfc7230.token.orElse(Uri.Host.ipLiteral.string).backtrack <* Rfc7230.ows
-    (host ~ port.?).map { case (h: String, p: Option[Int]) =>
-      Host(h, p)
+    (host ~ port.?).map { case (host, port) =>
+      Host(host.value, port)
     }
   }
 }
