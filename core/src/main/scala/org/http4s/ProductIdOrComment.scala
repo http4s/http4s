@@ -18,7 +18,7 @@ package org.http4s
 
 import cats.parse._
 import org.http4s.util.{Renderable, Writer}
-import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
+import org.http4s.internal.parsing.Rfc7230
 
 sealed trait ProductIdOrComment extends Renderable
 
@@ -35,7 +35,7 @@ final case class ProductId(value: String, version: Option[String] = None)
 }
 
 object ProductId {
-  private[http4s] val parser = (Rfc2616.token ~ (Parser.string("/") *> Rfc2616.token).?).map {
+  private[http4s] val parser = (Rfc7230.token ~ (Parser.string("/") *> Rfc7230.token).?).map {
     case (value: String, version: Option[String]) => ProductId(value, version)
   }
 }
