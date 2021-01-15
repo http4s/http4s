@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import cats.parse._
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.Writer
 

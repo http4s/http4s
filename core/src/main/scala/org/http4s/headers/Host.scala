@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
 import org.http4s.util.Writer
 import scala.util.Try
