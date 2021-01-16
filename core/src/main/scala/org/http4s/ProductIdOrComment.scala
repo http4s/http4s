@@ -16,7 +16,7 @@
 
 package org.http4s
 
-import cats.parse._
+import cats.parse.{Parser => P}
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.Rfc7230
 
@@ -41,7 +41,7 @@ final case class ProductId(value: String, version: Option[String] = None)
 }
 
 object ProductId {
-  private[http4s] val parser = (Rfc7230.token ~ (Parser.string("/") *> Rfc7230.token).?).map {
+  private[http4s] val parser = (Rfc7230.token ~ (P.string("/") *> Rfc7230.token).?).map {
     case (value: String, version: Option[String]) => ProductId(value, version)
   }
 }
