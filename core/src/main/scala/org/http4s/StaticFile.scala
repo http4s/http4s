@@ -55,7 +55,7 @@ object StaticFile {
     val normalizedName = name.split("/").filter(_.nonEmpty).mkString("/")
 
     def getResource(name: String) =
-      OptionT(Sync[F].delay(Option(loader.getResource(name))))
+      OptionT(Sync[F].blocking(Option(loader.getResource(name))))
 
     val gzUrl: OptionT[F, URL] =
       if (tryGzipped) getResource(normalizedName + ".gz") else OptionT.none

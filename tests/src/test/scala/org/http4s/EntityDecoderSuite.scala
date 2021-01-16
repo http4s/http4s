@@ -391,14 +391,14 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val binData: Array[Byte] = "Bytes 10111".getBytes
 
-  def readFile(in: File): IO[Array[Byte]] = IO {
+  def readFile(in: File): IO[Array[Byte]] = IO.blocking {
     val os = new FileInputStream(in)
     val data = new Array[Byte](in.length.asInstanceOf[Int])
     os.read(data)
     data
   }
 
-  def readTextFile(in: File): IO[String] = IO {
+  def readTextFile(in: File): IO[String] = IO.blocking {
     val os = new InputStreamReader(new FileInputStream(in))
     val data = new Array[Char](in.length.asInstanceOf[Int])
     os.read(data, 0, in.length.asInstanceOf[Int])
