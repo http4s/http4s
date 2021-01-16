@@ -40,17 +40,17 @@ private[server] object ServerHelpers {
   private val close = Connection(NonEmptyList.of(closeCi))
   private val keepAlive = Connection(NonEmptyList.one("keep-alive".ci))
 
-  def server[F[_]: Concurrent: ContextShift](
+  def server[F[_]: ContextShift](
       bindAddress: InetSocketAddress,
       httpApp: HttpApp[F],
       sg: SocketGroup,
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
+      shutdown: Shutdown[F],
       // Defaults
       onError: Throwable => Response[F] = { (_: Throwable) =>
         Response[F](Status.InternalServerError)
       },
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      terminationSignal: Option[SignallingRef[F, Boolean]] = None,
       maxConcurrency: Int = Int.MaxValue,
       receiveBufferSize: Int = 256 * 1024,
       maxHeaderSize: Int = 10 * 1024,
@@ -58,11 +58,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration = 60.seconds,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
       logger: Logger[F]
-  )(implicit C: Clock[F]): Stream[F, Nothing] = {
-    // Termination Signal, if not present then does not terminate.
-    val termSignal: F[SignallingRef[F, Boolean]] =
-      terminationSignal.fold(SignallingRef[F, Boolean](false))(_.pure[F])
-
+  )(implicit F: Concurrent[F], C: Clock[F]): Stream[F, Nothing] = {
     def socketReadRequest(
         socket: Socket[F],
         requestHeaderReceiveTimeout: Duration,
@@ -155,18 +151,18 @@ private[server] object ServerHelpers {
         }
         .drain
 
-    Stream
-      .eval(termSignal)
-      .flatMap(terminationSignal =>
-        sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
-          .map { connect =>
-            Stream
-              .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
-              .flatMap(withUpgradedSocket(_))
-          }
-          .parJoin(maxConcurrency)
-          .interruptWhen(terminationSignal)
-          .drain)
-
+    sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+      .interruptWhen(shutdown.signal.attempt)
+      // Divorce the scopes of the server stream and handler streams so the
+      // former can be terminated while handlers complete.
+      .prefetch
+      .map { connect =>
+        shutdown.trackConnection >>
+          Stream
+            .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
+            .flatMap(withUpgradedSocket(_))
+      }
+      .parJoin(maxConcurrency)
+      .drain
   }
 }
