@@ -30,7 +30,6 @@ import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead, SlowTestHead}
-import org.specs2.specification.core.Fragments
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
