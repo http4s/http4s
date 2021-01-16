@@ -229,7 +229,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
      */
     out.setWriteListener(listener)
 
-    val awaitLastWrite = Stream.eval_ {
+    val awaitLastWrite = Stream.exec {
       // Shift execution to a different EC
       F.async_[Unit] { cb =>
         state.getAndSet(AwaitingLastWrite(cb)) match {
