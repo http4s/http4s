@@ -18,14 +18,17 @@ package org.http4s
 
 package headers
 
-import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Renderer
 import cats.data.NonEmptyList
+import org.http4s.internal.parsing.Rfc7230
 
 object `Accept-Patch` extends HeaderKey.Internal[`Accept-Patch`] with HeaderKey.Recurring {
 
   override def parse(s: String): ParseResult[`Accept-Patch`] =
-    HttpHeaderParser.ACCEPT_PATCH(s)
+    ParseResult.fromParser(parser, "Invalid Accept-Patch header")(s)
+
+  private[http4s] val parser =
+    Rfc7230.headerRep1(MediaType.parser).map(`Accept-Patch`(_))
 
 }
 

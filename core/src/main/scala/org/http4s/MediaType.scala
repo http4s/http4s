@@ -14,7 +14,6 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import cats.parse.Parser
 import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
-import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{StringWriter, Writer}
 
@@ -124,41 +123,6 @@ object MediaRange {
     val sw = new StringWriter()
     renderExtensions(sw, mr)
     sw.result
-  }
-
-  private[http4s] trait MediaRangeParser extends Rfc2616BasicRules { self: PbParser =>
-    def MediaRangeRule[A](builder: (String, String) => A): Rule1[A] =
-      rule {
-        (("*/*" ~ push("*") ~ push("*")) |
-          (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
-          ("*" ~ push("*") ~ push("*"))) ~> (builder(_, _))
-      }
-
-    def MediaTypeExtension: Rule1[(String, String)] =
-      rule {
-        ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> {
-          (s: String, s2: Option[String]) =>
-            (s, s2.getOrElse(""))
-        }
-      }
-
-    def MediaRangeFull: Rule1[MediaRange] =
-      rule {
-        MediaRangeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-          (mr: MediaRange, ext: Option[collection.Seq[(String, String)]]) =>
-            ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
-        }
-      }
-
-    def MediaRangeDef: Rule1[MediaRange] = MediaRangeRule[MediaRange](getMediaRange)
-
-    private def getMediaRange(mainType: String, subType: String): MediaRange =
-      if (subType === "*")
-        MediaRange.standard.getOrElse(mainType.toLowerCase, new MediaRange(mainType))
-      else
-        MediaType.all.getOrElse(
-          (mainType.toLowerCase, subType.toLowerCase),
-          new MediaType(mainType.toLowerCase, subType.toLowerCase))
   }
 
   private[http4s] def mediaRangeParser[A](builder: (String, String) => A): Parser[A] = {
@@ -309,23 +273,6 @@ object MediaType extends MimeDB {
     */
   def unsafeParse(s: String): MediaType =
     parse(s).fold(throw _, identity)
-
-  private[http4s] trait MediaTypeParser extends MediaRange.MediaRangeParser {
-    def MediaTypeFull: Rule1[MediaType] =
-      rule {
-        MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-          (mr: MediaType, ext: Option[collection.Seq[(String, String)]]) =>
-            ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
-        }
-      }
-
-    def MediaTypeDef: Rule1[MediaType] = MediaRangeRule[MediaType](getMediaType)
-
-    private def getMediaType(mainType: String, subType: String): MediaType =
-      MediaType.all.getOrElse(
-        (mainType.toLowerCase, subType.toLowerCase),
-        new MediaType(mainType.toLowerCase, subType.toLowerCase))
-  }
 
   private[http4s] def getMediaType(mainType: String, subType: String): MediaType =
     MediaType.all.getOrElse(

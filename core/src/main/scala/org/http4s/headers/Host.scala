@@ -17,14 +17,27 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser
+import org.http4s.internal.parsing.Rfc3986
 import org.http4s.util.Writer
+import scala.util.Try
 
 object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
 
   override def parse(s: String): ParseResult[Host] =
-    HttpHeaderParser.HOST(s)
+    ParseResult.fromParser(parser, "Invalid Host")(s)
+
+  private[http4s] val parser = {
+    import Uri.Host.{parser => host}
+    val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
+      Try(s.toInt).toOption
+    }
+
+    (host ~ port.?).map { case (host, port) =>
+      Host(host.value, port)
+    }
+  }
 }
 
 /** A Request header, that provides the host and port informatio

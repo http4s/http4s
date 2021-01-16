@@ -19,7 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
-import org.http4s.parser.HttpHeaderParser
+import cats.parse._
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
 /** {{{
@@ -41,7 +42,14 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
     `If-None-Match`(Some(NonEmptyList.of(first, rest: _*)))
 
   override def parse(s: String): ParseResult[`If-None-Match`] =
-    HttpHeaderParser.IF_NONE_MATCH(s)
+    ParseResult.fromParser(parser, "Invalid If-None-Match header")(s)
+
+  private[http4s] val parser = Parser
+    .string("*")
+    .as(`*`)
+    .orElse(Rfc7230.headerRep1(EntityTag.parser).map { tags =>
+      `If-None-Match`(Some(tags))
+    })
 }
 
 final case class `If-None-Match`(tags: Option[NonEmptyList[EntityTag]]) extends Header.Parsed {
