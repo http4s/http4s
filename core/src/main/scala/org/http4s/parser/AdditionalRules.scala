@@ -221,10 +221,4 @@ private[http4s] object AdditionalRules {
       case _: NumberFormatException => None
     }
   }
-
-  val ServerAgentParser: P[(ProductId, List[ProductIdOrComment])] = {
-
-    val rws = P.charIn(' ', '	').rep.void
-    ProductId.parser ~ (rws *> (ProductId.parser.orElse(ProductComment.parser))).rep0
-  }
 }

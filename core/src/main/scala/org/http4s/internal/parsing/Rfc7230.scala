@@ -65,7 +65,7 @@ private[http4s] object Rfc7230 {
     surroundedBy(qdText.orElse(quotedPair).rep0.string, dquote)
 
   /* HTAB / SP / %x21-27 / %x2A-5B / %x5D-7E / obs-text */
-  val CText =
+  val cText =
     charIn('\t', ' ', 0x21.toChar)
       .orElse(charIn(0x21.toChar to 0x27.toChar))
       .orElse(charIn(0x2a.toChar to 0x5b.toChar))
@@ -74,7 +74,7 @@ private[http4s] object Rfc7230 {
 
   /* "(" *( ctext / quoted-pair / comment ) ")" */
   val comment: Parser[String] = Parser.recursive[String] { comment: Parser[String] =>
-    between(char('('), CText.orElse(quotedPair).orElse(comment).rep0.string, char(')'))
+    between(char('('), cText.orElse(quotedPair).orElse(comment).rep0.string, char(')'))
   }
 
   /* `1#element => *( "," OWS ) element *( OWS "," [ OWS element ] )` */
