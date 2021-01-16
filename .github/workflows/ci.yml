@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.12, 2.13.4]
+        scala: [2.12.13, 2.13.4]
         java: [adopt@1.8, adopt@1.11, adopt@1.15]
     runs-on: ${{ matrix.os }}
     steps:
@@ -132,7 +132,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.12 website/makeSite website/ghpagesPushSite
+          sbt ++2.12.13 website/makeSite website/ghpagesPushSite
 
                 
 
@@ -145,7 +145,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.12 docs/makeSite docs/ghpagesPushSite
+          sbt ++2.12.13 docs/makeSite docs/ghpagesPushSite
 
                 
 
@@ -154,7 +154,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.12]
+        scala: [2.12.13]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -183,7 +183,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.12]
+        scala: [2.12.13]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
