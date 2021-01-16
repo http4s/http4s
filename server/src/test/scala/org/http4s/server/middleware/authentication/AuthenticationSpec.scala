@@ -25,6 +25,7 @@ import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
+
 import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
@@ -168,7 +169,16 @@ class AuthenticationSpec extends Http4sSpec {
       val nonce = challenge.params("nonce")
 
       val response =
-        DigestUtil.computeResponse(method, username, realm, password, uri, nonce, nc, cnonce, qop)
+        org.http4s.internal.DigestUtil.computeResponse(
+          method,
+          username,
+          realm,
+          password,
+          uri,
+          nonce,
+          nc,
+          cnonce,
+          qop)
       val params: NonEmptyList[(String, String)] = NonEmptyList.of(
         "username" -> username,
         "realm" -> realm,
@@ -270,7 +280,16 @@ class AuthenticationSpec extends Http4sSpec {
       val nonce = "abcdef"
 
       val response =
-        DigestUtil.computeResponse(method, username, realm, password, uri, nonce, nc, cnonce, qop)
+        org.http4s.internal.DigestUtil.computeResponse(
+          method,
+          username,
+          realm,
+          password,
+          uri,
+          nonce,
+          nc,
+          cnonce,
+          qop)
       val params = NonEmptyList.of(
         "username" -> username,
         "realm" -> realm,
