@@ -25,7 +25,7 @@ import org.http4s.util.Writer
 
 object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`X-Forwarded-For`] =
-    ParseResult.fromParser(parser, "Invalid X-Forwarded-For")(s)
+    ParseResult.fromParser(parser, "Invalid X-Forwarded-For header")(s)
   private[http4s] val parser: Parser[`X-Forwarded-For`] =
     Rfc7230
       .headerRep1(

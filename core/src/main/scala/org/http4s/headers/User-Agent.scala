@@ -25,7 +25,7 @@ object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Sing
     new `User-Agent`(id, Nil)
 
   override def parse(s: String): ParseResult[`User-Agent`] =
-    ParseResult.fromParser(parser, "Invalid User-Agent")(s)
+    ParseResult.fromParser(parser, "Invalid User-Agent header")(s)
 
   private[http4s] val parser =
     AdditionalRules.ServerAgentParser.map {

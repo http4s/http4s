@@ -45,7 +45,7 @@ object `Max-Forwards` extends HeaderKey.Internal[`Max-Forwards`] with HeaderKey.
     fromLong(length).fold(throw _, identity)
 
   override def parse(s: String): ParseResult[`Max-Forwards`] =
-    ParseResult.fromParser(parser, "invalid Max-Forwards")(s)
+    ParseResult.fromParser(parser, "invalid Max-Forwards header")(s)
 
   private[http4s] val parser = AdditionalRules.NonNegativeLong.mapFilter(l => fromLong(l).toOption)
 

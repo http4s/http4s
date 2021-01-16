@@ -25,7 +25,7 @@ object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
     new Server(id, Nil)
 
   override def parse(s: String): ParseResult[Server] =
-    ParseResult.fromParser(parser, "invalid Server")(s)
+    ParseResult.fromParser(parser, "Invalid Server header")(s)
 
   private[http4s] val parser =
     AdditionalRules.ServerAgentParser.map {

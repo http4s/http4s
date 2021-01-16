@@ -32,7 +32,7 @@ object `If-Match` extends HeaderKey.Internal[`If-Match`] with HeaderKey.Singleto
     `If-Match`(Some(NonEmptyList.of(first, rest: _*)))
 
   override def parse(s: String): ParseResult[`If-Match`] =
-    ParseResult.fromParser(parser, "Invalid If-Match")(s)
+    ParseResult.fromParser(parser, "Invalid If-Match header")(s)
 
   private[http4s] val parser = Parser
     .string("*")

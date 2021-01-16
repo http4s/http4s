@@ -42,7 +42,7 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
     `If-None-Match`(Some(NonEmptyList.of(first, rest: _*)))
 
   override def parse(s: String): ParseResult[`If-None-Match`] =
-    ParseResult.fromParser(parser, "Invalid If-None-Match")(s)
+    ParseResult.fromParser(parser, "Invalid If-None-Match header")(s)
 
   private[http4s] val parser = Parser
     .string("*")

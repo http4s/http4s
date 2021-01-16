@@ -27,7 +27,7 @@ object `Access-Control-Allow-Headers`
     with HeaderKey.Recurring {
 
   override def parse(s: String): ParseResult[`Access-Control-Allow-Headers`] =
-    ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers")(s)
+    ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers headers")(s)
 
   private[http4s] val parser =
     Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Allow-Headers`(_))

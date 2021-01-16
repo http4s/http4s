@@ -21,7 +21,7 @@ import org.http4s.util.Writer
 
 object `Content-Encoding` extends HeaderKey.Internal[`Content-Encoding`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Content-Encoding`] =
-    ParseResult.fromParser(parser, "Invalid Content-Encoding")(s)
+    ParseResult.fromParser(parser, "Invalid Content-Encoding header")(s)
 
   private[http4s] val parser = ContentCoding.parser.map(`Content-Encoding`(_))
 }
