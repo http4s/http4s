@@ -16,7 +16,7 @@ import org.http4s.Header.Parsed
 import org.http4s.headers._
 import org.typelevel.ci.CIString
 
-object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
+object HttpHeaderParser extends ForwardedHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -102,7 +102,7 @@ object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
     addParser_(CIString("AUTHORIZATION"), Authorization.parse)
     addParser_(CIString("CACHE-CONTROL"), `Cache-Control`.parse)
     addParser_(CIString("CONNECTION"), Connection.parse)
-    addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
+    addParser_(CIString("CONTENT-DISPOSITION"), `Content-Disposition`.parse)
     addParser_(CIString("CONTENT-ENCODING"), `Content-Encoding`.parse)
     addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
     addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
@@ -119,7 +119,7 @@ object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
     addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)
     addParser_(CIString("IF-NONE-MATCH"), `If-None-Match`.parse)
     addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
-    addParser_(CIString("LAST-EVENT-ID"), `LAST_EVENT_ID`)
+    addParser_(CIString("LAST-EVENT-ID"), `Last-Event-Id`.parse)
     addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
     addParser_(CIString("LINK"), Link.parse)
     addParser_(CIString("LOCATION"), Location.parse)
