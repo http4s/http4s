@@ -171,6 +171,13 @@ final case class Uri(
       else s"$path$encoded"
     newPath
   }
+
+  /** Converts this request to origin-form, which is the absolute path and optional
+    * query.  If the path is relative, it is assumed to be relative to the root.
+    */
+  def toOriginForm: Uri =
+    if (path.startsWith("/")) Uri(path = path, query = query)
+    else Uri(path = s"/${path}", query = query)
 }
 
 object Uri {
