@@ -246,7 +246,7 @@ lazy val emberServer = libraryProject("ember-server")
       log4catsSlf4j,
     ),
   )
-  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
 
 lazy val emberClient = libraryProject("ember-client")
   .settings(
