@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.core
+package org.http4s
+package ember.core
 
-import org.specs2.mutable.Specification
 import cats.syntax.all._
 import cats.effect.{IO, Sync}
-import org.http4s._
 
-class EncoderSpec extends Specification {
+class EncoderSuite extends Http4sSuite {
   private object Helpers {
     def stripLines(s: String): String = s.replace("\r\n", "\n")
 
@@ -44,11 +43,10 @@ class EncoderSpec extends Specification {
         .map(stripLines)
   }
 
-  "Encoder.reqToBytes" should {
-    "encode a no body request correctly" in {
-      val req = Request[IO](Method.GET, Uri.unsafeFromString("http://www.google.com"))
-      val expected =
-        """GET / HTTP/1.1
+  test("reqToBytes should encode a no body request correctly") {
+    val req = Request[IO](Method.GET, Uri.unsafeFromString("http://www.google.com"))
+    val expected =
+      """GET / HTTP/1.1
       |Host: www.google.com
       |Transfer-Encoding: chunked
       |
@@ -56,31 +54,31 @@ class EncoderSpec extends Specification {
       |
       |""".stripMargin
 
-      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
-    }
+    Helpers.encodeRequestRig(req).assertEquals(expected)
+  }
 
-    "encode a request with a body correctly" in {
-      val req = Request[IO](Method.POST, Uri.unsafeFromString("http://www.google.com"))
-        .withEntity("Hello World!")
-      val expected =
-        """POST / HTTP/1.1
+  test("reqToBytes should encode a request with a body correctly") {
+    val req = Request[IO](Method.POST, Uri.unsafeFromString("http://www.google.com"))
+      .withEntity("Hello World!")
+    val expected =
+      """POST / HTTP/1.1
       |Host: www.google.com
       |Content-Length: 12
       |Content-Type: text/plain; charset=UTF-8
       |
       |Hello World!""".stripMargin
 
-      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
-    }
+    Helpers.encodeRequestRig(req).assertEquals(expected)
+  }
 
-    "encode headers correctly" in {
-      val req = Request[IO](
-        Method.GET,
-        Uri.unsafeFromString("http://www.google.com"),
-        headers = Headers.of(Header("foo", "bar"))
-      )
-      val expected =
-        """GET / HTTP/1.1
+  test("reqToBytes should encode headers correctly") {
+    val req = Request[IO](
+      Method.GET,
+      Uri.unsafeFromString("http://www.google.com"),
+      headers = Headers.of(Header("foo", "bar"))
+    )
+    val expected =
+      """GET / HTTP/1.1
         |Host: www.google.com
         |foo: bar
         |Transfer-Encoding: chunked
@@ -88,37 +86,34 @@ class EncoderSpec extends Specification {
         |0
         |
         |""".stripMargin
-      Helpers.encodeRequestRig(req).unsafeRunSync() must_=== expected
-    }
+    Helpers.encodeRequestRig(req).assertEquals(expected)
   }
 
-  "Encoder.respToBytes" should {
-    "encode a no body response correctly" in {
-      val resp = Response[IO](Status.Ok)
+  test("respToBytes should encode a no body response correctly") {
+    val resp = Response[IO](Status.Ok)
 
-      val expected =
-        """HTTP/1.1 200 OK
+    val expected =
+      """HTTP/1.1 200 OK
       |Transfer-Encoding: chunked
       |
       |0
       |
       |""".stripMargin
 
-      Helpers.encodeResponseRig(resp).unsafeRunSync() must_=== expected
-    }
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
 
-    "encode a response with a body correctly" in {
-      val resp = Response[IO](Status.NotFound)
-        .withEntity("Not Found")
+  test("encode a response with a body correctly") {
+    val resp = Response[IO](Status.NotFound)
+      .withEntity("Not Found")
 
-      val expected =
-        """HTTP/1.1 404 Not Found
+    val expected =
+      """HTTP/1.1 404 Not Found
       |Content-Length: 9
       |Content-Type: text/plain; charset=UTF-8
       |
       |Not Found""".stripMargin
 
-      Helpers.encodeResponseRig(resp).unsafeRunSync() must_=== expected
-    }
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
   }
 }
