@@ -66,10 +66,10 @@ class AsyncHttp4sServlet[F[_]](
           ))
         .flatMap {
           case Right(()) => F.delay(ctx.complete)
-          case Left(t) => F.delay(errorHandler(servletRequest, servletResponse)(t))
+          case Left(t) => errorHandler(servletRequest, servletResponse)(t)
         }
       dispatcher.unsafeRunAndForget(result)
-    } catch errorHandler(servletRequest, servletResponse)
+    } catch errorHandler(servletRequest, servletResponse).andThen(dispatcher.unsafeRunSync _)
 
   private def handleRequest(
       ctx: AsyncContext,
@@ -93,12 +93,11 @@ class AsyncHttp4sServlet[F[_]](
 
   private def errorHandler(
       servletRequest: ServletRequest,
-      servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {
+      servletResponse: HttpServletResponse): PartialFunction[Throwable, F[Unit]] = {
     case t: Throwable if servletResponse.isCommitted =>
-      logger.error(t)("Error processing request after response was committed")
+      F.delay(logger.error(t)("Error processing request after response was committed"))
 
     case t: Throwable =>
-      logger.error(t)("Error processing request")
       val response = Response[F](Status.InternalServerError)
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
@@ -107,13 +106,12 @@ class AsyncHttp4sServlet[F[_]](
           if (servletRequest.isAsyncStarted)
             servletRequest.getAsyncContext.complete()
         )
-      val result = F
+      F.delay(logger.error(t)("Error processing request")) *> F
         .attempt(f)
         .flatMap {
           case Right(()) => F.unit
           case Left(e) => F.delay(logger.error(e)("Error in error handler"))
         }
-      dispatcher.unsafeRunSync(result)
   }
 
   private class AsyncTimeoutHandler(cb: Callback[Response[F]]) extends AbstractAsyncListener {
