@@ -330,17 +330,16 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val request = Request[IO]().withEntity("whatever")
 
-  test("apply should invoke the function with  the right on a success") {
+  test("apply should invoke the function with the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
       EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
-    IO.async_[String] { cb =>
+    IO.async[String] { cb =>
       request
         .decodeWith(happyDecoder, strict = false) { s =>
           cb(Right(s))
           IO.pure(Response())
         }
-        .unsafeRunSync()
-      ()
+        .as(None)
     }.assertEquals("hooray")
   }
 
