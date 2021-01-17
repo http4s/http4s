@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser1
+import cats.parse.Parser
 import org.http4s.util.{Renderer, Writer}
 
 object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton {
@@ -25,7 +25,7 @@ object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKe
     ParseResult.fromParser(parser, "Last-Modified header")(s)
 
   /* `Last-Modified = HTTP-date` */
-  private[http4s] val parser: Parser1[`Last-Modified`] =
+  private[http4s] val parser: Parser[`Last-Modified`] =
     HttpDate.parser.map(apply)
 }
 

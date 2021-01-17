@@ -18,11 +18,11 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.Parser1
+import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc7235
 
 object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with HeaderKey.Recurring {
-  private[http4s] val parser: Parser1[`WWW-Authenticate`] =
+  private[http4s] val parser: Parser[`WWW-Authenticate`] =
     Rfc7235.challenges.map(`WWW-Authenticate`.apply)
 
   override def parse(s: String): ParseResult[`WWW-Authenticate`] =

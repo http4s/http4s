@@ -48,18 +48,6 @@ private[http4s] trait ArbitraryInstances {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
 
-  @deprecated(
-    "Use org.typelevel.ci.testing.arbitraries from org.typelevel::case-insensitive-testing",
-    "1.0.0-M1")
-  val http4sTestingArbitraryForCIString: Arbitrary[CIString] =
-    Arbitrary(getArbitrary[String].map(CIString(_)))
-
-  @deprecated(
-    "Use org.typelevel.ci.testing.arbitraries from org.typelevel::case-insensitive-testing",
-    "1.0.0-M1")
-  val http4sTestingCogenForCIString: Cogen[CIString] =
-    Cogen[String].contramap(_.toString.toLowerCase(Locale.ROOT))
-
   implicit def http4sTestingArbitraryForNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
     Arbitrary {
       for {

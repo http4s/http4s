@@ -19,9 +19,10 @@ package client
 package blaze
 
 import cats.effect._
+import cats.effect.kernel.Deferred
 import cats.effect.std.{Dispatcher, Queue}
+import cats.syntax.all._
 import fs2.Stream
-
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets

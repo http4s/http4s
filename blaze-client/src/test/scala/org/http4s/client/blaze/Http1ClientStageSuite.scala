@@ -19,9 +19,10 @@ package client
 package blaze
 
 import cats.effect._
+import cats.effect.kernel.Deferred
 import cats.effect.std.{Dispatcher, Queue}
+import cats.syntax.all._
 import fs2.Stream
-
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.LeafBuilder
@@ -30,7 +31,6 @@ import org.http4s.client.blaze.bits.DefaultUserAgent
 import org.http4s.headers.`User-Agent`
 import org.http4s.testing.DispatcherIOFixture
 import org.typelevel.ci.CIString
-
 import scala.concurrent.duration._
 
 class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
@@ -262,9 +262,6 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
 
     tail.runRequest(headRequest, IO.never).flatMap { response =>
       assertEquals(response.contentLength, Some(contentLength))
-
-      // connection reusable immediately after headers read
-      assert(tail.isRecyclable)
 
       // body is empty due to it being HEAD request
       response.body.compile.toVector.map(_.foldLeft(0L)((long, _) => long + 1L)).assertEquals(0L)

@@ -89,26 +89,6 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     )
   }
 
-  @deprecated("Preserved for binary compatibility", "0.21.16")
-  protected def getEncoder(
-      msg: Message[F],
-      rr: StringWriter,
-      minor: Int,
-      closeOnFinish: Boolean
-  ): Http1Writer[F] = {
-    val headers = msg.headers
-    getEncoder(
-      Connection.from(headers),
-      `Transfer-Encoding`.from(headers),
-      `Content-Length`.from(headers),
-      msg.trailerHeaders,
-      rr,
-      minor,
-      closeOnFinish,
-      false
-    )
-  }
-
   /** Get the proper body encoder based on the request,
     * adding the appropriate Connection and Transfer-Encoding headers along the way
     */
@@ -171,26 +151,6 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
               new CachingChunkWriter(this, trailer, chunkBufferMaxSize, omitEmptyContentLength)
           }
     }
-
-  @deprecated("Preserved for binary compatibility", "0.21.16")
-  protected def getEncoder(
-      connectionHeader: Option[Connection],
-      bodyEncoding: Option[`Transfer-Encoding`],
-      lengthHeader: Option[`Content-Length`],
-      trailer: F[Headers],
-      rr: StringWriter,
-      minor: Int,
-      closeOnFinish: Boolean
-  ): Http1Writer[F] =
-    getEncoder(
-      connectionHeader,
-      bodyEncoding,
-      lengthHeader,
-      trailer,
-      rr,
-      minor,
-      closeOnFinish,
-      false)
 
   /** Makes a [[EntityBody]] and a function used to drain the line if terminated early.
     *

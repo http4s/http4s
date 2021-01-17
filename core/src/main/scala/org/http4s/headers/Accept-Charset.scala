@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.Parser1
+import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.CharsetRange.{Atom, `*`}
 
@@ -26,7 +26,7 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
   override def parse(s: String): ParseResult[`Accept-Charset`] =
     ParseResult.fromParser(parser, "Invalid Accept-Charset header")(s)
 
-  private[http4s] val parser: Parser1[`Accept-Charset`] = {
+  private[http4s] val parser: Parser[`Accept-Charset`] = {
     import cats.parse.Parser._
     import org.http4s.internal.parsing.Rfc7230._
 
@@ -43,7 +43,7 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
         }
     }
 
-    val charsetRange = anyCharset.orElse1(fromToken)
+    val charsetRange = anyCharset.orElse(fromToken)
 
     headerRep1(charsetRange).map(xs => `Accept-Charset`(xs.head, xs.tail: _*))
   }

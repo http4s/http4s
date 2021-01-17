@@ -19,7 +19,7 @@ package org.http4s
 import cats.Functor
 import cats.effect.Clock
 import cats.syntax.all._
-import cats.parse.{Parser, Parser1, Rfc5234}
+import cats.parse.{Parser, Rfc5234}
 import java.time.{DateTimeException, Instant, ZoneOffset, ZonedDateTime}
 import org.http4s.util.{Renderable, Writer}
 
@@ -132,8 +132,8 @@ object HttpDate {
     unsafeFromInstant(dateTime.toInstant)
 
   /** `HTTP-date = IMF-fixdate / obs-date` */
-  private[http4s] val parser: Parser1[HttpDate] = {
-    import Parser.{char, string1}
+  private[http4s] val parser: Parser[HttpDate] = {
+    import Parser.{char, string}
     import Rfc5234.{digit, sp}
 
     def mkHttpDate(
@@ -161,10 +161,10 @@ object HttpDate {
      */
     val dayName =
       List("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-        .map(string1)
+        .map(string)
         .zipWithIndex
-        .map { case (s, i) => string1(s).as(i) }
-        .reduceLeft(_.orElse1(_))
+        .map { case (s, i) => string(s).as(i) }
+        .reduceLeft(_.orElse(_))
         .soft
 
     /* day          = 2DIGIT */
@@ -197,8 +197,8 @@ object HttpDate {
         "Oct",
         "Nov",
         "Dec").zipWithIndex
-        .map { case (s, i) => string1(s).as(i + 1) }
-        .reduceLeft(_.orElse1(_))
+        .map { case (s, i) => string(s).as(i + 1) }
+        .reduceLeft(_.orElse(_))
 
     /* year         = 4DIGIT */
     val year = (digit ~ digit ~ digit ~ digit).string.map(_.toInt)
@@ -230,7 +230,7 @@ object HttpDate {
      * GMT          = %x47.4D.54 ; "GMT", case-sensitive
      */
     val imfFixdate =
-      ((dayName <* string1(", ")) ~ (date1 <* sp) ~ (timeOfDay <* string1(" GMT"))).mapFilter {
+      ((dayName <* string(", ")) ~ (date1 <* sp) ~ (timeOfDay <* string(" GMT"))).mapFilter {
         case ((_, ((day, month), year)), ((hour, min), sec)) =>
           mkHttpDate(year, month, day, hour, min, sec)
       }
@@ -252,8 +252,8 @@ object HttpDate {
      */
     val dayNameL =
       List("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-        .map(string1)
-        .reduceLeft(_.orElse1(_))
+        .map(string)
+        .reduceLeft(_.orElse(_))
 
     /* rfc850-date  = day-name-l "," SP date2 SP time-of-day SP GMT
      *
@@ -267,7 +267,7 @@ object HttpDate {
      * from 2020 and hope our descendants are smarter than us.
      */
     val rfc850Date =
-      ((dayNameL <* string1(", ")) ~ (date2 <* sp) ~ (timeOfDay <* string1(" GMT"))).mapFilter {
+      ((dayNameL <* string(", ")) ~ (date2 <* sp) ~ (timeOfDay <* string(" GMT"))).mapFilter {
         case ((_, ((day, month), year)), ((hour, min), sec)) =>
           val wrapYear = if (year < 70) (year + 2000) else (year + 1900)
           mkHttpDate(wrapYear, month, day, hour, min, sec)
@@ -276,7 +276,7 @@ object HttpDate {
     val oneDigit = digit.map(_ - '0')
 
     /* date3        = month SP ( 2DIGIT / ( SP 1DIGIT )) */
-    val date3 = (month <* sp) ~ (twoDigit.orElse1(sp *> oneDigit))
+    val date3 = (month <* sp) ~ (twoDigit.orElse(sp *> oneDigit))
 
     /* asctime-date = day-name SP date3 SP time-of-day SP year
      *              ; e.g., Jun  2
@@ -287,9 +287,9 @@ object HttpDate {
     }
 
     /* obs-date     = rfc850-date / asctime-date */
-    val obsDate = rfc850Date.orElse1(asctimeDate)
+    val obsDate = rfc850Date.orElse(asctimeDate)
 
-    imfFixdate.orElse1(obsDate)
+    imfFixdate.orElse(obsDate)
   }
 
 }

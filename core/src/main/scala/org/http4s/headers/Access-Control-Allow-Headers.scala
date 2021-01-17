@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import org.typelevel.ci.CIString
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util._
 import cats.data.NonEmptyList
 
@@ -27,7 +27,10 @@ object `Access-Control-Allow-Headers`
     with HeaderKey.Recurring {
 
   override def parse(s: String): ParseResult[`Access-Control-Allow-Headers`] =
-    HttpHeaderParser.ACCESS_CONTROL_ALLOW_HEADERS(s)
+    ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers headers")(s)
+
+  private[http4s] val parser =
+    Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Allow-Headers`(_))
 }
 
 final case class `Access-Control-Allow-Headers`(values: NonEmptyList[CIString])

@@ -16,9 +16,17 @@
 
 package org.http4s
 
+import cats.parse.{Parser => P}
 import org.http4s.util.{Renderable, Writer}
+import org.http4s.internal.parsing.Rfc7230
 
 sealed trait ProductIdOrComment extends Renderable
+object ProductIdOrComment {
+  private[http4s] val serverAgentParser: P[(ProductId, List[ProductIdOrComment])] = {
+    val rws = P.charIn(' ', '	').rep.void
+    ProductId.parser ~ (rws *> (ProductId.parser.orElse(ProductComment.parser))).rep0
+  }
+}
 
 final case class ProductId(value: String, version: Option[String] = None)
     extends ProductIdOrComment {
@@ -32,9 +40,20 @@ final case class ProductId(value: String, version: Option[String] = None)
   }
 }
 
+object ProductId {
+  private[http4s] val parser = (Rfc7230.token ~ (P.string("/") *> Rfc7230.token).?).map {
+    case (value: String, version: Option[String]) => ProductId(value, version)
+  }
+}
+
 final case class ProductComment(value: String) extends ProductIdOrComment {
   override def render(writer: Writer): writer.type = {
     writer << '(' << value << ')'
     writer
   }
+}
+
+object ProductComment {
+  private[http4s] val parser = Rfc7230.comment.map(ProductComment.apply)
+
 }
