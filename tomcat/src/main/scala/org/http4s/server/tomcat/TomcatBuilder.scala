@@ -19,6 +19,8 @@ package server
 package tomcat
 
 import cats.effect._
+import cats.effect.std.Dispatcher
+
 import java.net.InetSocketAddress
 import java.util
 import java.util.concurrent.Executor
@@ -36,6 +38,7 @@ import org.http4s.server.tomcat.TomcatBuilder._
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.http4s.syntax.all._
 import org.log4s.getLogger
+
 import scala.collection.immutable
 import scala.concurrent.duration._
 
@@ -49,8 +52,9 @@ sealed class TomcatBuilder[F[_]] private (
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
-    classloader: Option[ClassLoader]
-)(implicit protected val F: ConcurrentEffect[F])
+    classloader: Option[ClassLoader],
+    private val dispatcher: Dispatcher[F]
+)(implicit protected val F: Async[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
   type Self = TomcatBuilder[F]
@@ -67,7 +71,8 @@ sealed class TomcatBuilder[F[_]] private (
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
-      classloader: Option[ClassLoader] = classloader
+      classloader: Option[ClassLoader] = classloader,
+      dispatcher: Dispatcher[F] = dispatcher
   ): Self =
     new TomcatBuilder(
       socketAddress,
@@ -79,7 +84,8 @@ sealed class TomcatBuilder[F[_]] private (
       mounts,
       serviceErrorHandler,
       banner,
-      classloader
+      classloader,
+      dispatcher
     )
 
   def withSSL(
@@ -149,7 +155,8 @@ sealed class TomcatBuilder[F[_]] private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        serviceErrorHandler = builder.serviceErrorHandler
+        serviceErrorHandler = builder.serviceErrorHandler,
+        dispatcher = builder.dispatcher
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
@@ -180,7 +187,7 @@ sealed class TomcatBuilder[F[_]] private (
     copy(classloader = Some(classloader))
 
   override def resource: Resource[F, Server] =
-    Resource(F.delay {
+    Resource(F.blocking {
       val tomcat = new Tomcat
       val cl = classloader.getOrElse(getClass.getClassLoader)
       val docBase = cl.getResource("") match {
@@ -223,7 +230,7 @@ sealed class TomcatBuilder[F[_]] private (
         lazy val isSecure: Boolean = sslConfig.isSecure
       }
 
-      val shutdown = F.delay {
+      val shutdown = F.blocking {
         tomcat.stop()
         tomcat.destroy()
       }
@@ -241,19 +248,22 @@ sealed class TomcatBuilder[F[_]] private (
 }
 
 object TomcatBuilder {
-  def apply[F[_]: ConcurrentEffect]: TomcatBuilder[F] =
-    new TomcatBuilder[F](
-      socketAddress = defaults.SocketAddress,
-      externalExecutor = None,
-      idleTimeout = defaults.IdleTimeout,
-      asyncTimeout = defaults.ResponseTimeout,
-      servletIo = ServletContainer.DefaultServletIo[F],
-      sslConfig = NoSsl,
-      mounts = Vector.empty,
-      serviceErrorHandler = DefaultServiceErrorHandler,
-      banner = defaults.Banner,
-      classloader = None
-    )
+  def create[F[_]: Async]: Resource[F, TomcatBuilder[F]] =
+    Dispatcher[F].map { dispatcher =>
+      new TomcatBuilder[F](
+        socketAddress = defaults.SocketAddress,
+        externalExecutor = None,
+        idleTimeout = defaults.IdleTimeout,
+        asyncTimeout = defaults.ResponseTimeout,
+        servletIo = ServletContainer.DefaultServletIo[F],
+        sslConfig = NoSsl,
+        mounts = Vector.empty,
+        serviceErrorHandler = DefaultServiceErrorHandler,
+        banner = defaults.Banner,
+        classloader = None,
+        dispatcher = dispatcher
+      )
+    }
 
   private sealed trait SslConfig {
     def configureConnector(conn: Connector): Unit

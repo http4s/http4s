@@ -40,7 +40,7 @@ lazy val modules: List[ProjectReference] = List(
   okHttpClient,
   servlet,
   jetty,
-  // tomcat,
+  tomcat,
   theDsl,
    jawn,
    argonaut,

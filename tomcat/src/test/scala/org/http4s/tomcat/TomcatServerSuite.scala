@@ -18,8 +18,7 @@ package org.http4s
 package server
 package tomcat
 
-import cats.effect.{ContextShift, IO, Timer}
-import cats.syntax.all._
+import cats.effect.IO
 import java.io.IOException
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
@@ -30,7 +29,6 @@ import scala.io.Source
 import java.util.logging.LogManager
 
 class TomcatServerSuite extends Http4sSuite {
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
 
   override def beforeEach(context: BeforeEach): Unit = {
     // Prevents us from loading jar and war URLs, but lets us
@@ -40,47 +38,47 @@ class TomcatServerSuite extends Http4sSuite {
     LogManager.getLogManager().reset()
   }
 
-  val builder = TomcatBuilder[IO]
+  val builder = TomcatBuilder.create[IO]
 
   val serverR: cats.effect.Resource[IO, Server] =
-    builder
-      .bindAny()
-      .withAsyncTimeout(3.seconds)
-      .mountService(
-        HttpRoutes.of {
-          case GET -> Root / "thread" / "routing" =>
-            val thread = Thread.currentThread.getName
-            Ok(thread)
+    builder.flatMap(
+      _.bindAny()
+        .withAsyncTimeout(3.seconds)
+        .mountService(
+          HttpRoutes.of {
+            case GET -> Root / "thread" / "routing" =>
+              println("inside action!")
+              val thread = Thread.currentThread.getName
+              Ok(thread)
 
-          case GET -> Root / "thread" / "effect" =>
-            IO(Thread.currentThread.getName).flatMap(Ok(_))
+            case GET -> Root / "thread" / "effect" =>
+              IO(Thread.currentThread.getName).flatMap(Ok(_))
 
-          case req @ POST -> Root / "echo" =>
-            Ok(req.body)
+            case req @ POST -> Root / "echo" =>
+              Ok(req.body)
 
-          case GET -> Root / "never" =>
-            IO.never
+            case GET -> Root / "never" =>
+              IO.never
 
-          case GET -> Root / "slow" =>
-            implicitly[Timer[IO]].sleep(50.millis) *> Ok("slow")
-        },
-        "/"
-      )
-      .resource
+            case GET -> Root / "slow" =>
+              IO.sleep(50.millis) *> Ok("slow")
+          },
+          "/"
+        )
+        .resource)
 
   def tomcatServer: FunFixture[Server] =
     ResourceFixture[Server](serverR)
 
   def get(server: Server, path: String): IO[String] =
-    testBlocker.blockOn(
-      IO(
-        Source
-          .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-          .getLines()
-          .mkString))
+    IO.blocking(
+      Source
+        .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+        .getLines()
+        .mkString)
 
   def post(server: Server, path: String, body: String): IO[String] =
-    testBlocker.blockOn(IO {
+    IO.blocking {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
       val bytes = body.getBytes(StandardCharsets.UTF_8)
@@ -92,7 +90,7 @@ class TomcatServerSuite extends Http4sSuite {
         .fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
         .getLines()
         .mkString
-    })
+    }
 
   tomcatServer.test("server should route requests on the service executor") { server =>
     get(server, "/thread/routing")
