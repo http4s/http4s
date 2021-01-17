@@ -158,7 +158,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   @deprecated(
     message =
       "Use withDefaultSslContext, withSslContext or withoutSslContext to set the SSLContext",
-    since = "1.0.0")
+    since = "0.22.0-M1")
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext =
       sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided))
@@ -323,7 +323,7 @@ object BlazeClientBuilder {
     * @param executionContext the ExecutionContext for blaze's internal Futures
     * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
     */
-  @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "1.0.0")
+  @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "0.22.0-M1")
   def apply[F[_]: ConcurrentEffect](
       executionContext: ExecutionContext,
       sslContext: Option[SSLContext] = SSLContextOption.tryDefaultSslContext)

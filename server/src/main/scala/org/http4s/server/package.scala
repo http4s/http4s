@@ -91,11 +91,6 @@ package object server {
   type ContextMiddleware[F[_], T] =
     Middleware[OptionT[F, *], ContextRequest[F, T], Response[F], Request[F], Response[F]]
 
-  /** Old name for SSLConfig
-    */
-  @deprecated("Use SSLConfig", "2016-12-31")
-  type SSLBits = SSLConfig
-
   object AuthMiddleware {
     def apply[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, *], Request[F], T]

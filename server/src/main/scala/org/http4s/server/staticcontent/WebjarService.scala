@@ -221,7 +221,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpRoutes
     */
-  @deprecated("use WebjarServiceBuilder", "1.0.0-M1")
+  @deprecated("use WebjarServiceBuilder", "0.22.0-M1")
   def apply[F[_]](config: Config[F])(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     val Root = Paths.get("")
