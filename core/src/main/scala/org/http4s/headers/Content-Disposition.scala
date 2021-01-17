@@ -17,14 +17,24 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.Parser
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
 object `Content-Disposition`
     extends HeaderKey.Internal[`Content-Disposition`]
     with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Content-Disposition`] =
-    HttpHeaderParser.CONTENT_DISPOSITION(s)
+    ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
+
+  private[http4s] val parser = {
+    val value = Rfc7230.token | Rfc7230.quotedString
+    val parameter = (Rfc7230.token <* Parser.string("=") <* Rfc7230.ows) ~ value
+    (Rfc7230.token ~ (Parser.string(";") *> Rfc7230.ows *> parameter).rep0).map {
+      case (token: String, params: List[(String, String)]) =>
+        `Content-Disposition`(token, params.toMap)
+    }
+  }
 }
 
 // see http://tools.ietf.org/html/rfc2183
