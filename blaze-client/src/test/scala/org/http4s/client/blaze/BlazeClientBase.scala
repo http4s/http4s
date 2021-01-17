@@ -71,11 +71,11 @@ trait BlazeClientBase extends Http4sSuite {
 
                 val writeBody: IO[Unit] = res.body
                   .evalMap { byte =>
-                    IO(os.write(Array(byte)))
+                    IO.blocking(os.write(Array(byte)))
                   }
                   .compile
                   .drain
-                val flushOutputStream: IO[Unit] = IO(os.flush())
+                val flushOutputStream: IO[Unit] = IO.blocking(os.flush())
                 writeBody >> flushOutputStream
               }
               .unsafeRunSync()
@@ -83,10 +83,11 @@ trait BlazeClientBase extends Http4sSuite {
           case None => srv.sendError(404)
         }
 
-      override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
-        resp.setStatus(Status.Ok.code)
-        req.getInputStream.close()
-      }
+      override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit =
+        IO.blocking {
+          resp.setStatus(Status.Ok.code)
+          req.getInputStream.close()
+        }.unsafeRunSync()
     }
 
   def jettyScaffold: FunFixture[(JettyScaffold, JettyScaffold)] =

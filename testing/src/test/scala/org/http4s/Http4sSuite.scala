@@ -22,13 +22,17 @@ import cats.syntax.all._
 import fs2._
 import fs2.text.utf8Decode
 import munit._
+import org.http4s.internal.threads.newDaemonPool
+
+import scala.concurrent.ExecutionContext
 
 /** Common stack for http4s' munit based tests
   */
 trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {
   // The default munit EC causes an IllegalArgumentException in
   // BatchExecutor on Scala 2.12.
-  override val munitExecutionContext = Http4sSpec.TestExecutionContext
+  override val munitExecutionContext =
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
   override implicit val ioRuntime: IORuntime = Http4sSpec.TestIORuntime
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {

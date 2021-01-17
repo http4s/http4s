@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
@@ -25,7 +24,13 @@ object Server extends HeaderKey.Internal[Server] with HeaderKey.Singleton {
     new Server(id, Nil)
 
   override def parse(s: String): ParseResult[Server] =
-    HttpHeaderParser.SERVER(s)
+    ParseResult.fromParser(parser, "Invalid Server header")(s)
+
+  private[http4s] val parser =
+    ProductIdOrComment.serverAgentParser.map {
+      case (product: ProductId, tokens: List[ProductIdOrComment]) =>
+        Server(product, tokens)
+    }
 }
 
 /** Server header

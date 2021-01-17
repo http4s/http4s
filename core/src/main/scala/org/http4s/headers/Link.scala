@@ -17,21 +17,18 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser1}
+import cats.parse.{Parser, Parser0}
 import org.http4s._
 import org.http4s.internal.parsing.Rfc7230.{headerRep1, quotedString, token}
-import org.http4s.parser.HttpHeaderParser
 import org.http4s.parser.Rfc2616BasicRules.optWs
 import java.nio.charset.StandardCharsets
 
 object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
 
   override def parse(s: String): ParseResult[Link] =
-    HttpHeaderParser.LINK(s)
-  // TODO depends on #4095
-  //ParseResult.fromParser(parser, "Invalid Link header")(s)
+    ParseResult.fromParser(parser, "Invalid Link header")(s)
 
-  private[http4s] val parser: Parser1[Link] = {
+  private[http4s] val parser: Parser[Link] = {
     import cats.parse.Parser._
 
     sealed trait LinkParam
@@ -41,38 +38,38 @@ object Link extends HeaderKey.Internal[Link] with HeaderKey.Recurring {
     final case class Type(value: MediaRange) extends LinkParam
 
     // https://tools.ietf.org/html/rfc3986#section-4.1
-    val linkValue: Parser[LinkValue] = {
+    val linkValue: Parser0[LinkValue] = {
       import Uri._
       uriReference(StandardCharsets.UTF_8).map { uri =>
         headers.LinkValue(uri)
       }
     }
 
-    val linkParam: Parser[LinkParam] = {
-      val relParser = (string1("rel=") *> token.orElse(quotedString))
+    val linkParam: Parser0[LinkParam] = {
+      val relParser = (string("rel=") *> token.orElse(quotedString))
         .map { rel =>
           Rel(rel)
         }
 
-      val revParser = (string1("rev=") *> token.orElse(quotedString)).map { rev =>
+      val revParser = (string("rev=") *> token.orElse(quotedString)).map { rev =>
         Rev(rev)
       }
 
-      val titleParser = (string1("title=") *> token.orElse(quotedString)).map { title =>
+      val titleParser = (string("title=") *> token.orElse(quotedString)).map { title =>
         Title(title)
       }
 
       val typeParser = {
-        val mediaRange = string1("type=") *> MediaRange.parser.orElse1(
-          string1("\"") *> MediaRange.parser <* string1("\""))
+        val mediaRange = string("type=") *> MediaRange.parser.orElse(
+          string("\"") *> MediaRange.parser <* string("\""))
         mediaRange.map(tpe => Type(tpe))
       }
 
       relParser.orElse(revParser).orElse(titleParser).orElse(typeParser)
     }
 
-    val linkValueWithAttr: Parser1[LinkValue] =
-      ((char('<') *> linkValue <* char('>')) ~ Parser.rep(char(';') *> optWs *> linkParam)).map {
+    val linkValueWithAttr: Parser[LinkValue] =
+      ((char('<') *> linkValue <* char('>')) ~ (char(';') *> optWs *> linkParam).rep0).map {
         case (linkValue, linkParams) =>
           linkParams.foldLeft(linkValue) { case (lv, lp) =>
             lp match {

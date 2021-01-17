@@ -17,7 +17,7 @@
 package org.http4s
 
 import cats.{Hash, Order, Show}
-import cats.parse.Parser1
+import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.{Renderable, Writer}
@@ -61,7 +61,7 @@ object Method {
   def fromString(s: String): ParseResult[Method] =
     allByKey.getOrElse(s, ParseResult.fromParser(parser, "Invalid method")(s))
 
-  private[http4s] val parser: Parser1[Method] =
+  private[http4s] val parser: Parser[Method] =
     Rfc7230.token.map(apply)
 
   private def apply(name: String) =

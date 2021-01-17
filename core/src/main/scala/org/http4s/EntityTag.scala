@@ -17,7 +17,9 @@
 package org.http4s
 
 import cats.Show
+import cats.parse.{Parser, Rfc5234}
 import org.http4s.EntityTag.{Strong, Weakness}
+import org.http4s.internal.parsing.Rfc7230
 
 final case class EntityTag(tag: String, weakness: Weakness = Strong) {
   override def toString(): String =
@@ -34,4 +36,29 @@ object EntityTag {
   sealed trait Weakness extends Product with Serializable
   case object Weak extends Weakness
   case object Strong extends Weakness
+
+  /*
+   * entity-tag = [ weak ] opaque-tag
+   *
+   * @see [[https://tools.ietf.org/html/rfc7232#section-2.3]]
+   */
+  private[http4s] val parser: Parser[EntityTag] = {
+    import Parser.{charIn, string}
+    import Rfc5234.{dquote}
+    import Rfc7230.{obsText}
+
+    // weak       = %x57.2F ; "W/", case-sensitive
+    val weak = string("W/").as(EntityTag.Weak)
+
+    // etagc      = %x21 / %x23-7E / obs-text
+    //            ; VCHAR except double quotes, plus obs-text
+    val etagc = charIn(0x21.toChar, 0x23.toChar to 0x7e.toChar: _*).orElse(obsText)
+
+    // opaque-tag = DQUOTE *etagc DQUOTE
+    val opaqueTag = dquote *> etagc.rep0.string <* dquote
+
+    (weak.?.with1 ~ opaqueTag).map { case (weakness, tag) =>
+      new EntityTag(tag, weakness.getOrElse(EntityTag.Strong))
+    }
+  }
 }

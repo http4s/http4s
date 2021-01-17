@@ -28,10 +28,10 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 object JettyScaffold {
   def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(implicit
       F: Sync[F]): Resource[F, JettyScaffold] =
-    Resource.make(F.delay {
+    Resource.make(F.blocking {
       val scaffold = new JettyScaffold(num, secure)
       scaffold.startServers(testServlet)
-    })(s => F.delay(s.stopServers()))
+    })(s => F.blocking(s.stopServers()))
 }
 
 class JettyScaffold private (num: Int, secure: Boolean) {

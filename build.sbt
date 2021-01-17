@@ -38,8 +38,8 @@ lazy val modules: List[ProjectReference] = List(
   asyncHttpClient,
   jettyClient,
   okHttpClient,
-  // servlet,
-  // jetty,
+  servlet,
+  jetty,
   // tomcat,
   theDsl,
    jawn,
@@ -135,8 +135,9 @@ lazy val laws = libraryProject("laws")
   .dependsOn(core)
 
 lazy val testing = libraryProject("testing")
+  .enablePlugins(NoPublishPlugin)
   .settings(
-    description := "Instances and laws for testing http4s code",
+    description := "Internal utilities for http4s tests",
     startYear := Some(2016),
     libraryDependencies ++= Seq(
       specs2Common,
@@ -146,10 +147,6 @@ lazy val testing = libraryProject("testing")
       scalacheckEffect,
       scalacheckEffectMunit,
     ),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-3"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
   )
   .dependsOn(laws)
 
@@ -248,7 +245,7 @@ lazy val emberServer = libraryProject("ember-server")
       log4catsSlf4j,
     ),
   )
-  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
 
 lazy val emberClient = libraryProject("ember-client")
   .settings(

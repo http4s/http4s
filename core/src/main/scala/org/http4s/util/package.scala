@@ -118,8 +118,8 @@ package object util {
     h
   }
 
-  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  @deprecated("Replaced by org.typelevel.ci.CIString", "0.22.0-M1")
   type CaseInsensitiveString = CIString
-  @deprecated("Replaced by org.typelevel.ci.CIString", "1.0.0-M1")
+  @deprecated("Replaced by org.typelevel.ci.CIString", "0.22.0-M1")
   val CaseInsensitiveString = CIString
 }

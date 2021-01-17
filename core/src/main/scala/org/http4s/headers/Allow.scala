@@ -17,14 +17,20 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Writer
 
 object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
   def apply(ms: Method*): Allow = Allow(ms.toSet)
 
   override def parse(s: String): ParseResult[Allow] =
-    HttpHeaderParser.ALLOW(s)
+    ParseResult.fromParser(parser, "Invalid Allow")(s)
+  private[http4s] val parser = Rfc7230
+    .headerRep1(Rfc7230.token.mapFilter(s => Method.fromString(s).toOption))
+    .map(_.toList)
+    .?
+    .map(_.getOrElse(Nil))
+    .map(ms => Allow(ms.toSet))
 }
 
 /** A Response header that lists the methods that are supported by the target resource.

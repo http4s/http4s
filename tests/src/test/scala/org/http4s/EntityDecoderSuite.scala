@@ -330,17 +330,16 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val request = Request[IO]().withEntity("whatever")
 
-  test("apply should invoke the function with  the right on a success") {
+  test("apply should invoke the function with the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
       EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
-    IO.async_[String] { cb =>
+    IO.async[String] { cb =>
       request
         .decodeWith(happyDecoder, strict = false) { s =>
           cb(Right(s))
           IO.pure(Response())
         }
-        .unsafeRunSync()
-      ()
+        .as(None)
     }.assertEquals("hooray")
   }
 
@@ -391,14 +390,14 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val binData: Array[Byte] = "Bytes 10111".getBytes
 
-  def readFile(in: File): IO[Array[Byte]] = IO {
+  def readFile(in: File): IO[Array[Byte]] = IO.blocking {
     val os = new FileInputStream(in)
     val data = new Array[Byte](in.length.asInstanceOf[Int])
     os.read(data)
     data
   }
 
-  def readTextFile(in: File): IO[String] = IO {
+  def readTextFile(in: File): IO[String] = IO.blocking {
     val os = new InputStreamReader(new FileInputStream(in))
     val data = new Array[Char](in.length.asInstanceOf[Int])
     os.read(data, 0, in.length.asInstanceOf[Int])

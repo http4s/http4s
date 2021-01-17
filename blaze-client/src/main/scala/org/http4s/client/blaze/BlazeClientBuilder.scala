@@ -159,7 +159,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   @deprecated(
     message =
       "Use withDefaultSslContext, withSslContext or withoutSslContext to set the SSLContext",
-    since = "1.0.0")
+    since = "0.22.0-M1")
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext =
       sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided))
@@ -320,4 +320,14 @@ object BlazeClientBuilder {
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty)
     ) {}
+
+  @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "0.22.0-M1")
+  def apply[F[_]: Async](
+      executionContext: ExecutionContext,
+      sslContext: Option[SSLContext] = SSLContextOption.tryDefaultSslContext)
+      : BlazeClientBuilder[F] =
+    sslContext match {
+      case None => apply(executionContext).withoutSslContext
+      case Some(sslCtx) => apply(executionContext).withSslContext(sslCtx)
+    }
 }

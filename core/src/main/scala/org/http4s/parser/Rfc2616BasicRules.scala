@@ -84,9 +84,9 @@ private[http4s] object Rfc2616BasicRules {
   import cats.parse.Rfc5234.{crlf, wsp}
   import cats.parse.{Parser => P}
 
-  def lws = (crlf.rep.with1 *> wsp.rep1).void
+  def lws = (crlf.rep0.with1 *> wsp.rep).void
 
-  def optWs = P.rep(lws).void
+  def optWs = lws.rep0.void
 
   def listSep = optWs *> P.char(',') *> optWs
 

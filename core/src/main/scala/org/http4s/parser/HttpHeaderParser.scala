@@ -16,15 +16,7 @@ import org.http4s.Header.Parsed
 import org.http4s.headers._
 import org.typelevel.ci.CIString
 
-object HttpHeaderParser
-    extends SimpleHeaders
-    with CacheControlHeader
-    with ContentLanguageHeader
-    with ContentLocationHeader
-    with ForwardedHeader
-    with LinkHeader
-    with LocationHeader
-    with RefererHeader {
+object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -98,21 +90,23 @@ object HttpHeaderParser
     addParser_(CIString("ACCEPT-CHARSET"), `Accept-Charset`.parse)
     addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
     addParser_(CIString("ACCEPT-LANGUAGE"), `Accept-Language`.parse)
-    addParser_(CIString("ACCEPT-PATCH"), `ACCEPT_PATCH`)
+    addParser_(CIString("ACCEPT-PATCH"), `Accept-Patch`.parse)
     addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
-    addParser_(CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"), `ACCESS_CONTROL_ALLOW_CREDENTIALS`)
-    addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `ACCESS_CONTROL_ALLOW_HEADERS`)
-    addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `ACCESS_CONTROL_EXPOSE_HEADERS`)
+    addParser_(
+      CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"),
+      `Access-Control-Allow-Credentials`.parse)
+    addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `Access-Control-Allow-Headers`.parse)
+    addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `Access-Control-Expose-Headers`.parse)
     addParser_(CIString("AGE"), Age.parse)
-    addParser_(CIString("ALLOW"), `ALLOW`)
+    addParser_(CIString("ALLOW"), Allow.parse)
     addParser_(CIString("AUTHORIZATION"), Authorization.parse)
-    addParser_(CIString("CACHE-CONTROL"), `CACHE_CONTROL`)
+    addParser_(CIString("CACHE-CONTROL"), `Cache-Control`.parse)
     addParser_(CIString("CONNECTION"), Connection.parse)
     addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
-    addParser_(CIString("CONTENT-ENCODING"), `CONTENT_ENCODING`)
-    addParser_(CIString("CONTENT-LANGUAGE"), `CONTENT_LANGUAGE`)
+    addParser_(CIString("CONTENT-ENCODING"), `Content-Encoding`.parse)
+    addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
     addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
-    addParser_(CIString("CONTENT-LOCATION"), `CONTENT_LOCATION`)
+    addParser_(CIString("CONTENT-LOCATION"), `Content-Location`.parse)
     addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
     addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
     addParser_(CIString("COOKIE"), Cookie.parse)
@@ -120,32 +114,32 @@ object HttpHeaderParser
     addParser_(CIString("ETAG"), ETag.parse)
     addParser_(CIString("EXPIRES"), Expires.parse)
     addParser_(CIString("FORWARDED"), `FORWARDED`)
-    addParser_(CIString("HOST"), `HOST`)
-    addParser_(CIString("IF-MATCH"), `IF_MATCH`)
+    addParser_(CIString("HOST"), Host.parse)
+    addParser_(CIString("IF-MATCH"), `If-Match`.parse)
     addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)
-    addParser_(CIString("IF-NONE-MATCH"), `IF_NONE_MATCH`)
+    addParser_(CIString("IF-NONE-MATCH"), `If-None-Match`.parse)
     addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
     addParser_(CIString("LAST-EVENT-ID"), `LAST_EVENT_ID`)
     addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
     addParser_(CIString("LINK"), Link.parse)
-    addParser_(CIString("LOCATION"), `LOCATION`)
-    addParser_(CIString("MAX-FORWARDS"), `MAX_FORWARDS`)
+    addParser_(CIString("LOCATION"), Location.parse)
+    addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)
     addParser_(CIString("ORIGIN"), Origin.parse)
     addParser_(CIString("PROXY-AUTHENTICATE"), `Proxy-Authenticate`.parse)
     addParser_(CIString("RANGE"), Range.parse)
-    addParser_(CIString("REFERER"), `REFERER`)
+    addParser_(CIString("REFERER"), Referer.parse)
     addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
-    addParser_(CIString("SERVER"), `SERVER`)
+    addParser_(CIString("SERVER"), Server.parse)
     addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
     addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `Strict-Transport-Security`.parse)
     addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
-    addParser_(CIString("USER-AGENT"), `USER_AGENT`)
+    addParser_(CIString("USER-AGENT"), `User-Agent`.parse)
     addParser_(CIString("WWW-AUTHENTICATE"), `WWW-Authenticate`.parse)
     addParser_(CIString("X-B3-FLAGS"), `X-B3-Flags`.parse)
     addParser_(CIString("X-B3-PARENTSPANID"), `X-B3-ParentSpanId`.parse)
     addParser_(CIString("X-B3-SAMPLED"), `X-B3-Sampled`.parse)
     addParser_(CIString("X-B3-SPANID"), `X-B3-SpanId`.parse)
     addParser_(CIString("X-B3-TRACEID"), `X-B3-TraceId`.parse)
-    addParser_(CIString("X-FORWARDED-FOR"), `X_FORWARDED_FOR`)
+    addParser_(CIString("X-FORWARDED-FOR"), `X-Forwarded-For`.parse)
   }
 }
