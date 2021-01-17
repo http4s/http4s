@@ -89,6 +89,22 @@ class EncoderSuite extends Http4sSuite {
     Helpers.encodeRequestRig(req).assertEquals(expected)
   }
 
+  test("reqToBytes strips the fragment") {
+    val req = Request[IO](
+      Method.GET,
+      Uri.unsafeFromString("https://www.example.com/path?query#fragment")
+    )
+    val expected =
+      """GET /path?query HTTP/1.1
+        |Host: www.example.com
+        |Transfer-Encoding: chunked
+        |
+        |0
+        |
+        |""".stripMargin
+    Helpers.encodeRequestRig(req).assertEquals(expected)
+  }
+
   test("respToBytes should encode a no body response correctly") {
     val resp = Response[IO](Status.Ok)
 
