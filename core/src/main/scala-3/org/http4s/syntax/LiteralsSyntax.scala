@@ -34,23 +34,23 @@ trait LiteralsSyntax {
 private[syntax] object LiteralsSyntax {
 
   trait Validator[A] {
-    def validate(s: String)(using Quotes): ParseResult[Expr[A]]
+    def validate(s: String): ParseResult[A]
   }
 
   def validateUri(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(s => Uri.fromString(s).map(value => Expr(value)), strCtxExpr, argsExpr)
+    validate(s => Uri.fromString(s), strCtxExpr, argsExpr)
   def validateUriScheme(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(s => Uri.Scheme.fromString(s).map(value => Expr(value)), strCtxExpr, argsExpr)
+    validate(s => Uri.Scheme.fromString(s), strCtxExpr, argsExpr)
   def validatePath(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(s => Uri.fromString(s).map(value => Expr(value.path)), strCtxExpr, argsExpr)
+    validate(s => Uri.fromString(s).map(_.path), strCtxExpr, argsExpr)
   def validateIpv4(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(s => Uri.Ipv4Address.fromString(s).map(value => Expr(value)), strCtxExpr, argsExpr)
+    validate(s => Uri.Ipv4Address.fromString(s), strCtxExpr, argsExpr)
   def validateIpv6(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(s => Uri.Ipv6Address.fromString(s).map(value => Expr(value)), strCtxExpr, argsExpr)
+    validate(s => Uri.Ipv6Address.fromString(s), strCtxExpr, argsExpr)
   def validateMediatype(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(s => MediaType.parse(s).map(value => Expr(value)), strCtxExpr, argsExpr)
+    validate(s => MediaType.parse(s), strCtxExpr, argsExpr)
   def validateQvalue(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(qvalue, strCtxExpr, argsExpr)
+    validate(s => QValue.fromString(s), strCtxExpr, argsExpr)
 
   def validate[A](validator: Validator[A], strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes): Expr[A] = {
     val sc = strCtxExpr.unliftOrError
@@ -64,17 +64,11 @@ private[syntax] object LiteralsSyntax {
         case Left(err) =>
           report.error(err.message)
           ???
-        case Right(expr) => expr
+        case Right(result) => '{result}
       }
     } else {
       report.error("interpolation not supported", argsExpr)
       ???
     }
-  }
-
-  object qvalue extends Validator[QValue] {
-    def validate(s: String): ParseResult[Expr[QValue]] =
-    //QValue.fromString(s).map(value => Expr(value))
-      ??? //todo: enable
   }
 }

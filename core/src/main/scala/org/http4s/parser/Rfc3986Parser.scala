@@ -18,6 +18,8 @@ package org.http4s
 package parser
 
 import cats.syntax.all._
+import org.http4s.Uri.Scheme.{http, https}
+
 import java.nio.charset.Charset
 import org.http4s.{Query => Q}
 import org.http4s.internal.parboiled2._
@@ -27,10 +29,10 @@ import org.typelevel.ci.CIString
 
 private[http4s] trait Rfc3986Parser
     extends Parser
-    with Uri.Scheme.Parser
-    with Uri.UserInfo.Parser
-    with Uri.Ipv4Address.Parser
-    with Uri.Ipv6Address.Parser
+    with Rfc3986Parser.UriSchemeParser
+    with Rfc3986Parser.UriInfoParser
+    with Rfc3986Parser.Ipv4ParserParser
+    with Rfc3986Parser.Ipv6ParserParser
     with IpParser
     with StringBuilding {
 
@@ -173,4 +175,84 @@ private[http4s] trait Rfc3986Parser
   def SubDelims = rule {"!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "="}
 
   protected def decode(s: String) = org.http4s.Uri.decode(s, charset)
+}
+
+object Rfc3986Parser {
+  private[http4s] trait UriSchemeParser { self: Parser =>
+    def scheme =
+      rule {
+        "https" ~ Alpha.unary_!() ~ push(https) |
+          "http" ~ Alpha.unary_!() ~ push(http) |
+          capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new Uri.Scheme(_))
+      }
+  }
+
+  private[http4s] trait UriInfoParser { self: Rfc3986Parser =>
+    def userInfo: Rule1[org.http4s.Uri.UserInfo] =
+      rule {
+        capture(zeroOrMore(Unreserved | PctEncoded | SubDelims)) ~
+          (":" ~ capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":"))).? ~>
+          ((username: String, password: Option[String]) =>
+            new org.http4s.Uri.UserInfo(decode(username), password.map(decode)))
+      }
+  }
+
+  private[http4s] trait Ipv4ParserParser { self: Parser with IpParser =>
+    def ipv4Address: Rule1[org.http4s.Uri.Ipv4Address] =
+      rule {
+        // format: off
+        decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~>
+          { (a: Byte, b: Byte, c: Byte, d: Byte) => new org.http4s.Uri.Ipv4Address(a, b, c, d) }
+        // format:on
+      }
+
+    private def decOctet = rule {capture(DecOctet) ~> (_.toInt.toByte)}
+  }
+
+  private[http4s] trait Ipv6ParserParser { self: Parser with IpParser =>
+    // format: off
+    def ipv6Address: Rule1[org.http4s.Uri.Ipv6Address] = rule {
+      6.times(h16 ~ ":") ~ ls32 ~>
+        { (ls: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(ls, Seq(r0, r1)) } |
+        "::" ~ 5.times(h16 ~ ":") ~ ls32 ~>
+          { (ls: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(ls, Seq(r0, r1)) } |
+        optional(h16) ~ "::" ~ 4.times(h16 ~ ":") ~ ls32 ~>
+          { (l: Option[Short], rs: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(l.toSeq, rs :+ r0 :+ r1) } |
+        optional((1 to 2).times(h16).separatedBy(":")) ~ "::" ~ 3.times(h16 ~ ":") ~ ls32 ~>
+          { (ls: Option[collection.Seq[Short]], rs: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(ls.getOrElse(Seq.empty), rs :+ r0 :+ r1) } |
+        optional((1 to 3).times(h16).separatedBy(":")) ~ "::" ~ 2.times(h16 ~ ":") ~ ls32 ~>
+          { (ls: Option[collection.Seq[Short]], rs: collection.Seq[Short], r0: Short, r1: Short) => toIpv6(ls.getOrElse(Seq.empty), rs :+ r0 :+ r1) } |
+        optional((1 to 4).times(h16).separatedBy(":")) ~ "::" ~ h16 ~ ":" ~ ls32 ~>
+          { (ls: Option[collection.Seq[Short]], r0: Short, r1: Short, r2: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1, r2)) } |
+        optional((1 to 5).times(h16).separatedBy(":")) ~ "::" ~ ls32 ~>
+          { (ls: Option[collection.Seq[Short]], r0: Short, r1: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0, r1)) } |
+        optional((1 to 6).times(h16).separatedBy(":")) ~ "::" ~ h16 ~>
+          { (ls: Option[collection.Seq[Short]], r0: Short) => toIpv6(ls.getOrElse(Seq.empty), Seq(r0)) } |
+        optional((1 to 7).times(h16).separatedBy(":")) ~ "::" ~>
+          { (ls: Option[collection.Seq[Short]]) => toIpv6(ls.getOrElse(Seq.empty), Seq.empty) }
+    }
+    // format:on
+
+
+    def ls32: Rule2[Short, Short] = rule {
+      (h16 ~ ":" ~ h16) |
+        (decOctet ~ "." ~ decOctet ~ "." ~ decOctet ~ "." ~ decOctet) ~> { (a: Byte, b: Byte, c: Byte, d: Byte) =>
+          push(((a << 8) | b).toShort) ~ push(((c << 8) | d).toShort)
+        }
+    }
+
+    def h16: Rule1[Short] = rule {
+      capture((1 to 4).times(HexDigit)) ~> { (s: String) => java.lang.Integer.parseInt(s, 16).toShort }
+    }
+    // format:on
+
+    private def toIpv6(lefts: collection.Seq[Short], rights: collection.Seq[Short]): org.http4s.Uri.Ipv6Address =
+      (lefts ++ collection.Seq.fill(8 - lefts.size - rights.size)(0.toShort) ++ rights) match {
+        case collection.Seq(a, b, c, d, e, f, g, h) =>
+          org.http4s.Uri.Ipv6Address(a, b, c, d, e, f, g, h)
+      }
+
+    private def decOctet = rule {capture(DecOctet) ~> (_.toInt.toByte)}
+  }
+
 }
