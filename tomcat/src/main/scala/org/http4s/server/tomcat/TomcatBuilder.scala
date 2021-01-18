@@ -52,8 +52,7 @@ sealed class TomcatBuilder[F[_]] private (
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
-    classloader: Option[ClassLoader],
-    private val dispatcher: Dispatcher[F]
+    classloader: Option[ClassLoader]
 )(implicit protected val F: Async[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
@@ -71,8 +70,7 @@ sealed class TomcatBuilder[F[_]] private (
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
-      classloader: Option[ClassLoader] = classloader,
-      dispatcher: Dispatcher[F] = dispatcher
+      classloader: Option[ClassLoader] = classloader
   ): Self =
     new TomcatBuilder(
       socketAddress,
@@ -84,8 +82,7 @@ sealed class TomcatBuilder[F[_]] private (
       mounts,
       serviceErrorHandler,
       banner,
-      classloader,
-      dispatcher
+      classloader
     )
 
   def withSSL(
@@ -115,7 +112,7 @@ sealed class TomcatBuilder[F[_]] private (
       servlet: HttpServlet,
       urlMapping: String,
       name: Option[String] = None): Self =
-    copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, _, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       val wrapper = Tomcat.addServlet(ctx, servletName, servlet)
       wrapper.addMapping(urlMapping)
@@ -127,7 +124,7 @@ sealed class TomcatBuilder[F[_]] private (
       urlMapping: String,
       name: Option[String],
       dispatches: util.EnumSet[DispatcherType]): Self =
-    copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, _, _) =>
       val filterName = name.getOrElse(s"filter-$index")
 
       val filterDef = new FilterDef
@@ -150,13 +147,13 @@ sealed class TomcatBuilder[F[_]] private (
     mountHttpApp(service.orNotFound, prefix)
 
   def mountHttpApp(service: HttpApp[F], prefix: String): Self =
-    copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, builder, dispatcher) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
         serviceErrorHandler = builder.serviceErrorHandler,
-        dispatcher = builder.dispatcher
+        dispatcher = dispatcher
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
@@ -187,83 +184,81 @@ sealed class TomcatBuilder[F[_]] private (
     copy(classloader = Some(classloader))
 
   override def resource: Resource[F, Server] =
-    Resource(F.blocking {
-      val tomcat = new Tomcat
-      val cl = classloader.getOrElse(getClass.getClassLoader)
-      val docBase = cl.getResource("") match {
-        case null => null
-        case resource => resource.getPath
-      }
-      tomcat.addContext("", docBase)
-
-      val conn = tomcat.getConnector()
-      sslConfig.configureConnector(conn)
-
-      conn.setProperty("address", socketAddress.getHostString)
-      conn.setPort(socketAddress.getPort)
-      conn.setProperty(
-        "connection_pool_timeout",
-        (if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0).toString)
-
-      externalExecutor.foreach { ee =>
-        conn.getProtocolHandler match {
-          case p: AbstractProtocol[_] =>
-            p.setExecutor(ee)
-          case _ =>
-            logger.warn("Could not set external executor. Defaulting to internal")
+    Dispatcher[F].flatMap(dispatcher =>
+      Resource(F.blocking {
+        val tomcat = new Tomcat
+        val cl = classloader.getOrElse(getClass.getClassLoader)
+        val docBase = cl.getResource("") match {
+          case null => null
+          case resource => resource.getPath
         }
-      }
+        tomcat.addContext("", docBase)
 
-      val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
-      for ((mount, i) <- mounts.zipWithIndex)
-        mount.f(rootContext, i, this)
+        val conn = tomcat.getConnector()
+        sslConfig.configureConnector(conn)
 
-      tomcat.start()
+        conn.setProperty("address", socketAddress.getHostString)
+        conn.setPort(socketAddress.getPort)
+        conn.setProperty(
+          "connection_pool_timeout",
+          (if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0).toString)
 
-      val server = new Server {
-        lazy val address: InetSocketAddress = {
-          val host = socketAddress.getHostString
-          val port = tomcat.getConnector.getLocalPort
-          new InetSocketAddress(host, port)
+        externalExecutor.foreach { ee =>
+          conn.getProtocolHandler match {
+            case p: AbstractProtocol[_] =>
+              p.setExecutor(ee)
+            case _ =>
+              logger.warn("Could not set external executor. Defaulting to internal")
+          }
         }
 
-        lazy val isSecure: Boolean = sslConfig.isSecure
-      }
+        val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
+        for ((mount, i) <- mounts.zipWithIndex)
+          mount.f(rootContext, i, this, dispatcher)
 
-      val shutdown = F.blocking {
-        tomcat.stop()
-        tomcat.destroy()
-      }
+        tomcat.start()
 
-      banner.foreach(logger.info(_))
-      val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
-        case Array(_, version) => version
-        case _ => ServerInfo.getServerInfo // well, we tried
-      }
-      logger.info(
-        s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
+        val server = new Server {
+          lazy val address: InetSocketAddress = {
+            val host = socketAddress.getHostString
+            val port = tomcat.getConnector.getLocalPort
+            new InetSocketAddress(host, port)
+          }
 
-      server -> shutdown
-    })
+          lazy val isSecure: Boolean = sslConfig.isSecure
+        }
+
+        val shutdown = F.blocking {
+          tomcat.stop()
+          tomcat.destroy()
+        }
+
+        banner.foreach(logger.info(_))
+        val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
+          case Array(_, version) => version
+          case _ => ServerInfo.getServerInfo // well, we tried
+        }
+        logger.info(
+          s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
+
+        server -> shutdown
+      }))
 }
 
 object TomcatBuilder {
-  def create[F[_]: Async]: Resource[F, TomcatBuilder[F]] =
-    Dispatcher[F].map { dispatcher =>
-      new TomcatBuilder[F](
-        socketAddress = defaults.SocketAddress,
-        externalExecutor = None,
-        idleTimeout = defaults.IdleTimeout,
-        asyncTimeout = defaults.ResponseTimeout,
-        servletIo = ServletContainer.DefaultServletIo[F],
-        sslConfig = NoSsl,
-        mounts = Vector.empty,
-        serviceErrorHandler = DefaultServiceErrorHandler,
-        banner = defaults.Banner,
-        classloader = None,
-        dispatcher = dispatcher
-      )
-    }
+  def apply[F[_]: Async]: TomcatBuilder[F] =
+    new TomcatBuilder[F](
+      socketAddress = defaults.SocketAddress,
+      externalExecutor = None,
+      idleTimeout = defaults.IdleTimeout,
+      asyncTimeout = defaults.ResponseTimeout,
+      servletIo = ServletContainer.DefaultServletIo[F],
+      sslConfig = NoSsl,
+      mounts = Vector.empty,
+      serviceErrorHandler = DefaultServiceErrorHandler,
+      banner = defaults.Banner,
+      classloader = None
+    )
 
   private sealed trait SslConfig {
     def configureConnector(conn: Connector): Unit
@@ -312,4 +307,4 @@ object TomcatBuilder {
   }
 }
 
-private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F]) => Unit)
+private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F], Dispatcher[F]) => Unit)

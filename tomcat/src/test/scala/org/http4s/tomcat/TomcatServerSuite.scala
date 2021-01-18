@@ -38,34 +38,33 @@ class TomcatServerSuite extends Http4sSuite {
     LogManager.getLogManager().reset()
   }
 
-  val builder = TomcatBuilder.create[IO]
+  val builder = TomcatBuilder[IO]
 
   val serverR: cats.effect.Resource[IO, Server] =
-    builder.flatMap(
-      _.bindAny()
-        .withAsyncTimeout(3.seconds)
-        .mountService(
-          HttpRoutes.of {
-            case GET -> Root / "thread" / "routing" =>
-              println("inside action!")
-              val thread = Thread.currentThread.getName
-              Ok(thread)
+    builder
+      .bindAny()
+      .withAsyncTimeout(3.seconds)
+      .mountService(
+        HttpRoutes.of {
+          case GET -> Root / "thread" / "routing" =>
+            val thread = Thread.currentThread.getName
+            Ok(thread)
 
-            case GET -> Root / "thread" / "effect" =>
-              IO(Thread.currentThread.getName).flatMap(Ok(_))
+          case GET -> Root / "thread" / "effect" =>
+            IO(Thread.currentThread.getName).flatMap(Ok(_))
 
-            case req @ POST -> Root / "echo" =>
-              Ok(req.body)
+          case req @ POST -> Root / "echo" =>
+            Ok(req.body)
 
-            case GET -> Root / "never" =>
-              IO.never
+          case GET -> Root / "never" =>
+            IO.never
 
-            case GET -> Root / "slow" =>
-              IO.sleep(50.millis) *> Ok("slow")
-          },
-          "/"
-        )
-        .resource)
+          case GET -> Root / "slow" =>
+            IO.sleep(50.millis) *> Ok("slow")
+        },
+        "/"
+      )
+      .resource
 
   def tomcatServer: FunFixture[Server] =
     ResourceFixture[Server](serverR)
