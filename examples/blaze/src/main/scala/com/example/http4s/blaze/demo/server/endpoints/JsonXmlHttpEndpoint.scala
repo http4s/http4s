@@ -16,7 +16,7 @@
 
 package com.example.http4s.blaze.demo.server.endpoints
 
-import cats.effect.Effect
+import cats.effect.Async
 import cats.syntax.flatMap._
 import io.circe.generic.auto._
 import org.http4s.{ApiVersion => _, _}
@@ -26,7 +26,7 @@ import org.http4s.dsl.Http4sDsl
 import scala.xml._
 
 // Docs: http://http4s.org/v0.18/entity/
-class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
+class JsonXmlHttpEndpoint[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
   case class Person(name: String, age: Int)
 
   /** XML Example for Person:

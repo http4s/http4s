@@ -16,7 +16,7 @@
 
 package com.example.http4s.blaze.demo.server.service
 
-import cats.effect.Sync
+import cats.effect.Concurrent
 import cats.syntax.functor._
 import com.example.http4s.blaze.demo.server.endpoints.ApiVersion
 import fs2.Stream
@@ -28,7 +28,7 @@ import org.http4s.{Header, Request}
 import org.http4s.syntax.literals._
 
 // See: https://developer.github.com/apps/building-oauth-apps/authorization-options-for-oauth-apps/#web-application-flow
-class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
+class GitHubService[F[_]: Concurrent](client: Client[F]) extends Http4sClientDsl[F] {
   // NEVER make this data public! This is just a demo!
   private val ClientId = "959ea01cd3065cad274a"
   private val ClientSecret = "53901db46451977e6331432faa2616ba24bc2550"

@@ -34,17 +34,16 @@ import org.http4s.twirl._
 import org.http4s._
 import scala.concurrent.duration._
 
-class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F])
-    extends Http4sDsl[F] {
+class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
-  def routes(implicit timer: Timer[F]): HttpRoutes[F] =
+  def routes: HttpRoutes[F] =
     Router[F](
       "" -> rootRoutes,
       "/auth" -> authRoutes
     )
 
-  def rootRoutes(implicit timer: Timer[F]): HttpRoutes[F] =
+  def rootRoutes: HttpRoutes[F] =
     HttpRoutes.of[F] {
       case GET -> Root =>
         // Supports Play Framework template -- see src/main/twirl.
@@ -79,7 +78,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
         // captures everything after "/static" into `path`
         // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
         // See also org.http4s.server.staticcontent to create a mountable service for static content
-        StaticFile.fromResource(path.toString, blocker, Some(req)).getOrElseF(NotFound())
+        StaticFile.fromResource(path.toString, Some(req)).getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////
       //////////////// Dealing with the message body ////////////////
@@ -103,7 +102,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
           .decode[UrlForm] { data =>
             data.values.get("sum").flatMap(_.uncons) match {
               case Some((s, _)) =>
-                val sum = s.split(' ').filter(_.length > 0).map(_.trim.toInt).sum
+                val sum = s.split(' ').filter(_.nonEmpty).map(_.trim.toInt).sum
                 Ok(sum.toString)
 
               case None => BadRequest(s"Invalid data: " + data)
@@ -163,7 +162,7 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 
       case req @ GET -> Root / "image.jpg" =>
         StaticFile
-          .fromResource("/nasa_blackhole_image.jpg", blocker, Some(req))
+          .fromResource("/nasa_blackhole_image.jpg", Some(req))
           .getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////
@@ -180,11 +179,11 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
   def helloWorldService: F[Response[F]] = Ok("Hello World!")
 
   // This is a mock data source, but could be a Process representing results from a database
-  def dataStream(n: Int)(implicit timer: Timer[F]): Stream[F, String] = {
+  def dataStream(n: Int)(implicit clock: Clock[F]): Stream[F, String] = {
     val interval = 100.millis
     val stream = Stream
       .awakeEvery[F](interval)
-      .evalMap(_ => timer.clock.realTime(MILLISECONDS))
+      .evalMap(_ => clock.realTime)
       .map(time => s"Current system time: $time ms\n")
       .take(n.toLong)
 
@@ -212,6 +211,6 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 }
 
 object ExampleService {
-  def apply[F[_]: Effect: ContextShift](blocker: Blocker): ExampleService[F] =
-    new ExampleService[F](blocker)
+  def apply[F[_]: Async]: ExampleService[F] =
+    new ExampleService[F]
 }

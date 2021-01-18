@@ -35,8 +35,7 @@ object BlazeWebSocketExample extends IOApp {
     BlazeWebSocketExampleApp[IO].stream.compile.drain.as(ExitCode.Success)
 }
 
-class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Timer[F])
-    extends Http4sDsl[F] {
+class BlazeWebSocketExampleApp[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
   def routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
       case GET -> Root / "hello" =>
@@ -87,6 +86,6 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F], timer: Tim
 }
 
 object BlazeWebSocketExampleApp {
-  def apply[F[_]: ConcurrentEffect: Timer]: BlazeWebSocketExampleApp[F] =
+  def apply[F[_]: Async]: BlazeWebSocketExampleApp[F] =
     new BlazeWebSocketExampleApp[F]
 }

@@ -33,22 +33,20 @@ class BlazeMetricsExample extends IOApp {
 }
 
 object BlazeMetricsExampleApp {
-  def httpApp[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): HttpApp[F] = {
+  def httpApp[F[_]: Async]: HttpApp[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry()
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
     Router(
-      "/http4s" -> metrics(ExampleService[F](blocker).routes),
+      "/http4s" -> metrics(ExampleService[F].routes),
       "/http4s/metrics" -> metricsService[F](metricsRegistry)
     ).orNotFound
   }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server] =
-    for {
-      blocker <- Blocker[F]
-      app = httpApp[F](blocker)
-      server <- BlazeServerBuilder[F](global)
-        .bindHttp(8080)
-        .withHttpApp(app)
-        .resource
-    } yield server
+  def resource[F[_]: Async]: Resource[F, Server] = {
+    val app = httpApp[F]
+    BlazeServerBuilder[F](global)
+      .bindHttp(8080)
+      .withHttpApp(app)
+      .resource
+  }
 }
