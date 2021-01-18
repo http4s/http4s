@@ -162,6 +162,12 @@ final case class Uri(
 
   private def toSegment(path: Uri.Path, newSegment: String): Uri.Path =
     path / Uri.Path.Segment(newSegment)
+
+  /** Converts this request to origin-form, which is the absolute path and optional
+    * query.  If the path is relative, it is assumed to be relative to the root.
+    */
+  def toOriginForm: Uri =
+    Uri(path = path.toAbsolute, query = query)
 }
 
 object Uri {

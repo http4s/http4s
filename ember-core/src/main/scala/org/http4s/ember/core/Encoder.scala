@@ -81,7 +81,7 @@ private[ember] object Encoder {
       stringBuilder
         .append(req.method.renderString)
         .append(SPACE)
-        .append(req.uri.renderString)
+        .append(req.uri.toOriginForm.renderString)
         .append(SPACE)
         .append(req.httpVersion.renderString)
         .append(CRLF)
