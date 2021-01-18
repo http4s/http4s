@@ -1069,7 +1069,10 @@ object Uri extends UriPlatform {
             Ipv6Address(a, b, c, d, e, f, g, h)
         }
 
-      def repN[A](n: Int, p: cats.parse.Parser0[A], sep: cats.parse.Parser0[Unit] = P.unit): cats.parse.Parser0[List[A]] =
+      def repN[A](
+          n: Int,
+          p: cats.parse.Parser0[A],
+          sep: cats.parse.Parser0[Unit] = P.unit): cats.parse.Parser0[List[A]] =
         ((p ~ sep).replicateA(n - 1) ~ p)
           .map { case (head, tail) => head.map(_._1) :+ tail }
           .backtrack
@@ -1098,14 +1101,16 @@ object Uri extends UriPlatform {
         .orElse((doubleColon *> repN(4, h16Colon, P.unit) ~ ls32)
           .map { case (rs: List[Short], rs2) => toIpv6(Seq.empty, rs ++ rs2) })
         .backtrack
-        .orElse(((h16.?.with1 <* doubleColon) ~ h16Colon.repExactlyAs[List[Short]](3).backtrack ~ ls32)
-          .map { case ((ls: Option[Short], rs), rs2) => toIpv6(ls.toSeq, rs ++ rs2) })
-        .backtrack
         .orElse(
-          ((repN(2, h16, colon.void).?.with1 <* doubleColon) ~ h16Colon.repExactlyAs[List[Short]](2).backtrack ~ ls32)
-            .map { case ((ls: Option[List[Short]], rs), rs2) =>
-              toIpv6(ls.getOrElse(Seq.empty), rs ++ rs2)
-            })
+          ((h16.?.with1 <* doubleColon) ~ h16Colon.repExactlyAs[List[Short]](3).backtrack ~ ls32)
+            .map { case ((ls: Option[Short], rs), rs2) => toIpv6(ls.toSeq, rs ++ rs2) })
+        .backtrack
+        .orElse(((repN(2, h16, colon.void).?.with1 <* doubleColon) ~ h16Colon
+          .repExactlyAs[List[Short]](2)
+          .backtrack ~ ls32)
+          .map { case ((ls: Option[List[Short]], rs), rs2) =>
+            toIpv6(ls.getOrElse(Seq.empty), rs ++ rs2)
+          })
         .backtrack
         .orElse(((repN(3, h16, colon.void).?.with1 <* doubleColon) ~ h16Colon ~ ls32)
           .map { case ((ls: Option[List[Short]], r0: Short), rs) =>
@@ -1123,7 +1128,9 @@ object Uri extends UriPlatform {
           })
         .backtrack
         .orElse((repN(6, h16, colon.void).?.with1 <* doubleColon)
-          .map {(ls: Option[collection.Seq[Short]]) => toIpv6(ls.getOrElse(Seq.empty), Seq.empty)})
+          .map { (ls: Option[collection.Seq[Short]]) =>
+            toIpv6(ls.getOrElse(Seq.empty), Seq.empty)
+          })
         .backtrack
     }
 
@@ -1159,7 +1166,12 @@ object Uri extends UriPlatform {
     val parser: Parser0[RegName] = {
       import Rfc3986.{pctEncoded, subDelims, unreserved}
 
-      unreserved.orElse(pctEncoded).orElse(subDelims).rep0.string.map(s => RegName(CIString(decode(s))))
+      unreserved
+        .orElse(pctEncoded)
+        .orElse(subDelims)
+        .rep0
+        .string
+        .map(s => RegName(CIString(decode(s))))
     }
 
     implicit val catsInstancesForHttp4sUriRegName
