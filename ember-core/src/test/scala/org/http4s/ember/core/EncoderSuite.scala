@@ -122,23 +122,6 @@ class EncoderSuite extends Http4sSuite {
     Helpers.encodeRequestRig(req).assertEquals(expected)
   }
 
-  test("reqToBytes respects the host header") {
-    val req = Request[IO](
-      Method.GET,
-      Uri.unsafeFromString("https://www.example.com/"),
-      headers = Headers.of(headers.Host("example.org", Some(8080)))
-    )
-    val expected =
-      """GET / HTTP/1.1
-        |Host: example.org:8080
-        |Transfer-Encoding: chunked
-        |
-        |0
-        |
-        |""".stripMargin
-    Helpers.encodeRequestRig(req).assertEquals(expected)
-  }
-
   test("respToBytes should encode a no body response correctly") {
     val resp = Response[IO](Status.Ok)
 
