@@ -19,7 +19,6 @@ package ember.core
 
 import cats.syntax.all._
 import cats.effect.{IO, Sync}
-import cats.effect.unsafe.implicits.global
 
 class EncoderSuite extends Http4sSuite {
   private object Helpers {
