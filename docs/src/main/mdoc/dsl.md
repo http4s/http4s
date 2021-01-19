@@ -362,7 +362,7 @@ say `"Hello, Alice and Bob!"`
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.toList.mkString(" and ")}!""")
+  case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.segments.mkString(" and ")}!""")
 }
 ```
 
@@ -415,7 +415,8 @@ val dailyWeatherService = HttpRoutes.of[IO] {
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(uri"/weather/temperature/2016-11-05").flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync())
+val req = GET(uri"/weather/temperature/2016-11-05")
+dailyWeatherService.orNotFound(req).unsafeRunSync()
 ```
 
 ### Handling query parameters

@@ -104,7 +104,7 @@ import org.http4s.client.dsl.io._
 ```
 
 ```scala mdoc
-POST(json"""{"name": "Alice"}""", uri"/hello").unsafeRunSync()
+POST(json"""{"name": "Alice"}""", uri"/hello")
 ```
 
 ## Encoding case classes as JSON
@@ -161,7 +161,7 @@ and responses for our case classes:
 
 ```scala mdoc
 Ok(Hello("Alice").asJson).unsafeRunSync()
-POST(User("Bob").asJson, uri"/hello").unsafeRunSync()
+POST(User("Bob").asJson, uri"/hello")
 ```
 
 If within some route we serve json only, we can use:
@@ -187,7 +187,7 @@ response body to JSON using the [`as` syntax]:
 
 ```scala mdoc
 Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync()
-POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[Json]).unsafeRunSync()
+POST("""{"name":"Bob"}""", uri"/hello").as[Json].unsafeRunSync()
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -205,7 +205,7 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 implicit val userDecoder = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync()
 
-POST("""{"name":"Bob"}""", uri"/hello").flatMap(_.as[User]).unsafeRunSync()
+POST("""{"name":"Bob"}""", uri"/hello").as[User].unsafeRunSync()
 ```
 
 If we are always decoding from JSON to a typed model, we can use

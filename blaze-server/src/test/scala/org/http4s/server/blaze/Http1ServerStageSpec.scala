@@ -31,12 +31,13 @@ import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.testing.ErrorReporting._
 import org.specs2.specification.AfterAll
 import org.specs2.specification.core.Fragment
+import org.typelevel.ci.CIString
+import org.typelevel.vault._
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import _root_.io.chrisdavenport.vault._
-import org.http4s.testing.ErrorReporting._
 
 class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   sequential
@@ -143,7 +144,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
         .map(parseAndDropDate)
         .map { case (s, h, r) =>
           val close = h.exists { h =>
-            h.toRaw.name == "connection".ci && h.toRaw.value == "close"
+            h.toRaw.name == CIString("connection") && h.toRaw.value == "close"
           }
           (s, close, r)
         }
@@ -436,14 +437,14 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
 
       val routes = HttpRoutes
         .of[IO] {
-          case req if req.pathInfo == "/foo" =>
+          case req if req.pathInfo == path"/foo" =>
             for {
               _ <- req.body.compile.drain
               hs <- req.trailerHeaders
               resp <- Ok(hs.toList.mkString)
             } yield resp
 
-          case req if req.pathInfo == "/bar" =>
+          case req if req.pathInfo == path"/bar" =>
             for {
               // Don't run the body
               hs <- req.trailerHeaders

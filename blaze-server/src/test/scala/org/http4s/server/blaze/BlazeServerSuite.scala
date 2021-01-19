@@ -65,14 +65,14 @@ class BlazeServerSuite extends Http4sSuite {
       .withHttpApp(service)
       .resource
 
-  def blazeServer: FunFixture[Server[IO]] =
-    ResourceFixture[Server[IO]](
+  def blazeServer: FunFixture[Server] =
+    ResourceFixture[Server](
       serverR,
-      (_: TestOptions, _: Server[IO]) => IO.unit,
-      (_: Server[IO]) => IO.sleep(100.milliseconds) *> IO.unit)
+      (_: TestOptions, _: Server) => IO.unit,
+      (_: Server) => IO.sleep(100.milliseconds) *> IO.unit)
 
   // This should be in IO and shifted but I'm tired of fighting this.
-  def get(server: Server[IO], path: String): IO[String] = IO {
+  def get(server: Server, path: String): IO[String] = IO {
     Source
       .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
       .getLines()
@@ -80,7 +80,7 @@ class BlazeServerSuite extends Http4sSuite {
   }
 
   // This should be in IO and shifted but I'm tired of fighting this.
-  def getStatus(server: Server[IO], path: String): IO[Status] = {
+  def getStatus(server: Server, path: String): IO[Status] = {
     val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
     for {
       conn <- IO(url.openConnection().asInstanceOf[HttpURLConnection])
@@ -90,7 +90,7 @@ class BlazeServerSuite extends Http4sSuite {
   }
 
   // This too
-  def post(server: Server[IO], path: String, body: String): IO[String] = IO {
+  def post(server: Server, path: String, body: String): IO[String] = IO {
     val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
     val conn = url.openConnection().asInstanceOf[HttpURLConnection]
     val bytes = body.getBytes(StandardCharsets.UTF_8)
@@ -103,7 +103,7 @@ class BlazeServerSuite extends Http4sSuite {
 
   // This too
   def postChunkedMultipart(
-      server: Server[IO],
+      server: Server,
       path: String,
       boundary: String,
       body: String): IO[String] =
@@ -139,7 +139,7 @@ class BlazeServerSuite extends Http4sSuite {
   blazeServer.test("reliably handle multipart requests") { server =>
     val body =
       """|--aa
-             |server: Server[IO], Content-Disposition: form-data; name="a"
+             |server: Server, Content-Disposition: form-data; name="a"
              |Content-Length: 1
              |
              |a

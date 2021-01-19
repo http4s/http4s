@@ -32,11 +32,11 @@ import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
+import org.typelevel.vault._
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-import _root_.io.chrisdavenport.vault._
 
 private final class Http1Connection[F[_]](
     val requestKey: RequestKey,
@@ -104,26 +104,49 @@ private final class Http1Connection[F[_]](
     }
 
   @tailrec
-  def reset(): Unit =
-    stageState.get() match {
-      case v @ (Running | Idle) =>
-        if (stageState.compareAndSet(v, Idle)) parser.reset()
-        else reset()
-      case Error(_) => // NOOP: we don't reset on an error.
+  def resetRead(): Unit = {
+    val state = stageState.get()
+    val nextState = state match {
+      case Idle => Some(Idle)
+      case ReadWrite => Some(Write)
+      case Read => Some(Idle)
+      case _ => None
     }
+
+    nextState match {
+      case Some(n) => if (stageState.compareAndSet(state, n)) parser.reset() else resetRead()
+      case None => ()
+    }
+  }
+
+  @tailrec
+  def resetWrite(): Unit = {
+    val state = stageState.get()
+    val nextState = state match {
+      case Idle => Some(Idle)
+      case ReadWrite => Some(Read)
+      case Write => Some(Idle)
+      case _ => None
+    }
+
+    nextState match {
+      case Some(n) => if (stageState.compareAndSet(state, n)) () else resetWrite()
+      case None => ()
+    }
+  }
 
   def runRequest(req: Request[F], idleTimeoutF: F[TimeoutException]): F[Response[F]] =
     F.suspend[Response[F]] {
       stageState.get match {
         case Idle =>
-          if (stageState.compareAndSet(Idle, Running)) {
+          if (stageState.compareAndSet(Idle, ReadWrite)) {
             logger.debug(s"Connection was idle. Running.")
             executeRequest(req, idleTimeoutF)
           } else {
             logger.debug(s"Connection changed state since checking it was idle. Looping.")
             runRequest(req, idleTimeoutF)
           }
-        case Running =>
+        case ReadWrite | Read | Write =>
           logger.error(s"Tried to run a request already in running state.")
           F.raiseError(InProgressException)
         case Error(e) =>
@@ -167,22 +190,22 @@ private final class Http1Connection[F[_]](
 
             val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
               .write(rr, req.body)
+              .guarantee(F.delay(resetWrite()))
               .onError {
                 case EOF => F.unit
                 case t => F.delay(logger.error(t)("Error rendering request"))
               }
 
-            val response: F[Response[F]] =
+            val response: F[Response[F]] = writeRequest.start >>
               receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD, idleTimeoutS)
 
-            val res = writeRequest.start >> response
-
-            F.racePair(res, timeoutFiber.join).flatMap {
-              case Left((r, _)) =>
-                F.pure(r)
-              case Right((fiber, t)) =>
-                fiber.cancel >> F.raiseError(t)
-            }
+            F.race(response, timeoutFiber.join)
+              .flatMap[Response[F]] {
+                case Left(r) =>
+                  F.pure(r)
+                case Right(t) =>
+                  F.raiseError(t)
+              }
           }
         }
     }
@@ -206,8 +229,10 @@ private final class Http1Connection[F[_]](
       case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
       case Failure(EOF) =>
         stageState.get match {
-          case Idle | Running => shutdown(); cb(Left(EOF))
           case Error(e) => cb(Left(e))
+          case _ =>
+            shutdown()
+            cb(Left(EOF))
         }
 
       case Failure(t) =>
@@ -247,7 +272,7 @@ private final class Http1Connection[F[_]](
           stageShutdown()
         } else {
           logger.debug(s"Resetting $name after completing request.")
-          reset()
+          resetRead()
         }
 
       val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
@@ -339,7 +364,7 @@ private final class Http1Connection[F[_]](
         validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
       else
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
-    else if (req.uri.path == "") Right(req.withUri(req.uri.copy(path = "/")))
+    else if (req.uri.path == Uri.Path.empty) Right(req.withUri(req.uri.copy(path = Uri.Path.Root)))
     else Right(req) // All appears to be well
   }
 
@@ -356,17 +381,16 @@ private object Http1Connection {
   // ADT representing the state that the ClientStage can be in
   private sealed trait State
   private case object Idle extends State
-  private case object Running extends State
+  private case object ReadWrite extends State
+  private case object Read extends State
+  private case object Write extends State
   private final case class Error(exc: Throwable) extends State
 
   private def getHttpMinor[F[_]](req: Request[F]): Int = req.httpVersion.minor
 
   private def encodeRequestLine[F[_]](req: Request[F], writer: Writer): writer.type = {
     val uri = req.uri
-    writer << req.method << ' ' << uri.copy(
-      scheme = None,
-      authority = None,
-      fragment = None) << ' ' << req.httpVersion << "\r\n"
+    writer << req.method << ' ' << uri.toOriginForm << ' ' << req.httpVersion << "\r\n"
     if (getHttpMinor(req) == 1 && Host
         .from(req.headers)
         .isEmpty) { // need to add the host header for HTTP/1.1

@@ -17,10 +17,9 @@
 package org.http4s
 
 import cats.{Hash, Order, Show}
-import cats.data.{Writer => _}
 import cats.syntax.all._
 import cats.kernel.BoundedEnumerable
-import cats.parse.{Parser => P, Parser1}
+import cats.parse.{Parser => P}
 import cats.parse.Rfc5234.digit
 import org.http4s.util._
 
@@ -40,12 +39,7 @@ object HttpVersion {
   val `HTTP/1.0` = new HttpVersion(1, 0)
   val `HTTP/1.1` = new HttpVersion(1, 1)
   val `HTTP/2.0` = new HttpVersion(2, 0)
-  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.12")
-  val http4sHttpOrderForVersion: Order[HttpVersion] =
-    Order.fromComparable
-  @deprecated("Use catsInstancesForHttp4sHttpVersion", "0.21.12")
-  val http4sHttpShowForVersion: Show[HttpVersion] =
-    Show.fromToString
+
   private[this] val right_1_0 = Right(`HTTP/1.0`)
   private[this] val right_1_1 = Right(`HTTP/1.1`)
 
@@ -57,10 +51,10 @@ object HttpVersion {
         ParseResult.fromParser(parser, "HTTP version")(s)
     }
 
-  private val parser: Parser1[HttpVersion] = {
+  private val parser: P[HttpVersion] = {
     // HTTP-name = %x48.54.54.50 ; HTTP
     // HTTP-version = HTTP-name "/" DIGIT "." DIGIT
-    val httpVersion = P.string1("HTTP/") *> digit ~ (P.char('.') *> digit)
+    val httpVersion = P.string("HTTP/") *> digit ~ (P.char('.') *> digit)
 
     httpVersion.map { case (major, minor) =>
       new HttpVersion(major - '0', minor - '0')

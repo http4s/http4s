@@ -18,7 +18,6 @@ package org.http4s.servlet
 
 import cats.effect._
 import cats.syntax.all._
-import io.chrisdavenport.vault._
 import java.net.InetSocketAddress
 import java.security.cert.X509Certificate
 import javax.servlet.ServletConfig
@@ -29,6 +28,7 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
+import org.typelevel.vault._
 
 abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
     F: Effect[F])
@@ -98,7 +98,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       headers = toHeaders(req),
       body = servletIo.reader(req),
       attributes = Vault.empty
-        .insert(Request.Keys.PathInfoCaret, req.getContextPath.length + req.getServletPath.length)
+        .insert(Request.Keys.PathInfoCaret, getPathInfoIndex(req, uri))
         .insert(
           Request.Keys.ConnectionInfo,
           Request.Connection(
@@ -136,6 +136,16 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
             .mapN(SecureSession.apply)
         )
     )
+
+  private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
+    val pathInfo =
+      Uri.Path
+        .fromString(req.getContextPath)
+        .concat(Uri.Path.fromString(req.getServletPath))
+    uri.path
+      .findSplit(pathInfo)
+      .getOrElse(-1)
+  }
 
   protected def toHeaders(req: HttpServletRequest): Headers = {
     val headers = for {

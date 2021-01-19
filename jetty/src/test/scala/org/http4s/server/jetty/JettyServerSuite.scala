@@ -58,10 +58,10 @@ class JettyServerSuite extends Http4sSuite {
       )
       .resource
 
-  def jettyServer: FunFixture[Server[IO]] =
-    ResourceFixture[Server[IO]](serverR)
+  def jettyServer: FunFixture[Server] =
+    ResourceFixture[Server](serverR)
 
-  def get(server: Server[IO], path: String): IO[String] =
+  def get(server: Server, path: String): IO[String] =
     testBlocker.blockOn(
       IO(
         Source
@@ -69,7 +69,7 @@ class JettyServerSuite extends Http4sSuite {
           .getLines()
           .mkString))
 
-  def post(server: Server[IO], path: String, body: String): IO[String] =
+  def post(server: Server, path: String, body: String): IO[String] =
     testBlocker.blockOn(IO {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]

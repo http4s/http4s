@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import org.typelevel.ci.CIString
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
@@ -38,6 +39,8 @@ trait Renderer[T] {
 }
 
 object Renderer {
+  @inline def apply[A](implicit ev: Renderer[A]): Renderer[A] = ev
+
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
@@ -73,6 +76,11 @@ object Renderer {
           case Right(b) => rb.render(writer, b)
         }
     }
+
+  implicit val ciStringRenderer: Renderer[CIString] = new Renderer[CIString] {
+    override def render(writer: Writer, ciString: CIString): writer.type =
+      writer << ciString
+  }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
@@ -105,7 +113,7 @@ object Writer {
 /** Efficiently accumulate [[Renderable]] representations */
 trait Writer {
   def append(s: String): this.type
-  def append(ci: CaseInsensitiveString): this.type = append(ci.toString)
+  def append(ci: CIString): this.type = append(ci.toString)
   def append(char: Char): this.type = append(char.toString)
   def append(float: Float): this.type = append(float.toString)
   def append(double: Double): this.type = append(double.toString)
@@ -172,7 +180,7 @@ trait Writer {
 
   final def <<(s: String): this.type = append(s)
   final def <<#(s: String): this.type = quote(s)
-  final def <<(s: CaseInsensitiveString): this.type = append(s)
+  final def <<(s: CIString): this.type = append(s)
   final def <<(char: Char): this.type = append(char)
   final def <<(float: Float): this.type = append(float)
   final def <<(double: Double): this.type = append(double)

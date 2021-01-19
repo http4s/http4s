@@ -19,6 +19,7 @@ package parser
 
 import cats.data.NonEmptyList
 import org.http4s.headers.Authorization
+import org.typelevel.ci.CIString
 
 class AuthorizationHeaderSpec extends Http4sSpec {
   def hparse(value: String) = Authorization.parse(value)
@@ -39,28 +40,27 @@ class AuthorizationHeaderSpec extends Http4sSpec {
     }
 
     "Parse a KeyValueCredentials header" in {
-      val scheme = "foo"
+      val scheme = CIString("foo")
       val params = NonEmptyList.of("abc" -> "123")
-      val h = Authorization(Credentials.AuthParams(scheme.ci, params))
+      val h = Authorization(Credentials.AuthParams(scheme, params))
       hparse(h.value) must beRight(h)
     }
 
     "Parse a KeyValueCredentials header unquoted" in {
       val scheme = "foo"
       val params = NonEmptyList.of("abc" -> "123")
-      val h = Authorization(Credentials.AuthParams(scheme.ci, params))
+      val h = Authorization(Credentials.AuthParams(CIString(scheme), params))
       hparse("foo abc=123") must beRight(h)
     }
 
     "Parse a KeyValueCredentials with weird spaces" in {
       val scheme = "foo"
-      hparse("foo abc = \"123 yeah\tyeah yeah\"") must beRight(
-        Authorization(
-          Credentials.AuthParams(scheme.ci, NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))))
+      hparse("foo abc = \"123 yeah\tyeah yeah\"") must beRight(Authorization(
+        Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))))
 
       //quoted-pair
       hparse("foo abc = \"\\123\"") must beRight(
-        Authorization(Credentials.AuthParams(scheme.ci, NonEmptyList.of("abc" -> "\\123"))))
+        Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123"))))
     }
   }
 }

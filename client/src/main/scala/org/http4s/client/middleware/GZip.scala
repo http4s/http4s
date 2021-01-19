@@ -18,10 +18,9 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.Bracket
+import cats.effect.{Bracket, Sync}
 import fs2.{Pipe, Pull, Stream}
 import org.http4s.headers.{`Accept-Encoding`, `Content-Encoding`}
-import scala.annotation.nowarn
 import scala.util.control.NoStackTrace
 
 /** Client middleware for enabling gzip.
@@ -30,8 +29,7 @@ object GZip {
   private val supportedCompressions =
     Seq(ContentCoding.gzip.coding, ContentCoding.deflate.coding).mkString(", ")
 
-  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit
-      F: Bracket[F, Throwable]): Client[F] =
+  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit F: Sync[F]): Client[F] =
     Client[F] { req =>
       val reqWithEncoding = addHeaders(req)
       val responseResource = client.run(reqWithEncoding)
@@ -47,21 +45,20 @@ object GZip {
         req
       case _ =>
         req.withHeaders(
-          req.headers ++ Headers.of(Header(`Accept-Encoding`.name.value, supportedCompressions)))
+          req.headers ++ Headers.of(Header(`Accept-Encoding`.name.toString, supportedCompressions)))
     }
 
-  @nowarn("cat=deprecation")
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
-      F: Bracket[F, Throwable]): Response[F] =
+      F: Sync[F]): Response[F] =
     response.headers.get(`Content-Encoding`) match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =
-          _.through(fs2.compress.gunzip(bufferSize))
+          _.through(fs2.compression.gunzip(bufferSize)).flatMap(_.content)
         response.withBodyStream(response.body.through(decompressWith(gunzip)))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
-        val deflate: Pipe[F, Byte, Byte] = fs2.compress.deflate(bufferSize)
+        val deflate: Pipe[F, Byte, Byte] = fs2.compression.deflate(bufferSize)
         response.withBodyStream(response.body.through(decompressWith(deflate)))
 
       case _ =>

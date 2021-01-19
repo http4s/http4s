@@ -22,8 +22,10 @@ import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot._
 import java.io.StringWriter
+
+import org.http4s.Uri.Path
 import org.http4s._
-import org.http4s.dsl.Http4sDsl
+import org.http4s.implicits.http4sLiteralsSyntax
 
 /*
  * PrometheusExportService Contains an HttpService
@@ -37,6 +39,9 @@ final class PrometheusExportService[F[_]: Sync] private (
 )
 
 object PrometheusExportService {
+
+  private val metricsPath: Path = path"/metrics"
+
   def apply[F[_]: Sync](collectorRegistry: CollectorRegistry): PrometheusExportService[F] =
     new PrometheusExportService(service(collectorRegistry), collectorRegistry)
 
@@ -55,14 +60,11 @@ object PrometheusExportService {
       }
       .map(Response[F](Status.Ok).withEntity(_))
 
-  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] = {
-    object dsl extends Http4sDsl[F]
-    import dsl._
-
-    HttpRoutes.of[F] { case GET -> Root / "metrics" =>
-      generateResponse(collectorRegistry)
+  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] =
+    HttpRoutes.of[F] {
+      case req if req.method == Method.GET && req.pathInfo == metricsPath =>
+        generateResponse(collectorRegistry)
     }
-  }
 
   def addDefaults[F[_]: Sync](cr: CollectorRegistry): Resource[F, Unit] =
     for {

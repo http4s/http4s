@@ -22,12 +22,12 @@ import cats.effect.IO
 import cats.Eq
 import cats.effect.laws.util.TestContext
 import org.http4s.headers.`Content-Type`
-// import org.http4s.laws.discipline.EntityCodecTests
+import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.MediaType
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 
-class BoopickleSuite extends Http4sSuite with BooPickleInstances {
+class BoopickleSuite extends Http4sSuite with BooPickleInstances with Http4sLawSuite {
   implicit val testContext = TestContext()
 
   trait Fruit {
@@ -80,5 +80,5 @@ class BoopickleSuite extends Http4sSuite with BooPickleInstances {
     result.value.map(assertEquals(_, Right(Banana(10.0))))
   }
 
-  // checkAll("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodec)
+  checkAllF("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodecF)
 }

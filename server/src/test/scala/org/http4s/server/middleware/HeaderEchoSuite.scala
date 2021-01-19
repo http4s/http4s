@@ -21,9 +21,8 @@ import cats.implicits._
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.Uri.uri
 import org.http4s.syntax.all._
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 
 class HeaderEchoSuite extends Http4sSuite {
   object someHeaderKey extends HeaderKey.Default
@@ -36,7 +35,7 @@ class HeaderEchoSuite extends Http4sSuite {
   def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {
     val requestMatchingSingleHeaderKey =
       Request[G](
-        uri = uri("/request"),
+        uri = uri"/request",
         headers = Headers.of(Header("someheaderkey", "someheadervalue"))
       )
 
@@ -51,19 +50,19 @@ class HeaderEchoSuite extends Http4sSuite {
 
   test("echo a single header in addition to the defaults") {
     testSingleHeader(
-      HeaderEcho(_ === CaseInsensitiveString("someheaderkey"))(testService).orNotFound
+      HeaderEcho(_ === CIString("someheaderkey"))(testService).orNotFound
     ).assertEquals(true)
   }
 
   test("echo multiple headers") {
     val requestMatchingMultipleHeaderKeys =
       Request[IO](
-        uri = uri("/request"),
+        uri = uri"/request",
         headers = Headers.of(
           Header("someheaderkey", "someheadervalue"),
           Header("anotherheaderkey", "anotherheadervalue")))
     val headersToEcho =
-      List(CaseInsensitiveString("someheaderkey"), CaseInsensitiveString("anotherheaderkey"))
+      List(CIString("someheaderkey"), CIString("anotherheaderkey"))
     val testee = HeaderEcho(headersToEcho.contains(_))(testService)
 
     testee
@@ -81,10 +80,10 @@ class HeaderEchoSuite extends Http4sSuite {
   test("echo only the default headers where none match the key") {
     val requestMatchingNotPresentHeaderKey =
       Request[IO](
-        uri = uri("/request"),
+        uri = uri"/request",
         headers = Headers.of(Header("someunmatchedheader", "someunmatchedvalue")))
 
-    val testee = HeaderEcho(_ == CaseInsensitiveString("someheaderkey"))(testService)
+    val testee = HeaderEcho(_ == CIString("someheaderkey"))(testService)
     testee
       .orNotFound(requestMatchingNotPresentHeaderKey)
       .map { r =>
@@ -97,14 +96,12 @@ class HeaderEchoSuite extends Http4sSuite {
   }
 
   test("be created via the httpRoutes constructor") {
-    testSingleHeader(
-      HeaderEcho.httpRoutes(_ == CaseInsensitiveString("someheaderkey"))(testService).orNotFound)
+    testSingleHeader(HeaderEcho.httpRoutes(_ == CIString("someheaderkey"))(testService).orNotFound)
       .assertEquals(true)
   }
 
   test("be created via the httpApps constructor") {
-    testSingleHeader(
-      HeaderEcho.httpApp(_ == CaseInsensitiveString("someheaderkey"))(testService.orNotFound))
+    testSingleHeader(HeaderEcho.httpApp(_ == CIString("someheaderkey"))(testService.orNotFound))
       .assertEquals(true)
   }
 }

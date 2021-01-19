@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.syntax.either._
 import org.http4s._
 import org.http4s.util.{Renderable, Writer}
-import cats.parse.{Numbers, Parser1, Rfc5234, Parser => P}
+import cats.parse.{Numbers, Parser0, Rfc5234, Parser => P}
 import org.http4s.Uri.{Ipv4Address, Ipv6Address}
 import org.http4s.internal.parsing.Rfc7230
 
@@ -84,9 +84,9 @@ object Forwarded
     sealed abstract case class Obfuscated private (value: String) extends Name with Port
 
     object Obfuscated {
-      val parser: Parser1[Obfuscated] =
-        (P.char('_') ~
-          P.rep1(P.oneOf1(List(Rfc5234.alpha, Rfc5234.digit, P.charIn("._-"))), 1)).string
+      val parser: P[Obfuscated] =
+        (P.char('_') ~ (P.oneOf(List(Rfc5234.alpha, Rfc5234.digit, P.charIn("._-"))).rep(1)))
+          .string
           .map(Obfuscated.apply)
 
       def fromString(s: String): ParseResult[Obfuscated] =
@@ -103,7 +103,7 @@ object Forwarded
         ParseFailure(s"invalid node '$s'", e.toString)
       }
 
-    val parser: Parser1[Node] = {
+    val parser: P[Node] = {
       // https://tools.ietf.org/html/rfc7239#section-4
 
       def modelNodePortFromString(str: String): Option[Node.Port] =
@@ -113,21 +113,21 @@ object Forwarded
       // port      = 1*5DIGIT
       // obfport   = "_" 1*(ALPHA / DIGIT / "." / "_" / "-")
       val nodePort: P[Node.Port] =
-        Numbers.digits1
+        Numbers.digits
           // is it worth it to consume only up to 5 chars or just let it fail later?
           .mapFilter(digits => modelNodePortFromString(digits))
           .orElse(Obfuscated.parser)
 
       // nodename = IPv4address / "[" IPv6address "]" / "unknown" / obfnode
       // obfnode  = "_" 1*( ALPHA / DIGIT / "." / "_" / "-")
-      val nodeName: Parser1[Node.Name] =
-        P.oneOf1[Node.Name](
+      val nodeName: P[Node.Name] =
+        P.oneOf[Node.Name](
           List(
             Ipv4Address.parser.map(Node.Name.Ipv4),
             Ipv6Address.parser
               .between(P.char('['), P.char(']'))
               .map(Node.Name.Ipv6),
-            P.string1("unknown").as(Node.Name.Unknown),
+            P.string("unknown").as(Node.Name.Unknown),
             Obfuscated.parser
           )
         )
@@ -174,7 +174,7 @@ object Forwarded
         ParseFailure(s"invalid host '$s'", e.toString)
       }
 
-    val parser: P[Host] = {
+    val parser: Parser0[Host] = {
       // this is awkward but the spec allows an empty port number
       val port: P[Option[Int]] = Numbers.digits
         .mapFilter { s =>
@@ -289,7 +289,7 @@ object Forwarded
       }
     }
 
-    def quoted[A](p: P[A]): P[A] =
+    def quoted[A](p: Parser0[A]): P[A] =
       Rfc7230.token
         .orElse(Rfc7230.quotedString)
         .flatMap(str =>
@@ -312,7 +312,7 @@ object Forwarded
     val proto = Uri.Scheme.parser
     val node = Node.parser
 
-    val forwardedPair = P.oneOf1(
+    val forwardedPair = P.oneOf(
       List(
         Rfc7230.token
           .flatMap(tok =>
@@ -333,7 +333,7 @@ object Forwarded
 
     // forwarded-element = [ forwarded-pair ] *( ";" [ forwarded-pair ] )
     val forwardedElement =
-      P.rep1Sep(forwardedPair, 1, P.char(';'))
+      P.repSep(forwardedPair, 1, P.char(';'))
         .map(pairs => pairs.tail.foldLeft(pairs.head.create)((z, x) => x.merge(z)))
 
     // Forwarded = 1#forwarded-element

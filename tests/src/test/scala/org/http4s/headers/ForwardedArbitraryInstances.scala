@@ -73,7 +73,7 @@ private[http4s] trait ForwardedArbitraryInstances
           // Currently `Gen[Uri.Host]` generates pct-encoded `Uri.RegName`,
           // while the latter is designed to keep not encoded strings (see `Rfc3986Parser#Host`).
           // TODO: consider fixing `Gen[Uri.Host]`. See also #1651.
-          case Uri.RegName(n) => Uri.RegName(Uri.decode(n.value, StandardCharsets.ISO_8859_1))
+          case Uri.RegName(n) => Uri.RegName(Uri.decode(n.toString, StandardCharsets.ISO_8859_1))
           case other => other
         }
 

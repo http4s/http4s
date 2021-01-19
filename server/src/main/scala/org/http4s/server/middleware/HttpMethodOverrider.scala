@@ -25,9 +25,9 @@ import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.alternative._
 import cats.{Monad, ~>}
-import io.chrisdavenport.vault.Key
 import org.http4s.Http
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
+import org.typelevel.vault.Key
 
 object HttpMethodOverrider {
 
@@ -59,7 +59,7 @@ object HttpMethodOverrider {
   }
 
   sealed trait OverrideStrategy[F[_], G[_]]
-  final case class HeaderOverrideStrategy[F[_], G[_]](headerName: CaseInsensitiveString)
+  final case class HeaderOverrideStrategy[F[_], G[_]](headerName: CIString)
       extends OverrideStrategy[F, G]
   final case class QueryOverrideStrategy[F[_], G[_]](paramName: String)
       extends OverrideStrategy[F, G]
@@ -70,7 +70,7 @@ object HttpMethodOverrider {
 
   def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] =
     HttpMethodOverriderConfig[F, G](
-      HeaderOverrideStrategy(CaseInsensitiveString("X-HTTP-Method-Override")),
+      HeaderOverrideStrategy(CIString("X-HTTP-Method-Override")),
       Set(Method.POST))
 
   val overriddenMethodAttrKey: Key[Method] = Key.newKey[IO, Method].unsafeRunSync()
@@ -101,14 +101,14 @@ object HttpMethodOverrider {
       }
 
     def updateVaryHeader(resp: Response[G]): Response[G] = {
-      val varyHeaderName = CaseInsensitiveString("Vary")
+      val varyHeaderName = CIString("Vary")
       config.overrideStrategy match {
         case HeaderOverrideStrategy(headerName) =>
           val updatedVaryHeader =
             resp.headers
               .get(varyHeaderName)
-              .map((h: Header) => Header(h.name.value, s"${h.value}, ${headerName.value}"))
-              .getOrElse(Header(varyHeaderName.value, headerName.value))
+              .map((h: Header) => Header(h.name.toString, s"${h.value}, ${headerName.toString}"))
+              .getOrElse(Header(varyHeaderName.toString, headerName.toString))
 
           resp.withHeaders(resp.headers.put(updatedVaryHeader))
         case _ => resp

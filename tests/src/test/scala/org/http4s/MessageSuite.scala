@@ -23,8 +23,8 @@ import java.net.{InetAddress, InetSocketAddress}
 
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 import org.http4s.syntax.all._
-import _root_.io.chrisdavenport.vault._
-import org.http4s.Uri.{Authority, Scheme}
+import org.typelevel.ci.CIString
+import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
   val local = InetSocketAddress.createUnresolved("www.local.com", 8080)
@@ -79,7 +79,7 @@ class MessageSuite extends Http4sSuite {
       Request(Method.GET)
         .addCookie(RequestCookie("token", "value"))
         .headers
-        .get("Cookie".ci)
+        .get(CIString("Cookie"))
         .map(_.value),
       Some("token=value"))
   }
@@ -91,7 +91,7 @@ class MessageSuite extends Http4sSuite {
         .addCookie(RequestCookie("token1", "value1"))
         .addCookie(RequestCookie("token2", "value2"))
         .headers
-        .get("Cookie".ci)
+        .get(CIString("Cookie"))
         .map(_.value),
       Some("token1=value1; token2=value2")
     )
@@ -102,7 +102,7 @@ class MessageSuite extends Http4sSuite {
       Request(Method.GET)
         .addCookie("token", "value")
         .headers
-        .get("Cookie".ci)
+        .get(CIString("Cookie"))
         .map(_.value),
       Some("token=value"))
   }
@@ -113,26 +113,26 @@ class MessageSuite extends Http4sSuite {
         .addCookie("token1", "value1")
         .addCookie("token2", "value2")
         .headers
-        .get("Cookie".ci)
+        .get(CIString("Cookie"))
         .map(_.value),
       Some("token1=value1; token2=value2")
     )
   }
 
-  val path1 = "/path1"
-  val path2 = "/somethingelse"
+  val path1 = uri"/path1"
+  val path2 = path"/somethingelse"
   val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 3)
 
   test("Request.with...reset pathInfo if uri is changed") {
-    val originalReq = Request(uri = Uri(path = path1), attributes = attributes)
-    val updatedReq = originalReq.withUri(uri = Uri(path = path2))
+    val originalReq = Request(uri = path1, attributes = attributes)
+    val updatedReq = originalReq.withUri(uri = Uri().withPath(path2))
 
-    assertEquals(updatedReq.scriptName, "")
+    assertEquals(updatedReq.scriptName, Uri.Path.Root)
     assertEquals(updatedReq.pathInfo, path2)
   }
 
   test("Request.with... should not modify pathInfo if uri is unchanged") {
-    val originalReq = Request(uri = Uri(path = path1), attributes = attributes)
+    val originalReq = Request(uri = path1, attributes = attributes)
     val updatedReq = originalReq.withMethod(method = Method.DELETE)
 
     assertEquals(originalReq.pathInfo, updatedReq.pathInfo)
@@ -140,13 +140,12 @@ class MessageSuite extends Http4sSuite {
   }
 
   test("Request.with... should preserve caret in withPathInfo") {
-    val originalReq = Request(
-      uri = Uri(path = "/foo/bar"),
-      attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 4))
-    val updatedReq = originalReq.withPathInfo("/quux")
+    val originalReq =
+      Request(uri = uri"/foo/bar", attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 1))
+    val updatedReq = originalReq.withPathInfo(path"/quux")
 
-    assertEquals(updatedReq.scriptName, "/foo")
-    assertEquals(updatedReq.pathInfo, "/quux")
+    assertEquals(updatedReq.scriptName, path"/foo")
+    assertEquals(updatedReq.pathInfo, path"/quux")
   }
 
   val cookieList = List(
@@ -209,12 +208,7 @@ class MessageSuite extends Http4sSuite {
     Request[F2]().covary[F1]
   }
 
-  val port = 1234
-  val uri = Uri(
-    path = "/foo",
-    scheme = Some(Scheme.http),
-    authority = Some(Authority(port = Some(port)))
-  )
+  val uri = uri"http://localhost:1234/foo"
   val request = Request[IO](Method.GET, uri)
 
   test("asCurl should build cURL representation with scheme and authority") {
@@ -262,7 +256,7 @@ class MessageSuite extends Http4sSuite {
   }
 
   test(
-    "decode should produce a UnsupportedMediaType) the event of a decode failure MediaTypeMismatch") {
+    "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMismatch") {
     val req =
       Request[IO](headers = Headers.of(`Content-Type`(MediaType.application.`octet-stream`)))
     val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
@@ -270,7 +264,7 @@ class MessageSuite extends Http4sSuite {
   }
 
   test(
-    "decode should produce a UnsupportedMediaType) the event of a decode failure MediaTypeMissing") {
+    "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMissing") {
     val req = Request[IO]()
     val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
     resp.map(_.status).assertEquals(Status.UnsupportedMediaType)

@@ -16,10 +16,11 @@ package parser
 
 import cats.parse.{Parser => P}
 import cats.syntax.all._
+import java.time.{ZoneOffset, ZonedDateTime}
+import org.http4s.EntityTag.{Strong, Weak, Weakness}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
-
-import java.time.{ZoneOffset, ZonedDateTime}
+import org.http4s.internal.parsing.Rfc3986
 import scala.util.Try
 
 private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
@@ -190,8 +191,8 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
      opaque-tag = DQUOTE *etagc DQUOTE
      etagc      = %x21 / %x23-7E / obs-text ; VCHAR except double quotes, plus obs-text
    */
-  def EntityTag: Rule1[headers.ETag.EntityTag] = {
-    def weak: Rule1[Boolean] = rule("W/" ~ push(true) | push(false))
+  def EntityTag: Rule1[EntityTag] = {
+    def weak: Rule1[Weakness] = rule("W/" ~ push(Weak) | push(Strong))
 
     // obs-text: http://tools.ietf.org/html/rfc7230#section-3.2.6
     def obsText: Rule0 = rule("\u0080" - "\u00FF")
@@ -201,8 +202,8 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
     def opaqueTag: Rule1[String] = rule('"' ~ capture(zeroOrMore(etagc)) ~ '"')
 
     rule {
-      weak ~ opaqueTag ~> { (weak: Boolean, tag: String) =>
-        headers.ETag.EntityTag(tag, weak)
+      weak ~ opaqueTag ~> { (weakness: Weakness, tag: String) =>
+        org.http4s.EntityTag(tag, weakness)
       }
     }
   }
@@ -212,5 +213,12 @@ private[http4s] object AdditionalRules {
   import Rfc2616BasicRules._
   def EOI = P.char('\uFFFF')
 
-  def EOL = optWs *> EOI.rep
+  def EOL = optWs *> EOI.rep0
+
+  val NonNegativeLong: P[Long] = Rfc3986.digit.rep.string.mapFilter { s =>
+    try Some(s.toLong)
+    catch {
+      case _: NumberFormatException => None
+    }
+  }
 }

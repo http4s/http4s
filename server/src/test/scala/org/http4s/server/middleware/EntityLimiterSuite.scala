@@ -25,20 +25,19 @@ import fs2.Stream._
 import java.nio.charset.StandardCharsets
 import org.http4s.Method._
 import org.http4s.Status._
-import org.http4s.Uri.uri
 import org.http4s.syntax.all._
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 
 class EntityLimiterSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
-    case r if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
+    case r if r.pathInfo == path"/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
   }
 
   val b = chunk(Chunk.bytes("hello".getBytes(StandardCharsets.UTF_8)))
 
   test("Allow reasonable entities") {
     EntityLimiter(routes, 100)
-      .apply(Request[IO](POST, uri("/echo"), body = b))
+      .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1)
       .value
       .assertEquals(Some(-1))
@@ -46,7 +45,7 @@ class EntityLimiterSuite extends Http4sSuite {
 
   test("Limit the maximum size of an EntityBody") {
     EntityLimiter(routes, 3)
-      .apply(Request[IO](POST, uri("/echo"), body = b))
+      .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
       .value
       .handleError { case EntityTooLarge(i) => Some(i) }
@@ -55,17 +54,17 @@ class EntityLimiterSuite extends Http4sSuite {
 
   test("Chain correctly with other HttpRoutes") {
     val routes2 = HttpRoutes.of[IO] {
-      case r if r.uri.path == "/echo2" =>
+      case r if r.pathInfo == path"/echo2" =>
         r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
     }
 
     val st = EntityLimiter(routes, 3) <+> routes2
 
-    st.apply(Request[IO](POST, uri("/echo2"), body = b))
+    st.apply(Request[IO](POST, uri"/echo2", body = b))
       .map(_ => -1)
       .value
       .assertEquals(Some(-1)) *>
-      st.apply(Request[IO](POST, uri("/echo"), body = b))
+      st.apply(Request[IO](POST, uri"/echo", body = b))
         .map(_ => -1L)
         .value
         .handleError { case EntityTooLarge(i) => Some(i) }
@@ -75,7 +74,7 @@ class EntityLimiterSuite extends Http4sSuite {
   test("Be created via the httpRoutes constructor") {
     EntityLimiter
       .httpRoutes(routes, 3)
-      .apply(Request[IO](POST, uri("/echo"), body = b))
+      .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
       .value
       .handleError { case EntityTooLarge(i) => Some(i) }
@@ -87,7 +86,7 @@ class EntityLimiterSuite extends Http4sSuite {
 
     EntityLimiter
       .httpApp(app, 3L)
-      .apply(Request[IO](POST, uri("/echo"), body = b))
+      .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
       .handleError { case EntityTooLarge(i) => i }
       .assertEquals(3L)

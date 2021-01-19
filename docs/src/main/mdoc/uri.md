@@ -30,7 +30,7 @@ or you could use the URLTemplates.
 Use the methods on the [uri class].
 
 ```scala mdoc
-val docs = uri.withPath("/docs/0.15")
+val docs = uri.withPath(path"/docs/0.15")
 val docs2 = uri / "docs" / "0.15"
 assert(docs == docs2)
 ```

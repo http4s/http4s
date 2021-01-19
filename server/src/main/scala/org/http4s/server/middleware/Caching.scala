@@ -21,8 +21,8 @@ import cats.syntax.all._
 import cats.effect._
 import cats.data._
 import org.http4s._
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.{Date => HDate, _}
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 /** Caching contains middlewares to support caching functionality.
@@ -116,7 +116,7 @@ object Caching {
   def privateCache[G[_]: MonadError[*[_], Throwable]: Clock, F[_]](
       lifetime: Duration,
       http: Http[G, F],
-      fieldNames: List[CaseInsensitiveString] = Nil): Http[G, F] =
+      fieldNames: List[CIString] = Nil): Http[G, F] =
     cache(
       lifetime,
       Either.right(CacheDirective.`private`(fieldNames)),
@@ -131,7 +131,7 @@ object Caching {
     */
   def privateCacheResponse[G[_]](
       lifetime: Duration,
-      fieldNames: List[CaseInsensitiveString] = Nil
+      fieldNames: List[CIString] = Nil
   ): PartiallyAppliedCache[G] =
     cacheResponse(lifetime, Either.right(CacheDirective.`private`(fieldNames)))
 

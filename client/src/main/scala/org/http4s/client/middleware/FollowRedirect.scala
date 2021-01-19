@@ -22,8 +22,8 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s.Method._
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString
-import _root_.io.chrisdavenport.vault._
+import org.typelevel.ci.CIString
+import org.typelevel.vault._
 
 /** Client middleware to follow redirect responses.
   *
@@ -54,8 +54,8 @@ import _root_.io.chrisdavenport.vault._
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
-      sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
-      client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
+      sensitiveHeaderFilter: CIString => Boolean = Headers.SensitiveHeaders)(client: Client[F])(
+      implicit F: Concurrent[F]): Client[F] = {
     def nextRequest(
         req: Request[F],
         uri: Uri,

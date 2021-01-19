@@ -20,8 +20,8 @@ package dsl
 import cats.data.Validated._
 import cats.effect.IO
 import cats.syntax.all._
-import org.http4s.Uri.uri
 import org.http4s.dsl.io._
+import org.http4s.syntax.all._
 
 final case class Limit(l: Long)
 
@@ -97,33 +97,33 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     app(req)
 
   test("Path DSL within HttpService should GET /") {
-    val response = serve(Request(GET, Uri(path = "/")))
+    val response = serve(Request(GET, Uri(path = Uri.Path.Root)))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("(empty)")
   }
   test("Path DSL within HttpService should GET /{id}") {
-    val response = serve(Request(GET, Uri(path = "/12345")))
+    val response = serve(Request(GET, uri"/12345"))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("id: 12345")
   }
   test("Path DSL within HttpService should GET /?{start}") {
-    val response = serve(Request(GET, uri("/?start=1")))
+    val response = serve(Request(GET, uri"/?start=1"))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("start: 1")
   }
   test("Path DSL within HttpService should GET /?{start,limit}") {
-    val response = serve(Request(GET, uri("/?start=1&limit=2")))
+    val response = serve(Request(GET, uri"/?start=1&limit=2"))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("start: 1, limit: 2")
   }
   test("Path DSL within HttpService should GET /calc") {
-    val response = serve(Request(GET, Uri(path = "/calc")))
+    val response = serve(Request(GET, Uri(path = path"/calc")))
     response.map(_.status).assertEquals(NotFound) *>
       response.flatMap(_.as[String]).assertEquals("404 Not Found: /calc")
   }
   test("Path DSL within HttpService should GET /calc?decimal=1.3") {
     val response =
-      serve(Request(GET, Uri(path = "/calc", query = Query.fromString("decimal=1.3"))))
+      serve(Request(GET, Uri(path = path"/calc", query = Query.fromString("decimal=1.3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals(s"result: 0.65")
   }
@@ -131,90 +131,93 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     val response = serve(
       Request(
         GET,
-        Uri(path = "/items", query = Query.fromString("list=1&list=2&list=3&list=4&list=5"))))
+        Uri(path = path"/items", query = Query.fromString("list=1&list=2&list=3&list=4&list=5"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals(s"items: 1,2,3,4,5")
   }
   test("Path DSL within HttpService should GET /search") {
-    val response = serve(Request(GET, Uri(path = "/search")))
+    val response = serve(Request(GET, Uri(path = path"/search")))
     response.map(_.status).assertEquals(NotFound) *>
       response.flatMap(_.as[String]).assertEquals("404 Not Found: /search")
   }
   test("Path DSL within HttpService should GET /search?term") {
-    val response = serve(Request(GET, Uri(path = "/search", query = Query.fromString("term"))))
+    val response = serve(Request(GET, Uri(path = path"/search", query = Query.fromString("term"))))
     response.map(_.status).assertEquals(NotFound) *>
       response.flatMap(_.as[String]).assertEquals("404 Not Found: /search")
   }
   test("Path DSL within HttpService should GET /search?term=") {
-    val response = serve(Request(GET, Uri(path = "/search", query = Query.fromString("term="))))
+    val response = serve(Request(GET, Uri(path = path"/search", query = Query.fromString("term="))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("term: ")
   }
   test("Path DSL within HttpService should GET /search?term= http4s  ") {
     val response =
-      serve(Request(GET, Uri(path = "/search", query = Query.fromString("term=%20http4s%20%20"))))
+      serve(
+        Request(GET, Uri(path = path"/search", query = Query.fromString("term=%20http4s%20%20"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("term:  http4s  ")
   }
   test("Path DSL within HttpService should GET /search?term=http4s") {
     val response =
-      serve(Request(GET, Uri(path = "/search", query = Query.fromString("term=http4s"))))
+      serve(Request(GET, Uri(path = path"/search", query = Query.fromString("term=http4s"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("term: http4s")
   }
   test("Path DSL within HttpService should optional parameter present") {
-    val response = serve(Request(GET, Uri(path = "/app", query = Query.fromString("counter=3"))))
+    val response =
+      serve(Request(GET, Uri(path = path"/app", query = Query.fromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: Some(3)")
   }
   test("Path DSL within HttpService should optional parameter absent") {
-    val response = serve(Request(GET, Uri(path = "/app", query = Query.fromString("other=john"))))
+    val response =
+      serve(Request(GET, Uri(path = path"/app", query = Query.fromString("other=john"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: None")
   }
   test("Path DSL within HttpService should optional parameter present with incorrect format") {
     val response =
-      serve(Request(GET, Uri(path = "/app", query = Query.fromString("counter=john"))))
+      serve(Request(GET, Uri(path = path"/app", query = Query.fromString("counter=john"))))
     response.map(_.status).assertEquals(NotFound)
   }
   test("Path DSL within HttpService should validating parameter present") {
     val response =
-      serve(Request(GET, Uri(path = "/valid", query = Query.fromString("counter=3"))))
+      serve(Request(GET, Uri(path = path"/valid", query = Query.fromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: 3")
   }
   test("Path DSL within HttpService should validating parameter absent") {
     val response =
-      serve(Request(GET, Uri(path = "/valid", query = Query.fromString("notthis=3"))))
+      serve(Request(GET, Uri(path = path"/valid", query = Query.fromString("notthis=3"))))
     response.map(_.status).assertEquals(NotFound)
   }
   test("Path DSL within HttpService should validating parameter present with incorrect format") {
     val response =
-      serve(Request(GET, Uri(path = "/valid", query = Query.fromString("counter=foo"))))
+      serve(Request(GET, Uri(path = path"/valid", query = Query.fromString("counter=foo"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response.flatMap(_.as[String]).assertEquals("Query decoding Int failed")
   }
   test("Path DSL within HttpService should optional validating parameter present") {
     val response =
-      serve(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=3"))))
+      serve(Request(GET, Uri(path = path"/optvalid", query = Query.fromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("counter: 3")
   }
   test("Path DSL within HttpService should optional validating parameter absent") {
     val response =
-      serve(Request(GET, Uri(path = "/optvalid", query = Query.fromString("notthis=3"))))
+      serve(Request(GET, Uri(path = path"/optvalid", query = Query.fromString("notthis=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("no counter")
   }
   test(
     "Path DSL within HttpService should optional validating parameter present with incorrect format") {
     val response =
-      serve(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=foo"))))
+      serve(Request(GET, Uri(path = path"/optvalid", query = Query.fromString("counter=foo"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response.flatMap(_.as[String]).assertEquals("Query decoding Int failed")
   }
   test("Path DSL within HttpService should optional multi parameter with no parameters") {
-    val response = serve(Request(GET, Uri(path = "/multiopt")))
+    val response = serve(Request(GET, Uri(path = path"/multiopt")))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("absent")
   }
@@ -222,34 +225,36 @@ class PathInHttpRoutesSuite extends Http4sSuite {
     val response = serve(
       Request(
         GET,
-        Uri(path = "/multiopt", query = Query.fromString("counter=1&counter=2&counter=3"))))
+        Uri(path = path"/multiopt", query = Query.fromString("counter=1&counter=2&counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("3: 1,2,3")
   }
   test("Path DSL within HttpService should optional multi parameter with one parameter") {
     val response =
-      serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=3"))))
+      serve(Request(GET, Uri(path = path"/multiopt", query = Query.fromString("counter=3"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("1: 3")
   }
   test("Path DSL within HttpService should optional multi parameter with incorrect format") {
     val response =
-      serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo"))))
+      serve(Request(GET, Uri(path = path"/multiopt", query = Query.fromString("counter=foo"))))
     response.map(_.status).assertEquals(BadRequest)
   }
   test("Path DSL within HttpService should optional multi parameter with one incorrect parameter") {
     val response = serve(
-      Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo&counter=1"))))
+      Request(GET, Uri(path = path"/multiopt", query = Query.fromString("counter=foo&counter=1"))))
 
     val response2 = serve(
-      Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=1&counter=foo"))))
+      Request(GET, Uri(path = path"/multiopt", query = Query.fromString("counter=1&counter=foo"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response2.map(_.status).assertEquals(BadRequest)
   }
   test(
     "Path DSL within HttpService should optional multi parameter with two incorrect parameters must return both") {
     val response = serve(
-      Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo&counter=bar"))))
+      Request(
+        GET,
+        Uri(path = path"/multiopt", query = Query.fromString("counter=foo&counter=bar"))))
     response.map(_.status).assertEquals(BadRequest) *>
       response
         .flatMap(_.as[String])
@@ -262,19 +267,19 @@ class PathInHttpRoutesSuite extends Http4sSuite {
   }
   test("Path DSL within HttpService should optional flag parameter when present") {
     val response =
-      serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString("flag"))))
+      serve(Request(GET, Uri(path = path"/flagparam", query = Query.fromString("flag"))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("flag present")
   }
   test("Path DSL within HttpService should optional flag parameter when present with a value") {
     val response =
-      serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString("flag=1"))))
+      serve(Request(GET, Uri(path = path"/flagparam", query = Query.fromString("flag=1"))))
     response.map(_.status).assertEquals(Ok) *>
-      response.flatMap(_.as[String]).assertEquals("flag present")
+      serve(Request(GET, Uri(path = path"/flagparam", query = Query.fromString(""))))
   }
   test("Path DSL within HttpService should optional flag parameter when not present") {
     val response =
-      serve(Request(GET, Uri(path = "/flagparam", query = Query.fromString(""))))
+      serve(Request(GET, Uri(path = path"/flagparam", query = Query.fromString(""))))
     response.map(_.status).assertEquals(Ok) *>
       response.flatMap(_.as[String]).assertEquals("flag not present")
   }

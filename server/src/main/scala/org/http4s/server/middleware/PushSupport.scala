@@ -23,7 +23,7 @@ import cats.data.Kleisli
 import cats.effect.IO
 import cats.syntax.all._
 import org.log4s.getLogger
-import io.chrisdavenport.vault._
+import org.typelevel.vault._
 
 object PushSupport {
   private[this] val logger = getLogger
@@ -35,10 +35,9 @@ object PushSupport {
     def push(url: String, cascade: Boolean = true)(implicit req: Request[F]): Response[F] = {
       val newUrl = {
         val script = req.scriptName
-        if (script.length > 0) {
+        if (script.nonEmpty) {
           val sb = new StringBuilder()
-          sb.append(script)
-          if (!url.startsWith("/")) sb.append('/')
+          sb.append(script.toAbsolute)
           sb.append(url).result()
         } else url
       }
@@ -64,7 +63,7 @@ object PushSupport {
     val emptyCollect: F[Vector[PushResponse[F]]] = F.pure(Vector.empty[PushResponse[F]])
 
     def fetchAndAdd(facc: F[Vector[PushResponse[F]]], v: PushLocation): F[Vector[PushResponse[F]]] =
-      routes(req.withPathInfo(v.location)).value.flatMap {
+      routes(req.withPathInfo(Uri.Path.fromString(v.location))).value.flatMap {
         case None => emptyCollect
         case Some(response) =>
           if (v.cascade) {

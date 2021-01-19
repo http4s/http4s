@@ -169,9 +169,9 @@ class ForwardedSpec
         Host.fromString(hostStr) must beRight { (host: Host) =>
           (host.host, uriAuth.host) must beLike {
             case (Uri.RegName(actual), Uri.RegName(expected)) =>
-              actual.value must_===
+              actual.toString must_===
                 // TODO: `Uri.decode` should not be necessary here. Remove when #1651 (or #2012) get fixed.
-                Uri.decode(expected.value, StandardCharsets.ISO_8859_1)
+                Uri.decode(expected.toString, StandardCharsets.ISO_8859_1)
             case _ => host.host must_=== uriAuth.host
           }
           host.port must_=== uriAuth.port

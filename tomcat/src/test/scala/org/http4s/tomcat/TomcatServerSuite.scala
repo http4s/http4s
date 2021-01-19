@@ -42,7 +42,7 @@ class TomcatServerSuite extends Http4sSuite {
 
   val builder = TomcatBuilder[IO]
 
-  val serverR: cats.effect.Resource[IO, Server[IO]] =
+  val serverR: cats.effect.Resource[IO, Server] =
     builder
       .bindAny()
       .withAsyncTimeout(3.seconds)
@@ -68,10 +68,10 @@ class TomcatServerSuite extends Http4sSuite {
       )
       .resource
 
-  def tomcatServer: FunFixture[Server[IO]] =
-    ResourceFixture[Server[IO]](serverR)
+  def tomcatServer: FunFixture[Server] =
+    ResourceFixture[Server](serverR)
 
-  def get(server: Server[IO], path: String): IO[String] =
+  def get(server: Server, path: String): IO[String] =
     testBlocker.blockOn(
       IO(
         Source
@@ -79,7 +79,7 @@ class TomcatServerSuite extends Http4sSuite {
           .getLines()
           .mkString))
 
-  def post(server: Server[IO], path: String, body: String): IO[String] =
+  def post(server: Server, path: String, body: String): IO[String] =
     testBlocker.blockOn(IO {
       val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]

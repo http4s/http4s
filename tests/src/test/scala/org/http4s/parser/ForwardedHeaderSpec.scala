@@ -21,10 +21,10 @@ import cats.syntax.either._
 import org.http4s.headers.Forwarded
 import org.http4s.internal.bug
 import org.http4s.syntax.literals._
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.{ParseFailure, Uri}
 import org.specs2.execute.Result
 import org.specs2.mutable.{Specification, Tables}
+import org.typelevel.ci.CIString
 
 class ForwardedHeaderSpec extends Specification with Tables {
   import Forwarded.Element
@@ -135,7 +135,7 @@ object ForwardedHeaderSpec {
   private val ObfuscatedRe = """^(_[\p{Alnum}\.\_\-]+)$""".r
 
   private object UnCIString {
-    def unapply(cistr: CaseInsensitiveString): Option[String] = Some(cistr.value)
+    def unapply(cistr: CIString): Option[String] = Some(cistr.toString)
   }
 
   implicit def convertUriToNode(uri: Uri): Node =

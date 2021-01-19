@@ -35,9 +35,6 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._
 import org.reactivestreams.Publisher
-import _root_.io.netty.handler.codec.http.cookie.Cookie
-import org.asynchttpclient.uri.Uri
-import org.asynchttpclient.cookie.CookieStore
 
 object AsyncHttpClient {
   val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
@@ -168,7 +165,7 @@ object AsyncHttpClient {
   private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers.toList)
-      headers.add(h.name.value, h.value)
+      headers.add(h.name.toString, h.value)
     new RequestBuilder(request.method.renderString)
       .setUrl(request.uri.renderString)
       .setHeaders(headers)
@@ -194,12 +191,4 @@ object AsyncHttpClient {
     Headers(headers.asScala.map { header =>
       Header(header.getKey, header.getValue)
     }.toList)
-  private class NoOpCookieStore extends CookieStore {
-    val empty: java.util.List[Cookie] = new java.util.ArrayList()
-    override def add(uri: Uri, cookie: Cookie): Unit = ()
-    override def get(uri: Uri): java.util.List[Cookie] = empty
-    override def getAll: java.util.List[Cookie] = empty
-    override def remove(pred: java.util.function.Predicate[Cookie]): Boolean = false
-    override def clear(): Boolean = false
-  }
 }

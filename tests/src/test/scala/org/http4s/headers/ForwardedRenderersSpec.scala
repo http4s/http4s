@@ -96,7 +96,7 @@ class ForwardedRenderersSpec
     }
   }
   "Forwarded" in {
-    val headerInit = Forwarded.name.value + ": "
+    val headerInit = Forwarded.name.toString + ": "
 
     prop { (fwd: Forwarded) =>
       val rendered = Renderer.renderString(fwd)

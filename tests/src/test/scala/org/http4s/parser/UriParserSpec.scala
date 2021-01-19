@@ -18,11 +18,11 @@ package org.http4s.parser
 
 import cats.syntax.all._
 import java.nio.charset.{StandardCharsets, Charset => NioCharset}
-
 import org.http4s.Uri.Scheme.https
 import org.http4s._
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2._
+import org.typelevel.ci.CIString
 
 class IpParserImpl(val input: ParserInput, val charset: NioCharset) extends Parser with IpParser {
   def CaptureIPv6: Rule1[String] = rule(capture(IpV6Address))
@@ -73,13 +73,19 @@ class UriParserSpec extends Http4sSpec {
       val portExamples: Seq[(String, Uri)] = Seq(
         (
           "http://foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = None)))),
+          Uri(
+            Some(Scheme.http),
+            Some(Authority(host = RegName(CIString("foo.com")), port = None)))),
         (
           "http://foo.com:",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = None)))),
+          Uri(
+            Some(Scheme.http),
+            Some(Authority(host = RegName(CIString("foo.com")), port = None)))),
         (
           "http://foo.com:80",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = Some(80)))))
+          Uri(
+            Some(Scheme.http),
+            Some(Authority(host = RegName(CIString("foo.com")), port = Some(80)))))
       )
 
       check(portExamples)
@@ -89,13 +95,13 @@ class UriParserSpec extends Http4sSpec {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com")))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = RegName("www.foo.com".ci))),
-            "/foo",
+            Some(Authority(host = RegName(CIString("www.foo.com")))),
+            path"/foo",
             Query.fromPairs("bar" -> "baz"))),
         ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
         (
@@ -103,16 +109,18 @@ class UriParserSpec extends Http4sSpec {
           Uri(
             Some(Scheme.http),
             Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
-            "/c",
+            path"/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
             Some(Authority(host = ipv6"2001:db8::7")),
-            "/c",
+            path"/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
-        ("mailto:John.Doe@example.com", Uri(Some(scheme"mailto"), path = "John.Doe@example.com"))
+        (
+          "mailto:John.Doe@example.com",
+          Uri(Some(scheme"mailto"), path = Uri.Path.fromString("John.Doe@example.com")))
       )
 
       check(absoluteUris)
@@ -120,11 +128,11 @@ class UriParserSpec extends Http4sSpec {
 
     "parse relative URIs" in {
       val relativeUris: Seq[(String, Uri)] = Seq(
-        ("/foo/bar", Uri(path = "/foo/bar")),
+        ("/foo/bar", Uri(path = path"/foo/bar")),
         (
           "/foo/bar?foo=bar&ding=dong",
-          Uri(path = "/foo/bar", query = Query.fromPairs("foo" -> "bar", "ding" -> "dong"))),
-        ("/", Uri(path = "/"))
+          Uri(path = path"/foo/bar", query = Query.fromPairs("foo" -> "bar", "ding" -> "dong"))),
+        ("/", Uri(path = Uri.Path.Root))
       )
 
       check(relativeUris)
@@ -132,7 +140,7 @@ class UriParserSpec extends Http4sSpec {
 
     "parse relative URI with empty query string" in {
       val u = Uri.requestTarget("/foo/bar?")
-      u must beRight(Uri(path = "/foo/bar", query = Query("" -> None)))
+      u must beRight(Uri(path = path"/foo/bar", query = Query("" -> None)))
     }
 
     {
@@ -166,13 +174,13 @@ class UriParserSpec extends Http4sSpec {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName(CIString("www.foo.com")))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = RegName("www.foo.com".ci))),
-            "/foo",
+            Some(Authority(host = RegName(CIString("www.foo.com")))),
+            path"/foo",
             Query.fromPairs("bar" -> "baz"))),
         ("http://192.168.1.1", Uri(Some(Scheme.http), Some(Authority(host = ipv4"192.168.1.1")))),
         (
@@ -180,16 +188,18 @@ class UriParserSpec extends Http4sSpec {
           Uri(
             Some(Scheme.http),
             Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
-            "/c",
+            path"/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
             Some(Authority(host = ipv6"2001:db8::7")),
-            "/c",
+            path"/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
-        ("mailto:John.Doe@example.com", Uri(Some(scheme"mailto"), path = "John.Doe@example.com"))
+        (
+          "mailto:John.Doe@example.com",
+          Uri(Some(scheme"mailto"), path = Uri.Path.fromString("John.Doe@example.com")))
       )
 
       check(absoluteUris)
@@ -197,27 +207,32 @@ class UriParserSpec extends Http4sSpec {
 
     "parse a path-noscheme uri" in {
       Uri.fromString("q") must beRight.like { case u =>
-        u must_== Uri(path = "q")
+        u must_== Uri(path = path"q")
       }
       Uri.fromString("a/b") must beRight.like { case u =>
-        u must_== Uri(path = "a/b")
+        u must_== Uri(path = path"a/b")
       }
     }
 
     "parse a path-noscheme uri with query" in {
       Uri.fromString("a/b?foo") must beRight.like { case u =>
-        u must_== Uri(path = "a/b", query = Query(("foo", None)))
+        u must_== Uri(path = path"a/b", query = Query(("foo", None)))
       }
     }
 
     "parse a path-absolute uri" in {
       Uri.fromString("/a/b") must beRight.like { case u =>
-        u must_== Uri(path = "/a/b")
+        u must_== Uri(path = path"/a/b")
       }
     }
     "parse a path-absolute uri with query" in {
       Uri.fromString("/a/b?foo") must beRight.like { case u =>
-        u must_== Uri(path = "/a/b", query = Query(("foo", None)))
+        u must_== Uri(path = path"/a/b", query = Query(("foo", None)))
+      }
+    }
+    "parse a path-absolute uri with query and fragment" in {
+      Uri.fromString("/a/b?foo#bar") must beRight.like { case u =>
+        u must_== Uri(path = path"/a/b", query = Query(("foo", None)), fragment = Some("bar"))
       }
     }
   }
@@ -226,7 +241,7 @@ class UriParserSpec extends Http4sSpec {
     "parse valid URIs" in {
       uri"https://http4s.org" must_== Uri(
         scheme = Option(https),
-        authority = Option(Uri.Authority(host = RegName("http4s.org".ci))))
+        authority = Option(Uri.Authority(host = RegName(CIString("http4s.org")))))
     }
 
     "reject invalid URIs" in {

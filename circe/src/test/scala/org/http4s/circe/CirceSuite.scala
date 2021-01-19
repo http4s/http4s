@@ -27,11 +27,15 @@ import io.circe.syntax._
 import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.circe._
+import org.http4s.syntax.all._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
+import org.http4s.laws.discipline.EntityCodecTests
+import io.circe.testing.instances._
+import io.circe.jawn.CirceSupportParser
 
 // Originally based on ArgonautSuite
-class CirceSuite extends JawnDecodeSupportSuite[Json] {
+class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   implicit val testContext = TestContext()
 
   val CirceInstancesWithCustomErrors = CirceInstances.builder
@@ -258,7 +262,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
       .assertEquals(true)
   }
 
-  test("stream json array encoder of should fail with custom message from a decoder") {
+  test("accumulatingJsonOf should fail with custom message from a decoder") {
     val result = CirceInstancesWithCustomErrors
       .accumulatingJsonOf[IO, Bar]
       .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
@@ -268,7 +272,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
 
   test("Uri codec round trip") {
     // TODO would benefit from Arbitrary[Uri]
-    val uri = Uri.uri("http://www.example.com/")
+    val uri = uri"http://www.example.com/"
     assertEquals(uri.asJson.as[Uri], Right(uri))
   }
 
@@ -292,6 +296,49 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
   test("CirceEntityEncDec should encode without defining EntityEncoder using default printer") {
     import org.http4s.circe.CirceEntityEncoder._
     writeToString(foo).assertEquals("""{"bar":42}""")
+  }
+
+  test("should successfully decode when parser allows duplicate keys") {
+    val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
+      .withCirceSupportParser(
+        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
+      .build
+    val req = Request[IO]()
+      .withEntity("""{"bar": 1, "bar":2}""")
+      .withContentType(`Content-Type`(MediaType.application.json))
+
+    val decoder = circeInstanceAllowingDuplicateKeys.jsonOf[IO, Foo]
+    val result = decoder.decode(req, true).value
+
+    result
+      .map {
+        case Right(Foo(2)) => true
+        case _ => false
+      }
+      .assertEquals(true)
+  }
+
+  test("should should error out when parser does not allow duplicate keys") {
+    val circeInstanceNotAllowingDuplicateKeys = CirceInstances.builder
+      .withCirceSupportParser(
+        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false))
+      .build
+    val req = Request[IO]()
+      .withEntity("""{"bar": 1, "bar":2}""")
+      .withContentType(`Content-Type`(MediaType.application.json))
+
+    val decoder = circeInstanceNotAllowingDuplicateKeys.jsonOf[IO, Foo]
+    val result = decoder.decode(req, true).value
+    result
+      .map {
+        case Left(
+              MalformedMessageBodyFailure(
+                "Invalid JSON",
+                Some(ParsingFailure("Invalid json, duplicate key name found: bar", _)))) =>
+          true
+        case _ => false
+      }
+      .assertEquals(true)
   }
 
   test("CirceInstances.builder should handle JSON parsing errors") {
@@ -325,5 +372,5 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] {
       .assertEquals(true)
   }
 
-  // checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
+  checkAllF("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodecF)
 }

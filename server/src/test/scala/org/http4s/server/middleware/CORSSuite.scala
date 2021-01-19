@@ -27,8 +27,8 @@ import org.http4s.Http4sSuite
 
 class CORSSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
-    case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
-    case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
+    case req if req.pathInfo == path"/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
+    case req if req.pathInfo == path"/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
   }
 
   val cors1 = CORS(routes)
@@ -45,11 +45,15 @@ class CORSSuite extends Http4sSuite {
   )
 
   def headerCheck(h: Header): Boolean = h.is(`Access-Control-Max-Age`)
-  def matchHeader(hs: Headers, hk: HeaderKey.Extractable, expected: String): Boolean =
-    hs.get(hk).fold(false)(_.value === expected)
+
+  final def matchHeader[A <: Header](
+      hs: Headers,
+      hk: HeaderKey.Internal[A],
+      expected: String): Boolean =
+    hs.get(hk.name).fold(false)(_.value === expected)
 
   def buildRequest(path: String, method: Method = GET) =
-    Request[IO](uri = Uri(path = path), method = method).withHeaders(
+    Request[IO](uri = Uri(path = Uri.Path.fromString(path)), method = method).withHeaders(
       Header("Origin", "http://allowed.com"),
       Header("Access-Control-Request-Method", "GET"))
 

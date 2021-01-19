@@ -32,12 +32,12 @@ import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.unsafeRunAsync
-import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
+import org.typelevel.ci.CIString
+import org.typelevel.vault._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
-import io.chrisdavenport.vault._
 
 private[blaze] object Http1ServerStage {
   def apply[F[_]](
@@ -266,7 +266,8 @@ private[blaze] class Http1ServerStage[F[_]](
           resp.trailerHeaders,
           rr,
           parser.minorVersion(),
-          closeOnFinish)
+          closeOnFinish,
+          false)
     }
 
     unsafeRunAsync(bodyEncoder.write(rr, resp.body).recover { case EOF => true }) {
@@ -323,7 +324,7 @@ private[blaze] class Http1ServerStage[F[_]](
       req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .withHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection(CIString("close")), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -335,7 +336,7 @@ private[blaze] class Http1ServerStage[F[_]](
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .withHeaders(Connection("close".ci), `Content-Length`.zero)
+      .withHeaders(Connection(CIString("close")), `Content-Length`.zero)
     renderResponse(
       req,
       resp,

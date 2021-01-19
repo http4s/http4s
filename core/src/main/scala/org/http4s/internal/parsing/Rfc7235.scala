@@ -18,45 +18,45 @@ package org.http4s.internal.parsing
 
 import cats.data.NonEmptyList
 import cats.parse.Parser.{char, charIn}
-import cats.parse.{Parser, Parser1}
+import cats.parse.{Parser, Parser0}
 import cats.parse.Rfc5234.{alpha, digit, sp}
 import org.http4s.{Challenge, Credentials}
 import org.http4s.internal.parsing.Rfc7230.{bws, headerRep1, ows, quotedString, token}
-import org.http4s.util.CaseInsensitiveString
+import org.typelevel.ci.CIString
 
 private[http4s] object Rfc7235 {
   /*  token68 = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" )
    *  *"="
    * */
-  val t68Chars: Parser1[Char] = charIn("-._~+/").orElse1(digit).orElse1(alpha)
+  val t68Chars: Parser[Char] = charIn("-._~+/").orElse(digit).orElse(alpha)
 
-  val token68: Parser1[String] = (t68Chars.rep1 ~ charIn('=').rep).string
+  val token68: Parser[String] = (t68Chars.rep ~ charIn('=').rep0).string
 
-  val authParamValue: Parser[String] = token.orElse(quotedString)
+  val authParamValue: Parser0[String] = token.orElse(quotedString)
   // auth-param = token BWS "=" BWS ( token / quoted-string )
-  val authParam: Parser1[(String, String)] =
+  val authParam: Parser[(String, String)] =
     (token <* char('=').void.surroundedBy(bws)) ~ authParamValue
 
   //auth-scheme = token
-  val scheme: Parser1[CaseInsensitiveString] = token.map(CaseInsensitiveString(_))
+  val scheme: Parser[CIString] = token.map(CIString(_))
 
   /*
     challenge = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *(
     OWS "," [ OWS auth-param ] ) ] ) ]
    */
-  val challenge: Parser1[Challenge] =
-    ((scheme <* sp) ~ Parser
-      .repSep(authParam.backtrack, 0, char(',').surroundedBy(ows))
+  val challenge: Parser[Challenge] =
+    ((scheme <* sp) ~ authParam.backtrack
+      .repSep0(char(',').surroundedBy(ows))
       .map(_.toMap))
       .map { case (scheme, params) =>
         //Model does not support token68 challenges
         //challenge scheme should have been CIS
-        Challenge(scheme.value, params.getOrElse("realm", ""), params - "realm")
+        Challenge(scheme.toString, params.getOrElse("realm", ""), params - "realm")
       }
 
-  val challenges: Parser1[NonEmptyList[Challenge]] = headerRep1(challenge)
+  val challenges: Parser[NonEmptyList[Challenge]] = headerRep1(challenge)
 
-  val credentials: Parser1[Credentials] =
+  val credentials: Parser[Credentials] =
     ((scheme <* sp) ~ headerRep1(authParam.backtrack).map(Right(_)).orElse(token68.map(Left(_))))
       .mapFilter {
         case (scheme, Left(token)) => Some(Credentials.Token(scheme, token))

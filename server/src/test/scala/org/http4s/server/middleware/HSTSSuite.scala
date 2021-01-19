@@ -30,7 +30,7 @@ class HSTSSuite extends Http4sSuite {
     Ok("pong")
   }
 
-  val req = Request[IO](Method.GET, Uri.uri("/"))
+  val req = Request[IO](Method.GET, uri"/")
 
   test("add the Strict-Transport-Security header") {
     List(

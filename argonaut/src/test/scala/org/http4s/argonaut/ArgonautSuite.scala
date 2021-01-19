@@ -23,6 +23,7 @@ import cats.syntax.all._
 import java.nio.charset.StandardCharsets
 import jawn.JawnDecodeSupportSuite
 import org.http4s.Status.Ok
+import org.http4s.syntax.all._
 import org.http4s.argonaut._
 import org.http4s.headers.`Content-Type`
 
@@ -139,7 +140,7 @@ class ArgonautSuite extends JawnDecodeSupportSuite[Json] with Argonauts {
 
   test("Uri codec should round trip") {
     // TODO would benefit from Arbitrary[Uri]
-    val uri = Uri.uri("http://www.example.com/")
+    val uri = uri"http://www.example.com/"
     assertEquals(uri.asJson.as[Uri].result, Right(uri))
   }
 

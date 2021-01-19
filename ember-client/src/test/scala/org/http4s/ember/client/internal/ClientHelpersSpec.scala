@@ -21,12 +21,11 @@ import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent._
 import org.http4s._
-import org.http4s.implicits._
 import org.specs2.mutable.Specification
 import cats.effect.testing.specs2.CatsIO
 import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.headers.AgentProduct
+import org.typelevel.ci.CIString
 import io.chrisdavenport.keypool.Reusable
 import scala.concurrent.duration._
 
@@ -65,7 +64,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
     "not add a connection header if already present" in {
       ClientHelpers
         .preprocessRequest(
-          Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+          Request[IO](headers = Headers.of(Connection(NonEmptyList.of(CIString("close"))))),
           None
         )
         .map { req =>
@@ -88,12 +87,12 @@ class ClientHelpersSpec extends Specification with CatsIO {
       ClientHelpers
         .preprocessRequest(
           Request[IO](
-            headers = Headers.of(`User-Agent`(AgentProduct(name, None)))
+            headers = Headers.of(`User-Agent`(ProductId(name, None)))
           ),
           EmberClientBuilder.default[IO].userAgent)
         .map { req =>
           req.headers.get(`User-Agent`) must beSome.like { case e =>
-            e.product.name must_=== name
+            e.product.value must_=== name
           }
         }
     }
@@ -193,7 +192,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
         testResult <-
           ClientHelpers
             .postProcessResponse(
-              Request[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+              Request[IO](headers = Headers.of(Connection(NonEmptyList.of(CIString("close"))))),
               Response[IO](),
               reuse
             )
@@ -214,7 +213,7 @@ class ClientHelpersSpec extends Specification with CatsIO {
           ClientHelpers
             .postProcessResponse(
               Request[IO](),
-              Response[IO](headers = Headers.of(Connection(NonEmptyList.of("close".ci)))),
+              Response[IO](headers = Headers.of(Connection(NonEmptyList.of(CIString("close"))))),
               reuse
             )
             .use { resp =>

@@ -22,7 +22,6 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import cats.instances.order._
 import java.nio.charset.StandardCharsets
-
 import javax.crypto
 import org.http4s.client.oauth1.ProtocolParameter.{
   Callback,
@@ -35,7 +34,7 @@ import org.http4s.client.oauth1.ProtocolParameter.{
   Version
 }
 import org.http4s.headers.Authorization
-import org.http4s.syntax.string._
+import org.typelevel.ci.CIString
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
@@ -146,7 +145,7 @@ package object oauth1 {
         (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
       val sig = makeSHASig(baseStr, consumer.secret, token.map(_.secret))
       val creds = Credentials.AuthParams(
-        "OAuth".ci,
+        CIString("OAuth"),
         NonEmptyList(
           "oauth_signature" -> encode(sig),
           realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)) toList)
@@ -189,7 +188,9 @@ package object oauth1 {
       })
     val sig = makeSHASig(baseString, consumer, token)
     val creds =
-      Credentials.AuthParams("OAuth".ci, NonEmptyList("oauth_signature" -> encode(sig), params))
+      Credentials.AuthParams(
+        CIString("OAuth"),
+        NonEmptyList("oauth_signature" -> encode(sig), params))
 
     Authorization(creds)
   }

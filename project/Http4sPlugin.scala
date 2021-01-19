@@ -69,31 +69,19 @@ object Http4sPlugin extends AutoPlugin {
     // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.0"),
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet", revision = "4.0.1"),
-    // breaks binary compatibility in caffeine module with 0.8.1
-    dependencyUpdatesFilter -= moduleFilter(organization = "io.prometheus", revision = "0.9.0"),
     // servlet containers skipped until we figure out our Jakarta EE strategy
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "10.0.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.eclipse.jetty*", revision = "11.0.*"),
     dependencyUpdatesFilter -= moduleFilter(organization = "org.apache.tomcat", revision = "10.0.*"),
-    // Broke binary compatibility with 2.10.5
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.11.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.0"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", revision = "2.12.1"),
-    // No release notes. If it's compatible with 6.2.5, prove it and PR it.
-    dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.1"),
-    dependencyUpdatesFilter -= moduleFilter(organization = "io.argonaut", revision = "6.3.2"),
     // Cursed release. Calls ByteBuffer incompatibly with JDK8
     dependencyUpdatesFilter -= moduleFilter(name = "boopickle", revision = "1.3.2"),
-    // Dropped joda-time support, wait for next breaking release
-    dependencyUpdatesFilter -= moduleFilter(organization = "com.typesafe.play", revision = "2.9.0"),
-    // Unsure about binary compatibility
-    dependencyUpdatesFilter -= moduleFilter(name = "jackson-databind", revision = "2.12.0"),
     // Incompatible with latest circe: https://github.com/circe/circe/pull/1591
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.2"),
     dependencyUpdatesFilter -= moduleFilter(name = "jawn*", revision = "1.0.3"),
     // https://github.com/scalacenter/scalafix/issues/1299
     dependencyUpdatesFilter -= moduleFilter(name = "scalafix-core", revision = "0.9.24"),
+    // Unsure about binary compatibility
+    dependencyUpdatesFilter -= moduleFilter(name = "okio", revision = "2.10.0"),
 
     excludeFilter.in(headerSources) := HiddenFileFilter ||
       new FileFilter {
@@ -295,21 +283,22 @@ object Http4sPlugin extends AutoPlugin {
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val argonaut = "6.2.5"
-    val asyncHttpClient = "2.10.5"
+    val argonaut = "6.3.3"
+    val asyncHttpClient = "2.12.2"
     val blaze = "0.14.14"
     val boopickle = "1.3.3"
+    val caseInsensitive = "0.3.0"
     val cats = "2.3.1"
     val catsEffect = "2.3.1"
     val catsEffectTesting = "0.5.0"
-    val catsParse = "0.2.0"
+    val catsParse = "0.3.0"
     val circe = "0.13.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.1.3"
     val disciplineSpecs2 = "1.1.3"
-    val dropwizardMetrics = "4.1.16"
+    val dropwizardMetrics = "4.1.17"
     val fs2 = "2.5.0"
-    val jacksonDatabind = "2.11.4"
+    val jacksonDatabind = "2.12.1"
     val jawn = "1.0.1"
     val jawnFs2 = "1.0.0"
     val jetty = "9.4.35.v20201120"
@@ -317,17 +306,17 @@ object Http4sPlugin extends AutoPlugin {
     val log4cats = "1.1.1"
     val keypool = "0.2.0"
     val logback = "1.2.3"
-    val log4s = "1.10.0-M3"
+    val log4s = "1.10.0-M4"
     val mockito = "3.5.15"
-    val netty = "4.1.56.Final"
-    val okio = "2.9.0"
     val munit = "0.7.18"
     val munitCatsEffect = "0.12.0"
     val munitDiscipline = "1.0.4"
+    val netty = "4.1.58.Final"
+    val okio = "2.10.0"
     val okhttp = "4.9.0"
     val parboiledHttp4s = "2.0.1"
-    val playJson = "2.9.1"
-    val prometheusClient = "0.8.1"
+    val playJson = "2.9.2"
+    val prometheusClient = "0.9.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.2"
@@ -342,14 +331,17 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val vault = "2.1.0-M1"
+    val vault = "2.1.0-M11"
   }
 
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut
+  lazy val argonautJawn                     = "io.argonaut"            %% "argonaut-jawn"             % V.argonaut
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % V.asyncHttpClient
   lazy val blazeCore                        = "org.http4s"             %% "blaze-core"                % V.blaze
   lazy val blazeHttp                        = "org.http4s"             %% "blaze-http"                % V.blaze
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % V.boopickle
+  lazy val caseInsensitive                  = "org.typelevel"          %% "case-insensitive"          % V.caseInsensitive
+  lazy val caseInsensitiveTesting           = "org.typelevel"          %% "case-insensitive-testing"  % V.caseInsensitive
   lazy val catsCore                         = "org.typelevel"          %% "cats-core"                 % V.cats
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % V.catsEffect
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % V.catsEffect
@@ -399,7 +391,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val nettyCodecHttp                   = "io.netty"               %  "netty-codec-http"          % V.netty
   lazy val okio                             = "com.squareup.okio"      %  "okio"                      % V.okio
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % V.okhttp
-  lazy val playFunctional                   = "com.typesafe.play"      %% "play-functional"           % V.playJson
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % V.playJson
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % V.prometheusClient
   lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % V.prometheusClient
@@ -426,5 +417,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val tomcatUtilScan                   = "org.apache.tomcat"      %  "tomcat-util-scan"          % V.tomcat
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % V.treehugger
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % V.twirl
-  lazy val vault                            = "io.chrisdavenport"      %% "vault"                     % V.vault
+  lazy val vault                            = "org.typelevel"          %% "vault"                     % V.vault
 }

@@ -65,62 +65,6 @@ sealed class JettyBuilder[F[_]] private (
 
   private[this] val logger = getLogger
 
-  @deprecated(message = "Retained for binary compatibility", since = "0.21.15")
-  private[JettyBuilder] def this(
-      socketAddress: InetSocketAddress,
-      threadPool: ThreadPool,
-      idleTimeout: Duration,
-      asyncTimeout: Duration,
-      shutdownTimeout: Duration,
-      servletIo: ServletIo[F],
-      sslConfig: SslConfig,
-      mounts: Vector[Mount[F]],
-      serviceErrorHandler: ServiceErrorHandler[F],
-      supportHttp2: Boolean,
-      banner: immutable.Seq[String]
-  )(implicit F: ConcurrentEffect[F]) =
-    this(
-      socketAddress = socketAddress,
-      threadPool = threadPool,
-      idleTimeout = idleTimeout,
-      asyncTimeout = asyncTimeout,
-      shutdownTimeout = shutdownTimeout,
-      servletIo = servletIo,
-      sslConfig = sslConfig,
-      mounts = mounts,
-      serviceErrorHandler = serviceErrorHandler,
-      supportHttp2 = false,
-      banner = banner,
-      jettyHttpConfiguration = JettyBuilder.defaultJettyHttpConfiguration
-    )
-
-  @deprecated("Retained for binary compatibility", "0.20.23")
-  private[JettyBuilder] def this(
-      socketAddress: InetSocketAddress,
-      threadPool: ThreadPool,
-      idleTimeout: Duration,
-      asyncTimeout: Duration,
-      shutdownTimeout: Duration,
-      servletIo: ServletIo[F],
-      sslConfig: SslConfig,
-      mounts: Vector[Mount[F]],
-      serviceErrorHandler: ServiceErrorHandler[F],
-      banner: immutable.Seq[String]
-  )(implicit F: ConcurrentEffect[F]) =
-    this(
-      socketAddress = socketAddress,
-      threadPool = threadPool,
-      idleTimeout = idleTimeout,
-      asyncTimeout = asyncTimeout,
-      shutdownTimeout = shutdownTimeout,
-      servletIo = servletIo,
-      sslConfig = sslConfig,
-      mounts = mounts,
-      serviceErrorHandler = serviceErrorHandler,
-      supportHttp2 = false,
-      banner = banner
-    )
-
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
       threadPool: ThreadPool = threadPool,
@@ -288,7 +232,7 @@ sealed class JettyBuilder[F[_]] private (
     }
   }
 
-  def resource: Resource[F, Server[F]] =
+  def resource: Resource[F, Server] =
     Resource(F.delay {
       val jetty = new JServer(threadPool)
 
@@ -319,7 +263,7 @@ sealed class JettyBuilder[F[_]] private (
 
       jetty.start()
 
-      val server = new Server[F] {
+      val server = new Server {
         lazy val address: InetSocketAddress = {
           val host = socketAddress.getHostString
           val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort

@@ -29,12 +29,13 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.{QueueTestHead, SeqTestHead}
 import org.http4s.client.blaze.bits.DefaultUserAgent
 import org.http4s.headers.`User-Agent`
+import org.typelevel.ci.CIString
 import scala.concurrent.duration._
 
 class Http1ClientStageSpec extends Http4sSpec {
   val trampoline = org.http4s.blaze.util.Execution.trampoline
 
-  val www_foo_test = Uri.uri("http://www.foo.test")
+  val www_foo_test = uri"http://www.foo.test"
   val FooRequest = Request[IO](uri = www_foo_test)
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
 
@@ -150,22 +151,6 @@ class Http1ClientStageSpec extends Http4sSpec {
       } finally tail.shutdown()
     }
 
-    "Reset correctly" in {
-      val tail = mkConnection(FooRequestKey)
-      try {
-        val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
-        LeafBuilder(tail).base(h)
-
-        // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest, IO.never).unsafeRunSync().body.compile.drain.unsafeRunSync()
-
-        val result = tail.runRequest(FooRequest, IO.never).unsafeRunSync()
-        tail.shutdown()
-
-        result.headers.size must_== 1
-      } finally tail.shutdown()
-    }
-
     "Alert the user if the body is to short" in {
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
       val tail = mkConnection(FooRequestKey)
@@ -215,7 +200,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Use User-Agent header provided in Request" in skipOnCi {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.withHeaders(Header.Raw("User-Agent".ci, "myagent"))
+      val req = FooRequest.withHeaders(Header.Raw(CIString("User-Agent"), "myagent"))
 
       val (request, response) = getSubmission(req, resp).unsafeRunSync()
 

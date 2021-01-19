@@ -37,17 +37,23 @@ trait BlazeClientBase extends Http4sSuite {
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
-  ) =
-    BlazeClientBuilder[IO](munitExecutionContext)
-      .withSslContextOption(sslContextOption)
-      .withCheckEndpointAuthentication(false)
-      .withResponseHeaderTimeout(responseHeaderTimeout)
-      .withRequestTimeout(requestTimeout)
-      .withMaxTotalConnections(maxTotalConnections)
-      .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
-      .withChunkBufferMaxSize(chunkBufferMaxSize)
-      .withScheduler(scheduler = tickWheel)
-      .resource
+  ) = {
+    val builder: BlazeClientBuilder[IO] =
+      BlazeClientBuilder[IO](munitExecutionContext)
+        .withCheckEndpointAuthentication(false)
+        .withResponseHeaderTimeout(responseHeaderTimeout)
+        .withRequestTimeout(requestTimeout)
+        .withMaxTotalConnections(maxTotalConnections)
+        .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
+        .withChunkBufferMaxSize(chunkBufferMaxSize)
+        .withScheduler(scheduler = tickWheel)
+
+    val builderWithMaybeSSLContext: BlazeClientBuilder[IO] =
+      sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(
+        builder.withSslContext)
+
+    builderWithMaybeSSLContext.resource
+  }
 
   private def testServlet =
     new HttpServlet {

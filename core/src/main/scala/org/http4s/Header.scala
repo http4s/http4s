@@ -10,11 +10,11 @@
 
 package org.http4s
 
-import cats.{Eq, Order, Show}
+import cats.{Order, Show}
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.http4s.syntax.string._
 import org.http4s.util._
+import org.typelevel.ci.CIString
 import scala.util.hashing.MurmurHash3
 
 /** Abstract representation o the HTTP header
@@ -23,7 +23,7 @@ import scala.util.hashing.MurmurHash3
 sealed trait Header extends Renderable with Product {
   import Header.Raw
 
-  def name: CaseInsensitiveString
+  def name: CIString
 
   def parsed: Header
 
@@ -66,10 +66,10 @@ sealed trait Header extends Renderable with Product {
 }
 
 object Header {
-  def unapply(header: Header): Option[(CaseInsensitiveString, String)] =
+  def unapply(header: Header): Option[(CIString, String)] =
     Some((header.name, header.value))
 
-  def apply(name: String, value: String): Raw = Raw(name.ci, value)
+  def apply(name: String, value: String): Raw = Raw(CIString(name), value)
 
   /** Raw representation of the Header
     *
@@ -78,7 +78,7 @@ object Header {
     * @param name case-insensitive string used to identify the header
     * @param value String representation of the header value
     */
-  final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
+  final case class Raw(name: CIString, override val value: String) extends Header {
     private[this] var _parsed: Header = null
     final override def parsed: Header = {
       if (_parsed == null)
@@ -91,7 +91,7 @@ object Header {
   /** A Header that is already parsed from its String representation. */
   trait Parsed extends Header {
     def key: HeaderKey
-    def name: CaseInsensitiveString = key.name
+    def name: CIString = key.name
     def parsed: this.type = this
   }
 
@@ -117,12 +117,20 @@ object Header {
     }
   }
 
+  /** Helper trait that provides a default way of rendering the value provided a Renderer */
+  trait RecurringRenderer extends Recurring {
+    type Value
+    implicit def renderer: Renderer[Value]
+    override def renderValue(writer: Writer): writer.type = {
+      renderer.render(writer, values.head)
+      values.tail.foreach(writer << ", " << Renderer.renderString(_))
+      writer
+    }
+  }
+
   implicit val HeaderShow: Show[Header] = Show.show[Header] {
     _.toString
   }
-
-  @deprecated(message = "Please use HeaderOrder instead", since = "0.21.12")
-  def HeaderEq: Eq[Header] = HeaderOrder
 
   implicit lazy val HeaderOrder: Order[Header] =
     Order.from { case (a, b) =>

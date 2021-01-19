@@ -23,12 +23,12 @@ import cats.syntax.all._
 import fs2.Stream
 import fs2.io._
 import fs2.io.file.readRange
-import io.chrisdavenport.vault._
 import java.io._
 import java.net.URL
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
+import org.typelevel.vault._
 
 object StaticFile {
   private[this] val logger = getLogger

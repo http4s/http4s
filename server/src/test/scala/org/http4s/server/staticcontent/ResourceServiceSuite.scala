@@ -22,7 +22,6 @@ import cats.effect.IO
 import cats.syntax.all._
 import java.nio.file.Paths
 import fs2._
-import org.http4s.Uri.uri
 import org.http4s.headers.{
   `Accept-Encoding`,
   `Content-Encoding`,
@@ -33,20 +32,23 @@ import org.http4s.server.middleware.TranslateUri
 import org.http4s.syntax.all._
 
 class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
-  val config =
-    ResourceService.Config[IO]("", blocker = testBlocker)
+  // val config =
+  //   ResourceService.Config[IO]("", blocker = testBlocker)
+  // val defaultBase = getClass.getResource("/").getPath.toString
+  // val routes = resourceService(config)
+  val builder = resourceServiceBuilder[IO]("", testBlocker)
+  def routes: HttpRoutes[IO] = builder.toRoutes
   val defaultBase = getClass.getResource("/").getPath.toString
-  val routes = resourceService(config)
 
   test("Respect UriTranslation") {
     val app = TranslateUri("/foo")(routes).orNotFound
 
     {
-      val req = Request[IO](uri = uri("/foo/testresource.txt"))
+      val req = Request[IO](uri = uri"/foo/testresource.txt")
       Stream.eval(app(req)).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
         app(req).map(_.status).assertEquals(Status.Ok)
     } *> {
-      val req = Request[IO](uri = uri("/testresource.txt"))
+      val req = Request[IO](uri = uri"/testresource.txt")
       app(req).map(_.status).assertEquals(Status.NotFound)
     }
   }
@@ -60,18 +62,13 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Decodes path segments") {
-    val req = Request[IO](uri = uri("/space+truckin%27.txt"))
+    val req = Request[IO](uri = uri"/space+truckin%27.txt")
     routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test("Respect the path prefix") {
     val relativePath = "testresource.txt"
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "",
-        blocker = testBlocker,
-        pathPrefix = "/path-prefix"
-      ))
+    val s0 = builder.withPathPrefix("/path-prefix").toRoutes
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
     val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
     val req = Request[IO](uri = uri)
@@ -86,11 +83,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "/testDir",
-        blocker = testBlocker
-      ))
+    val s0 = builder.withBasePath("/testDir").toRoutes
     IO(file.exists()).assertEquals(true) *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -112,11 +105,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "",
-        blocker = testBlocker
-      ))
+    val s0 = builder.toRoutes
     IO(file.exists()).assertEquals(true) *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
@@ -128,12 +117,9 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "",
-        blocker = testBlocker,
-        pathPrefix = "/test"
-      ))
+    val s0 = builder
+      .withPathPrefix("/test")
+      .toRoutes
     IO(file.exists()).assertEquals(true) *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
@@ -144,11 +130,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("///" + absPath)
     val req = Request[IO](uri = uri)
-    val s0 = resourceService(
-      ResourceService.Config[IO](
-        basePath = "/testDir",
-        blocker = testBlocker
-      ))
+    val s0 = builder.toRoutes
     IO(file.exists()).assertEquals(true) *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -158,7 +140,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
       uri = Uri.fromString("/testresource.txt").yolo,
       headers = Headers.of(`Accept-Encoding`(ContentCoding.gzip))
     )
-    val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
+    val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
     Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResourceGzipped) *>
       rb.map(_.status).assertEquals(Status.Ok) *>
@@ -173,7 +155,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
       uri = Uri.fromString("/testresource2.txt").yolo,
       headers = Headers.of(`Accept-Encoding`(ContentCoding.gzip))
     )
-    val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
+    val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
     Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
       rb.map(_.status).assertEquals(Status.Ok) *>
@@ -190,13 +172,13 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Not send unmodified files") {
-    val req = Request[IO](uri = uri("/testresource.txt"))
+    val req = Request[IO](uri = uri"/testresource.txt")
       .putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
 
     runReq(req).map(_._2.status).assertEquals(Status.NotModified)
   }
 
   test("doesn't crash on /") {
-    routes.orNotFound(Request[IO](uri = uri("/"))).map(_.status).assertEquals(Status.NotFound)
+    routes.orNotFound(Request[IO](uri = uri"/")).map(_.status).assertEquals(Status.NotFound)
   }
 }

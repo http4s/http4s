@@ -101,7 +101,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val address = jetty.addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
     val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
-    val req = POST(multipart, uri).map(_.withHeaders(multipart.headers))
+    val req = POST(multipart, uri).withHeaders(multipart.headers)
     val body = client.expect[String](req)
     body.map(_.contains("This is text.")).assert
   }

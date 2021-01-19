@@ -63,7 +63,7 @@ private[http4s] trait ForwardedRenderers {
       host.host match {
         case Uri.RegName(name) =>
           // TODO: A workaround for #1651, remove when the former issue gets fixed.
-          writer << Uri.encode(name.value, StandardCharsets.ISO_8859_1, toSkip = RegNameChars)
+          writer << Uri.encode(name.toString, StandardCharsets.ISO_8859_1, toSkip = RegNameChars)
         case other =>
           writer << other
       }

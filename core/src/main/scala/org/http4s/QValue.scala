@@ -16,10 +16,9 @@
 
 package org.http4s
 
-import cats.parse.Parser
+import cats.parse.Parser0
 import cats.{Order, Show}
 import org.http4s.util.Writer
-
 import scala.reflect.macros.whitebox
 
 /** A Quality Value.  Represented as thousandths for an exact representation rounded to three
@@ -98,19 +97,19 @@ object QValue {
   def unsafeFromString(s: String): QValue =
     fromString(s).fold(throw _, identity)
 
-  private[http4s] val parser: Parser[QValue] = {
+  private[http4s] val parser: Parser0[QValue] = {
     import cats.parse.Parser.{char => ch, _}
     import cats.parse.Rfc5234._
     import org.http4s.parser.Rfc2616BasicRules.optWs
 
-    val qValue = string1(ch('0') *> (ch('.') *> digit.rep1).rep)
+    val qValue = string(ch('0') *> (ch('.') *> digit.rep).rep0)
       .mapFilter(
         QValue
           .fromString(_)
           .toOption
       )
-      .orElse1(
-        ch('1') *> (ch('.') *> ch('0').rep.void).?.as(One)
+      .orElse(
+        ch('1') *> (ch('.') *> ch('0').rep0.void).?.as(One)
       )
 
     ((ch(';') *> optWs *> ignoreCaseChar('q') *> ch('=')) *> qValue).backtrack
@@ -123,6 +122,7 @@ object QValue {
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
+  @deprecated("This location of the implementation complicates Dotty support", "0.21.16")
   class Macros(val c: whitebox.Context) {
     import c.universe._
 

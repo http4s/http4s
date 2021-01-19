@@ -12,22 +12,15 @@ package org.http4s
 package parser
 
 import java.util
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.Header.Parsed
 import org.http4s.headers._
-import org.http4s.syntax.string._
+import org.typelevel.ci.CIString
 
-object HttpHeaderParser
-    extends SimpleHeaders
-    with CacheControlHeader
-    with ForwardedHeader
-    with LocationHeader
-    with RefererHeader
-    with StrictTransportSecurityHeader {
+object HttpHeaderParser extends SimpleHeaders with ForwardedHeader {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
-    new util.concurrent.ConcurrentHashMap[CaseInsensitiveString, HeaderParser]
+    new util.concurrent.ConcurrentHashMap[CIString, HeaderParser]
 
   // Constructor
   gatherBuiltIn()
@@ -38,10 +31,10 @@ object HttpHeaderParser
     * @param parser [[Header]] parser
     * @return any existing parser already registered to that key
     */
-  def addParser(key: CaseInsensitiveString, parser: HeaderParser): Option[HeaderParser] =
+  def addParser(key: CIString, parser: HeaderParser): Option[HeaderParser] =
     Option(allParsers.put(key, parser))
 
-  private def addParser_(key: CaseInsensitiveString, parser: HeaderParser): Unit = {
+  private def addParser_(key: CIString, parser: HeaderParser): Unit = {
     addParser(key, parser)
     ()
   }
@@ -51,7 +44,7 @@ object HttpHeaderParser
     * @param key name of the header to be removed
     * @return `Some(parser)` if the parser exists, else `None`
     */
-  def dropParser(key: CaseInsensitiveString): Option[HeaderParser] =
+  def dropParser(key: CIString): Option[HeaderParser] =
     Option(allParsers.remove(key))
 
   def parseHeader(header: Header.Raw): ParseResult[Header] =
@@ -93,47 +86,60 @@ object HttpHeaderParser
   }
 
   private def gatherBuiltIn(): Unit = {
-    addParser_("ACCEPT".ci, Accept.parse)
-    addParser_("ACCEPT-CHARSET".ci, `Accept-Charset`.parse)
-    addParser_("ACCEPT-ENCODING".ci, `Accept-Encoding`.parse)
-    addParser_("ACCEPT-LANGUAGE".ci, `Accept-Language`.parse)
-    addParser_("ACCEPT-RANGES".ci, `Accept-Ranges`.parse)
-    addParser_("AGE".ci, `AGE`)
-    addParser_("ALLOW".ci, `ALLOW`)
-    addParser_("CACHE-CONTROL".ci, `CACHE_CONTROL`)
-    addParser_("CONNECTION".ci, `CONNECTION`)
-    addParser_("CONTENT-DISPOSITION".ci, `CONTENT_DISPOSITION`)
-    addParser_("CONTENT-ENCODING".ci, `CONTENT_ENCODING`)
-    addParser_("CONTENT-LENGTH".ci, `CONTENT_LENGTH`)
-    addParser_("CONTENT-RANGE".ci, `Content-Range`.parse)
-    addParser_("CONTENT-TYPE".ci, `Content-Type`.parse)
-    addParser_("COOKIE".ci, Cookie.parse)
-    addParser_("DATE".ci, Date.parse)
-    addParser_("ETAG".ci, ETag.parse)
-    addParser_("EXPIRES".ci, Expires.parse)
-    addParser_("FORWARDED".ci, `FORWARDED`)
-    addParser_("HOST".ci, `HOST`)
-    addParser_("IF-MATCH".ci, `IF_MATCH`)
-    addParser_("IF-MODIFIED-SINCE".ci, `If-Modified-Since`.parse)
-    addParser_("IF-NONE-MATCH".ci, `IF_NONE_MATCH`)
-    addParser_("IF-UNMODIFIED-SINCE".ci, `If-Unmodified-Since`.parse)
-    addParser_("LAST-EVENT-ID".ci, `LAST_EVENT_ID`)
-    addParser_("LAST-MODIFIED".ci, `Last-Modified`.parse)
-    addParser_("LINK".ci, Link.parse)
-    addParser_("LOCATION".ci, `LOCATION`)
-    addParser_("ORIGIN".ci, Origin.parse)
-    addParser_("RANGE".ci, Range.parse)
-    addParser_("REFERER".ci, `REFERER`)
-    addParser_("RETRY-AFTER".ci, `Retry-After`.parse)
-    addParser_("SET-COOKIE".ci, `Set-Cookie`.parse)
-    addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
-    addParser_("TRANSFER-ENCODING".ci, `Transfer-Encoding`.parse)
-    addParser_("USER-AGENT".ci, `USER_AGENT`)
-    addParser_("X-B3-FLAGS".ci, `X-B3-Flags`.parse)
-    addParser_("X-B3-PARENTSPANID".ci, `X-B3-ParentSpanId`.parse)
-    addParser_("X-B3-SAMPLED".ci, `X-B3-Sampled`.parse)
-    addParser_("X-B3-SPANID".ci, `X-B3-SpanId`.parse)
-    addParser_("X-B3-TRACEID".ci, `X-B3-TraceId`.parse)
-    addParser_("X-FORWARDED-FOR".ci, `X_FORWARDED_FOR`)
+    addParser_(CIString("ACCEPT"), Accept.parse)
+    addParser_(CIString("ACCEPT-CHARSET"), `Accept-Charset`.parse)
+    addParser_(CIString("ACCEPT-ENCODING"), `Accept-Encoding`.parse)
+    addParser_(CIString("ACCEPT-LANGUAGE"), `Accept-Language`.parse)
+    addParser_(CIString("ACCEPT-PATCH"), `Accept-Patch`.parse)
+    addParser_(CIString("ACCEPT-RANGES"), `Accept-Ranges`.parse)
+    addParser_(
+      CIString("ACCESS-CONTROL-ALLOW-CREDENTIALS"),
+      `Access-Control-Allow-Credentials`.parse)
+    addParser_(CIString("ACCESS-CONTROL-ALLOW-HEADERS"), `Access-Control-Allow-Headers`.parse)
+    addParser_(CIString("ACCESS-CONTROL-EXPOSE-HEADERS"), `Access-Control-Expose-Headers`.parse)
+    addParser_(CIString("AGE"), Age.parse)
+    addParser_(CIString("ALLOW"), Allow.parse)
+    addParser_(CIString("AUTHORIZATION"), Authorization.parse)
+    addParser_(CIString("CACHE-CONTROL"), `Cache-Control`.parse)
+    addParser_(CIString("CONNECTION"), Connection.parse)
+    addParser_(CIString("CONTENT-DISPOSITION"), `CONTENT_DISPOSITION`)
+    addParser_(CIString("CONTENT-ENCODING"), `Content-Encoding`.parse)
+    addParser_(CIString("CONTENT-LANGUAGE"), `Content-Language`.parse)
+    addParser_(CIString("CONTENT-LENGTH"), `Content-Length`.parse)
+    addParser_(CIString("CONTENT-LOCATION"), `Content-Location`.parse)
+    addParser_(CIString("CONTENT-RANGE"), `Content-Range`.parse)
+    addParser_(CIString("CONTENT-TYPE"), `Content-Type`.parse)
+    addParser_(CIString("COOKIE"), Cookie.parse)
+    addParser_(CIString("DATE"), Date.parse)
+    addParser_(CIString("ETAG"), ETag.parse)
+    addParser_(CIString("EXPIRES"), Expires.parse)
+    addParser_(CIString("FORWARDED"), `FORWARDED`)
+    addParser_(CIString("HOST"), Host.parse)
+    addParser_(CIString("IF-MATCH"), `If-Match`.parse)
+    addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)
+    addParser_(CIString("IF-NONE-MATCH"), `If-None-Match`.parse)
+    addParser_(CIString("IF-UNMODIFIED-SINCE"), `If-Unmodified-Since`.parse)
+    addParser_(CIString("LAST-EVENT-ID"), `LAST_EVENT_ID`)
+    addParser_(CIString("LAST-MODIFIED"), `Last-Modified`.parse)
+    addParser_(CIString("LINK"), Link.parse)
+    addParser_(CIString("LOCATION"), Location.parse)
+    addParser_(CIString("MAX-FORWARDS"), `Max-Forwards`.parse)
+    addParser_(CIString("ORIGIN"), Origin.parse)
+    addParser_(CIString("PROXY-AUTHENTICATE"), `Proxy-Authenticate`.parse)
+    addParser_(CIString("RANGE"), Range.parse)
+    addParser_(CIString("REFERER"), Referer.parse)
+    addParser_(CIString("RETRY-AFTER"), `Retry-After`.parse)
+    addParser_(CIString("SERVER"), Server.parse)
+    addParser_(CIString("SET-COOKIE"), `Set-Cookie`.parse)
+    addParser_(CIString("STRICT-TRANSPORT-SECURITY"), `Strict-Transport-Security`.parse)
+    addParser_(CIString("TRANSFER-ENCODING"), `Transfer-Encoding`.parse)
+    addParser_(CIString("USER-AGENT"), `User-Agent`.parse)
+    addParser_(CIString("WWW-AUTHENTICATE"), `WWW-Authenticate`.parse)
+    addParser_(CIString("X-B3-FLAGS"), `X-B3-Flags`.parse)
+    addParser_(CIString("X-B3-PARENTSPANID"), `X-B3-ParentSpanId`.parse)
+    addParser_(CIString("X-B3-SAMPLED"), `X-B3-Sampled`.parse)
+    addParser_(CIString("X-B3-SPANID"), `X-B3-SpanId`.parse)
+    addParser_(CIString("X-B3-TRACEID"), `X-B3-TraceId`.parse)
+    addParser_(CIString("X-FORWARDED-FOR"), `X-Forwarded-For`.parse)
   }
 }

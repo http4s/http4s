@@ -13,11 +13,13 @@ package org.http4s
 import cats.kernel.laws.discipline._
 import cats.syntax.all._
 import java.nio.file.Paths
+
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.Uri._
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers
+import org.typelevel.ci.CIString
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
@@ -169,18 +171,18 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri copy" should {
     "support updating the schema" in {
-      uri("http://example.com/").copy(scheme = Scheme.https.some) must_== uri(
-        "https://example.com/")
+      uri"http://example.com/".copy(scheme = Scheme.https.some) must_==
+        uri"https://example.com/"
       // Must add the authority to set the scheme and host
-      uri("/route/").copy(
+      uri"/route/".copy(
         scheme = Scheme.https.some,
-        authority = Some(Authority(None, RegName("example.com")))) must_== uri(
-        "https://example.com/route/")
+        authority = Some(Authority(None, RegName("example.com")))) must_==
+        uri"https://example.com/route/"
       // You can add a port too
-      uri("/route/").copy(
+      uri"/route/".copy(
         scheme = Scheme.https.some,
-        authority = Some(Authority(None, RegName("example.com"), Some(8443)))) must_== uri(
-        "https://example.com:8443/route/")
+        authority = Some(Authority(None, RegName("example.com"), Some(8443)))) must_==
+        uri"https://example.com:8443/route/"
     }
   }
 
@@ -191,7 +193,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
     "withPath without slash adds a / on render" in {
       val uri = getUri("http://localhost/foo/bar/baz")
-      uri.withPath("bar").toString must_=== "http://localhost/bar"
+      uri.withPath(path"bar").toString must_=== "http://localhost/bar"
     }
 
     "render a IPv6 address, should be wrapped in brackets" in {
@@ -206,7 +208,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         Uri(
           Some(Scheme.http),
           Some(Authority(host = Ipv6Address.unsafeFromString(s))),
-          "/foo",
+          Uri.Path.fromString("/foo"),
           Query.fromPairs("bar" -> "baz")).toString must_==
           s"http://[$s]/foo?bar=baz"
       }
@@ -215,8 +217,8 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     "render URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = RegName("www.foo.com".ci))),
-        "/foo",
+        Some(Authority(host = RegName(CIString("www.foo.com")))),
+        Uri.Path.fromString("/foo"),
         Query.fromPairs("bar" -> "baz")).toString must_== "http://www.foo.com/foo?bar=baz"
     }
 
@@ -225,21 +227,22 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         Some(Scheme.http),
         Some(
           Authority(
-            host = RegName("www.foo.com".ci),
+            host = RegName(CIString("www.foo.com")),
             port = Some(80)))).toString must_== "http://www.foo.com:80"
     }
 
     "render URL without port" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = RegName("www.foo.com".ci)))).toString must_== "http://www.foo.com"
+        Some(
+          Authority(host = RegName(CIString("www.foo.com"))))).toString must_== "http://www.foo.com"
     }
 
     "render IPv4 URL with parameters" in {
       Uri(
         Some(Scheme.http),
         Some(Authority(host = ipv4"192.168.1.1", port = Some(80))),
-        "/c",
+        Uri.Path.fromString("/c"),
         Query.fromPairs(
           "GB" -> "object",
           "Class" -> "one")).toString must_== "http://192.168.1.1:80/c?GB=object&Class=one"
@@ -264,7 +267,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       Uri(
         Some(Scheme.http),
         Some(Authority(host = ipv6"2001:db8::7")),
-        "/c",
+        Uri.Path.fromString("/c"),
         Query.fromPairs(
           "GB" -> "object",
           "Class" -> "one")).toString must_== "http://[2001:db8::7]/c?GB=object&Class=one"
@@ -289,13 +292,15 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "not append a '/' unless it's in the path" in {
-      uri("http://www.example.com").toString must_== "http://www.example.com"
+      uri"http://www.example.com".toString must_== "http://www.example.com"
     }
 
     "render email address" in {
       Uri(
         Some(scheme"mailto"),
-        path = "John.Doe@example.com").toString must_== "mailto:John.Doe@example.com"
+        path =
+          Uri.Path.fromString(
+            "John.Doe@example.com")).toString must_== "mailto:John.Doe@example.com"
     }
 
     "render an URL with username and password" in {
@@ -306,9 +311,10 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
             Some(UserInfo("username", Some("password"))),
             RegName("some.example.com"),
             None)),
-        "/",
+        Uri.Path.fromString("/"),
         Query.empty,
-        None).toString must_== "http://username:password@some.example.com/"
+        None
+      ).toString must_== "http://username:password@some.example.com/"
     }
 
     "render an URL with username and password, path and params" in {
@@ -319,63 +325,71 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
             Some(UserInfo("username", Some("password"))),
             RegName("some.example.com"),
             None)),
-        "/some/path",
+        Uri.Path.fromString("/some/path"),
         Query.fromString("param1=5&param-without-value"),
         None
       ).toString must_== "http://username:password@some.example.com/some/path?param1=5&param-without-value"
     }
 
     "render relative URI with empty query string" in {
-      Uri(path = "/", query = Query.fromString(""), fragment = None).toString must_== "/?"
+      Uri(
+        path = Uri.Path.fromString("/"),
+        query = Query.fromString(""),
+        fragment = None).toString must_== "/?"
     }
 
     "render relative URI with empty query string and fragment" in {
-      Uri(path = "/", query = Query.fromString(""), fragment = Some("")).toString must_== "/?#"
+      Uri(
+        path = Uri.Path.Root,
+        query = Query.fromString(""),
+        fragment = Some("")).toString must_== "/?#"
     }
 
     "render relative URI with empty fragment" in {
-      Uri(path = "/", query = Query.empty, fragment = Some("")).toString must_== "/#"
+      Uri(path = Uri.Path.Root, query = Query.empty, fragment = Some("")).toString must_== "/#"
     }
 
     "render absolute path with fragment" in {
-      Uri(path = "/foo/bar", fragment = Some("an-anchor")).toString must_== "/foo/bar#an-anchor"
+      Uri(
+        path = Uri.Path.fromString("/foo/bar"),
+        fragment = Some("an-anchor")).toString must_== "/foo/bar#an-anchor"
     }
 
     "render absolute path with parameters" in {
       Uri(
-        path = "/foo/bar",
+        path = Uri.Path.fromString("/foo/bar"),
         query = Query.fromString("foo=bar&ding=dong")).toString must_== "/foo/bar?foo=bar&ding=dong"
     }
 
     "render absolute path with parameters and fragment" in {
       Uri(
-        path = "/foo/bar",
+        path = Uri.Path.fromString("/foo/bar"),
         query = Query.fromString("foo=bar&ding=dong"),
         fragment = Some("an_anchor")).toString must_== "/foo/bar?foo=bar&ding=dong#an_anchor"
     }
 
     "render absolute path without parameters" in {
-      Uri(path = "/foo/bar").toString must_== "/foo/bar"
+      Uri(path = Uri.Path.fromString("/foo/bar")).toString must_== "/foo/bar"
     }
 
     "render absolute root path without parameters" in {
-      Uri(path = "/").toString must_== "/"
+      Uri(path = Uri.Path.fromString("/")).toString must_== "/"
     }
 
     "render absolute path containing colon" in {
-      Uri(path = "/foo:bar").toString must_== "/foo:bar"
+      Uri(path = Uri.Path.fromString("/foo:bar")).toString must_== "/foo:bar"
     }
 
     "prefix relative path containing colon in the only segment with a ./" in {
-      Uri(path = "foo:bar").toString must_== "./foo:bar"
+      Uri(path = Uri.Path.fromString("foo:bar")).toString must_== "./foo:bar"
     }
 
     "prefix relative path containing colon in first segment with a ./" in {
-      Uri(path = "foo:bar/baz").toString must_== "./foo:bar/baz"
+      Uri(path = Uri.Path.fromString("foo:bar/baz")).toString must_== "./foo:bar/baz"
     }
 
     "not prefix relative path containing colon in later segment" in {
-      Uri(path = "foo/bar:baz").toString must_== "foo/bar:baz"
+      Uri(path = Uri.Path.fromString("foo/bar:baz")).toString must_== "foo/bar:baz"
     }
 
     "render a query string with a single param" in {
@@ -395,17 +409,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
        * - http://en.wikipedia.org/wiki/Uniform_Resource_Identifier
        *
        * URI.fromString fails for:
-       * - "http://en.wikipedia.org/wiki/URI#Examples_of_URI_references",
-       * - "file:///C:/Users/Benutzer/Desktop/Uniform%20Resource%20Identifier.html",
-       * - "file:///etc/fstab",
-       * - "relative/path/to/resource.txt",
        * - "//example.org/scheme-relative/URI/with/absolute/path/to/resource.txt",
-       * - "../../../resource.txt",
-       * - "./resource.txt#frag01",
-       * - "resource.txt",
-       * - "#frag01",
-       * - ""
-       *
        */
       val examples = Seq(
         "http://de.wikipedia.org/wiki/Uniform_Resource_Identifier",
@@ -423,7 +427,16 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         "git://github.com/rails/rails.git",
         "crid://broadcaster.com/movies/BestActionMovieEver",
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
-        "/relative/URI/with/absolute/path/to/resource.txt"
+        "/relative/URI/with/absolute/path/to/resource.txt",
+        "http://en.wikipedia.org/wiki/URI#Examples_of_URI_references",
+        "file:///C:/Users/Benutzer/Desktop/Uniform%20Resource%20Identifier.html",
+        "file:///etc/fstab",
+        "relative/path/to/resource.txt",
+        "../../../resource.txt",
+        "./resource.txt#frag01",
+        "resource.txt",
+        "#frag01",
+        ""
       )
       foreach(examples) { e =>
         Uri.fromString(e).map(_.toString) must beRight(e)
@@ -636,31 +649,31 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri parameter convenience methods" should {
     "add a parameter if no query is available" in {
-      val u = Uri(query = Query.empty).+?("param1", "value")
+      val u = Uri(query = Query.empty) +? ("param1" -> "value")
       u must be_==(Uri(query = Query.fromString("param1=value")))
     }
     "add a parameter" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2", "value")
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param2" -> "value")
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")))
     }
     "add a parameter with boolean value" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2", true)
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param2" -> true)
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2=true")))
     }
     "add a parameter without a value" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param2")
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? "param2"
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")))
     }
     "add a parameter with many values" in {
-      val u = Uri().+?("param1", Seq("value1", "value2"))
+      val u = Uri() ++? ("param1" -> Seq("value1", "value2"))
       u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2")))
     }
     "add a parameter with many long values" in {
-      val u = Uri().+?("param1", Seq(1L, -1L))
+      val u = Uri() ++? ("param1" -> Seq(1L, -1L))
       u must be_==(Uri(query = Query.fromString(s"param1=1&param1=-1")))
     }
     "add a query parameter with a QueryParamEncoder" in {
-      val u = Uri().+?("test", Ttl(2))
+      val u = Uri() +? ("test" -> Ttl(2))
       u must be_==(Uri(query = Query.fromString(s"test=2")))
     }
     "add a query parameter with a QueryParamEncoder and an implicit key" in {
@@ -672,11 +685,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri(query = Query.fromString(s"ttl")))
     }
     "add an optional query parameter (Just)" in {
-      val u = Uri().+??("param1", Some(2))
+      val u = Uri() +?? ("param1" -> Some(2))
       u must be_==(Uri(query = Query.fromString(s"param1=2")))
     }
     "add an optional query parameter (Empty)" in {
-      val u = Uri().+??("param1", None: Option[Int])
+      val u = Uri() +?? ("param1" -> Option.empty[Int])
       u must be_==(Uri(query = Query.empty))
     }
     "add multiple query parameters at once" in {
@@ -748,7 +761,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri())
     }
     "replace a parameter" in {
-      val u = Uri(query = Query.fromString("param1=value&param2=value")).+?("param1", "newValue")
+      val u = Uri(query = Query.fromString("param1=value&param2=value")) +? ("param1" -> "newValue")
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=newValue&param2=value")).multiParams)
     }
@@ -759,18 +772,18 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2"))
-        .+?("param1", Seq("value1", "value2"))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) ++?
+        ("param1" -> Seq("value1", "value2"))
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter without a value" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")).+?("param2")
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) +? "param2"
       u.multiParams must be_==(
         Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace a parameter set" in {
-      val u = Uri(query = Query.fromString("param1=value1&param1=value2")).+?("param1", "value")
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param1" -> "value")
       u.multiParams must be_==(Uri(query = Query.fromString("param1=value")).multiParams)
     }
     "set a parameter with a value" in {
@@ -832,17 +845,17 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.withFragment convenience method" should {
     "set a Fragment" in {
-      val u = Uri(path = "/")
+      val u = Uri(path = Uri.Path.Root)
       val updated = u.withFragment("nonsense")
       updated.renderString must_== "/#nonsense"
     }
     "set a new Fragment" in {
-      val u = Uri(path = "/", fragment = Some("adjakda"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some("adjakda"))
       val updated = u.withFragment("nonsense")
       updated.renderString must_== "/#nonsense"
     }
     "set no Fragment on a null String" in {
-      val u = Uri(path = "/", fragment = Some("adjakda"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some("adjakda"))
       val evilString: String = null
       val updated = u.withFragment(evilString)
       updated.renderString must_== "/"
@@ -851,7 +864,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.withoutFragment convenience method" should {
     "unset a Fragment" in {
-      val u = Uri(path = "/", fragment = Some("nonsense"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some("nonsense"))
       val updated = u.withoutFragment
       updated.renderString must_== "/"
     }
@@ -859,11 +872,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.renderString" should {
     "Encode special chars in the query" in {
-      val u = Uri(path = "/").withQueryParam("foo", " !$&'()*+,;=:/?@~")
+      val u = Uri(path = Uri.Path.Root).withQueryParam("foo", " !$&'()*+,;=:/?@~")
       u.renderString must_== "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~"
     }
     "Encode special chars in the fragment" in {
-      val u = Uri(path = "/", fragment = Some(" !$&'()*+,;=:/?@~"))
+      val u = Uri(path = Uri.Path.Root, fragment = Some(" !$&'()*+,;=:/?@~"))
       u.renderString must_== "/#%20!$&'()*+,;=:/?@~"
     }
   }
@@ -872,14 +885,14 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     val base = getUri("http://a/b/c/d;p?q")
 
     "correctly remove ./.. sequences" >> {
-      implicit class checkDotSequences(path: String) {
-        def removingDotsShould_==(expected: String) =
+      implicit class checkDotSequences(path: Uri.Path) {
+        def removingDotsShould_==(expected: Uri.Path) =
           s"$path -> $expected" in { removeDotSegments(path) must_== expected }
       }
 
       // from RFC 3986 sec 5.2.4
-      "mid/content=5/../6".removingDotsShould_==("mid/6")
-      "/a/b/c/./../../g".removingDotsShould_==("/a/g")
+      path"mid/content=5/../6".removingDotsShould_==(path"mid/6")
+      path"/a/b/c/./../../g".removingDotsShould_==(path"/a/g")
     }
 
     implicit class check(relative: String) {
@@ -954,7 +967,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
     "correctly remove dot segments in other examples" >> prop { (input: String) =>
       val prefix = "/this/isa/prefix/"
-      val processed = Uri.removeDotSegments(input)
+      val processed = Uri.removeDotSegments(Uri.Path.fromString(input)).renderString
       val path = Paths.get(prefix, processed).normalize
       path.startsWith(Paths.get(prefix)) must beTrue
       processed must not contain "./"
@@ -972,7 +985,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.equals" should {
     "be false between an empty path and a trailing slash after an authority" in {
-      uri("http://example.com") must_!= uri("http://example.com/")
+      uri"http://example.com" must_!= uri"http://example.com/"
     }
   }
 
@@ -984,28 +997,28 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "/" should {
     "encode space as %20" in {
-      uri("http://example.com/") / " " must_== uri("http://example.com/%20")
+      uri"http://example.com/" / " " must_== uri"http://example.com/%20"
     }
 
     "encode generic delimiters that aren't pchars" in {
       // ":" and "@" are valid pchars
-      uri("http://example.com") / ":/?#[]@" must_== uri("http://example.com/:%2F%3F%23%5B%5D@")
+      uri"http://example.com" / ":/?#[]@" must_== uri"http://example.com/:%2F%3F%23%5B%5D@"
     }
 
     "encode percent sequences" in {
-      uri("http://example.com") / "%2F" must_== uri("http://example.com/%252F")
+      uri"http://example.com" / "%2F" must_== uri"http://example.com/%252F"
     }
 
     "not encode sub-delims" in {
-      uri("http://example.com") / "!$&'()*+,;=" must_== uri("http://example.com/!$&'()*+,;=")
+      uri"http://example.com" / "!$&'()*+,;=" must_== uri"http://example.com/!$$&'()*+,;="
     }
 
     "UTF-8 encode characters" in {
-      uri("http://example.com/") / "ö" must_== uri("http://example.com/%C3%B6")
+      uri"http://example.com/" / "ö" must_== uri"http://example.com/%C3%B6"
     }
 
     "not make bad URIs" >> forAll { (s: String) =>
-      Uri.fromString((uri("http://example.com/") / s).toString) must beRight
+      Uri.fromString((uri"http://example.com/" / s).toString) must beRight
     }
   }
 
@@ -1092,6 +1105,34 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       // This is a silly thing to do, but as long as the API allows it, it would
       // be good to know if it breaks.
       decode(encode("%2f", toSkip = CharPredicate("%")), toSkip = CharPredicate("/")) must_== "%2f"
+    }
+  }
+
+  "Uri.Path" should {
+    "check that we store the encoded path from parsed" in {
+      val uriReference = uri"https://example.com/auth0%7Cdsfhsklh46ksx/we-have-a%2Ftest"
+      uriReference.path.segments must_== List("auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest").map(
+        Uri.Path.Segment.encoded)
+    }
+    "check that we store the encoded " in {
+      val uriReference = uri"https://example.com/test" / "auth0|dsfhsklh46ksx" / "we-have-a/test"
+      uriReference.path.segments must_== List("test", "auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest")
+        .map(Uri.Path.Segment.encoded)
+    }
+    "instances" in {
+      checkAll("Uri.Path", SemigroupTests[Uri.Path].semigroup)
+      checkAll("Uri.Path", EqTests[Uri.Path].eqv)
+    }
+
+    "indexOf / Split" in {
+      val path1 = path"/foo/bar/baz"
+      val path2 = path"/foo"
+      val split = path1.findSplit(path2)
+      split must beSome(1)
+      val (pre, post) = path1.splitAt(split.getOrElse(0))
+      pre must_=== path2
+      post must_=== path"/bar/baz"
+      pre.concat(post) must_=== path1
     }
   }
 

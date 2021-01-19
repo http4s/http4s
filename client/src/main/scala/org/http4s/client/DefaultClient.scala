@@ -18,7 +18,7 @@ package org.http4s
 package client
 
 import cats.Applicative
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect.{Bracket, Resource}
 import cats.syntax.all._
 import fs2.Stream
@@ -61,10 +61,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A] =
     Kleisli(run(_).use(f))
 
-  @deprecated("Use toKleisli", "0.18")
-  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A] =
-    toKleisli(f)
-
   /** Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
@@ -79,18 +75,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
         resp.withBodyStream(resp.body.onFinalizeWeak(release))
       }
     }
-
-  /** Returns this client as an [[HttpService]].  It is the
-    * responsibility of callers of this service to run the response
-    * body to dispose of the underlying HTTP connection.
-    *
-    * This is intended for use in proxy servers.  `run`, `fetchAs`,
-    * [[toKleisli]], [[streaming]] are safer alternatives, as their signatures
-    * guarantee disposal of the HTTP connection.
-    */
-  @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
-  def toHttpService: HttpService[F] =
-    toHttpApp.mapF(OptionT.liftF(_))
 
   def stream(req: Request[F]): Stream[F, Response[F]] =
     Stream.resource(run(req))
@@ -121,14 +105,14 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * completion of the decoding.
     */
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(req)(defaultOnError)
+    expectOr(req)(defaultOnError(req))
 
   def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A] =
     req.flatMap(expectOr(_)(onError))
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(req)(defaultOnError)
+    req.flatMap(req => expectOr(req)(defaultOnError(req)))
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A] =
@@ -139,7 +123,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * connection is closed at the completion of the decoding.
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(uri)(defaultOnError)
+    expectOr(uri)(defaultOnError(Request[F](uri = uri)))
 
   def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[A] =
@@ -150,7 +134,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * underlying HTTP connection is closed at the completion of the decoding.
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    expectOr(s)(defaultOnError)
+    expectOr(s)(defaultOnError(Request[F](uri = Uri.unsafeFromString(s))))
 
   def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]): F[Option[A]] = {
@@ -172,7 +156,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   }
 
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]] =
-    expectOptionOr(req)(defaultOnError)
+    expectOptionOr(req)(defaultOnError(req))
 
   /** Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
@@ -224,10 +208,6 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def successful(req: F[Request[F]]): F[Boolean] =
     req.flatMap(successful)
 
-  @deprecated("Use expect", "0.14")
-  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
-    fetchAs(req)(d)
-
   /** Submits a GET request, and provides a callback to process the response.
     *
     * @param uri The URI to GET
@@ -246,21 +226,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
   def get[A](s: String)(f: Response[F] => F[A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => get(uri)(f))
 
-  /** Submits a GET request and decodes the response.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
-    */
-  @deprecated("Use expect", "0.14")
-  def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    fetchAs(Request[F](Method.GET, uri))(d)
-
-  @deprecated("Use expect", "0.14")
-  def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
-
-  @deprecated("Use expect", "0.14")
-  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T] =
-    fetchAs(req)
-
-  private def defaultOnError(resp: Response[F])(implicit F: Applicative[F]): F[Throwable] =
-    F.pure(UnexpectedStatus(resp.status))
+  private def defaultOnError(req: Request[F])(resp: Response[F])(implicit
+      F: Applicative[F]): F[Throwable] =
+    F.pure(UnexpectedStatus(resp.status, req.method, req.uri))
 }

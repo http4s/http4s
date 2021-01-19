@@ -5,9 +5,9 @@ import org.http4s.sbt.ScaladocApiMapping
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_212, scala_213) // "3.0.0-M2", "3.0.0-M3"
+ThisBuild / crossScalaVersions := Seq(scala_212, scala_213)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
-ThisBuild / baseVersion := "0.21"
+ThisBuild / baseVersion := "0.22"
 ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName   := "Ross A. Baker"
 
@@ -94,6 +94,7 @@ lazy val core = libraryProject("core")
     ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
+      caseInsensitive,
       catsCore,
       catsEffect,
       catsParse.exclude("org.typelevel", "cats-core_2.13"),
@@ -102,7 +103,7 @@ lazy val core = libraryProject("core")
       log4s,
       scodecBits,
       slf4jApi, // residual dependency from macros
-      // vault, inlined pending -M2 and -M3 release
+      vault,
     ),
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
@@ -112,124 +113,7 @@ lazy val core = libraryProject("core")
       )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ContentCoding.org$http4s$ContentCoding$$<init>$default$2"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ContentCoding.org$http4s$ContentCoding$$<init>$default$2"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Content-Range.apply"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.AdditionalRules.httpDate"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_CHARSET"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_CHARSET"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_ENCODING"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_ENCODING"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_LANGUAGE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_LANGUAGE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_RANGES"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ACCEPT_RANGES"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.AUTHORIZATION"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.CONTENT_RANGE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.CONTENT_RANGE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.CONTENT_TYPE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.COOKIE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.DATE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ETAG"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.EXPIRES"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.IF_MODIFIED_SINCE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.IF_UNMODIFIED_SINCE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.LAST_MODIFIED"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.LINK"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.ORIGIN"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.PROXY_AUTHENTICATE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.RANGE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.RETRY_AFTER"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.SET_COOKIE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.TRANSFER_ENCODING"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.WWW_AUTHENTICATE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_FLAGS"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_PARENTSPANID"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_SAMPLED"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_SPANID"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.X_B3_TRACEID"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.HttpHeaderParser.idStringToLong"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.RangeParser.ACCEPT_RANGES"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.RangeParser.ACCEPT_RANGES"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.DATE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.ETAG"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.EXPIRES"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.IF_MODIFIED_SINCE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.IF_UNMODIFIED_SINCE"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.LAST_MODIFIED"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.RETRY_AFTER"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.parser.SimpleHeaders.TRANSFER_ENCODING"),
-      ProblemFilters.exclude[IncompatibleTemplateDefProblem]("org.http4s.parser.ZipkinHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ContentCoding$ContentCodingParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.HttpVersion$Parser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.MediaParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.MediaRange$MediaRangeParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.MediaType$MediaTypeParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.QValue$QValueParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.TransferCoding$TransferCodingParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.headers.Forwarded$Node$Port$C$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptCharsetHeader$AcceptCharsetParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptEncodingHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptEncodingHeader$AcceptEncodingParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptHeader$AcceptParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptLanguageHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AcceptLanguageHeader$AcceptLanguageParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AdditionalRules$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AuthorizationHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.AuthorizationHeader$AuthorizationParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ChallengeParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ContentTypeHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ContentTypeHeader$ContentTypeParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.CookieHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.CookieHeader$BaseCookieParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.CookieHeader$CookieParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.CookieHeader$SetCookieParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.LinkHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.LinkHeader$LinkParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.OriginHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.OriginHeader$OriginParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ProxyAuthenticateHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.ProxyAuthenticateHeader$ProxyAuthenticateParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$AcceptRangesParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$AcceptRangesParser"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.RangeParser$RangeRule"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.WwwAuthenticateHeader"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.parser.WwwAuthenticateHeader$WWWAuthenticateParser"),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.parser.HttpHeaderParser$"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.acceptCharsetParser"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.acceptCharsetParser"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.org$http4s$parser$AcceptCharsetHeader$_setter_$acceptCharsetParser_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptCharsetHeader.org$http4s$parser$AcceptCharsetHeader$_setter_$acceptCharsetParser_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.acceptEncodingParser"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.acceptEncodingParser"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.org$http4s$parser$AcceptEncodingHeader$_setter_$acceptEncodingParser_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptEncodingHeader.org$http4s$parser$AcceptEncodingHeader$_setter_$acceptEncodingParser_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.acceptLanguageParser"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.acceptLanguageParser"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.org$http4s$parser$AcceptLanguageHeader$_setter_$acceptLanguageParser_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.parser.AcceptLanguageHeader.org$http4s$parser$AcceptLanguageHeader$_setter_$acceptLanguageParser_="),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Uri.Unreserved"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.Query.this"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.GenDelims"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.SubDelims"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.util.UrlCodingUtils.Unreserved"),
-
-      //Proxy-Authorization
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.headers.Proxy$minusAuthorization$"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.parse"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.matchHeader"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.from"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.unapply"),
-      ProblemFilters.exclude[StaticVirtualMemberProblem]("org.http4s.headers.Proxy-Authorization.name"),
-      ProblemFilters.exclude[StaticVirtualMemberProblem]("org.http4s.headers.Proxy-Authorization.toString"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.headers.Proxy-Authorization.unapply"),
-    ),
+    Compile / packageBin / mappings ~= { _.filterNot(_._2.startsWith("scala/")) },
   )
 
 lazy val laws = libraryProject("laws")
@@ -237,25 +121,22 @@ lazy val laws = libraryProject("laws")
     description := "Instances and laws for testing http4s code",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
+      caseInsensitiveTesting,
       catsEffectLaws,
       catsLaws,
       disciplineCore,
       scalacheck,
+      scalacheckEffectMunit,
+      munitCatsEffect
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$org$http4s$laws$discipline$ArbitraryInstances$$tchars_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonTchar_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$genNonToken_="),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$$tchars"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonTchar"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.laws.discipline.ArbitraryInstances.genNonToken")
-    ),
+    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
   )
   .dependsOn(core)
 
 lazy val testing = libraryProject("testing")
+  .enablePlugins(NoPublishPlugin)
   .settings(
-    description := "Instances and laws for testing http4s code",
+    description := "Internal utilities for http4s tests",
     startYear := Some(2016),
     libraryDependencies ++= Seq(
       catsEffectLaws,
@@ -267,10 +148,6 @@ lazy val testing = libraryProject("testing")
       scalacheckEffect,
       scalacheckEffectMunit,
     ),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
   )
   .dependsOn(laws)
 
@@ -311,7 +188,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   )
   .dependsOn(
     core % "compile->compile",
-    theDsl % "compile->compile",
+    theDsl % "test->compile",
     testing % "test->test",
     server % "test->compile",
     client % "test->compile"
@@ -358,25 +235,6 @@ lazy val emberCore = libraryProject("ember-core")
     libraryDependencies ++= Seq(
       log4catsTesting % Test,
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.ChunkedEncoding.decode"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Shared.chunk2ByteVector"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Request.parser"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Request.parser"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.respToBytes"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.splitHeader"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.generateHeaders"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser.httpHeaderAndBody"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#Response.parser")
-    )
   )
   .dependsOn(core, testing % "test->test")
 
@@ -387,13 +245,8 @@ lazy val emberServer = libraryProject("ember-server")
     libraryDependencies ++= Seq(
       log4catsSlf4j,
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.server.internal.ServerHelpers.server"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.server.internal.ServerHelpers.server$default$12"),
-    )
   )
-  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
 
 lazy val emberClient = libraryProject("ember-client")
   .settings(
@@ -403,11 +256,6 @@ lazy val emberClient = libraryProject("ember-client")
       keypool,
       log4catsSlf4j,
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.client.internal.ClientHelpers.request"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.Parser#Response.parser"),
-    )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -432,6 +280,10 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.reset"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.blaze.Http1Connection$Running$"),
+    ),
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
@@ -534,6 +386,7 @@ lazy val argonaut = libraryProject("argonaut")
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       Http4sPlugin.argonaut,
+      argonautJawn
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -851,7 +704,7 @@ lazy val scalafixInput = project
       "http4s-client",
       "http4s-core",
       "http4s-dsl",
-    ).map("org.http4s" %% _ % "0.21.14"),
+    ).map("org.http4s" %% _ % "0.21.15"),
     // TODO: I think these are false positives
     unusedCompileDependenciesFilter -= moduleFilter(organization = "org.http4s"),
     scalacOptions -= "-Xfatal-warnings",

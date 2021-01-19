@@ -23,12 +23,13 @@ import cats._
 import cats.syntax.all._
 import cats.effect._
 import scala.concurrent.duration._
+import org.http4s.ProductId
 import org.http4s.client._
+import org.http4s.headers.{Connection, `User-Agent`}
 import fs2.io.tcp.SocketGroup
 import fs2.io.tcp.SocketOptionMapping
 import fs2.io.tls._
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{AgentProduct, Connection, `User-Agent`}
 
 final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     private val blockerOpt: Option[Blocker],
@@ -44,35 +45,6 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val additionalSocketOptions: List[SocketOptionMapping[_]],
     val userAgent: Option[`User-Agent`]
 ) { self =>
-
-  @deprecated("Preserved for binary compatibility", "0.21.7")
-  private[EmberClientBuilder] def this(
-      blockerOpt: Option[Blocker],
-      tlsContextOpt: Option[TLSContext],
-      sgOpt: Option[SocketGroup],
-      maxTotal: Int,
-      maxPerKey: RequestKey => Int,
-      idleTimeInPool: Duration,
-      logger: Logger[F],
-      chunkSize: Int,
-      maxResponseHeaderSize: Int,
-      timeout: Duration,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
-  ) =
-    this(
-      blockerOpt = blockerOpt,
-      tlsContextOpt = tlsContextOpt,
-      sgOpt = sgOpt,
-      maxTotal = maxTotal,
-      maxPerKey = maxPerKey,
-      idleTimeInPool = idleTimeInPool,
-      logger = logger,
-      chunkSize = chunkSize,
-      maxResponseHeaderSize = maxResponseHeaderSize,
-      timeout = timeout,
-      additionalSocketOptions = additionalSocketOptions,
-      userAgent = EmberClientBuilder.Defaults.userAgent
-    )
 
   private def copy(
       blockerOpt: Option[Blocker] = self.blockerOpt,
@@ -236,6 +208,6 @@ object EmberClientBuilder {
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
     val userAgent = Some(
-      `User-Agent`(AgentProduct("http4s-ember", Some(org.http4s.BuildInfo.version))))
+      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version))))
   }
 }

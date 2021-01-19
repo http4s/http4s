@@ -79,7 +79,7 @@ class BlazeServerMtlsSpec extends Http4sSpec with SilenceOutputStream {
     case _ => NotFound()
   }
 
-  def serverR(sslParameters: SSLParameters): Resource[IO, Server[IO]] =
+  def serverR(sslParameters: SSLParameters): Resource[IO, Server] =
     builder
       .bindAny()
       .withSslContextAndParameters(sslContext, sslParameters)
