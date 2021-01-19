@@ -811,7 +811,7 @@ object Uri {
 
     override def render(writer: Writer): writer.type =
       this match {
-        case RegName(n) => writer << n
+        case RegName(n) => writer << encode(n.toString)
         case a: Ipv4Address => writer << a.value
         case a: Ipv6Address => writer << '[' << a << ']'
         case _ => writer
