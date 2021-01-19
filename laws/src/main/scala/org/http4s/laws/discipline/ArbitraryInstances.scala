@@ -689,7 +689,10 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForUserInfo: Arbitrary[Uri.UserInfo] =
     Arbitrary(
       for {
-        username <- getArbitrary[String]
+        username <- Gen.frequency(
+          9 -> Gen.stringOf(Gen.alphaNumChar),
+          1 -> getArbitrary[String]
+        )
         password <- getArbitrary[Option[String]]
       } yield Uri.UserInfo(username, password)
     )
@@ -699,7 +702,10 @@ private[http4s] trait ArbitraryInstances {
 
   implicit val http4sTestingArbitraryForAuthority: Arbitrary[Uri.Authority] = Arbitrary {
     for {
-      maybeUserInfo <- getArbitrary[Option[Uri.UserInfo]]
+      maybeUserInfo <- Gen.frequency(
+        4 -> None,
+        1 -> getArbitrary[Uri.UserInfo].map(Some(_))
+      )
       host <- http4sTestingArbitraryForUriHost.arbitrary
       maybePort <- Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
     } yield Uri.Authority(maybeUserInfo, host, maybePort)
