@@ -85,8 +85,7 @@ object Forwarded
 
     object Obfuscated {
       val parser: P[Obfuscated] =
-        (P.char('_') ~ (P.oneOf(List(Rfc5234.alpha, Rfc5234.digit, P.charIn("._-"))).rep(1)))
-          .string
+        (P.char('_') ~ (P.oneOf(List(Rfc5234.alpha, Rfc5234.digit, P.charIn("._-"))).rep(1))).string
           .map(Obfuscated.apply)
 
       def fromString(s: String): ParseResult[Obfuscated] =

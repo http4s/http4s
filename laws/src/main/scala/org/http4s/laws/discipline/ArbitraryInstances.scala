@@ -665,10 +665,22 @@ private[http4s] trait ArbitraryInstances {
       .contramap(ipv6 => (ipv6.a, ipv6.b, ipv6.c, ipv6.d, ipv6.e, ipv6.f, ipv6.g, ipv6.h))
 
   implicit val http4sTestingArbitraryForUriHost: Arbitrary[Uri.Host] = {
-    // Duplicated in the companion object for binary compatibility. This should
-    // be removed before 1.0.0.
     val http4sTestingRegNameGen: Gen[Uri.RegName] =
-      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
+      Gen
+        .frequency(
+          // Focus on things vaguely resembling hostnames
+          // TODO Replace with an ip4s generator for more realism
+          19 -> Gen.stringOf(
+            Gen.frequency(
+              8 -> Gen.alphaNumChar,
+              1 -> Gen.const('-'),
+              1 -> Gen.const('.')
+            )
+          ),
+          // But arbitrary strings are allowed!
+          1 -> getArbitrary[String]
+        )
+        .map(s => Uri.RegName(s))
     Arbitrary(
       oneOf(getArbitrary[Uri.Ipv4Address], getArbitrary[Uri.Ipv6Address], http4sTestingRegNameGen)
     )
