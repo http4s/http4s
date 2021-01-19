@@ -17,9 +17,9 @@
 package com.example.http4s.blaze
 
 import cats.effect._
+import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2._
-import fs2.concurrent.Queue
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
@@ -27,6 +27,7 @@ import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.websocket._
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
+
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.global
 
@@ -70,10 +71,10 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Async[F]) extends Http4sDsl[F] 
          * instead of to a request.
          */
         Queue
-          .unbounded[F, WebSocketFrame]
+          .unbounded[F, Option[WebSocketFrame]]
           .flatMap { q =>
-            val d = q.dequeue.through(echoReply)
-            val e = q.enqueue
+            val d: Stream[F, WebSocketFrame] = Stream.fromQueueNoneTerminated(q).through(echoReply)
+            val e: Pipe[F, WebSocketFrame, Unit] = _.enqueue(q)
             WebSocketBuilder[F].build(d, e)
           }
     }
