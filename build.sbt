@@ -24,14 +24,14 @@ lazy val modules: List[ProjectReference] = List(
   core,
   laws,
   testing,
-  tests,
   server,
+  tests,
   prometheusMetrics,
   client,
   dropwizardMetrics,
   emberCore,
-  emberServer,
-  emberClient,
+  // emberServer,
+  // emberClient,
   blazeCore,
   blazeServer,
   blazeClient,
@@ -42,25 +42,25 @@ lazy val modules: List[ProjectReference] = List(
   jetty,
   tomcat,
   theDsl,
-  jawn,
-  argonaut,
-  boopickle,
-  circe,
-  json4s,
-  json4sNative,
-  json4sJackson,
-  playJson,
+   jawn,
+   argonaut,
+   boopickle,
+   circe,
+   json4s,
+   json4sNative,
+   json4sJackson,
+   playJson,
   scalaXml,
   twirl,
   scalatags,
   bench,
-  examples,
-  examplesBlaze,
-  examplesDocker,
-  examplesEmber,
-  examplesJetty,
-  examplesTomcat,
-  examplesWar,
+  // examples,
+  // examplesBlaze,
+  // examplesDocker,
+  // examplesEmber,
+  // examplesJetty,
+  // examplesTomcat,
+  // examplesWar,
   scalafixInput,
   scalafixOutput,
   scalafixRules,
@@ -103,7 +103,8 @@ lazy val core = libraryProject("core")
       log4s,
       scodecBits,
       slf4jApi, // residual dependency from macros
-      vault,
+      // unique, // temporarily inlined
+      // vault,  // temporarily inlined
     ),
     libraryDependencies ++= {
       if (isDotty.value) Seq.empty
@@ -122,7 +123,7 @@ lazy val laws = libraryProject("laws")
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       caseInsensitiveTesting,
-      catsEffectLaws,
+      catsEffectTestkit,
       catsLaws,
       disciplineCore,
       scalacheck,
@@ -134,12 +135,11 @@ lazy val laws = libraryProject("laws")
   .dependsOn(core)
 
 lazy val testing = libraryProject("testing")
+  .enablePlugins(NoPublishPlugin)
   .settings(
-    description := "Instances and laws for testing http4s code",
+    description := "Internal utilities for http4s tests",
     startYear := Some(2016),
     libraryDependencies ++= Seq(
-      catsEffectLaws,
-      scalacheck,
       specs2Common,
       specs2Matcher,
       munitCatsEffect,
@@ -147,10 +147,6 @@ lazy val testing = libraryProject("testing")
       scalacheckEffect,
       scalacheckEffectMunit,
     ),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline-munit"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "munit-cats-effect-2"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect"),
-    unusedCompileDependenciesFilter -= moduleFilter(organization = "org.typelevel", name = "scalacheck-effect-munit"),
   )
   .dependsOn(laws)
 
@@ -249,7 +245,7 @@ lazy val emberServer = libraryProject("ember-server")
       log4catsSlf4j,
     ),
   )
-  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", server % "compile;test->test", emberClient % "test->compile")
 
 lazy val emberClient = libraryProject("ember-client")
   .settings(
@@ -411,7 +407,7 @@ lazy val circe = libraryProject("circe")
     libraryDependencies ++= Seq(
       circeCore,
       circeJawn,
-      circeTesting % Test,
+      circeTesting % Test
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")

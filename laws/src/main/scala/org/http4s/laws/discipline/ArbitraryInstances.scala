@@ -21,11 +21,11 @@ package discipline
 import cats._
 import cats.data.{Chain, NonEmptyList}
 import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
-import cats.effect.{Effect, IO}
-import cats.effect.laws.discipline.arbitrary._
-import cats.effect.laws.util.TestContext
-import cats.syntax.all._
+import cats.effect.Concurrent
+import cats.effect.testkit._
+import cats.effect.std.Dispatcher
 import cats.instances.order._
+import cats.syntax.all._
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -47,18 +47,6 @@ private[http4s] trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
-
-  @deprecated(
-    "Use org.typelevel.ci.testing.arbitraries from org.typelevel::case-insensitive-testing",
-    "1.0.0-M1")
-  val http4sTestingArbitraryForCIString: Arbitrary[CIString] =
-    Arbitrary(getArbitrary[String].map(CIString(_)))
-
-  @deprecated(
-    "Use org.typelevel.ci.testing.arbitraries from org.typelevel::case-insensitive-testing",
-    "1.0.0-M1")
-  val http4sTestingCogenForCIString: Cogen[CIString] =
-    Cogen[String].contramap(_.toString.toLowerCase(Locale.ROOT))
 
   implicit def http4sTestingArbitraryForNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
     Arbitrary {
@@ -803,14 +791,13 @@ private[http4s] trait ArbitraryInstances {
       }
     }
 
-  implicit def http4sTestingCogenForEntityBody[F[_]](implicit F: Effect[F]): Cogen[EntityBody[F]] =
-    catsEffectLawsCogenForIO[Vector[Byte]].contramap { stream =>
-      var bytes: Vector[Byte] = null
-      val readBytes = IO(bytes)
-      F.runAsync(stream.compile.toVector) {
-        case Right(bs) => IO { bytes = bs }
-        case Left(t) => IO.raiseError(t)
-      }.toIO *> readBytes
+  implicit def http4sTestingCogenForEntityBody[F[_]](implicit
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext
+  ): Cogen[EntityBody[F]] =
+    cogenFuture[Vector[Byte]].contramap { stream =>
+      dispatcher.unsafeToFuture(stream.compile.toVector)
     }
 
   implicit def http4sTestingArbitraryForEntity[F[_]]: Arbitrary[Entity[F]] =
@@ -821,7 +808,11 @@ private[http4s] trait ArbitraryInstances {
       } yield Entity(body.covary[F], length)
     })
 
-  implicit def http4sTestingCogenForEntity[F[_]](implicit F: Effect[F]): Cogen[Entity[F]] =
+  implicit def http4sTestingCogenForEntity[F[_]](implicit
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext
+  ): Cogen[Entity[F]] =
     Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def http4sTestingArbitraryForEntityEncoder[F[_], A](implicit
@@ -832,7 +823,9 @@ private[http4s] trait ArbitraryInstances {
     } yield EntityEncoder.encodeBy(hs)(f))
 
   implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](implicit
-      F: Effect[F],
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext,
       g: Arbitrary[DecodeResult[F, A]]) =
     Arbitrary(for {
       f <- getArbitrary[(Media[F], Boolean) => DecodeResult[F, A]]
@@ -842,10 +835,18 @@ private[http4s] trait ArbitraryInstances {
       def consumes = mrs
     })
 
-  implicit def http4sTestingCogenForMedia[F[_]](implicit F: Effect[F]): Cogen[Media[F]] =
+  implicit def http4sTestingCogenForMedia[F[_]](implicit
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext
+  ): Cogen[Media[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
-  implicit def http4sTestingCogenForMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
+  implicit def http4sTestingCogenForMessage[F[_]](implicit
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext
+  ): Cogen[Message[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
   implicit def http4sTestingCogenForHeaders: Cogen[Headers] =

@@ -19,7 +19,8 @@ package client
 package blaze
 
 import cats.syntax.all._
-import cats.effect._
+import cats.effect.kernel.{Async, Resource}
+import cats.effect.std.Dispatcher
 import java.nio.channels.AsynchronousChannelGroup
 
 import javax.net.ssl.SSLContext
@@ -59,7 +60,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions
-)(implicit protected val F: ConcurrentEffect[F])
+)(implicit protected val F: Async[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
@@ -158,7 +159,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   @deprecated(
     message =
       "Use withDefaultSslContext, withSslContext or withoutSslContext to set the SSLContext",
-    since = "1.0.0")
+    since = "0.22.0-M1")
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext =
       sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided))
@@ -205,10 +206,11 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   def resource: Resource[F, Client[F]] =
     for {
+      dispatcher <- Dispatcher[F]
       scheduler <- scheduler
-      _ <- Resource.liftF(verifyAllTimeoutsAccuracy(scheduler))
-      _ <- Resource.liftF(verifyTimeoutRelations())
-      manager <- connectionManager(scheduler)
+      _ <- Resource.eval(verifyAllTimeoutsAccuracy(scheduler))
+      _ <- Resource.eval(verifyTimeoutRelations())
+      manager <- connectionManager(scheduler, dispatcher)
     } yield BlazeClient.makeClient(
       manager = manager,
       responseHeaderTimeout = responseHeaderTimeout,
@@ -257,8 +259,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         logger.warn(s"requestTimeout ($requestTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
 
-  private def connectionManager(scheduler: TickWheelExecutor)(implicit
-      F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
+  private def connectionManager(scheduler: TickWheelExecutor, dispatcher: Dispatcher[F])(implicit
+      F: Async[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,
@@ -273,7 +275,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       userAgent = userAgent,
       channelOptions = channelOptions,
-      connectTimeout = connectTimeout
+      connectTimeout = connectTimeout,
+      dispatcher = dispatcher
     ).makeClient
     Resource.make(
       ConnectionManager.pool(
@@ -294,7 +297,7 @@ object BlazeClientBuilder {
     *
     * @param executionContext the ExecutionContext for blaze's internal Futures. Most clients should pass scala.concurrent.ExecutionContext.global
     */
-  def apply[F[_]: ConcurrentEffect](executionContext: ExecutionContext): BlazeClientBuilder[F] =
+  def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = Duration.Inf,
       idleTimeout = 1.minute,
@@ -318,13 +321,8 @@ object BlazeClientBuilder {
       channelOptions = ChannelOptions(Vector.empty)
     ) {}
 
-  /** Creates a BlazeClientBuilder
-    *
-    * @param executionContext the ExecutionContext for blaze's internal Futures
-    * @param sslContext Some `SSLContext.getDefault()`, or `None` on systems where the default is unavailable
-    */
-  @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "1.0.0")
-  def apply[F[_]: ConcurrentEffect](
+  @deprecated(message = "Use BlazeClientBuilder#apply(ExecutionContext).", since = "0.22.0-M1")
+  def apply[F[_]: Async](
       executionContext: ExecutionContext,
       sslContext: Option[SSLContext] = SSLContextOption.tryDefaultSslContext)
       : BlazeClientBuilder[F] =

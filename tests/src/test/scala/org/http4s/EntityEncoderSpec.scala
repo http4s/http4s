@@ -73,7 +73,7 @@ class EntityEncoderSpec extends Http4sSpec {
         val w = new FileWriter(tmpFile)
         try w.write("render files test")
         finally w.close()
-        writeToString(tmpFile)(EntityEncoder.fileEncoder(testBlocker)) must_== "render files test"
+        writeToString(tmpFile)(EntityEncoder.fileEncoder) must_== "render files test"
       } finally {
         tmpFile.delete()
         ()
@@ -82,13 +82,12 @@ class EntityEncoderSpec extends Http4sSpec {
 
     "render input streams" in {
       val inputStream = new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8))
-      writeToString(IO(inputStream))(
-        EntityEncoder.inputStreamEncoder(testBlocker)) must_== "input stream"
+      writeToString(IO(inputStream))(EntityEncoder.inputStreamEncoder) must_== "input stream"
     }
 
     "render readers" in {
       val reader = new StringReader("string reader")
-      writeToString(IO(reader))(EntityEncoder.readerEncoder(testBlocker)) must_== "string reader"
+      writeToString(IO(reader))(EntityEncoder.readerEncoder) must_== "string reader"
     }
 
     "render very long readers" in {
@@ -97,15 +96,13 @@ class EntityEncoderSpec extends Http4sSpec {
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString[IO[Reader]](IO(reader))(
-        EntityEncoder.readerEncoder(testBlocker)) must_== longString
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder) must_== longString
     }
 
     "render readers with UTF chars" in {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString[IO[Reader]](IO(reader))(
-        EntityEncoder.readerEncoder(testBlocker)) must_== utfString
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder) must_== utfString
     }
 
     "give the content type" in {
@@ -120,9 +117,9 @@ class EntityEncoderSpec extends Http4sSpec {
       sealed case class ModelB(name: String, id: Long)
 
       implicit val w1: EntityEncoder[IO, ModelA] =
-        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.bytes("A".getBytes))
+        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.array("A".getBytes))
       implicit val w2: EntityEncoder[IO, ModelB] =
-        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.bytes("B".getBytes))
+        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.array("B".getBytes))
 
       EntityEncoder[IO, ModelA] must_== w1
       EntityEncoder[IO, ModelB] must_== w2

@@ -19,12 +19,12 @@ package org.http4s
 import cats.{Applicative, Monad}
 import cats.data.{Kleisli, OptionT}
 import cats.syntax.all._
-import cats.effect.IO
-import org.typelevel.vault._
+import cats.effect.SyncIO
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+import org.typelevel.vault._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
@@ -55,7 +55,7 @@ package object server {
 
   object ServerRequestKeys {
     val SecureSession: Key[Option[SecureSession]] =
-      Key.newKey[IO, Option[SecureSession]].unsafeRunSync()
+      Key.newKey[SyncIO, Option[SecureSession]].unsafeRunSync()
   }
 
   /** A middleware is a function of one [[Service]] to another, possibly of a
@@ -90,11 +90,6 @@ package object server {
     */
   type ContextMiddleware[F[_], T] =
     Middleware[OptionT[F, *], ContextRequest[F, T], Response[F], Request[F], Response[F]]
-
-  /** Old name for SSLConfig
-    */
-  @deprecated("Use SSLConfig", "2016-12-31")
-  type SSLBits = SSLConfig
 
   object AuthMiddleware {
     def apply[F[_]: Monad, T](

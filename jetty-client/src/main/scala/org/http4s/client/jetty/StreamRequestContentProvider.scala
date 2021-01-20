@@ -19,8 +19,7 @@ package client
 package jetty
 
 import cats.effect._
-import cats.effect.concurrent.Semaphore
-import cats.effect.implicits._
+import cats.effect.std._
 import cats.syntax.all._
 import fs2._
 import org.eclipse.jetty.client.util.DeferredContentProvider
@@ -29,7 +28,8 @@ import org.http4s.internal.loggingAsyncCallback
 import org.log4s.getLogger
 
 private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[F])(implicit
-    F: Effect[F])
+    F: Async[F],
+    D: Dispatcher[F])
     extends DeferredContentProvider {
   import StreamRequestContentProvider.logger
 
@@ -53,13 +53,13 @@ private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[
 
   private val callback: JettyCallback = new JettyCallback {
     override def succeeded(): Unit =
-      s.release.runAsync(loggingAsyncCallback(logger)).unsafeRunSync()
+      D.unsafeRunAndForget(s.release.attempt.flatMap(loggingAsyncCallback[F, Unit](logger)))
   }
 }
 
 private[jetty] object StreamRequestContentProvider {
   private val logger = getLogger
 
-  def apply[F[_]]()(implicit F: ConcurrentEffect[F]): F[StreamRequestContentProvider[F]] =
+  def apply[F[_]: Async: Dispatcher](): F[StreamRequestContentProvider[F]] =
     Semaphore[F](1).map(StreamRequestContentProvider(_))
 }

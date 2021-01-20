@@ -16,7 +16,7 @@
 
 package org.http4s.client.oauth1
 
-import cats.effect.{IO, Timer}
+import cats.effect.IO
 import org.http4s._
 import org.http4s.client.oauth1
 import org.http4s.client.oauth1.ProtocolParameter.{
@@ -29,11 +29,11 @@ import org.http4s.client.oauth1.ProtocolParameter.{
 }
 import org.specs2.mutable.Specification
 import org.typelevel.ci.CIString
+import cats.effect.unsafe.implicits.global
 
 class OAuthTest extends Specification {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // http://tools.ietf.org/html/rfc5849
-  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
 
   val Right(uri) = Uri.fromString("http://photos.example.net/photos")
   val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")

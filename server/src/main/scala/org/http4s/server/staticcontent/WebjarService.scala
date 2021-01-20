@@ -19,7 +19,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.kernel.Async
 import cats.syntax.all._
 import java.nio.file.{Path, Paths}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
@@ -34,7 +34,6 @@ import scala.util.control.NoStackTrace
   * @param preferGzipped prefer gzip compression format?
   */
 class WebjarServiceBuilder[F[_]] private (
-    blocker: Blocker,
     webjarAssetFilter: WebjarServiceBuilder.WebjarAssetFilter,
     cacheStrategy: CacheStrategy[F],
     classLoader: Option[ClassLoader],
@@ -43,17 +42,11 @@ class WebjarServiceBuilder[F[_]] private (
   import WebjarServiceBuilder.{WebjarAsset, WebjarAssetFilter, serveWebjarAsset}
 
   private def copy(
-      blocker: Blocker = blocker,
       webjarAssetFilter: WebjarAssetFilter = webjarAssetFilter,
       cacheStrategy: CacheStrategy[F] = cacheStrategy,
       classLoader: Option[ClassLoader] = classLoader,
       preferGzipped: Boolean = preferGzipped) =
-    new WebjarServiceBuilder[F](
-      blocker,
-      webjarAssetFilter,
-      cacheStrategy,
-      classLoader,
-      preferGzipped)
+    new WebjarServiceBuilder[F](webjarAssetFilter, cacheStrategy, classLoader, preferGzipped)
 
   def withWebjarAssetFilter(webjarAssetFilter: WebjarAssetFilter): WebjarServiceBuilder[F] =
     copy(webjarAssetFilter = webjarAssetFilter)
@@ -64,13 +57,10 @@ class WebjarServiceBuilder[F[_]] private (
   def withClassLoader(classLoader: Option[ClassLoader]): WebjarServiceBuilder[F] =
     copy(classLoader = classLoader)
 
-  def withBlocker(blocker: Blocker): WebjarServiceBuilder[F] =
-    copy(blocker = blocker)
-
   def withPreferGzipped(preferGzipped: Boolean): WebjarServiceBuilder[F] =
     copy(preferGzipped = preferGzipped)
 
-  def toRoutes(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
+  def toRoutes(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     val Root = Paths.get("")
     Kleisli {
@@ -87,7 +77,7 @@ class WebjarServiceBuilder[F[_]] private (
           })
           .subflatMap(toWebjarAsset)
           .filter(webjarAssetFilter)
-          .flatMap(serveWebjarAsset(blocker, cacheStrategy, classLoader, request, preferGzipped)(_))
+          .flatMap(serveWebjarAsset(cacheStrategy, classLoader, request, preferGzipped)(_))
           .recover { case BadTraversal =>
             Response(Status.BadRequest)
           }
@@ -126,9 +116,8 @@ class WebjarServiceBuilder[F[_]] private (
 }
 
 object WebjarServiceBuilder {
-  def apply[F[_]](blocker: Blocker) =
+  def apply[F[_]] =
     new WebjarServiceBuilder(
-      blocker = blocker,
       webjarAssetFilter = _ => true,
       cacheStrategy = NoopCacheStrategy[F],
       classLoader = None,
@@ -165,16 +154,15 @@ object WebjarServiceBuilder {
     * @param preferGzipped prefer gzip compression format?
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset[F[_]: Sync: ContextShift](
-      blocker: Blocker,
+  private def serveWebjarAsset[F[_]](
       cacheStrategy: CacheStrategy[F],
       classLoader: Option[ClassLoader],
       request: Request[F],
-      preferGzipped: Boolean)(webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
+      preferGzipped: Boolean)(webjarAsset: WebjarAsset)(implicit
+      F: Async[F]): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(
         webjarAsset.pathInJar,
-        blocker,
         Some(request),
         classloader = classLoader,
         preferGzipped = preferGzipped)
@@ -190,7 +178,6 @@ object WebjarService {
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](
-      blocker: Blocker,
       filter: WebjarAssetFilter = _ => true,
       cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
 
@@ -222,7 +209,7 @@ object WebjarService {
     * @return The HttpRoutes
     */
   @deprecated("use WebjarServiceBuilder", "1.0.0-M1")
-  def apply[F[_]](config: Config[F])(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
+  def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     val Root = Paths.get("")
     Kleisli {
@@ -270,9 +257,9 @@ object WebjarService {
     * @param request The Request
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset[F[_]: Sync: ContextShift](config: Config[F], request: Request[F])(
+  private def serveWebjarAsset[F[_]: Async](config: Config[F], request: Request[F])(
       webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
-      .fromResource(webjarAsset.pathInJar, config.blocker, Some(request))
+      .fromResource(webjarAsset.pathInJar, Some(request))
       .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
 }

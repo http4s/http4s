@@ -18,8 +18,8 @@ package org.http4s
 
 import cats.{Applicative, Functor, Monad, ~>}
 import cats.data.NonEmptyList
+import cats.effect.SyncIO
 import cats.syntax.all._
-import cats.effect.IO
 import fs2.{Pure, Stream}
 import fs2.text.utf8Encode
 import java.io.File
@@ -198,7 +198,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 object Message {
   private[http4s] val logger = getLogger
   object Keys {
-    private[this] val trailerHeaders: Key[Any] = Key.newKey[IO, Any].unsafeRunSync()
+    private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
     def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]
   }
 }
@@ -281,7 +281,7 @@ final class Request[F[_]](
   private def caret =
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
 
-  @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "1.0.0-M1")
+  @deprecated(message = "Use {withPathInfo(Uri.Path)} instead", since = "0.22.0-M1")
   def withPathInfo(pi: String): Self =
     withPathInfo(Uri.Path.fromString(pi))
   def withPathInfo(pi: Uri.Path): Self =
@@ -507,10 +507,10 @@ object Request {
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
   object Keys {
-    val PathInfoCaret: Key[Int] = Key.newKey[IO, Int].unsafeRunSync()
-    val PathTranslated: Key[File] = Key.newKey[IO, File].unsafeRunSync()
-    val ConnectionInfo: Key[Connection] = Key.newKey[IO, Connection].unsafeRunSync()
-    val ServerSoftware: Key[ServerSoftware] = Key.newKey[IO, ServerSoftware].unsafeRunSync()
+    val PathInfoCaret: Key[Int] = Key.newKey[SyncIO, Int].unsafeRunSync()
+    val PathTranslated: Key[File] = Key.newKey[SyncIO, File].unsafeRunSync()
+    val ConnectionInfo: Key[Connection] = Key.newKey[SyncIO, Connection].unsafeRunSync()
+    val ServerSoftware: Key[ServerSoftware] = Key.newKey[SyncIO, ServerSoftware].unsafeRunSync()
   }
 }
 

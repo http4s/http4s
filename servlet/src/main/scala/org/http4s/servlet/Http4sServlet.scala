@@ -16,7 +16,8 @@
 
 package org.http4s.servlet
 
-import cats.effect._
+import cats.effect.kernel.Async
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import java.net.InetSocketAddress
 import java.security.cert.X509Certificate
@@ -30,8 +31,10 @@ import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
 import org.typelevel.vault._
 
-abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
-    F: Effect[F])
+abstract class Http4sServlet[F[_]](
+    service: HttpApp[F],
+    servletIo: ServletIo[F],
+    dispatcher: Dispatcher[F])(implicit F: Async[F])
     extends HttpServlet {
   protected val logger = getLogger
 
@@ -42,7 +45,10 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
   private[this] var serverSoftware: ServerSoftware = _
 
   object ServletRequestKeys {
-    val HttpSession: Key[Option[HttpSession]] = Key.newKey[IO, Option[HttpSession]].unsafeRunSync()
+    val HttpSession: Key[Option[HttpSession]] = {
+      val result = Key.newKey[F, Option[HttpSession]]
+      dispatcher.unsafeRunSync(result)
+    }
   }
 
   override def init(config: ServletConfig): Unit = {
@@ -76,7 +82,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       .flatMap {
         case Right(()) => bodyWriter(response)
         case Left(t) =>
-          response.body.drain.compile.drain.handleError { case t2 =>
+          response.body.drain.compile.drain.handleError { t2 =>
             logger.error(t2)("Error draining body")
           } *> F.raiseError(t)
       }

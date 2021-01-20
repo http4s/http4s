@@ -19,7 +19,7 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.Semaphore
 import cats.syntax.all._
 import java.util.concurrent.atomic._
 import org.http4s.client.dsl.Http4sClientDsl

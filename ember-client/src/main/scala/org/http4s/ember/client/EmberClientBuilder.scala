@@ -46,35 +46,6 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val userAgent: Option[`User-Agent`]
 ) { self =>
 
-  @deprecated("Preserved for binary compatibility", "0.21.7")
-  private[EmberClientBuilder] def this(
-      blockerOpt: Option[Blocker],
-      tlsContextOpt: Option[TLSContext],
-      sgOpt: Option[SocketGroup],
-      maxTotal: Int,
-      maxPerKey: RequestKey => Int,
-      idleTimeInPool: Duration,
-      logger: Logger[F],
-      chunkSize: Int,
-      maxResponseHeaderSize: Int,
-      timeout: Duration,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
-  ) =
-    this(
-      blockerOpt = blockerOpt,
-      tlsContextOpt = tlsContextOpt,
-      sgOpt = sgOpt,
-      maxTotal = maxTotal,
-      maxPerKey = maxPerKey,
-      idleTimeInPool = idleTimeInPool,
-      logger = logger,
-      chunkSize = chunkSize,
-      maxResponseHeaderSize = maxResponseHeaderSize,
-      timeout = timeout,
-      additionalSocketOptions = additionalSocketOptions,
-      userAgent = EmberClientBuilder.Defaults.userAgent
-    )
-
   private def copy(
       blockerOpt: Option[Blocker] = self.blockerOpt,
       tlsContextOpt: Option[TLSContext] = self.tlsContextOpt,
@@ -134,7 +105,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     for {
       blocker <- blockerOpt.fold(Blocker[F])(_.pure[Resource[F, *]])
       sg <- sgOpt.fold(SocketGroup[F](blocker))(_.pure[Resource[F, *]])
-      tlsContextOptWithDefault <- Resource.liftF(
+      tlsContextOptWithDefault <- Resource.eval(
         tlsContextOpt
           .fold(TLSContext.system(blocker).attempt.map(_.toOption))(_.some.pure[F])
       )
@@ -168,7 +139,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       val client = Client[F](request =>
         for {
           managed <- pool.take(RequestKey.fromRequest(request))
-          _ <- Resource.liftF(
+          _ <- Resource.eval(
             pool.state.flatMap { poolState =>
               logger.trace(
                 s"Connection Taken - Key: ${managed.value._1.requestKey} - Reused: ${managed.isReused} - PoolState: $poolState"

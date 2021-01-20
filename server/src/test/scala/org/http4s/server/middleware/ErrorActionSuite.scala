@@ -17,7 +17,7 @@
 package org.http4s.server.middleware
 
 import cats.effect.IO
-import cats.effect.concurrent.Ref
+import cats.effect.kernel.Ref
 import org.http4s._
 import org.http4s.Request.Connection
 import org.http4s.syntax.all._

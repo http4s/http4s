@@ -19,7 +19,6 @@ package play.test // Get out of play package so we can import custom instances
 
 import _root_.play.api.libs.json._
 import cats.effect.IO
-import cats.effect.laws.util.TestContext
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.play._
@@ -27,8 +26,6 @@ import org.http4s.syntax.all._
 
 // Originally based on CirceSpec
 class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
-  implicit val testContext = TestContext()
-
   testJsonDecoder(jsonDecoder)
 
   sealed case class Foo(bar: Int)

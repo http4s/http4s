@@ -17,10 +17,8 @@
 package org.http4s.server.middleware
 
 import cats.data.Kleisli
-import cats.effect.{Clock, ExitCase, Sync}
+import cats.effect.kernel._
 import cats.syntax.all._
-import java.util.concurrent.TimeUnit
-
 import org.http4s._
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
@@ -58,30 +56,30 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       }
-  )(routes: HttpRoutes[F])(implicit F: Sync[F], clock: Clock[F]): HttpRoutes[F] =
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
       (request: Request[F]) =>
         val classifier: Option[String] = classifierF(request)
         ops.increaseActiveRequests(classifier) *>
-          clock
-            .monotonic(TimeUnit.NANOSECONDS)
+          F.monotonic
             .map(startTime =>
-              ContextRequest(MetricsRequestContext(request.method, startTime, classifier), request))
-    } { case (context, maybeStatus, exitCase) =>
+              ContextRequest(
+                MetricsRequestContext(request.method, startTime.toNanos, classifier),
+                request))
+    } { case (context, maybeStatus, outcome) =>
       // Decrease active requests _first_ in case any of the other effects
       // trigger an error. This differs from the < 0.21.14 semantics, which
       // decreased it _after_ the other effects. This may have been the
       // reason the active requests counter was reported to have drifted.
       ops.decreaseActiveRequests(context.classifier) *>
-        clock
-          .monotonic(TimeUnit.NANOSECONDS)
-          .map(endTime => endTime - context.startTime)
+        F.monotonic
+          .map(endTime => endTime.toNanos - context.startTime)
           .flatMap(totalTime =>
-            (exitCase match {
-              case ExitCase.Completed =>
+            outcome match {
+              case Outcome.Succeeded(_) =>
                 (maybeStatus <+> emptyResponseHandler).traverse_(status =>
                   ops.recordTotalTime(context.method, status, totalTime, context.classifier))
-              case ExitCase.Error(e) =>
+              case Outcome.Errored(e) =>
                 maybeStatus.fold {
                   // If an error occurred, and the status is empty, this means
                   // that an error occurred before the routes could generate a
@@ -98,21 +96,20 @@ object Metrics {
                   // to invoke it here.
                   ops.recordAbnormalTermination(totalTime, Abnormal(e), context.classifier) *>
                     ops.recordTotalTime(context.method, status, totalTime, context.classifier))
-              case ExitCase.Canceled =>
+              case Outcome.Canceled() =>
                 ops.recordAbnormalTermination(totalTime, Canceled, context.classifier)
-            }))
-    }(F)(
+            })
+    }(C)(
       Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>
         routes
           .run(contextRequest.req)
           .semiflatMap(response =>
-            clock
-              .monotonic(TimeUnit.NANOSECONDS)
-              .map(now => now - contextRequest.context.startTime)
+            F.monotonic
+              .map(now => now.toNanos - contextRequest.context.startTime)
               .flatTap(headerTime =>
                 ops.recordHeadersTime(
                   contextRequest.context.method,
                   headerTime,
-                  contextRequest.context.classifier)) *> F.pure(
+                  contextRequest.context.classifier)) *> C.pure(
               ContextResponse(response.status, response)))))
 }

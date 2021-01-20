@@ -20,8 +20,8 @@ package blaze
 
 import cats.data.Kleisli
 import cats.effect._
-import cats.effect.concurrent.Deferred
-import cats.syntax.all._
+import cats.effect.kernel.Deferred
+import cats.effect.std.Dispatcher
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H}
@@ -38,13 +38,22 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
 
 class Http1ServerStageSpec extends Http4sSpec with AfterAll {
   sequential
 
+  implicit val ec: ExecutionContext = Http4sSpec.TestExecutionContext
+
   val tickWheel = new TickWheelExecutor()
 
-  def afterAll() = tickWheel.shutdown()
+  val dispatcherAndShutdown = Dispatcher[IO].allocated.unsafeRunSync()
+  val dispatcher = dispatcherAndShutdown._1
+
+  def afterAll() = {
+    tickWheel.shutdown()
+    dispatcherAndShutdown._2.unsafeRunSync()
+  }
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
@@ -71,7 +80,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
     val httpStage = Http1ServerStage[IO](
       httpApp,
       () => Vault.empty,
-      testExecutionContext,
+      ec,
       enableWebSockets = true,
       maxReqLine,
       maxHeaders,
@@ -79,7 +88,8 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
       silentErrorHandler,
       30.seconds,
       30.seconds,
-      tickWheel
+      tickWheel,
+      dispatcher
     )
 
     pipeline.LeafBuilder(httpStage).base(head)
@@ -476,7 +486,7 @@ class Http1ServerStageSpec extends Http4sSpec with AfterAll {
         Deferred[IO, Unit].flatMap { gate =>
           val req = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
           val app: HttpApp[IO] = HttpApp { _ =>
-            gate.complete(()) >> IO.cancelable(_ => canceled.complete(()))
+            gate.complete(()) >> canceled.complete(()) >> IO.never[Response[IO]]
           }
           for {
             head <- IO(runRequest(List(req), app))

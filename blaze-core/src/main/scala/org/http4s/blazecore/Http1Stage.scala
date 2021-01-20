@@ -17,13 +17,14 @@
 package org.http4s
 package blazecore
 
-import cats.effect.Effect
+import cats.effect.Async
 import cats.syntax.all._
 import fs2._
 import fs2.Stream._
 import java.nio.ByteBuffer
 import java.time.Instant
 
+import cats.effect.std.Dispatcher
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util.BufferTools
@@ -43,7 +44,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     */
   protected implicit def executionContext: ExecutionContext
 
-  protected implicit def F: Effect[F]
+  protected implicit def F: Async[F]
+
+  protected implicit def dispatcher: Dispatcher[F]
 
   protected def chunkBufferMaxSize: Int
 
@@ -83,26 +86,6 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       minor,
       closeOnFinish,
       Http1Stage.omitEmptyContentLength(req)
-    )
-  }
-
-  @deprecated("Preserved for binary compatibility", "0.21.16")
-  protected def getEncoder(
-      msg: Message[F],
-      rr: StringWriter,
-      minor: Int,
-      closeOnFinish: Boolean
-  ): Http1Writer[F] = {
-    val headers = msg.headers
-    getEncoder(
-      Connection.from(headers),
-      `Transfer-Encoding`.from(headers),
-      `Content-Length`.from(headers),
-      msg.trailerHeaders,
-      rr,
-      minor,
-      closeOnFinish,
-      false
     )
   }
 
@@ -169,26 +152,6 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
           }
     }
 
-  @deprecated("Preserved for binary compatibility", "0.21.16")
-  protected def getEncoder(
-      connectionHeader: Option[Connection],
-      bodyEncoding: Option[`Transfer-Encoding`],
-      lengthHeader: Option[`Content-Length`],
-      trailer: F[Headers],
-      rr: StringWriter,
-      minor: Int,
-      closeOnFinish: Boolean
-  ): Http1Writer[F] =
-    getEncoder(
-      connectionHeader,
-      bodyEncoding,
-      lengthHeader,
-      trailer,
-      rr,
-      minor,
-      closeOnFinish,
-      false)
-
   /** Makes a [[EntityBody]] and a function used to drain the line if terminated early.
     *
     * @param buffer starting `ByteBuffer` to use in parsing.
@@ -230,7 +193,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
-    val t = F.async[Option[Chunk[Byte]]] { cb =>
+    val t = F.async_[Option[Chunk[Byte]]] { cb =>
       if (!contentComplete()) {
         def go(): Unit =
           try {

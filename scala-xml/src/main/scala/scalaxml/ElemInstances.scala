@@ -17,12 +17,10 @@
 package org.http4s
 package scalaxml
 
-import cats.effect.Sync
-import cats.syntax.all._
+import cats.effect.Concurrent
 import java.io.StringReader
 import javax.xml.parsers.SAXParserFactory
 
-import cats.data.EitherT
 import org.http4s.headers.`Content-Type`
 
 import scala.util.control.NonFatal
@@ -44,7 +42,7 @@ trait ElemInstances {
     *
     * @return an XML element
     */
-  implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
+  implicit def xml[F[_]](implicit F: Concurrent[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.text.xml, MediaType.text.html, MediaType.application.xml) { msg =>
       collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>
@@ -52,9 +50,8 @@ trait ElemInstances {
           new StringReader(
             new String(chunk.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
-        EitherT(
-          F.delay(XML.loadXML(source, saxParser)).attempt
-        ).leftFlatMap {
+        try DecodeResult.success(XML.loadXML(source, saxParser))
+        catch {
           case e: SAXParseException =>
             DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
           case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))

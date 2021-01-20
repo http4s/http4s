@@ -19,7 +19,7 @@ package booPickle
 
 import boopickle.Default._
 import boopickle.Pickler
-import cats.effect.Sync
+import cats.effect.Concurrent
 import fs2.Chunk
 import java.nio.ByteBuffer
 import org.http4s._
@@ -31,7 +31,7 @@ import scala.util.{Failure, Success}
   * Note that the media type is set for application/octet-stream
   */
 trait BooPickleInstances {
-  private def booDecoderByteBuffer[F[_]: Sync, A](m: Media[F])(implicit
+  private def booDecoderByteBuffer[F[_]: Concurrent, A](m: Media[F])(implicit
       pickler: Pickler[A]): DecodeResult[F, A] =
     EntityDecoder.collectBinary(m).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
@@ -46,7 +46,7 @@ trait BooPickleInstances {
 
   /** Create an `EntityDecoder` for `A` given a `Pickler[A]`
     */
-  def booOf[F[_]: Sync, A: Pickler]: EntityDecoder[F, A] =
+  def booOf[F[_]: Concurrent, A: Pickler]: EntityDecoder[F, A] =
     EntityDecoder.decodeBy(MediaType.application.`octet-stream`)(booDecoderByteBuffer[F, A])
 
   /** Create an `EntityEncoder` for `A` given a `Pickler[A]`

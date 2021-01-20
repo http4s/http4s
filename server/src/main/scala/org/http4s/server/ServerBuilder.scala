@@ -19,13 +19,10 @@ package server
 
 import cats.syntax.all._
 import cats.effect._
-import cats.effect.concurrent.Ref
 import fs2._
 import fs2.concurrent.{Signal, SignallingRef}
 import java.net.{InetAddress, InetSocketAddress}
-import javax.net.ssl.SSLContext
 import org.http4s.internal.BackendBuilder
-import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
 
 trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
@@ -60,7 +57,7 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   final def serve: Stream[F, ExitCode] =
     for {
       signal <- Stream.eval(SignallingRef[F, Boolean](false))
-      exitCode <- Stream.eval(Ref[F].of(ExitCode.Success))
+      exitCode <- Stream.eval(F.ref(ExitCode.Success))
       serve <- serveWhile(signal, exitCode)
     } yield serve
 
@@ -103,22 +100,6 @@ object AsyncTimeoutSupport {
   @deprecated("Moved to org.http4s.server.defaults.AsyncTimeout", "0.20.0-M2")
   val DefaultAsyncTimeout = defaults.ResponseTimeout
 }
-
-@deprecated("No longer used", "0.21.0-RC3")
-sealed trait SSLConfig
-
-@deprecated("No longer used", "0.21.0-RC3")
-final case class KeyStoreBits(
-    keyStore: StoreInfo,
-    keyManagerPassword: String,
-    protocol: String,
-    trustStore: Option[StoreInfo],
-    clientAuth: SSLClientAuthMode)
-    extends SSLConfig
-
-@deprecated("No longer used", "0.21.0-RC3")
-final case class SSLContextBits(sslContext: SSLContext, clientAuth: SSLClientAuthMode)
-    extends SSLConfig
 
 object SSLKeyStoreSupport {
   final case class StoreInfo(path: String, password: String)

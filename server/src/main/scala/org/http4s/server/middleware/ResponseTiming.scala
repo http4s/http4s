@@ -43,10 +43,11 @@ object ResponseTiming {
       F: Sync[F],
       clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
+      val getTime = clock.monotonic.map(_.toUnit(timeUnit).toLong)
       for {
-        before <- clock.monotonic(timeUnit)
+        before <- getTime
         resp <- http(req)
-        after <- clock.monotonic(timeUnit)
+        after <- getTime
         header = Header(headerName.toString, s"${after - before}")
       } yield resp.putHeaders(header)
     }
