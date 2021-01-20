@@ -180,7 +180,9 @@ object MultipartParserSpec extends Specification {
         val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
 
         val expectedHeaders = Headers.of(
-          `Content-Disposition`("form-data", Map("name*" -> "http4s很棒", "filename*" -> "我老婆太漂亮.txt")),
+          `Content-Disposition`(
+            "form-data",
+            Map("name*" -> "http4s很棒", "filename*" -> "我老婆太漂亮.txt")),
           `Content-Type`(MediaType.application.`octet-stream`),
           Header("Content-Transfer-Encoding", "binary")
         )
@@ -222,7 +224,9 @@ object MultipartParserSpec extends Specification {
         val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
 
         val expectedHeaders = Headers.of(
-          `Content-Disposition`("form-data", Map("name*" -> "http4s withspace", "filename*" -> "我老婆太漂亮.txt")),
+          `Content-Disposition`(
+            "form-data",
+            Map("name*" -> "http4s withspace", "filename*" -> "我老婆太漂亮.txt")),
           `Content-Type`(MediaType.application.`octet-stream`),
           Header("Content-Transfer-Encoding", "binary")
         )
