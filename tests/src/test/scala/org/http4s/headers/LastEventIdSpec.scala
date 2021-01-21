@@ -25,7 +25,7 @@ class LastEventIdSpec extends HeaderLaws {
   implicit val arbLastEventId: Arbitrary[`Last-Event-Id`] =
     Arbitrary(for {
       id <- arbitrary[String]
-      if !id.contains("\uffff")
+      if !id.contains("\n") && !id.contains("\r")
     } yield `Last-Event-Id`(EventId(id)))
 
   checkAll("Last-Event-Id", headerLaws(`Last-Event-Id`))

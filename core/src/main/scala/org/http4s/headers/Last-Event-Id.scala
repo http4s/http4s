@@ -17,9 +17,10 @@
 package org.http4s
 package headers
 
+import cats.parse.Parser
 import org.http4s
+import org.http4s.internal.CharPredicate
 import org.http4s.ServerSentEvent._
-import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 final case class `Last-Event-Id`(id: EventId) extends Header.Parsed {
@@ -30,5 +31,9 @@ final case class `Last-Event-Id`(id: EventId) extends Header.Parsed {
 
 object `Last-Event-Id` extends HeaderKey.Internal[`Last-Event-Id`] with HeaderKey.Singleton {
   def parse(s: String): ParseResult[`Last-Event-Id`] =
-    HttpHeaderParser.LAST_EVENT_ID(s)
+    ParseResult.fromParser(parser, "Invalid Last-Event-Id header")(s)
+
+  private[http4s] val parser = Parser.charsWhile0(CharPredicate.All -- "\n\r").map { (id: String) =>
+    `Last-Event-Id`(ServerSentEvent.EventId(id))
+  }
 }
