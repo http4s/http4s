@@ -16,8 +16,6 @@
 
 package org.http4s.headers
 
-import java.nio.charset.StandardCharsets
-
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.internal.bug
