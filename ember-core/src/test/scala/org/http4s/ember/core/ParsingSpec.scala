@@ -21,7 +21,6 @@ import cats.effect._
 import org.http4s._
 import org.http4s.implicits._
 import scodec.bits.ByteVector
-// import io.chrisdavenport.log4cats.testing.TestingLogger
 import cats.effect.testing.specs2.CatsIO
 import fs2._
 import cats.effect.concurrent._
@@ -55,7 +54,7 @@ class ParsingSpec extends Specification with CatsIO {
         .map(httpifyString)
         .through(fs2.text.utf8Encode[F])
 
-      Parser.Response.parser[F](Int.MaxValue)(byteStream) //(logger)
+      Parser.Response.parser[F](Int.MaxValue)(byteStream)
     }
 
     def forceScopedParsing[F[_]: Sync](s: String): Stream[F, Byte] = {
@@ -155,7 +154,6 @@ class ParsingSpec extends Specification with CatsIO {
     }
 
     "handle a response that requires multiple chunks to be read" in {
-      // val logger = TestingLogger.impl[IO]()
       val defaultMaxHeaderLength = 4096
       val raw =
         """HTTP/1.1 200 OK
@@ -168,7 +166,7 @@ class ParsingSpec extends Specification with CatsIO {
       (for {
         parsed <-
           Parser.Response
-            .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw)) //(logger)
+            .parser[IO](defaultMaxHeaderLength)(Helpers.forceScopedParsing[IO](raw))
             .use { resp =>
               resp.body.through(text.utf8Decode).compile.string
             }

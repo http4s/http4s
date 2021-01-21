@@ -27,8 +27,8 @@ import org.http4s.implicits._
 import _root_.io.circe.Json
 import _root_.org.http4s.ember.client.EmberClientBuilder
 import fs2._
-import _root_.io.chrisdavenport.log4cats.Logger
-import _root_.io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import _root_.org.typelevel.log4cats.Logger
+import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import scala.concurrent.duration._
 import java.util.concurrent.TimeUnit
 import scodec.bits.ByteVector

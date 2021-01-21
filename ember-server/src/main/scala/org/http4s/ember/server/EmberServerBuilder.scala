@@ -27,8 +27,8 @@ import org.http4s.server.Server
 
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
-import _root_.io.chrisdavenport.log4cats.Logger
-import _root_.io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import _root_.org.typelevel.log4cats.Logger
+import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
 
 final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
