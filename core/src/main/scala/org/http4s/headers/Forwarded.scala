@@ -181,7 +181,7 @@ object Forwarded
           else {
             try {
               val i = s.toInt
-              Option.when(i <= PortMax)(Some(i))
+              if (i <= PortMax) Some(Some(i)) else None
             } catch { case _: NumberFormatException => None }
           }
         }
