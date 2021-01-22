@@ -6,9 +6,6 @@ title: Versions
 
 ## Release lifecycle
 
-* <span class="badge badge-danger">Snapshots</span> of all branches
-  are published automatically by [Travis CI] to the [Sonatype Snapshot
-  repo].
 * <span class="badge badge-warning">Milestone</span> releases are
   published for early adopters who need the latest dependencies or new
   features.  We will try to deprecate responsibly, but no binary
@@ -22,8 +19,19 @@ title: Versions
   in the official support channels.  Patches may be released with
   a working pull request accompanied by a tale of woe.
 
-[Travis CI]: https://travis-ci.org/http4s/http4s
-[Sonatype Snapshot repo]: https://oss.sonatype.org/content/repositories/snapshots/org/http4s/
+## Roadmap update
+
+* 0.21.x remains the production version.  Binary-compatible changes
+  will continue to originate here.
+* 0.22.x will be the first http4s release series cross-compiled for
+  Scala 3 (Dotty).  Some breaking changes were necessary, so we're
+  taking this opportunity to pull in all our improvements since v0.21
+  was frozen in February 2020.  This release series will remain on
+  Cats-Effect 2.
+* 1.0.x represents our port to Cats-Effect 3.  It should otherwise be
+  closely track 0.22.x.  The parallel releases will give users the
+  flexibility to upgrade to Scala 3 or to Cats-Effect 3, independently,
+  in either order.
 
 <table class="table table-responsive table-hover">
   <thead>
@@ -34,30 +42,45 @@ title: Versions
 	  <th class="text-center">Scala 2.11</th>
 	  <th class="text-center">Scala 2.12</th>
 	  <th class="text-center">Scala 2.13</th>
+	  <th class="text-center">Scala 3.0</th>
 	  <th>Cats</th>
-	  <th>FS2</th>
+	  <th>FS2</t>
 	  <th>JDK</th>
 	</tr>
   </thead>
   <tbody>
 	<tr>
-	  <td><a href="/v1.0">{{% latestInSeries "1.0" %}}</a></td>
-	  <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
+	  <td><a href="/v1.0">1.0.x</a></td>
+	  <td class="text-center"><span class="badge badge-warning">Snapshots</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-gear"></i></td>
+	  <td>2.x</td>
+	  <td>3.x</td>
+	  <td>1.8+</td>
+	</tr>
+	<tr>
+	  <td><a href="/v0.22">0.22.x</a></td>
+	  <td class="text-center"><span class="badge badge-warning">Snapshots</span></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-gear"></i></td>
 	  <td>2.x</td>
 	  <td>2.x</td>
 	  <td>1.8+</td>
 	</tr>
-	<tr>
+    <tr>
 	  <td><a href="/v0.21">{{% latestInSeries "0.21" %}}</a></td>
 	  <td class="text-center"><span class="badge badge-success">Stable</span></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td>2.x</td>
 	  <td>2.x</td>
 	  <td>1.8+</td>
@@ -68,6 +91,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td>1.x</td>
 	  <td>1.x</td>
@@ -80,6 +104,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td>1.x</td>
 	  <td>1.x</td>
 	  <td>1.8+</td>
@@ -90,6 +115,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td>1.x</td>
 	  <td>0.10.x</td>
@@ -102,6 +128,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td>0.9.x</td>
 	  <td>0.9.x</td>
 	  <td>1.8+</td>
@@ -112,6 +139,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
 	  <td></td>
@@ -124,6 +152,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
 	  <td></td>
 	  <td>1.8+</td>
@@ -134,6 +163,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
 	  <td></td>
@@ -146,6 +176,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
 	  <td></td>
 	  <td>1.8+</td>
@@ -157,6 +188,7 @@ title: Versions
 	  <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
@@ -172,6 +204,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
 	  <td></td>
 	  <td>1.8+</td>
@@ -183,6 +216,7 @@ title: Versions
 	  <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
@@ -198,6 +232,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
 	  <td></td>
 	  <td>1.8+</td>
@@ -209,6 +244,7 @@ title: Versions
 	  <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
@@ -224,6 +260,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
 	  <td></td>
 	  <td>1.8+</td>
@@ -235,6 +272,7 @@ title: Versions
 	  <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
@@ -250,6 +288,7 @@ title: Versions
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
 	  <td></td>
 	  <td>1.8+</td>
@@ -261,6 +300,7 @@ title: Versions
 	  <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
 	  <td class="text-center"><i class="fa fa-check"></i></td>
+	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td class="text-center"><i class="fa fa-ban"></i></td>
 	  <td></td>
