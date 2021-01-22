@@ -17,22 +17,26 @@
 package com.example.http4s
 package war
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp}
+import cats.effect.std.Dispatcher
+import cats.effect.{ExitCode, IO, IOApp}
+import org.http4s.servlet.syntax._
+
 import javax.servlet.annotation.WebListener
 import javax.servlet.{ServletContextEvent, ServletContextListener}
-import org.http4s.servlet.syntax._
-import scala.concurrent.ExecutionContext
 
 @WebListener
-class Bootstrap extends ServletContextListener with IOApp {
+class Bootstrap extends ServletContextListener {
   override def contextInitialized(sce: ServletContextEvent): Unit = {
-    val ctx = sce.getServletContext
-    val blocker = Blocker.liftExecutionContext(ExecutionContext.global)
-    ctx.mountService("example", ExampleService[IO](blocker).routes)
-    ()
+    val app = new IOApp {
+      override def run(args: List[String]): IO[ExitCode] = Dispatcher[IO]
+        .use(dispatcher =>
+          IO(
+            sce.getServletContext
+              .mountService("example", ExampleService[IO].routes, dispatcher = dispatcher)))
+        .as(ExitCode.Success)
+    }
+    app.main(Array.empty)
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {}
-
-  override def run(args: List[String]): IO[ExitCode] = ???
 }

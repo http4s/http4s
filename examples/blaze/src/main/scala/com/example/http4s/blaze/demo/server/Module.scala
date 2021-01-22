@@ -32,8 +32,8 @@ import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
 
 import scala.concurrent.duration._
 
-class Module[F[_]: ConcurrentEffect: ContextShift: Timer](client: Client[F], blocker: Blocker) {
-  private val fileService = new FileService[F](blocker)
+class Module[F[_]: Async](client: Client[F]) {
+  private val fileService = new FileService[F]
 
   private val gitHubService = new GitHubService[F](client)
 

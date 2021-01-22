@@ -16,12 +16,13 @@
 
 package com.example.http4s.blaze.demo.client
 
-import cats.effect.{ConcurrentEffect, ExitCode, IO, IOApp}
+import cats.effect.{Async, ExitCode, IO, IOApp}
 import com.example.http4s.blaze.demo.StreamUtils
 import io.circe.Json
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.{Request, Uri}
 import org.typelevel.jawn.Facade
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object StreamClient extends IOApp {
@@ -29,7 +30,7 @@ object StreamClient extends IOApp {
     new HttpClient[IO].run.as(ExitCode.Success)
 }
 
-class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F]) {
+class HttpClient[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
   implicit val jsonFacade: Facade[Json] =
     new io.circe.jawn.CirceSupportParser(None, false).facade
 
