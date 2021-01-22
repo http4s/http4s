@@ -691,7 +691,6 @@ private[http4s] trait ArbitraryInstances {
     val idnGenerator: Gen[Uri.RegName] = {
       val DotPattern = "[\\.\u002e\u3002\uff0e\uff61]"
 
-      /** Constructs a `IDN` from a string. */
       def apply(value: String): Option[Uri.RegName] =
         value.length match {
           case 0 => None
