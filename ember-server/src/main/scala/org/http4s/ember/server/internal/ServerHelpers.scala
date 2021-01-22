@@ -173,15 +173,31 @@ private[server] object ServerHelpers {
   def forking[F[_], O](streams: Stream[F, Stream[F, O]])(implicit F: Concurrent[F]): Stream[F, INothing] = {
     val fstream = for {
       interrupt <- Deferred[F, Either[Throwable, Unit]]
-      done <- Deferred[F, Unit]
+      error <- Ref.of[F, Option[Throwable]](None)
       running <- SignallingRef[F, Long](0)
     } yield {
       val incrementRunning: F[Unit] = running.update(_ + 1)
       val decrementRunning: F[Unit] = running.update(_ - 1)
       val awaitWhileRunning: F[Unit] = running.discrete.dropWhile(_ > 0).take(1).compile.drain
 
+      def handleResult(result: Either[Throwable, Unit]): F[Unit] =
+        result match {
+          case Right(_) => F.unit
+          case Left(err) => 
+            error.update {
+              case None => Some(err)
+              case x => x
+            }
+        }
+
       def runInner(inner: Stream[F, O]): F[Unit] =
-        incrementRunning >> inner.compile.drain.void >> decrementRunning
+        incrementRunning >> 
+          inner
+            .interruptWhen(interrupt)
+            .compile
+            .drain
+            .attempt
+            .flatMap(handleResult) >> decrementRunning
 
       val runOuter: F[Unit] =
         streams
@@ -191,10 +207,22 @@ private[server] object ServerHelpers {
           .drain
           .void
           .attempt
-          .flatMap(_ => done.complete(()))
+          .flatMap(handleResult)
 
-      Stream.bracket(F.start(runOuter))(_ => interrupt.complete(Right()) >> awaitWhileRunning) >> 
-        Stream.eval(done.get).drain
+      val signalResult: F[Unit] =
+        error.get.flatMap {
+          case Some(err) => F.raiseError(err)
+          case None => F.unit
+        }
+
+      Stream.bracketCase(F.start(runOuter)) { case (_, exitCase) => 
+        import cats.effect.ExitCase
+        val doInterrupt = exitCase match {
+          case ExitCase.Canceled => interrupt.complete(Right())
+          case _ => F.unit
+        }
+        doInterrupt >> awaitWhileRunning >> signalResult 
+      }.drain
     }
 
     Stream.eval(fstream).flatten
