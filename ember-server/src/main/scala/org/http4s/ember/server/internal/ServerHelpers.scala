@@ -21,6 +21,7 @@ import fs2.concurrent._
 import fs2.io.tcp._
 import fs2.io.tls._
 import cats.effect._
+import cats.effect.concurrent._
 import cats.syntax.all._
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
@@ -151,18 +152,51 @@ private[server] object ServerHelpers {
         }
         .drain
 
-    sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+    val handler = sg.server[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
       .interruptWhen(shutdown.signal.attempt)
-      // Divorce the scopes of the server stream and handler streams so the
-      // former can be terminated while handlers complete.
-      .prefetch
       .map { connect =>
         shutdown.trackConnection >>
           Stream
             .resource(connect.flatMap(upgradeSocket(_, tlsInfoOpt)))
             .flatMap(withUpgradedSocket(_))
       }
-      .parJoin(maxConcurrency)
-      .drain
+      
+    forking(handler)
+  }
+
+  // Similar to parJoin with a few semantic differences:
+  // - Results are not returned to the new stream
+  // - The outer stream can terminate and finalize early
+
+  // - If the outer stream or any of the inner streams fail, all are interrupted
+  //   and the returned stream will fail with that failure.
+  def forking[F[_], O](streams: Stream[F, Stream[F, O]])(implicit F: Concurrent[F]): Stream[F, INothing] = {
+    val fstream = for {
+      interrupt <- Deferred[F, Either[Throwable, Unit]]
+      done <- Deferred[F, Unit]
+      running <- SignallingRef[F, Long](0)
+    } yield {
+      val incrementRunning: F[Unit] = running.update(_ + 1)
+      val decrementRunning: F[Unit] = running.update(_ - 1)
+      val awaitWhileRunning: F[Unit] = running.discrete.dropWhile(_ > 0).take(1).compile.drain
+
+      def runInner(inner: Stream[F, O]): F[Unit] =
+        incrementRunning >> inner.compile.drain.void >> decrementRunning
+
+      val runOuter: F[Unit] =
+        streams
+          .flatMap(inner => F.start(startInner(inner)))
+          .interruptWhen(interrupt)
+          .compile
+          .drain
+          .void
+          .attempt
+          .flatMap(_ => done.complete(()))
+
+      Stream.bracket(F.start(runOuter))(_ => interrupt.complete(Right()) >> awaitWhileRunning) >> 
+        Stream.eval(done.get).drain
+    }
+
+    Stream.eval(fstream).flatten
   }
 }
