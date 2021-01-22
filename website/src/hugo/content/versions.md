@@ -44,7 +44,7 @@ title: Versions
 	  <th class="text-center">Scala 2.13</th>
 	  <th class="text-center">Scala 3.0</th>
 	  <th>Cats</th>
-	  <th>FS2</t>
+	  <th>FS2</th>
 	  <th>JDK</th>
 	</tr>
   </thead>
