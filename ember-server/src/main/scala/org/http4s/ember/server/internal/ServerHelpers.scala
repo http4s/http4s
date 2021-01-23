@@ -174,20 +174,23 @@ private[server] object ServerHelpers {
     val fstream = for {
       interrupt <- Deferred[F, Either[Throwable, Unit]]
       error <- Ref.of[F, Option[Throwable]](None)
-      running <- SignallingRef[F, Long](0)
+      running <- SignallingRef[F, Long](1)
     } yield {
       val incrementRunning: F[Unit] = running.update(_ + 1)
       val decrementRunning: F[Unit] = running.update(_ - 1)
       val awaitWhileRunning: F[Unit] = running.discrete.dropWhile(_ > 0).take(1).compile.drain
 
+      val doInterrupt: F[Unit] =
+        interrupt.complete(Right()).attempt.void
+
       def handleResult(result: Either[Throwable, Unit]): F[Unit] =
         result match {
           case Right(_) => F.unit
           case Left(err) => 
-            error.update {
-              case None => Some(err)
-              case x => x
-            }
+            error.modify {
+              case None => Some(err) -> doInterrupt
+              case x => x -> F.unit
+            }.flatten
         }
 
       def runInner(inner: Stream[F, O]): F[Unit] =
@@ -207,7 +210,7 @@ private[server] object ServerHelpers {
           .drain
           .void
           .attempt
-          .flatMap(handleResult)
+          .flatMap(handleResult) >> decrementRunning
 
       val signalResult: F[Unit] =
         error.get.flatMap {
@@ -215,14 +218,8 @@ private[server] object ServerHelpers {
           case None => F.unit
         }
 
-      Stream.bracketCase(F.start(runOuter)) { case (_, exitCase) => 
-        import cats.effect.ExitCase
-        val doInterrupt = exitCase match {
-          case ExitCase.Canceled => interrupt.complete(Right())
-          case _ => F.unit
-        }
-        doInterrupt >> awaitWhileRunning >> signalResult 
-      }.drain
+      Stream.bracket(F.start(runOuter))(_ => doInterrupt >> awaitWhileRunning >> signalResult) >> 
+        Stream.eval(awaitWhileRunning).drain
     }
 
     Stream.eval(fstream).flatten
