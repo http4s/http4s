@@ -811,7 +811,7 @@ object Uri {
 
     override def render(writer: Writer): writer.type =
       this match {
-        case RegName(n) => writer << n
+        case RegName(n) => writer << encode(n.toString)
         case a: Ipv4Address => writer << a.value
         case a: Ipv6Address => writer << '[' << a << ']'
         case _ => writer
@@ -833,7 +833,7 @@ object Uri {
       /* IP-literal    = "[" ( IPv6address / IPvFuture  ) "]" */
       val ipLiteral = char('[') *> ipv6Address.orElse(ipVFuture) <* char(']')
 
-      ipLiteral.orElse(ipv4Address).orElse(regName)
+      ipLiteral.orElse(ipv4Address.backtrack).orElse(regName)
     }
 
     implicit val catsInstancesForHttp4sUriHost: Hash[Host] with Order[Host] with Show[Host] =
