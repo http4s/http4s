@@ -328,12 +328,11 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.23"
     val servlet = "3.1.0"
     val slf4j = "1.7.30"
-    val specs2 = "4.10.5"
+    val specs2 = "4.10.6"
     val tomcat = "9.0.41"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
-    val unique = "2.1.0-M10"
-    val vault = "2.1.0-M11"
+    val vault = "2.1.0-M14"
   }
 
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % V.argonaut

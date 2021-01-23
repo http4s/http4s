@@ -17,14 +17,61 @@
 package org.http4s
 package headers
 
-import org.http4s.parser.HttpHeaderParser
+import cats.parse.{Parser, Rfc5234}
+import org.http4s.internal.CharPredicate
+import org.http4s.internal.parsing.{Rfc2616, Rfc3986, Rfc7230}
 import org.http4s.util.Writer
+import java.nio.charset.StandardCharsets
 
 object `Content-Disposition`
     extends HeaderKey.Internal[`Content-Disposition`]
     with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`Content-Disposition`] =
-    HttpHeaderParser.CONTENT_DISPOSITION(s)
+    ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
+
+  private[http4s] val parser = {
+    sealed trait ValueChar
+    case class AsciiChar(c: Char) extends ValueChar
+    case class EncodedChar(a: Char, b: Char) extends ValueChar
+
+    val attrChar = Rfc3986.alpha
+      .orElse(Rfc3986.digit)
+      .orElse(Parser.charIn('!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~'))
+      .map { (a: Char) =>
+        AsciiChar(a)
+      }
+    val pctEncoded = (Parser.string("%") *> Rfc3986.hexdig ~ Rfc3986.hexdig).map {
+      case (a: Char, b: Char) => EncodedChar(a, b)
+    }
+    val valueChars = attrChar.orElse(pctEncoded).rep
+    val language = Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0
+    val charset = Parser.string("UTF-8").as(StandardCharsets.UTF_8)
+    val extValue = (Rfc5234.dquote *> Parser.charsWhile0(
+      CharPredicate.All -- '"') <* Rfc5234.dquote) | (charset ~ (Parser.string(
+      "'") *> language.? <* Parser.string("'")) ~ valueChars).map { case ((charset, _), values) =>
+      values
+        .map {
+          case EncodedChar(a: Char, b: Char) =>
+            val charByte = (Character.digit(a, 16) << 4) + Character.digit(b, 16)
+            new String(Array(charByte.toByte), charset)
+          case AsciiChar(a) => a.toString
+        }
+        .toList
+        .mkString
+    }
+
+    val value = Rfc7230.token | Rfc7230.quotedString
+
+    val parameter = for {
+      tok <- Rfc7230.token <* Parser.string("=") <* Rfc7230.ows
+      v <- if (tok.endsWith("*")) extValue else value
+    } yield (tok, v)
+
+    (Rfc7230.token ~ (Parser.string(";") *> Rfc7230.ows *> parameter).rep0).map {
+      case (token: String, params: List[(String, String)]) =>
+        `Content-Disposition`(token, params.toMap)
+    }
+  }
 }
 
 // see http://tools.ietf.org/html/rfc2183

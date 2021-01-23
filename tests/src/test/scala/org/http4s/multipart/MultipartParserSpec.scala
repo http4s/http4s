@@ -163,7 +163,7 @@ object MultipartParserSpec extends Specification {
       "parse utf8 headers properly" in {
         val unprocessedInput =
           """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-            |Content-Disposition: form-data; name="http4s很棒"; filename="我老婆太漂亮.txt"
+            |Content-Disposition: form-data; name*="http4s很棒"; filename*="我老婆太漂亮.txt"
             |Content-Type: application/octet-stream
             |Content-Transfer-Encoding: binary
             |
@@ -180,7 +180,53 @@ object MultipartParserSpec extends Specification {
         val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
 
         val expectedHeaders = Headers.of(
-          `Content-Disposition`("form-data", Map("name" -> "http4s很棒", "filename" -> "我老婆太漂亮.txt")),
+          `Content-Disposition`(
+            "form-data",
+            Map("name*" -> "http4s很棒", "filename*" -> "我老婆太漂亮.txt")),
+          `Content-Type`(MediaType.application.`octet-stream`),
+          Header("Content-Transfer-Encoding", "binary")
+        )
+
+        val expected = ruinDelims("""this is a test
+            |here's another test
+            |catch me if you can!
+            |""".stripMargin)
+
+        val headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+        val bodies =
+          multipartMaterialized.parts
+            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .through(asciiDecode)
+            .compile
+            .foldMonoid
+
+        headers mustEqual expectedHeaders
+        bodies.attempt.unsafeRunSync() must beRight(expected)
+      }
+
+      "parse characterset encoded headers properly" in {
+        val unprocessedInput =
+          """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+            |Content-Disposition: form-data; name*=UTF-8''http4s%20withspace; filename*="我老婆太漂亮.txt"
+            |Content-Type: application/octet-stream
+            |Content-Transfer-Encoding: binary
+            |
+            |this is a test
+            |here's another test
+            |catch me if you can!
+            |
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+
+        val input = ruinDelims(unprocessedInput)
+        val results =
+          unspool(input, 15, StandardCharsets.UTF_8)
+            .through(multipartPipe(boundary))
+        val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
+
+        val expectedHeaders = Headers.of(
+          `Content-Disposition`(
+            "form-data",
+            Map("name*" -> "http4s withspace", "filename*" -> "我老婆太漂亮.txt")),
           `Content-Type`(MediaType.application.`octet-stream`),
           Header("Content-Transfer-Encoding", "binary")
         )
