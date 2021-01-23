@@ -1081,9 +1081,13 @@ object Uri extends UriPlatform {
         List(((a << 8) | b).toShort, ((c << 8) | d).toShort)
       }
 
-      def rightsWithIpv4(n: Int) = (1 to n).map { i =>
-        (h16Colon.repExactlyAs[List[Short]](i) ~ parsedIpv4Bytes).backtrack.map {case (l,r) => l ++ r}
-      }.foldLeft(parsedIpv4Bytes.backtrack)(_ | _)
+      def rightsWithIpv4(n: Int) = (1 to n)
+        .map { i =>
+          (h16Colon.repExactlyAs[List[Short]](i) ~ parsedIpv4Bytes).backtrack.map { case (l, r) =>
+            l ++ r
+          }
+        }
+        .foldLeft(parsedIpv4Bytes.backtrack)(_ | _)
 
       val ls32: P[List[Short]] = {
         val option1 = ((h16 <* colon.void) ~ h16).map(t => List(t._1, t._2))
@@ -1100,7 +1104,8 @@ object Uri extends UriPlatform {
 
       val shortIpv6 = for {
         lefts <- h16.repSep0(0, 7, colon).with1 <* doubleColon
-        rights <- if (6 - lefts.size > 0) (h16.repSep0(0, 6 - lefts.size, colon)) else Parser.pure(Nil)
+        rights <-
+          if (6 - lefts.size > 0)(h16.repSep0(0, 6 - lefts.size, colon)) else Parser.pure(Nil)
       } yield toIpv6(lefts, rights)
 
       fullIpv6WihtOptionalIpv4.backtrack.orElse(shortIpv6WithIpv4.backtrack).orElse(shortIpv6)
