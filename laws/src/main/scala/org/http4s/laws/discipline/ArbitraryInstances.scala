@@ -404,7 +404,7 @@ private[http4s] trait ArbitraryInstances {
   implicit val http4sTestingArbitraryForMaxForwards: Arbitrary[`Max-Forwards`] =
     Arbitrary {
       for {
-        value <- Gen.chooseNum(0, Long.MaxValue)
+        value <- Gen.chooseNum(0L, Long.MaxValue)
       } yield `Max-Forwards`.unsafeFromLong(value)
     }
 
@@ -884,7 +884,7 @@ private[http4s] trait ArbitraryInstances {
 
   implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](implicit
       F: Effect[F],
-      g: Arbitrary[DecodeResult[F, A]]) =
+      g: Arbitrary[DecodeResult[F, A]]): Arbitrary[EntityDecoder[F, A]] =
     Arbitrary(for {
       f <- getArbitrary[(Media[F], Boolean) => DecodeResult[F, A]]
       mrs <- getArbitrary[Set[MediaRange]]
