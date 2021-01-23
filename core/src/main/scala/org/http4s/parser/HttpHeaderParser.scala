@@ -16,7 +16,7 @@ import org.http4s.Header.Parsed
 import org.http4s.headers._
 import org.typelevel.ci.CIString
 
-object HttpHeaderParser extends ForwardedHeader {
+object HttpHeaderParser {
   type HeaderParser = String => ParseResult[Parsed]
 
   private val allParsers =
@@ -113,7 +113,7 @@ object HttpHeaderParser extends ForwardedHeader {
     addParser_(CIString("DATE"), Date.parse)
     addParser_(CIString("ETAG"), ETag.parse)
     addParser_(CIString("EXPIRES"), Expires.parse)
-    addParser_(CIString("FORWARDED"), `FORWARDED`)
+    addParser_(CIString("FORWARDED"), Forwarded.parse)
     addParser_(CIString("HOST"), Host.parse)
     addParser_(CIString("IF-MATCH"), `If-Match`.parse)
     addParser_(CIString("IF-MODIFIED-SINCE"), `If-Modified-Since`.parse)

@@ -73,7 +73,7 @@ private[http4s] object Rfc7230 {
       .orElse(obsText)
 
   /* "(" *( ctext / quoted-pair / comment ) ")" */
-  val comment: Parser[String] = Parser.recursive[String] { comment: Parser[String] =>
+  val comment: Parser[String] = Parser.recursive[String] { (comment: Parser[String]) =>
     between(char('('), cText.orElse(quotedPair).orElse(comment).rep0.string, char(')'))
   }
 
@@ -87,4 +87,6 @@ private[http4s] object Rfc7230 {
       NonEmptyList(h, t)
     }
   }
+
+  def listSep = Parser.char(',').surroundedBy(ows)
 }

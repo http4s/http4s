@@ -16,18 +16,10 @@
 
 package org.http4s.parser
 
-import cats.syntax.all._
-import java.nio.charset.{StandardCharsets, Charset => NioCharset}
 import org.http4s.Uri.Scheme.https
 import org.http4s._
 import org.http4s.Uri._
-import org.http4s.internal.parboiled2._
 import org.typelevel.ci.CIString
-
-class IpParserImpl(val input: ParserInput, val charset: NioCharset) extends Parser with IpParser {
-  def CaptureIPv6: Rule1[String] = rule(capture(IpV6Address))
-  def CaptureIPv4: Rule1[String] = rule(capture(IpV4Address))
-}
 
 class UriParserSpec extends Http4sSpec {
   "Uri.requestTarget" should {
@@ -57,8 +49,7 @@ class UriParserSpec extends Http4sSpec {
     "parse a IPv4 address" in {
       foreach(0 to 255) { i =>
         val addr = s"$i.$i.$i.$i"
-        Either.fromTry(
-          new IpParserImpl(addr, StandardCharsets.UTF_8).CaptureIPv4.run()) must beRight(addr)
+        Ipv4Address.fromString(addr).map(_.value) must beRight(addr)
       }
     }
 
